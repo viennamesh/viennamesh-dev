@@ -4,6 +4,10 @@
 #
 rm -rf build/
 
+# remove compiled python code
+#
+rm -f waftools/*.pyc
+
 # clean hidden waf folder 
 #
 rm -rf .waf-*/

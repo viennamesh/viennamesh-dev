@@ -2,7 +2,7 @@
 
 # configure waf
 #
-./waf configure 
+./waf configure
 
 # build
 #   note: waf uses automatically all available cores

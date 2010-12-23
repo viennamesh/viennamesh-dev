@@ -4,6 +4,10 @@
 #
 rm -rf build/
 
+# remove compiled python code
+#
+rm -f waftools/*.pyc
+
 # remove {angles,latex}.txt files
 #
 rm -f *.txt *.txt

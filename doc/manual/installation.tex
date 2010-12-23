@@ -45,13 +45,18 @@ clean_all.sh            :: script which removes all build related files
 % -----------------------------------------------------------------------------
 The whole package comes with almost all dependent software libraries.
 However, it requires the Boost libraries~\cite{boost} to be present.
-By default, the build environment expects the boost libraries to be present 
+
+\TIP{ViennaMesh only requires the header files of the Boost libraries.}
+
+By default, the build environment expects the Boost libraries to be present 
 in the system path
 \begin{exaipd}
 \begin{Verbatim}
 /usr/include
 \end{Verbatim}
 \end{exaipd}
+
+\clearpage
 
 If the Boost libraries are present in a location different to the system 
 path, it can be mentioned at the build scripts at the different 
@@ -76,16 +81,43 @@ cp build/volume_mesher ../bin/
 \end{Verbatim}
 \end{exaipd}
 
-To specify a Boost path, the configuration step has to be altered:
+To specify a Boost path, the configuration step has to be altered.
 
 \begin{exaipd}
 \begin{Verbatim}
 # configure waf
 #
-./waf configure --boost-includes=/path/to/boost/include
+./waf configure --boost-includes=${HOME}/libraries/boost_1_45_0
 \end{Verbatim}
 \end{exaipd}
 
+Note, that the above external Boost path example is based on the assumption, 
+that a Boost package has been downloaded and extracted. The path mentioned 
+therefore points to the folder, which contains a \texttt{boost/} subfolder.
+This subfolder contains all the header files of the Boost project.
+However, the used Boost installation path can be verified by the configuration 
+line of the build process. The line
+
+\begin{exaipd}
+\begin{Verbatim}
+Checking for boost include path     : /home/weinbub/libraries/boost_1_45_0 (ver 1_45)
+\end{Verbatim}
+\end{exaipd}
+
+provides information about the detected and used Boost version. If the path 
+is wrong, the color of the path changes from \texttt{green} to \texttt{yellow}, 
+and an error message is shown:
+
+\begin{exaipd}
+\begin{Verbatim}
+Checking for boost include path     : not found 
+boost headers not found! (required version min:  max: )
+(complete log in /home/weinbub/git/ViennaMesh/hull_converter/build/config.log)
+\end{Verbatim}
+\end{exaipd}
+
+Further note, that the presented procedure of providing an external Boost 
+installation is analogous with all the other ViennaMesh tools.
 
 % -----------------------------------------------------------------------------
 % -----------------------------------------------------------------------------
