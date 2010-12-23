@@ -91,7 +91,7 @@ bin/volume_mesher device_adapted.gau32 device_adapted.gau3
 \subsection{Mesh Classifier}
 The resulting volume mesh can now be investigated regarding the quality 
 of the mesh. Therefore a utility has been developed which evaluates 
-the quality of a mesh~\cite{heinzlgen}. 
+the quality of a mesh~\cite{heinzlgen, stimpflmulti}. 
 This can be done by the following command:
 
 \begin{exaipd}
@@ -107,21 +107,21 @@ the volume mesh under consideration.
 \begin{exaipd}
 \begin{Verbatim}
 ---------------------------------------------
-  cap       0.604686 %
+  cap       0.604686 %     <-- a small number is good
 ---------------------------------------------
-  needle    0.748986 %
+  needle    0.748986 %     <-- a small number is good
 ---------------------------------------------
-  round     80.0866 %      <-- a large number of rounds is good
+  round     80.0866 %      <-- a large number is good
 ---------------------------------------------
-  slat      2.7898 %
+  slat      2.7898 %       <-- a small number is good
 ---------------------------------------------
-  sliver    6.98138 %      <-- a low number of slivers is good
+  sliver    6.98138 %      <-- a small number is good
 ---------------------------------------------
-  spade     1.30557 %
+  spade     1.30557 %      <-- a small number is good
 ---------------------------------------------
-  spindle   0.542843 %
+  spindle   0.542843 %     <-- a small number is good
 ---------------------------------------------
-  wedge     6.94015 %
+  wedge     6.94015 %      <-- a small number is good
 ---------------------------------------------
 \end{Verbatim}
 \end{exaipd}
@@ -130,10 +130,12 @@ Of those presented types, the \texttt{round} and the \texttt{sliver}
 are of particular importance. The \texttt{round} type is considered good, 
 because the dihedral angles of the tetrahedron are in a good mid-range. 
 Those types of elements are usually good for discretization schemes, like 
-Finite Volume Methods or Finite Element Methods.  
+Finite Volume Methods or Finite Element Methods. 
 
 On the contrary, a \texttt{sliver} tetrahedron is a highly degenerated one. 
-Consequently, a small number is desirable.
+Consequently, a small number is desirable. Aside from the \texttt{sliver}
+element type, there are other degenerated elements. Obviously, the number of 
+those should be as small as possible. 
 
 Note, that the mesh classifier tool also produces two files, one containing 
 the present dihedral angles, and the other contains Latex code. 
