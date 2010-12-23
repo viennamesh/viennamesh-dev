@@ -1,0 +1,76 @@
+#
+# Machine dependent make include file
+# 
+#
+CC=/opt/gcc422/bin/gcc 
+# CC=/usr/local/bin/gcc
+# CC=gcc
+CPLUSPLUS=$(CC)
+AR=ar
+LINK=$(CC)
+MAKE=make
+RM=rm
+RANLIB=ranlib
+#
+#
+CFLAGS2 =
+CPLUSPLUSFLAGS2 = -pg -O2 -w -funroll-loops -I/usr/include/GL3.5 -DLINUX -DOPENGL \
+	-DnoTRAFO -DNGSOLVE -DnoADDON \
+	-DOCCGEOMETRY -DOCC52  -DHAVE_IOSTREAM -DHAVE_LIMITS \
+	-DLAPACK -DnoSOCKETS \
+        -march=pentium4   -mtune=pentium4 \
+	-ftemplate-depth-99 -finline-limit=100000 \
+	-DUSE_PARDISO  -DFAST -DnoDEBUG -DCURVEDELEMS_NEW -DnoPIEZO \
+	-DnoACIS -I/opt/ACIS/include -DVERTSORT -DJOACHIM \
+        -DMAX_SYS_DIM=3 -DMAX_CACHEBLOCKS=0   -DUSE_TIMEOFDAY
+#       
+#	   -fprofile-use -fprofile-generate 
+#	--param inline-unit-growth=1000 --param large-function-insns=50000 \
+#	-Wdisabled-optimization -Winline
+#
+#	-Wall
+# 	 -Wunused
+# 	 -fforce-addr  -march=pentium4
+#	 -Wextra
+#	 --stats
+LINKFLAGS2 = -pg -L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/GL3.5  \
+	-Llib -lpardiso_GNU_IA32 -L/opt/intel/mkl70/lib/32 \
+	-L/opt/ACIS/bin/linux_so   -fprofile-generate
+#	-lacisstep \
+#	-lxacis2k \
+#    -lSPAXDefaultGeometryRep \
+#    -lSPAXAssemblyRep \
+#    -lxstep \
+#    -lxcore2k \
+#    -lSPAXInterop \
+#    -lSPAXBase \
+#    -lSPAXAcisBase \
+#    -lSPAXGeometryRepresentation \
+#    -lSpaBase \
+#    -lSpaACIS \
+#    -lSpaAVis
+# SYSLIB2 =  -lstdc++
+# SYSLIB2 = /opt/gcc422/lib/libstdc++.a
+SYSLIB2 = -Lmetis-4.0 -lmetis -L/opt/mpich/ch-p4/lib -lmpich /opt/gcc422/lib/libstdc++.a  /usr/lib/libgfortran.a
+
+
+OCC_DIR=/opt/OpenCASCADE6.1.0
+OCCINC_DIR=$(OCC_DIR)/inc  -I$(OCC_DIR)/ros/inc
+OCCLIB_DIR=$(OCC_DIR)/ros/lin/lib
+
+occlib = -L$(OCCLIB_DIR) -lTKIGES -lTKBRep -lTKSTEP -lTKSTL
+
+# goaltrafo = goaltrafo
+goalngs   = goalngs
+# goaladdon = goaladdon
+
+
+
+
+
+# lapack =  -llapack  -lblas -lgmp -lg2c       
+# lapack = -llapack -lgoto_p4_256-r0.94 -lg2c
+# lapack = -Llib  -llapack -lgoto_intel  -L/opt/intel/cc/9.1.049/lib -lirc -lg2c -lgmp
+lapack = -Llib  -llapack -lgoto -lg2c -lgmp
+
+appngs =  lib/$(MACHINE)/*.o -lngsolvebasic

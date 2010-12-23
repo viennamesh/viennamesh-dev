@@ -1,0 +1,144 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+VERSION='0.0.1'
+APPNAME='volume_mesher'  
+
+top = '.'
+out = 'build'
+
+localtoolsdir = 'waftools/'
+
+def options(ctx):
+   ctx.load('g++')
+   ctx.load('boost', tooldir=localtoolsdir)   
+
+def configure(ctx):
+   ctx.load('g++')
+   ctx.check_boost()
+   #ctx.env.append_value('CXXFLAGS', ['-O2', '-fPIC'])
+
+def build(ctx):
+
+   #
+   #  build the converter library
+   #
+   ctx(
+      features     = 'cxx cxxstlib', 
+      source       = 'src/gsse_converter/converter.cpp',
+      target       = 'converter',
+      name         = 'converter',
+      includes     = '. src/gsse_converter/ \
+         external/gssev02 external/gssev02/external',
+      uselib       = 'BOOST'
+   )
+
+   #
+   #  build the surface mesh library
+   #
+   ctx(
+      features     = 'cxx cxxstlib', 
+      source       = 'src/gsse_surface/delink_octree.cpp \
+         src/gsse_surface/delink_inoutput.cpp \
+         src/gsse_surface/callback.cpp \
+         src/gsse_surface/delink_manage.cpp \
+         src/gsse_surface/geocalc.cpp \
+         src/gsse_surface/surface_manage.cpp \
+         src/gsse_surface/surface_main.cpp ',
+      target       = 'surface',
+      name         = 'surface',
+      includes     = '. src/gsse_surface/ includes/ \
+         external/gssev02 external/gssev02/external',
+      uselib       = 'BOOST',
+      cxxflags     = ['-Wno-write-strings']
+   )
+
+   #
+   #  build the volume mesh library
+   #
+   ctx(
+      features     = 'cxx cxxstlib', 
+      source       = 'src/gsse_volume/linalg/densemat.cpp \
+         src/gsse_volume/opti/linopt.cpp \
+         src/gsse_volume/opti/bfgs.cpp	       \
+         src/gsse_volume/opti/linsearch.cpp       \
+         src/gsse_volume/meshing/global.cpp	 \
+         src/gsse_volume/meshing/meshtool.cpp \
+         src/gsse_volume/meshing/ruler3.cpp \
+         src/gsse_volume/meshing/adfront3.cpp \
+         src/gsse_volume/meshing/tetrarls.cpp \
+         src/gsse_volume/meshing/pyramidrls.cpp \
+         src/gsse_volume/meshing/pyramid2rls.cpp   \
+         src/gsse_volume/meshing/prism2rls.cpp \
+         src/gsse_volume/meshing/netrule3.cpp \
+         src/gsse_volume/meshing/ruler2.cpp \
+         src/gsse_volume/meshing/meshclass.cpp \
+         src/gsse_volume/meshing/improve2.cpp \
+         src/gsse_volume/meshing/adfront2.cpp \
+         src/gsse_volume/meshing/netrule2.cpp \
+         src/gsse_volume/meshing/triarls.cpp \
+         src/gsse_volume/meshing/geomsearch.cpp \
+         src/gsse_volume/meshing/meshtype.cpp \
+         src/gsse_volume/meshing/parser3.cpp \
+         src/gsse_volume/meshing/meshing2.cpp \
+         src/gsse_volume/meshing/parser2.cpp \
+         src/gsse_volume/meshing/meshing3.cpp \
+         src/gsse_volume/meshing/meshfunc.cpp \
+         src/gsse_volume/meshing/localh.cpp \
+         src/gsse_volume/meshing/delaunay.cpp \
+         src/gsse_volume/meshing/msghandler.cpp \
+         src/gsse_volume/meshing/topology.cpp \
+         src/gsse_volume/gprim/geomtest3d.cpp \
+         src/gsse_volume/gprim/geom2d.cpp \
+         src/gsse_volume/gprim/geom3d.cpp \
+         src/gsse_volume/gprim/adtree.cpp \
+         src/gsse_volume/gprim/transform3d.cpp \
+         src/gsse_volume/gprim/geomfuncs.cpp \
+         src/gsse_volume/linalg/vector.cpp \
+         src/gsse_volume/general/moveablemem.cpp \
+         src/gsse_volume/general/ngexception.cpp \
+         src/gsse_volume/general/table.cpp \
+         src/gsse_volume/general/optmem.cpp \
+         src/gsse_volume/general/spbita2d.cpp \
+         src/gsse_volume/general/hashtabl.cpp \
+         src/gsse_volume/general/flags.cpp \
+         src/gsse_volume/general/seti.cpp \
+         src/gsse_volume/general/bitarray.cpp \
+         src/gsse_volume/general/array.cpp \
+         src/gsse_volume/general/symbolta.cpp \
+         src/gsse_volume/general/mystring.cpp \
+         src/gsse_volume/general/profiler.cpp  \
+         src/gsse_volume/meshing/improve3.cpp \
+         src/gsse_volume/meshing/smoothing3.cpp ',
+      target       = 'volume',
+      name         = 'volume',
+      includes     = '. src/gsse_volume/include',
+      cxxflags     = ['-Wno-write-strings']
+   )
+
+   #
+   #  build the volume mesh executable
+   #
+   ctx(
+      features     = 'cxx cxxprogram', 
+      source       = 'src/gsse_vgmodeler/gsse_meshing.cpp',
+      target       = 'volume_mesher',
+      name         = 'volume_mesher',
+      includes     = '. external/gssev01 external/gssev01/external/phoenix_v2 \
+         external/gssev01/external/mauch external/gssev01/external/fusion_v2_2006 \
+         src/gsse_surface src/gsse_volume/include src/gsse_volume src/includes \
+         src/gsse_vgmodeler/include \
+         external/gssev02 external/gssev02/external',
+      uselib       = 'BOOST',
+      use          = 'converter surface volume',
+      cxxflags     = ['-Wno-write-strings'],
+      defines      = 'RELEASE'
+   )
+
+
+
+
+
+
+
+

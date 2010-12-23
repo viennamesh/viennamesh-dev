@@ -1,0 +1,61 @@
+[/ Copyright Kevin Sopp 2008.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section uniform_mp_int reference]
+
+[heading Synopsis]
+
+  // <boost/mp_math/mp_int.hpp>
+  template<class MpInt = mp_int<> >
+  struct uniform_mp_int
+  {
+    typedef MpInt input_type;
+    typedef MpInt result_type;
+
+    static const bool has_fixed_range = false;
+
+    uniform_mp_int(const MpInt& min, const MpInt& max);
+
+    result_type min() const;
+    result_type max() const;
+
+    void reset();
+    
+    template<class UniformRandomNumberGenerator>
+    result_type operator()(UniformRandomNumberGenerator& urng);
+  };
+
+
+[h3 Members]
+
+  uniform_mp_int(const MpInt& min, const MpInt& max);
+
+* [*Requires: ] `min <= max`
+* [*Effects:] Constructs a `uniform_mp_int` object. `min` and `max` are the
+parameters of the distribution.
+
+
+  result_type min() const;
+
+* [*Returns:] The `min` parameter of the distribution.
+
+
+  result_type max() const;
+
+* [*Returns:] The `max` parameter of the distribution.
+
+  
+  void reset();
+
+* [*Effects:] Resets the state of the distribution function.
+
+
+  template<class UniformRandomNumberGenerator>
+  result_type operator()(UniformRandomNumberGenerator& urng);
+
+* [*Returns:] A uniform random number `x` in the range `min <= x <= max`.
+  
+
+[endsect][/uniform_mp_int reference]

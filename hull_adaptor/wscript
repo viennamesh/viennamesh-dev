@@ -1,0 +1,171 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+VERSION='0.0.1'
+APPNAME='surface_adaption'  
+
+top = '.'
+out = 'build'
+
+localtoolsdir = 'waftools/'
+
+def options(ctx):
+   ctx.load('g++')
+   ctx.load('boost', tooldir=localtoolsdir)   
+
+def configure(ctx):
+   ctx.load('g++')
+   ctx.check_boost()
+   ctx.env.append_value('CXXFLAGS', ['-O2', '-pg'])
+
+def build(ctx):
+   ctx(
+      features     = 'cxx cxxstlib', 
+      source       = 'src/libsrc/opti/linopt.cpp \
+         src/libsrc/opti/bfgs.cpp \
+         src/libsrc/opti/linsearch.cpp \
+         src/libsrc/meshing/global.cpp \
+         src/libsrc/meshing/bisect.cpp \
+         src/libsrc/meshing/meshtool.cpp \
+         src/libsrc/meshing/refine.cpp \
+         src/libsrc/meshing/ruler3.cpp \
+         src/libsrc/meshing/improve3.cpp \
+         src/libsrc/meshing/smoothing3.cpp \
+         src/libsrc/meshing/adfront3.cpp \
+         src/libsrc/meshing/tetrarls.cpp \
+         src/libsrc/meshing/prism2rls.cpp \
+         src/libsrc/meshing/pyramidrls.cpp \
+         src/libsrc/meshing/pyramid2rls.cpp \
+         src/libsrc/meshing/netrule3.cpp \
+         src/libsrc/meshing/ruler2.cpp \
+         src/libsrc/meshing/meshclass.cpp \
+         src/libsrc/meshing/improve2.cpp \
+         src/libsrc/meshing/smoothing2.cpp \
+         src/libsrc/meshing/smoothing2.5.cpp \
+         src/libsrc/meshing/adfront2.cpp \
+         src/libsrc/meshing/netrule2.cpp \
+         src/libsrc/meshing/triarls.cpp \
+         src/libsrc/meshing/geomsearch.cpp \
+         src/libsrc/meshing/secondorder.cpp \
+         src/libsrc/meshing/meshtype.cpp \
+         src/libsrc/meshing/parser3.cpp \
+         src/libsrc/meshing/meshing2.cpp \
+         src/libsrc/meshing/quadrls.cpp \
+         src/libsrc/meshing/specials.cpp \
+         src/libsrc/meshing/parser2.cpp \
+         src/libsrc/meshing/meshing3.cpp \
+         src/libsrc/meshing/meshfunc.cpp \
+         src/libsrc/meshing/localh.cpp \
+         src/libsrc/meshing/improve2gen.cpp \
+         src/libsrc/meshing/delaunay.cpp \
+         src/libsrc/meshing/boundarylayer.cpp \
+         src/libsrc/meshing/msghandler.cpp \
+         src/libsrc/meshing/meshfunc2d.cpp \
+         src/libsrc/meshing/topology.cpp \
+         src/libsrc/meshing/clusters.cpp \
+         src/libsrc/meshing/curvedelems_new.cpp \
+         src/libsrc/meshing/hprefinement.cpp \
+         src/libsrc/meshing/validate.cpp \
+         src/libsrc/interface/nglib.cpp \
+         src/libsrc/gprim/geomtest3d.cpp \
+         src/libsrc/gprim/geom2d.cpp \
+         src/libsrc/gprim/geom3d.cpp \
+         src/libsrc/gprim/adtree.cpp \
+         src/libsrc/gprim/transform3d.cpp \
+         src/libsrc/gprim/geomfuncs.cpp \
+         src/libsrc/linalg/polynomial.cpp \
+         src/libsrc/linalg/densemat.cpp \
+         src/libsrc/linalg/vector.cpp \
+         src/libsrc/csg/algprim.cpp \
+         src/libsrc/csg/brick.cpp \
+         src/libsrc/csg/manifold.cpp \
+         src/libsrc/csg/bspline2d.cpp \
+         src/libsrc/csg/meshsurf.cpp \
+         src/libsrc/csg/csgeom.cpp \
+         src/libsrc/csg/polyhedra.cpp \
+         src/libsrc/csg/curve2d.cpp \
+         src/libsrc/csg/singularref.cpp \
+         src/libsrc/csg/edgeflw.cpp \
+         src/libsrc/csg/solid.cpp \
+         src/libsrc/csg/explicitcurve2d.cpp \
+         src/libsrc/csg/specpoin.cpp \
+         src/libsrc/csg/gencyl.cpp \
+         src/libsrc/csg/revolution.cpp \
+         src/libsrc/csg/genmesh.cpp \
+         src/libsrc/csg/spline3d.cpp \
+         src/libsrc/csg/surface.cpp \
+         src/libsrc/csg/identify.cpp \
+         src/libsrc/csg/triapprox.cpp \
+         src/libsrc/csg/csgparser.cpp \
+         src/libsrc/csg/extrusion.cpp \
+         src/libsrc/geom2d/geom2dmesh.cpp \
+         src/libsrc/geom2d/spline.cpp \
+         src/libsrc/geom2d/splinegeometry.cpp \
+         src/libsrc/geom2d/genmesh2d.cpp \
+         src/libsrc/stlgeom/stlline.cpp \
+         src/libsrc/stlgeom/stltool.cpp \
+         src/libsrc/stlgeom/stlgeom.cpp \
+         src/libsrc/stlgeom/stlgeomchart.cpp \
+         src/libsrc/stlgeom/stlgeommesh.cpp \
+         src/libsrc/general/moveablemem.cpp \
+         src/libsrc/general/ngexception.cpp \
+         src/libsrc/general/table.cpp \
+         src/libsrc/general/optmem.cpp \
+         src/libsrc/general/spbita2d.cpp \
+         src/libsrc/general/hashtabl.cpp \
+         src/libsrc/general/sort.cpp \
+         src/libsrc/general/flags.cpp \
+         src/libsrc/general/seti.cpp \
+         src/libsrc/general/bitarray.cpp \
+         src/libsrc/general/array.cpp \
+         src/libsrc/general/symbolta.cpp \
+         src/libsrc/general/mystring.cpp \
+         src/libsrc/general/profiler.cpp ',
+      target       = 'netgen',
+      name         = 'netgen',
+      includes     = '. src/libsrc/include',
+      uselib       = 'BOOST',
+      defines      = 'NO_PARALLEL_THREADS USE_NON_CONST LINUX',
+      cxxflags     = ['-ftemplate-depth-99', '-finline-limit=10000', '-Wdisabled-optimization', '-funroll-loops', '-Wno-write-strings']
+   )
+
+   ctx(
+      features     = 'cxx cxxstlib', 
+      source       = 'src/libsrc/stlgeom/meshstlsurface.cpp',
+      target       = 'meshstlsurface',
+      name         = 'meshstlsurface',
+      includes     = '. src/ src/libsrc/include \
+         external/gssev02 external/gssev02/external',
+      uselib       = 'BOOST',
+      defines      = 'NO_PARALLEL_THREADS USE_NON_CONST LINUX',
+      cxxflags     = ['-ftemplate-depth-99', '-finline-limit=10000', '-Wdisabled-optimization', '-funroll-loops', '-Wno-write-strings']
+   )
+
+   ctx(
+      features     = 'cxx cxxstlib', 
+      source       = 'src/libsrc/stlgeom/stltopology.cpp',
+      target       = 'stltopology',
+      name         = 'stltopology',
+      includes     = '. external/gssev01 \
+         external/gssev01/external/phoenix_v2_2006  \
+         external/gssev01/external/fusion_v2_2006 \
+         external/gssev01/external/phoenix_v2 \
+         external/gssev01/external/mauch \
+         src/ src/libsrc/include',
+      defines      = 'NO_PARALLEL_THREADS USE_NON_CONST LINUX',
+      cxxflags     = ['-ftemplate-depth-99', '-finline-limit=10000', '-Wdisabled-optimization', '-funroll-loops', '-Wno-write-strings']
+   )
+
+   ctx(
+      features     = 'cxx cxxprogram', 
+      source       = 'src/hull_adaptor.cpp',
+      target       = 'hull_adaptor',
+      name         = 'hull_adaptor',
+      includes     = '. external/gssev02 external/gssev02/external',
+      use          = 'netgen meshstlsurface stltopology',
+      uselib       = 'BOOST',
+      cxxflags     = ['-w','-static'],
+      dflags       = ['-static']
+   )
+
+

@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/tlc/!svn/ver/6850/trunk/mtl4/trunk/boost/numeric/mtl/detail
+END
+dilation_table.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/detail/dilation_table.hpp
+END
+dilated_int.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/detail/dilated_int.hpp
+END
+contiguous_memory_block.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/tlc/!svn/ver/6810/trunk/mtl4/trunk/boost/numeric/mtl/detail/contiguous_memory_block.hpp
+END
+masked_dilation_tables.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/tlc/!svn/ver/6636/trunk/mtl4/trunk/boost/numeric/mtl/detail/masked_dilation_tables.hpp
+END
+range_generator.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/tlc/!svn/ver/6850/trunk/mtl4/trunk/boost/numeric/mtl/detail/range_generator.hpp
+END
+strided_base_cursor.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/detail/strided_base_cursor.hpp
+END
+trivial_inserter.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/detail/trivial_inserter.hpp
+END
+base_cursor.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/detail/base_cursor.hpp
+END
+index.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/detail/index.hpp
+END

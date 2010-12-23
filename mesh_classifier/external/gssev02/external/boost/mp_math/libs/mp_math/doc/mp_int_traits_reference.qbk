@@ -1,0 +1,37 @@
+[/ Copyright Kevin Sopp 2008.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section mp_int_traits reference]
+
+The second template parameter to mp_int is a type which allows to customize some
+of mp_int's internal workings.
+
+[heading Synopsis]
+``
+// <boost/mp_math/mp_int/traits.hpp>
+namespace boost {
+namespace mp_math {
+
+template<
+  typename Digit = implementation defined,
+  typename Word = implementation defined
+>
+struct mp_int_traits
+{
+  typedef std::size_t size_type;
+  typedef Digit       digit_type;
+  typedef Word        word_type;
+
+  static size_type toom_mul_cutoff;           // default: 350
+  static size_type toom_sqr_cutoff;           // default: 400
+  static size_type karatsuba_mul_cutoff;      // default: 80
+  static size_type karatsuba_sqr_cutoff;      // default: 120
+};
+
+} // namespace mp_math
+} // namespace boost
+``
+[endsect][/mp_int_traits reference]
+

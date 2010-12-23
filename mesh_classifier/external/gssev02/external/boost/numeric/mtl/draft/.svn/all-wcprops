@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/tlc/!svn/ver/6853/trunk/mtl4/trunk/boost/numeric/mtl/draft
+END
+default_backend.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/draft/default_backend.hpp
+END
+strided_vector_ref.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/tlc/!svn/ver/6853/trunk/mtl4/trunk/boost/numeric/mtl/draft/strided_vector_ref.hpp
+END
+functor_selector.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/draft/functor_selector.hpp
+END
+single_selector.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/draft/single_selector.hpp
+END
+is_shallow_copyable.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/draft/is_shallow_copyable.hpp
+END
+add_rvalue.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/draft/add_rvalue.hpp
+END

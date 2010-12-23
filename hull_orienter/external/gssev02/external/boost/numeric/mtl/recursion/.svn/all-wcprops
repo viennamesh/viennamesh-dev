@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/tlc/!svn/ver/6835/trunk/mtl4/trunk/boost/numeric/mtl/recursion
+END
+base_case_matrix.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/base_case_matrix.hpp
+END
+matrix_recursator.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/tlc/!svn/ver/6835/trunk/mtl4/trunk/boost/numeric/mtl/recursion/matrix_recursator.hpp
+END
+base_case_cast.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/base_case_cast.hpp
+END
+dim_splitter.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/dim_splitter.hpp
+END
+predefined_masks.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/predefined_masks.hpp
+END
+utility.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/tlc/!svn/ver/6803/trunk/mtl4/trunk/boost/numeric/mtl/recursion/utility.hpp
+END
+base_case_test.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/tlc/!svn/ver/6609/trunk/mtl4/trunk/boost/numeric/mtl/recursion/base_case_test.hpp
+END
+simplify_base_case_matrix.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/simplify_base_case_matrix.hpp
+END
+for_each.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/for_each.hpp
+END
+bit_masking.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/recursion/bit_masking.hpp
+END

@@ -1,0 +1,23 @@
+[/ Copyright Kevin Sopp 2008.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section Introduction]
+This library provides the `mp_int` class template for arbitrary precision signed
+integers. These integers grow dynamically as needed. Additionally, special
+functions which are necessary for the implementation of public key cryptography
+such as prime generation are provided.
+
+[heading Acknowledgement]
+
+This library originally started as a port of the C code of libtommath. Without
+the huge amount of work done by its author Tom St. Denis, this library wouldn't
+have been possible. Not only does he provide free C code, but also a very
+detailed pdf document of over 200 pages explaining the algorithms used in his
+code. Both his documentation and his code were placed in the public domain. In
+the spirit of his work the code of the `mp_int` library and its documentation
+are placed in the [*public domain] as well.
+
+[endsect]
+

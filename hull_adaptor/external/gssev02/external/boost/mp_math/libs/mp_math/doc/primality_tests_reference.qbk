@@ -1,0 +1,136 @@
+[/ Copyright Kevin Sopp 2008 - 2009.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section Primality Tests reference]
+
+[section primality_division_test]
+
+This function object tests a candidate `p` by repeatedly dividing it by small
+primes (2, 3, 5, 7, 11...). This is a test that should be used before other more
+complex tests because it quickly sieves out composite numbers. For example,
+testing for 2, 5, 7 will eliminate 54% of all numbers, testing for all primes
+less than 100 eliminates 70%, for all primes less than 256 it is 80%.
+
+[heading Synopsis]
+
+  // <boost/mp_math/mp_int.hpp>
+  struct primality_division_test
+  {
+    typedef bool result_type;
+
+    template<class A, class T>
+    bool operator()(const mp_int<A,T>& p) const;
+  };
+
+
+[h3 Members]
+
+  template<class A, class T>
+  bool operator()(const mp_int<A,T>& p) const;
+
+* [*Effects:] Returns true if `p` is probably prime. Returns false if `p`
+is definitely composite.
+
+[endsect][/primality_division_test]
+
+
+[section primality_fermat_test]
+
+This test is based on Fermat's little theorem which states that if an integer
+`p` is prime, then for all integers `a` where 0 < `a` < `p`
+
+`a**(p-1) = 1 (mod p)`
+
+an alternative formulation is
+
+`a**p = a (mod p)`
+
+For each round the test creates a random base `a` and checks if the condition
+holds.
+There is a class of pseudoprimes called carmichael numbers which are less likely
+though not impossible with enough rounds to be detected by this test.
+
+[heading Synopsis]
+
+  // <boost/mp_math/mp_int.hpp>
+  template<class Distribution = uniform_mp_int<> >
+  struct primality_fermat_test
+  {
+    typedef Distribution distribution_type;
+    typedef bool         result_type;
+
+    explicit primality_fermat_test(unsigned int rounds);
+
+    template<class Engine, class A, class T>
+    bool operator()(Engine& e, const mp_int<A,T>& p) const;
+  };
+
+
+[h3 Members]
+
+  explicit primality_fermat_test(unsigned int r);
+
+* [*Effects:] Constructs a `primality_fermat_test` object with the number
+of test rounds given by `r`.
+
+  template<class Engine, class A, class T>
+  bool operator()(Engine& e, const mp_int<A,T>& p) const;
+
+* [*Effects:] Returns true if `p` is probably prime. Returns false if `p`
+is definitely composite.
+
+[endsect][/primality_fermat_test]
+
+
+[section primality_miller_rabin_test]
+
+This test is an improved version of the Fermat primality test that will also
+detect carmichael numbers.
+
+[heading Synopsis]
+
+  // <boost/mp_math/mp_int.hpp>
+  template<class Distribution = uniform_mp_int<> >
+  struct primality_miller_rabin_test
+  {
+    typedef Distribution distribution_type;
+    typedef bool         result_type;
+
+    explicit primality_miller_rabin_test(unsigned int r = 0);
+
+    template<class Engine, class A, class T>
+    bool operator()(Engine& e, const mp_int<A,T>& p) const;
+
+    static unsigned int recommended_number_of_rounds(unsigned bits);
+  };
+
+
+[h3 Members]
+
+  explicit primality_miller_rabin_test(unsigned int r = 0);
+
+* [*Effects:] Constructs a `primality_miller_rabin_test` object with the number
+of test rounds given by `r`. If `r == 0` then each invocation of this function
+object will use the recommended number of rounds.
+
+  template<class Engine, class A, class T>
+  bool operator()(Engine& e, const mp_int<A,T>& p) const;
+
+* [*Requires: ] `p` is odd.
+* [*Effects:] Returns true if `p` is probably prime. Returns false if `p`
+is definitely composite.
+
+
+  unsigned int recommended_number_of_rounds(unsigned bits);
+
+* [*Effects:] Returns the recommended number of rounds for a number of precision
+`bits` so that the probability of error is less than 2^-96.
+
+[endsect][/primality_miller_rabin_test]
+
+
+
+[endsect][/uniform_mp_int_bits reference]
+

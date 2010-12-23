@@ -1,0 +1,39 @@
+#
+# Machine dependent make include file
+# 
+#
+# CC=/opt/gcc-dev/bin/gcc 
+# CC=/usr/local/bin/gcc
+
+HOMEDIR = /private/Network/Servers/file.math.udel.edu/Volumes/Homes/asinwel/
+CC=gcc
+#CC=/usr/local/gcc3/bin/gcc
+CPLUSPLUS=$(CC)
+AR=ar
+LINK=$(CC)
+MAKE=make 
+RM=rm
+RANLIB=ranlib
+#
+# Machine dependent flags:
+#
+CFLAGS2 =
+
+
+CPLUSPLUSFLAGS2 = -O1  -I/sw/include -I/usr/X11R6/include -I/usr/include -I/usr/X11R6/include/GL3.5 -DLINUX -DOPENGL \
+	-ftemplate-depth-99 -finline-limit=10000 \
+	-Wdisabled-optimization  -funroll-loops  -DNGSOLVE -DMACOS \
+	-DMAX_SYS_DIM=3 -DMAX_CACHEBLOCKS=2 \
+
+LINKFLAGS2 =   -L/usr/X11R6/lib /usr//lib/libgcc_s.1.dylib  -lstdc++  -bind_at_load\
+
+ goalngs=goalngs
+# goaltrafo=goaltrafo
+# goaladdon=goaladdon
+
+appngs =  lib/$(MACHINE)/*.o -lngsolvebasic  \
+
+
+# lapack =  -llapack  -lblas -lgmp  -lgfortran
+
+# occlib = -L$(OCCLIB_DIR)  -lTKIGES -lTKBRep  -lTKSTEP -lTKSTEPBase  -lTKSTL -lTKernel -lTKGeomBase -lTKMath -lTKG2d -lTKG3d -lTKXSBase -lTKOffset -lTKShHealing -lTKTopAlgo -lTKGeomAlgo -lTKBool -lTKPrim -lTKBO  -lTKMesh -lTKFillet

@@ -1,0 +1,48 @@
+# Copyright Kevin Sopp 2008 - 2009.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+alias boost_test
+: $(BOOST_ROOT)/libs/test/build//boost_unit_test_framework/<link>shared ;
+
+alias boost_serialization
+: $(BOOST_ROOT)/libs/serialization/build//boost_serialization/<link>shared ;
+
+project
+  : requirements
+    <include>../../..
+    <link>static
+    <define>BOOST_TEST_DYN_LINK
+    <define>BOOST_TEST_MAIN
+    <define>BOOST_MP_MATH_MP_INT_USE_ASM
+  ;
+
+unit-test add             : add.cpp             boost_test ;
+unit-test bitmanipulation : bitmanipulation.cpp boost_test ;
+unit-test bitwise_ops     : bitwise_ops.cpp     boost_test ;
+unit-test bool_conversion : bool_conversion.cpp boost_test ;
+unit-test cmp             : cmp.cpp             boost_test ;
+unit-test ctors           : ctors.cpp           boost_test ;
+unit-test div             : div.cpp             boost_test ;
+unit-test gcd             : gcd.cpp             boost_test ;
+unit-test integral_ops    : integral_ops.cpp    boost_test ;
+unit-test jacobi          : jacobi.cpp          boost_test ;
+unit-test lcm             : lcm.cpp             boost_test ;
+unit-test modinv          : modinv.cpp          boost_test ;
+unit-test modpow          : modpow.cpp          boost_test ;
+unit-test mul             : mul.cpp             boost_test ;
+unit-test pow             : pow.cpp             boost_test ;
+unit-test prime           : prime.cpp           boost_test ;
+unit-test random          : random.cpp          boost_test ;
+unit-test root            : root.cpp            boost_test ;
+unit-test serialization   : serialization.cpp   boost_test boost_serialization ;
+unit-test shift           : shift.cpp           boost_test ;
+unit-test sqr             : sqr.cpp             boost_test ;
+unit-test sub             : sub.cpp             boost_test ;
+unit-test stream_io       : stream_io.cpp       boost_test ;
+unit-test string_ops      : string_ops.cpp      boost_test ;
+unit-test to_integral     : to_integral.cpp     boost_test ;
+unit-test traits          : traits.cpp          boost_test ;
+#unit-test compile_all     : compile_all.cpp     boost_test ;
+

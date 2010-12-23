@@ -1,0 +1,31 @@
+#
+# Machine dependent make include file
+# 
+#
+CC=gcc
+CPLUSPLUS=$(CC)
+AR=ar
+LINK=$(CC)
+MAKE=make
+RM=rm
+RANLIB=ranlib
+#
+# Machine dependent flags:
+#
+CFLAGS2 =
+CPLUSPLUSFLAGS2 = -g -O -I/usr/include/GL3.5  -DLINUX -DOPENGL -I/usr/local/intel/mkl/INCLUDE -DNGSOLVE -DLAPACK
+LINKFLAGS2 = -g -L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/GL3.5 
+
+SYSLIB2 = -lstdc++
+# SYSLIB2 = -L/usr/lib/lapack -lblas -lstdc++
+
+
+goalngs=goalngs
+# goaltrafo=goaltrafo
+# goaladdon=goaladdon
+
+
+lapack =  -llapack  -lblas -lgmp -lg2c  -lgfortran
+appngs =  lib/$(MACHINE)/*.o -lngsolvebasic
+
+

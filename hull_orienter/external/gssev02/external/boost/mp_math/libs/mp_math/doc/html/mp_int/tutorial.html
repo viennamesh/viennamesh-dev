@@ -1,0 +1,263 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Tutorial</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.74.0">
+<link rel="home" href="../index.html" title="Chapter 1. mp_int">
+<link rel="up" href="../index.html" title="Chapter 1. mp_int">
+<link rel="prev" href="../index.html" title="Chapter 1. mp_int">
+<link rel="next" href="performance.html" title="Performance">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../index.html"><img src="../../../../../doc/html/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/html/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/html/images/home.png" alt="Home"></a><a accesskey="n" href="performance.html"><img src="../../../../../doc/html/images/next.png" alt="Next"></a>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mp_int.tutorial"></a><a class="link" href="tutorial.html" title="Tutorial">Tutorial</a>
+</h2></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="tutorial.html#mp_int.tutorial.general_use">General use</a></span></dt>
+<dt><span class="section"><a href="tutorial.html#mp_int.tutorial.random_number_generation">Random number
+      generation</a></span></dt>
+<dt><span class="section"><a href="tutorial.html#mp_int.tutorial.primality_testing">Primality testing</a></span></dt>
+<dt><span class="section"><a href="tutorial.html#mp_int.tutorial.prime_number_generation">Prime number
+      generation</a></span></dt>
+</dl></div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.tutorial.general_use"></a><a class="link" href="tutorial.html#mp_int.tutorial.general_use" title="General use">General use</a>
+</h3></div></div></div>
+<p>
+        The only header you need to include to use the library is <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">mp_math</span><span class="special">/</span><span class="identifier">mp_int</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+        This is a header-only library so deployment is easy. All functions and objects
+        of this library live in namespace <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">mp_math</span></code>.
+      </p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">iostream</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">mp_math</span><span class="special">/</span><span class="identifier">mp_int</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">mp_math</span><span class="special">;</span>
+<span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">std</span><span class="special">;</span>
+
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span>
+<span class="special">{</span>
+  <span class="comment">// init from string
+</span>  <span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">x</span><span class="special">(</span><span class="string">"93423894782394782347823947289374"</span><span class="special">);</span>
+  <span class="comment">// init from integral type
+</span>  <span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">y</span> <span class="special">=</span> <span class="number">2340</span><span class="special">;</span>
+  <span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">z</span> <span class="special">=</span> <span class="identifier">x</span> <span class="special">*</span> <span class="identifier">y</span><span class="special">;</span>
+
+  <span class="comment">// stream output reacts to stream flags
+</span>  <span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">hex</span> <span class="special">&lt;&lt;</span> <span class="identifier">z</span> <span class="special">&lt;&lt;</span> <span class="identifier">endl</span><span class="special">;</span>
+
+  <span class="comment">// automatic detection of radix using the base prefix 0x
+</span>  <span class="identifier">z</span> <span class="special">=</span> <span class="string">"0xaaaabbbbccccddddeeeeffff222255557777"</span><span class="special">;</span>
+  
+  <span class="identifier">z</span> <span class="special">/=</span> <span class="identifier">y</span><span class="special">;</span>
+
+  <span class="comment">// explicit conversion to string according to formatting flags
+</span>  <span class="identifier">string</span> <span class="identifier">s</span> <span class="special">=</span> <span class="identifier">z</span><span class="special">.</span><span class="identifier">to_string</span><span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;(</span><span class="identifier">ios</span><span class="special">::</span><span class="identifier">hex</span> <span class="special">|</span> <span class="identifier">ios</span><span class="special">::</span><span class="identifier">showbase</span><span class="special">);</span>
+  <span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">s</span> <span class="special">&lt;&lt;</span> <span class="identifier">endl</span><span class="special">;</span>
+
+  <span class="identifier">z</span> <span class="special">-=</span> <span class="identifier">z</span><span class="special">;</span>
+
+  <span class="comment">// explicit conversion to built in integral types - this will throw
+</span>  <span class="comment">// std::overflow_error if int does not have enough precision to hold the
+</span>  <span class="comment">// result
+</span>  <span class="keyword">int</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">z</span><span class="special">.</span><span class="identifier">to_integral</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;();</span>
+  
+  <span class="keyword">return</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="special">}</span>
+</pre>
+<p>
+        In most cases the <code class="computeroutput"><span class="identifier">mp_int</span></code>
+        type will behave like a built in integral type.
+      </p>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.tutorial.random_number_generation"></a><a class="link" href="tutorial.html#mp_int.tutorial.random_number_generation" title="Random number generation">Random number
+      generation</a>
+</h3></div></div></div>
+<p>
+        The random number generators have interfaces similar to Boost.Random. Including
+        <code class="computeroutput"><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">random</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>
+        is not necessary because it is used internally by the <code class="computeroutput"><span class="identifier">mp_int</span></code>
+        random machinery. The random number engine <code class="computeroutput"><span class="identifier">mt19937</span></code>
+        that we use from here on lives in namespace <code class="computeroutput"><span class="identifier">boost</span></code>.
+      </p>
+<pre class="programlisting"><span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">min</span><span class="special">(</span><span class="number">0U</span><span class="special">);</span>
+<span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">max</span><span class="special">(</span><span class="string">"0x8974651231456456564"</span><span class="special">);</span>
+
+<span class="identifier">uniform_mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">generator</span><span class="special">(</span><span class="identifier">min</span><span class="special">,</span> <span class="identifier">max</span><span class="special">);</span>
+
+<span class="comment">// Choose a random number engine.
+</span><span class="identifier">mt19937</span> <span class="identifier">e</span><span class="special">;</span>
+
+<span class="comment">// Now generate a random number.
+</span><span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">generator</span><span class="special">(</span><span class="identifier">e</span><span class="special">);</span>
+</pre>
+<p>
+        Another probably more useful alternative is to generate random numbers of
+        a certain precision measured in bits.
+      </p>
+<pre class="programlisting"><span class="comment">// A generator for 2048 bit integers.
+</span><span class="identifier">uniform_mp_int_bits</span><span class="special">&lt;&gt;</span> <span class="identifier">generator</span><span class="special">(</span><span class="number">2048</span><span class="special">);</span>
+
+<span class="identifier">mt19937</span> <span class="identifier">e</span><span class="special">;</span>
+<span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">generator</span><span class="special">(</span><span class="identifier">e</span><span class="special">);</span>
+</pre>
+<p>
+        Note that the numbers will always be 2048 bits large, i.e. the 2048th bit
+        is always set to 1.
+      </p>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.tutorial.primality_testing"></a><a class="link" href="tutorial.html#mp_int.tutorial.primality_testing" title="Primality testing">Primality testing</a>
+</h3></div></div></div>
+<p>
+        Currently all primality tests in this library are probabilistic. A probabilistic
+        primality test cannot ascertain that a prime candidate p is really prime.
+        It can however ascertain that it is a composite number.
+      </p>
+<p>
+        Here we will learn how to test a number <code class="computeroutput"><span class="identifier">p</span></code>
+        for primality using the fermat primality test. We use boost::bind to bind
+        the random number engine to the test functor. That is necessary because the
+        test functor's function invocation operator needs the random number engine.
+        The operator looks like this:
+      </p>
+<pre class="programlisting"><span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">Engine</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<p>
+        We need to bind the random number engine to the first parameter slot. Let's
+        do it!
+      </p>
+<pre class="programlisting"><span class="comment">// Create the fermat test functor with 4 rounds of testing.
+</span><span class="identifier">primality_fermat_test</span><span class="special">&lt;&gt;</span> <span class="identifier">test</span><span class="special">(</span><span class="number">4</span><span class="special">);</span>
+
+<span class="comment">// Create a random number engine.
+</span><span class="identifier">mt19937</span> <span class="identifier">rng</span><span class="special">;</span>
+
+<span class="comment">// Create a random 1024 bit candidate number.
+</span><span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">p</span> <span class="special">=</span> <span class="identifier">uniform_mp_int_bits</span><span class="special">&lt;&gt;(</span><span class="number">1024</span><span class="special">)(</span><span class="identifier">rng</span><span class="special">);</span>
+
+<span class="keyword">bool</span> <span class="identifier">is_p_prime</span> <span class="special">=</span> <span class="identifier">is_prime</span><span class="special">(</span><span class="identifier">p</span><span class="special">,</span> <span class="identifier">bind</span><span class="special">(</span><span class="identifier">test</span><span class="special">,</span> <span class="identifier">rng</span><span class="special">,</span> <span class="identifier">_1</span><span class="special">));</span>
+</pre>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.tutorial.prime_number_generation"></a><a class="link" href="tutorial.html#mp_int.tutorial.prime_number_generation" title="Prime number generation">Prime number
+      generation</a>
+</h3></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="tutorial.html#mp_int.tutorial.prime_number_generation.prime_generator">prime_generator</a></span></dt>
+<dt><span class="section"><a href="tutorial.html#mp_int.tutorial.prime_number_generation.safe_prime_generator">safe_prime_generator</a></span></dt>
+</dl></div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mp_int.tutorial.prime_number_generation.prime_generator"></a><a class="link" href="tutorial.html#mp_int.tutorial.prime_number_generation.prime_generator" title="prime_generator">prime_generator</a>
+</h4></div></div></div>
+<p>
+          First we will look at how to generate prime numbers using a simple trial
+          division test. What this means is that the prime generator creates a random
+          number and then repeatedly divides it by small primes until it finds a
+          number that passes this test.
+        </p>
+<pre class="programlisting"><span class="comment">// Create a generator for 2048 bit primes.
+</span><span class="identifier">prime_generator</span><span class="special">&lt;</span><span class="identifier">primality_division_test</span><span class="special">&gt;</span> <span class="identifier">generator</span><span class="special">(</span><span class="number">2048</span><span class="special">);</span>
+
+<span class="comment">// Create a random number engine.
+</span><span class="identifier">mt19937</span> <span class="identifier">rng</span><span class="special">;</span>
+
+<span class="comment">// Now create a prime.
+</span><span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">prime</span> <span class="special">=</span> <span class="identifier">generator</span><span class="special">(</span><span class="identifier">rng</span><span class="special">);</span>
+</pre>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mp_int.tutorial.prime_number_generation.safe_prime_generator"></a><a class="link" href="tutorial.html#mp_int.tutorial.prime_number_generation.safe_prime_generator" title="safe_prime_generator">safe_prime_generator</a>
+</h4></div></div></div>
+<p>
+          A safe prime is a prime <code class="computeroutput"><span class="identifier">p</span></code>
+          for which <code class="computeroutput"><span class="special">(</span><span class="identifier">p</span><span class="special">-</span><span class="number">1</span><span class="special">)/</span><span class="number">2</span></code> is also prime. Such prime numbers are much
+          rarer and thus take longer to generate.
+        </p>
+<p>
+          Now we will look at how to use a more sophisticated primality test like
+          <code class="computeroutput"><span class="identifier">primality_miller_rabin_test</span></code>
+          for prime number generation. It is very useful to combine this test with
+          the <code class="computeroutput"><span class="identifier">primality_division_test</span></code>.
+          This will involve a bit of code, mostly because <code class="computeroutput"><span class="identifier">primality_miller_rabin_test</span></code>
+          and <code class="computeroutput"><span class="identifier">safe_prime_generator</span></code>
+          require a random number generator. The latter needs randomness to create
+          a candidate to test for primality and the miller rabin test needs randomness
+          to test the candidate effectively.
+        </p>
+<pre class="programlisting"><span class="comment">// Define a function object that checks a prime candidate p first with a trial
+</span><span class="comment">// division and then with the miller-rabin algorithm. For ease of use we give
+</span><span class="comment">// it default template arguments.
+</span><span class="comment">// It does not hold a reference to the random number engine because that could
+</span><span class="comment">// lead to lifetime problems.
+</span><span class="keyword">template</span><span class="special">&lt;</span>
+  <span class="keyword">class</span> <span class="identifier">Engine</span> <span class="special">=</span> <span class="identifier">mt19937</span><span class="special">,</span>
+  <span class="keyword">class</span> <span class="identifier">Distribution</span> <span class="special">=</span> <span class="identifier">uniform_mp_int_bits</span><span class="special">&lt;&gt;</span>
+<span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">primality_test</span>
+<span class="special">{</span>
+  <span class="identifier">primality_division_test</span>                   <span class="identifier">test1</span><span class="special">;</span>
+  <span class="identifier">primality_miller_rabin_test</span><span class="special">&lt;</span><span class="identifier">Distribution</span><span class="special">&gt;</span> <span class="identifier">test2</span><span class="special">;</span>
+  <span class="identifier">Engine</span> <span class="identifier">rng</span><span class="special">;</span>
+
+  <span class="keyword">explicit</span> <span class="identifier">tester</span><span class="special">(</span><span class="keyword">const</span> <span class="identifier">Engine</span><span class="special">&amp;</span> <span class="identifier">e</span> <span class="special">=</span> <span class="identifier">Engine</span><span class="special">())</span> <span class="special">:</span> <span class="identifier">rng</span><span class="special">(</span><span class="identifier">e</span><span class="special">)</span> <span class="special">{}</span>
+
+  <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span>
+  <span class="special">{</span>
+    <span class="keyword">return</span> <span class="identifier">test1</span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span> <span class="special">&amp;&amp;</span> <span class="identifier">test2</span><span class="special">(</span><span class="identifier">rng</span><span class="special">,</span> <span class="identifier">p</span><span class="special">);</span>
+  <span class="special">}</span>
+<span class="special">};</span>
+
+<span class="comment">// Create a random number engine that we will feed to the different
+</span><span class="comment">// algorithms.
+</span><span class="identifier">mt19937</span> <span class="identifier">rng</span><span class="special">;</span>
+
+<span class="comment">// Create a generator for safe primes with 128 bits precision.
+</span><span class="keyword">typedef</span> <span class="identifier">safe_prime_generator</span><span class="special">&lt;</span><span class="identifier">primality_test</span><span class="special">&lt;&gt;,</span> <span class="identifier">uniform_mp_int_bits</span><span class="special">&lt;&gt;</span> <span class="special">&gt;</span>
+  <span class="identifier">generator_type</span><span class="special">;</span>
+
+<span class="identifier">generator_type</span> <span class="identifier">generator</span><span class="special">(</span><span class="number">128</span><span class="special">,</span> <span class="identifier">primality_test</span><span class="special">&lt;&gt;(</span><span class="identifier">rng</span><span class="special">));</span>
+
+<span class="identifier">mp_int</span><span class="special">&lt;&gt;</span> <span class="identifier">prime</span> <span class="special">=</span> <span class="identifier">generator</span><span class="special">(</span><span class="identifier">rng</span><span class="special">);</span>
+</pre>
+<p>
+          Remember, the generated numbers are <span class="emphasis"><em>probably</em></span> prime.
+        </p>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2008 - 2009 Kevin Sopp<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../index.html"><img src="../../../../../doc/html/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/html/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/html/images/home.png" alt="Home"></a><a accesskey="n" href="performance.html"><img src="../../../../../doc/html/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

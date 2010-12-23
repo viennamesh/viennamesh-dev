@@ -1,0 +1,108 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Chapter 1. mp_int</title>
+<link rel="stylesheet" href="boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.74.0">
+<link rel="home" href="index.html" title="Chapter 1. mp_int">
+<link rel="next" href="mp_int/tutorial.html" title="Tutorial">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../boost.png"></td>
+<td align="center"><a href="../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav"><a accesskey="n" href="mp_int/tutorial.html"><img src="../../../../doc/html/images/next.png" alt="Next"></a></div>
+<div class="chapter" lang="en">
+<div class="titlepage"><div>
+<div><h2 class="title">
+<a name="mp_int"></a>Chapter 1. mp_int</h2></div>
+<div><div class="author"><h3 class="author">
+<span class="firstname">Kevin</span> <span class="surname">Sopp</span>
+</h3></div></div>
+<div><p class="copyright">Copyright © 2008 - 2009 Kevin Sopp</p></div>
+<div><div class="legalnotice">
+<a name="id3115998"></a><p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>
+      </p>
+</div></div>
+</div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl>
+<dt><span class="section"><a href="index.html#mp_int.introduction">Introduction</a></span></dt>
+<dt><span class="section"><a href="mp_int/tutorial.html">Tutorial</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="mp_int/tutorial.html#mp_int.tutorial.general_use">General use</a></span></dt>
+<dt><span class="section"><a href="mp_int/tutorial.html#mp_int.tutorial.random_number_generation">Random number
+      generation</a></span></dt>
+<dt><span class="section"><a href="mp_int/tutorial.html#mp_int.tutorial.primality_testing">Primality testing</a></span></dt>
+<dt><span class="section"><a href="mp_int/tutorial.html#mp_int.tutorial.prime_number_generation">Prime number
+      generation</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="mp_int/performance.html">Performance</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="mp_int/performance.html#mp_int.performance.tips">Tips</a></span></dt>
+<dt><span class="section"><a href="mp_int/performance.html#mp_int.performance.measurements">Measurements</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="mp_int/implementation_notes.html">Implementation notes</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="mp_int/implementation_notes.html#mp_int.implementation_notes.mp_int_structure">mp_int
+      structure</a></span></dt>
+<dt><span class="section"><a href="mp_int/implementation_notes.html#mp_int.implementation_notes.semantics">Semantics</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="mp_int/mp_int_reference.html">mp_int reference</a></span></dt>
+<dt><span class="section"><a href="mp_int/mp_int_traits_reference.html">mp_int_traits reference</a></span></dt>
+<dt><span class="section"><a href="mp_int/uniform_mp_int_reference.html">uniform_mp_int reference</a></span></dt>
+<dt><span class="section"><a href="mp_int/uniform_mp_int_bits_reference.html">uniform_mp_int_bits
+    reference</a></span></dt>
+<dt><span class="section"><a href="mp_int/primality_tests_reference.html">Primality Tests reference</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="mp_int/primality_tests_reference.html#mp_int.primality_tests_reference.primality_division_test">primality_division_test</a></span></dt>
+<dt><span class="section"><a href="mp_int/primality_tests_reference.html#mp_int.primality_tests_reference.primality_fermat_test">primality_fermat_test</a></span></dt>
+<dt><span class="section"><a href="mp_int/primality_tests_reference.html#mp_int.primality_tests_reference.primality_miller_rabin_test">primality_miller_rabin_test</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="mp_int/bibliography.html">Bibliography</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mp_int.introduction"></a><a class="link" href="index.html#mp_int.introduction" title="Introduction">Introduction</a>
+</h2></div></div></div>
+<p>
+      This library provides the <code class="computeroutput"><span class="identifier">mp_int</span></code>
+      class template for arbitrary precision signed integers. These integers grow
+      dynamically as needed. Additionally, special functions which are necessary
+      for the implementation of public key cryptography such as prime generation
+      are provided.
+    </p>
+<a name="mp_int.introduction.acknowledgement"></a><h4>
+<a name="id3155549"></a>
+      <a class="link" href="index.html#mp_int.introduction.acknowledgement">Acknowledgement</a>
+    </h4>
+<p>
+      This library originally started as a port of the C code of libtommath. Without
+      the huge amount of work done by its author Tom St. Denis, this library wouldn't
+      have been possible. Not only does he provide free C code, but also a very detailed
+      pdf document of over 200 pages explaining the algorithms used in his code.
+      Both his documentation and his code were placed in the public domain. In the
+      spirit of his work the code of the <code class="computeroutput"><span class="identifier">mp_int</span></code>
+      library and its documentation are placed in the <span class="bold"><strong>public
+      domain</strong></span> as well.
+    </p>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"><p><small>Last revised: January 17, 2009 at 00:01:17 GMT</small></p></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav"><a accesskey="n" href="mp_int/tutorial.html"><img src="../../../../doc/html/images/next.png" alt="Next"></a></div>
+</body>
+</html>

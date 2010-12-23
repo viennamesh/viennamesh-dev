@@ -1,0 +1,145 @@
+\section{Usage}
+Based on the provided input mesh in the folder 
+
+\begin{exaipd}
+\begin{Verbatim}
+examples/
+\end{Verbatim}
+\end{exaipd}
+
+the complete toolchain is introduced.
+
+\subsection{Conversion}
+First, the input file has to be converted to a file format 
+which is used throughout the toolchain.
+We consider that all executables are being present in the 
+\begin{exaipd}
+\begin{Verbatim}
+bin/
+\end{Verbatim}
+\end{exaipd}
+folder, and the working directory is the root folder of the package.
+
+To convert the file, the following command has to be executed
+\begin{exaipd}
+\begin{Verbatim}
+bin/hull_converter examples/device.hin device.gau32
+\end{Verbatim}
+\end{exaipd}
+
+\subsection{Hull Orienter}
+It may happen, that the hull mesh files are not oriented. This most 
+probably results in a failing hull adaption processing step. 
+This is exactly the case with the present input mesh. 
+Therefore, prior to any further adaption or volume meshing steps, the mesh 
+has to be oriented. 
+
+\NOTE{The hull orientation utility is a prototype. Therefore it may introduce
+problems on perfectly fine input meshes. Only use it, when the hull adaption 
+process failes for a particular input mesh.}
+
+This can be done by the following command.
+
+\begin{exaipd}
+\begin{Verbatim}
+bin/hull_orienter device.gau32 device_oriented.gau32
+\end{Verbatim}
+\end{exaipd}
+
+For further meshing steps, the oriented mesh shall be used.
+
+
+\subsection{Hull Adaption}
+The converted, oriented hull mesh can now be processed by the hull mesh adaption 
+tool. This utility increases the quality of the hull mesh, and by doing so, 
+it significantly improves the quality of the generated volume mesh, which will 
+be generated based on the adapted hull mesh.
+
+\begin{exaipd}
+\begin{Verbatim}
+bin/hull_adaptor device_oriented.gau32
+\end{Verbatim}
+\end{exaipd}
+
+Note, that this utility has no option for a specific output mesh name, it 
+always produces output meshes with the filename
+
+\begin{exaipd}
+\begin{Verbatim}
+surface_mesh.gau32
+\end{Verbatim}
+\end{exaipd}
+
+Therefore, we rename the adapted output mesh to something like this
+
+\begin{exaipd}
+\begin{Verbatim}
+mv surface_mesh.gau32 device_adapted.gau32
+\end{Verbatim}
+\end{exaipd}
+
+\subsection{Volume Mesher}
+The adapted hull mesh can now be volume meshed by the following command:
+
+\begin{exaipd}
+\begin{Verbatim}
+bin/volume_mesher device_adapted.gau32 device_adapted.gau3
+\end{Verbatim}
+\end{exaipd}
+
+\subsection{Mesh Classifier}
+The resulting volume mesh can now be investigated regarding the quality 
+of the mesh. Therefore a utility has been developed which evaluates 
+the quality of a mesh~\cite{heinzlgen}. 
+This can be done by the following command:
+
+\begin{exaipd}
+\begin{Verbatim}
+bin/mesh_classifier device_adapted.gau3
+\end{Verbatim}
+\end{exaipd}
+
+The tool outputs a statistics on the different mesh element types. 
+In the following, the mesh element type statistics is presented of 
+the volume mesh under consideration.
+
+\begin{exaipd}
+\begin{Verbatim}
+---------------------------------------------
+  cap       0.604686 %
+---------------------------------------------
+  needle    0.748986 %
+---------------------------------------------
+  round     80.0866 %      <-- a large number of rounds is good
+---------------------------------------------
+  slat      2.7898 %
+---------------------------------------------
+  sliver    6.98138 %      <-- a low number of slivers is good
+---------------------------------------------
+  spade     1.30557 %
+---------------------------------------------
+  spindle   0.542843 %
+---------------------------------------------
+  wedge     6.94015 %
+---------------------------------------------
+\end{Verbatim}
+\end{exaipd}
+
+Of those presented types, the \texttt{round} and the \texttt{sliver} 
+are of particular importance. The \texttt{round} type is considered good, 
+because the dihedral angles of the tetrahedron are in a good mid-range. 
+Those types of elements are usually good for discretization schemes, like 
+Finite Volume Methods or Finite Element Methods.  
+
+On the contrary, a \texttt{sliver} tetrahedron is a highly degenerated one. 
+Consequently, a small number is desirable.
+
+Note, that the mesh classifier tool also produces two files, one containing 
+the present dihedral angles, and the other contains Latex code. 
+The file containing angles can be used, for example, to create histograms.
+Therefore, the angle distribution throughout the whole mesh can be investigated.
+The file containing Latex code, contains a table with the overview of different 
+mesh element types and a histogram like figure representing the different mesh 
+element types. 
+Those outputs significantly support investigations of the mesh quality.
+

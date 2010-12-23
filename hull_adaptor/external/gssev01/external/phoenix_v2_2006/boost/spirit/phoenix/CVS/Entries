@@ -1,0 +1,21 @@
+/bind.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/container.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/core.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/function.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/object.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/operator.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/scope.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/statement.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/stl.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+/version.hpp/1.1.2.1/Wed Oct 11 09:44:27 2006//TSPIRIT_RC_1_8_5
+D/bind////
+D/core////
+D/detail////
+D/function////
+D/object////
+D/operator////
+D/scope////
+D/statement////
+D/stl////
+D/tuple////
+/algorithm.hpp/1.1.2.1/Fri Jun  9 13:44:14 2006//TSPIRIT_RC_1_8_5

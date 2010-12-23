@@ -1,0 +1,39 @@
+#
+# Machine dependent make include file
+# 
+#
+# CC=/opt/gcc-dev/bin/gcc 
+# CC=/usr/local/bin/gcc
+CC=/export/compilers/gcc-4.2.4_final/bin/g++
+#CC=/usr/lib64/colorgcc/bin/g++
+#CC=g++
+CPLUSPLUS=$(CC)
+AR=ar
+LINK=$(CC)
+MAKE=make
+RM=rm
+RANLIB=ranlib
+#
+# Machine dependent flags:
+#
+CFLAGS2 =
+
+GSSEINCLUDES = -I./ -I$(GSSEHOME)/gsse -I$(GSSEHOME)/gsse/external/phoenix_v2_2006 -I$(GSSEHOME)/gsse/external/fusion_v2_2006 -I$(GSSEHOME)/gsse/external/phoenix_v2  $(EXTERNAL_INCS)  -I$(GSSEHOME)/gsse/external/mauch/
+
+#CPLUSPLUSFLAGS2 = -O2 -pg -I/usr/include/GL3.5 -DLINUX  \
+CPLUSPLUSFLAGS2 = -O2 -pg -I/usr/include/GL3.5 -DLINUX -DOPENGL -DDEBUGALL -DSMALLLIB \
+	-ftemplate-depth-99 -finline-limit=10000 \
+	-Wdisabled-optimization  -funroll-loops $(GSSEINCLUDES) -D_TCL84 -DUSE_NON_CONST -static
+#	-DDEBUGALL
+
+LINKFLAGS2 =   -L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/GL3.5 -lstdc++ -pg 
+
+goalngs=goalngs
+# goaltrafo=goaltrafo
+# goaladdon=goaladdon
+
+
+# lapack =  -llapack  -lblas -lgmp -lg2c  -lgfortran
+# lapack =  -Llib -lgoto -llapack -lgfortran
+#appngs =  lib/$(MACHINE)/*.o -lngsolvebasic
+

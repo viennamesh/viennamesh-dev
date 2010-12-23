@@ -1,0 +1,44 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+VERSION='0.0.1'
+APPNAME='hull_orienter'  
+
+top = '.'
+out = 'build'
+
+localtoolsdir = 'waftools/'
+
+def options(ctx):
+   ctx.load('g++')
+   ctx.load('boost', tooldir=localtoolsdir)   
+
+def configure(ctx):
+   ctx.load('g++')
+   ctx.check_boost()
+   ctx.env.append_value('CXXFLAGS', ['-O2', '-fPIC'])
+
+def build(ctx):
+
+   #
+   #  build the converter library
+   #
+   ctx(
+      features     = 'cxx cxxprogram', 
+      source       = 'src/gsse_vgmodeler/gsse_orienter.cpp',
+      target       = 'hull_orienter',
+      name         = 'hull_orienter',
+      includes     = '. src/gsse_vgmodeler/ src/includes src/gsse_surface \
+         external/gssev01 external/gssev01/external/phoenix_v2 \
+         external/gssev01/external/mauch external/gssev01/external/fusion_v2_2006 \
+         external/gssev02 external/gssev02/external',
+      uselib       = 'BOOST'
+   )
+
+
+
+
+
+
+
+
