@@ -1,16 +1,23 @@
-/* ************* :: Generic Scientific Simulation Environment :: *************
- **  http://www.gsse.at                                                     **
+/* =======================================================================
 
-     Copyright (c) LGPL  Joachim Schoeberl      Date:   7. May. 2000                                                   
+                     ---------------------------------------
+                     ViennaMesh - The Vienna Meshing Library
+                     ---------------------------------------
+                            
+   maintainers:    
+               Josef Weinbub                      weinbub@iue.tuwien.ac.at
+               Johann Cervenka                   cervenka@iue.tuwien.ac.at
 
-     Copyright (c) 2003-2007 René Heinzl         heinzl@iue.tuwien.ac.at
-     Copyright (c) 2004-2007 Philipp Schwaha
-     Copyright (c) 2007      Franz Stimpfl
+   developers:
+               Franz Stimpfl, Rene Heinzl, Philipp Schwaha, Joachim Schoeberl
 
-     Use, modification and distribution is subject to the Boost Software
-     License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
- **  http://www.boost.org/LICENSE_1_0.txt)                                  **
- *************************************************************************** */
+   license:    
+               LGPL, see file LICENSE in the ViennaMesh base directory
+
+   Copyright (c) 2010, Institute for Microelectronics, TU Vienna.
+   http://www.iue.tuwien.ac.at
+
+   ======================================================================= */
 
 #include <mystdlib.h>
 #include <myadt.hpp>

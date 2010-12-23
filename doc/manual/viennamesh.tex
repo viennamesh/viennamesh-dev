@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
-%\documentclass[11pt]{report}
 
+\usepackage[left=2.5cm,right=3.0cm,top=1cm,bottom=2cm,includeheadfoot]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{newcent}
 \usepackage{pstricks} 
@@ -17,8 +17,8 @@
 %\usepackage{subfigure}
 \usepackage{subfig}
 \usepackage{pst-all}
-
-
+\usepackage{fancyhdr}
+\pagestyle{fancy}
 \usepackage[colorlinks=true,linktocpage=true]{hyperref}
 
 %% Listings package START
@@ -52,17 +52,15 @@
 }%
 %% Listings package STOP
 
-%Keywords and Setup
-\newcommand{\CMake} {\texttt{CMake}}
-\newcommand{\OpenMP} {\texttt{OpenMP}}
-\newcommand{\OpenCL} {\texttt{OpenCL}}
-\newcommand{\ViennaCL} {\texttt{ViennaCL}}
-\newcommand{\ViennaCLversion} {\texttt{ViennaCL 1.0.5}}
-\newcommand{\ViennaCLminorversion} {\texttt{ViennaCL 1.0.x}}
-\newcommand{\Boost} {\texttt{Boost}}
-\newcommand{\ublas} {\texttt{ublas}}
-\newcommand{\GCC} {\texttt{GCC}}
-\newcommand{\NVIDIA} { {NVIDIA} }
+
+%% head line
+
+\renewcommand{\headrulewidth}{0.5pt}
+\lhead{}
+\rhead{\includegraphics[scale=0.3]{../logo/logo_v1.eps}}
+
+%% foot line
+\cfoot{\large\thepage}  % center the page number
 
 \include{keywords} % [KR] This is a mess, we should delete unused Minimos-stuff
 \include{setup}
@@ -72,6 +70,8 @@
 
 \include{cover}
 \include{contributors}
+
+\lhead{\small{Institute for Microelectronics, TU Wien}}
 
 \clearpage
 

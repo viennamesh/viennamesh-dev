@@ -1,9 +1,23 @@
-/* ============================================================================
-   Copyright (c) 2007-2009 Franz Stimpfl                          franz@gsse.at
+/* =======================================================================
 
-   Distributed under the Boost Software License, Version 1.0.
-   See accompanying LICENSE_1_0.txt or http://www.boost.org/LICENSE_1_0.txt
-   ============================================================================*/
+                     ---------------------------------------
+                     ViennaMesh - The Vienna Meshing Library
+                     ---------------------------------------
+                            
+   maintainers:    
+               Josef Weinbub                      weinbub@iue.tuwien.ac.at
+               Johann Cervenka                   cervenka@iue.tuwien.ac.at
+
+   developers:
+               Franz Stimpfl, Rene Heinzl, Philipp Schwaha
+
+   license:    
+               LGPL, see file LICENSE in the ViennaMesh base directory
+
+   Copyright (c) 2010, Institute for Microelectronics, TU Vienna.
+   http://www.iue.tuwien.ac.at
+
+   ======================================================================= */
 
 //  Routines for Arbitrary Precision Floating-point Arithmetic             
 //  and Fast Robust Geometric Predicates                                   

@@ -16,7 +16,7 @@ def options(ctx):
 def configure(ctx):
    ctx.load('g++')
    ctx.check_boost()
-   #ctx.env.append_value('CXXFLAGS', ['-O2', '-fPIC'])
+   ctx.env.append_value('CXXFLAGS', ['-O2', '-fPIC'])
 
 def build(ctx):
 
@@ -113,7 +113,9 @@ def build(ctx):
       target       = 'volume',
       name         = 'volume',
       includes     = '. src/gsse_volume/include',
-      cxxflags     = ['-Wno-write-strings']
+      # netgen produces lots of warnings, they are out of reach to fix
+      # so the compiler warnings are completly switched off
+      cxxflags     = ['-w'] 
    )
 
    #

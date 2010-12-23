@@ -1,6 +1,23 @@
-// ng_teststle
+/* =======================================================================
 
-// loads triangles and edge from file
+                     ---------------------------------------
+                     ViennaMesh - The Vienna Meshing Library
+                     ---------------------------------------
+                            
+   maintainers:    
+               Josef Weinbub                      weinbub@iue.tuwien.ac.at
+               Johann Cervenka                   cervenka@iue.tuwien.ac.at
+
+   developers:
+               Franz Stimpfl, Rene Heinzl, Philipp Schwaha
+
+   license:    
+               LGPL, see file LICENSE in the ViennaMesh base directory
+
+   Copyright (c) 2010, Institute for Microelectronics, TU Vienna.
+   http://www.iue.tuwien.ac.at
+
+   ======================================================================= */
 
 #include <iostream>
 #include <stdio.h>
@@ -21,7 +38,7 @@ static void printHeader()
   std::cout << "--  developed by:                                                --" << std::endl;
   std::cout << "--    Franz Stimpfl, Rene Heinzl, Philipp Schwaha                --" << std::endl;
   std::cout << "--  maintained by:                                               --" << std::endl;
-  std::cout << "--    Johann Cervenka, Josef Weinbub                             --" << std::endl;
+  std::cout << "--    Josef Weinbub, Johann Cervenka                             --" << std::endl;
   std::cout << "--  Institute for Microelectronics, TU Wien, Austria             --" << std::endl;
   std::cout << "--  http://www.iue.tuwien.ac.at                                  --" << std::endl;
   std::cout << "-------------------------------------------------------------------" << std::endl;

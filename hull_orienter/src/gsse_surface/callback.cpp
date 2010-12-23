@@ -1,11 +1,23 @@
-/* **************************************************************************
-**                                                                         **
-   2003:        Peter Fleischmann
-   2007-2003:   Rene Heinzl
-   2007-2003:   Philipp Schwaha
-   2007:        Franz Stimpfl
-**                                                                         **
-*************************************************************************** */
+/* =======================================================================
+
+                     ---------------------------------------
+                     ViennaMesh - The Vienna Meshing Library
+                     ---------------------------------------
+                            
+   maintainers:    
+               Josef Weinbub                      weinbub@iue.tuwien.ac.at
+               Johann Cervenka                   cervenka@iue.tuwien.ac.at
+
+   developers:
+               Franz Stimpfl, Rene Heinzl, Philipp Schwaha, Peter Fleischmann
+
+   license:    
+               LGPL, see file LICENSE in the ViennaMesh base directory
+
+   Copyright (c) 2010, Institute for Microelectronics, TU Vienna.
+   http://www.iue.tuwien.ac.at
+
+   ======================================================================= */
 
 #include "delink.hpp"
 
