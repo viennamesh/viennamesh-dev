@@ -35,7 +35,7 @@ Therefore, prior to any further adaption or volume meshing steps, the mesh
 has to be oriented. 
 
 \NOTE{The hull orientation utility is a prototype. Therefore it may introduce
-problems on perfectly fine input meshes. Only use it, when the hull adaption 
+problems on correct input meshes. Only use it, when the hull adaption 
 process fails for a particular input mesh.}
 
 This can be done by the following command.
@@ -91,7 +91,7 @@ bin/volume_mesher device_adapted.gau32 device_adapted.gau3
 \subsection{Mesh Classifier}
 The resulting volume mesh can now be investigated regarding the quality 
 of the mesh. Therefore a utility has been developed which evaluates 
-the quality of a mesh~\cite{heinzlgen, stimpflmulti}. 
+the quality of a mesh~\cite{heinzlgen}~\cite{stimpflmulti}. 
 This can be done by the following command:
 
 \begin{exaipd}
@@ -100,7 +100,7 @@ bin/mesh_classifier device_adapted.gau3
 \end{Verbatim}
 \end{exaipd}
 
-The tool outputs a statistics on the different mesh element types. 
+The tool outputs statistics on the different mesh element types. 
 In the following, the mesh element type statistics is presented of 
 the volume mesh under consideration.
 
