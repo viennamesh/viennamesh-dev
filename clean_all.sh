@@ -2,7 +2,7 @@
 
 echo ""
 echo "-------------------------------------------------------------------" 
-echo "-- ViennaMesh 1.0  2010                                           --" 
+echo "-- ViennaMesh 1.0  2010                                          --" 
 echo "-------------------------------------------------------------------" 
 echo "--  developed by:                                                --" 
 echo "--    Franz Stimpfl, Rene Heinzl, Philipp Schwaha                --" 
