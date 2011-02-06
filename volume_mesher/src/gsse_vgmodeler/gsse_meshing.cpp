@@ -34,6 +34,7 @@
 #include<boost/thread/thread.hpp>
 #include<boost/thread/mutex.hpp>
 #include<boost/bind.hpp>
+#include<boost/timer.hpp>
 
 // *** GSSE includes
 //
@@ -43,7 +44,7 @@
 
 #include "../include/threadpool.hpp"
 
-#define DEBUGORIENTATION
+//#define DEBUGORIENTATION
    
 // --------------------------------------
 
@@ -1224,7 +1225,7 @@ extern int convert_dfise(const std::string& filename_in, const std::string& file
 //
 int main(int argc, char** argv)
 {
-
+   boost::timer t;
   printHeader();
 
 #ifdef RELEASE
@@ -1263,6 +1264,7 @@ int main(int argc, char** argv)
       // #############################################################################
       // SURFACE MESHING
       //
+      t.restart();
       if (filename_in_extension == "bnd")
       {
          std::cout << "## Converting BND file: " << filename_in << std::endl;
@@ -1284,7 +1286,7 @@ int main(int argc, char** argv)
       {  
          domain_input.read_file(filename_in, false);
       }
-
+      std::cout << "  reading mesh::exec-time: " << t.elapsed() << std::endl;
       // #############################################################################
       // ORIENT CHECKER
       // 
@@ -1350,8 +1352,9 @@ int main(int argc, char** argv)
 //  create_volume_mesh_parallel(domain_input, filename_out);
 //       else
 // #endif
+      t.restart();
       create_volume_mesh_sequential(domain_input, additional_vertices, domain_output);
-
+      std::cout << "  volume meshing::exec-time: " << t.elapsed() << std::endl;
 
        std::cout << "## Saving final mesh: " << filename_out << std::endl;
 
@@ -1362,7 +1365,9 @@ int main(int argc, char** argv)
 // #else
        // output the GSSE format
        //
+      t.restart();
        domain_output.write_file(filename_out);
+      std::cout << "  writing domain::exec-time: " << t.elapsed() << std::endl;       
 // #endif
       
 
