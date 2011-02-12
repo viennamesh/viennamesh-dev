@@ -15,7 +15,6 @@
 #include <iostream>
 
 #include "viennamesh/mesh.hpp"
-#include "viennamesh/interfaces.hpp"            // all meshers
 #include "viennamesh/interfaces/triangle.hpp"   // a specific mesher
 
 #include <boost/array.hpp>
@@ -57,3 +56,4 @@ int main(int argc, char * argv[])
    
    return 0;
 }
+

@@ -11,4 +11,4 @@ CurrentInstallDir=
 ProjectRootRelative=./
 
 [MakeBuilder]
-Number Of Jobs=4
+Number Of Jobs=2

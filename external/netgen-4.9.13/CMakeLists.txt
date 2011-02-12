@@ -3,7 +3,7 @@ PROJECT(ViennaMesh)
 cmake_minimum_required(VERSION 2.6)
 
 #if you don't want the full compiler output, remove the following line
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+#SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 # set the include paths
 INCLUDE_DIRECTORIES("netgen/")
@@ -13,7 +13,7 @@ INCLUDE_DIRECTORIES("netgen/libsrc/interface")
 INCLUDE_DIRECTORIES("TclTkTogl/include")
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-DOPENGL)
+   ADD_DEFINITIONS(-O2)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # ------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ ENDFOREACH(SRC)
 # ------------------------------------------------------------------------------
 # LIBSRC / GEOM2D
 #
-SET(LIBSRC_GEOM_TMP genmesh2d.cpp geom2dmesh.cpp spline.cpp)
+SET(LIBSRC_GEOM_TMP genmesh2d.cpp geom2dmesh.cpp spline.cpp splinegeometry.cpp)
 FOREACH(SRC ${LIBSRC_GEOM_TMP})
    LIST(APPEND LIBSRC_GEOM ${CMAKE_CURRENT_SOURCE_DIR}/netgen/libsrc/geom2d/${SRC})
 ENDFOREACH(SRC)
@@ -102,6 +102,14 @@ SET(LIBSRC_GENERAL_TMP array.cpp bitarray.cpp dynamicmem.cpp flags.cpp
 FOREACH(SRC ${LIBSRC_GENERAL_TMP})
    LIST(APPEND LIBSRC_GENERAL ${CMAKE_CURRENT_SOURCE_DIR}/netgen/libsrc/general/${SRC})
 ENDFOREACH(SRC)
+# # ------------------------------------------------------------------------------
+# # LIBSRC / VISUALIZATION
+# #
+# SET(LIBSRC_VISUALIZATION_TMP meshdoc.cpp mvdraw.cpp stlmeshing.cpp vscsg.cpp 
+# 	vsfieldlines.cpp vsmesh.cpp vsocc.cpp vssolution.cpp importsolution.cpp)
+# FOREACH(SRC ${LIBSRC_VISUALIZATION_TMP})
+#    LIST(APPEND LIBSRC_VISUALIZATION ${CMAKE_CURRENT_SOURCE_DIR}/netgen/libsrc/visualization/${SRC})
+# ENDFOREACH(SRC)
 # ------------------------------------------------------------------------------
 # NGLIB
 #
@@ -110,8 +118,9 @@ SET(NGLIB ${CMAKE_CURRENT_SOURCE_DIR}/netgen/nglib/nglib.cpp)
 # BUILD NGLIB
 #    note: it consists of sources from libsrc/ and from nglib/ as well as TCL includes 
 #
-ADD_LIBRARY(libnetgen STATIC ${LIBSRC_INT} ${LIBSRC_GEOM} ${LIBSRC_CSG} ${LIBSRC_STL} 
-   ${LIBSRC_OCC} ${LIBSRC_MESHING} ${LIBSRC_GPRIM} ${LIBSRC_LINALG} ${LIBSRC_GENERAL} ${NGLIB})
+ADD_LIBRARY(netgen STATIC ${LIBSRC_INT} ${LIBSRC_GEOM} ${LIBSRC_CSG} ${LIBSRC_STL} 
+   ${LIBSRC_OCC} ${LIBSRC_MESHING} ${LIBSRC_GPRIM} ${LIBSRC_LINALG} ${LIBSRC_GENERAL} 
+    ${NGLIB}) #${LIBSRC_VISUALIZATION})
 # ------------------------------------------------------------------------------
 
 
