@@ -13,31 +13,16 @@
 ============================================================================= */
 
 
-#ifndef VIENNAMESH_ADD_HPP
-#define VIENNAMESH_ADD_HPP
+#ifndef VIENNAMESH_GENERATE_HPP
+#define VIENNAMESH_GENERATE_HPP
 
 namespace viennamesh {
-  
-template<typename ObjT>   
-struct add   
+
+template<typename MesherT>
+void generate(MesherT& mesher)
 {
-   add(ObjT& obj) : obj(obj) {}
+   mesher(); // TODO use traits to decouple calling mechanisms!
+}
 
-   template<typename EleT>
-   void operator()(EleT const& ele)
-   {
-      obj.add(ele);
-   }
-
-   template<typename EleT>
-   void operator()(EleT & ele)
-   {
-      obj.add(ele);
-   }
-   
-   ObjT & obj;
-};
-   
 } // end namespace viennamesh   
-
 #endif

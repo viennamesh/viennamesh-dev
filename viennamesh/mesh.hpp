@@ -18,6 +18,8 @@
 
 #include "viennamesh/interfaces.hpp"  
 #include "viennamesh/add.hpp"
+#include "viennamesh/object.hpp"
+#include "viennamesh/generate.hpp"
 
 #include "viennagrid/domain.hpp"
 
@@ -73,8 +75,8 @@ struct mesh_generator
          }
          add(cell);         
       }   
-      add(viennamesh::methods::conforming_delaunay());
-      mesher.start();
+//      add(viennamesh::methods::conforming_delaunay());
+//      mesher.start();
    }
    
    // -------------------------------------------------------------------------     

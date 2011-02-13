@@ -29,10 +29,10 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 #list all source files here
-ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
+#ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
 
 #link specific libraries to specific executables
-TARGET_LINK_LIBRARIES(viennamesh triangle tetgen netgen gtsio3)
+#TARGET_LINK_LIBRARIES(viennamesh triangle tetgen netgen gtsio3)
 
 # REMOVEME
-#add_subdirectory(tests)
+add_subdirectory(tests)

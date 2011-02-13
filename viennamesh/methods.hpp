@@ -18,13 +18,13 @@
 
 namespace viennamesh {
 
-namespace methods {
+namespace method {
 
 struct conforming_delaunay {};   
 struct constrained_delaunay {};
 struct convex {};
 
-} // end namespace methods
+} // end namespace method
    
 } // end namespace viennamesh
 

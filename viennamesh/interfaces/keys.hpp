@@ -13,31 +13,22 @@
 ============================================================================= */
 
 
-#ifndef VIENNAMESH_ADD_HPP
-#define VIENNAMESH_ADD_HPP
+#ifndef VIENNAMESH_INTERFACES_KEYS_HPP
+#define VIENNAMESH_INTERFACES_KEYS_HPP
 
 namespace viennamesh {
-  
-template<typename ObjT>   
-struct add   
-{
-   add(ObjT& obj) : obj(obj) {}
-
-   template<typename EleT>
-   void operator()(EleT const& ele)
-   {
-      obj.add(ele);
-   }
-
-   template<typename EleT>
-   void operator()(EleT & ele)
-   {
-      obj.add(ele);
-   }
    
-   ObjT & obj;
-};
+namespace key{
+
+struct point      {};
+struct constraint {};
+struct method     {};
+struct hole       {};
+struct region     {};
+struct size       {};
+
+} // end namespace key
    
-} // end namespace viennamesh   
+} // end namespace viennamesh
 
 #endif

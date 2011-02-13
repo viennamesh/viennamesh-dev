@@ -22,15 +22,14 @@
 #include <boost/array.hpp>
 #include <boost/assert.hpp>
 #include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_floating_point.hpp>
+#include <boost/type_traits/is_integral.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/fusion/include/has_key.hpp>
-#include <boost/fusion/include/at_key.hpp>
 
-#include "viennamesh/methods.hpp"   // TODO remove me?
-#include "viennamesh/interfaces/keys.hpp"
+#include "viennamesh/methods.hpp"
 
-#include "viennautils/dumptype.hpp"
+#include "viennautils/value_type.hpp"
 
 #define VOID void
 #define ANSI_DECLARATORS
@@ -40,8 +39,7 @@ extern "C"  {
 #include "triangle/triangle.h" 
 }
 
-#define MESH_DEBUG
-#define MESH_ENGINE_DEBUG
+//#define MESH_DEBUG
 
 namespace viennamesh {
 
@@ -56,12 +54,11 @@ struct triangle
    static const int DIMT = 2;
    static const int CELL_SIZE = DIMT+1;   // this holds true only for simplices
    
-   typedef boost::array< Numeric , 2 >             point_type;
-   typedef std::vector < point_type >              geometry_container_type;
+   typedef boost::array< Numeric , 2 >    point_type;
+   typedef std::vector < point_type >     geometry_container_type;
 
-   typedef boost::array< Index , 3 >               cell_type;
-   typedef std::vector < cell_type >               topology_container_type;   
-   typedef std::vector <topology_container_type>   segment_container_type;
+   typedef boost::array < Index , 3 >     cell_type;
+   typedef std::vector < cell_type >      topology_container_type;   
    // -------------------------------------------------------------------------
    triangle()
    {
@@ -77,7 +74,6 @@ struct triangle
       segmentlist_index    = 0;
       regionlist_index     = 0;
       holelist_index       = 0;
-      segment_index        = 0;
    }
    // -------------------------------------------------------------------------
 
@@ -90,92 +86,116 @@ struct triangle
    // -------------------------------------------------------------------------
 
    // -------------------------------------------------------------------------
-   void clear()
+   void release()
    {
       geometry_cont.clear();
-      segment_cont.clear();
+      topology_cont.clear();
       freeMem(in); 
       freeMem(out);       
    }
    // -------------------------------------------------------------------------   
 
    // -------------------------------------------------------------------------   
-   template<typename Map>
-   void add(Map& map, 
-            typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::method>::type >::type* dummy = 0) 
-   {
-      add_method(boost::fusion::at_key<viennamesh::key::method>(map));
-   }
-   void add_method(viennamesh::method::constrained_delaunay const&)
-   { 
-      options = "zpqA";
-   }
-   void add_method(viennamesh::method::conforming_delaunay const&)
-   {
-      options = "zpqDA";
+   void add(viennamesh::methods::conforming_delaunay const& ) 
+   {  
+      options = "zpqD";
    }   
-   void add_method(viennamesh::method::convex const&)
-   {
-      options = "zA";
+   void add(viennamesh::methods::constrained_delaunay const& ) 
+   {  
+      options = "zpq";
+   }     
+   void add(viennamesh::methods::convex const& ) 
+   {  
+      options = "z";
    }      
-   // -------------------------------------------------------------------------    
+//    void add(gmi::property::size const& size) // maximum area constraint
+//    {  
+//       options.append("a" + boost::lexical_cast<std::string>(size._val));
+//    }      
+//    void add(gmi::property::angle const& angle) 
+//    {  
+//       std::string::size_type pos = options.find("q",0);
+//       if( pos != std::string::npos )   options.erase( pos, 1 );      
+//       options.append("q" + boost::lexical_cast<std::string>(angle._val));
+//    }    
+//    void add(gmi::property::radius_edge_ratio const& radius_edge_ratio) 
+//    {  
+//       std::cout << "gmi::MeshEngine::Triangle2D::SetProperty: Minimum Radius-Edge Ratio " << std::endl;
+//       std::cout << " ## WARNING ## There is no radius-edge-ratio property available" << std::endl;
+//    }      
+   // -------------------------------------------------------------------------   
 
    // -------------------------------------------------------------------------   
-   template<typename Map>
-   void add(Map& map, 
-            typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::size>::type >::type* dummy = 0) 
-   {
-      options.append("a" + boost::lexical_cast<std::string>(boost::fusion::at_key<viennamesh::key::size>(map)));
-   }
-   // -------------------------------------------------------------------------  
-
-   // -------------------------------------------------------------------------   
-   template<typename Map>
-   void add(Map& map, 
-            typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::point>::type >::type* dummy = 0) 
-   {
+   template<typename PointT>
+   void add(PointT const& pnt,            // const-reference specialization
+            typename boost::enable_if< 
+               typename boost::is_floating_point<
+                  typename viennautils::result_of::value< PointT >::type > >::type* dummy = 0) 
+   {   
+   #ifdef MESH_DEBUG
+      std::cout << "  adding const& point: " << pnt[0] << " : " << pnt[1] << std::endl;
+   #endif         
+      
       extendPoints();
-      in.pointlist[pointlist_index] = boost::fusion::at_key<viennamesh::key::point>(map)[0];
+
+      in.pointlist[pointlist_index] = pnt[0];
       pointlist_index++;
-      in.pointlist[pointlist_index] = boost::fusion::at_key<viennamesh::key::point>(map)[1];
-      pointlist_index++;  
+      in.pointlist[pointlist_index] = pnt[1];
+      pointlist_index++;   
    }
-   // -------------------------------------------------------------------------      
+   template<typename PointT>
+   void add(PointT & pnt,                 // reference specialization
+            typename boost::enable_if< 
+               typename boost::is_floating_point<
+                  typename viennautils::result_of::value< PointT >::type > >::type* dummy = 0) 
+   { 
+   #ifdef MESH_DEBUG
+      std::cout << "  adding & point: " << pnt[0] << " : " << pnt[1] << std::endl;
+   #endif               
+      
+      extendPoints();
 
-   // -------------------------------------------------------------------------     
-   template<typename Map>
-   void add(Map& map, 
-            typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::constraint>::type >::type* dummy = 0) 
+      in.pointlist[pointlist_index] = pnt[0];
+      pointlist_index++;
+      in.pointlist[pointlist_index] = pnt[1];
+      pointlist_index++;   
+   }   
+   // -------------------------------------------------------------------------
+
+   // -------------------------------------------------------------------------
+   template <typename PointIndicesT>
+   void add(PointIndicesT const& indices, // const-reference specialization
+            typename boost::enable_if< 
+               typename boost::is_integral<
+                  typename viennautils::result_of::value< PointIndicesT >::type > >::type* dummy = 0) 
    {
+   #ifdef MESH_DEBUG
+      std::cout << "  adding const& constraint: " << indices[0] << " : " << indices[1] << std::endl;
+   #endif               
       extendSegments();
-      in.segmentlist[segmentlist_index] = boost::fusion::at_key<viennamesh::key::constraint>(map)[0];
+
+      in.segmentlist[segmentlist_index] = indices[0];
       segmentlist_index++;
-      in.segmentlist[segmentlist_index] = boost::fusion::at_key<viennamesh::key::constraint>(map)[1];
-      segmentlist_index++;            
+      in.segmentlist[segmentlist_index] = indices[1];
+      segmentlist_index++;
    }
-   // -------------------------------------------------------------------------      
+   template <typename PointIndicesT>
+   void add(PointIndicesT & indices,      // reference specialization
+            typename boost::enable_if< 
+               typename boost::is_integral<
+                  typename viennautils::result_of::value< PointIndicesT >::type > >::type* dummy = 0) 
+   {  
+   #ifdef MESH_DEBUG
+      std::cout << "  adding & constraint: " << indices[0] << " : " << indices[1] << std::endl;
+   #endif               
+      extendSegments();
 
+      in.segmentlist[segmentlist_index] = indices[0];
+      segmentlist_index++;
+      in.segmentlist[segmentlist_index] = indices[1];
+      segmentlist_index++;
+   }
    // -------------------------------------------------------------------------     
-   template<typename Map>
-   void add(Map& map, 
-            typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::region>::type >::type* dummy = 0) 
-   {
-      extendRegions();
-      in.regionlist[regionlist_index] = boost::fusion::at_key<viennamesh::key::region>(map)[0];
-      regionlist_index++;
-      in.regionlist[regionlist_index] = boost::fusion::at_key<viennamesh::key::region>(map)[1];
-      regionlist_index++;
-      in.regionlist[regionlist_index] = Numeric(segment_index);  // assign region id
-      regionlist_index++;
-      in.regionlist[regionlist_index] = Numeric(segment_index);  // assign region id
-      regionlist_index++;
-      segment_index++;
-   }
-   // -------------------------------------------------------------------------         
-
-// gsse/gsse-v01-private/application/meshing/gsse_triangle/src/triangle++.hpp
-
-
 
    // -------------------------------------------------------------------------      
    void extendPoints()
@@ -197,33 +217,22 @@ struct triangle
    }
    // -------------------------------------------------------------------------      
 
-   // -------------------------------------------------------------------------      
-   void extendRegions()
-   {
-      if ( !in.regionlist)
-         in.regionlist   = (Numeric *)malloc( 4 * sizeof(Numeric) );
-      else   in.regionlist = (Numeric *)realloc ( in.regionlist, (in.numberofregions+1) * 4 * sizeof(Numeric));
-      in.numberofregions++;
-   }
-   // -------------------------------------------------------------------------      
-
    // -------------------------------------------------------------------------   
-   void operator()()
+   void start()
    {
       // default mesh property
       //
-       if( options == "" )    
-          this->add_method(viennamesh::method::constrained_delaunay());
+      if( options == "" )    
+         (*this).add( viennamesh::methods::constrained_delaunay()  );
    
    #ifndef MESH_ENGINE_DEBUG
       options.append("Q");
    #endif
    #ifdef MESH_DEBUG
       std::cout << "MeshEngine::Triangle: starting meshing process .." << std::endl;
-      std::cout << "  parameter set:     " << options << std::endl;
-      std::cout << "  input point size:  " << in.numberofpoints << std::endl;
-      std::cout << "  input const size:  " << in.numberofsegments << std::endl;      
-      std::cout << "  input region size: " << in.numberofregions << std::endl;            
+      std::cout << "  parameter set:    " << options << std::endl;
+      std::cout << "  input point size: " << in.numberofpoints << std::endl;
+      std::cout << "  input const size: " << in.numberofsegments << std::endl;      
    #endif   
       //char buffer[options.length()];
       char *buffer;
@@ -255,9 +264,9 @@ struct triangle
          geometry_cont[pnt_index] = pnt;
       }      
       //
-      // extracting cell complex
+      // extracting topology data
       //
-      segment_cont.resize(segment_index);
+      topology_cont.resize(out.numberoftriangles);
       for(Index tri_index = 0; tri_index < out.numberoftriangles; ++tri_index)
       {
          Index index = tri_index * 3; 
@@ -267,13 +276,8 @@ struct triangle
          cell[1] = out.trianglelist[index+1];
          cell[2] = out.trianglelist[index+2];         
          
-         size_t seg_id = out.triangleattributelist[tri_index];
-         
-         //std::cout << "tri: " << tri_index << " : " << cell[0] << " " << cell[1] << " " 
-         //   << cell[2] << " attr: " << out.triangleattributelist[tri_index] << std::endl;
-         
-         segment_cont[seg_id].push_back(cell);
-      }
+         topology_cont[tri_index] = cell;
+      } 
       //
       // release internal mesher output container, as the data has been already 
       // retrieved
@@ -289,10 +293,10 @@ struct triangle
       return geometry_cont;
    }         
    // -------------------------------------------------------------------------     
-   inline segment_container_type &
+   inline topology_container_type &
    topology()
    {
-      return segment_cont;
+      return topology_cont;
    }       
    // -------------------------------------------------------------------------   
 
@@ -394,11 +398,10 @@ struct triangle
    unsigned long  pointlist_index,
                   segmentlist_index,
                   regionlist_index,
-                  holelist_index,
-                  segment_index;   
+                  holelist_index;   
 
-   geometry_container_type      geometry_cont;      
-   segment_container_type       segment_cont;
+   geometry_container_type       geometry_cont;      
+   topology_container_type       topology_cont;
    // -------------------------------------------------------------------------   
 };
 
