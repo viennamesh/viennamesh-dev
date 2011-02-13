@@ -27,7 +27,7 @@
 #include <boost/fusion/include/has_key.hpp>
 #include <boost/fusion/include/at_key.hpp>
 
-#include "viennamesh/methods.hpp"   // TODO remove me?
+#include "viennamesh/methods.hpp"  
 #include "viennamesh/interfaces/keys.hpp"
 
 #include "viennautils/dumptype.hpp"
@@ -40,8 +40,8 @@ extern "C"  {
 #include "triangle/triangle.h" 
 }
 
-#define MESH_DEBUG
-#define MESH_ENGINE_DEBUG
+//#define MESH_DEBUG
+//#define MESH_ENGINE_DEBUG
 
 namespace viennamesh {
 
@@ -108,15 +108,15 @@ struct triangle
    }
    void add_method(viennamesh::method::constrained_delaunay const&)
    { 
-      options = "zpqA";
+      options = "zpq";
    }
    void add_method(viennamesh::method::conforming_delaunay const&)
    {
-      options = "zpqDA";
+      options = "zpqD";
    }   
    void add_method(viennamesh::method::convex const&)
    {
-      options = "zA";
+      options = "z";
    }      
    // -------------------------------------------------------------------------    
 
@@ -134,11 +134,11 @@ struct triangle
    void add(Map& map, 
             typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::point>::type >::type* dummy = 0) 
    {
-      extendPoints();
-      in.pointlist[pointlist_index] = boost::fusion::at_key<viennamesh::key::point>(map)[0];
-      pointlist_index++;
-      in.pointlist[pointlist_index] = boost::fusion::at_key<viennamesh::key::point>(map)[1];
-      pointlist_index++;  
+       extendPoints();
+       in.pointlist[pointlist_index] = boost::fusion::at_key<viennamesh::key::point>(map)[0];
+       pointlist_index++;
+       in.pointlist[pointlist_index] = boost::fusion::at_key<viennamesh::key::point>(map)[1];
+       pointlist_index++;  
    }
    // -------------------------------------------------------------------------      
 
@@ -160,6 +160,10 @@ struct triangle
    void add(Map& map, 
             typename boost::enable_if< typename boost::fusion::result_of::has_key<Map, viennamesh::key::region>::type >::type* dummy = 0) 
    {
+      // if this region method is called, add the A flag, 
+      // so that Triangle distributes the regional quantities
+      if(segment_index == 0) 
+         options.append("A");
       extendRegions();
       in.regionlist[regionlist_index] = boost::fusion::at_key<viennamesh::key::region>(map)[0];
       regionlist_index++;
@@ -257,6 +261,8 @@ struct triangle
       //
       // extracting cell complex
       //
+      size_t seg_id = 0;
+      if(segment_index == 0) segment_index = 1;
       segment_cont.resize(segment_index);
       for(Index tri_index = 0; tri_index < out.numberoftriangles; ++tri_index)
       {
@@ -267,11 +273,16 @@ struct triangle
          cell[1] = out.trianglelist[index+1];
          cell[2] = out.trianglelist[index+2];         
          
-         size_t seg_id = out.triangleattributelist[tri_index];
+         // only access triangle attributes if there are any
+         // otherwise we get ourselves a segfault
+         // if, for example, there is only one region, 
+         // there is no need to call "add<region>", therefore
+         // we have to counter this case
+         if(out.numberoftriangleattributes > 0)
+            seg_id = out.triangleattributelist[tri_index];
          
          //std::cout << "tri: " << tri_index << " : " << cell[0] << " " << cell[1] << " " 
          //   << cell[2] << " attr: " << out.triangleattributelist[tri_index] << std::endl;
-         
          segment_cont[seg_id].push_back(cell);
       }
       //

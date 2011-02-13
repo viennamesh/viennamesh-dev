@@ -49,7 +49,7 @@ struct mesh_generator
       for (vertex_container_iterator_type it = vertices.begin();
             it != vertices.end(); ++it)
       {
-         add(it->getPoint());
+         add(viennamesh::object<viennamesh::key::point>(it->getPoint()));
       }   
 
       typedef typename viennagrid::result_of::ncell_container<DomainT, DIMT>::type     cell_container_type;
@@ -73,10 +73,10 @@ struct mesh_generator
             cell[i] = vocit->getID();
             i++;
          }
-         add(cell);         
+         add(viennamesh::object<viennamesh::key::constraint>(cell));         
       }   
-//      add(viennamesh::methods::conforming_delaunay());
-//      mesher.start();
+      add(viennamesh::object<viennamesh::key::method>(viennamesh::method::conforming_delaunay()));
+      viennamesh::generate(mesher);
    }
    
    // -------------------------------------------------------------------------     
@@ -86,7 +86,7 @@ struct mesh_generator
       return mesher.geometry();
    }         
    // -------------------------------------------------------------------------     
-   inline typename mesher_type::topology_container_type &
+   inline typename mesher_type::segment_container_type &
    topology()
    {
       return mesher.topology();
@@ -102,6 +102,8 @@ void transfer(typename viennamesh::mesh_generator<T>& mesher, DomainT& domain)
 {
    typedef typename DomainT::config_type                                                  domain_config_type;
 
+   typedef viennagrid::segment<domain_config_type>                                        segment_type;
+   
    static const int DIMG = domain_config_type::dimension_tag::value;
    static const int DIMT = domain_config_type::cell_tag::topology_level;     
    
@@ -114,10 +116,10 @@ void transfer(typename viennamesh::mesh_generator<T>& mesher, DomainT& domain)
    
    typedef typename viennamesh::mesh_generator<T>::mesher_type    mesher_type;
    typedef typename mesher_type::geometry_container_type          geometry_cont_type;
-   typedef typename mesher_type::topology_container_type          topology_cont_type;
+   typedef typename mesher_type::segment_container_type           segment_container_type;
     
-   geometry_cont_type& geom_cont = mesher.geometry();
-   topology_cont_type& topo_cont = mesher.topology();
+   geometry_cont_type&     geom_cont = mesher.geometry();
+   segment_container_type& seg_cont  = mesher.topology();
    
    domain.reserve_vertices(geom_cont.size());
    vertex_type vertex;
@@ -139,19 +141,25 @@ void transfer(typename viennamesh::mesh_generator<T>& mesher, DomainT& domain)
    cell_type cell;
    vertex_type *vertices[CELLSIZE];
    
-   long ci = 0;
-   domain.reserve_cells(topo_cont.size());
-   for(typename topology_cont_type::iterator iter = topo_cont.begin(); 
-      iter != topo_cont.end(); iter++)
+   for(typename segment_container_type::iterator si = seg_cont.begin();
+       si != seg_cont.end(); si++)
    {
-      for(int i = 0; i < CELLSIZE; i++)
-      {
-         vertices[i] = &(domain.vertex((*iter)[i]));
-      }      
-      cell.setVertices(&(vertices[0]));
-      cell.setID(ci);
-      domain.add(cell);         
+      //segment_type & seg = domain.add();
    }
+   
+//    long ci = 0;
+//    domain.reserve_cells(topo_cont.size());
+//    for(typename topology_cont_type::iterator iter = topo_cont.begin(); 
+//       iter != topo_cont.end(); iter++)
+//    {
+//       for(int i = 0; i < CELLSIZE; i++)
+//       {
+//          vertices[i] = &(domain.vertex((*iter)[i]));
+//       }      
+//       cell.setVertices(&(vertices[0]));
+//       cell.setID(ci);
+//       domain.add(cell);         
+//    }
 
 }   
    

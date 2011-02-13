@@ -32,11 +32,11 @@ INCLUDE_DIRECTORIES("../../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/incl
 INCLUDE_DIRECTORIES("../../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
 INCLUDE_DIRECTORIES("../../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
 
-# # build external libraries
-# ADD_SUBDIRECTORY(../external "${CMAKE_CURRENT_BINARY_DIR}/external")
-# 
-# # build ViennaUtils
-# ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
+# build external libraries
+ADD_SUBDIRECTORY(../external "${CMAKE_CURRENT_BINARY_DIR}/external")
+
+# build ViennaUtils
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
    ADD_DEFINITIONS(-Wall -O0 -g -pedantic)
@@ -46,14 +46,14 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 #list all source files here
 ADD_EXECUTABLE(tri src/triangle.cpp)
-#ADD_EXECUTABLE(net3d src/netgen_direct_3d.cpp)
-#ADD_EXECUTABLE(net2d src/netgen_direct_2d.cpp)
+ADD_EXECUTABLE(net3d src/netgen_direct_3d.cpp)
+ADD_EXECUTABLE(net2d src/netgen_direct_2d.cpp)
 
 #link specific libraries to specific executables
 TARGET_LINK_LIBRARIES(tri triangle)
-#TARGET_LINK_LIBRARIES(net3d netgen)
-#TARGET_LINK_LIBRARIES(net2d netgen)
+TARGET_LINK_LIBRARIES(net3d netgen)
+TARGET_LINK_LIBRARIES(net2d netgen)
 
 ADD_TEST(tri tri)
-#ADD_TEST(net3d net3d)
-#ADD_TEST(net2d net2d)
+ADD_TEST(net3d net3d)
+ADD_TEST(net2d net2d)

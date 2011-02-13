@@ -58,7 +58,7 @@ int main(int argc, char * argv[])
          domain_in_type domain_in;
          std::cout << "# viennamesh::reading domain .. " << std::endl;
          viennautils::io::gts_reader   gtsread;
-         gtsread(domain_in, inputfile);
+         gtsread(domain_in, inputfile, true);
          
          statistics(domain_in);
          
@@ -66,9 +66,9 @@ int main(int argc, char * argv[])
          domain_out_type domain_out;
 
          std::cout << "# viennamesh::generating mesh .. " << std::endl;
-         typedef viennamesh::mesh_generator<double> mesh_generator_type;
-         mesh_generator_type mesher;
-         mesher(domain_in);
+          typedef viennamesh::mesh_generator<double> mesh_generator_type;
+          mesh_generator_type mesher;
+          mesher(domain_in);
 
          std::cout << "# viennamesh::building output domain .. " << std::endl;         
          viennamesh::transfer(mesher, domain_out);
