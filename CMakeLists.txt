@@ -18,10 +18,13 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
 
 # build external libraries
-add_subdirectory(external)
+# add_subdirectory(external)
+# 
+# # build ViennaUtils
+# ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
 
-# build ViennaUtils
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
+# REMOVEME
+add_subdirectory(tests)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
    ADD_DEFINITIONS(-Wall -O0 -g -pedantic)
@@ -34,5 +37,4 @@ ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
 #link specific libraries to specific executables
 TARGET_LINK_LIBRARIES(viennamesh triangle gtsio3)
 
-# REMOVEME
-#add_subdirectory(tests)
+

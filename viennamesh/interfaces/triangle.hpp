@@ -40,8 +40,8 @@ extern "C"  {
 #include "triangle/triangle.h" 
 }
 
-//#define MESH_DEBUG
-//#define MESH_ENGINE_DEBUG
+#define MESH_DEBUG
+#define MESH_ENGINE_DEBUG
 
 namespace viennamesh {
 
