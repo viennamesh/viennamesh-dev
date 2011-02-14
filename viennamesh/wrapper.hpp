@@ -12,11 +12,9 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_INTERFACE_TRIANGLE_HPP
-#define VIENNAMESH_INTERFACE_TRIANGLE_HPP
+#ifndef VIENNAMESH_WRAPPER_HPP
+#define VIENNAMESH_WRAPPER_HPP
 
-namespace viennamesh {
-   
-} // end namespace viennamesh
+#include "wrapper/viennagrid.hpp"
 
 #endif

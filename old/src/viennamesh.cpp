@@ -14,16 +14,34 @@
 
 #include <iostream>
 
-
+#include "viennamesh/mesh.hpp"
+#include "viennamesh/interfaces.hpp"            // all meshers
 
 #include "viennagrid/domain.hpp"
 #include "viennautils/io.hpp"
 
 #include "viennagrid/io/vtk_writer.hpp"
+
 #include "viennagrid/domain.hpp"
 
-#include "viennamesh/generator.hpp"
-#include "viennamesh/wrapper/viennagrid.hpp"
+template <viennagrid::dim_type dim, 
+          typename SegmentT>
+void print_elements(SegmentT & seg)
+{
+  SegmentT const & const_seg = seg;
+
+  typedef typename viennagrid::result_of::ncell_container<SegmentT, dim>::type  ContainerT;
+  typedef typename viennagrid::result_of::iterator<ContainerT>::type           ContainerTIterator;
+  
+  ContainerT elements = viennagrid::ncells<dim>(seg);
+  for (ContainerTIterator it = elements.begin();
+       it != elements.end();
+       ++it)
+  {
+/*    //std::cout << *it << std::endl; 
+    it->print_short();*/
+  }
+}
 
 template<typename DomainT>
 void statistics(DomainT& domain, std::ostream& ostr = std::cout)
@@ -94,11 +112,6 @@ int main(int argc, char * argv[])
       if(dim == 2)
       {
          typedef viennagrid::domain<viennagrid::config::line_2d>     domain_in_type;
-         typedef domain_in_type::config_type                         domain_config_type;
-         
-         static const int DIMG = domain_config_type::dimension_tag::value;
-         static const int DIMT = domain_config_type::cell_tag::topology_level;       
-         
          domain_in_type domain_in;
          std::cout << "# viennamesh::reading domain .. " << std::endl;
          viennautils::io::gts_reader   gtsread;
@@ -113,18 +126,13 @@ int main(int argc, char * argv[])
          domain_out_type domain_out;
 
          std::cout << "# viennamesh::generating mesh .. " << std::endl;
+          typedef viennamesh::mesh_generator<double> mesh_generator_type;
+          mesh_generator_type mesher;
+          mesher(domain_in);
 
-         typedef boost::fusion::result_of::make_map<
-            viennamesh::key::algorithm,            viennamesh::key::criteria,            viennamesh::key::dim_topo, viennamesh::key::dim_geom, 
-            viennamesh::val::incremental_delaunay, viennamesh::val::conforming_delaunay, viennamesh::val::two,      viennamesh::val::two  >::type  mesher_properties;          
+         std::cout << "# viennamesh::building output domain .. " << std::endl;         
+         viennamesh::transfer(mesher, domain_out);
          
-         typedef viennamesh::result_of::generate_mesh_kernel<mesher_properties>::type     mesh_kernel_type;
-            
-         typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_in_type>         datastructure_wrapper_type;
-         
-//         std::cout << "# viennamesh::building output domain .. " << std::endl;         
-//         viennamesh::transfer(mesher, domain_out);
-//         
          if(output_extension == "vtu")
          {
             std::cout << "# viennamesh::writing vtu file .. " << std::endl;

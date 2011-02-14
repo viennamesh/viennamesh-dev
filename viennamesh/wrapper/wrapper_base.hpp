@@ -12,11 +12,16 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_INTERFACE_TRIANGLE_HPP
-#define VIENNAMESH_INTERFACE_TRIANGLE_HPP
+#ifndef VIENNAMESH_WRAPPER_WRAPPERBASE_HPP
+#define VIENNAMESH_WRAPPER_WRAPPERBASE_HPP
 
 namespace viennamesh {
    
+template<typename DatastructureTag, typename Datastructure>
+struct wrapper
+{
+};
+  
 } // end namespace viennamesh
 
 #endif
