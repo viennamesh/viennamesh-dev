@@ -18,22 +18,19 @@
 namespace viennamesh {
    
 namespace tag {
+   
 struct none     {};
 struct triangle {};
 struct tetgen   {};
 struct netgen   {};
-}
-   
-namespace key {
+
 struct algorithm {};
 struct criteria  {};
 struct dim_topo  {};
 struct dim_geom  {};
 struct cell_type {};
 struct size      {};
-}
 
-namespace val {
 struct incremental_delaunay {};
 struct advancing_front      {};
 struct constrained_delaunay {};
@@ -42,6 +39,8 @@ struct one                  {};
 struct two                  {};
 struct three                {};
 struct simplex              {};
+struct cuboid               {};
+
 }
    
 } // end namespace viennamesh

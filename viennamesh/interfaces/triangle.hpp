@@ -71,6 +71,33 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::Triangle - starting meshing process" << std::endl;
    #endif
+   
+      typedef typename DatastructureT::geometry_iterator geometry_iterator;
+      for(geometry_iterator iter = data.geometry_begin();
+         iter != data.geometry_end(); iter++)
+      {
+         std::cout << *iter << std::endl;
+      }
+
+      typedef typename DatastructureT::segment_iterator segment_iterator;
+      for(segment_iterator seg_iter = data.segment_begin();
+         seg_iter != data.segment_end(); seg_iter++)
+      {
+         typedef typename DatastructureT::cell_type      cell_type;
+         typedef typename DatastructureT::cell_iterator  cell_iterator;
+         for(cell_iterator cit = (*seg_iter).cell_begin();
+             cit != (*seg_iter).cell_end(); cit++)
+         {
+            //*cit;
+            //cell_type cell = *cit;
+            //std::cout << (*cit)[0] << std::endl;
+            //std::cout << *cit << std::endl;
+         }
+
+      }
+
+   
+   
    }
    // -------------------------------------------------------------------------------------
 

@@ -15,7 +15,6 @@
 #include <iostream>
 
 
-
 #include "viennautils/io.hpp"
 #include "viennautils/dumptype.hpp"
 
@@ -130,8 +129,8 @@ int main(int argc, char * argv[])
          // ------------------------------------------------------------------------------------------
          using namespace viennamesh;
          typedef boost::fusion::result_of::make_map<
-            key::cell_type, key::algorithm,            key::criteria,            key::dim_topo, key::dim_geom, 
-            val::simplex,   val::incremental_delaunay, val::conforming_delaunay, val::two,      val::two  >::type  mesher_properties;          
+            tag::cell_type, tag::algorithm,            tag::criteria,            tag::dim_topo, tag::dim_geom, 
+            tag::simplex,   tag::incremental_delaunay, tag::conforming_delaunay, tag::two,      tag::two  >::type  mesher_properties;          
          
          typedef viennamesh::result_of::generate_mesh_kernel<mesher_properties>::type     mesh_kernel;
             
@@ -141,9 +140,7 @@ int main(int argc, char * argv[])
          typedef viennamesh::result_of::mesh_generator<mesh_kernel, datastructure_type>::type mesh_generator_type;
          mesh_generator_type mesher(data);
 
-         mesher( boost::fusion::make_map<key::criteria, key::size>(val::conforming_delaunay(), 1.0) );
-
-         
+         mesher( boost::fusion::make_map<tag::criteria, tag::size>(tag::conforming_delaunay(), 1.0) );         
          // ------------------------------------------------------------------------------------------         
          
 //         std::cout << "# viennamesh::building output domain .. " << std::endl;         
