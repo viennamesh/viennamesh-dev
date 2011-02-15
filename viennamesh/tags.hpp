@@ -29,6 +29,8 @@ struct algorithm {};
 struct criteria  {};
 struct dim_topo  {};
 struct dim_geom  {};
+struct cell_type {};
+struct size      {};
 }
 
 namespace val {
@@ -39,6 +41,7 @@ struct conforming_delaunay  {};
 struct one                  {};
 struct two                  {};
 struct three                {};
+struct simplex              {};
 }
    
 } // end namespace viennamesh

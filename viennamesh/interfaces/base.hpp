@@ -12,31 +12,13 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_GENERATOR_HPP
-#define VIENNAMESH_GENERATOR_HPP
-
-#include <boost/fusion/include/make_map.hpp>
-
-#include "viennamesh/interfaces.hpp"
-#include "viennamesh/tags.hpp"
+#ifndef VIENNAMESH_INTERFACE_BASE_HPP
+#define VIENNAMESH_INTERFACE_BASE_HPP
 
 namespace viennamesh {
    
-namespace result_of {
-
-template<typename PropertiesT>   
-struct generate_mesh_kernel  // TODO place property-fold in here
-{
-   typedef viennamesh::tag::triangle type;
-};
-  
-template<typename MeshKernelTag, typename WrapperT>  
-struct mesh_generator
-{
-   typedef viennamesh::mesh_kernel<MeshKernelTag, WrapperT>    type;
-};
-
-} // end namespace result_of
+template <typename KernelTag, typename DatastructureT>
+struct mesh_kernel { };
    
 } // end namespace viennamesh
 

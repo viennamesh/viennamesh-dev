@@ -16,11 +16,13 @@
 
 
 
-#include "viennagrid/domain.hpp"
 #include "viennautils/io.hpp"
+#include "viennautils/dumptype.hpp"
 
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/domain.hpp"
+
+
 
 #include "viennamesh/generator.hpp"
 #include "viennamesh/wrapper/viennagrid.hpp"
@@ -38,6 +40,9 @@ void statistics(DomainT& domain, std::ostream& ostr = std::cout)
    typedef typename viennagrid::result_of::ncell_container<segment_type, DIMT>::type         cell_complex_type;
    typedef typename viennagrid::result_of::iterator<cell_complex_type>::type                 cell_iterator_type;   
    typedef typename viennagrid::result_of::ncell_type<domain_config_type, DIMT>::type        cell_type;
+   typedef typename viennagrid::result_of::ncell_container<segment_type, 0>::type            vertex_complex_type;
+//    typedef typename viennagrid::result_of::iterator<vertex_complex_type>::type               vertex_iterator_type;   // DOES NOT WORK ATM
+   typedef typename viennagrid::result_of::ncell_type<domain_config_type, 0>::type           vertex_type;   
    typedef typename viennagrid::result_of::ncell_container<cell_type, 0>::type               vertex_on_cell_container_type;
    typedef typename viennagrid::result_of::iterator<vertex_on_cell_container_type>::type     vertex_on_cell_iterator_type;   
    
@@ -65,6 +70,14 @@ void statistics(DomainT& domain, std::ostream& ostr = std::cout)
          }         
          std::cout << std::endl;
       }
+  /*     
+      vertex_complex_type vertex_complex = viennagrid::ncells<0>(domain.segment(si));
+     std::cout << "      vertices:" << std::endl;
+      size_t cid = 0;
+      for(vertex_iterator_type vit = vertex_complex.begin(); vit != vertex_complex.end(); vit++)
+      {
+         std::cout << "         id: " << cid++ << " - vertex: " << vit->getID() << std::endl;
+      }     */ 
    }
 //   std::cout << "Cells in Segment 0: "    << domain.segment(0).size<CellTag::topology_level>() << std::endl;
 //   std::cout << "Cells in Segment 1: "    << domain.segment(1).size<CellTag::topology_level>() << std::endl;   
@@ -114,13 +127,24 @@ int main(int argc, char * argv[])
 
          std::cout << "# viennamesh::generating mesh .. " << std::endl;
 
+         // ------------------------------------------------------------------------------------------
+         using namespace viennamesh;
          typedef boost::fusion::result_of::make_map<
-            viennamesh::key::algorithm,            viennamesh::key::criteria,            viennamesh::key::dim_topo, viennamesh::key::dim_geom, 
-            viennamesh::val::incremental_delaunay, viennamesh::val::conforming_delaunay, viennamesh::val::two,      viennamesh::val::two  >::type  mesher_properties;          
+            key::cell_type, key::algorithm,            key::criteria,            key::dim_topo, key::dim_geom, 
+            val::simplex,   val::incremental_delaunay, val::conforming_delaunay, val::two,      val::two  >::type  mesher_properties;          
          
-         typedef viennamesh::result_of::generate_mesh_kernel<mesher_properties>::type     mesh_kernel_type;
+         typedef viennamesh::result_of::generate_mesh_kernel<mesher_properties>::type     mesh_kernel;
             
-         typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_in_type>         datastructure_wrapper_type;
+         typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_in_type>         datastructure_type;
+         datastructure_type data(domain_in);
+         
+         typedef viennamesh::result_of::mesh_generator<mesh_kernel, datastructure_type>::type mesh_generator_type;
+         mesh_generator_type mesher(data);
+
+         mesher( boost::fusion::make_map<key::criteria, key::size>(val::conforming_delaunay(), 1.0) );
+
+         
+         // ------------------------------------------------------------------------------------------         
          
 //         std::cout << "# viennamesh::building output domain .. " << std::endl;         
 //         viennamesh::transfer(mesher, domain_out);

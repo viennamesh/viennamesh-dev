@@ -30,7 +30,9 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
 //    static const int DIMT = cell_tag_type::topology_level;
 //    static const int DIMG = domain_config_type::dimension_tag::value;   
 //    
+   wrapper(Datastructure& domain) : domain(domain) {}
    
+   Datastructure & domain;
 };
    
 } // end namespace viennamesh
