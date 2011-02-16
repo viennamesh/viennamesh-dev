@@ -35,6 +35,8 @@ struct incremental_delaunay {};
 struct advancing_front      {};
 struct constrained_delaunay {};
 struct conforming_delaunay  {};
+struct convex              {};
+struct minimal              {};
 struct one                  {};
 struct two                  {};
 struct three                {};

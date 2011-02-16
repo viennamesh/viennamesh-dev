@@ -109,7 +109,7 @@ struct viennagrid_cell_wrapper
    typedef viennagrid_cell_wrapper<VgridCellT>         self_type;
    typedef size_t                                      result_type;
    // -------------------------------------------------------------------------------------------   
-   typedef typename viennagrid::result_of::ncell_container<VgridCellT, 0>::type              vertex_on_cell_container_type;;
+   typedef typename viennagrid::result_of::ncell_container<VgridCellT, 0>::type              vertex_on_cell_container_type;
    typedef typename viennagrid::result_of::iterator<vertex_on_cell_container_type>::type     vertex_on_cell_iterator_type;   
    
    viennagrid_cell_wrapper(VgridCellT& vgrid_cell) : vgrid_cell_(vgrid_cell) 
@@ -130,7 +130,7 @@ struct viennagrid_cell_wrapper
       std::advance(vocit,i);
       return (vocit)->getID();
    }     
-   // -------------------------------------------------------------------------------------------
+   // -------------------------------------------------------------------------------------------   
    result_type size() const
    {
       result_type i = 0;
@@ -199,11 +199,23 @@ struct cell_complex_wrapper
    
    cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
    
+   //struct cell_iterator : viennamesh::iterator_base_2< cell_complex_wrapper<DomainT>, cell_type >
    struct cell_iterator : viennamesh::iterator_base< cell_complex_wrapper<DomainT> > 
    {
-      cell_iterator(cell_complex_wrapper<DomainT>& obj)                : viennamesh::iterator_base< cell_complex_wrapper<DomainT> > (obj)         {};
-      cell_iterator(cell_complex_wrapper<DomainT>& obj, size_t newpos) : viennamesh::iterator_base< cell_complex_wrapper<DomainT> > (obj, newpos) {};      
+      //typedef  viennamesh::iterator_base_2< cell_complex_wrapper<DomainT>, cell_type > iterator_base_type;
+      typedef  viennamesh::iterator_base< cell_complex_wrapper<DomainT> > iterator_base_type;
 
+      cell_iterator(cell_complex_wrapper<DomainT>& obj)                : iterator_base_type (obj)         {};
+      cell_iterator(cell_complex_wrapper<DomainT>& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
+
+//       cell_type 
+//       dereference() const
+//       {
+//          vgrid_segment_type const & segment = (*this).obj().domain().segment((*this).obj().segment_id());
+//          vgrid_cell_type cell = segment.cells( (*this).pos() );
+//          //std::cout << "cellcomplexwrapper: " << viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell) << std::endl;
+//          return viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell);
+//       }             
       cell_type 
       operator*() const
       {
@@ -211,17 +223,24 @@ struct cell_complex_wrapper
          vgrid_cell_type cell = segment.cells( (*this).pos() );
          //std::cout << "cellcomplexwrapper: " << viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell) << std::endl;
          return viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell);
-      }      
+      }                   
    };
-   
+   cell_iterator cell_begin() const
+   {
+      return cell_iterator(*this);
+   }     
    cell_iterator cell_begin()
    {
       return cell_iterator(*this);
    }  
+   cell_iterator cell_end() const
+   {
+      vgrid_segment_type const & segment = (*this).domain().segment((*this).segment_id());
+      return cell_iterator(*this, segment.template size<DIMT>());  
+   }        
    cell_iterator cell_end()
    {
       vgrid_segment_type const & segment = (*this).domain().segment((*this).segment_id());
-      //std::cout << "seg: " << segment_id_ << " cellsize: " << segment.template size<DIMT>() << std::endl;
       return cell_iterator(*this, segment.template size<DIMT>());  
    }        
    
@@ -267,22 +286,31 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    inline Datastructure& domain() { return domain_; }
    
    // -------------------------------------------------------------------------------------------
+   //struct geometry_iterator : viennamesh::iterator_base_2< viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >, point_wrapper_type >
    struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure > >
    {
-      typedef viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >  wrapper_type;
+      typedef viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >     wrapper_type;
+      //typedef viennamesh::iterator_base_2< wrapper_type, point_wrapper_type >       iterator_base_type;
+      typedef viennamesh::iterator_base< wrapper_type >                             iterator_base_type;
       
-      geometry_iterator(wrapper_type& obj)                : viennamesh::iterator_base< wrapper_type > (obj)         {};
-      geometry_iterator(wrapper_type& obj, size_t newpos) : viennamesh::iterator_base< wrapper_type > (obj, newpos) {};      
+      geometry_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
+      geometry_iterator(wrapper_type& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
 
       // when the iterator is dereferenced, wrap the point object with the 
       // viennagrid specific wrapper. this way arbitrary datastructures can 
       // be accessed in a unified way
       //
+/*      point_wrapper_type 
+      dereference() const
+      {
+         return point_wrapper_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
+      }      */
       point_wrapper_type 
       operator*() const
       {
          return point_wrapper_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
-      }
+      }            
+
    };   
    geometry_iterator geometry_begin()
    {
@@ -295,22 +323,29 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    // -------------------------------------------------------------------------------------------
 
    // -------------------------------------------------------------------------------------------
+   //struct segment_iterator : viennamesh::iterator_base_2< viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >, cell_complex_wrapper_type >
    struct segment_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure > >
    {
       typedef viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >  wrapper_type;
+      typedef viennamesh::iterator_base< wrapper_type >                          iterator_base_type;
       
-      segment_iterator(wrapper_type& obj)                : viennamesh::iterator_base< wrapper_type > (obj)         {};
-      segment_iterator(wrapper_type& obj, size_t newpos) : viennamesh::iterator_base< wrapper_type > (obj, newpos) {};      
+      segment_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
+      segment_iterator(wrapper_type& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
 
       // when the iterator is dereferenced, wrap the point object with the 
       // viennagrid specific wrapper. this way arbitrary datastructures can 
       // be accessed in a unified way
       //
+//       cell_complex_wrapper_type 
+//       dereference() const
+//       {  
+//          return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
+//       }      
       cell_complex_wrapper_type 
       operator*() const
       {  
          return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
-      }
+      }            
    };   
    segment_iterator segment_begin()
    {
@@ -322,33 +357,6 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    }      
    // -------------------------------------------------------------------------------------------   
 
-   // -------------------------------------------------------------------------------------------
-//    struct cell_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure > >
-//    {
-//       typedef viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >  wrapper_type;
-//       
-//       cell_iterator(wrapper_type& obj)                : viennamesh::iterator_base< wrapper_type > (obj)         {};
-//       cell_iterator(wrapper_type& obj, size_t newpos) : viennamesh::iterator_base< wrapper_type > (obj, newpos) {};      
-// 
-//       // when the iterator is dereferenced, wrap the point object with the 
-//       // viennagrid specific wrapper. this way arbitrary datastructures can 
-//       // be accessed in a unified way
-//       //
-//       point_wrapper_type 
-//       operator*() const
-//       {
-//          //return point_wrapper_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint());
-//       }
-//    };   
-//    cell_iterator cell_begin()
-//    {
-//       return cell_iterator(*this);
-//    }  
-//    cell_iterator cell_end()
-//    {
-//       return cell_iterator(*this, domain().segment_container()->size());
-//    }      
-   // -------------------------------------------------------------------------------------------   
 
    // -------------------------------------------------------------------------------------------   
    Datastructure & domain_;

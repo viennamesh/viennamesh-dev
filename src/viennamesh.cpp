@@ -108,8 +108,8 @@ int main(int argc, char * argv[])
          typedef viennagrid::domain<viennagrid::config::line_2d>     domain_in_type;
          typedef domain_in_type::config_type                         domain_config_type;
          
-         static const int DIMG = domain_config_type::dimension_tag::value;
-         static const int DIMT = domain_config_type::cell_tag::topology_level;       
+//          static const int DIMG = domain_config_type::dimension_tag::value;
+//          static const int DIMT = domain_config_type::cell_tag::topology_level;       
          
          domain_in_type domain_in;
          std::cout << "# viennamesh::reading domain .. " << std::endl;
