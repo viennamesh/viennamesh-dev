@@ -15,6 +15,10 @@
 #ifndef VIENNAMESH_INTERFACE_TRIANGLE_HPP
 #define VIENNAMESH_INTERFACE_TRIANGLE_HPP
 
+/** @file triangle.hpp
+    @brief mesh generator interface for: Triangle - http://www.cs.cmu.edu/~quake/triangle.html    
+*/
+
 // *** system includes
 #include <vector>
 #include <cstring>
@@ -45,10 +49,15 @@ extern "C"  {
 #define MESH_KERNEL_DEBUG
 
 namespace viennamesh {
-   
+
+/** @brief tag-dispatched mesher kernel specialization for Triangle
+*/   
 template <typename DatastructureT>
 struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
 {
+   // -------------------------------------------------------------------------------------
+   // -------------------------------------------------------------------------------------   
+   
    // -------------------------------------------------------------------------------------
    mesh_kernel(DatastructureT & data) : data(data) 
    {
@@ -62,6 +71,7 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
    template<typename ParametersMapT>
    void operator()(ParametersMapT const& paras)
    {
+      // redirect to reference implementation 
       ParametersMapT paras_new(paras);
       (*this)(paras_new);
    }
