@@ -102,48 +102,88 @@ struct viennagrid_point_wrapper
    ArrayT & array_;
 };
 
-template<typename ArrayT>
+template<typename VgridCellT>
 struct viennagrid_cell_wrapper
 {
    // -------------------------------------------------------------------------------------------
-   typedef viennagrid_cell_wrapper<ArrayT>         self_type;
-//   typedef typename ArrayT::numeric_type           result_type;
+   typedef viennagrid_cell_wrapper<VgridCellT>         self_type;
+   typedef size_t                                      result_type;
    // -------------------------------------------------------------------------------------------   
-   viennagrid_cell_wrapper(ArrayT& array) : array_(array) {}
-   // -------------------------------------------------------------------------------------------   
-   //result_type& operator[](size_t i) const
-   void operator[](size_t i) const
+   typedef typename viennagrid::result_of::ncell_container<VgridCellT, 0>::type              vertex_on_cell_container_type;;
+   typedef typename viennagrid::result_of::iterator<vertex_on_cell_container_type>::type     vertex_on_cell_iterator_type;   
+   
+   viennagrid_cell_wrapper(VgridCellT& vgrid_cell) : vgrid_cell_(vgrid_cell) 
    { 
-      
+      vertex_on_cell_cont_ = viennagrid::ncells<0>(vgrid_cell_); 
+   }
+   // -------------------------------------------------------------------------------------------   
+   result_type operator[](size_t i) const
+   { 
+      vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
+      std::advance(vocit,i);
+      return (vocit)->getID();
    }      
  
-/*   result_type& operator[](size_t i) 
+   result_type operator[](size_t i) 
    { 
-      return array_[i];      
-   }    */  
+      vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
+      std::advance(vocit,i);
+      return (vocit)->getID();
+   }     
    // -------------------------------------------------------------------------------------------
-//    size_t size() const
-//    {
-//       return ArrayT::dimension_tag::value;
-//    }
-//    size_t size() 
-//    {
-//       return ArrayT::dimension_tag::value;
-//    }
+   result_type size() const
+   {
+      result_type i = 0;
+      for(vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
+          vocit != vertex_on_cell_cont_.end(); vocit++)
+      {
+         i++;
+      }
+      return i;
+   }
+   result_type size() 
+   {
+      result_type i = 0;
+      for(vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
+          vocit != vertex_on_cell_cont_.end(); vocit++)
+      {
+         i++;
+      }
+      return i;
+   }
    // -------------------------------------------------------------------------------------------
    friend std::ostream& operator<<(std::ostream& ostr, self_type const& val) 
    {
-//      size_t size = val.size();
-//       if (size == 0) return ostr;
-//       for (size_t i = 0; i < size; i++)
-//       {
-//          if (i == size-1) ostr << val[i];
-//          else             ostr << val[i] << "  ";
-//       }
+      for(vertex_on_cell_iterator_type vocit = val.begin();
+          vocit != val.end(); vocit++)
+      {
+         ostr << vocit->getID() << " ";
+      }     
       return ostr;
-   }      
+    }      
    // -------------------------------------------------------------------------------------------   
-   ArrayT & array_;
+   
+   vertex_on_cell_iterator_type begin()
+   {
+      return vertex_on_cell_cont_.begin();
+   }
+   vertex_on_cell_iterator_type begin() const
+   {
+      return vertex_on_cell_cont_.begin();
+   }   
+   vertex_on_cell_iterator_type end()
+   {
+      return vertex_on_cell_cont_.end();
+   }
+   vertex_on_cell_iterator_type end() const
+   {
+      return vertex_on_cell_cont_.end();
+   }   
+   
+   
+   VgridCellT  vgrid_cell_;
+   vertex_on_cell_container_type vertex_on_cell_cont_;
+   
 };
 
 
@@ -169,8 +209,7 @@ struct cell_complex_wrapper
       {
          vgrid_segment_type const & segment = (*this).obj().domain().segment((*this).obj().segment_id());
          vgrid_cell_type cell = segment.cells( (*this).pos() );
-         
-         std::cout << viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell) << std::endl;
+         //std::cout << "cellcomplexwrapper: " << viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell) << std::endl;
          return viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell);
       }      
    };
@@ -181,7 +220,9 @@ struct cell_complex_wrapper
    }  
    cell_iterator cell_end()
    {
-      return cell_iterator(*this, 12);  //TODO DERIVCE CELL SIZE FROM DOMAIN
+      vgrid_segment_type const & segment = (*this).domain().segment((*this).segment_id());
+      //std::cout << "seg: " << segment_id_ << " cellsize: " << segment.template size<DIMT>() << std::endl;
+      return cell_iterator(*this, segment.template size<DIMT>());  
    }        
    
    inline DomainT& domain()      { return domain_;     }   
@@ -267,7 +308,7 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
       //
       cell_complex_wrapper_type 
       operator*() const
-      {
+      {  
          return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
       }
    };   
