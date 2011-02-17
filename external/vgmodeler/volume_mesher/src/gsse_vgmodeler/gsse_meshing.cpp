@@ -179,7 +179,7 @@ int create_surface_mesh(const std::string& filename_in, gsse::domain_32t& domain
 // #########################################################
 
 template<typename Domain32T, typename VertexVectorT, typename Domain3T>
-int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out)
+int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh)
 {
 #ifdef DEBUG
   std::cout << ".. starting sequential meshing .. " << std::endl;
@@ -1353,7 +1353,7 @@ int main(int argc, char** argv)
 //       else
 // #endif
       t.restart();
-      create_volume_mesh_sequential(domain_input, additional_vertices, domain_output);
+      create_volume_mesh_sequential(domain_input, additional_vertices, domain_output, atof(argv[3]));
       std::cout << "  volume meshing::exec-time: " << t.elapsed() << std::endl;
 
        std::cout << "## Saving final mesh: " << filename_out << std::endl;

@@ -21,10 +21,8 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/domain.hpp"
 
-
-
 #include "viennamesh/generator.hpp"
-#include "viennamesh/wrapper/viennagrid.hpp"
+#include "viennamesh/wrapper/gtsio.hpp"
 #include "viennamesh/transfer/viennagrid.hpp"
 
 template<typename DomainT>
@@ -106,28 +104,38 @@ int main(int argc, char * argv[])
    {
       if(dim == 2)
       {
-         typedef viennagrid::domain<viennagrid::config::line_2d>     domain_in_type;
+         GTSIO::DeviceFileReader* pReader = new GTSIO::DeviceFileReader();
+         GTSIO::GTSDevice*        pDevice = new GTSIO::GTSDevice();
+         try {
+            pReader->loadDeviceFromFile(inputfile.c_str(), pDevice);
+         } 
+         catch (GTSIO::GtsioException ex) {
+            std::cerr << ex.toString() << std::endl << std::endl;
+         }
+         catch (std::exception stdEx) {
+            std::cerr << stdEx.what() << std::endl << std::endl;
+         }         
+         
+         typedef viennamesh::wrapper<viennamesh::tag::gtsio3, GTSIO::GTSDevice*>     gts_wrapper_type;;
+         gts_wrapper_type data_in(pDevice);
+         
+
+         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::triangle, gts_wrapper_type>::type   mesh_generator_type;
+         //mesh_generator_type mesher(data_in);         
+         
+/*         typedef viennagrid::domain<viennagrid::config::line_2d>     domain_in_type;
          typedef domain_in_type::config_type                         domain_config_type;
-         
-//          static const int DIMG = domain_config_type::dimension_tag::value;
-//          static const int DIMT = domain_config_type::cell_tag::topology_level;       
-         
          domain_in_type domain_in;
          std::cout << "# viennamesh::reading domain .. " << std::endl;
          viennautils::io::gts_reader   gtsread;
-         gtsread(domain_in, inputfile, false);
+         gtsread(domain_in, inputfile, false);*/
          
-         statistics(domain_in);
          
-//          viennagrid::io::Vtk_writer<domain_in_type> my_vtk_writer;
-//          my_vtk_writer.writeDomain(domain_in, "input.vtu");
-         
+/*         std::cout << "## viennamesh::generating mesh .. " << std::endl;
+         // ------------------------------------------------------------------------------------------
          typedef viennagrid::domain<viennagrid::config::triangular_2d> domain_out_type;
          domain_out_type domain_out;
 
-         std::cout << "## viennamesh::generating mesh .. " << std::endl;
-
-         // ------------------------------------------------------------------------------------------
          using namespace viennamesh;
          typedef boost::fusion::result_of::make_map<
             tag::cell_type, tag::algorithm,            tag::criteria,            tag::dim_topo, tag::dim_geom, 
@@ -147,9 +155,9 @@ int main(int argc, char * argv[])
          transfer_type  transfer;
          transfer(mesher, domain_out);
          // ------------------------------------------------------------------------------------------         
-         if(output_extension == "vtu")
+         if(output_extension == "vtk")
          {
-            std::cout << "# viennamesh::writing vtu file .. " << std::endl;
+            std::cout << "# viennamesh::writing vtk files .. " << std::endl;
             viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
             my_vtk_writer.writeDomain(domain_out, outputfile);
          }
@@ -158,26 +166,7 @@ int main(int argc, char * argv[])
             std::cerr << "## Error: output fileformat not supported: " << output_extension << std::endl;
             std::cerr << "## shutting down .." << std::endl;     
             return -1;         
-         }         
-         
-         // idea: provide different mesh generators, with different capabilities.
-         // use our fold::property approach to get a subset of generators for a given property list.
-         // provide different tools to classify/orient/improve quality of a mesh (extract the vgmodeler tools) 
-         //
-         // acc<dim>(property_map) = 2;
-         // acc<method>(property_map) = constrained_delaunay;
-         // acc<size>(property_map) = ....
-         // a heterogenous mesher kernel environment canbe supported, the fold approach automatically 
-         // computes the mesher kernels which fits the requested task
-         //
-         // typedef typename viennamesh::mesh_generator<property_map>::type  mesh_generator_type;
-         // mesh_generator_type mesh_generator;
-         // mesh_generator(domain_in);   // a functor, the same mesher can be applied on different input domains
-         
-         // typedef domain_generator<mesh_generator>  domain_generator_type;
-         // domain_generator_type domain_generator(mesh_generator);
-         // domain_generator(domain_out);
-
+         }         */
       }
       if(dim == 3)
       {

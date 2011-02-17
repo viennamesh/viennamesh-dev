@@ -158,7 +158,7 @@ struct viennagrid_cell_wrapper
 
 
 template<typename DomainT>
-struct cell_complex_wrapper
+struct viennagrid_cell_complex_wrapper
 {
    typedef typename DomainT::config_type                                                  domain_config_type;
    static const int DIMT = domain_config_type::cell_tag::topology_level;
@@ -167,16 +167,16 @@ struct cell_complex_wrapper
    
    typedef viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>  cell_type;
    
-   cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
+   viennagrid_cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
    
    //struct cell_iterator : viennamesh::iterator_base_2< cell_complex_wrapper<DomainT>, cell_type >
-   struct cell_iterator : viennamesh::iterator_base< cell_complex_wrapper<DomainT> > 
+   struct cell_iterator : viennamesh::iterator_base< viennagrid_cell_complex_wrapper<DomainT> > 
    {
       //typedef  viennamesh::iterator_base_2< cell_complex_wrapper<DomainT>, cell_type > iterator_base_type;
-      typedef  viennamesh::iterator_base< cell_complex_wrapper<DomainT> > iterator_base_type;
+      typedef  viennamesh::iterator_base< viennagrid_cell_complex_wrapper<DomainT> > iterator_base_type;
 
-      cell_iterator(cell_complex_wrapper<DomainT>& obj)                : iterator_base_type (obj)         {};
-      cell_iterator(cell_complex_wrapper<DomainT>& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
+      cell_iterator(viennagrid_cell_complex_wrapper<DomainT>& obj)                : iterator_base_type (obj)         {};
+      cell_iterator(viennagrid_cell_complex_wrapper<DomainT>& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
 
 //       cell_type 
 //       dereference() const
@@ -241,12 +241,12 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    // provide wrappers for the datastructures
    //
    typedef typename viennamesh::viennagrid_point_wrapper<vgrid_point_type>       point_wrapper_type;
-   typedef typename viennamesh::cell_complex_wrapper<Datastructure>              cell_complex_wrapper_type;
+   typedef typename viennamesh::viennagrid_cell_complex_wrapper<Datastructure>   cell_complex_wrapper_type;
    // -------------------------------------------------------------------------------------------
    
    // -------------------------------------------------------------------------------------------
-   typedef typename cell_complex_wrapper<Datastructure>::cell_iterator     cell_iterator;
-   typedef typename cell_complex_wrapper<Datastructure>::cell_type         cell_type;   
+   typedef typename viennagrid_cell_complex_wrapper<Datastructure>::cell_iterator     cell_iterator;
+   typedef typename viennagrid_cell_complex_wrapper<Datastructure>::cell_type         cell_type;   
    // -------------------------------------------------------------------------------------------   
    
    // -------------------------------------------------------------------------------------------   
@@ -311,10 +311,10 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
 //       {  
 //          return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
 //       }      
-      cell_complex_wrapper_type 
+      viennagrid_cell_complex_wrapper 
       operator*() const
       {  
-         return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
+         return viennagrid_cell_complex_wrapper((*this).obj().domain(), (*this).pos());
       }            
    };   
    segment_iterator segment_begin()

@@ -16,5 +16,6 @@
 #define VIENNAMESH_WRAPPER_HPP
 
 #include "wrapper/viennagrid.hpp"
+#include "wrapper/gtsio.hpp"
 
 #endif
