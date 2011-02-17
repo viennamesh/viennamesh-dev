@@ -29,7 +29,7 @@ def build(ctx):
       target       = 'converter',
       name         = 'converter',
       includes     = '. src/gsse_converter/ \
-         external/gssev02 external/gssev02/external',
+         ../external/gssev02 ../external/gssev02/external',
       uselib       = 'BOOST'
    )
 
@@ -48,7 +48,7 @@ def build(ctx):
       target       = 'surface',
       name         = 'surface',
       includes     = '. src/gsse_surface/ includes/ \
-         external/gssev02 external/gssev02/external',
+         ../external/gssev02 ../external/gssev02/external',
       uselib       = 'BOOST',
       cxxflags     = ['-Wno-write-strings']
    )
@@ -126,11 +126,11 @@ def build(ctx):
       source       = 'src/gsse_vgmodeler/gsse_meshing.cpp',
       target       = 'volume_mesher',
       name         = 'volume_mesher',
-      includes     = '. external/gssev01 external/gssev01/external/phoenix_v2 \
-         external/gssev01/external/mauch external/gssev01/external/fusion_v2_2006 \
+      includes     = '. ../external/gssev01 ../external/gssev01/external/phoenix_v2 \
+         ../external/gssev01/external/mauch ../external/gssev01/external/fusion_v2_2006 \
          src/gsse_surface src/gsse_volume/include src/gsse_volume src/includes \
          src/gsse_vgmodeler/include \
-         external/gssev02 external/gssev02/external',
+         ../external/gssev02 ../external/gssev02/external',
       uselib       = 'BOOST',
       use          = 'converter surface volume',
       cxxflags     = ['-Wno-write-strings'],

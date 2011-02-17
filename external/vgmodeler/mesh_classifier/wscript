@@ -28,8 +28,8 @@ def build(ctx):
       source       = 'src/main.cpp',
       target       = 'mesh_classifier',
       name         = 'mesh_classifier',
-      includes     = '. src/ external/gml \
-         external/gssev02 external/gssev02/external',
+      includes     = '. src/ ../external/gml \
+         ../external/gssev02 ../external/gssev02/external',
       uselib       = 'BOOST'
    )
 

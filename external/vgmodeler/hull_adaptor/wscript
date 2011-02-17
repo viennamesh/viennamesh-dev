@@ -135,7 +135,7 @@ def build(ctx):
       target       = 'meshstlsurface',
       name         = 'meshstlsurface',
       includes     = '. src/ src/libsrc/include \
-         external/gssev02 external/gssev02/external',
+         ../external/gssev02 ../external/gssev02/external',
       uselib       = 'BOOST',
       defines      = 'NO_PARALLEL_THREADS USE_NON_CONST LINUX',
       cxxflags     = ['-ftemplate-depth-99', '-finline-limit=10000', '-Wdisabled-optimization', '-funroll-loops', '-Wno-write-strings']
@@ -146,11 +146,11 @@ def build(ctx):
       source       = 'src/libsrc/stlgeom/stltopology.cpp',
       target       = 'stltopology',
       name         = 'stltopology',
-      includes     = '. external/gssev01 \
-         external/gssev01/external/phoenix_v2_2006  \
-         external/gssev01/external/fusion_v2_2006 \
-         external/gssev01/external/phoenix_v2 \
-         external/gssev01/external/mauch \
+      includes     = '. ../external/gssev01 \
+         ../external/gssev01/external/phoenix_v2_2006  \
+         ../external/gssev01/external/fusion_v2_2006 \
+         ../external/gssev01/external/phoenix_v2 \
+         ../external/gssev01/external/mauch \
          src/ src/libsrc/include',
       defines      = 'NO_PARALLEL_THREADS USE_NON_CONST LINUX',
       cxxflags     = ['-ftemplate-depth-99', '-finline-limit=10000', '-Wdisabled-optimization', '-funroll-loops', '-Wno-write-strings']
@@ -161,7 +161,7 @@ def build(ctx):
       source       = 'src/hull_adaptor.cpp',
       target       = 'hull_adaptor',
       name         = 'hull_adaptor',
-      includes     = '. external/gssev02 external/gssev02/external',
+      includes     = '. ../external/gssev02 ../external/gssev02/external',
       use          = 'netgen meshstlsurface stltopology',
       uselib       = 'BOOST',
       cxxflags     = ['-w','-static'],
