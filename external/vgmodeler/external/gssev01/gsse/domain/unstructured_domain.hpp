@@ -1580,6 +1580,12 @@ public:
              std::cout << "### GSSE WRITE FILE: writing gsse unstructured file .... " << std::endl;
           return write_gsse_native_file(filename);
        }
+       else if (file_ending.substr(0,3) == "vol")
+       {
+          if (verbose)
+             std::cout << "### GSSE WRITE FILE: writing gsse unstructured file .... " << std::endl;
+          return write_vol_file(filename);
+       }
        
        if (verbose)
           std::cout << "GSSE WRITE FILE: fileformat is not supported.. " << std::endl;
@@ -1958,6 +1964,458 @@ public:
                file_out << 0 << " " << value(0, 0) << std::endl;
          }
       }
+
+
+      file_out.close();
+      
+      return 0;
+   }
+
+   long write_vol_file(const std::string& filename)
+   {
+      const unsigned int dimension = topology_traits<topology_t>::dimension_tag::dim;
+      //const unsigned int dimension_topology = topology_traits<topology_t>::dimension_topology;
+      // dimension_geometry .. from domain class
+
+   
+      std::cerr << dimension << std::endl; 
+      assert(dimension > 1);
+      //BOOST_STATIC_ASSERT(dimension <= 2);
+
+      std::ofstream            file_out;
+      std::string              newfilename(filename);
+    
+      file_out.open( newfilename.c_str() );
+    
+      // the file must handle the geometrical dimension
+      // 
+      file_out << "mesh3d" << std::endl;
+      file_out << "dimension" << std::endl;
+      file_out << "3" << std::endl;
+      file_out << "geomtype" << std::endl;
+      file_out << "0" << std::endl;
+      file_out << "" << std::endl;
+      file_out << "# surfnr    bcnr   domin  domout      np      p1      p2      p3" << std::endl;
+      file_out << "surfaceelements" << std::endl;
+
+     // *** iterate over all segments
+     //
+     std::vector<int> idx(3),idxrev(3);
+     int h;
+     segment_iterator seg_it;
+     cell_iterator cit;
+     std::map<std::vector<int>,std::pair<int,int> > tris;
+     int segnr=0;
+     for (seg_it = segment_begin(); seg_it != segment_end(); seg_it++)
+     {
+        // *** iterate over all cells
+        //
+        long cell_index_number; //  =cell_counter;  
+        cell_index_number = (*seg_it).get_cell_index_offset();
+        for (cit = (*seg_it).cell_begin(); cit != (*seg_it).cell_end(); cit++,++cell_index_number) // 200712 new gsse domain / quantities
+         {
+       	    //file_out << cell_index_number << "\t";
+	    vertex_on_cell_iterator vocit(*cit);
+            // *** iterate over all interior vertices
+	    int i=0;
+            while (vocit.valid())
+            {
+               // *** output the handle of the cell elements
+               idx[i++]=(*vocit).handle();
+               vocit++;
+            }
+
+	    if (idx[2]>idx[0])
+	    {
+		h=idx[0]; idx[0]=idx[1]; idx[1]=idx[2]; idx[2]=h;
+	    }
+	    if (idx[2]>idx[0])
+	    {
+		h=idx[0]; idx[0]=idx[1]; idx[1]=idx[2]; idx[2]=h;
+	    }
+	    idxrev[0]=idx[0]; idxrev[1]=idx[2]; idxrev[2]=idx[1];
+
+	    if (tris.find(idx)!=tris.end())
+	    {
+		std::cerr << "ERROR: Orientation of triangle wrong\n";
+		throw;
+	    }
+	    if (tris.find(idxrev)!=tris.end())
+	    {
+		if (tris[idxrev].second!=-1)
+	    	{
+			std::cerr << "ERROR: Triangle exists more than 2 times\n";
+			throw;
+	    	}
+		tris[idxrev].second=segnr;
+		continue;
+	    }
+	    tris[idx]=std::pair<int,int>(segnr,-1);
+         }
+	 segnr++;
+     	}
+	
+     	file_out << tris.size() << std::endl;
+	int surfnr=1;
+	for (std::map<std::vector<int>,std::pair<int,int> >::iterator I=tris.begin(); I!=tris.end(); I++)
+	{
+		if (I->second.first>I->second.second)
+			file_out << "	" << surfnr++ << "	" << 0 << "	" << I->second.first+1 << "	" << I->second.second+1 << "	" << 3 << "	" << I->first[0]+1 << "	" << I->first[1]+1 << "	" << I->first[2]+1 << std::endl;
+		else
+			file_out << "	" << surfnr++ << "	" << 0 << "	" << I->second.second+1 << "	" << I->second.first+1 << "	" << 3 << "	" << I->first[0]+1 << "	" << I->first[2]+1 << "	" << I->first[1]+1 << std::endl;
+	}
+
+      // ****************************************************************************************
+      // *** begin of the POINTS section
+      //
+      file_out << "#          X             Y             Z" << std::endl;
+      file_out << "points" << std::endl;
+      file_out << point_size() << std::endl;
+      file_out.setf(std::ios::right, std::ios::adjustfield);
+      // get all geometrical points
+      //
+      global_point_iterator pl_it(global_point_list.begin()); 
+
+      // output all points to the wss file
+      //
+      for (; pl_it != global_point_list.end(); ++pl_it)
+      {
+         //std::cout << (*pl_it).second << std::endl;
+         file_out << std::setprecision(12) << std::setiosflags(std::ios::scientific) << (*pl_it).second << std::endl;
+      }
+
+#if 0     
+      // ****************************************************************************************
+      // *** begin of the SEGMENTS
+      //
+      vertex_iterator vit;
+      segment_iterator seg_it;
+ 
+     file_out << segment_size() << std::endl; 
+    
+
+     // =================================
+     // *** begin of the segment::topology (GRID)
+     //
+     // [RH] new.. 200712 for domain quantities and global cell ids
+     //
+     long cell_counter = 0;
+     //
+     // ========
+     
+     long quan_size;
+     for (seg_it = segment_begin(); seg_it != segment_end(); seg_it++)
+     {
+        // *** At the moment each segment has the name Segment + Name  (new [RH] 200801) 
+        //
+//	std::cout << "Segment: " << (*seg_it).get_segment_name()  << std::endl;
+
+#ifdef GSSEV01
+	file_out << "Segment: " << (*seg_it).get_segment_name()  << std::endl;   // [RH] new gsse style 
+#endif
+	file_out << (*seg_it).get_segment_name()  << std::endl;	
+      	file_out << (*seg_it).cell_size() << std::endl;
+	file_out << (*seg_it).vertex_size() << std::endl;
+
+        cell_iterator cit;
+	
+        // [RH] new.. 200712 for domain quantities and global cell ids
+        //
+        long cell_index_number; //  =cell_counter;  
+        cell_index_number = (*seg_it).get_cell_index_offset();
+	 
+        // *** iterate over all cells
+        //
+        for (cit = (*seg_it).cell_begin(); cit != (*seg_it).cell_end(); cit++,++cell_index_number) // 200712 new gsse domain / quantities
+         {
+       	    file_out << cell_index_number << "\t";
+	 
+	    vertex_on_cell_iterator vocit(*cit);
+
+            // *** iterate over all interior vertices
+            while (vocit.valid())
+            {
+               // *** output the handle of the cell elements
+               file_out << "  " << (*vocit).handle();
+
+               vocit++;
+            }
+            file_out << std::endl;
+         }
+
+         // **************************************************************************************
+         // *** begin of the Quantities (ATTRIBUTES)
+         //
+         // ============================
+         // write segment quantity
+         //
+         quan_size = (*seg_it).segment_key_size();
+         if (quan_size != 0)
+         {
+            file_out << "Quantity: " << "segment " <<  quan_size << std::endl;
+            typename segment_traits<segment_t>::segment_key_iterator skit = (*seg_it).segment_key_begin();
+            for (; skit != (*seg_it).segment_key_end();++skit)
+            {
+               file_out << *skit << std::endl;
+               file_out << "1" << std::endl;
+               
+               storage_type value;
+               (*seg_it).retrieve_quantity(*skit, value);
+               if (value.size_1()==0)
+                  file_out << 0 << " " << 0.0 << std::endl;
+               else
+               file_out << 0 << " " << value(0, 0) << std::endl;
+            }
+         }
+         // write segment string quantity
+         //
+         quan_size = (*seg_it).segment_skey_size();
+         if (quan_size != 0)
+         {
+            file_out << "Quantity: " << "string-segment " <<  quan_size << std::endl;
+            typename segment_traits<segment_t>::segment_skey_iterator skit = (*seg_it).segment_skey_begin();
+            for (; skit != (*seg_it).segment_skey_end();++skit)
+            {
+               file_out << *skit << std::endl;
+               file_out << "1" << std::endl;
+               
+               std::string value;
+               (*seg_it).retrieve_quantity(*skit, value);
+               file_out << 0 << " " << value << std::endl;
+            }
+         }
+
+
+         // ============================
+         // write vertex quantity
+         //
+         quan_size = (*seg_it).vertex_key_size();
+
+         if (quan_size != 0)
+         {
+            file_out << "Quantity: " << "sheaf_vertex " <<  quan_size << std::endl;
+//            std::cout  << "Quantity: " << "sheaf_vertex " <<  quan_size << std::endl;
+//            typename base_domain_type::vertex_quantity_type::key_iterator vkit = vertex_key_begin();
+            // [RH] 200801 ..  efficient segmented quantity storage
+            //
+            segment_vertex_quantity_iterator vkit = (*seg_it).vertex_key_begin();
+            for (; vkit != (*seg_it).vertex_key_end();++vkit)
+            {
+	    	long size_1 = operator()(*((*seg_it).vertex_begin()), *vkit).size_1();
+                long size_2 = operator()(*((*seg_it).vertex_begin()), *vkit).size_2();
+		if (size_1 ==0)    // never use 0,0 as quantity type
+			size_1 = 1;
+		if (size_2 ==0)
+			size_2 = 1;
+
+
+               file_out << *vkit << " type "  
+                        << size_1 << "  " 
+                        << size_2 <<  std::endl;
+        
+
+               file_out << (*seg_it).vertex_size() << std::endl;
+               typename segment_traits<segment_t>::vertex_iterator vit;
+               for (vit = (*seg_it).vertex_begin(); vit != (*seg_it).vertex_end();++vit)
+               {
+                  storage_type value;
+                  typename segment_traits<segment_t>::vertex_type ve;
+
+                  try
+                  {
+                     retrieve_quantity(*vit, *vkit, value);
+//                      if (value.size_1()==0)
+//                         file_out << (*vit).handle() << " " << 0.0 << std::endl;
+//                      else
+                     file_out << (*vit).handle() << " " << value << std::endl;
+                  }
+                  catch(...)
+                  {
+                     file_out << (*vit).handle() << " " << 0.0 << std::endl;
+                  }
+
+               }               
+            }
+         }
+
+
+         // ============================
+         // write edge quantity
+        
+         quan_size = (*seg_it).edge_key_size();
+
+         if (quan_size != 0)
+         {
+            // [RH][TODO] remove this temporary edge container
+            //
+            std::set<edge_type>  edge_container;
+            typedef typename std::set<edge_type>::iterator  edge_iterator;
+            for (cell_iterator c_it = (*seg_it).cell_begin(); c_it != (*seg_it).cell_end(); ++c_it)
+            {
+               for (edge_on_cell_iterator eoc_it(*c_it); eoc_it.valid(); ++eoc_it)
+               {
+                  edge_container.insert( *eoc_it );
+               }
+            }
+            
+            file_out << "Quantity: " << "sheaf_edge " <<  quan_size << std::endl;
+            // [RH] 200801 ..  efficient segmented quantity storage
+            //
+            segment_edge_quantity_iterator ekit = (*seg_it).edge_key_begin();
+            for (; ekit != (*seg_it).edge_key_end();++ekit)
+//            typename base_domain_type::edge_quantity_type::key_iterator ekit = edge_key_begin();
+//            for (; ekit != edge_key_end();++ekit)
+            {
+	    	long size_1 = operator()(*(edge_container.begin()), *ekit).size_1();
+                long size_2 = operator()(*(edge_container.begin()), *ekit).size_2();
+		if (size_1 ==0)    // never use 0,0 as quantity type
+			size_1 = 1;
+		if (size_2 ==0)
+			size_2 = 1;
+
+
+               file_out << *ekit << " type "  
+                        << size_1 << "  " 
+                        << size_2 <<  std::endl;
+               file_out << edge_container.size() << std::endl;
+               
+               for (edge_iterator eit = edge_container.begin(); eit != edge_container.end();++eit)
+               {
+                  storage_type value;
+                  
+                  try
+                  {
+                     retrieve_quantity(*eit, *ekit, value);
+                     if (value.size_1()==0)
+                        file_out << (*eit).handle() << " " << 0.0 << std::endl;
+                     else
+                        file_out << (*eit).handle() << " " << value(0, 0) << std::endl;
+                  }
+                  catch(...)
+                  {
+                     file_out << (*eit).handle() << " " << value(0, 0) << std::endl;                     
+                  }
+               }
+            }
+         }
+        
+         // ============================
+         // write facet quantity
+        
+         quan_size = (*seg_it).facet_key_size();
+//         std::cout << "facet writer.. size: " << quan_size << std::endl;
+         if (quan_size != 0)
+         {
+            // [RH][TODO] remove this temporary edge container
+            //
+            std::set<facet_type>  facet_container;
+            typedef typename std::set<facet_type>::iterator  facet_iterator;
+            for (cell_iterator c_it = (*seg_it).cell_begin(); c_it != (*seg_it).cell_end(); ++c_it)
+            {
+               for (facet_on_cell_iterator foc_it(*c_it); foc_it.valid(); ++foc_it)
+               {
+                  facet_container.insert( *foc_it );
+               }
+            }
+
+            file_out << "Quantity: " << "sheaf_facet " <<  quan_size << std::endl;
+
+            segment_facet_quantity_iterator fkit = (*seg_it).facet_key_begin();
+            for (; fkit != (*seg_it).facet_key_end();++fkit)
+//            typename base_domain_type::facet_quantity_type::key_iterator  fkit = facet_key_begin();
+//            for (; fkit != facet_key_end();++fkit)
+            {
+	      file_out << *fkit << " type " 
+ 		       << operator()(*(facet_container.begin()), *fkit).size_1() << "  " 
+ 		       << operator()(*(facet_container.begin()), *fkit).size_2() <<  std::endl;
+
+               file_out << facet_container.size() << std::endl;
+               for (facet_iterator fit = facet_container.begin();  fit != facet_container.end();++fit)
+               {
+                  storage_type value;
+                  
+                  try
+                  {
+                     retrieve_quantity(*fit, *fkit, value);
+                     if (value.size_1()==0)
+                        file_out << (*fit).handle() << " " << 0.0 << std::endl;
+                     else
+                        file_out << (*fit).handle() << " " << value(0, 0) << std::endl;
+                  }
+                  catch(...)
+                  {
+                        file_out << (*fit).handle() << " " << 0.0 << std::endl;
+                  }
+               }
+            }
+         }
+
+         // ============================
+         // write cell quantity
+        
+         quan_size = (*seg_it).cell_key_size();
+         if (quan_size != 0)
+         {
+            file_out << "Quantity: " << "sheaf_cell " <<  quan_size << std::endl;
+            segment_cell_quantity_iterator ckit = (*seg_it).cell_key_begin();
+            for (; ckit != (*seg_it).cell_key_end();++ckit)
+//            typename base_domain_type::cell_quantity_type::key_iterator ckit = cell_key_begin();
+//            for (; ckit != cell_key_end();++ckit)
+            {
+	      file_out << *ckit << " type " 
+ 		       << operator()(*((*seg_it).cell_begin()), *ckit).size_1() << "  " 
+ 		       << operator()(*((*seg_it).cell_begin()), *ckit).size_2() <<  std::endl;
+
+               file_out << (*seg_it).cell_size() << std::endl;
+               typename segment_traits<segment_t>::cell_iterator cit;
+               for (cit = (*seg_it).cell_begin(); cit != (*seg_it).cell_end();++cit)
+               {
+                  storage_type value;
+                  
+                  try
+                  {
+                     retrieve_quantity(*cit, *ckit, value);
+                     if (value.size_1()==0)
+                        file_out << (*cit).handle() << " " << 0.0 << std::endl;
+                     else
+                        file_out << (*cit).handle() << " " << value(0, 0) << std::endl;
+                  }
+                  catch(...)
+                  {
+                     file_out << (*cit).handle() << " " << 0.0 << std::endl;                     
+                  }
+               }
+            }
+         }
+         cell_counter +=(*seg_it).cell_size();     // 200712 new gsse domain / quantities
+      }
+
+      // **************************************************************************************
+      // ***  Quantities (WSS::ATTRIBUTES)
+      //
+      // ============================
+      // write domain quantity
+      //
+     
+      quan_size = domain_quan.key_size();
+      if (quan_size != 0)
+      {
+         file_out << "Quantity: " << "domain " <<  quan_size << std::endl;
+         for (domain_key_iterator dkit = domain_quan.key_begin();
+              dkit != domain_quan.key_end(); ++dkit)
+         {
+            file_out << *dkit << std::endl;
+            file_out << "1" << std::endl;
+            
+            storage_type value;
+            retrieve_domain_quantity(*dkit, value);
+            if (value.size_1()==0)
+               file_out << 0 << " " << 0.0 << std::endl;
+            else
+               file_out << 0 << " " << value(0, 0) << std::endl;
+         }
+      }
+#endif
 
 
       file_out.close();

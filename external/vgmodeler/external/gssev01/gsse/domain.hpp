@@ -175,7 +175,7 @@ struct file_information
    }
 };
 
-file_information get_file_information(std::string filename)
+inline file_information get_file_information(std::string filename)
 {
    file_information fi;
    fi.dimension=-1;

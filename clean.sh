@@ -6,3 +6,7 @@ rm -rf doc/doxygen/
 cd tests/
 ./clean.sh
 cd ..
+
+cd external/vgmodeler
+./clean_all.sh
+cd ../..

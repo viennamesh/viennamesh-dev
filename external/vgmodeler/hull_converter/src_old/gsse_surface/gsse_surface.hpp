@@ -42,7 +42,6 @@
 // *** GSSE surface dl includes
 //
 #include "surface_includes.hpp"
-#include "../gsse_vgmodeler/bnd2hin.h"
 
 // -----------------
 
@@ -71,10 +70,6 @@ public:
    
   int  readGeometry(const std::string& fname)
   {
-    std::cout << "## " << fname << std::endl;
-    if (fname.find(".bnd")==fname.npos)
-    {
-    std::cout << "## HIN File " << fname.find(".bnd") << "\n";
     FILE* fp = fopen(fname.c_str(),"r");
     
     int cnt;
@@ -83,17 +78,6 @@ public:
     fclose(fp);
     
     return cnt;
-    }
-    else
-    {
-    	std::cout << "## BND File " << fname.find(".bnd") << "\n";
-	bnd_c bnd;
-	bnd.bnd2surface(fname);
-	int cnt;
-    	cnt = bnd.to_gsse(dlk);
-    
-    	return cnt;
-    }
   }
   
   

@@ -124,18 +124,15 @@ int main(int argc, char** argv)
       // 
       // SURFACE MESHING
       //
-      /*
       if (filename_in_extension == "bnd")
       {
          std::cout << "## Converting BND file: " << filename_in << std::endl;
-         //convert_dfise(filename_in, "temp.hin");
+         convert_dfise(filename_in, "temp.hin");
 
-         //create_surface_mesh("temp.hin", domain_input);    
-         //int ret = system("rm temp.hin");
-	 create_surface_mesh_bnd(filename_in, domain_input);
+         create_surface_mesh("temp.hin", domain_input);    
+         int ret = system("rm temp.hin");
       }
-      else*/
-      if (filename_in_extension == "hin" || filename_in_extension == "bnd")      
+      else if (filename_in_extension == "hin")      
       { 
          std::cout << "## Converting HIN file: " << filename_in  << std::endl; 
 

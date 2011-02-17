@@ -59,7 +59,7 @@ def build(ctx):
    #
    ctx(
       features     = 'cxx cxxprogram', 
-      source       = 'src/gsse_vgmodeler/gsse_converter.cpp',
+      source       = 'src/gsse_vgmodeler/gsse_converter.cpp src/gsse_vgmodeler/bnd2hin.cpp',
       target       = 'hull_converter',
       name         = 'hull_converter',
       includes     = '. ../external/gssev01 ../external/gssev01/external/phoenix_v2 \
