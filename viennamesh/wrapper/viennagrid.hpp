@@ -23,42 +23,12 @@
 
 namespace viennamesh {
 
+#ifndef VIENNAMESH_VIENNAGRID_SUPPORT
+#define VIENNAMESH_VIENNAGRID_SUPPORT
 namespace tag {
 struct viennagrid {};
 } // end namespace tag   
-
-// namespace detail {
-// } // end namespace detail
-
-// namespace result_of {
-// 
-// template<typename ViennaGridCellTag>
-// struct extract_cell_topology 
-// {
-//    typedef viennamesh::tag::none type;
-// };
-// template<>
-// struct extract_cell_topology <viennagrid::line_tag >
-// {
-//    typedef viennamesh::tag::simplex type;
-// };
-// template<>
-// struct extract_cell_topology <viennagrid::triangle_tag >
-// {
-//    typedef viennamesh::tag::simplex type;
-// };
-// template<>
-// struct extract_cell_topology <viennagrid::tetrahedron_tag >
-// {
-//    typedef viennamesh::tag::simplex type;
-// };
-// template<>
-// struct extract_cell_topology <viennagrid::quadrilateral_tag >
-// {
-//    typedef viennamesh::tag::cuboid type;
-// };
-// 
-// } // end namespace result_of
+#endif
 
 template<typename ArrayT>
 struct viennagrid_point_wrapper

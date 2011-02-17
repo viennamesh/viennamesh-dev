@@ -4,7 +4,7 @@ INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("tetgen/")
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-O2 )
+   ADD_DEFINITIONS(-O2 -fPIC -DTETLIBRARY)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-ADD_LIBRARY(tetgen STATIC tetgen/predicates.cxx tetgen/tetgen.cxx)
+ADD_LIBRARY(tetgen STATIC tetgen/tetgen.cxx tetgen/predicates.cxx)

@@ -35,6 +35,5 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
 
 #link specific libraries to specific executables
-TARGET_LINK_LIBRARIES(viennamesh triangle gtsio3)
-
+TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle )
 

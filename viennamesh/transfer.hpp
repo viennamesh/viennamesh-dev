@@ -12,10 +12,9 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_INTERFACE_HPP
-#define VIENNAMESH_INTERFACE_HPP
+#ifndef VIENNAMESH_TRANSFER_HPP
+#define VIENNAMESH_TRANSFER_HPP
 
-#include "viennamesh/interfaces/triangle.hpp"
-#include "viennamesh/interfaces/tetgen.hpp"
+#include "viennamesh/transfer/viennagrid.hpp"
 
 #endif

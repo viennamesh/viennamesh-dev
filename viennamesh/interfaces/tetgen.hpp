@@ -12,16 +12,15 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_INTERFACE_TRIANGLE_HPP
-#define VIENNAMESH_INTERFACE_TRIANGLE_HPP
+#ifndef VIENNAMESH_INTERFACE_TETGEN_HPP
+#define VIENNAMESH_INTERFACE_TETGEN_HPP
 
-/** @file triangle.hpp
-    @brief mesh generator interface for: Triangle - http://www.cs.cmu.edu/~quake/triangle.html    
+/** @file tetgen.hpp
+    @brief mesh generator interface for: Tetgen - http://tetgen.berlios.de/
 */
 
 // *** system includes
 #include <vector>
-#include <cstring>
 #include <map>
 
 // *** boost includes
@@ -34,60 +33,38 @@
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/make_map.hpp>
 
-// *** Triangle
-#define VOID void
-#define ANSI_DECLARATORS
+// *** tetgen includes
 #define REAL double
-extern "C"  { 
-   #include "triangle/triangle.h" 
-}
+#define TETLIBRARY
+#include "tetgen/tetgen.h"
 
 // *** vienna includes
 #include "viennautils/dumptype.hpp"
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
 
-
 #define MESH_KERNEL_DEBUG
 #define MESH_KERNEL_DEBUG_FULL
 
-/*
-TODO 
-there are parameters for triangle I wasn't aware of:
-  -i Uses the incremental algorithm for Delaunay triangulation, rather than the divide-and-conquer algorithm.
-  -F Uses Steven Fortune's sweepline algorithm for Delaunay triangulation, rather than the divide-and-conquer algorithm.
-  
-  also provide minimal triangulation:
-  -pz  ... minimal triangulation?  check again
-    -p triangulation
-    -z start indices from zero
-
-   -pqz .. constrained delaunay  check again
-   -pqzD .. conforming delaunay  check again
-
-provide itnerface
-*/
-
-
 namespace viennamesh {
 
-/** @brief tag-dispatched mesher kernel specialization for Triangle
+/** @brief tag-dispatched mesher kernel specialization for Tetgen
 */   
 template <typename DatastructureT>
-struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
+struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
 {
 private:
    // -------------------------------------------------------------------------------------
-   typedef double    numeric_type;  
+   typedef REAL      numeric_type;  
    typedef int       integer_type;
 
-   static const int DIMG = 2;
-   static const int DIMT = 2;
+   static const int DIMG = 3;
+   static const int DIMT = 3;
    static const int CELL_SIZE = DIMT+1;            // this holds only for simplices
    
-   typedef boost::array< numeric_type , 2 >        point_type;
-   typedef boost::array< numeric_type , 3 >        cell_type;
-   typedef std::vector < cell_type >               topology_container_type;   
+   typedef boost::array< numeric_type , DIMG >        point_type;
+   typedef boost::array< numeric_type , CELL_SIZE >   cell_type;
+   typedef std::vector < cell_type >                  topology_container_type;   
    
    typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
    typedef typename DatastructureT::cell_type         vmesh_cell_type;
@@ -96,34 +73,34 @@ private:
 
 public:
    typedef std::vector < point_type >              geometry_container_type;
-   typedef std::vector <topology_container_type>   segment_container_type;   
+   typedef std::vector <topology_container_type>   segment_container_type;      
    
-   // -------------------------------------------------------------------------------------
+   // -------------------------------------------------------------------------------------   
    /** @brief constructor expects a ViennaMesh::wrapped datastructure
-   */   
+   */      
    mesh_kernel(DatastructureT & data) : data(data) 
    {
       // TODO provide conecept check mechanism - is it a ViennaMesh::Wrapper ?
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - initiating" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - initiating" << std::endl;
    #endif
       this->init();
       
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - starting meshing process" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - starting meshing process" << std::endl;
    #endif
    
       size_t segment_size = data.domain().segment_container()->size();
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - processing segments" << std::endl;
-      std::cout << "## MeshKernel::Triangle - detected segments: " << segment_size << std::endl;
+      std::cout << "## MeshKernel::Tetgen - processing segments" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - detected segments: " << segment_size << std::endl;
    #endif  
       if( segment_size > 1 )
       {
       typedef std::vector<point_type>    region_points_type;
       region_points_type region_points;
       #ifdef MESH_KERNEL_DEBUG
-         std::cout << "## MeshKernel::Triangle - dealing with multi-segment input" << std::endl;
+         std::cout << "## MeshKernel::Tetgen - dealing with multi-segment input" << std::endl;
          std::size_t seg_cnt = 0;
       #endif      
          point_type pnt;
@@ -134,7 +111,7 @@ public:
             this->find_point_in_segment(segment, pnt);
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
-            std::cout << "## MeshKernel::Triangle - computed point in segment " 
+            std::cout << "## MeshKernel::Tetgen - computed point in segment " 
                << seg_cnt << " : " << pnt[0] << " " << pnt[1] << std::endl;
             seg_cnt++;
          #endif
@@ -148,15 +125,16 @@ public:
    #ifdef MESH_KERNEL_DEBUG
       else
       {
-         std::cout << "## MeshKernel::Triangle - dealing with single-segment input" << std::endl;
+         std::cout << "## MeshKernel::Tetgen - dealing with single-segment input" << std::endl;
       }   
-   #endif                  
+   #endif              
+   
       // traverse and add the geometry information
       // aka the set of points
       //
    #ifdef MESH_KERNEL_DEBUG
       std::cout << std::endl;
-      std::cout << "## MeshKernel::Triangle - processing geometry" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - processing geometry" << std::endl;
    #endif
       typedef typename DatastructureT::geometry_iterator geometry_iterator;
       for(geometry_iterator iter = data.geometry_begin();
@@ -164,22 +142,22 @@ public:
       {
          
       #ifdef MESH_KERNEL_DEBUG
-          std::cout << "## MeshKernel::Triangle - adding point " << 
+          std::cout << "## MeshKernel::Tetgen - adding point " << 
              std::distance(data.geometry_begin(), iter) << " : " << *iter << std::endl;
       #endif   
          this->addPoint(*iter);
       }
-
+      
       // traverse and add the topology information
       // aka the set of boundary constraints
       //
    #ifdef MESH_KERNEL_DEBUG
       std::cout << std::endl;   
-      std::cout << "## MeshKernel::Triangle - processing constraintss" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - processing constraintss" << std::endl;
    #endif
       size_t si = 0;
 
-      typedef boost::array<std::size_t, 2>   boost_cell_type;
+      typedef boost::array<std::size_t, 3>   boost_cell_type;
       std::map<boost_cell_type, bool>        cell_uniquer;      
    #ifdef MESH_KERNEL_DEBUG      
       size_t cell_cnt = 0;
@@ -199,7 +177,7 @@ public:
             if(!cell_uniquer[cell])
             {
             #ifdef MESH_KERNEL_DEBUG
-               std::cout << "## MeshKernel::Triangle - adding constraint   " << 
+               std::cout << "## MeshKernel::Tetgen - adding constraint   " << 
                   cell_cnt << " : ";
                for(size_t i = 0; i < cell.size(); i++)  
                   std::cout << cell[i] << " ";
@@ -213,7 +191,7 @@ public:
          #ifdef MESH_KERNEL_DEBUG            
             else
             { 
-               std::cout << "## MeshKernel::Triangle - skipping constraint " << 
+               std::cout << "## MeshKernel::Tetgen - skipping constraint " << 
                   cell_cnt << " : ";
                for(size_t i = 0; i < cell.size(); i++)  
                   std::cout << cell[i] << " ";
@@ -222,24 +200,23 @@ public:
          #endif
          }
          si++;
-      }      
+      }            
    }
-   // -------------------------------------------------------------------------------------   
-   
    // -------------------------------------------------------------------------------------
+   
+   // -------------------------------------------------------------------------------------   
    /** @brief destructor takes care of releasing mesh kernel memory
-   */   
+   */      
    ~mesh_kernel()
    {
-      // TODO provide conecept check mechanism - is it a ViennaMesh::Wrapper ?
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - shutting down" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - shutting down" << std::endl;
    #endif
       this->clear();
-   }
-   // -------------------------------------------------------------------------------------      
-   
+   }   
    // -------------------------------------------------------------------------------------
+   
+   // -------------------------------------------------------------------------------------   
    /** @brief functor expects a parameter set based on a boost::fusion::map
    */   
    void operator()() // default meshing
@@ -263,67 +240,70 @@ public:
    #ifndef MESH_KERNEL_DEBUG_FULL
       options.append("Q");
    #endif
-      //char buffer[options.length()];
-      char *buffer;
-      buffer = (char *)malloc( options.length() * sizeof(char) );
-      std::strcpy(buffer,options.c_str());
-
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::Triangle - meshing" << std::endl;
-      std::cout << "  parameter set:    \"" << buffer << "\"" << std::endl;
+      std::cout << "  parameter set:     " << options << std::endl;
       std::cout << "  input point size:  " << in.numberofpoints << std::endl;
-      std::cout << "  input const size:  " << in.numberofsegments << std::endl;      
+      std::cout << "  input const size:  " << in.numberoffacets << std::endl;      
       std::cout << "  input region size: " << in.numberofregions << std::endl;            
    #endif         
-      
-      BOOST_ASSERT(in.numberofpoints != 0);
-      //BOOST_ASSERT(in.numberofsegments != 0);      
 
-      triangulate(buffer, &in, &out, 0);
+      char *buffer;
+      buffer = (char *)malloc( options.length() * sizeof(char) );
+      std::strcpy(buffer,options.c_str());      
+
+      BOOST_ASSERT(in.numberofpoints != 0);
+      //BOOST_ASSERT(in.numberoffacets != 0);      
+      //
+      // start meshing process
+      //
+      tetrahedralize(buffer, &in, &out);
       
       if ( !out.pointlist)      
          std::cout << "\t::ERROR: pointlist" << std::endl;
-      if ( !out.trianglelist)   
-         std::cout << "\t::ERROR: trianglelist " << std::endl;
-
+      if ( !out.tetrahedronlist)   
+         std::cout << "\t::ERROR: tetrahedronlist " << std::endl;      
+      
       //
       // extracting geometry data
       //
       geometry_cont.resize(out.numberofpoints);
       for(integer_type pnt_index = 0; pnt_index < out.numberofpoints; ++pnt_index)
       {
-         integer_type index = pnt_index * 2;
+         integer_type index = pnt_index * 3;
          
          point_type pnt;
          pnt[0] = out.pointlist[index];
          pnt[1] = out.pointlist[index+1];
+         pnt[2] = out.pointlist[index+2];         
          geometry_cont[pnt_index] = pnt;
       }      
       //
       // extracting cell complex
       //
-      size_t seg_id = 0;
+      std::size_t seg_id = 0;
       // segment index is only increment in the addRegion method
       // in the case of a single segment, this particular method is never 
       // called, therefore we have to set it manually to one
       if(segment_index == 0) segment_index = 1; 
       segment_cont.resize(segment_index);
-      for(integer_type tri_index = 0; tri_index < out.numberoftriangles; ++tri_index)
+      for(integer_type tet_index = 0; tet_index < out.numberoftetrahedra; ++tet_index)
       {
-         integer_type index = tri_index * 3; 
+         integer_type index = tet_index * 3; 
 
          cell_type cell;
-         cell[0] = out.trianglelist[index];
-         cell[1] = out.trianglelist[index+1];
-         cell[2] = out.trianglelist[index+2];         
+         cell[0] = out.tetrahedronlist[index];
+         cell[1] = out.tetrahedronlist[index+1];
+         cell[2] = out.tetrahedronlist[index+2];         
+         cell[3] = out.tetrahedronlist[index+3];                  
          
          // only access triangle attributes if there are any
          // otherwise we get ourselves a segfault
          // if, for example, there is only one region, 
          // there is no need to call "add<region>", therefore
          // we have to counter this case
-         if(out.numberoftriangleattributes > 0)
-            seg_id = out.triangleattributelist[tri_index];
+         if(out.numberoftetrahedronattributes > 0)
+            seg_id = out.tetrahedronattributelist[tet_index];
          
          //std::cout << "tri: " << tri_index << " : " << cell[0] << " " << cell[1] << " " 
          //   << cell[2] << " attr: " << out.triangleattributelist[tri_index] << std::endl;
@@ -333,7 +313,7 @@ public:
       // release internal mesher output container, as the data has been already 
       // retrieved
       //
-      freeMem(out);         
+      freeMem(out);           
    }
    // -------------------------------------------------------------------------------------
 
@@ -349,7 +329,8 @@ public:
    topology()        { return segment_cont; }       
    // -------------------------------------------------------------------------------------
 
-private:
+private:   
+   
    // -------------------------------------------------------------------------------------
    template<typename ParametersMapT>
    void setOptions(ParametersMapT & paras,
@@ -360,7 +341,9 @@ private:
    void setOptions_impl(viennamesh::tag::convex const&)               { options = "z";    }   
    void setOptions_impl(viennamesh::tag::constrained_delaunay const&) { options = "zp";  }
    void setOptions_impl(viennamesh::tag::conforming_delaunay const&)  { options = "zpD"; }
-   // -------------------------------------------------------------------------------------
+   // -------------------------------------------------------------------------------------   
+   
+   // -------------------------------------------------------------------------------------   
    void find_point_in_segment(typename DatastructureT::cell_complex_wrapper_type & cell_complex, 
                               point_type& pnt)
    {
@@ -383,9 +366,10 @@ private:
                point_cnt++;
             }
          }
-         boost::array< numeric_type , 2 > mapped_cell;
+         boost::array< numeric_type , 3 > mapped_cell;
          mapped_cell[0] = index_map[cell[0]];
          mapped_cell[1] = index_map[cell[1]];
+         mapped_cell[2] = index_map[cell[2]];          
          this->addConstraint(mapped_cell);
       }
       
@@ -401,6 +385,7 @@ private:
             geometry_cont[segment_cont[0][0][0]],  // first segment, first cell, first vertex
             geometry_cont[segment_cont[0][0][1]],  // first segment, first cell, second vertex
             geometry_cont[segment_cont[0][0][2]],  // first segment, first cell, third vertex
+            geometry_cont[segment_cont[0][0][3]],  // first segment, first cell, third vertex                          
             pnt
          );
       }
@@ -410,17 +395,18 @@ private:
       }
       this->reset();
    }
-   // -------------------------------------------------------------------------------------      
-
+   // -------------------------------------------------------------------------------------         
+   
    // -------------------------------------------------------------------------------------
    template<typename PointT>
-   void barycenter(PointT const& p1, PointT const& p2, PointT const& p3, PointT & result)
+   void barycenter(PointT const& p1, PointT const& p2, PointT const& p3, PointT const& p4, PointT & result)
    {
-      result[0] = (p1[0] + p2[0] + p3[0])/3.;
-      result[1] = (p1[1] + p2[1] + p3[1])/3.;
+      result[0] = (p1[0] + p2[0] + p3[0] + p4[0])/4.;
+      result[1] = (p1[1] + p2[1] + p3[1] + p4[0])/4.;
+      result[2] = (p1[2] + p2[2] + p3[2] + p4[0])/4.;      
    }
-   // -------------------------------------------------------------------------------------   
-
+   // -------------------------------------------------------------------------------------      
+   
    // -------------------------------------------------------------------------------------
    template<typename PointT>
    void addPoint(PointT const& pnt)
@@ -430,6 +416,8 @@ private:
       this->pointlist_index++;
       this->in.pointlist[pointlist_index] = pnt[1];
       this->pointlist_index++;             
+      this->in.pointlist[pointlist_index] = pnt[2];
+      this->pointlist_index++;                   
    }
    template<typename PointT>
    void addPoint(PointT & pnt)
@@ -439,6 +427,8 @@ private:
       this->pointlist_index++;
       this->in.pointlist[pointlist_index] = pnt[1];
       this->pointlist_index++;             
+      this->in.pointlist[pointlist_index] = pnt[2];
+      this->pointlist_index++;           
    }
    // -------------------------------------------------------------------------------------   
 
@@ -446,20 +436,40 @@ private:
    template<typename ConstraintT>
    void addConstraint(ConstraintT const& constraint)
    {
-      extendSegments();
-      in.segmentlist[segmentlist_index] = constraint[0];
-      segmentlist_index++;
-      in.segmentlist[segmentlist_index] = constraint[1];
-      segmentlist_index++;          
+      extendFacets();
+
+      f = &in.facetlist[mesher_facet_index];
+      f->numberofpolygons = 1;
+      f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
+      f->numberofholes = 0;
+      f->holelist = NULL;
+      p = &f->polygonlist[0];
+      p->numberofvertices = 3;
+      p->vertexlist = new int[p->numberofvertices];
+      p->vertexlist[0] = constraint[0];
+      p->vertexlist[1] = constraint[1];
+      p->vertexlist[2] = constraint[2];
+
+      mesher_facet_index++;   
    }
    template<typename ConstraintT>
    void addConstraint(ConstraintT & constraint)
    {  //std::cout << "adding const: " << constraint[0] << " " << constraint[1] << std::endl;
-      extendSegments();
-      in.segmentlist[segmentlist_index] = constraint[0];
-      segmentlist_index++;
-      in.segmentlist[segmentlist_index] = constraint[1];
-      segmentlist_index++;          
+      extendFacets();
+
+      f = &in.facetlist[mesher_facet_index];
+      f->numberofpolygons = 1;
+      f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
+      f->numberofholes = 0;
+      f->holelist = NULL;
+      p = &f->polygonlist[0];
+      p->numberofvertices = 3;
+      p->vertexlist = new int[p->numberofvertices];
+      p->vertexlist[0] = constraint[0];
+      p->vertexlist[1] = constraint[1];
+      p->vertexlist[2] = constraint[2];
+
+      mesher_facet_index++;      
    }   
    // -------------------------------------------------------------------------------------   
 
@@ -472,6 +482,8 @@ private:
       regionlist_index++;
       in.regionlist[regionlist_index] = pnt[1];
       regionlist_index++;
+      in.regionlist[regionlist_index] = pnt[2];
+      regionlist_index++;      
       in.regionlist[regionlist_index] = numeric_type(segment_index);  // assign region id
       regionlist_index++;
       in.regionlist[regionlist_index] = numeric_type(segment_index);  // assign region id
@@ -486,31 +498,33 @@ private:
       regionlist_index++;
       in.regionlist[regionlist_index] = pnt[1];
       regionlist_index++;
+      in.regionlist[regionlist_index] = pnt[2];
+      regionlist_index++;
       in.regionlist[regionlist_index] = numeric_type(segment_index);  // assign region id
       regionlist_index++;
       in.regionlist[regionlist_index] = numeric_type(segment_index);  // assign region id
       regionlist_index++;
       segment_index++;
    }   
-   // -------------------------------------------------------------------------------------   
-
+   // -------------------------------------------------------------------------------------      
+   
    // -------------------------------------------------------------------------------------
    void extendPoints()
    {
       if ( !in.pointlist)
-         in.pointlist   = (numeric_type *)malloc( 2 * sizeof(numeric_type) );
-      else   in.pointlist = (numeric_type *)realloc ( in.pointlist, (in.numberofpoints+1) * 2 * sizeof(numeric_type));
+         in.pointlist   = (numeric_type *)malloc( 3 * sizeof(numeric_type) );
+      else   in.pointlist = (numeric_type *)realloc ( in.pointlist, (in.numberofpoints+1) * 3 * sizeof(numeric_type));
       in.numberofpoints++;
    }
-   // ------------------------------------------------------------------------------------- 
-
+   // -------------------------------------------------------------------------------------    
+   
    // -------------------------------------------------------------------------------------
-   void extendSegments()
+   void extendFacets()
    {
-      if ( !in.segmentlist)
-         in.segmentlist   = (integer_type *)malloc( 2 * sizeof(integer_type) );
-      else   in.segmentlist = (integer_type *)realloc ( in.segmentlist, (in.numberofsegments+1) * 2 * sizeof(integer_type));
-      in.numberofsegments++;
+      if ( !in.facetlist)
+         in.facetlist   = (tetgenio::facet *)malloc( 2 * sizeof(tetgenio::facet) );
+      else   in.facetlist = (tetgenio::facet *)realloc ( in.facetlist, (in.numberoffacets+1) * 2 * sizeof(tetgenio::facet));
+      in.numberoffacets++;
    }
    // ------------------------------------------------------------------------------------- 
 
@@ -518,34 +532,20 @@ private:
    void extendRegions()
    {
       if ( !in.regionlist)
-         in.regionlist   = (numeric_type *)malloc( 4 * sizeof(numeric_type) );
-      else   in.regionlist = (numeric_type *)realloc ( in.regionlist, (in.numberofregions+1) * 4 * sizeof(numeric_type));
+         in.regionlist   = (numeric_type *)malloc( 5 * sizeof(numeric_type) );
+      else   in.regionlist = (numeric_type *)realloc ( in.regionlist, (in.numberofregions+1) * 5 * sizeof(numeric_type));
       in.numberofregions++;
    }
-   // -------------------------------------------------------------------------------------   
+   // -------------------------------------------------------------------------------------      
    
-   // -------------------------------------------------------------------------------------
-   void init_kernel(triangulateio& io)
+   // -------------------------------------------------------------------------------------  
+   void init_kernel(tetgenio& io)
    {
-      io.pointlist = io.pointattributelist = 0;
-      io.pointmarkerlist   = 0;
-      io.numberofpoints = io.numberofpointattributes = 0;
-      io.trianglelist = 0;
-      io.triangleattributelist = io.trianglearealist = 0;
-      io.neighborlist = 0;
-      io.numberoftriangles = io.numberofcorners = 0;
-      io.numberoftriangleattributes = 0;
-      io.segmentlist = io.segmentmarkerlist = 0;
-      io.numberofsegments = 0;
-      io.holelist = 0; 
-      io.numberofholes = 0;
-      io.regionlist = 0;
-      io.numberofregions = 0;
-      io.edgelist = io.edgemarkerlist = 0;
-      io.normlist = 0;
-      io.numberofedges = 0;
-   }   
-   // -------------------------------------------------------------------------------------
+      io.numberofpoints = 0;
+      io.numberoffacets = 0;
+      io.numberofregions = 0;      
+   }
+   // -------------------------------------------------------------------------------------     
    
    // -------------------------------------------------------------------------------------    
    void init()
@@ -553,11 +553,10 @@ private:
       init_kernel(in);
       init_kernel(out);
       options = "";
-      pointlist_index      = 0;
-      segmentlist_index    = 0;
-      regionlist_index     = 0;
-      holelist_index       = 0;
-      segment_index        = 0;             
+      pointlist_index               = 0;
+      regionlist_index              = 0;
+      mesher_facet_index            = 0;     
+      constraint_list_index         = 0;
    }
    // -------------------------------------------------------------------------------------          
    
@@ -577,86 +576,50 @@ private:
       this->clear();
       this->init();
    }
-   // -------------------------------------------------------------------------------------     
-
-   // -------------------------------------------------------------------------------------
-   void freeMem(triangulateio& io)
-   {
-      if (io.pointlist != NULL)
-      {  
-         free (io.pointlist);
-         io.pointlist = NULL;
-      }
-      if (io.pointattributelist != NULL)
-      {
-         free (io.pointattributelist);
-         io.pointattributelist = NULL;
-      }
-      if (io.pointmarkerlist != NULL)
-      {
-         free (io.pointmarkerlist);
-         io.pointmarkerlist = NULL;
-      }
-      if (io.trianglelist != NULL)
-      {
-         free (io.trianglelist);
-         io.trianglelist = NULL;
-      }
-      if (io.triangleattributelist != NULL)   
-      {
-         free (io.triangleattributelist);
-         io.triangleattributelist = NULL;
-      }
-      if (io.neighborlist != NULL)
-      {
-         free (io.neighborlist);
-         io.neighborlist = NULL;
-      }
-      if (io.segmentlist != NULL)
-      {
-         free (io.segmentlist);
-         io.segmentlist = NULL;
-      }
-      if (io.segmentmarkerlist != NULL)
-      {
-         free (io.segmentmarkerlist);
-         io.segmentmarkerlist = NULL;
-      }
-      if (io.edgelist != NULL)               
-      {
-         free (io.edgelist);
-         io.edgelist = NULL;
-      }
-      if (io.edgemarkerlist != NULL)        
-      {
-         free (io.edgemarkerlist);
-         io.edgemarkerlist = NULL;
-      }
-      if (io.normlist != NULL)               
-      {
-         free (io.normlist);
-         io.normlist = NULL;
-      }
-   }
-   // -------------------------------------------------------------------------------------
-   DatastructureT & data;
+   // -------------------------------------------------------------------------------------        
    
-   triangulateio  in, 
-                  out;
+   // -------------------------------------------------------------------------------------           
+   void freeMem(tetgenio& io)
+   {
+      for(integer_type facet_index = 0; facet_index <  in.numberoffacets; ++facet_index)
+      {
+         f = &in.facetlist[facet_index];    
+         p = &f->polygonlist[0];
 
+         delete[] p->vertexlist;
+         delete[] f->polygonlist;  
+      }      
+      if(in.pointlist)           free(in.pointlist);
+      if(in.facetlist)           free(in.facetlist);   
+      
+      in.pointlist = NULL;
+      in.facetlist = NULL;
+      
+      delete[] out.pointmarkerlist;            
+   }
+   // -------------------------------------------------------------------------------------           
+   
+   // -------------------------------------------------------------------------------------   
+   DatastructureT & data;   
+   
    std::string    options;
 
-   integer_type   pointlist_index,
-                  segmentlist_index,
-                  regionlist_index,
-                  holelist_index,
-                  segment_index;   
-
-   geometry_container_type      geometry_cont;      
-   segment_container_type       segment_cont;   
-   // -------------------------------------------------------------------------------------
-};   
+   tetgenio          in, 
+                     out;
+   tetgenio::facet   *f;
+   tetgenio::polygon *p;
    
+   integer_type   pointlist_index,
+                  constraint_list_index,
+                  regionlist_index,
+                  mesher_facet_index,
+                  segment_index;   
+                  
+   geometry_container_type      geometry_cont;      
+   segment_container_type       segment_cont;                     
+};
+
 } // end namespace viennamesh
 
 #endif
+

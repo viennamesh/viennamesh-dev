@@ -25,6 +25,7 @@
 
 #include "viennamesh/generator.hpp"
 #include "viennamesh/wrapper/viennagrid.hpp"
+#include "viennamesh/transfer/viennagrid.hpp"
 
 template<typename DomainT>
 void statistics(DomainT& domain, std::ostream& ostr = std::cout)
@@ -124,7 +125,7 @@ int main(int argc, char * argv[])
          typedef viennagrid::domain<viennagrid::config::triangular_2d> domain_out_type;
          domain_out_type domain_out;
 
-         std::cout << "# viennamesh::generating mesh .. " << std::endl;
+         std::cout << "## viennamesh::generating mesh .. " << std::endl;
 
          // ------------------------------------------------------------------------------------------
          using namespace viennamesh;
@@ -132,20 +133,20 @@ int main(int argc, char * argv[])
             tag::cell_type, tag::algorithm,            tag::criteria,            tag::dim_topo, tag::dim_geom, 
             tag::simplex,   tag::incremental_delaunay, tag::conforming_delaunay, tag::two,      tag::two  >::type  mesher_properties;          
          
-         typedef viennamesh::result_of::generate_mesh_kernel<mesher_properties>::type     mesh_kernel;
+         typedef viennamesh::result_of::generate_mesh_kernel<mesher_properties>::type        mesh_kernel;
             
-         typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_in_type>         datastructure_type;
-         datastructure_type data(domain_in);
+         typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_in_type>            data_input_type;
+         data_input_type data_in(domain_in);
          
-         typedef viennamesh::result_of::mesh_generator<mesh_kernel, datastructure_type>::type mesh_generator_type;
-         mesh_generator_type mesher(data);
+         typedef viennamesh::result_of::mesh_generator<mesh_kernel, data_input_type>::type   mesh_generator_type;
+          mesh_generator_type mesher(data_in);
+ 
+          mesher( boost::fusion::make_map<tag::criteria, tag::size>(tag::conforming_delaunay(), 1.0) );         
 
-         mesher( boost::fusion::make_map<tag::criteria, tag::size>(tag::conforming_delaunay(), 1.0) );         
+         typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
+         transfer_type  transfer;
+         transfer(mesher, domain_out);
          // ------------------------------------------------------------------------------------------         
-         
-//         std::cout << "# viennamesh::building output domain .. " << std::endl;         
-//         viennamesh::transfer(mesher, domain_out);
-//         
          if(output_extension == "vtu")
          {
             std::cout << "# viennamesh::writing vtu file .. " << std::endl;
@@ -178,6 +179,10 @@ int main(int argc, char * argv[])
          // domain_generator(domain_out);
 
       }
+      if(dim == 3)
+      {
+         
+      }
       else
       {
          std::cerr << "## Error: dimension not supported: " << dim << std::endl;
@@ -185,6 +190,12 @@ int main(int argc, char * argv[])
          return -1;         
       }
    }
+//    if(input_extension == "gts")
+//    {
+//       if(dim == 2)
+//       {
+//       }
+//    }
    else
    {
       std::cerr << "## Error: input fileformat not supported: " << input_extension << std::endl;
