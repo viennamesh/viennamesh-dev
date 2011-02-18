@@ -100,7 +100,7 @@ int main(int argc, char * argv[])
    pos = outputfile.rfind(".")+1;   
    std::string output_extension = outputfile.substr(pos, outputfile.size());
    
-   if(input_extension == "gts")
+   if(input_extension == "gts") // TODO
    {
       if(dim == 2)
       {
@@ -180,7 +180,7 @@ int main(int argc, char * argv[])
          return -1;         
       }
    }
-   else if(input_extension == "gau32")
+   else if(input_extension == "gau32") // read an old gsse v01 hull mesh
    {
       typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_32t; 
       typedef gsse::get_domain<unstructured_topology_32t, double, double,3>::type   domain_32t;

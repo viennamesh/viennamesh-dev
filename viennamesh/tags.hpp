@@ -23,6 +23,7 @@ struct none     {};
 struct triangle {};
 struct tetgen   {};
 struct netgen   {};
+struct vgmodeler {};
 
 struct algorithm {};
 struct criteria  {};

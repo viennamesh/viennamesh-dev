@@ -179,7 +179,7 @@ int create_surface_mesh(const std::string& filename_in, gsse::domain_32t& domain
 // #########################################################
 
 template<typename Domain32T, typename VertexVectorT, typename Domain3T>
-int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh)
+int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh = 1e6)
 {
 #ifdef DEBUG
   std::cout << ".. starting sequential meshing .. " << std::endl;
@@ -426,7 +426,7 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
       mesh.GetBox (pmin, pmax);
     
       MeshingParameters mp;
-      mp.maxh = 1e6;
+      mp.maxh = maxh;
 
 #ifdef DEBUG
       std::cout << "## GSSE .. num points: " << mesh.GetNP() << std::endl;       

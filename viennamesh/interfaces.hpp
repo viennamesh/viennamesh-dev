@@ -17,5 +17,6 @@
 
 #include "viennamesh/interfaces/triangle.hpp"
 #include "viennamesh/interfaces/tetgen.hpp"
+#include "viennamesh/interfaces/vgmodeler.hpp"
 
 #endif
