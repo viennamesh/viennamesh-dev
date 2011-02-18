@@ -90,7 +90,7 @@ public:
       std::cout << "## MeshKernel::Tetgen - starting meshing process" << std::endl;
    #endif
    
-      size_t segment_size = data.domain().segment_container()->size();
+      size_t segment_size = data.segment_size();
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::Tetgen - processing segments" << std::endl;
       std::cout << "## MeshKernel::Tetgen - detected segments: " << segment_size << std::endl;
@@ -164,16 +164,17 @@ public:
    #endif
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
          seg_iter != data.segment_end(); seg_iter++)
-      {
+      {  std::cout << "traversing segments .. " << std::endl;
          for(vmesh_cell_iterator cit = (*seg_iter).cell_begin();
              cit != (*seg_iter).cell_end(); cit++)
-         {
+         {  
             vmesh_cell_type vmesh_cell = *cit;
+            
             boost_cell_type cell;
             for(size_t i = 0; i < vmesh_cell.size(); i++)  
                cell[i] = vmesh_cell[i];
             std::sort(cell.begin(), cell.end());
-
+            //std::cout << cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
             if(!cell_uniquer[cell])
             {
             #ifdef MESH_KERNEL_DEBUG
@@ -241,7 +242,7 @@ public:
       options.append("Q");
    #endif
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - meshing" << std::endl;
+      std::cout << "## MeshKernel::Tetgen - meshing:" << std::endl;
       std::cout << "  parameter set:     " << options << std::endl;
       std::cout << "  input point size:  " << in.numberofpoints << std::endl;
       std::cout << "  input const size:  " << in.numberoffacets << std::endl;      
@@ -264,6 +265,13 @@ public:
       if ( !out.tetrahedronlist)   
          std::cout << "\t::ERROR: tetrahedronlist " << std::endl;      
       
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::Tetgen - finished:" << std::endl;
+      std::cout << "  output point size:  " << out.numberofpoints << std::endl;
+      std::cout << "  output const size:  " << out.numberoftetrahedra << std::endl;      
+      std::cout << "## MeshKernel::Tetgen - extracting geometry" << std::endl;
+   #endif               
+      
       //
       // extracting geometry data
       //
@@ -278,6 +286,11 @@ public:
          pnt[2] = out.pointlist[index+2];         
          geometry_cont[pnt_index] = pnt;
       }      
+      
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::Tetgen - extracting topology" << std::endl;
+   #endif          
+      
       //
       // extracting cell complex
       //
@@ -289,7 +302,7 @@ public:
       segment_cont.resize(segment_index);
       for(integer_type tet_index = 0; tet_index < out.numberoftetrahedra; ++tet_index)
       {
-         integer_type index = tet_index * 3; 
+         integer_type index = tet_index * 4; 
 
          cell_type cell;
          cell[0] = out.tetrahedronlist[index];
@@ -309,11 +322,7 @@ public:
          //   << cell[2] << " attr: " << out.triangleattributelist[tri_index] << std::endl;
          segment_cont[seg_id].push_back(cell);
       }
-      //
-      // release internal mesher output container, as the data has been already 
-      // retrieved
-      //
-      freeMem(out);           
+ 
    }
    // -------------------------------------------------------------------------------------
 
@@ -360,7 +369,9 @@ private:
          {
             if(!pnt_uniquer[cell[dim]])
             {  
-               this->addPoint(this->data.domain().vertex(cell[dim]).getPoint());  
+               geometry_iterator geo = this->data.geometry_begin();
+               std::advance(geo, cell[dim]);
+               this->addPoint( *geo ); 
                pnt_uniquer[cell[dim]] = true;
                index_map[cell[dim]] = point_cnt;
                point_cnt++;
@@ -557,16 +568,16 @@ private:
       regionlist_index              = 0;
       mesher_facet_index            = 0;     
       constraint_list_index         = 0;
+      segment_index        = 0;           
    }
    // -------------------------------------------------------------------------------------          
    
    // -------------------------------------------------------------------------------------    
    void clear()
    {
-      freeMem(in);
-      freeMem(out); 
+      freeMem();
       geometry_cont.clear();
-      segment_cont.clear();      
+      segment_cont.clear();    
    }
    // -------------------------------------------------------------------------------------           
 
@@ -579,7 +590,7 @@ private:
    // -------------------------------------------------------------------------------------        
    
    // -------------------------------------------------------------------------------------           
-   void freeMem(tetgenio& io)
+   void freeMem()
    {
       for(integer_type facet_index = 0; facet_index <  in.numberoffacets; ++facet_index)
       {

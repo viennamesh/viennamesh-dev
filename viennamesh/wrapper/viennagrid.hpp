@@ -311,10 +311,10 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
 //       {  
 //          return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
 //       }      
-      viennagrid_cell_complex_wrapper 
+      viennagrid_cell_complex_wrapper<Datastructure>
       operator*() const
       {  
-         return viennagrid_cell_complex_wrapper((*this).obj().domain(), (*this).pos());
+         return viennagrid_cell_complex_wrapper<Datastructure>((*this).obj().domain(), (*this).pos());
       }            
    };   
    segment_iterator segment_begin()
@@ -325,6 +325,7 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    {
       return segment_iterator(*this, domain().segment_container()->size());
    }      
+   std::size_t segment_size()  { return domain().segment_container()->size(); }
    // -------------------------------------------------------------------------------------------   
 
 

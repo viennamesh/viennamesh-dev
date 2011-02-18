@@ -17,5 +17,6 @@
 
 #include "wrapper/viennagrid.hpp"
 #include "wrapper/gtsio.hpp"
+#include "wrapper/gsse01.hpp"
 
 #endif

@@ -12,8 +12,8 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_WRAPPER_VIENNAGRID_HPP
-#define VIENNAMESH_WRAPPER_VIENNAGRID_HPP
+#ifndef VIENNAMESH_WRAPPER_GTSIO3_HPP
+#define VIENNAMESH_WRAPPER_GTSIO3_HPP
 
 #include "viennamesh/wrapper/wrapper_base.hpp"
 #include "viennamesh/tags.hpp"

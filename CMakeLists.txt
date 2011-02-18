@@ -16,6 +16,8 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
+INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
+INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 
 # build external libraries
 add_subdirectory(external)
