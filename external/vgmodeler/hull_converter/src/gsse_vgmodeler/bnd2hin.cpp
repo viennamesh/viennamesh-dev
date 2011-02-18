@@ -25,6 +25,11 @@ vector<string> bnd_c::partition(const string &line, const string &delim)
 	if (idx==0)
 	{
 		idx=tmp.find_first_not_of(delim);
+		if (idx==tmp.npos)
+		{
+			feld.push_back("");
+			return feld;
+		}
 		tmp=tmp.substr(idx);
 	}
 	while (1)
@@ -290,7 +295,7 @@ void bnd_c::readit(const char *fname)
 {
 ifstream fin(fname);
 string line;
-vector<string> l,p,q;
+vector<string> l,p,q,r;
 while (1)
 {
 	getline(fin,line);
@@ -352,6 +357,12 @@ while (1)
 	p=split(line);
 
 	int n=atoi(p[0].c_str());
+	while (n>p.size()-1)
+	{
+		getline(fin,line);
+		q=split(line);
+		p.insert(p.end(),q.begin(),q.end());
+	}
 	_bndfaces.push_back(face_c());
 	for (int j=0; j<n; j++)
 		_bndfaces[i].push_back(atoi(p[j+1].c_str()));
@@ -375,11 +386,13 @@ while (1)
 {
 	getline(fin,line);
 	p=split(line);
+	if (p.size()==0 || p[0]=="")
+		continue;
 
 	if (p[0]=="10")
 	{
 		int n=atoi(p[1].c_str());
-		while (n>p.size())
+		while (n>p.size()-2)
 		{
 			getline(fin,line);
 			q=split(line);
@@ -387,14 +400,22 @@ while (1)
 		}
 		_elements.push_back(element_c());
 		for (int j=0; j<n; j++)
+		{
 			_elements[i].push_back(atoi(p[j+2].c_str()));
+		}
+		r=p;
 		i=i+1;
 		if (i==nelements)
 			break;
 	}
 	else
 	{
+		for (int i=0; i<r.size(); i++)
+			cerr << r[i] << " ";
 		cerr << "Elementtype not known\n";
+		for (int i=0; i<p.size(); i++)
+			cerr << p[i] << " ";
+		cerr << endl;
 		exit(-1);
 	}
 }
