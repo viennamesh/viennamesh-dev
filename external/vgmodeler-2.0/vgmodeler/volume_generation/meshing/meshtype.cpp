@@ -2286,46 +2286,45 @@ MeshingParameters :: MeshingParameters ()
   secondorder = 0;
 }
 
-void MeshingParameters :: Print (ostream & ost) const
+void MeshingParameters :: Print (ostream & ost, std::string prefix = "") const
 {
-#ifdef DEBUG
-  ost << "Meshing parameters: " << endl
-      << "optimize3d = " << optimize3d << endl
-      << "optsteps3d = " << optsteps3d << endl
-      << " optimize2d = " <<  optimize2d << endl
-      << " optsteps2d = " <<  optsteps2d << endl
-      << " opterrpow = " <<  opterrpow << endl
-      << " blockfill = " <<  blockfill << endl
-      << " filldist = " <<  filldist << endl
-      << " safety = " <<  safety << endl
-      << " relinnersafety = " <<  relinnersafety << endl
-      << " uselocalh = " <<  uselocalh << endl
-      << " grading = " <<  grading << endl
-      << " delaunay = " <<  delaunay << endl
-      << " maxh = " <<  maxh << endl;
+//#ifdef DEBUG
+  ost << prefix << "optimize3d = " << optimize3d << endl
+      << prefix << "optsteps3d = " << optsteps3d << endl
+      << prefix << "optimize2d = " <<  optimize2d << endl
+      << prefix << "optsteps2d = " <<  optsteps2d << endl
+      << prefix << "opterrpow = " <<  opterrpow << endl
+      << prefix << "blockfill = " <<  blockfill << endl
+      << prefix << "filldist = " <<  filldist << endl
+      << prefix << "safety = " <<  safety << endl
+      << prefix << "relinnersafety = " <<  relinnersafety << endl
+      << prefix << "uselocalh = " <<  uselocalh << endl
+      << prefix << "grading = " <<  grading << endl
+      << prefix << "delaunay = " <<  delaunay << endl
+      << prefix << "maxh = " <<  maxh << endl;
   if(meshsizefilename)
-    ost << " meshsizefilename = " <<  meshsizefilename << endl;
+    ost << prefix << "meshsizefilename = " <<  meshsizefilename << endl;
   else
-    ost << " meshsizefilename = NULL" << endl;
-  ost << " startinsurface = " <<  startinsurface << endl
-      << " checkoverlap = " <<  checkoverlap << endl
-      << " checkchartboundary = " <<  checkchartboundary << endl
-      << " curvaturesafety = " <<  curvaturesafety << endl
-      << " segmentsperedge = " <<  segmentsperedge << endl
-      << " parthread = " <<  parthread << endl
-      << " elsizeweight = " <<  elsizeweight << endl
-      << " giveuptol = " <<  giveuptol << endl
-      << " maxoutersteps = " <<  maxoutersteps << endl
-      << " starshapeclass = " <<  starshapeclass << endl
-      << " baseelnp        = " <<  baseelnp        << endl
-      << " sloppy = " <<  sloppy << endl
-      << " badellimit = " <<  badellimit << endl
-      << " secondorder = " <<  secondorder << endl
-      << " elementorder = " <<  elementorder << endl
-      << " quad = " <<  quad << endl
-      << " inverttets = " <<  inverttets << endl
-      << " inverttrigs = " <<  inverttrigs << endl;
-#endif
+    ost << prefix << "meshsizefilename = NULL" << endl;
+  ost << prefix << "startinsurface = " <<  startinsurface << endl
+      << prefix << "checkoverlap = " <<  checkoverlap << endl
+      << prefix << "checkchartboundary = " <<  checkchartboundary << endl
+      << prefix << "curvaturesafety = " <<  curvaturesafety << endl
+      << prefix << "segmentsperedge = " <<  segmentsperedge << endl
+      << prefix << "parthread = " <<  parthread << endl
+      << prefix << "elsizeweight = " <<  elsizeweight << endl
+      << prefix << "giveuptol = " <<  giveuptol << endl
+      << prefix << "maxoutersteps = " <<  maxoutersteps << endl
+      << prefix << "starshapeclass = " <<  starshapeclass << endl
+      << prefix << "baseelnp        = " <<  baseelnp        << endl
+      << prefix << "sloppy = " <<  sloppy << endl
+      << prefix << "badellimit = " <<  badellimit << endl
+      << prefix << "secondorder = " <<  secondorder << endl
+      << prefix << "elementorder = " <<  elementorder << endl
+      << prefix << "quad = " <<  quad << endl
+      << prefix << "inverttets = " <<  inverttets << endl
+      << prefix << "inverttrigs = " <<  inverttrigs << endl;
+//#endif
 }
 
 void MeshingParameters :: CopyFrom(const MeshingParameters & other)

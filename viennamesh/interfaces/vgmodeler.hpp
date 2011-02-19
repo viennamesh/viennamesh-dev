@@ -70,6 +70,7 @@ public:
    mesh_kernel(DatastructureT & data) : data(data) 
    {
       mesh_kernel_id = "VGModeler";
+     
       
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
@@ -214,13 +215,21 @@ public:
    template<typename ParametersMapT>
    void operator()(ParametersMapT & paras)   // TODO provide ct-test if fusion::map
    {  
-      netgen::MeshingParameters mp;
-      mp.maxh = 0.05;        
-
+      this->setOptions(paras);      
+      
+      //mesh_parameters
+      //mesh_parameters.maxh=0.01;
+      //mesh_parameters.secondorder = 2;
+      //mesh_parameters.badellimit = 150;   // 150-180
+      
       
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - meshing:" << std::endl;
          std::cout << "  input region size: " << mesh_container.size() << std::endl;            
+         std::cout << "  parameters: " << std::endl;
+         std::cout << "  ----------------------------------------" << std::endl;
+         mesh_parameters.Print(std::cout, "  ");
+         std::cout << "  ----------------------------------------" << std::endl;         
          std::size_t region_cnt = 0;
       #endif            
       
@@ -259,7 +268,7 @@ public:
          // compute the local feature size for this segment
          meshpnt->CalcLocalH(threadID);  
          
-         netgen::MeshVolume (mp, *meshpnt, threadID);
+         netgen::MeshVolume (mesh_parameters, *meshpnt, threadID);
          
       #ifdef MESH_KERNEL_DEBUG         
          // write a volume file for each segment
@@ -345,6 +354,15 @@ public:
    topology()        { return segment_cont; }       
    // -------------------------------------------------------------------------------------   
    
+private:   
+   // -------------------------------------------------------------------------------------
+   template<typename ParametersMapT>
+   void setOptions(ParametersMapT & paras,
+      typename boost::enable_if< typename boost::fusion::result_of::has_key<ParametersMapT, viennamesh::tag::criteria>::type >::type* dummy = 0) 
+   {
+   }
+   // -------------------------------------------------------------------------------------      
+   
    // -------------------------------------------------------------------------------------   
    DatastructureT & data;   
    
@@ -352,6 +370,7 @@ public:
    segment_container_type       segment_cont;            
    
    mesh_container_type          mesh_container;
+   netgen::MeshingParameters    mesh_parameters;
 
    std::string mesh_kernel_id;
    // -------------------------------------------------------------------------------------      

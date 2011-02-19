@@ -895,7 +895,7 @@ public:
   ///
   MeshingParameters ();
   ///
-  void Print (std::ostream & ost) const;
+  void Print (std::ostream & ost, std::string prefix) const;
 
   void CopyFrom(const MeshingParameters & other);
 };

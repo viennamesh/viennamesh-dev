@@ -28,8 +28,9 @@ namespace netgen
   {
 #ifdef FSDEBUG
     std::cout << ".. in mesh volume .. " << std::endl; 
-    std::cout << ".. num points: " << mesh3d.GetNP() << std::endl;       
-    std::cout << ".. num elements: " << mesh3d.GetNE() << std::endl << std::endl;    
+    std::cout << ".. num points:           " << mesh3d.GetNP() << std::endl;       
+    std::cout << ".. num surface elements: " << mesh3d.GetNSE() << std::endl << std::endl;
+    std::cout << ".. num volume elements:  " << mesh3d.GetNE() << std::endl << std::endl;        
 #endif
     
     int i, oldne;
