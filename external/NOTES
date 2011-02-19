@@ -1,0 +1,10 @@
+gmsh supports also api access, not documented,though
+
+http://permalink.gmane.org/gmane.comp.cad.gmsh.general/2694
+
+--> compile gmsh with minium set of dependencies!
+
+checkout 
+  vmsh*/utils/api_demos/
+  
+  
