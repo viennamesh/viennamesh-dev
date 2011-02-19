@@ -96,6 +96,17 @@ struct iterator_base : public std::iterator<std::forward_iterator_tag, T >
       return !(this->pos() == other.pos());
    }
 
+   bool operator==(const iterator_base &other) const 
+   {
+      return (this->pos() == other.pos());
+   }
+
+   bool operator==(const iterator_base &other) 
+   {
+      return (this->pos() == other.pos());
+   }
+
+
    void operator++()          { ++pos_; } // prefix  increment   
    void operator++(int)       { pos_++; } // postfix increment      
 

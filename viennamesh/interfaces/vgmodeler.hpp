@@ -150,7 +150,7 @@ public:
                      
                   // build a new cell with the correct vertex indices
                   cell[localcounter] = meshpnt->GetNP();
-
+                  
                   // map the input vertex index with index within the mesh datastructure
                   segment_vertices[vertex_index] = meshpnt->GetNP();
 
@@ -181,6 +181,7 @@ public:
             // add netgen cell to mesh structure            
             meshpnt->AddSurfaceElement(el);         
          }
+         
          segment_cnt++;
          
          mesh_container.push_back(meshpnt);         
@@ -214,7 +215,7 @@ public:
    void operator()(ParametersMapT & paras)   // TODO provide ct-test if fusion::map
    {  
       netgen::MeshingParameters mp;
-      mp.maxh = 0.05;         // TODO it seems that nothing happens when we turn on this parameter, inveestigate 
+      mp.maxh = 0.05;        
 
       
       #ifdef MESH_KERNEL_DEBUG
@@ -259,7 +260,15 @@ public:
          meshpnt->CalcLocalH(threadID);  
          
          netgen::MeshVolume (mp, *meshpnt, threadID);
-
+         
+      #ifdef MESH_KERNEL_DEBUG         
+         // write a volume file for each segment
+         // can be viewed with, for example, netgen
+         //
+         std::string filename = "segment_" + boost::lexical_cast<std::string>(mesh_cnt) + ".vol";
+         meshpnt->Save(filename);         
+      #endif
+         
          long point_size   = meshpnt->GetNP();
          long element_size = meshpnt->GetNE();
          
@@ -273,28 +282,30 @@ public:
          std::map<std::size_t, std::size_t>  mesh_domain_mapping; 
   
         
-         geometry_cont.resize(point_size);
          for(netgen::PointIndex i = netgen::PointIndex::BASE; i < (point_size + netgen::PointIndex::BASE); i++)
          {
-            std::cout << "direct point output: " << (*meshpnt)[i] << std::endl;
+            //std::cout << "direct point output: " << (*meshpnt)[i] << std::endl;
             
             point_type point = {{(*meshpnt)[i].X(), (*meshpnt)[i].Y(), (*meshpnt)[i].Z() }};
             vertex_map_iterator_type vdm_it = vertex_domain_mapping.find(point);
             if(vdm_it == vertex_domain_mapping.end())          // point is not in the map
             {   
-//                std::cout << "point is new: " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-//                std::cout << "  mapping: " << point[0] << " " << point[1] << " " << point[2] << " -- " << point_cnt << std::endl;
+                //std::cout << "point is new " << std::endl;
+                //std::cout << "  mapping: " << point[0] << " " << point[1] << " " << point[2] << " -- " << point_cnt << std::endl;
                vertex_domain_mapping[point] = point_cnt;
                //mesh_domain_mapping[i-netgen::PointIndex::BASE] = point_cnt;
-//                std::cout << "  mapping: " << i << " -- " << point_cnt << std::endl;
+                //std::cout << "  mapping: " << i << " -- " << point_cnt << std::endl;
                mesh_domain_mapping[i] = point_cnt;
-               geometry_cont[i-netgen::PointIndex::BASE] = point;
+               //std::cout << "   mapping: " << i-netgen::PointIndex::BASE << " -- " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+               //geometry_cont[i-netgen::PointIndex::BASE] = point;
+               //std::cout << point[0] << " " << point[1] << " " << point[2] << std::endl;
+               geometry_cont.push_back(point);
                point_cnt++;
             }
             else                                       // point is already in the map - use this handle
             {
-//                std::cout << "point alread added: " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-//                std::cout << "  mapping: " << i << " -- " << (*vdm_it).second << std::endl;
+                //std::cout << "point alread added: " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+                //std::cout << "  mapping: " << i << " -- " << (*vdm_it).second << std::endl;
                mesh_domain_mapping[i] = (*vdm_it).second;    
             }            
 
@@ -305,10 +316,10 @@ public:
       #endif          
          for(netgen::ElementIndex i = 0; i < element_size; i++)
          {
-//             std::cout << "mapping cell" << std::endl;
-             std::cout << "direct cell output: " << (*meshpnt)[i] << std::endl;
-//             std::cout << mesh_domain_mapping[(*meshpnt)[i][0]] << " " << mesh_domain_mapping[(*meshpnt)[i][1]] << " " << 
-//                mesh_domain_mapping[(*meshpnt)[i][2]] << " " << mesh_domain_mapping[(*meshpnt)[i][3]] << std::endl;
+             //std::cout << "mapping cell" << std::endl;
+             //std::cout << "direct cell output: " << (*meshpnt)[i] << std::endl;
+             //std::cout << mesh_domain_mapping[(*meshpnt)[i][0]] << " " << mesh_domain_mapping[(*meshpnt)[i][1]] << " " << 
+             //   mesh_domain_mapping[(*meshpnt)[i][2]] << " " << mesh_domain_mapping[(*meshpnt)[i][3]] << std::endl;
 
             
             cell_type cell = {{ mesh_domain_mapping[(*meshpnt)[i][0]], 

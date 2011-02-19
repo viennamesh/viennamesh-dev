@@ -179,7 +179,7 @@ int create_surface_mesh(const std::string& filename_in, gsse::domain_32t& domain
 // #########################################################
 
 template<typename Domain32T, typename VertexVectorT, typename Domain3T>
-int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh = 0.05)
+int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh)
 {
 #ifdef DEBUG
   std::cout << ".. starting sequential meshing .. " << std::endl;
@@ -212,6 +212,8 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
 //   for(;  threadID < nr_of_threads;  threadID++)  
   for( ; seg_iter != domain_in.segment_end(); ++seg_iter, ++threadID)
     {             
+    
+   
       vertex_map segment_vertices;
       long local_point_count = 1;
       long normal_counter = 1;
@@ -429,7 +431,8 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
       mesh.GetBox (pmin, pmax);
     
       MeshingParameters mp;
-      mp.maxh = maxh;
+      //mp.maxh = maxh;
+      mp.maxh = 0.05;
 
 #ifdef DEBUG
       std::cout << "## GSSE .. num points: " << mesh.GetNP() << std::endl;       
@@ -450,12 +453,12 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
       // RemoveIllegalElements (mesh);
       // OptimizeVolume (mp, mesh);
 
-#ifdef DEBUG
+//#ifdef DEBUG
       std::cout << "## GSSE: saving temp volume file .." << std::endl;
       std::string filename = "temp_gsse_" + boost::lexical_cast<std::string>(threadID) + ".vol";
       std::cout << ".. saving file: " << filename << std::endl; 
       mesh.Save(filename);
-#endif
+//#endif
 
       // ####################################################
       // ####################################################
@@ -508,10 +511,10 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
 #endif
 
   if(vdm_it == vertex_domain_mapping.end())          // point is not in the map
-    { //std::cout << "point is new: " << new_point << std::endl;
-      //::cout << "  mapping: " << new_point << " -- " << point_count << std::endl;
+    { std::cout << "point is new " << std::endl;
+      std::cout << "  mapping: " << new_point << " -- " << point_count << std::endl;
       vertex_domain_mapping[new_point] = point_count;
-      //std::cout << "  mapping: " << pi << " -- " << point_count << std::endl;
+      std::cout << "  mapping: " << pi << " -- " << point_count << std::endl;
       mesh_domain_mapping[pi] = point_count;
       
       domain_out.fast_point_insert(new_point);     
@@ -519,11 +522,11 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
     }
   else                                       // point is already in the map - use this handle
     {
-      //std::cout << "point alread added: " << new_point << std::endl;
-      //std::cout << "  mapping: " << pi << " -- " << (*vdm_it).second << std::endl;
+      std::cout << "point alread added: " << new_point << std::endl;
+      std::cout << "  mapping: " << pi << " -- " << (*vdm_it).second << std::endl;
       mesh_domain_mapping[pi] = (*vdm_it).second;    
     }
-
+    <DataSet part="1" file="after_line_tri_oriented.vtk_1.vtu" name="Segment_1"/>
 }
 
 #ifdef DEBUG
@@ -594,10 +597,10 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
     }
         
 //   temp_segments[surface_nr].add_cell_2(cell_2_vertex_mapping_2( ind1, ind2, ind3, ind4 ) );
-   //std::cout << "mapping cell" << std::endl;
+   std::cout << "mapping cell" << std::endl;
              std::cout << "direct cell output: " << el << std::endl;
-   //std::cout << mesh_domain_mapping[el[0]] << " " << mesh_domain_mapping[el[1]] << " " << 
-   //   mesh_domain_mapping[el[2]] << " " << mesh_domain_mapping[el[3]] << std::endl;
+   std::cout << mesh_domain_mapping[el[0]] << " " << mesh_domain_mapping[el[1]] << " " << 
+      mesh_domain_mapping[el[2]] << " " << mesh_domain_mapping[el[3]] << std::endl;
       
   temp_segments[surface_nr].add_cell_2(cell_2_vertex_mapping_2( mesh_domain_mapping[el[0]],
 mesh_domain_mapping[el[1]],
