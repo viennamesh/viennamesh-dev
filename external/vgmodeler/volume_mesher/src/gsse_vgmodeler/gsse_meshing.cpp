@@ -179,7 +179,7 @@ int create_surface_mesh(const std::string& filename_in, gsse::domain_32t& domain
 // #########################################################
 
 template<typename Domain32T, typename VertexVectorT, typename Domain3T>
-int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh = 1e6)
+int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional_vertices, Domain3T& domain_out, double maxh = 0.05)
 {
 #ifdef DEBUG
   std::cout << ".. starting sequential meshing .. " << std::endl;
@@ -290,6 +290,8 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
     << p.Z() << std::endl << std::endl;
 #endif
 
+   //std::cout << "adding point: " << p << std::endl;
+
   mesh.AddPoint(p);
 
 #ifdef DEBUG
@@ -359,6 +361,7 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
       // [FS] .. because we only have one segment to mesh, the materials can be hardcoded .. i guess ;-)
       //
       mesh.AddFaceDescriptor(FaceDescriptor(threadID+1,1,0,0));
+      //std::cout << "adding constraint: " << el << std::endl;
       mesh.AddSurfaceElement(el);  
 
     }
@@ -408,7 +411,7 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
     << p.Y() << "/" 
     << p.Z() << std::endl << std::endl;
 #endif
-  
+  std::cout << "ADDING ADDITIONAL POINTS" << std::endl;
   mesh.AddPoint(p);
   
   mesh.AddLockedPoint(mesh.GetNP());     
@@ -494,7 +497,7 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
 
       for (PointIndex pi = PointIndex::BASE; pi < number_of_points+PointIndex::BASE; pi++)
 {
-
+   std::cout << "direct point output: " << mesh[pi] << std::endl;
   // check if a point is already included in the domain
   //
   point_t new_point = point_t(mesh[pi].X(), mesh[pi].Y(), mesh[pi].Z());
@@ -505,14 +508,19 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
 #endif
 
   if(vdm_it == vertex_domain_mapping.end())          // point is not in the map
-    {
+    { //std::cout << "point is new: " << new_point << std::endl;
+      //::cout << "  mapping: " << new_point << " -- " << point_count << std::endl;
       vertex_domain_mapping[new_point] = point_count;
+      //std::cout << "  mapping: " << pi << " -- " << point_count << std::endl;
       mesh_domain_mapping[pi] = point_count;
+      
       domain_out.fast_point_insert(new_point);     
       point_count++;
     }
   else                                       // point is already in the map - use this handle
     {
+      //std::cout << "point alread added: " << new_point << std::endl;
+      //std::cout << "  mapping: " << pi << " -- " << (*vdm_it).second << std::endl;
       mesh_domain_mapping[pi] = (*vdm_it).second;    
     }
 
@@ -586,7 +594,11 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
     }
         
 //   temp_segments[surface_nr].add_cell_2(cell_2_vertex_mapping_2( ind1, ind2, ind3, ind4 ) );
-  
+   //std::cout << "mapping cell" << std::endl;
+             std::cout << "direct cell output: " << el << std::endl;
+   //std::cout << mesh_domain_mapping[el[0]] << " " << mesh_domain_mapping[el[1]] << " " << 
+   //   mesh_domain_mapping[el[2]] << " " << mesh_domain_mapping[el[3]] << std::endl;
+      
   temp_segments[surface_nr].add_cell_2(cell_2_vertex_mapping_2( mesh_domain_mapping[el[0]],
 mesh_domain_mapping[el[1]],
 mesh_domain_mapping[el[2]],

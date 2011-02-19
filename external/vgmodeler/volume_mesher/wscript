@@ -59,6 +59,7 @@ def build(ctx):
    ctx(
       features     = 'cxx cxxstlib', 
       source       = 'src/gsse_volume/linalg/densemat.cpp \
+         src/gsse_volume/linalg/vector.cpp \
          src/gsse_volume/opti/linopt.cpp \
          src/gsse_volume/opti/bfgs.cpp	       \
          src/gsse_volume/opti/linsearch.cpp       \
@@ -88,13 +89,14 @@ def build(ctx):
          src/gsse_volume/meshing/delaunay.cpp \
          src/gsse_volume/meshing/msghandler.cpp \
          src/gsse_volume/meshing/topology.cpp \
+         src/gsse_volume/meshing/improve3.cpp \
+         src/gsse_volume/meshing/smoothing3.cpp \
          src/gsse_volume/gprim/geomtest3d.cpp \
          src/gsse_volume/gprim/geom2d.cpp \
          src/gsse_volume/gprim/geom3d.cpp \
          src/gsse_volume/gprim/adtree.cpp \
          src/gsse_volume/gprim/transform3d.cpp \
          src/gsse_volume/gprim/geomfuncs.cpp \
-         src/gsse_volume/linalg/vector.cpp \
          src/gsse_volume/general/moveablemem.cpp \
          src/gsse_volume/general/ngexception.cpp \
          src/gsse_volume/general/table.cpp \
@@ -107,15 +109,14 @@ def build(ctx):
          src/gsse_volume/general/array.cpp \
          src/gsse_volume/general/symbolta.cpp \
          src/gsse_volume/general/mystring.cpp \
-         src/gsse_volume/general/profiler.cpp  \
-         src/gsse_volume/meshing/improve3.cpp \
-         src/gsse_volume/meshing/smoothing3.cpp ',
+         src/gsse_volume/general/profiler.cpp ',
       target       = 'volume',
       name         = 'volume',
       includes     = '. src/gsse_volume/include',
       # netgen produces lots of warnings, they are out of reach to fix
       # so the compiler warnings are completly switched off
-      cxxflags     = ['-w'] 
+      cxxflags     = ['-w'],
+      #defines      = 'FSDEBUG DEBUG'
    )
 
    #
@@ -135,6 +136,7 @@ def build(ctx):
       use          = 'converter surface volume',
       cxxflags     = ['-Wno-write-strings'],
       defines      = 'RELEASE'
+      #defines      = 'RELEASE FSDEBUG DEBUG'
    )
 
 

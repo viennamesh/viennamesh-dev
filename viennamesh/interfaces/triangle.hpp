@@ -103,27 +103,25 @@ public:
    */   
    mesh_kernel(DatastructureT & data) : data(data) 
    {
+      mesh_kernel_id = "Triangle";      
+      
       // TODO provide conecept check mechanism - is it a ViennaMesh::Wrapper ?
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - initiating" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
    #endif
       this->init();
       
-   #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - starting meshing process" << std::endl;
-   #endif
-   
       size_t segment_size = data.domain().segment_container()->size();
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - processing segments" << std::endl;
-      std::cout << "## MeshKernel::Triangle - detected segments: " << segment_size << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - detected segments: " << segment_size << std::endl;
    #endif  
       if( segment_size > 1 )
       {
       typedef std::vector<point_type>    region_points_type;
       region_points_type region_points;
       #ifdef MESH_KERNEL_DEBUG
-         std::cout << "## MeshKernel::Triangle - dealing with multi-segment input" << std::endl;
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with multi-segment input" << std::endl;
          std::size_t seg_cnt = 0;
       #endif      
          point_type pnt;
@@ -134,7 +132,7 @@ public:
             this->find_point_in_segment(segment, pnt);
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
-            std::cout << "## MeshKernel::Triangle - computed point in segment " 
+            std::cout << "## MeshKernel::"+mesh_kernel_id+" - computed point in segment " 
                << seg_cnt << " : " << pnt[0] << " " << pnt[1] << std::endl;
             seg_cnt++;
          #endif
@@ -148,7 +146,7 @@ public:
    #ifdef MESH_KERNEL_DEBUG
       else
       {
-         std::cout << "## MeshKernel::Triangle - dealing with single-segment input" << std::endl;
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with single-segment input" << std::endl;
       }   
    #endif                  
       // traverse and add the geometry information
@@ -156,7 +154,7 @@ public:
       //
    #ifdef MESH_KERNEL_DEBUG
       std::cout << std::endl;
-      std::cout << "## MeshKernel::Triangle - processing geometry" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing geometry" << std::endl;
    #endif
       typedef typename DatastructureT::geometry_iterator geometry_iterator;
       for(geometry_iterator iter = data.geometry_begin();
@@ -164,7 +162,7 @@ public:
       {
          
       #ifdef MESH_KERNEL_DEBUG
-          std::cout << "## MeshKernel::Triangle - adding point " << 
+          std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding point " << 
              std::distance(data.geometry_begin(), iter) << " : " << *iter << std::endl;
       #endif   
          this->addPoint(*iter);
@@ -175,7 +173,7 @@ public:
       //
    #ifdef MESH_KERNEL_DEBUG
       std::cout << std::endl;   
-      std::cout << "## MeshKernel::Triangle - processing constraintss" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing constraintss" << std::endl;
    #endif
       size_t si = 0;
 
@@ -199,7 +197,7 @@ public:
             if(!cell_uniquer[cell])
             {
             #ifdef MESH_KERNEL_DEBUG
-               std::cout << "## MeshKernel::Triangle - adding constraint   " << 
+               std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding constraint   " << 
                   cell_cnt << " : ";
                for(size_t i = 0; i < cell.size(); i++)  
                   std::cout << cell[i] << " ";
@@ -213,7 +211,7 @@ public:
          #ifdef MESH_KERNEL_DEBUG            
             else
             { 
-               std::cout << "## MeshKernel::Triangle - skipping constraint " << 
+               std::cout << "## MeshKernel::"+mesh_kernel_id+" - skipping constraint " << 
                   cell_cnt << " : ";
                for(size_t i = 0; i < cell.size(); i++)  
                   std::cout << cell[i] << " ";
@@ -233,7 +231,7 @@ public:
    {
       // TODO provide conecept check mechanism - is it a ViennaMesh::Wrapper ?
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - shutting down" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - shutting down" << std::endl;
    #endif
       this->clear();
    }
@@ -269,7 +267,7 @@ public:
       std::strcpy(buffer,options.c_str());
 
    #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::Triangle - meshing" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - meshing" << std::endl;
       std::cout << "  parameter set:    \"" << buffer << "\"" << std::endl;
       std::cout << "  input point size:  " << in.numberofpoints << std::endl;
       std::cout << "  input const size:  " << in.numberofsegments << std::endl;      
@@ -286,6 +284,13 @@ public:
       if ( !out.trianglelist)   
          std::cout << "\t::ERROR: trianglelist " << std::endl;
 
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - finished:" << std::endl;
+      std::cout << "  output point size:  " << out.numberofpoints << std::endl;
+      std::cout << "  output cell size:   " << out.numberoftriangles << std::endl;      
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting geometry" << std::endl;
+   #endif               
+      
       //
       // extracting geometry data
       //
@@ -298,7 +303,12 @@ public:
          pnt[0] = out.pointlist[index];
          pnt[1] = out.pointlist[index+1];
          geometry_cont[pnt_index] = pnt;
-      }      
+      } 
+
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
+   #endif          
+      
       //
       // extracting cell complex
       //
@@ -406,7 +416,7 @@ private:
       }
       else 
       {
-         std::cout << "## MeshKernel::Triangle [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
       }
       this->reset();
    }
@@ -654,6 +664,8 @@ private:
 
    geometry_container_type      geometry_cont;      
    segment_container_type       segment_cont;   
+   
+   std::string mesh_kernel_id;
    // -------------------------------------------------------------------------------------
 };   
    

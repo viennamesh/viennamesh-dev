@@ -151,6 +151,7 @@ struct wrapper <viennamesh::tag::gsse01, Datastructure>
    typedef typename viennamesh::gsse01_cell_complex_wrapper<Datastructure>          cell_complex_wrapper_type;
    typedef typename cell_complex_wrapper_type::cell_type                            cell_type;
    typedef typename cell_complex_wrapper_type::cell_iterator                        cell_iterator;
+   typedef typename Datastructure::point_t                                          point_type;
    // -------------------------------------------------------------------------------------------   
    
    // -------------------------------------------------------------------------------------------   
@@ -169,7 +170,7 @@ struct wrapper <viennamesh::tag::gsse01, Datastructure>
       geometry_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
       geometry_iterator(wrapper_type& obj, std::size_t newpos) : iterator_base_type (obj, newpos) {};      
 
-      typename Datastructure::point_t 
+      point_type
       operator*() const
       {
          return (*this).obj().domain().get_point_fromhandle(this->pos());

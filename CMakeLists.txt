@@ -9,6 +9,9 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")
 INCLUDE_DIRECTORIES("external/tetgen-1.4.3/")
+INCLUDE_DIRECTORIES("external/vgmodeler-2.0/")
+INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/include")
+INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/general")
 INCLUDE_DIRECTORIES("../ViennaGrid/")
 INCLUDE_DIRECTORIES("../ViennaData/")
 INCLUDE_DIRECTORIES("../ViennaUtils/")
@@ -37,5 +40,5 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
 
 #link specific libraries to specific executables
-TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle )
+TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume )
 

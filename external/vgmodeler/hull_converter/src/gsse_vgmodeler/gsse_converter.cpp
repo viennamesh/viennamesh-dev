@@ -113,6 +113,9 @@ int main(int argc, char** argv)
   std::vector<std::string> orient_changer;
   gsse::domain_32t  domain_input;
 
+  std::cout << "## input file: " << filename_in  << std::endl;
+  std::cout << "## input file: " << filename_out  << std::endl;  
+
   try
     {
       std::string::size_type pos = filename_in.rfind(".")+1;

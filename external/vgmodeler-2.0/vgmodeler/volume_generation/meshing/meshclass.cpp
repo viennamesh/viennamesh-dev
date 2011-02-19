@@ -3047,8 +3047,8 @@ namespace netgen
 		      edge.I2() = sel.PNumMod(l+1);
 		      edge.Sort();
 
-		      if (edge == i2s) 
-			std::cout << "edge of element " << sel << endl;
+		    //  if (edge == i2s) 
+			//std::cout << "edge of element " << sel << endl;
 		    }
 		}
 

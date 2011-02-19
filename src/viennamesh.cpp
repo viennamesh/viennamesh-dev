@@ -190,7 +190,7 @@ int main(int argc, char * argv[])
       typedef viennamesh::wrapper<viennamesh::tag::gsse01, domain_32t>     gsse01_wrapper_type;;
       gsse01_wrapper_type data_in(domain);      
       
-      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen, gsse01_wrapper_type>::type   mesh_generator_type;
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::vgmodeler, gsse01_wrapper_type>::type   mesh_generator_type;
       mesh_generator_type mesher(data_in);      
        
       mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
@@ -212,7 +212,7 @@ int main(int argc, char * argv[])
          std::cerr << "## Error: output fileformat not supported: " << output_extension << std::endl;
          std::cerr << "## shutting down .." << std::endl;     
          return -1;         
-      }                
+      }              
    }
    else
    {

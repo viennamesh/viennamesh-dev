@@ -1,0 +1,66 @@
+
+
+INCLUDE_DIRECTORIES(".")
+INCLUDE_DIRECTORIES("include/")
+INCLUDE_DIRECTORIES("interface/")
+
+IF(CMAKE_COMPILER_IS_GNUCXX)
+   ADD_DEFINITIONS(-O2 -fPIC) # release
+   #ADD_DEFINITIONS(-O0 -g -fPIC -DFSDEBUG -DDEBUG)    # debug
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+
+# ------------------------------------------------------------------------------
+# LINALG
+#
+SET(LINALG_TMP densemat.cpp vector.cpp)
+FOREACH(SRC ${LINALG_TMP})
+   LIST(APPEND LINALG ${CMAKE_CURRENT_SOURCE_DIR}/linalg/${SRC})
+ENDFOREACH(SRC)
+
+# ------------------------------------------------------------------------------
+# OPTI
+#
+SET(OPTI_TMP bfgs.cpp linopt.cpp linsearch.cpp)
+FOREACH(SRC ${OPTI_TMP})
+   LIST(APPEND OPTI ${CMAKE_CURRENT_SOURCE_DIR}/opti/${SRC})
+ENDFOREACH(SRC)
+
+# ------------------------------------------------------------------------------
+# MESHING
+#
+SET(MESHING_TMP global.cpp meshtool.cpp ruler3.cpp adfront3.cpp tetrarls.cpp
+   pyramidrls.cpp pyramid2rls.cpp prism2rls.cpp netrule3.cpp ruler2.cpp
+   meshclass.cpp improve2.cpp adfront2.cpp netrule2.cpp triarls.cpp
+   geomsearch.cpp meshtype.cpp parser3.cpp meshing2.cpp parser2.cpp
+   meshing3.cpp meshfunc.cpp localh.cpp delaunay.cpp msghandler.cpp
+   topology.cpp improve3.cpp smoothing3.cpp)
+FOREACH(SRC ${MESHING_TMP})
+   LIST(APPEND MESHING ${CMAKE_CURRENT_SOURCE_DIR}/meshing/${SRC})
+ENDFOREACH(SRC)
+
+# ------------------------------------------------------------------------------
+# GPRIM
+#
+SET(GPRIM_TMP geomtest3d.cpp geom2d.cpp geom3d.cpp adtree.cpp transform3d.cpp
+   geomfuncs.cpp)
+FOREACH(SRC ${GPRIM_TMP})
+   LIST(APPEND GPRIM ${CMAKE_CURRENT_SOURCE_DIR}/gprim/${SRC})
+ENDFOREACH(SRC)
+
+# ------------------------------------------------------------------------------
+# GENERAL
+#
+SET(GENERAL_TMP moveablemem.cpp ngexception.cpp table.cpp optmem.cpp spbita2d.cpp
+   hashtabl.cpp flags.cpp seti.cpp bitarray.cpp array.cpp symbolta.cpp mystring.cpp
+   profiler.cpp)
+FOREACH(SRC ${GENERAL_TMP})
+   LIST(APPEND GENERAL ${CMAKE_CURRENT_SOURCE_DIR}/general/${SRC})
+ENDFOREACH(SRC)
+
+# ------------------------------------------------------------------------------
+# BUILD VGMODELERLIB
+#
+ADD_LIBRARY(vgmodeler_volume STATIC ${GENERAL} ${LINALG} ${OPTI} ${MESHING} ${GPRIM})
+# ------------------------------------------------------------------------------
+
