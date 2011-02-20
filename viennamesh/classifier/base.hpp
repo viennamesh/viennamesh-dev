@@ -12,42 +12,29 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_TAGS_HPP
-#define VIENNAMESH_TAGS_HPP
+#ifndef VIENNAMESH_CLASSIFIER_BASE_HPP
+#define VIENNAMESH_CLASSIFIER_BASE_HPP
+
+#include "viennamesh/classifier.hpp"
+#include "viennamesh/tags.hpp"
 
 namespace viennamesh {
+ 
+template <typename MethodTag>
+struct mesh_classifier { };
+      
    
-namespace tag {
+namespace result_of {
+
+template<typename MethodTag>  
+struct mesh_classifier
+{
+   typedef viennamesh::mesh_classifier<MethodTag>    type;
+};
+
+} // end namespace result_of
    
-struct mesh_kernel {};   
-struct wrapper {};
    
-struct none     {};
-struct triangle {};
-struct tetgen   {};
-struct netgen   {};
-struct vgmodeler {};
-
-struct algorithm {};
-struct criteria  {};
-struct dim_topo  {};
-struct dim_geom  {};
-struct cell_type {};
-struct size      {};
-
-struct incremental_delaunay {};
-struct advancing_front      {};
-struct constrained_delaunay {};
-struct conforming_delaunay  {};
-struct convex              {};
-struct minimal              {};
-struct one                  {};
-struct two                  {};
-struct three                {};
-struct simplex              {};
-struct cuboid               {};
-
-}
    
 } // end namespace viennamesh
 

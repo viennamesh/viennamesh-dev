@@ -23,6 +23,7 @@
 
 #include "viennamesh/generator.hpp"
 #include "viennamesh/wrapper.hpp"
+#include "viennamesh/classifier.hpp"
 #include "viennamesh/transfer/viennagrid.hpp"
 
 template<typename DomainT>
@@ -197,10 +198,15 @@ int main(int argc, char * argv[])
 
       typedef viennagrid::domain<viennagrid::config::tetrahedral_3d> domain_out_type;
       domain_out_type domain_out;      
+      
       typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
       transfer_type  transfer;
       transfer(mesher, domain_out);
 
+      typedef viennamesh::result_of::mesh_classifier<viennamesh::tag::vgmodeler>::type  mesh_classifier_type;
+      mesh_classifier_type mesh_classifier;
+      mesh_classifier(mesher);
+      
       if(output_extension == "vtk")
       {
          std::cout << "# viennamesh::writing vtk files .. " << std::endl;

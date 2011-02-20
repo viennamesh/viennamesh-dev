@@ -34,7 +34,6 @@ namespace viennamesh {
 template <typename DatastructureT>
 struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
 {
-private:
    // -------------------------------------------------------------------------------------
    typedef double    numeric_type;  
    typedef int       integer_type;
@@ -60,10 +59,10 @@ private:
    typedef typename vertex_map_type::iterator         vertex_map_iterator_type;
    // -------------------------------------------------------------------------------------   
 
-public:
    // -------------------------------------------------------------------------------------      
    typedef std::vector < point_type >              geometry_container_type;
    typedef std::vector <topology_container_type>   segment_container_type;         
+   typedef viennamesh::tag::mesh_kernel            datastructure_type; // type is used for viennamesh::traits
    // -------------------------------------------------------------------------------------      
    
    // -------------------------------------------------------------------------------------      
