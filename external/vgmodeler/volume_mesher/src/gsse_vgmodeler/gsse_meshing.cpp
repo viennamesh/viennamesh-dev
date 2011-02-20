@@ -526,7 +526,6 @@ int create_volume_mesh_sequential(Domain32T& domain_in, VertexVectorT additional
       std::cout << "  mapping: " << pi << " -- " << (*vdm_it).second << std::endl;
       mesh_domain_mapping[pi] = (*vdm_it).second;    
     }
-    <DataSet part="1" file="after_line_tri_oriented.vtk_1.vtu" name="Segment_1"/>
 }
 
 #ifdef DEBUG

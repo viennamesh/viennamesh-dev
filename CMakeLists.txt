@@ -38,7 +38,9 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 #list all source files here
 ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
+#ADD_EXECUTABLE(vgmodeler src/vgmodeler.cpp)
 
 #link specific libraries to specific executables
-TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume )
+TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
+#TARGET_LINK_LIBRARIES(vgmodeler gtsio3 vgmodeler_volume )
 
