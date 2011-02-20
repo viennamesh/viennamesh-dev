@@ -6,8 +6,6 @@
                              -----------------
 
    authors:    Josef Weinbub                         weinbub@iue.tuwien.ac.at
-               Franz Stimpfl
-               Rene Heinzl
 
 
    license:    see file LICENSE in the base directory

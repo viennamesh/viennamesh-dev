@@ -6,7 +6,6 @@
                              -----------------
 
    authors:    Josef Weinbub                         weinbub@iue.tuwien.ac.at
-               Karl Rupp                                rupp@iue.tuwien.ac.at
 
 
    license:    see file LICENSE in the base directory
@@ -18,5 +17,6 @@
 #include "viennamesh/interfaces/triangle.hpp"
 #include "viennamesh/interfaces/tetgen.hpp"
 #include "viennamesh/interfaces/vgmodeler.hpp"
+#include "viennamesh/interfaces/netgen.hpp"
 
 #endif

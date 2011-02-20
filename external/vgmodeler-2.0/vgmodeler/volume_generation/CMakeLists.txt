@@ -1,14 +1,8 @@
 
-
-INCLUDE_DIRECTORIES(".")
-INCLUDE_DIRECTORIES("include/")
-INCLUDE_DIRECTORIES("interface/")
-
-IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-O2 -fPIC) # release
-   #ADD_DEFINITIONS(-O0 -g -fPIC -DFSDEBUG -DDEBUG)    # debug
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-
+#INCLUDE_DIRECTORIES(".")
+#INCLUDE_DIRECTORIES("include/")
+#INCLUDE_DIRECTORIES("interface/")
+#INCLUDE_DIRECTORIES("general/")
 
 # ------------------------------------------------------------------------------
 # LINALG

@@ -6,7 +6,6 @@
                              -----------------
 
    authors:    Josef Weinbub                         weinbub@iue.tuwien.ac.at
-               Karl Rupp                                rupp@iue.tuwien.ac.at
 
 
    license:    see file LICENSE in the base directory
