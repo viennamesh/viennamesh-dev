@@ -242,6 +242,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       std::cout << "  input point size:  " << in.numberofpoints << std::endl;
       std::cout << "  input const size:  " << in.numberoffacets << std::endl;      
       std::cout << "  input region size: " << in.numberofregions << std::endl;            
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" starting mesh generation " << std::endl;               
    #endif         
 
       char *buffer;

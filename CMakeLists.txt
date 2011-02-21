@@ -12,12 +12,12 @@ INCLUDE_DIRECTORIES("external/tetgen-1.4.3/")
 INCLUDE_DIRECTORIES("external/vgmodeler-2.0/")
 INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/include")
 INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/general")
-#INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
-#INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
-#INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
-#INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/geom2d")
-#INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/gprim")
-#INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/general")
+# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
+# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
+# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
+# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/geom2d")
+# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/gprim")
+# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/general")
 INCLUDE_DIRECTORIES("../ViennaGrid/")
 INCLUDE_DIRECTORIES("../ViennaData/")
 INCLUDE_DIRECTORIES("../ViennaUtils/")
@@ -44,9 +44,13 @@ ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BI
 #add_subdirectory(tests)
 
 #list all source files here
-ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
+#ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
+ADD_EXECUTABLE(vgmodeler src/vgmodeler.cpp)
+#ADD_EXECUTABLE(ng src/netgen.cpp)
 
 #link specific libraries to specific executables
-TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
+#TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
+TARGET_LINK_LIBRARIES(vgmodeler gtsio3 tetgen triangle vgmodeler_volume)
+#TARGET_LINK_LIBRARIES(ng gtsio3 tetgen triangle netgen)
 
 

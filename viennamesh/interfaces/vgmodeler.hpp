@@ -16,8 +16,11 @@
 
 // *** system includes
 #include <vector>
+#include <map>
 
 // *** boost includes
+#include <boost/fusion/include/has_key.hpp>
+#include <boost/fusion/include/make_map.hpp>
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -68,7 +71,6 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
    mesh_kernel(DatastructureT & data) : data(data) 
    {
       mesh_kernel_id = "VGModeler";
-     
       
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
@@ -85,12 +87,6 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
    #endif           
       const double value_min = 1.0e-15;
       
-      // the mesh container holds the instances of netgen::Mesh objects
-      // each netgen::Mesh object contains one segment
-      // we setup those meshes in the constructor, the meshing
-      // is done later on in the functor ..
-      //mesh_container.resize(segment_size);
-
       std::size_t segment_cnt = 0;
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
          seg_iter != data.segment_end(); seg_iter++)
@@ -284,6 +280,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
          std::cout << "  output point size:  " << point_size << std::endl;
          std::cout << "  output cell size:   " << element_size << std::endl;      
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting geometry" << std::endl;
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" starting mesh generation " << std::endl;         
       #endif            
          
          std::map<std::size_t, std::size_t>  mesh_domain_mapping; 
