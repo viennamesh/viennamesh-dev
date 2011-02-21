@@ -21,7 +21,7 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/domain.hpp"
 
-#include "viennamesh/interfaces/vgmodeler.hpp"
+#include "viennamesh/interfaces/netgen.hpp"
 #include "viennamesh/generator.hpp"
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/classifier.hpp"
@@ -30,15 +30,15 @@
 int main(int argc, char * argv[])
 {
    std::string inputfile("../input/cu_lowk_leti_right_oriented_adapted.gau32");
-   std::string outputfile("output_vgmodeler.vtk");
+   std::string outputfile("output_netgen.vtk");
    
    if(!viennautils::file_exists(inputfile))
    {
-      std::cerr << "ViennaMesh::Test::VGModeler: inputfile does not exist" << std::endl;
+      std::cerr << "ViennaMesh::Test::Netgen: inputfile does not exist" << std::endl;
       std::cerr << "   file: " << inputfile << std::endl;
       return -1;
    }
-
+   
    std::string::size_type pos = inputfile.rfind(".")+1;
    std::string input_extension = inputfile.substr(pos, inputfile.size());
    pos = outputfile.rfind(".")+1;   
@@ -60,7 +60,7 @@ int main(int argc, char * argv[])
       gsse01_wrapper_type data_in(domain);      
       
       // create a vgmodeler volume mesher and pass the domain wrapper to the objects constructor
-      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::vgmodeler, gsse01_wrapper_type>::type   mesh_generator_type;
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen, gsse01_wrapper_type>::type   mesh_generator_type;
       mesh_generator_type mesher(data_in);      
        
       // start meshing

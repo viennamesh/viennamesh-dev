@@ -45,18 +45,21 @@ INCLUDE_DIRECTORIES("../../ViennaUtils/external/gsse01/external/mauch")
 
 
 #list all source files here
-#ADD_EXECUTABLE(tri src/triangle.cpp)
-# ADD_EXECUTABLE(net3d src/netgen_direct_3d.cpp)
-# ADD_EXECUTABLE(net2d src/netgen_direct_2d.cpp)
+#ADD_EXECUTABLE(net2d src/netgen_direct_2d.cpp)
 ADD_EXECUTABLE(vgmodeler src/vgmodeler.cpp)
+ADD_EXECUTABLE(netg src/netgen.cpp)
+ADD_EXECUTABLE(tetg src/tetgen.cpp)
+ADD_EXECUTABLE(classify src/classifier.cpp)
 
 #link specific libraries to specific executables
-#TARGET_LINK_LIBRARIES(tri triangle)
-# TARGET_LINK_LIBRARIES(net3d netgen)
-# TARGET_LINK_LIBRARIES(net2d netgen)
+#TARGET_LINK_LIBRARIES(net2d netgen)
 TARGET_LINK_LIBRARIES(vgmodeler vgmodeler_volume)
+TARGET_LINK_LIBRARIES(netg netgen)
+TARGET_LINK_LIBRARIES(tetg tetgen)
+TARGET_LINK_LIBRARIES(classify netgen)
 
-# ADD_TEST(tri tri)
-# ADD_TEST(net3d net3d)
-# ADD_TEST(net2d net2d)
+#ADD_TEST(net2d net2d)
 ADD_TEST(vgmodeler vgmodeler)
+ADD_TEST(netg netg)
+ADD_TEST(tetg tetg)
+ADD_TEST(classify netg)
