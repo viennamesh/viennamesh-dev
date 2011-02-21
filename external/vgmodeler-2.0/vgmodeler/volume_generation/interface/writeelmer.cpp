@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 
-namespace netgen
+namespace vgmodeler
 {
 #include "writeuser.hpp"
 

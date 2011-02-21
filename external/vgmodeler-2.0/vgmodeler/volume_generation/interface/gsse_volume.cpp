@@ -27,14 +27,14 @@
 #include <meshing.hpp>
 
 
-namespace nglib {
+namespace vgmodeler {
 #include "nglib.h"
 }
 
-using namespace netgen;
+using namespace vgmodeler;
 
 
-namespace netgen 
+namespace vgmodeler 
 {
 
 //Destination for messages, errors, ...
@@ -53,7 +53,7 @@ void Ng_PrintDest(const char * s)
 
 // constants and types:
 
-namespace nglib
+namespace vgmodeler
 {
 
 

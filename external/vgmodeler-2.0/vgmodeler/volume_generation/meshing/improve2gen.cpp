@@ -3,7 +3,7 @@
 #include "meshing.hpp"
 #include <opti.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
   class ImprovementRule

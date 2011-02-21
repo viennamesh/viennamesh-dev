@@ -10,10 +10,10 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 
 {
-  using namespace netgen;
+  using namespace vgmodeler;
 
 #include "spline2d.hpp"
 #include "splinegeometry2.hpp"

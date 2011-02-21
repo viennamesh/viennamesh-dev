@@ -8,7 +8,7 @@
 #include <myadt.hpp>
 using namespace std;
 
-namespace netgen
+namespace vgmodeler
 {
 
   BaseDynamicMem * BaseDynamicMem::first = 0;

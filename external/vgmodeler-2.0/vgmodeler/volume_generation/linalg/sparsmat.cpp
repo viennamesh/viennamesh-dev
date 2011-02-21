@@ -6,7 +6,7 @@
 #include <linalg.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
 MatrixGraph :: MatrixGraph (int size, int aincrement)
 {

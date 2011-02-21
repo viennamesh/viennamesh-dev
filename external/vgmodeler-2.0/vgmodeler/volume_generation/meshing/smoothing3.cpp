@@ -7,7 +7,7 @@
 #include <opti.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
   
 

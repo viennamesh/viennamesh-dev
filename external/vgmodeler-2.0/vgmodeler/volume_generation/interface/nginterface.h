@@ -201,7 +201,7 @@ extern "C" {
   void Ng_SurfaceElementTransformation (int eli, double x, double y, 
 					double * p3d, double * jacobian);
   
-namespace netgen {
+namespace vgmodeler {
 #include "../visualization/soldata.hpp"
 }
 
@@ -227,7 +227,7 @@ namespace netgen {
     bool draw_volume;
     int order;        // order of elements, only partially supported 
     Ng_SolutionType soltype;  // type of solution function
-    netgen::SolutionData * solclass;
+    vgmodeler::SolutionData * solclass;
   };
   
   // initialize solution data with default arguments

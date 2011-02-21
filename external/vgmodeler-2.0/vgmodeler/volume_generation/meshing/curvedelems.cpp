@@ -3,7 +3,7 @@
 
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
     
     
@@ -2893,7 +2893,7 @@ namespace netgen
   Init in;
   */
 
-} // namespace netgen
+} // namespace vgmodeler
 
 
 #endif

@@ -4,7 +4,7 @@
 
 
 
-//namespace netgen
+//namespace vgmodeler
 //{
   enum TOKEN_TYPE
     { 

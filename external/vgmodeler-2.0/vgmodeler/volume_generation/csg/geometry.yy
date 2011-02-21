@@ -10,12 +10,12 @@ extern int yylex ();
 #include <linalg.hpp>
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
-netgen::CSGeometry * parsegeom;
+vgmodeler::CSGeometry * parsegeom;
 }
 
-using namespace netgen;
+using namespace vgmodeler;
 
 // extern ARRAY<Surface*> surfaces;
 // extern SYMBOLTABLE<Solid*> solids;

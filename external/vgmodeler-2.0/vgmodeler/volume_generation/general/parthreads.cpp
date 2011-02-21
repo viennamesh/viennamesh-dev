@@ -10,9 +10,9 @@
 
 /*
 
-namespace netgen
+namespace vgmodeler
 {
-  using namespace netgen;
+  using namespace vgmodeler;
 
 #ifdef WIN32
 

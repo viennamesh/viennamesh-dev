@@ -1,4 +1,4 @@
-namespace netgen
+namespace vgmodeler
 {
 const char * quadrules[] = {
 "rule \"Free Quad (1)\"\n",\

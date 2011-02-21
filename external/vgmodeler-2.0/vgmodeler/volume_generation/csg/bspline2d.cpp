@@ -2,7 +2,7 @@
 
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
 BSplineCurve2d :: BSplineCurve2d ()

@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmodeler
 {
   GeomSearch3d :: GeomSearch3d() 
   {

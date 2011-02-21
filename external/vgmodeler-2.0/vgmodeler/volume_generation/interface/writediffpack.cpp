@@ -14,7 +14,7 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
 #include "writeuser.hpp"
 

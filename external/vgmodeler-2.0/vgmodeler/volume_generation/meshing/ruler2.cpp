@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
  double CalcElementBadness (const ARRAY<Point2d> & points,
 				  const Element2d & elem)

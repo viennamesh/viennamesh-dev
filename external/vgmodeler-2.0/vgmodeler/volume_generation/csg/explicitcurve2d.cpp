@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 ExplicitCurve2d :: ExplicitCurve2d ()
   {

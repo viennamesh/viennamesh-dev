@@ -3,7 +3,7 @@
 
 
 
-namespace netgen
+namespace vgmodeler
 {
   extern const char * tetrules[];
   // extern const char * tetrules2[];

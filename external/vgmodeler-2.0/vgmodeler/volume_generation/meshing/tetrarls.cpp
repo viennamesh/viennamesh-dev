@@ -1,4 +1,4 @@
-namespace netgen
+namespace vgmodeler
 {
 const char * tetrules[] = {
 "tolfak 0.5\n",\

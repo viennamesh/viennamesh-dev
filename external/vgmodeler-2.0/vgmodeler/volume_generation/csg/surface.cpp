@@ -7,7 +7,7 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
 Surface :: Surface ()
 {

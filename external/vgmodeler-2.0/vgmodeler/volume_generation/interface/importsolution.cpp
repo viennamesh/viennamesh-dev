@@ -13,7 +13,7 @@
 
 #include "nginterface.h"
 
-namespace netgen
+namespace vgmodeler
 {
 #include "writeuser.hpp"
 

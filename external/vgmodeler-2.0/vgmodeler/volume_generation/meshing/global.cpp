@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
 //   ostream * testout = &cout;
 //   ostream * mycout = &cout;

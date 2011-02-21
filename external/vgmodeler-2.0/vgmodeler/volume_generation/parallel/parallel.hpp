@@ -9,7 +9,7 @@
 
 //#include "parallelfunc.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
 
 

@@ -8,7 +8,7 @@
 // ofstream std::cout ("NUL");
 
 
-namespace netgen
+namespace vgmodeler
 {
 
 double BaseMatrix :: shit = 0;

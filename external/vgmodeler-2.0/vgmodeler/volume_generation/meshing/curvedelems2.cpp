@@ -4,7 +4,7 @@
 
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
     
 
@@ -753,6 +753,6 @@ namespace netgen
     //	cout << "finished" << endl;
     }
 
-} // namespace netgen
+} // namespace vgmodeler
 
 #endif

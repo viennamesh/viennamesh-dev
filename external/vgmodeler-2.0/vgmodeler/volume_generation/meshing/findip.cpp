@@ -3,7 +3,7 @@
 #include <mystdlib.h>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
 
 

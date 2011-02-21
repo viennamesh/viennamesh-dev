@@ -4,7 +4,7 @@
 #include <geometry2d.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
   Refinement2d :: Refinement2d (const SplineGeometry2d & ageometry)

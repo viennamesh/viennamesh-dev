@@ -4,7 +4,7 @@
 #include "parallel.hpp"
 using namespace metis;
 
-namespace netgen
+namespace vgmodeler
 {
 
 

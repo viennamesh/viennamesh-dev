@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmodeler
 {
 extern double minother;
 extern double minwithoutother;

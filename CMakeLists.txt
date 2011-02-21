@@ -2,22 +2,34 @@ PROJECT(ViennaMesh)
 
 cmake_minimum_required(VERSION 2.6)
 
-#if you don't want the full compiler output, remove the following line
+# build output verbosity
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-# set the include paths
+# set compiler flags
+IF(CMAKE_COMPILER_IS_GNUCXX)
+   ADD_DEFINITIONS(-g -fPIC)
+   #ADD_DEFINITIONS(-Wall -O0 -g -pedantic -fPIC)
+   #ADD_DEFINITIONS(-Wall -pedantic -O2 -fPIC)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+# build external libraries
+#   those have to be build bevore the collected include 
+#   hierarchy of viennamesh is established here
+#   otherwise the netgen and vgmodeler libraries won't compile
+ADD_SUBDIRECTORY(external)
+
+# build ViennaUtils
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
+
+# setup the include paths
 INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")
 INCLUDE_DIRECTORIES("external/tetgen-1.4.3/")
 INCLUDE_DIRECTORIES("external/vgmodeler-2.0/")
 INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/include")
-INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/general")
-# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
-# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
-# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
-# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/geom2d")
-# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/gprim")
-# INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/general")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
 INCLUDE_DIRECTORIES("../ViennaGrid/")
 INCLUDE_DIRECTORIES("../ViennaData/")
 INCLUDE_DIRECTORIES("../ViennaUtils/")
@@ -28,29 +40,17 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 
-IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-g -fPIC)
-   #ADD_DEFINITIONS(-Wall -O0 -g -pedantic -fPIC)
-   #ADD_DEFINITIONS(-Wall -pedantic -O2 -fPIC)
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-
-# build external libraries
-add_subdirectory(external)
-# 
-# # build ViennaUtils
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
-
 # REMOVEME
 #add_subdirectory(tests)
 
 #list all source files here
 #ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
 ADD_EXECUTABLE(vgmodeler src/vgmodeler.cpp)
-#ADD_EXECUTABLE(ng src/netgen.cpp)
+ADD_EXECUTABLE(ng src/netgen.cpp)
 
 #link specific libraries to specific executables
 #TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
-TARGET_LINK_LIBRARIES(vgmodeler gtsio3 tetgen triangle vgmodeler_volume)
-#TARGET_LINK_LIBRARIES(ng gtsio3 tetgen triangle netgen)
+TARGET_LINK_LIBRARIES(vgmodeler gtsio3 vgmodeler_volume)
+TARGET_LINK_LIBRARIES(ng gtsio3 netgen)
 
 

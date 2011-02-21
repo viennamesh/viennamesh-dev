@@ -3,7 +3,7 @@
 #include <linalg.hpp>
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
   void RevolutionFace :: Init(void)
   {

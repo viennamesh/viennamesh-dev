@@ -5,7 +5,7 @@
 #undef DEVELOP
 //#define DEVELOP
 
-namespace netgen
+namespace vgmodeler
 {
 
   EdgeCalculation :: 

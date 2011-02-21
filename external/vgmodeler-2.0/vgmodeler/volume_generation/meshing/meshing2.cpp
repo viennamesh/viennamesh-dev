@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
    void glrender (int wait);
 
@@ -1496,7 +1496,7 @@ namespace netgen
 #include <visual.hpp>
 #include <stlgeom.hpp>
 
-namespace netgen 
+namespace vgmodeler 
 {
 
   extern STLGeometry * stlgeometry;
@@ -1890,7 +1890,7 @@ namespace netgen
 
 
 #else
-namespace netgen
+namespace vgmodeler
 {
   void glrender (int wait)
   { ; }

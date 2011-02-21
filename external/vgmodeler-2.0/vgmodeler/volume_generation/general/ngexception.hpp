@@ -24,7 +24,7 @@ public:
   //  void Append (const char * s);
   
   /// verbal description of exception
-  const string & What() const { std::cout << " ## netgen exception: " << what << std::endl; return what; }
+  const string & What() const { std::cout << " ## vgmodeler exception: " << what << std::endl; return what; }
 
 
 };

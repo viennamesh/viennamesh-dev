@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include <linalg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
 QuadraticPolynomial1V :: 

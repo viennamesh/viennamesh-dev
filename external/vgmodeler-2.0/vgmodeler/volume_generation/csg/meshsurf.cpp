@@ -5,7 +5,7 @@
 
 
 
-namespace netgen
+namespace vgmodeler
 {
   /*
 Meshing2Surfaces :: Meshing2Surfaces (const Surface & asurface)

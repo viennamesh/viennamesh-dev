@@ -22,7 +22,7 @@
 
 
 #include <myadt.hpp>
-namespace netgen
+namespace vgmodeler
 {
 #include "vector.hpp"
 #include "densemat.hpp"

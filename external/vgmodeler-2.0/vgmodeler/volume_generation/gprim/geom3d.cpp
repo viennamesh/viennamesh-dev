@@ -4,7 +4,7 @@
 #include <myadt.hpp>
 #include <gprim.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 ostream & operator<<(ostream  & s, const Point3d & p)
   {

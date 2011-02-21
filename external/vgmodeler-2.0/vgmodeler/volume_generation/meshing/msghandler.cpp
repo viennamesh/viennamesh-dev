@@ -2,7 +2,7 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
 //Destination for messages, errors, ...
 void Ng_PrintDest(const char * s)

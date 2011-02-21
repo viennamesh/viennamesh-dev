@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 #include "hprefinement.hpp" 
 
-namespace netgen
+namespace vgmodeler
 {
 
 #include "hpref_segm.hpp"

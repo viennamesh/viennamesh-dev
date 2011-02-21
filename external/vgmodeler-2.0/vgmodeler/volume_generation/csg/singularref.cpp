@@ -5,7 +5,7 @@
 #include <csg.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
   SingularEdge :: SingularEdge (double abeta, int adomnr, 

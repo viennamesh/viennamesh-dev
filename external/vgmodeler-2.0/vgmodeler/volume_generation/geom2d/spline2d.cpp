@@ -13,7 +13,7 @@ OLD IMPLEMENTATION, NOT USED ANYMORE!
 #include <linalg.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 #include "spline2d.hpp"
 

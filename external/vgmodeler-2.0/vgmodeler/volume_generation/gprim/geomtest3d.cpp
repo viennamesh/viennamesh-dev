@@ -4,7 +4,7 @@
 #include <linalg.hpp>
 #include <gprim.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 int
 IntersectTriangleLine (const Point3d ** tri, const Point3d ** line)

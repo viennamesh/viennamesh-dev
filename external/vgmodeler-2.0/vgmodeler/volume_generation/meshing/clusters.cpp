@@ -2,7 +2,7 @@
 
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
 
 AnisotropicClusters ::  AnisotropicClusters (const Mesh & amesh)

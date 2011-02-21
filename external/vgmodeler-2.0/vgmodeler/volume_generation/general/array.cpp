@@ -17,9 +17,9 @@
 #include <assert.h>
 
 
-namespace netgen
+namespace vgmodeler
 {
-  using namespace netgen;
+  using namespace vgmodeler;
 
 #ifdef NONE  
   void BASE_ARRAY :: ReSize (int minsize, int elementsize)

@@ -3,7 +3,7 @@
 #include <linalg.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
   DenseMatrix :: DenseMatrix () 
   {

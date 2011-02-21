@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace netgen
+namespace vgmodeler
 {
 #include "writeuser.hpp"
     // Forward declarations (don't know, where to define them, sorry)

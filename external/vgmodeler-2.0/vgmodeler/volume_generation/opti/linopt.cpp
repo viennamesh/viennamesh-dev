@@ -4,7 +4,7 @@
 #include <linalg.hpp>
 #include "opti.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
 
 void LinearOptimize (const DenseMatrix & a, const Vector & b, 

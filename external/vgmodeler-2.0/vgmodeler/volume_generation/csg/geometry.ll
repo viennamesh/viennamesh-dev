@@ -9,10 +9,10 @@
 
 
 // extern SYMBOLTABLE<Solid*> solids;
-namespace netgen {
+namespace vgmodeler {
 extern CSGeometry * parsegeom;
 }
-using namespace netgen;
+using namespace vgmodeler;
 
 #include "geometry.h"
 

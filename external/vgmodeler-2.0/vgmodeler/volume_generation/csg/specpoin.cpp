@@ -20,7 +20,7 @@
 //#define DEVELOP
 
 
-namespace netgen
+namespace vgmodeler
 {
   ARRAY<Box<3> > boxes;
 

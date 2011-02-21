@@ -13,7 +13,7 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
 void Sort (const ARRAY<double> & values,

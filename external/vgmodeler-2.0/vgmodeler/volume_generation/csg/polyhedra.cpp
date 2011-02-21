@@ -3,7 +3,7 @@
 #include <linalg.hpp>
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
 Polyhedra::Face::Face (int pi1, int pi2, int pi3,

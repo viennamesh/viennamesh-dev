@@ -7,7 +7,7 @@
 
 
 
-namespace netgen
+namespace vgmodeler
 {
 
   void ParallelMeshTopology :: Reset ()
@@ -76,7 +76,7 @@ namespace netgen
 
 
 
- ParallelMeshTopology :: ParallelMeshTopology ( const netgen::Mesh & amesh )
+ ParallelMeshTopology :: ParallelMeshTopology ( const vgmodeler::Mesh & amesh )
   : mesh(amesh)
 {
   // MPI DATA

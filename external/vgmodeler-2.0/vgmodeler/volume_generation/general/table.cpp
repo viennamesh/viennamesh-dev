@@ -11,9 +11,9 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
-  using namespace netgen;
+  using namespace vgmodeler;
 
   BASE_TABLE :: BASE_TABLE (int size)
     : data(size)

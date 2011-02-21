@@ -9,7 +9,7 @@
 
 
 
-namespace netgen
+namespace vgmodeler
 {
 
   /** 

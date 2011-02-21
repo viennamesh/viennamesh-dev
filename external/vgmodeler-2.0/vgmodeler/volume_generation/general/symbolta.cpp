@@ -17,9 +17,9 @@
 // necessary for SGI ????
 
 
-namespace netgen
+namespace vgmodeler
 {
-  using namespace netgen;
+  using namespace vgmodeler;
 
   BASE_SYMBOLTABLE :: BASE_SYMBOLTABLE ()
   {

@@ -11,7 +11,7 @@
 
 
 
-namespace netgen
+namespace vgmodeler
 {
 
 

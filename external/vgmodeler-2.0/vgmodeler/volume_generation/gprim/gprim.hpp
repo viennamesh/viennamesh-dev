@@ -8,7 +8,7 @@
 /* *************************************************************************/
 
 
-namespace netgen
+namespace vgmodeler
 {
 #include "geomobjects.hpp"
 #include "geomops.hpp"

@@ -20,6 +20,7 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/domain.hpp"
 
+#include "viennamesh/interfaces/vgmodeler.hpp"
 #include "viennamesh/generator.hpp"
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/classifier.hpp"

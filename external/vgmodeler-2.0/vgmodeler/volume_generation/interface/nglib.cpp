@@ -22,15 +22,15 @@
 #include <meshing.hpp>
 
 
-namespace nglib {
+namespace vgmodeler {
 #include "nglib.h"
 }
 
-using namespace netgen;
+using namespace vgmodeler;
 
 // constants and types:
 
-namespace nglib
+namespace vgmodeler
 {
 // initialize, deconstruct Netgen library:
 void Ng_Init ()
@@ -749,7 +749,7 @@ void Ng_GetCellOnVertex(Ng_Mesh *mesh, int vertex_number, int **element_containe
 
 // compatibility functions:
 
-namespace netgen 
+namespace vgmodeler 
 {
 
   char geomfilename[255];

@@ -3,7 +3,7 @@
 
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
 
    void ComputeGaussRule (int n, ARRAY<double> & xi, ARRAY<double> & wi)

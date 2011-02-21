@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmodeler
 {
   void Refinement :: Refine (Mesh & mesh)
   {

@@ -29,7 +29,7 @@
 void Parallel_Exit();
 
 
-namespace netgen {
+namespace vgmodeler {
 extern AutoPtr<Mesh>  mesh;
 
   // geometry: either CSG, or, if an other is non-null, 
@@ -49,7 +49,7 @@ extern AutoPtr<Mesh>  mesh;
 
 }
 
-using namespace netgen;
+using namespace vgmodeler;
 
 #ifdef PARALLEL
   void Ng_Exit ()
@@ -131,7 +131,7 @@ void ParallelRun()
 	
 	  if ( message == "mesh" )
 	    {
-	      mesh.Reset( new netgen::Mesh);
+	      mesh.Reset( new vgmodeler::Mesh);
 	      mesh->LoadParallelMesh();
 	    }
 	  /*

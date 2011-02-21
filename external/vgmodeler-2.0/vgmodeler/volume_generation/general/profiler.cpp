@@ -7,9 +7,9 @@
 
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
-  using namespace netgen;
+  using namespace vgmodeler;
 
   long int NgProfiler::tottimes[SIZE];
   long int NgProfiler::starttimes[SIZE];
@@ -34,7 +34,7 @@ namespace netgen
   {
 //     StopTimer (total_timer);
 
-//    ofstream prof ("netgen.prof");
+//    ofstream prof ("vgmodeler.prof");
     ofstream prof ("/dev/null/");
     Print (prof);
   }

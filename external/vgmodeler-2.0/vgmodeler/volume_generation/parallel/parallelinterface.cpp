@@ -6,14 +6,14 @@
 
 #include "parallelinterface.hpp"
 
-namespace netgen
+namespace vgmodeler
 {
   extern AutoPtr<Mesh> mesh;
 
 
 
 
-using namespace netgen;
+using namespace vgmodeler;
 
 int NgPar_Glob2Loc_SurfEl ( const int & locnum ) 
 { return mesh->GetParallelTopology().Glob2Loc_SurfEl(locnum+1) - 1; }

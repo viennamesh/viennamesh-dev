@@ -3,7 +3,7 @@
 #include <myadt.hpp>
 #include <gprim.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
   /*

@@ -1,4 +1,4 @@
-namespace netgen
+namespace vgmodeler
 {
 const char * pyramidrules2[] = {
 "tolfak 0.5\n",\

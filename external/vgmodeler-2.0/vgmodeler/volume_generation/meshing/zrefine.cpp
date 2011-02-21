@@ -3,7 +3,7 @@
 
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmodeler
 {
 
   // find singular edges

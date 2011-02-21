@@ -1,4 +1,4 @@
-namespace netgen
+namespace vgmodeler
 {
 const char * triarules[] = {
 "rule \"Free Triangle (1)\"\n",\

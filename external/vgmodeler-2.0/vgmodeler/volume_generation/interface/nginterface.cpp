@@ -24,7 +24,7 @@
 // #include <mystdlib.h>
 
 
-namespace netgen
+namespace vgmodeler
 {
   extern AutoPtr<Mesh> mesh;
   extern VisualSceneMesh vsmesh;
@@ -50,7 +50,7 @@ namespace netgen
 }
 
 
-using namespace netgen;
+using namespace vgmodeler;
 
 /*
   extern void * operator new (size_t s);
@@ -81,7 +81,7 @@ void Ng_LoadGeometry (char * filename)
     {
  
 
-      geometry.Reset( netgen::ParseCSG(infile) );   
+      geometry.Reset( vgmodeler::ParseCSG(infile) );   
 
       if (!geometry)
 	{

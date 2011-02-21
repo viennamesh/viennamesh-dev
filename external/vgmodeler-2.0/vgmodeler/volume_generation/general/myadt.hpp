@@ -17,7 +17,7 @@
 #include <mydefs.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
 #include "ngexception.hpp"
 #include "parthreads.hpp"

@@ -54,7 +54,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
    typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
    typedef typename DatastructureT::point_type        vmesh_point_type;         
    
-   typedef boost::shared_ptr<netgen::Mesh>            mesh_pointer_type;
+   typedef boost::shared_ptr<vgmodeler::Mesh>            mesh_pointer_type;
    typedef std::vector<mesh_pointer_type>             mesh_container_type;
    typedef typename mesh_container_type::iterator     mesh_iterator_type;         
    typedef typename std::map<point_type, std::size_t> vertex_map_type;
@@ -96,10 +96,10 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
 
          // create a new mesh datastructure for this segment
          // the reason we use a pointer approach here, is that the 
-         // netgen::mesh object does not like to be placed within a vector ..
+         // vgmodeler::mesh object does not like to be placed within a vector ..
          // however, this approach should not hit on performance, as nothing gets copied ..
          //
-         mesh_pointer_type meshpnt = mesh_pointer_type(new netgen::Mesh());
+         mesh_pointer_type meshpnt = mesh_pointer_type(new vgmodeler::Mesh());
          
          for(vmesh_cell_iterator cit = (*seg_iter).cell_begin();
              cit != (*seg_iter).cell_end(); cit++)
@@ -122,7 +122,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
                   vmesh_geometry_iterator geoit = data.geometry_begin();
                   std::advance(geoit, vertex_index);
                   vmesh_point_type point = *geoit;
-                  netgen::Point3d netgen_point;
+                  vgmodeler::Point3d netgen_point;
                   
                   // set very small values to zero to increase
                   // numerical stability
@@ -160,7 +160,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
             }
             
             // build netgen cell
-            netgen::Element2d el;
+            vgmodeler::Element2d el;
             el.SetIndex(1);  // TODO find out what this index is .. but it is crucial that it is set to 1!
             el.PNum(1) = cell[0];
             el.PNum(2) = cell[1];
@@ -169,7 +169,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
             // each face shall hold segment_id+1 id in the facedescriptor
             // this number is correlated with the "mesh_cnt" variable in the functor!
             // if this index is not +1 the segment id, we shall get a segfault ..
-            meshpnt->AddFaceDescriptor(netgen::FaceDescriptor(segment_cnt+1,1,0,0));
+            meshpnt->AddFaceDescriptor(vgmodeler::FaceDescriptor(segment_cnt+1,1,0,0));
 
             //std::cout << "adding constraint: " << el << std::endl;
             
@@ -256,13 +256,13 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
       #endif        
 
 //      ?? not needed ..         
-//          netgen::Point3d pmin, pmax;
+//          vgmodeler::Point3d pmin, pmax;
 //          meshpnt->GetBox(pmin, pmax);
 
          // compute the local feature size for this segment
          meshpnt->CalcLocalH(threadID);  
          
-         netgen::MeshVolume (mesh_parameters, *meshpnt, threadID);
+         vgmodeler::MeshVolume (mesh_parameters, *meshpnt, threadID);
          
       #ifdef MESH_KERNEL_DEBUG         
          // write a volume file for each segment
@@ -286,7 +286,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
          std::map<std::size_t, std::size_t>  mesh_domain_mapping; 
   
         
-         for(netgen::PointIndex i = netgen::PointIndex::BASE; i < (point_size + netgen::PointIndex::BASE); i++)
+         for(vgmodeler::PointIndex i = vgmodeler::PointIndex::BASE; i < (point_size + vgmodeler::PointIndex::BASE); i++)
          {
             //std::cout << "direct point output: " << (*meshpnt)[i] << std::endl;
             
@@ -294,22 +294,13 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
             vertex_map_iterator_type vdm_it = vertex_domain_mapping.find(point);
             if(vdm_it == vertex_domain_mapping.end())          // point is not in the map
             {   
-                //std::cout << "point is new " << std::endl;
-                //std::cout << "  mapping: " << point[0] << " " << point[1] << " " << point[2] << " -- " << point_cnt << std::endl;
                vertex_domain_mapping[point] = point_cnt;
-               //mesh_domain_mapping[i-netgen::PointIndex::BASE] = point_cnt;
-                //std::cout << "  mapping: " << i << " -- " << point_cnt << std::endl;
                mesh_domain_mapping[i] = point_cnt;
-               //std::cout << "   mapping: " << i-netgen::PointIndex::BASE << " -- " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-               //geometry_cont[i-netgen::PointIndex::BASE] = point;
-               //std::cout << point[0] << " " << point[1] << " " << point[2] << std::endl;
                geometry_cont.push_back(point);
                point_cnt++;
             }
             else                                       // point is already in the map - use this handle
             {
-                //std::cout << "point alread added: " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-                //std::cout << "  mapping: " << i << " -- " << (*vdm_it).second << std::endl;
                mesh_domain_mapping[i] = (*vdm_it).second;    
             }            
 
@@ -318,14 +309,8 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
       #endif          
-         for(netgen::ElementIndex i = 0; i < element_size; i++)
+         for(vgmodeler::ElementIndex i = 0; i < element_size; i++)
          {
-             //std::cout << "mapping cell" << std::endl;
-             //std::cout << "direct cell output: " << (*meshpnt)[i] << std::endl;
-             //std::cout << mesh_domain_mapping[(*meshpnt)[i][0]] << " " << mesh_domain_mapping[(*meshpnt)[i][1]] << " " << 
-             //   mesh_domain_mapping[(*meshpnt)[i][2]] << " " << mesh_domain_mapping[(*meshpnt)[i][3]] << std::endl;
-
-            
             cell_type cell = {{ mesh_domain_mapping[(*meshpnt)[i][0]], 
                                 mesh_domain_mapping[(*meshpnt)[i][1]], 
                                 mesh_domain_mapping[(*meshpnt)[i][2]], 
@@ -365,7 +350,7 @@ private:
    segment_container_type       segment_cont;            
    
    mesh_container_type          mesh_container;
-   netgen::MeshingParameters    mesh_parameters;
+   vgmodeler::MeshingParameters    mesh_parameters;
 
    std::string mesh_kernel_id;
    // -------------------------------------------------------------------------------------      

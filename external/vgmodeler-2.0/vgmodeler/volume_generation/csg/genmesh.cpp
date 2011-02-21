@@ -8,7 +8,7 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmodeler
 {
   ARRAY<SpecialPoint> specpoints;
    ARRAY<MeshPoint> spoints;

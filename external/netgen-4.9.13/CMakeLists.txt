@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 2.6)
 #SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 # set the include paths
-#INCLUDE_DIRECTORIES("netgen/")
-#INCLUDE_DIRECTORIES("netgen/nglib/")
-#INCLUDE_DIRECTORIES("netgen/libsrc/include")
+INCLUDE_DIRECTORIES("netgen/")
+INCLUDE_DIRECTORIES("netgen/nglib/")
+INCLUDE_DIRECTORIES("netgen/libsrc/include")
 #INCLUDE_DIRECTORIES("netgen/libsrc/interface")
 #INCLUDE_DIRECTORIES("netgen/libsrc/geom2d")
 #INCLUDE_DIRECTORIES("netgen/libsrc/gprim")
