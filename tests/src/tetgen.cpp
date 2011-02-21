@@ -29,7 +29,7 @@
 
 int main(int argc, char * argv[])
 {
-   std::string inputfile("../input/cu_lowk_leti_right_oriented_adapted.gau32");
+   std::string inputfile("../input/cu_lowk_leti_right_oriented.gau32");
    std::string outputfile("output_tetgen.vtk");
    
    if(!viennautils::file_exists(inputfile))

@@ -33,6 +33,14 @@ namespace nglib {
 #include "nglib.h"
 }
 
+// TODO 
+//  netgen produces tons of debug output ..
+//  they use streams, here: meshing/global.cpp:
+//  ostream * mycout = &cout;
+//  ostream * myerr = &cerr;
+//  we need a way to redirect mycout/myerr to 0 ...
+//  problem is, I don't know how to access it from outside :(
+
 namespace viennamesh {
 
 template <typename DatastructureT>
@@ -73,7 +81,7 @@ struct mesh_kernel <viennamesh::tag::netgen, DatastructureT>
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
    #endif      
-      
+
       std::size_t segment_size = data.segment_size();
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
@@ -233,8 +241,8 @@ struct mesh_kernel <viennamesh::tag::netgen, DatastructureT>
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - region: " << region_cnt++ << std::endl;
          //std::cout << "  parameter set:     " << options << std::endl;
-         std::cout << "  input point size:  " << nglib::Ng_GetNP(&(*meshpnt)); << std::endl;
-         std::cout << "  input const size:  " << nglib::Ng_GetNSE(&(*meshpnt)); << std::endl;      
+         std::cout << "  input point size:  " << nglib::Ng_GetNP(&(*meshpnt)) << std::endl;
+         std::cout << "  input const size:  " << nglib::Ng_GetNSE(&(*meshpnt)) << std::endl;      
          std::cout << "## MeshKernel::"+mesh_kernel_id+" starting mesh generation " << std::endl;         
       #endif        
 
@@ -245,7 +253,7 @@ struct mesh_kernel <viennamesh::tag::netgen, DatastructureT>
          // can be viewed with, for example, netgen
          //
          std::string filename = "segment_" + boost::lexical_cast<std::string>(mesh_cnt) + ".vol";
-         nglib::Ng_SaveMesh(&(*meshpnt),filename);  
+         nglib::Ng_SaveMesh(&(*meshpnt),filename.c_str());  
       #endif
                   
          

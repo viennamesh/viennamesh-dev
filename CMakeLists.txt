@@ -30,6 +30,7 @@ INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/include"
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
 INCLUDE_DIRECTORIES("../ViennaGrid/")
 INCLUDE_DIRECTORIES("../ViennaData/")
 INCLUDE_DIRECTORIES("../ViennaUtils/")

@@ -42,8 +42,7 @@
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
 
-#define MESH_KERNEL_DEBUG
-#define MESH_KERNEL_DEBUG_FULL
+//#define MESH_KERNEL_DEBUG_FULL
 
 namespace viennamesh {
 
@@ -136,7 +135,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
           iter != data.geometry_end(); iter++)
       {
          
-      #ifdef MESH_KERNEL_DEBUG
+      #ifdef MESH_KERNEL_DEBUG_FULL
           std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding point " << 
              std::distance(data.geometry_begin(), iter) << " : " << *iter << std::endl;
       #endif   
@@ -159,7 +158,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
    #endif
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
          seg_iter != data.segment_end(); seg_iter++)
-      {  std::cout << "traversing segments .. " << std::endl;
+      {  
          for(vmesh_cell_iterator cit = (*seg_iter).cell_begin();
              cit != (*seg_iter).cell_end(); cit++)
          {  
@@ -172,7 +171,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
             //std::cout << cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
             if(!cell_uniquer[cell])
             {
-            #ifdef MESH_KERNEL_DEBUG
+            #ifdef MESH_KERNEL_DEBUG_FULL
                std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding constraint   " << 
                   cell_cnt << " : ";
                for(size_t i = 0; i < cell.size(); i++)  
@@ -184,7 +183,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
                
                this->addConstraint(cell);
             }
-         #ifdef MESH_KERNEL_DEBUG            
+         #ifdef MESH_KERNEL_DEBUG_FULL
             else
             { 
                std::cout << "## MeshKernel::"+mesh_kernel_id+" - skipping constraint " << 
