@@ -19,8 +19,8 @@ namespace netgen
 
 
 STLTopology :: STLTopology()
-  : trias(), topedges(), points(), ht_topedges(NULL), 
-    neighbourtrigs(), trigsperpoint()
+  : pointtol(0), trias(), topedges(), points(), ht_topedges(NULL), ht_topedges2(NULL),
+    neighbourtrigs(), trigsperpoint(), searchtree(NULL), pointtree(NULL), orientation_ok(1), topology_ok(1)
 {
   ;
 }
@@ -29,9 +29,6 @@ STLTopology :: ~STLTopology()
 {
   ;
 }
-
-
-
 
 STLGeometry *  STLTopology :: LoadBinary (istream & ist)
 {
@@ -551,6 +548,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 #ifdef DEBUGALL
       std::cout << "filename: " << filename << std::endl;
+      std::cout << "pointtol=" << pointtol << std::endl;
 #endif
 
       domain.read_file(filename, false);

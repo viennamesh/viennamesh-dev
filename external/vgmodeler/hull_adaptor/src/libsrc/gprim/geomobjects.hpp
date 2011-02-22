@@ -1,6 +1,8 @@
 #ifndef FILE_OBJECTS
 #define FILE_OBJECTS
 
+#include <float.h>
+
 /* *************************************************************************/
 /* File:   geomobjects.hpp                                                 */
 /* Author: Joachim Schoeberl                                               */
@@ -196,7 +198,8 @@ class Box
 protected:
   Point<D> pmin, pmax;
 public:
-  Box () { ; }
+  //Box () : pmin(DBL_MAX,DBL_MAX,DBL_MAX), pmax(-DBL_MAX,-DBL_MAX,-DBL_MAX) { ; }
+  Box () : pmin(0,0,0), pmax(0,0,0) { ; }
   Box ( const Point<D> & p1, const Point<D> & p2)
   {
     for (int i = 0; i < D; i++)
