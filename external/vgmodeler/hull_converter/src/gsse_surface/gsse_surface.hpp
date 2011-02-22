@@ -74,7 +74,7 @@ public:
     std::cout << "## " << fname << std::endl;
     if (fname.find(".bnd")==fname.npos)
     {
-    std::cout << "## HIN File " << fname.find(".bnd") << "\n";
+    std::cout << "## HIN File " << fname << "\n";
     FILE* fp = fopen(fname.c_str(),"r");
     
     int cnt;
@@ -86,7 +86,7 @@ public:
     }
     else
     {
-    	std::cout << "## BND File " << fname.find(".bnd") << "\n";
+    	std::cout << "## BND File " << fname << "\n";
 	bnd_c bnd;
 	bnd.bnd2surface(fname);
 	int cnt;

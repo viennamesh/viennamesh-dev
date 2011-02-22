@@ -433,8 +433,10 @@ while (1)
 			break;
 	}
 
-	if (line.length()==0)
+	if (fin.eof())
 		break;
+	if (line.length()==0)
+		continue;
 	string name=partition(partition(line,"\"")[1],"\"")[0];
 	getline(fin,line);
 	string material=partition(line,"=")[1];
