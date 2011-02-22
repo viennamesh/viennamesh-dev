@@ -150,27 +150,30 @@ public:
 };
 */
 
-
-
-
-
-
-
-
-
-
-
-
+// CERV HACK
+struct autointarray : std::vector<int>
+{
+	int operator[](const int i) const
+	{ 
+		return (*this).at(i);
+	}
+	int &operator[](const int i)
+	{ 
+		if (i>=this->size())
+			this->resize(i+1);
+		return (*this)[i];
+	}
+};
 
 struct line_info_t
 {
    int lefttrig;
    int righttrig;
    ARRAY<double> dists;
-  int lefttriangles[900000];
-  int righttriangles[900000];
-  int lefttrig_size;
-  int righttrig_size;
+   autointarray lefttriangles;
+   autointarray righttriangles;
+   int lefttrig_size;
+   int righttrig_size;
    int facenum[2];
    int orient[2];
 };
