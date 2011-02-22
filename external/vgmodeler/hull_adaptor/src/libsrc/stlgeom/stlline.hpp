@@ -151,8 +151,9 @@ public:
 */
 
 // CERV HACK
-struct autointarray : std::vector<int>
+struct autointarray : private std::vector<int>
 {
+	autointarray() : std::vector<int>(3) {}
 	int operator[](const int i) const
 	{ 
 		return (*this).at(i);
@@ -160,8 +161,10 @@ struct autointarray : std::vector<int>
 	int &operator[](const int i)
 	{ 
 		if (i>=this->size())
-			this->resize(i+1);
-		return (*this)[i];
+		{
+			this->resize(this->size()*2);
+		}
+		return std::vector<int>::operator[](i);
 	}
 };
 
