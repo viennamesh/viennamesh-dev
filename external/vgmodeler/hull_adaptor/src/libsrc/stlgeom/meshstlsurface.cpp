@@ -3087,7 +3087,6 @@ int STLSurfaceMeshing (STLGeometry & geom,
 #ifdef DEBUGALL
   std::cout << ".. converting mesh to gsse .. " << std::endl;
 #endif
-
   std::ofstream outfile("surface_mesh.gau32");
 
 //  std::cout << "..material faces information .. " << std::endl;

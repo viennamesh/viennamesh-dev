@@ -9,7 +9,7 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 IF(CMAKE_COMPILER_IS_GNUCXX)
    ADD_DEFINITIONS(-g -fPIC)
    #ADD_DEFINITIONS(-Wall -O0 -g -pedantic -fPIC)
-   #ADD_DEFINITIONS(-Wall -pedantic -O2 -fPIC)
+   #ADD_DEFINITIONS(-O2 -fPIC)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # build external libraries
@@ -48,10 +48,12 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 #ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
 ADD_EXECUTABLE(vgmodeler src/vgmodeler.cpp)
 ADD_EXECUTABLE(ng src/netgen.cpp)
+ADD_EXECUTABLE(tet src/tetgen.cpp)
 
 #link specific libraries to specific executables
 #TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
 TARGET_LINK_LIBRARIES(vgmodeler gtsio3 vgmodeler_volume)
 TARGET_LINK_LIBRARIES(ng gtsio3 netgen)
+TARGET_LINK_LIBRARIES(tet gtsio3 tetgen)
 
 

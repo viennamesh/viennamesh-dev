@@ -211,12 +211,7 @@ struct mesh_kernel <viennamesh::tag::vgmodeler, DatastructureT>
    {  
       this->setOptions(paras);      
       
-      //mesh_parameters
-      //mesh_parameters.maxh=0.01;
-      //mesh_parameters.secondorder = 2;
-      //mesh_parameters.badellimit = 150;   // 150-180
-      
-      
+     
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - meshing:" << std::endl;
          std::cout << "  input region size: " << mesh_container.size() << std::endl;            

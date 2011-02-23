@@ -42,6 +42,7 @@
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
 
+#define MESH_KERNEL_DEBUG
 //#define MESH_KERNEL_DEBUG_FULL
 
 namespace viennamesh {
@@ -153,7 +154,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
 
       typedef boost::array<std::size_t, 3>   boost_cell_type;
       std::map<boost_cell_type, bool>        cell_uniquer;      
-   #ifdef MESH_KERNEL_DEBUG      
+   #ifdef MESH_KERNEL_DEBUG_FULL
       size_t cell_cnt = 0;
    #endif
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
@@ -181,7 +182,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
             #endif               
                cell_uniquer[cell] = true;
                
-               this->addConstraint(cell);
+               this->addConstraint(vmesh_cell);
             }
          #ifdef MESH_KERNEL_DEBUG_FULL
             else
@@ -284,12 +285,12 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
+      std::size_t seg_id = 0;
+      std::map<size_t, bool>  seg_check;
    #endif          
-      
       //
       // extracting cell complex
       //
-      std::size_t seg_id = 0;
       // segment index is only increment in the addRegion method
       // in the case of a single segment, this particular method is never 
       // called, therefore we have to set it manually to one
@@ -311,14 +312,29 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
          // there is no need to call "add<region>", therefore
          // we have to counter this case
          if(out.numberoftetrahedronattributes > 0)
+         {
             seg_id = out.tetrahedronattributelist[tet_index];
+         }
          
          //std::cout << "tri: " << tri_index << " : " << cell[0] << " " << cell[1] << " " 
          //   << cell[2] << " attr: " << out.triangleattributelist[tri_index] << std::endl;
+         //std::cout << "transferring simplex to segment: " << seg_id << std::endl;
+      #ifdef MESH_KERNEL_DEBUG
+         seg_check[seg_id] = true;
+      #endif
          segment_cont[seg_id].push_back(cell);
       }
- 
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracted segments: ";
+      for( std::map<size_t, bool>::iterator iter = seg_check.begin();
+           iter != seg_check.end(); iter++)
+      {
+         std::cout << iter->first << " ";
+      }
+      std::cout << std::endl;
+   #endif
    }
+   
    // -------------------------------------------------------------------------------------
 
    // -------------------------------------------------------------------------------------
@@ -387,11 +403,12 @@ private:
       // check if there is at least one segment and at least one cell on this segment
       if(this->segment_cont.size() > 0 && this->segment_cont[0].size() > 0)
       {
+         std::size_t cellid = 0;
          this->barycenter(
-            geometry_cont[segment_cont[0][0][0]],  // first segment, first cell, first vertex
-            geometry_cont[segment_cont[0][0][1]],  // first segment, first cell, second vertex
-            geometry_cont[segment_cont[0][0][2]],  // first segment, first cell, third vertex
-            geometry_cont[segment_cont[0][0][3]],  // first segment, first cell, third vertex                          
+            geometry_cont[segment_cont[0][cellid][0]],  // first segment, first cell, first vertex
+            geometry_cont[segment_cont[0][cellid][1]],  // first segment, first cell, second vertex
+            geometry_cont[segment_cont[0][cellid][2]],  // first segment, first cell, third vertex
+            geometry_cont[segment_cont[0][cellid][3]],  // first segment, first cell, third vertex                          
             pnt
          );
       }
@@ -408,8 +425,8 @@ private:
    void barycenter(PointT const& p1, PointT const& p2, PointT const& p3, PointT const& p4, PointT & result)
    {
       result[0] = (p1[0] + p2[0] + p3[0] + p4[0])/4.;
-      result[1] = (p1[1] + p2[1] + p3[1] + p4[0])/4.;
-      result[2] = (p1[2] + p2[2] + p3[2] + p4[0])/4.;      
+      result[1] = (p1[1] + p2[1] + p3[1] + p4[1])/4.;
+      result[2] = (p1[2] + p2[2] + p3[2] + p4[2])/4.;      
    }
    // -------------------------------------------------------------------------------------      
    
