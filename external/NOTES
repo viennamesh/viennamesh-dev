@@ -7,4 +7,10 @@ http://permalink.gmane.org/gmane.comp.cad.gmsh.general/2694
 checkout 
   vmsh*/utils/api_demos/
   
-  
+LICENSES
+ netgen LGPL
+ triangle/tetgen  public but nor for selling or placed in commercial code
+ gmsh GPL
+ stellar BSD 
+
+--> to cover all of those, we use GPL v3 ?!
