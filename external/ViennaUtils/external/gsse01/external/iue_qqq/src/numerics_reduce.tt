@@ -1,0 +1,1230 @@
+/* ***********************************************************************
+   $Id: numerics_reduce.tt,v 1.7 2004/03/03 14:36:41 wagner Exp $
+
+   Filename: numerics_reduce.tt
+
+   Description:  Pre-elimination of some critical equations (templates)
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF  10 May 1996  created
+   CF  10 May 1996  pre-elimination function started
+   CF  11 May 1996  pre-elimination function continued
+   CF  11 May 1996  find largest function started and done
+   CF   1 Jul 1996  some cleanups and methodology
+   SW   6 Feb 2002  qqq prefixed function names
+   SW   8 Mar 2002  forth Newton adjustment step
+   SW  18 Mar 2002  preelimination sorting
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_reduce_tt__included__
+#define   __numerics_reduce_tt__included__
+
+
+/* 
+   The following code provides:
+
+   Functions
+   qqqPreeliminate(A,O,C,E,...)       ... reduce A as A = E * (C + O)
+   qqqPreeliminateVector(y,E,x)       ... calculate y = E^-1 * x
+   qqqPreeliminateBackSolve(x,O,e,b)  ... solve x from C * x + O * x = bb, above e
+   qqqPermutePreeliminated(O,C,E,...) ... permute O, C, and E
+*/
+
+
+/* qqqSortLargestFirst()
+
+   Find the largest element of the array idx, and move it (together with
+   its alter ego in val) to position 0 by exchange with the element in
+   this position.
+
+   Update the array rev, so that if rev[i1] = i2, then idx[i2 - revoff] = i1.
+   The offset revoff comes from not passing idx and val in their full length.
+
+   If val is specified as 0, the value array part is ignored, and 
+   only the index exchange is performed.
+   
+   Effort: len.
+   BogoFlops: 0. */
+#define Index qqqIndex
+template <class Number>
+//inline static void
+inline  void
+qqqSortLargestFirst(
+    Index  const        len,	/* Input length of arrays. */
+    Number      * const val,	/* Input/Output values array, length len.
+				   Can be 0, in which case value part is
+				   ignored. */
+    Index       * const idx,	/* Input/Output index  array, length len,
+				   parallel to val. */
+    Index       * const rev,	/* Input/Output reverse index array. */
+    Index  const        revoff	/* Input offset to numbers in rev. */
+    )
+{
+    Index  idxmax = idx[0];	/* Maximum column index in idx */
+    Index  jjmax  = 0;		/* Position of idxmax in idx */
+
+    /* Find the smallest column index */
+    for (Index jj = 1; jj < len; jj++)
+	if (idx[jj] > idxmax)
+	{
+	    idxmax = idx[jj];
+	    jjmax  = jj;
+	}
+
+    /* Exchange elements 0 and jjmax in idx, val, and rev */
+    /* Exchange idx */
+    Index const  h = idx[0];
+    idx[0]         = idxmax;
+    idx[jjmax]     = h;
+    /* Exchange rev */
+    rev[idxmax]    = revoff;
+    rev[h]         = revoff + jjmax;
+    /* Exchange val */
+    if (val) {
+	Number const s = val[0];
+	val[0]         = val[jjmax];
+	val[jjmax]     = s;
+    }
+    /* Now entry 0 has the largest column index */
+}
+#undef Index
+
+
+
+/* preeliminate()
+
+   Eliminate critical equations out of a linear system.
+
+   Description:
+   This function takes a matrix A on input and partially factorizes it.
+   The term 'partial', in contrast to the preconditioner, here means
+   that not all rows are factorized into two parts. Of those that are,
+   however, the factorization is complete: no members are dropped.
+
+   Factorization:
+   The rows that are to be factorized must be sorted to the bottom of the
+   matrix. Factorization (elimination of rows) starts at the bottom and
+   proceeds topwards. Therefore some of the usual terms in factorization
+   (especially the L and U part of the factorization) cannot fully retain
+   their meanings. All rows of index endrow and higher are factorized.
+
+   The function constructs an elimination matrix E. E is an upper 
+   triangular matrix. All entries of E have a column index of endrow
+   or higher. E is the inverse of a matrix that is multiplied to A
+   from the left, to add to any row of A a combination of rows with a 
+   higher index such that all entries righthand of the diagonal element 
+   and of column index endrow and above are eliminated. That is, for any 
+   row of index endrow and higher, all entries righthand the diagonal
+   are eliminated; for any other row (index less than endrow), all
+   entries of column index endrow and higher are eliminated.
+   The diagonal of E, which is unity (in all rows), is not stored.
+
+   The result of the multiplication is a matrix with some (but not all)
+   entries righthand of the diagonal removed, and some new entries created.
+   This matrix is split into two parts: C is the 'core' matrix, containing
+   all rows of index less than endrow. Any place of C can be occupied with
+   an entry. O is the 'outer' matrix, containing all rows of index endrow
+   or higher. In these rows, only entries in the diagonal or lefthand of
+   the diagonal are present. The structure that stores O keeps the diagonal
+   entries inverted, for the usual reason.
+
+   Matrix equation:
+   Except for the special storage of the inverted diagonals of O, which can
+   be considered a representation matter only, the equation A = E * (C + O) 
+   holds. Thus, E is what is usually called L in a factorization, and (C + O)
+   are the U part. O is more like a U part in that the structure is really
+   triangular and the diagonal is inverted. C is like the rest of A with
+   the LU factorization only half way done.
+
+   Schematic structure diagram:
+   The following diagram shows the possible fill patterns of A, E, C, and O.
+   In this example, the number of rows is 5 and endrow is 3.
+   a is an entry of A, e an entry of E, c an entry of C, o an entry of O,
+   and r an entry of the main diagonal of O (stored in inverted form).
+
+   *   0 1 2 3 4         0 1 2 3 4       0 1 2 3 4
+
+   0   a a a a a         1 - - e e       c c c - -
+   1   a a a a a         - 1 - e e       c c c - -
+   2   a a a a a    =    - - 1 e e   *   c c c - -
+   3   a a a a a         - - - 1 e       o o o r -
+   4   a a a a a         - - - - 1       o o o o r
+
+
+   Solving A * x = b by solving C * xx = bb:
+   Two functions are provided to perform the vector operations that
+   become necessary when the elimiation is applied. The function
+   'preeliminatevector' eliminates a right-hand side vector of an
+   equation system of the form A * x = b, that is, it creates the
+   vector bb = E^-1 * b from b. The function 'preeliminatebacksolve',
+   given a vector x whose first part xx is a solution to the equation
+   C * xx = first part of bb, calculates the missing components (row
+   indices endrow and higher) of the vector x by solving O * x = bb
+   for these rows.
+
+   Sorting:
+   The order of equations of the outer part O (row numbers endrow and
+   higher) must not be changed after the elimination matrix has been
+   determined; otherwise the functions mentioned in the paragraph above
+   will get confused.
+
+   Allocation:
+   On success, the function returns the three matrices C, O, and E,
+   with space allocated to hold their components. On failure, the
+   matrix structures C, O, and E, are freed before return.
+
+   Errors:
+   If the factorization is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_PREELIM_NOT_MCSR    ... matrix is not MCSR but MCSC format
+   - qqqERR_PREELIM_MISALLOC    ... allocation of output matrix data failed
+   - qqqERR_PREELIM_ZERO_DIAG   ... zero diagonal element in O matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_PREELIM_SMALL_DIAG  ... diagonal element in O matrix too small,
+                                    error.getMatrixRow() indicates the row 
+
+   
+   Effort: unpredictable.
+   BogoFlops: returned in flops.
+   Space: dimension(A) * (2 * sizeof(Index) + sizeof(Number)).
+   */
+#define MCSR      qqqMCSR<Number>
+#define Real      double
+#define Index     qqqIndex
+#define BogoFlops qqqBogoFlops
+#define Error     qqqError
+template <class Number>
+bool				/* Elimination was successful. */
+qqqPreeliminate(
+    MCSR       const &A,	/* Input matrix in MCSR format. */
+    MCSR             &O,	/* Output outer matrix in MCSR format. */
+    MCSR             &C,	/* Output core matrix in MCSR format. */
+    MCSR             &E,	/* Output elimination matrix in MCSR format. */
+    Index      const endrow,	/* From this row on all rows are factorized */
+    BogoFlops        &flops,	/* Output estimate of floating-point
+				   operations performed in the
+				   function.  This is rather an
+				   estimate for the number of
+				   multiplications. */
+    Error            &error,	/* Output error information, in case
+				   the return value is false. */
+    bool      const  onlyNum    /* [SW] Symbolic run is skipped, only 
+				   numerical elimination is done; 
+				   structures O, C and E are required;
+				   nothing is checked since if the input
+				   matrix equals that one of the
+				   last run, also the result of this
+				   algorithm MUST be the same!				   
+				*/
+    )
+{
+    FunctionLog functionLog("qqqPreeliminate");
+    // printf("preeliminate: qqqPreeliminate...\n");
+
+    Index  const         n    = A.dimension();
+    Number const * const aval = A.getval();
+    Index  const * const aidx = A.getidx();
+
+    bool nospace;		/* Space allocated has been too little
+				   (in symbolic elimination only) */
+    Real flop = 0;		/* Total multiplications and divisions */
+    
+    /* MCSR check */
+    if (!A.isrowized()) 
+    {
+	error = qqqERR_DIRECT_NOT_MCSR;
+	flops = flop; //.value();	/* missing */
+	return false;
+    }
+
+    /* Auxiliary arrays */
+    Number * const
+	val = new Number[qqqMax(n,1)]; /* Contains non-zeros of the actual row */
+    Index * const
+	idx = new Index[qqqMax(n,1)]; /* Contains the column indices for the
+				      entries in val */
+    Index * const
+	rev = new Index[qqqMax(n,1)]; /* Contains for each column the index
+				      into val/idx where the off-diagonal
+				      for this column is stored. If the
+				      off-diagonal is not present, rev 
+				      contains -1. */
+    /* Allocation checks */
+    /* ================= */
+
+    if (!rev || !idx || !val)
+    {
+	error = qqqERR_PREELIM_MISALLOC;
+	flops = flop; //.value();	/* missing */
+	if (rev) delete[] rev;
+	if (idx) delete[] idx;
+	if (val) delete[] val;
+	return false;
+    }
+
+    /* Initialize rev */
+    for (Index col = 0; col < n; col++) 
+	rev[col] = -1;		/* An invalid position */
+
+    Index nonzerose;
+    Index nonzerosc;
+    Index nonzeroso;
+
+    if (!onlyNum)
+    { // (!onlyNum)
+
+       // printf("preeliminate: Symbolic...\n");
+
+    /* Loop for symbolic elimination */
+    /* ============================= */
+
+    /* To better understand the structure of this loop, it is 
+       perhaps best to first examine the for-loop after the comment 
+       'Numeric elimination'. The for-loop over all rows inside the 
+       following do-loop is just a skeleton of it. */
+
+    /* There is no way to determine the amount of space required
+       to perform the factorization other than trying out symbolically
+       beforehand. In the symbolic operation, only the elements of O
+       have to be remembered, for they are required in the elimination
+       of the following rows (with smaller index). 
+       Start with an estimation for the size of oidx which is rather large,
+       but certainly smaller than the space that will at least be actually 
+       required afterwards by the matrices O, C, plus E. 
+       If this space is not enough to keep the indices of O alone (!),
+       the total space required will at least be three times as much, so
+       enlarge the estimation by a factor of 3 in any turn.
+       If this is necessary, however, the matrix does not represent the
+       usual case with only a few rows to be pre-eliminated. */
+
+    nonzeroso = A.nonzeros();
+    if (nonzeroso < 1000) 
+	nonzeroso = 1000;
+
+    do /* Size enlargement loop */
+    {
+	nonzerose = n;
+	nonzerosc = endrow;
+	nonzeroso *= 3;		/* Yes, multiply even in the first run */
+
+	Index ostart = nonzeroso + 1;
+	Index * const oidx = new Index[ostart];
+	if (!oidx) {
+	    error = qqqERR_PREELIM_MISALLOC;
+	    flops = flop; //.value(); /* missing */
+	    delete[] rev;
+	    delete[] idx;
+	    delete[] val;
+	    return false;
+	}
+	oidx[n] = ostart;
+	
+	/* Symbolic elimination: loop over all rows */
+	/* ======================================== */
+
+	nospace = false;
+	for (Index row = n - 1; row >= 0; row--) 
+	{
+	    Index len = 0;
+
+	    /* Put the row from A into idx */
+	    /* =========================== */
+
+	    Index const j1 = aidx[row    ]; /* Start of row in aval */
+	    Index const j2 = aidx[row + 1]; /* End   of row in aval */
+
+	    /* off diagonals */
+	    for (Index jj = j2 - 1; jj >= j1; jj--)
+	    {
+		Index  const col = aidx[jj];
+		Index  const pos = rev[col];
+
+		if (pos == -1) {	/* new entry */
+		    idx[len] = col;
+		    rev[col] = len;
+		    len++;
+		}
+	    }
+	    /* diagonal */
+	    if (rev[row] == -1) {	/* diagonal entry */
+		idx[len] = row;
+		rev[row] = len;
+		len++;
+	    }
+
+	    /* Eliminate rows with higher number */
+	    /* ================================= */
+
+	    Index elen;		/* Length of part of elimination 
+				   coefficients in idx */
+	    Index colrow = n;	/* Virtual row n
+				   added to row during elimination 
+				   in a virtual previous turn */
+	    for (Index jj = 0; true; jj++)
+	    {
+		if (jj >= len)
+		{
+		    elen = len;
+		    break;
+		}
+
+		/* Eliminate the highest column number
+		   in the off-diagonals of the current row */
+		/* ======================================= */
+
+		/* Bring the highest column number in idx
+		   which has not yet been worked up
+		   to position jj.
+		   The highest number must be smaller than
+		   the column number colrow that has been used
+		   in the previous turn. There is a certain 
+		   chance that the next number is in the
+		   list, in which case we need not search. */
+		colrow--;
+		if (rev[colrow] != -1)
+		{
+		    Index const pos = rev[colrow];
+		    if (pos != jj)
+		    {
+			/* Exchange idx */
+			Index const  h = idx[jj];
+			idx[jj]        = colrow;
+			idx[pos]       = h;
+			/* Exchange rev */
+			rev[colrow]    = jj;
+			rev[h]         = pos;
+		    }
+		}
+		else
+		    qqqSortLargestFirst(len - jj,
+					(Number*)0, /* no val part */
+					&idx[jj],
+					rev, jj);
+		colrow = idx[jj];
+
+		/* Done with this row? */
+		if (colrow <= row ||
+		    colrow < endrow) {
+		    elen = jj;
+		    break;
+		}
+
+		/* Not done */
+
+		rev[colrow] = -1;       /* clean up, no further use */
+
+		/* Now symbolically eliminate colrow in actual row */
+		Index const k1 = oidx[colrow];   /* Start of colrow in O */
+		Index const k2 = oidx[colrow+1]; /* End   of colrow in O */
+		for (Index kk = k1; kk < k2; kk++)
+		{
+		    Index const col 
+			= oidx[kk];     /* The column */
+		    Index const pos 
+			= rev[col];	/* The position of the column in the
+					   off-diagonals of the actual row.
+					   pos == -1 means not present. */
+
+		    if (pos == -1)
+		    {
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		    }
+		} /* End of loop: kk = k1 .. k2-1 */
+
+	    } /* End of elimination loop: jj = 0 .. elen-1 */
+
+
+	    /* Put the elimination coefficients from idx into E */
+	    /* ================================================ */
+
+	    /* Elimination coefficients are indices 0..elen-1 for idx */
+	    /* Here, only count */
+	    nonzerose += elen;
+
+	    /* Put eliminated row from idx into O */
+	    /* ================================== */
+	
+	    if (row >= endrow)
+	    {
+		/* Row entries are indices elen..len-1 for idx */
+		/* Entries are not sorted by column */
+		/* We cannot only count, for we need these entries in
+		   the further elimination progress */
+	    
+		/* Check space in oidx */
+		/* '1' is for the diagonal element */
+		if (ostart - (n + 1) < (len - elen - 1))
+		{
+		    nospace = true;
+		    for (Index jj = elen; jj < len; jj++)
+			rev[idx[jj]] = -1; /* clean up, no further use */
+		    break;
+		}
+		else
+		{
+		    for (Index jj = elen; jj < len; jj++)
+		    {
+			Index const col = idx[jj];
+			rev[col] = -1;	/* clean up, no further use */
+		    
+			/* off diagonals */
+			if (col != row) {
+			    ostart--;
+			    oidx[ostart] = idx[jj];
+			}
+		    }
+		    oidx[row] = ostart;
+		}
+	    }
+
+	    /* Or put eliminated row from idx into C */
+	    /* ===================================== */
+	
+	    else
+	    {
+		/* Row entries are indices elen..len-1 for val/idx */
+		/* Here, only count */
+		for (Index jj = elen; jj < len; jj++)
+		    rev[idx[jj]] = -1; /* clean up, no further use */
+		nonzerosc += len - elen - 1;
+	    }
+
+	} /* End of main loop: row = n-1..0 */
+
+	/* No further use */
+	delete[] oidx;
+
+	/* If successfully completed */
+	if (!nospace)
+	    nonzeroso += (n + 1) - ostart;
+
+    } while (nospace); /* End of size enlargement loop */
+
+    // printf("preeliminate: Allocation...\n");
+
+    /* Allocate matrix structures */
+    /* ========================== */
+
+    /* missing correct calls */
+    if (!C.allocate(endrow, nonzerosc + 1, true, 0,      0) ||
+	!O.allocate(n,      nonzeroso + 1, true, endrow, endrow) ||
+	!E.allocate(n,      nonzerose + 1, true, 0,      n))
+    {
+	error = qqqERR_PREELIM_MISALLOC;
+	flops = flop; //.value();	/* missing */
+	E.free();
+	O.free();
+	C.free();
+	delete[] rev;
+	delete[] idx;
+	delete[] val;
+	return false;
+    }
+    
+    }
+    else
+    {
+       nonzerose = E.nonzeros();
+       nonzeroso = O.nonzeros();
+       nonzerosc = C.nonzeros();
+    }
+
+    Index  * const eidx = E.getidx();
+    Index  * const oidx = O.getidx();
+    Index  * const cidx = C.getidx();
+    Number * const eval = E.getval();
+    Number * const oval = O.getval();
+    Number * const cval = C.getval();
+    Index estart = nonzerose + 1;
+    Index ostart = nonzeroso + 1;
+    Index cstart = nonzerosc + 1;
+    eidx[n]      = estart;
+    oidx[n]      = ostart;
+    cidx[endrow] = cstart;
+
+
+    /* Numeric elimination: Loop over all rows */
+    /* ======================================= */
+
+    // printf("preeliminate: numeric...\n");
+
+    for (Index row = n - 1; row >= 0; row--) 
+    {
+	Index len = 0;
+
+	/* Put the row from A into val/idx */
+	/* =============================== */
+
+	Index const j1 = aidx[row    ]; /* Start of row in aval */
+	Index const j2 = aidx[row + 1];	/* End of row in aval */
+
+	/* off diagonals */
+	for (Index jj = j2 - 1; jj >= j1; jj--)
+	{
+	    Number const s   = aval[jj];
+	    Index  const col = aidx[jj];
+	    Index  const pos = rev[col];
+
+	    if (pos == -1) {	/* new entry */
+		val[len] = s;
+		idx[len] = col;
+		rev[col] = len;
+		len++;
+	    }
+	    else		/* duplicate entry */
+		val[pos] += s;
+	}
+	/* diagonal */
+	if (rev[row] == -1) {	/* diagonal entry */
+	    val[len] = aval[row];
+	    idx[len] = row;
+	    rev[row] = len;
+	    len++;
+	}
+	else			/* duplicate diagonal entry */
+	    val[rev[row]] += aval[row];
+
+	/* Eliminate rows with higher number */
+	/* ================================= */
+
+	Index elen;		/* Length of part of elimination 
+				   coefficients in val/idx */
+	Index colrow = n;	/* Virtual row n
+				   added to row during elimination 
+				   in a virtual previous turn */
+	for (Index jj = 0; true; jj++)
+	{
+	    if (jj >= len)
+	    {
+		elen = len;
+		break;
+	    }
+
+	    /* Eliminate the highest column number
+	       in the off-diagonals of the current row */
+	    /* ======================================= */
+
+	    /* Bring the highest column number in idx
+	       which has not yet been worked up
+	       to position jj.
+	       The highest number must be smaller than
+	       the column number colrow that has been used
+	       in the previous turn. There is a certain 
+	       chance that the next number is in the
+	       list, in which case we need not search. */
+	    colrow--;
+	    if (rev[colrow] != -1)
+	    {
+		Index const pos = rev[colrow];
+		if (pos != jj)
+		{
+		    /* Exchange idx */
+		    Index const  h = idx[jj];
+		    idx[jj]        = colrow;
+		    idx[pos]       = h;
+		    /* Exchange rev */
+		    rev[colrow]    = jj;
+		    rev[h]         = pos;
+		    /* Exchange val */
+		    Number const s = val[jj];
+		    val[jj]        = val[pos];
+		    val[pos]       = s;
+		}
+	    }
+	    else
+		qqqSortLargestFirst(len - jj,
+				    &val[jj],
+				    &idx[jj],
+				    rev, jj);
+	    colrow = idx[jj];
+
+	    /* Done with this row? */
+	    if (colrow <= row ||
+		colrow < endrow) {
+		elen = jj;
+		break;
+	    }
+
+	    /* Not done */
+
+	    rev[colrow] = -1;	/* clean up, no further use */
+
+	    /* Get the multiplicative factor for the row 
+	       with which to be eliminated (colrow):
+	       fact = off-diagonal of row / diagonal of colrow.
+	       Note: oval[colrow] is inverted diagonal of colrow. */
+
+	    Number const fact = val[jj] * oval[colrow];
+
+	    /* Now numerically eliminate colrow in actual row */
+	    Index const k1 = oidx[colrow];   /* Start of colrow in O */
+	    Index const k2 = oidx[colrow+1]; /* End   of colrow in O */
+	    for (Index kk = k1; kk < k2; kk++)
+	    {
+		Number const s 
+		    = fact * oval[kk]; /* The entry in row colrow times fact */
+		Index const col 
+		    =        oidx[kk]; /* The column */
+		Index const pos 
+		    = rev[col];	/* The position of the column in the
+				   off-diagonals of the actual row.
+				   pos == -1 means not present. */
+
+		if (pos == -1)
+		{
+		    idx[len] = col;
+		    val[len] = -s;
+		    rev[col] = len;
+		    len++;
+		}
+		else
+		    val[pos] -= s;
+	    } /* End of loop: kk = k1 .. k2-1 */
+	    /* Per turn we used 1 multiplication */ 
+	    flop += k2 - k1;
+
+	    /* Save multipliers (forwardly) 
+	       in eliminated space of val, idx.
+	       This will make up the E matrix. */
+	    val[jj] = fact;
+
+	} /* End of elimination loop: jj = 0 .. elen-1 */
+	/* Per turn we used 1 multiplication */
+	flop += elen;
+
+	/* Put the elimination coefficients from val/idx into E */
+	/* ==================================================== */
+
+	/* Elimination coefficients are indices 0..elen-1 for val/idx */
+	/* Luckily, the coefficients are sorted (reversely) by column */
+	for (Index jj = 0; jj < elen; jj++)
+	{
+	    estart--;	    
+	    eidx[estart] = idx[jj];
+	    eval[estart] = val[jj];	    
+	}	
+	eidx[row] = estart;
+
+	/* Put eliminated row from val/idx into O */
+	/* ====================================== */
+	
+	if (row >= endrow)
+	{
+	    /* Row entries are indices elen..len-1 for val/idx */
+	    /* Entries are not sorted by column */
+	    oval[row] = 0;
+	    for (Index jj = elen; jj < len; jj++)
+	    {
+		Index const col = idx[jj];
+		rev[col] = -1;	/* clean up, no further use */
+
+		/* diagonal */
+		if (col == row) 
+		{
+		    Number const s = val[jj];
+#if 0
+		    if (qqqAbs(s) <= DBL_MIN)
+		    {
+			if (s == 0)
+			    error = qqqERR_PREELIM_ZERO_DIAG;
+			else
+			    error = qqqERR_PREELIM_SMALL_DIAG;
+			error.setMatrixRow(row);
+			flops = flop; //.value(); /* missing */
+			E.free();
+			O.free();
+			C.free();
+			delete[] rev;
+			delete[] idx;
+			delete[] val;
+			return false;
+		    }
+#endif
+		    oval[row] = 1 / s;
+		}
+		/* off diagonals */
+		else 
+		{
+		    ostart--;		  
+		    oidx[ostart] = idx[jj];
+		    oval[ostart] = val[jj];		       		    
+		}
+	    }
+	    oidx[row] = ostart;
+	}
+
+	/* Or put eliminated row from val/idx into C */
+	/* ========================================= */
+	
+	else
+	{
+	    /* Row entries are indices elen..len-1 for val/idx */
+	    /* Entries are not sorted by column */
+	    cval[row] = 0;
+	    for (Index jj = elen; jj < len; jj++)
+	    {
+		Index const col = idx[jj];
+		rev[col] = -1;	/* clean up, no further use */
+
+		/* diagonal */
+		if (col == row)
+		    cval[row] = val[jj];
+
+		/* off diagonals */
+		else 
+		{
+		    cstart--;		    
+		    cidx[cstart] = idx[jj];
+		    cval[cstart] = val[jj];		    
+		}
+	    }	    
+	    cidx[row] = cstart;
+	}
+
+    } /* End of main loop: row = n-1..0 */
+    /* For row >= endrow, per turn we used 1 division */
+    flop += n - endrow;
+    flops = flop; //.value();	/* missing */
+
+    // printf("preeliminate: free and exit...\n");
+
+    /* Free auxiliary arrays */
+    delete[] rev;
+    delete[] idx;
+    delete[] val;
+    return true;
+}
+#undef MCSR
+#undef Real
+#undef Index
+#undef BogoFlops
+#undef Error
+
+
+/* qqqPreeliminateVector()
+
+   Eliminate the right-hand-side vector just like the system matrix.
+
+   The function eliminates the right-hand-side vector b of an equation
+   system A * x = b in much the same way as the system matrix A has been
+   eliminated. That is, the elimination matrix E (output of 'preeliminate')
+   is used to perform the same operations with the vector b as if it were 
+   a column of the matrix A.
+
+   Mathematically, the elimination is a multiplication by E^-1 from the
+   left, where E contains unity entries in the diagonal which are not
+   stored in the matrix structure. E is strictly upper triangular, so
+   the multiplication is a backsubstitution process.
+
+   Effort: nonzeros(E).
+   BogoFlops: nonzeros(E) - dimension(E).
+   Space: 0.
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+template<class Number>
+void
+qqqPreeliminateVector(
+    Number         * const r,	/* Output result of E^-1 * x.
+				   May be the same vector as x.
+				   Length dimension of E. */
+    MCSR     const         &E,  /* Input matrix of elimination coefficients,
+				   in MCSR format. */
+    Number   const * const x	/* Input vector. Length dimension of E. */
+    )
+{
+    Index  const         n    = E.dimension();
+    Number const * const val  = E.getval();
+    Index  const * const idx  = E.getidx();
+    
+#define QQQ_PREELIMINATION_SORTING 0
+#if QQQ_PREELIMINATION_SORTING
+    Number *valArray = 0;
+    Index sizeOfArray = 0;    
+#endif // QQQ_PREELIMINATION_SORTING
+
+    /* Forward solve: computes r = E^-1 * x */
+    for (Index row = n - 1; row >= 0; row--)
+    {
+	Index const j1 = idx[row    ];
+	Index const j2 = idx[row + 1];
+	Number y = x[row]; /* diagonal is unity */
+
+#if QQQ_PREELIMINATION_SORTING
+	/* see comments in qqqPreeliminateBackSolve */
+	if (j2-j1 > sizeOfArray)
+	{
+	   if (valArray != 0)
+	   {
+	      delete[] valArray;
+	      valArray = 0;
+	   }
+	
+	   Index const valArrayMultiplicationFactor = 2;
+	   sizeOfArray = (j2-j1) * valArrayMultiplicationFactor;
+	   if (sizeOfArray > 0)
+	      valArray = new Number[sizeOfArray];
+	}
+		
+	if (valArray != 0)
+	{	 
+	   Index nrElem = 0;
+
+	   for (Index jj = j1; jj < j2; jj++) 
+	   {
+	      valArray[nrElem] = - val[jj] * r[idx[jj]]; 
+	      if (valArray[nrElem] == 0) continue; 	      
+	      nrElem++;
+	   }
+
+	   for (Index j = nrElem-1; j > 0; j--)
+	   {
+	      for (Index k = 0; k < j; k++)
+		 /* Sorting for addition: criterion '<' */
+		 if (qqqGetReal(valArray[k]) < qqqGetReal(valArray[j]))
+		 {
+		    Number valH = valArray[j];		    
+		    valArray[j] = valArray[k];		    
+		    valArray[k] = valH;		    
+		 }
+	      y += valArray[j];
+	   }
+
+	   if (nrElem > 0)	   
+	      y += valArray[0];
+	   	   	   
+	}
+	else
+#endif // QQQ_PREELIMINATION_SORTING
+	{
+	   for (Index jj = j1; jj < j2; jj++) 
+	   {
+	      Number fact = val[jj] * r[idx[jj]];
+	      y -= fact; // val[jj] * r[idx[jj]];                     
+	   }
+	}
+	r[row] = y;
+    }
+
+#if QQQ_PREELIMINATION_SORTING
+    if (valArray != 0)
+       delete[] valArray;
+#endif // QQQ_PREELIMINATION_SORTING
+}
+#undef MCSR 
+#undef Index
+
+
+/* qqqPreeliminateBackSolve()
+
+   Solve the outer equations for the eliminated rows of a linear system.
+
+   The function solves the equation (C + O) * x = bb, where C * xx = bb
+   is already solved and xx is the first part of x, C the inner part
+   of the eliminated system matrix (C + O), as described for the function
+   'preeliminate'. bb is the pre-eliminated right hand side, E^-1 * b.
+   The function only solves the outer equations and leaves the first part
+   of x (here called xx) untouched.
+
+   The elimination is a backsubstitution process, which makes use of the
+   fact that O is strictly lower triangular.
+
+   Effort: nonzeros(O).
+   BogoFlops: nonzeros(O).
+   Space: 0.
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+template<class Number>
+void
+qqqPreeliminateBackSolve(
+    Number       * const x,	/* Input/output x from C * x + O * x = bb.
+				   Length dimension of O. */
+    MCSR   const         &O,	/* Input matrix O in MCSR format. */
+    Index  const         endrow,/* Size of inner part, i.e. dimension of C. */
+    Number const * const bb	/* Input vector bb. Length dimension of O. */
+    )
+{
+   Index  const         n    = O.dimension();
+   Number * /* const * const */ val  = O.getval();
+   Index  const * const idx  = O.getidx();
+
+#if QQQ_PREELIMINATION_SORTING
+   Number *valArray = 0;
+   Index nrElem = 0;
+   Index sizeOfArray = 0;
+#endif // QQQ_PREELIMINATION_SORTING
+
+   /* Backward solve: computes x = (C + O)^-1 * bb */
+   for (Index row = endrow; row < n; row++)
+   { // for
+
+      Index const j1 = idx[row    ];
+      Index const j2 = idx[row + 1];
+      Number y = bb[row];
+
+#if QQQ_PREELIMINATION_SORTING
+      if (j2-j1 > sizeOfArray)
+      {
+	 if (valArray != 0)
+	 {
+	    delete[] valArray;
+	    valArray = 0;
+	 }
+
+	 /* To avoid several reallocations the array should be 
+	    larger than the currently calculated size. For that
+	    reason this size is multiplied by an additional factor
+	    specified here:
+	 */  
+	 Index const valArrayMultiplicationFactor = 2;
+
+	 sizeOfArray = (j2-j1) * valArrayMultiplicationFactor;
+	 if (sizeOfArray > 0)
+	    valArray = new Number[sizeOfArray];
+      }      
+            
+      /* The allocation of valArray is fail safe. In case no array
+	 could be created, sorting is skipped and the entries are
+	 deducted directly (see else-block) */
+      if (valArray != 0)
+      {	 
+	 nrElem = 0;
+	 
+	 for (Index j = j1; j < j2; j++)
+	 {
+	    // if (eqs->jb[j] >= irow) break; 
+	    if (val[j] == -0) val[j] = 0.0;
+	    if (x[idx[j]] == -0) x[idx[j]] = 0.0;
+
+	    valArray[nrElem] = val[j] * x[idx[j]];
+	    if (valArray[nrElem] == 0) continue; 	    
+	    nrElem++;
+	 }
+
+	 for (Index j = nrElem-1; j > 0; j--)
+	 {
+	    for (Index k = 0; k < j; k++)
+
+	       /* Sorting for deduction: criterion '>' */
+	       if (qqqGetReal(valArray[k]) > qqqGetReal(valArray[j]))
+	       {
+		  Number valH = valArray[j];		  
+		  valArray[j] = valArray[k];		  
+		  valArray[k] = valH;		  
+	       }
+	    y -= valArray[j];
+	 }
+
+	 if (nrElem > 0)	
+	    y -= valArray[0]; 
+      }
+      else
+#endif // QQQ_PREELIMINATION_SORTING
+      {
+	 for (Index jj = j1; jj < j2; jj++) 	 
+	    y -= val[jj] * x[idx[jj]];	 
+      }
+
+      x[row] = y * val[row];	/* diagonal is inverted */
+    }
+
+#if QQQ_PREELIMINATION_SORTING
+   if (valArray != 0)
+      delete[] valArray;
+#endif // QQQ_PREELIMINATION_SORTING
+}
+#undef MCSR 
+#undef Index
+
+
+
+/* qqqPermutePreeliminated()
+
+   Permute the matrices of the preelimination by a permutation vector
+   for the inner part.
+
+   Description:
+   This functions takes the matrices O, E, and C as they come out of
+   the preeliminate() function and reorders the rows/columns according
+   to a specified permutation vector.
+   
+   Inner part:
+   The permutation vector is related to the inner part only, i.e. to
+   the matrix C. Of the matrices E and O, only those rows/columns
+   are repositioned which have a row/column index below endrow.
+   The parameter endrow is the dimension of C.
+
+   Sorting:
+   The matrix C is sorted on return, E is unchanged and O is not sorted.
+
+   Permutation in ppos:
+   The total permutation array ppos is assumed to specify a permutation
+   from an original numbering of the rows/columns to the actual numbering.
+   This array is changed in accordance with perm, so that it will after
+   the permutation point directly from the original numbering to the
+   destination numbering. One can see perm as a second permutation,
+   performed after the first which is specified in ppos; the final ppos
+   on output will incorporate the effect of both permutations in one.
+
+   Errors:
+   If the permutation is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_PERMTPRE_MISALLOC   ... allocation of auxiliary arrays failed
+   - qqqERR_PERMTPRE_ALGORITHM  ... undetectible error in algorithm
+   - qqqERR_TRANSFORM_BADPERM   ... permutation vector does not contain
+                                    each index between 0 and n-1 exactly once
+				    (propagated from transform())
+   - qqqERR_TRANSFORM_MISALLOC  ... allocation of auxiliary matrix or
+                                    result matrix failed
+				    (propagated from transform())
+   
+   Effort: nonzeros(O) + nonzeros(E) + nonzeros(C).
+   BogoFlops: 0.
+   Space: max(nonzeros(C),nonzeros(E)) * (sizeof(Number) + sizeof(Index))
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+#define Error     qqqError
+template <class Number>
+bool				/* Permutation was successful */
+qqqPermutePreeliminated(
+    MCSR                 &O,	/* Input/output outer matrix in MCSR format. */
+    MCSR                 &C,	/* Input/output core matrix in MCSR format. */
+    MCSR                 &E,	/* Input/output elim. matrix in MCSR format. */
+    Index        * const ppos,	/* Input/output total permutation array.
+				   Length dimension of O and E. Can be 0, in
+				   which case it is ignored. Otherwise the new
+				   permutation is applied. */
+    Index  const * const perm,	/* Input new positions array for permutation, 
+				   length dimension of C. Can be 0, in which
+				   case no operation is performed. */
+    Error                &error	/* Output error information, in case
+				   the return value is false. */
+    )
+{
+    FunctionLog functionLog("qqqPermutePreeliminated");
+
+    if (!perm) return true;
+
+    Index const n      = O.dimension();
+    Index const endrow = C.dimension();
+
+    /* Permute the C matrix */
+    /* ==================== */
+
+    /* This also checks the perm vector */
+    if (!qqqTransform(C,C,perm,true,false,true,false,error))
+	return false;
+
+    /* Permute the E matrix */
+    /* ==================== */
+
+    Index * const eidx = E.getidx();
+    Index * const eval = E.getval();
+
+    /* Allocate auxiliary arrays */
+    Index    nnze = eidx[endrow];
+    Index  * xidx = new Index [qqqMax(nnze,1)];
+    Number * xval = new Number[qqqMax(nnze,1)];
+
+    if (!xidx || !xval) {
+	error = qqqERR_PERMTPRE_MISALLOC;
+	if (xval) delete[] xval;
+	if (xidx) delete[] xidx;
+	return false;
+    }
+
+    /* We only have to exchange rows between 0 and endrow-1, 
+       for E has only entries in column endrow and above */
+
+    /* Put a reverse permutation vector into xidx */
+    for (Index row = 0; row < endrow; row++)
+	xidx[perm[row]] = row;
+
+    /* Copy and permute from E to X */
+    Index idxtop = n + 1;
+    for (Index row = 0; row < endrow; row++)
+    {
+	Index const srcrow = xidx[row];
+	xidx[row] = idxtop;
+	Index const j1 = eidx[srcrow];
+	Index const j2 = eidx[srcrow + 1];
+	for (Index jj = j1; jj < j2; jj++) {
+	    xval[idxtop] = eval[jj];
+	    xidx[idxtop] = eidx[jj];
+	    idxtop++;
+	}
+    }
+    xidx[endrow] = idxtop;
+
+    /* This should never happen */
+    if (xidx[endrow] != eidx[endrow]) {
+	error = qqqERR_PERMTPRE_ALGORITHM;
+	delete[] xval;
+	delete[] xidx;
+	return false;
+    }
+
+    /* Copy back from X to E */
+    for (Index row = 0; row < endrow; row++)
+    {
+	Index const j1 = xidx[row];
+	Index const j2 = xidx[row + 1];
+	eidx[row] = j1;
+	for (Index jj = j1; jj < j2; jj++) {
+	    eval[jj] = xval[jj];
+	    eidx[jj] = xidx[jj];
+	}
+    }
+    /* eidx[endrow] is already correct */
+
+    delete[] xval;
+    delete[] xidx;
+
+    /* Permute the O matrix */
+    /* ==================== */
+
+    Index * const oidx = O.getidx();
+    Index * const oval = O.getval();
+
+    for (Index row = endrow; row < n; row++)
+    {
+	Index const j1 = oidx[row];
+	Index const j2 = oidx[row + 1];
+	for (Index jj = j1; jj < j2; jj++) {
+	    Index const col = oidx[jj];
+	    if (col < endrow)
+		oidx[jj] = perm[col];
+	}
+    }
+
+    /* Permute the ppos vector */
+    /* ======================= */
+
+    if (ppos)
+	for (Index jj = 0; jj < n; jj++)
+	{
+	    Index const col = ppos[jj];
+	    if (col < endrow)
+		ppos[jj] = perm[col];
+	}
+    
+    return true;
+}
+#undef MCSR
+#undef Index
+#undef Error
+
+#endif // __numerics_reduce_tt__included__

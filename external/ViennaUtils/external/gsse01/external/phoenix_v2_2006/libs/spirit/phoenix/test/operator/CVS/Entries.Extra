@@ -1,0 +1,10 @@
+/arithmetic_tests.cpp////*///
+/bitwise_tests.cpp////*///
+/comparison_tests.cpp////*///
+/if_else_tests.cpp////*///
+/io_tests.cpp////*///
+/logical_tests.cpp////*///
+/member.cpp////*///
+/misc_binary_tests.cpp////*///
+/self_tests.cpp////*///
+/unary_tests.cpp////*///

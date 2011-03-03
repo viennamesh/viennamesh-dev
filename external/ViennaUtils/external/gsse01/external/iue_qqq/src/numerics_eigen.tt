@@ -1,0 +1,510 @@
+/* ***********************************************************************
+   $Id: numerics_eigen.tt,v 1.4 2004/12/28 18:12:52 gehring Exp $
+
+   Filename: numerics_eigen.tt
+
+   Description:  Eigensystem (templates)
+
+   Authors: SW  Stephan Wagner, Institute for Microelectronics, TU Vienna
+            GM  Georg Mach,     Institute for Microelectronics, TU Vienna
+
+   Who When         What
+   -----------------------------------------------------------------------
+   SW  23 Dec 2002  created
+   GM  05 Feb 2003  implementation of interface functions
+   GM  05 Mar 2003  fortran shift removed
+   SW  10 Mar 2003  code review
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_eigen_tt__included__
+#define   __numerics_eigen_tt__included__
+
+/* 
+   The following code provides:
+
+   Eigensystem interface:
+   -) Template for the Interface Functions
+*/
+
+/* Forward Declarations */
+/* ==================== */
+
+long qqqEigenComplex  (double **ar, double **ai, long n, double em[], double valr[],  double vali[], double **vr, double **vi);
+long qqqEigenHermitian(double **ar, double **ai, long n, double em[], double value[], double **vr,   double **vi);
+bool qqqEigenSymmetric(double * a,  double *vec, double *val, long n);
+
+
+/* ===================== */
+/* Eigensystem Interface */
+/* ===================== */
+
+/* Template for the Interface Functions */
+/* ==================================== */
+
+template<class Number, class NumberVal, class NumberVec>
+bool 
+qqqEigenSystem(qqqMCSR<Number> const &A,     /* [I]   matrix                      */
+	       NumberVal             *val,   /* [O]   eigenvalues                 */
+	       NumberVec            **vec,   /* [O]   eigenvectors                */
+	       qqqSolverParameters   &parms, /* [I/O] parameter class             */
+               qqqError              &error  /* [O]   error information, in case
+                                                      the return value is false.  */
+    )
+{
+  //printf("This is qqqEigenSystem\n");
+
+  /* Declarations, Allocations and Initializations */
+  long dim      = A.dimension();                   // dimension of the matrix
+  long i, j;
+  
+  // fields for the real and the imag part
+  double *feldRe = new double [dim * dim];      
+  double *feldIm = new double [dim * dim];     
+  double **re    = new double*[dim]; 
+  double **im    = new double*[dim];
+
+  // error handling initialization
+  error = qqqERR_EVERYTHING_OK;
+
+  // test of allocation
+  if (feldRe == 0 || feldIm == 0 || re == 0 || im == 0) 
+  {
+     error = qqqERR_EIGEN_MISALLOC;
+     parms.setParmsErrorNum(1);
+     parms.setErrorString("misallocation in eigensystem solver");
+     delete [] feldRe;
+     delete [] feldIm;
+     delete [] re;
+     delete [] im;
+     return false;
+  }
+
+  // Initialization of fields
+  for (i = 0; i < dim; i++)
+  {
+     re[i] = &feldRe[i * dim];
+     im[i] = &feldIm[i * dim];
+     for(j = 0; j < dim; j++)
+     {
+        re[i][j] = 0.0;
+        im[i][j] = 0.0;
+     }
+  }
+
+  /* Conversion of MCSR-Matrix into 2 fields (Re, Im) */
+  if (!A.convertToFull(re, im))
+  {
+     error = qqqERR_EIGEN_CONVERT;
+     parms.setParmsErrorNum(2);
+     parms.setErrorString("conversion into full matrix (2 fields) failed");
+     delete [] feldRe;
+     delete [] feldIm;
+     delete [] re;
+     delete [] im;
+     return false;
+  }
+
+  /* Decide which Algorithm to use */
+  /* ============================= */
+  /* Real    entries /     symmetric  --> CEPHES */
+  /* Real    entries / not symmetric  --> EIGCOM */
+  /* Complex entries /     hermitian  --> QRIHRM */
+  /* Complex entries / not hermitian  --> EIGCOM */
+  
+  /* Check if matrix is hermitian / symmetric */
+  if (A.isHermitian())
+  { // matrix is hermitian / symmetric
+
+     /* Declarations and initializations for sorting*/
+     bool     swap   = true;
+     double   dummy;
+
+     /* Check if matrix is real */
+     if (A.isReal())
+     {  
+
+	/* Matrix is real and symmetric --> Cephes */
+	/* ======================================= */
+
+        /* Declarations, allocations and initializations */
+        long     k      = 0;
+        double * B      = new double [dim * dim]; // field for lower left triangular matrix
+        double * EV     = new double [dim * dim]; // field for transposed eigenvectors
+        double * eigVal = new double [dim];       
+        double * eigVec = new double [dim * dim];
+        double **eVec   = new double*[dim]; 
+
+        // test of allocation
+        if (B == 0 || EV == 0 || eigVal == 0 || eigVec == 0|| eVec == 0) 
+        {
+           error = qqqERR_EIGEN_MISALLOC;
+           parms.setParmsErrorNum(1);
+           parms.setErrorString("misallocation in eigensystem solver");
+           delete [] B;
+           delete [] EV;
+           delete [] eigVal;
+           delete [] eigVec;
+           delete [] eVec;
+           return false;
+        }
+
+        // initialization        
+        for (i = 0; i < dim; i++)
+           eVec[i] = &eigVec[i * dim];
+        
+        /* Prepare triangular matrix */        
+        for(i = 0; i < dim; i++)
+        {
+           for (j = 0; j < i + 1; j++)
+           {
+              B[k] = re[j][i];
+              k++;
+           }
+        }
+        
+        /* Start eigensolver Cephes                                */
+        /* ======================================================= */
+        /* B      ... field with lower left triangular matrix      */
+        /* EV     ... field with transposed, unsorted eigenvectors */
+        /* eigVal ... field of unsorted eigenvalues                */
+        /* dim    ... dimension of the matrix                      */
+
+        if (!qqqEigenSymmetric(B, EV, eigVal, dim ))
+        {
+           error = qqqERR_EIGEN_SOLVE;
+           parms.setParmsErrorNum(3);
+           parms.setErrorString("eigensystem solver (cephes algorithm) failed");
+           return false;
+        }
+        
+        /* Copy transposed, unsorted eigenvectors into eVec */
+        for(i = 0; i < dim; i++)
+        {
+           for(j = 0; j < dim; j++)
+              eVec[i][j] = EV[dim*j+i];
+        }
+
+        /* Sort eigenvalues and eigenvectors */
+        //        printf("Sorting eigenvalues\n");
+        while (swap)
+        {
+           swap = false;
+           for (i = 0; i < dim - 1; i++)
+           {
+              if (eigVal[i] > eigVal[i+1])
+              {
+                 swap          = true;
+                 dummy         = eigVal[i];
+                 eigVal[i]     = eigVal[i + 1];
+                 eigVal[i + 1] = dummy;
+                 for(j = 0; j < dim; j++)
+                 {
+                    dummy          = eVec[j][i];
+                    eVec[j][i]     = eVec[j][i + 1];
+                    eVec[j][i + 1] = dummy;
+                 }
+              }
+           }
+        }
+        
+        /* Copy eigenvectors in qqqComplex vector */ 
+        for(i = 0; i < dim; i++)
+        {
+           val[i] = eigVal[i];
+           for(j = 0; j < dim; j++)
+           {
+              vec[i][j] = eVec[i][j];
+           }
+        }
+        
+        /* Free memory */
+        delete [] B;
+        delete [] EV;
+        delete [] eigVal;
+        delete [] eigVec;
+        delete [] eVec;
+
+     } // end of Cephes-Algorithm
+     else
+     { 
+	/* Matrix is complex and hermitian --> QriHrm (Lau) */
+	/* ================================================ */
+
+        /* Check if vec is qqqComplex */
+        if (sizeof(vec[1][1]) == sizeof(double))
+        {
+           error = qqqERR_EIGEN_COMPLEX;
+           parms.setParmsErrorNum(4);
+           parms.setErrorString("variable not complex when needed");
+           delete [] feldRe;
+           delete [] feldIm;
+           delete [] re;
+           delete [] im;
+           return false;
+        }
+        
+        /* Declarations, allocations and initializations */
+        // fields for the eigenvalues
+        double *value = new double[dim];
+        // fields for the eigenvectors
+        double *vecRe = new double[dim * dim];      
+        double *vecIm = new double[dim * dim];     
+        double **vr   = new double*[dim]; 
+        double **vi   = new double*[dim];
+        // field for parms  
+        double em[10];
+     
+        // test of allocation
+        if (value == 0 || vecRe == 0 || vecIm == 0 || vr == 0 || vi == 0) 
+        {
+           delete [] value;
+           delete [] vecRe;
+           delete [] vecIm;
+           delete [] vr;
+           delete [] vi;
+           error = qqqERR_EIGEN_MISALLOC;
+           parms.setParmsErrorNum(1);
+           parms.setErrorString("misallocation in eigensystem solver");
+           return false;
+        }
+        // Initialization of fields
+        for (i = 0; i < dim; i++)
+        {
+           vr[i] = &vecRe[i * dim];
+           vi[i] = &vecIm[i * dim];
+        }
+        
+        /* copy input parameters */
+        em[0] = parms.eisqPrecision;
+        em[2] = parms.eisqTolQR;
+        em[4] = parms.eisqMaxItQR;
+        
+        /* Start eigensolver QRiHrm                */
+        /* ======================================= */
+        /* re    ... real part of the matrix       */
+        /* im    ... imag part of the matrix       */
+        /* dim   ... dimension of the matrix       */
+        /* em    ... parms for solver              */
+        /* value ... field of eigenvalues          */
+        /* vr    ... real part of the eigenvectors */
+        /* vi    ... imag part of the eigenvectors */
+        if (qqqEigenHermitian(re, im, dim, em, value, vr, vi) != 0)
+        {
+           error = qqqERR_EIGEN_SOLVE;
+           parms.setParmsErrorNum(3);
+           parms.setErrorString("eigensystem solver (QR Iteration for hermitian matrix) failed");
+           return false;
+        }
+        
+        /* copy output parameters */
+        parms.eisqEm1 = em[1]; 
+        parms.eisqEm3 = em[3]; 
+        parms.eisqEm5 = em[5]; 
+        
+        /* Sort eigenvalues and eigenvectors */
+        while (swap)
+        {
+           swap = false;
+           for (i = 0; i < dim - 1; i++)
+           {
+              if (value[i] > value[i + 1])
+              {
+                 swap         = true;
+                 dummy        = value[i];
+                 value[i]     = value[i + 1];
+                 value[i + 1] = dummy;
+                 for(j = 0; j < dim; j++)
+                 {
+                    dummy        = vr[j][i];
+                    vr[j][i]     = vr[j][i + 1];
+                    vr[j][i + 1] = dummy;
+                    dummy        = vi[j][i];
+                    vi[j][i]     = vi[j][i + 1];
+                    vi[j][i + 1] = dummy;
+                 }
+              }
+           }
+        }
+        
+        /* Copy eigenvectors in qqqComplex vector */ 
+        for(i = 0; i < dim; i++)
+        {
+           val[i] = value[i];
+           for(j = 0; j < dim; j++)
+              if (!qqqAssign(&vec[i][j], vr[i][j], vi[i][j]))
+              {
+                 error = qqqERR_EIGEN_COMPLEX;
+                 parms.setParmsErrorNum(4);
+                 parms.setErrorString("variable not complex when needed");
+                 return false;
+              }
+        }
+        
+        /* Free memory */
+        delete [] value;
+        delete [] vecRe;
+        delete [] vecIm;
+        delete [] vr;
+        delete [] vi;
+     } // end of QriHrm-Algorithm
+  }
+  else
+  {  
+     /* Matrix is not hermitian / symmetric --> EigCom (Lau) */
+     /* ==================================================== */
+
+     /* Check if val and vec are qqqComplex */
+     if ((sizeof(val[0]) == sizeof(double)) || (sizeof(vec[0][0]) == sizeof(double)))
+     {
+        error = qqqERR_EIGEN_COMPLEX;
+        parms.setParmsErrorNum(4);
+        parms.setErrorString("variable not complex when needed");
+        delete [] feldRe;
+        delete [] feldIm;
+        delete [] re;
+        delete [] im;
+        return false;
+     }
+
+     /* Declarations, allocations and initializations */
+
+     // fields for the eigenvalues
+     double *valr = new double [dim];
+     double *vali = new double [dim];
+
+     // fields for the eigenvectors
+     double *vecRe = new double[dim * dim];      
+     double *vecIm = new double[dim * dim];     
+     double **vr = new double*[dim]; 
+     double **vi = new double*[dim];
+
+     // field for parms  
+     double em[10];
+     
+     // test of allocation
+     if (valr == 0 || vali == 0 || vecRe == 0 || vecIm == 0 || vr == 0 || vi == 0) 
+     {
+        delete [] valr;
+        delete [] vali;
+        delete [] vecRe;
+        delete [] vecIm;
+        delete [] vr;
+        delete [] vi;
+        error = qqqERR_EIGEN_MISALLOC;
+        parms.setParmsErrorNum(1);
+        parms.setErrorString("misallocation in eigensystem solver");
+        return false;
+     }
+     // Initialization of fields
+     for (i = 0; i < dim; i++)
+     {
+        vr[i] = &vecRe[i * dim];
+        vi[i] = &vecIm[i * dim];
+     }
+     
+     /* copy input parameters */
+     em[0] = parms.eisqPrecision;
+     em[2] = parms.eisqTolQR;
+     em[4] = parms.eisqMaxItQR;
+     em[6] = parms.eisqMaxIt;
+     
+     /* Start eigensolver EigCom (H.T. Lau)    */
+     /* ====================================== */
+     /* re   ... real part of the matrix       */
+     /* im   ... imag part of the matrix       */
+     /* dim  ... dimension of the matrix       */
+     /* em   ... parms for the solver          */
+     /* valr ... real part of the eigenvalues  */
+     /* vali ... imag part of the eigenvalues  */
+     /* vr   ... real part of the eigenvectors */
+     /* vi   ... imag part of the eigenvectors */
+
+     if (qqqEigenComplex(re, im, dim, em, valr, vali, vr, vi) != 0)
+     {
+        error = qqqERR_EIGEN_SOLVE;
+        parms.setParmsErrorNum(3);
+        parms.setErrorString("eigensystem solver (QR Iteration for complex or real matrix) failed");
+        return false;
+     }
+     
+     /* copy output parameters */
+     parms.eisqEm1 = em[1]; 
+     parms.eisqEm3 = em[3]; 
+     parms.eisqEm5 = em[5]; 
+     parms.eisqEm7 = em[7]; 
+     
+     /* Copy eigenvectors in qqqComplex vector */ 
+     for(i = 0; i < dim; i++)
+     {
+        if (!qqqAssign(&val[i], valr[i], vali[i]))
+        {
+           error = qqqERR_EIGEN_COMPLEX;
+           parms.setParmsErrorNum(4);
+           parms.setErrorString("variable not complex when needed");
+           break;
+        }
+
+        for(j = 0; j < dim; j++)
+           if (!qqqAssign(&vec[i][j], vr[i][j], vi[i][j]))
+           {
+              error = qqqERR_EIGEN_COMPLEX;
+              parms.setParmsErrorNum(4);
+              parms.setErrorString("variable not complex when needed");
+              break;
+           }
+     }
+
+     /* Free memory */
+     delete [] valr;
+     delete [] vali;
+     delete [] vecRe;
+     delete [] vecIm;
+     delete [] vr;
+     delete [] vi;
+  } // end of EigCom-Algorithm
+
+  /* Free memory */
+  delete [] feldRe;
+  delete [] feldIm;
+  delete [] re;
+  delete [] im;
+  
+  /* Error handling */
+  if (error.getError() != qqqERR_EVERYTHING_OK)
+  {
+     switch (error.getError())
+     {
+        case qqqERR_EIGEN_MISALLOC:
+           parms.setParmsErrorNum(1);
+           parms.setErrorString("misallocation in eigensystem solver");
+           break;
+        case qqqERR_EIGEN_HUGE:
+           parms.setParmsErrorNum(1);
+           parms.setErrorString("misallocation in eigensystem solver");
+           break;
+        case qqqERR_EIGEN_CONVERT:
+           parms.setParmsErrorNum(2);
+           parms.setErrorString("conversion into full matrix failed");
+           break;
+        case qqqERR_EIGEN_SOLVE: 
+           parms.setParmsErrorNum(3);
+           parms.setErrorString("user-specified iteration limit exceeded, no solving done");
+           break;
+        case qqqERR_EIGEN_COMPLEX:
+           parms.setParmsErrorNum(4);
+           parms.setErrorString("variable not complex when needed");
+           break;
+        default:
+           parms.setParmsErrorNum(9);
+           parms.setErrorString("unspecified error in eigensystem solver");
+           break;
+     }
+     parms.setMessageString("eigensystem failed");
+     return (false);
+  }  
+
+  return (true);
+}
+
+#endif // __numerics_eigen_tt__included__
