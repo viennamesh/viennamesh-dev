@@ -1,0 +1,7 @@
+ViennaMesh is currently under development, it is considered pre-alpha.
+
+For a glimpse on how it is used right now, look at for example src/netgen.cpp
+
+many updates will come the next months, so bear with us ..
+
+ - Josef

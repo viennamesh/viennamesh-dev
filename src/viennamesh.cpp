@@ -17,8 +17,9 @@
 #include "viennautils/io.hpp"
 #include "viennautils/dumptype.hpp"
 
-#include "viennagrid/io/vtk_writer.hpp"
+#include "viennagrid/forwards.h"
 #include "viennagrid/domain.hpp"
+#include "viennagrid/io/vtk_writer.hpp"
 
 #include "viennamesh/generator.hpp"
 #include "viennamesh/wrapper.hpp"
