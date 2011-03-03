@@ -1,6 +1,10 @@
 ViennaMesh is currently under development, it is considered pre-alpha.
 
 For a glimpse on how it is used right now, look at for example src/netgen.cpp
+to build the external libraries and the src files, issue:
+
+./build.sh
+
 
 many updates will come the next months, so bear with us ..
 
