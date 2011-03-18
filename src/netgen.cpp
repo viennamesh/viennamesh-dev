@@ -26,63 +26,6 @@
 #include "viennamesh/classifier.hpp"
 #include "viennamesh/transfer/viennagrid.hpp"
 
-template<typename DomainT>
-void statistics(DomainT& domain, std::ostream& ostr = std::cout)
-{
-   typedef typename DomainT::config_type                                         domain_config_type;
-   typedef typename domain_config_type::cell_tag                                 cell_tag_type;   
-   
-   static const int DIMG = domain_config_type::dimension_tag::value;
-   static const int DIMT = cell_tag_type::topology_level;
-   
-   typedef viennagrid::segment_t<domain_config_type>                                         segment_type;
-   typedef typename viennagrid::result_of::ncell_container<segment_type, DIMT>::type         cell_complex_type;
-   typedef typename viennagrid::result_of::iterator<cell_complex_type>::type                 cell_iterator_type;   
-   typedef typename viennagrid::result_of::ncell_type<domain_config_type, DIMT>::type        cell_type;
-   typedef typename viennagrid::result_of::ncell_container<segment_type, 0>::type            vertex_complex_type;
-//    typedef typename viennagrid::result_of::iterator<vertex_complex_type>::type               vertex_iterator_type;   // DOES NOT WORK ATM
-   typedef typename viennagrid::result_of::ncell_type<domain_config_type, 0>::type           vertex_type;   
-   typedef typename viennagrid::result_of::ncell_container<cell_type, 0>::type               vertex_on_cell_container_type;
-   typedef typename viennagrid::result_of::iterator<vertex_on_cell_container_type>::type     vertex_on_cell_iterator_type;   
-   
-   size_t segment_size = domain.segment_container()->size();
-   std::cout << "## Domain Statistics ##" << std::endl;
-   std::cout << "Topology Dimension: " << DIMT << std::endl;
-   std::cout << "Geometry Dimension: " << DIMG << std::endl;
-   std::cout << "   segment size: " << segment_size << std::endl;
-   
-   for(size_t si = 0; si < segment_size; si++)
-   {  
-      std::cout << "   segment: " << si << std::endl;
-      //std::cout << "     cell size: " << domain.segment(si).size<DIMT>() << std::endl;
-      cell_complex_type cell_complex = viennagrid::ncells<DIMT>(domain.segment(si));
-      std::cout << "      cells:" << std::endl;
-      size_t cid = 0;
-      for(cell_iterator_type cit = cell_complex.begin(); cit != cell_complex.end(); cit++)
-      {
-         std::cout << "         id: " << cid++ << " - vertices: ";
-         vertex_on_cell_container_type vertex_on_cell_cont = viennagrid::ncells<0>(*cit);
-         for(vertex_on_cell_iterator_type vocit = vertex_on_cell_cont.begin();
-             vocit != vertex_on_cell_cont.end(); vocit++)
-         {
-            std::cout << vocit->getID() << " ";
-         }         
-         std::cout << std::endl;
-      }
-  /*     
-      vertex_complex_type vertex_complex = viennagrid::ncells<0>(domain.segment(si));
-     std::cout << "      vertices:" << std::endl;
-      size_t cid = 0;
-      for(vertex_iterator_type vit = vertex_complex.begin(); vit != vertex_complex.end(); vit++)
-      {
-         std::cout << "         id: " << cid++ << " - vertex: " << vit->getID() << std::endl;
-      }     */ 
-   }
-//   std::cout << "Cells in Segment 0: "    << domain.segment(0).size<CellTag::topology_level>() << std::endl;
-//   std::cout << "Cells in Segment 1: "    << domain.segment(1).size<CellTag::topology_level>() << std::endl;   
-   
-}
-
 int main(int argc, char * argv[])
 {
    if(argc != 4)
