@@ -53,6 +53,9 @@ int main(int argc, char * argv[])
       
       typedef viennamesh::wrapper<viennamesh::tag::gsse01, domain_32t>     gsse01_wrapper_type;;
       gsse01_wrapper_type data_in(domain);      
+
+      // typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::vgmodeler, gsse01_wrapper_type>::type   mesh_adaptor_type;
+      // mesh_adaptor_type mesh_adaptor(data_in, domain_adapted);
       
       typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen, gsse01_wrapper_type>::type   mesh_generator_type;
       mesh_generator_type mesher(data_in);      
@@ -82,6 +85,10 @@ int main(int argc, char * argv[])
          std::cerr << "## shutting down .." << std::endl;     
          return -1;         
       }              
+   }
+   else
+   if(input_extension == "gau32") // read an old gsse v01 hull mesh
+   {
    }
    else
    {
