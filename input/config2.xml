@@ -1,0 +1,40 @@
+<process>
+   <task>
+      <id>0</id>
+      <type>
+         <key>generate</key>
+      </type>
+      <dimgeom>3</dimgeom>
+      <dimtopo>2</dimtopo>
+      <celltopo>
+         <key>simplex</key>
+      </celltopo>      
+      <tool>
+         <key>vgmodeler</key>
+      </tool>
+   </task>
+   <task>
+      <id>1</id>
+      <type>
+         <key>adapt</key>
+      </type>
+      <tool>
+         <key>vgmodeler</key>
+      </tool>
+   </task>
+   <task>
+      <id>2</id>
+      <type>
+         <key>generate</key>
+      </type>
+      <dimgeom>3</dimgeom>
+      <dimtopo>3</dimtopo>
+      <celltopo>
+         <key>simplex</key>
+      </celltopo>      
+      <tool>
+         <key>netgen</key>
+      </tool>
+   </task>
+</process>
+

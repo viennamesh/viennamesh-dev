@@ -1,0 +1,13 @@
+<task>
+   <dimension>
+      <topology>2</topology>
+      <geometry>3</geometry>
+   </dimension>
+   <celltopo>
+      <key>simplex</key>
+   </celltopo>      
+   <tool>
+      <key>vgmodeler</key>
+   </tool>
+</task>
+
