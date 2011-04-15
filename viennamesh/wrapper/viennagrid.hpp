@@ -18,6 +18,8 @@
 #include "viennamesh/tags.hpp"
 #include "viennautils/value_type.hpp"
 
+#include "viennagrid/forwards.h"
+#include "viennagrid/domain.hpp"
 #include "viennagrid/celltags.hpp"
 
 namespace viennamesh {
@@ -159,12 +161,14 @@ struct viennagrid_cell_wrapper
 template<typename DomainT>
 struct viennagrid_cell_complex_wrapper
 {
+private:
    typedef typename DomainT::config_type                                                  domain_config_type;
    static const int DIMT = domain_config_type::cell_tag::topology_level;
    typedef viennagrid::segment_t<domain_config_type>                                      vgrid_segment_type;
    typedef typename viennagrid::result_of::ncell_type<domain_config_type, DIMT>::type     vgrid_cell_type;         
    
-   typedef viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>  cell_type;
+public:   
+   typedef viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>                           cell_type;
    
    viennagrid_cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
    
@@ -215,7 +219,8 @@ struct viennagrid_cell_complex_wrapper
    
    inline DomainT& domain()      { return domain_;     }   
    inline size_t   segment_id()  { return segment_id_; }
-   
+
+private:
    DomainT& domain_;
    size_t   segment_id_;
 };
@@ -239,13 +244,10 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    // -------------------------------------------------------------------------------------------   
    // provide wrappers for the datastructures
    //
-   typedef typename viennamesh::viennagrid_point_wrapper<vgrid_point_type>       point_wrapper_type;
-   typedef typename viennamesh::viennagrid_cell_complex_wrapper<Datastructure>   cell_complex_wrapper_type;
-   // -------------------------------------------------------------------------------------------
-   
-   // -------------------------------------------------------------------------------------------
-   typedef typename viennagrid_cell_complex_wrapper<Datastructure>::cell_iterator     cell_iterator;
-   typedef typename viennagrid_cell_complex_wrapper<Datastructure>::cell_type         cell_type;   
+   typedef typename viennamesh::viennagrid_point_wrapper<vgrid_point_type>             point_type;
+   typedef typename viennamesh::viennagrid_cell_complex_wrapper<Datastructure>         cell_complex_wrapper_type;
+   typedef typename viennagrid_cell_complex_wrapper<Datastructure>::cell_iterator      cell_iterator;
+   typedef typename viennagrid_cell_complex_wrapper<Datastructure>::cell_type          cell_type;   
    // -------------------------------------------------------------------------------------------   
    
    // -------------------------------------------------------------------------------------------   
@@ -259,7 +261,7 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure > >
    {
       typedef viennamesh::wrapper< viennamesh::tag::viennagrid, Datastructure >     wrapper_type;
-      //typedef viennamesh::iterator_base_2< wrapper_type, point_wrapper_type >       iterator_base_type;
+      //typedef viennamesh::iterator_base_2< wrapper_type, point_type >       iterator_base_type;
       typedef viennamesh::iterator_base< wrapper_type >                             iterator_base_type;
       
       geometry_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
@@ -269,15 +271,15 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
       // viennagrid specific wrapper. this way arbitrary datastructures can 
       // be accessed in a unified way
       //
-/*      point_wrapper_type 
+/*      point_type
       dereference() const
       {
-         return point_wrapper_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
+         return point_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
       }      */
-      point_wrapper_type 
+      point_type
       operator*() const
       {
-         return point_wrapper_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
+         return point_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
       }            
 
    };   
@@ -310,10 +312,10 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
 //       {  
 //          return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
 //       }      
-      viennagrid_cell_complex_wrapper<Datastructure>
+      cell_complex_wrapper_type
       operator*() const
       {  
-         return viennagrid_cell_complex_wrapper<Datastructure>((*this).obj().domain(), (*this).pos());
+         return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
       }            
    };   
    segment_iterator segment_begin()

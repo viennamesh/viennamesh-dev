@@ -1,3 +1,23 @@
+
+<input>
+   <type>
+      <key>geometry</key>
+   </type>
+<!--   <type>-->
+<!--      <key>csg</key>-->
+<!--   </type>-->
+<!--   <type>-->
+<!--      <key>mesh</key>-->
+<!--      <dimension>-->
+<!--         <geometric>3</geometric>-->
+<!--         <topologic>2</topologic>      -->
+<!--      </dimension>-->
+<!--      <celltopo>-->
+<!--         <key>simplex</key>-->
+<!--      </celltopo>      -->
+<!--   </type>         -->
+</input>
+
 <task>
    <dimension>
       <topology>2</topology>

@@ -32,6 +32,7 @@
 #include <boost/fusion/include/has_key.hpp>
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/make_map.hpp>
+#include <boost/fusion/include/for_each.hpp>
 
 // *** Triangle
 #define VOID void
@@ -109,7 +110,8 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
    #endif
       this->init();
       
-      size_t segment_size = data.domain().segment_container()->size();
+      std::size_t segment_size = data.segment_size();
+      //size_t segment_size = data.domain().segment_container()->size();
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - detected segments: " << segment_size << std::endl;
@@ -125,7 +127,7 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
          point_type pnt;
          for(vmesh_segment_iterator seg_iter = data.segment_begin();
             seg_iter != data.segment_end(); seg_iter++)
-         {
+         {         
             typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
             this->find_point_in_segment(segment, pnt);
             region_points.push_back(pnt);
@@ -161,7 +163,7 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
          
       #ifdef MESH_KERNEL_DEBUG
           std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding point " << 
-             std::distance(data.geometry_begin(), iter) << " : " << *iter << std::endl;
+             std::distance(data.geometry_begin(), iter) << " : " << *iter;
       #endif   
          this->addPoint(*iter);
       }
@@ -255,6 +257,8 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
       this->setOptions(paras);
       // if there are more than one regions, spread the regional attribute
       if(in.numberofregions > 1) options.append("A");  
+      
+      options.append("a0.002");
       
    #ifndef MESH_KERNEL_DEBUG_FULL
       options.append("Q");
@@ -360,15 +364,115 @@ struct mesh_kernel <viennamesh::tag::triangle, DatastructureT>
 
 private:
    // -------------------------------------------------------------------------------------
+//   template<typename Tag>
+//   struct option_applier_impl  
+//   {   
+//      template<typename T>
+//      static void apply(T const& t)
+//      {
+
+//      }   
+//   };
+
+//   template<>
+//   struct option_applier_impl <viennamesh::tag::criteria> 
+//   {   
+//      static void apply(viennamesh::tag::convex const&)
+//      {
+//         options = "z";
+//      }
+//      static void apply(viennamesh::tag::constrained_delaunay const&)
+//      {
+//         options = "zp";
+//      }
+//      static void apply(viennamesh::tag::conforming_delaunay const&)
+//      {
+//         options = "zpD";
+//      }            
+//   };
+
+//   template<typename Tag>
+//   struct option_applier_impl  
+//   {   
+//      template<typename T>
+//      static void apply(T const& t)
+//      {
+
+//      }   
+//   };
+
+//   template<typename CriteriaT>
+//   void option_criteria_applier(CriteriaT const& val)
+//   {
+
+//   }
+//  
+//   void option_criteria_applier(viennamesh::tag::convex const& val)
+//   {
+//      options = "z";
+//   }
+//   void option_criteria_applier(viennamesh::tag::constrained_delaunay const& val)
+//   {
+//      options = "zp";
+//   }      
+//   void option_criteria_applier(viennamesh::tag::conforming_delaunay const& val) 
+//   {
+//      options = "zpD";
+//   }      
+
+//   struct option_applier
+//   {
+//      template<typename PairT>
+//      void operator()(PairT& t) const
+//      {
+//         apply(typename PairT::first_type(), t.second);
+//      }
+
+//      template<typename Tag, typename ValueT>
+//      static void apply(Tag const&, ValueT const& val)
+//      {
+//      }      
+//      
+//      template<typename ValueT>
+//      static void apply(viennamesh::tag::criteria const&, ValueT const& val)
+//      {
+//         viennautils::dumptype(val);
+//         option_criteria_applier(val);
+//      }
+//      template<typename ValueT>
+//      static void apply(viennamesh::tag::size const&, ValueT const& val)
+//      {
+//         viennautils::dumptype(val);
+//         //option_criteria_applier(val);
+//      }      
+//   };
+
+//   template<typename ParametersMapT>
+//   void setOptions(ParametersMapT & paras)
+//   {
+//      boost::fusion::for_each(paras, option_applier());
+//   }   
+   
+   
    template<typename ParametersMapT>
    void setOptions(ParametersMapT & paras,
       typename boost::enable_if< typename boost::fusion::result_of::has_key<ParametersMapT, viennamesh::tag::criteria>::type >::type* dummy = 0) 
    {
-      setOptions_impl(boost::fusion::at_key<viennamesh::tag::criteria>(paras));
+      set_criteria(boost::fusion::at_key<viennamesh::tag::criteria>(paras));
    }
-   void setOptions_impl(viennamesh::tag::convex const&)               { options = "z";    }   
-   void setOptions_impl(viennamesh::tag::constrained_delaunay const&) { options = "zp";  }
-   void setOptions_impl(viennamesh::tag::conforming_delaunay const&)  { options = "zpD"; }
+   void set_criteria(viennamesh::tag::convex const&)               { options = "z";    }   
+   void set_criteria(viennamesh::tag::constrained_delaunay const&) { options = "zp";  }
+   void set_criteria(viennamesh::tag::conforming_delaunay const&)  { options = "zpD"; }
+//   
+//   template<typename ParametersMapT>
+//   void setOptions(ParametersMapT & paras,
+//      typename boost::enable_if< typename boost::fusion::result_of::has_key<ParametersMapT, viennamesh::tag::size>::type >::type* dummy = 0) 
+//   {
+//      set_criteria(boost::fusion::at_key<viennamesh::tag::criteria>(paras));
+//   }
+//   void set_criteria(viennamesh::tag::convex const&)               { options = "z";    }   
+//   void set_criteria(viennamesh::tag::constrained_delaunay const&) { options = "zp";  }
+//   void set_criteria(viennamesh::tag::conforming_delaunay const&)  { options = "zpD"; }   
    // -------------------------------------------------------------------------------------
    void find_point_in_segment(typename DatastructureT::cell_complex_wrapper_type & cell_complex, 
                               point_type& pnt)
@@ -386,7 +490,9 @@ private:
          {
             if(!pnt_uniquer[cell[dim]])
             {  
-               this->addPoint(this->data.domain().vertex(cell[dim]).getPoint());  
+               geometry_iterator geo = this->data.geometry_begin();
+               std::advance(geo, cell[dim]);
+               this->addPoint( *geo ); 
                pnt_uniquer[cell[dim]] = true;
                index_map[cell[dim]] = point_cnt;
                point_cnt++;
@@ -396,6 +502,7 @@ private:
          mapped_cell[0] = index_map[cell[0]];
          mapped_cell[1] = index_map[cell[1]];
          this->addConstraint(mapped_cell);
+         
       }
       
       // minimal meshing

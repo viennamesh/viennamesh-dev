@@ -26,182 +26,145 @@ namespace tag {
 struct gtsio3 {};
 } // end namespace tag   
 
-//*****************************************************************
-// gts_list_getter
-// ---------------
-// Implements a generic approach for 1D, 2D and 3D handling of
-// GTSObjects (GTSLine, GTSFace, GTSPolyhedron) and
-// GTSObjectLists (GTSLineList, GTSFaceList, GTSPolyhedronList).
-//
-//******************************************************************
-template <long i>
-struct gts_list_getter;
+////*****************************************************************
+//// gts_list_getter
+//// ---------------
+//// Implements a generic approach for 1D, 2D and 3D handling of
+//// GTSObjects (GTSLine, GTSFace, GTSPolyhedron) and
+//// GTSObjectLists (GTSLineList, GTSFaceList, GTSPolyhedronList).
+////
+////******************************************************************
+//template <long i>
+//struct gts_list_getter;
 
-//one dimension
-template <>
-struct gts_list_getter<1>
-{ 
-typedef GTSIO::GTSLineList       list_type;
-typedef GTSIO::GTSLine           object_type;
+////one dimension
+//template <>
+//struct gts_list_getter<1>
+//{ 
+//typedef GTSIO::GTSLineList       list_type;
+//typedef GTSIO::GTSLine           object_type;
 
-static list_type* newList(GTSIO::GTSDevice * pDevice)
-{
-   list_type* pLineList = pDevice->NewGTSLineList("Lines");
-   pLineList->setName("Lines");
-         
-   return pLineList;
-}
+//static list_type* newList(GTSIO::GTSDevice * pDevice)
+//{
+//   list_type* pLineList = pDevice->NewGTSLineList("Lines");
+//   pLineList->setName("Lines");
+//         
+//   return pLineList;
+//}
 
-static list_type* getList(GTSIO::GTSDevice* pDevice)
-{
-   list_type* pLineList = pDevice->getGTSLineList("Lines");
-   //list_type* pFaceList = pDevice->getGTSLineList(0);
-   
-   std::cout << "#LineLists: " << pDevice->getGTSLineListSize() << std::endl;
+//static list_type* getList(GTSIO::GTSDevice* pDevice)
+//{
+//   list_type* pLineList = pDevice->getGTSLineList("Lines");
+//   //list_type* pFaceList = pDevice->getGTSLineList(0);
+//   
+//   std::cout << "#LineLists: " << pDevice->getGTSLineListSize() << std::endl;
 
-   return pLineList;
-}
-};
+//   return pLineList;
+//}
+//};
 
-// two dimensions
-template <>
-struct gts_list_getter<2>
-{
-typedef GTSIO::GTSFaceList       list_type;
-typedef GTSIO::GTSFace           object_type;
+//// two dimensions
+//template <>
+//struct gts_list_getter<2>
+//{
+//typedef GTSIO::GTSFaceList       list_type;
+//typedef GTSIO::GTSFace           object_type;
 
-static list_type* newList(GTSIO::GTSDevice * pDevice)
-{
-   list_type* pFaceList = pDevice->NewGTSFaceList("Faces");
-   pFaceList->setName("Faces");
-   return pFaceList;
-}    
+//static list_type* newList(GTSIO::GTSDevice * pDevice)
+//{
+//   list_type* pFaceList = pDevice->NewGTSFaceList("Faces");
+//   pFaceList->setName("Faces");
+//   return pFaceList;
+//}    
 
-static list_type* getList(GTSIO::GTSDevice* pDevice)
-{
-   list_type* pFaceList = pDevice->getGTSFaceList("Faces");
-   return pFaceList;
-}
-};
+//static list_type* getList(GTSIO::GTSDevice* pDevice)
+//{
+//   list_type* pFaceList = pDevice->getGTSFaceList("Faces");
+//   return pFaceList;
+//}
+//};
 
-// three dimensions
-template <>
-struct gts_list_getter<3>
-{
-typedef GTSIO::GTSPolyhedronList       list_type;
-typedef GTSIO::GTSPolyhedron           object_type;
+//// three dimensions
+//template <>
+//struct gts_list_getter<3>
+//{
+//typedef GTSIO::GTSPolyhedronList       list_type;
+//typedef GTSIO::GTSPolyhedron           object_type;
 
-static list_type* newList(GTSIO::GTSDevice * pDevice)
-{
-   list_type* pPolyhedronList = pDevice->NewGTSPolyhedronList("Polyhedrons");
-   pPolyhedronList->setName("Polyhedrons");
-   return pPolyhedronList;
-}
-      
-static list_type* getList(GTSIO::GTSDevice* pDevice)
-{
-   list_type* pPolyhedronList = pDevice->getGTSPolyhedronList("Polyhedrons");
-   
-   std::cout << "Address pFaceList: " << pPolyhedronList << std::endl;
-   std::cout << "PolyhedronListSize: " << pDevice->getGTSPolyhedronListSize() << std::endl;
-   
-   return pPolyhedronList;
-}
-};   
+//static list_type* newList(GTSIO::GTSDevice * pDevice)
+//{
+//   list_type* pPolyhedronList = pDevice->NewGTSPolyhedronList("Polyhedrons");
+//   pPolyhedronList->setName("Polyhedrons");
+//   return pPolyhedronList;
+//}
+//      
+//static list_type* getList(GTSIO::GTSDevice* pDevice)
+//{
+//   list_type* pPolyhedronList = pDevice->getGTSPolyhedronList("Polyhedrons");
+//   
+//   std::cout << "Address pFaceList: " << pPolyhedronList << std::endl;
+//   std::cout << "PolyhedronListSize: " << pDevice->getGTSPolyhedronListSize() << std::endl;
+//   
+//   return pPolyhedronList;
+//}
+//};   
 
-//**************************************************************
-// gts_point_getter
-// ----------------
-// Extracts the related points of a n-th dimensional GTSObject.
-// 1D GTSLine
-// 2D GTSFace
-// 3D GTSPolyhedron
-//**************************************************************
-template<long dim, typename obj>
-struct gts_point_getter;
+////**************************************************************
+//// gts_point_getter
+//// ----------------
+//// Extracts the related points of a n-th dimensional GTSObject.
+//// 1D GTSLine
+//// 2D GTSFace
+//// 3D GTSPolyhedron
+////**************************************************************
+//template<long dim, typename obj>
+//struct gts_point_getter;
 
-// one dimension
-template<typename obj>
-struct gts_point_getter<1, obj> {
-static long getPointIdx(obj* pO, long idx) {
-   long pointIdx;
-   
-   if(idx == 0) {
-      pointIdx = pO->getStartIdx();
-   } else if(idx == 1) {
-      pointIdx = pO->getEndIdx(idx);
-   } else {
-      throw;
-   }
+//// one dimension
+//template<typename obj>
+//struct gts_point_getter<1, obj> {
+//static long getPointIdx(obj* pO, long idx) {
+//   long pointIdx;
+//   
+//   if(idx == 0) {
+//      pointIdx = pO->getStartIdx();
+//   } else if(idx == 1) {
+//      pointIdx = pO->getEndIdx(idx);
+//   } else {
+//      throw;
+//   }
 
-   //std::cout << "Idx: " << pointIdx << "No. of points: " << pO->getNumberOfPoints() << std::endl;
-   //std::cout << "getIndex(): " << pO->getIndex() << std::endl;
-   
-   return pointIdx;
-}
-};
+//   //std::cout << "Idx: " << pointIdx << "No. of points: " << pO->getNumberOfPoints() << std::endl;
+//   //std::cout << "getIndex(): " << pO->getIndex() << std::endl;
+//   
+//   return pointIdx;
+//}
+//};
 
-// two dimensions
-template<typename obj>
-struct gts_point_getter<2, obj> {
-static long getPointIdx(obj* pO, long idx) {
-   return pO->getPointIdx(idx);
-}
-};
+//// two dimensions
+//template<typename obj>
+//struct gts_point_getter<2, obj> {
+//static long getPointIdx(obj* pO, long idx) {
+//   return pO->getPointIdx(idx);
+//}
+//};
 
-// three dimensions
-template<typename obj>
-struct gts_point_getter<3, obj> {
-static long getPointIdx(obj* pO, long idx) {
-   return pO->getPointIdx(idx);
-}
-};   
+//// three dimensions
+//template<typename obj>
+//struct gts_point_getter<3, obj> {
+//static long getPointIdx(obj* pO, long idx) {
+//   return pO->getPointIdx(idx);
+//}
+//};   
 
-template<typename ArrayT>
-struct gtsio3_point_wrapper
-{
-   // -------------------------------------------------------------------------------------------
-   typedef gtsio3_point_wrapper<ArrayT>            self_type;
-   typedef typename ArrayT::numeric_type           result_type;
-   // -------------------------------------------------------------------------------------------   
-   gtsio3_point_wrapper(ArrayT& array) : array_(array) {}
-   // -------------------------------------------------------------------------------------------   
-   result_type& operator[](size_t i) const
-   { 
-//       return array_[i];      
-   }      
-   result_type& operator[](size_t i) 
-   { 
-/*      return array_[i];    */  
-   }      
-   // -------------------------------------------------------------------------------------------
-   size_t size() const
-   {
-//       return ArrayT::dimension_tag::value;
-   }
-   size_t size() 
-   {
-//       return ArrayT::dimension_tag::value;
-   }
-   // -------------------------------------------------------------------------------------------
-   friend std::ostream& operator<<(std::ostream& ostr, self_type const& val) 
-   {
-//       size_t size = val.size();
-//       if (size == 0) return ostr;
-//       for (size_t i = 0; i < size; i++)
-//       {
-//          if (i == size-1) ostr << val[i];
-//          else             ostr << val[i] << "  ";
-//       }
-      return ostr;
-   }      
-   // -------------------------------------------------------------------------------------------   
-   ArrayT & array_;
-};
+
 
 template<typename Device>
 struct gtsio3_cell_complex_wrapper
 {
+private:
+
+public:   
    typedef std::vector<double>  cell_type;
    
    gtsio3_cell_complex_wrapper(Device& device, size_t segment_id) : device_(device), segment_id_(segment_id) {}
@@ -216,24 +179,24 @@ struct gtsio3_cell_complex_wrapper
       cell_type 
       operator*() const
       {
-         GTSIO::GTSSegment*         pSeg     = device_->getGTSSegment(segment_id_);
+         GTSIO::GTSSegment*         pSeg     = (*this).obj().domain()->getGTSSegment((*this).obj().segment_id());
          GTSIO::GTSSegmentBoundary* pSegBdry = reinterpret_cast<GTSIO::GTSSegmentBoundary*> (pSeg);               
          typedef std::vector<int>   boundary_cont_type;
          boundary_cont_type boundary_element_indices = pSegBdry->getBoundary();
          size_t list_access = boundary_element_indices[this->pos()];
          
          // a cell is a line ..         
-         if((device_->getGTSPolyhedronListSize()==0) && (device_->getGTSFaceListSize()==0))
+         if(((*this).obj().domain()->getGTSPolyhedronListSize()==0) && ((*this).obj().domain()->getGTSFaceListSize()==0))
          {
-            GTSIO::GTSLineList* pLL = device_->getGTSLineList(0);  // TODO only using the first list ..
+            GTSIO::GTSLineList* pLL = (*this).obj().domain()->getGTSLineList(0);  // TODO only using the first list ..
             GTSIO::GTSLine* edge = pLL->get( list_access );
             
-            
+            std::cout << " ERROR - GTS EDGE DATA EXTRACTION IS NOT IMPLEMENTED" << std::endl;
             return cell_type();
          }
          // a cell is a face ..                  
          else
-         if(device_->getGTSPolyhedronListSize()==0)
+         if((*this).obj().domain()->getGTSPolyhedronListSize()==0)
          {
             return cell_type();
          }
@@ -265,9 +228,10 @@ struct gtsio3_cell_complex_wrapper
       return cell_iterator(*this, pSegBdry->getBoundary().size());  
    }        
    
-  
+   inline Device&  domain()      { return device_;     }     
    inline size_t   segment_id()  { return segment_id_; }
    
+private:
    Device&  device_;
    size_t   segment_id_;
 
@@ -280,14 +244,17 @@ struct wrapper <viennamesh::tag::gtsio3, Datastructure>
    // -------------------------------------------------------------------------------------------   
    // provide wrappers for the datastructures
    //
-   typedef std::vector<double>                                                      point_wrapper_type;
+   typedef std::vector<double>                                                      point_type;
    typedef typename viennamesh::gtsio3_cell_complex_wrapper<Datastructure>          cell_complex_wrapper_type;
+   typedef typename cell_complex_wrapper_type::cell_iterator                        cell_iterator;
+   typedef typename cell_complex_wrapper_type::cell_type                            cell_type;   
    // -------------------------------------------------------------------------------------------   
-   
+
    // -------------------------------------------------------------------------------------------   
    wrapper(Datastructure& device) : device(device) {}
    // -------------------------------------------------------------------------------------------      
-
+   
+   inline Datastructure& domain() { return device; }   
    
    // -------------------------------------------------------------------------------------------
    struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::gtsio3, Datastructure > >
@@ -298,12 +265,12 @@ struct wrapper <viennamesh::tag::gtsio3, Datastructure>
       geometry_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
       geometry_iterator(wrapper_type& obj, std::size_t newpos) : iterator_base_type (obj, newpos) {};      
 
-      point_wrapper_type 
+      point_type
       operator*() const
       {
          // TODO reading only the first pointlist now ..!!
-         GTSIO::IGTSPointList* pointList = device->getGTSPointList(0);     
-         std::vector<double> pointCoords;
+         GTSIO::IGTSPointList* pointList = (*this).obj().domain()->getGTSPointList(0);     
+         point_type pointCoords;
          pointList->get( this->pos(),pointCoords);
          return pointCoords;
       }            
@@ -338,8 +305,8 @@ struct wrapper <viennamesh::tag::gtsio3, Datastructure>
       cell_complex_wrapper_type 
       operator*() const
       {  
-         return cell_complex_wrapper_type(device, (*this).pos());
-      }            
+         return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
+      }
    };   
    segment_iterator segment_begin()
    {
@@ -350,6 +317,8 @@ struct wrapper <viennamesh::tag::gtsio3, Datastructure>
       return segment_iterator(*this, device->getGTSSegmentListSize());
    }      
    // -------------------------------------------------------------------------------------------      
+   
+   std::size_t segment_size()  { return device->getGTSSegmentListSize(); }   
    
    // -------------------------------------------------------------------------------------------      
    Datastructure& device;

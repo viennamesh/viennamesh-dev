@@ -20,35 +20,34 @@
 #include "viennautils/config.hpp"
 #include "viennautils/convert.hpp"
 #include "viennautils/contio.hpp"
+#include "viennautils/io.hpp"
+
+#include "viennagrid/domain.hpp"
+#include "viennagrid/io/vtk_writer.hpp"
 
 #include "vgmodeler/hull_generation.hpp"
 
+#include "viennamesh/generator.hpp"
+#include "viennamesh/wrapper.hpp"
+#include "viennamesh/transfer/viennagrid.hpp"
+
 namespace viennamesh {
+
+namespace key {
+std::string geometry = "geometry";
+} // end namespace key
+
 namespace query {
 
-template<typename ConfigT>
-std::string dimension_topology(ConfigT const& config)
+struct input
 {
-   return config.query("/task/dimension/topology/text()");
-}
+   template<typename ConfigT>
+   static std::string type(ConfigT const& config)
+   {
+      return config.query("/input/type/key/text()");
+   }
+};
 
-template<typename ConfigT>
-std::string dimension_geometry(ConfigT const& config)
-{
-   return config.query("/task/dimension/geometry/text()");
-}
-
-template<typename ConfigT>
-std::string cell_topo(ConfigT const& config)
-{
-   return config.query("/task/celltopo/key/text()");
-}
-
-template<typename ConfigT>
-std::string tool(ConfigT const& config)
-{
-   return config.query("/task/tool/key/text()");
-}
 
 } // end namespace query
 } // end namespace viennamesh
@@ -93,12 +92,10 @@ int main(int argc, char *argv[])
    else
    if(input_extension == "bnd")
    {
-      /*
-      if(volume && netgen)
-      if(volume && tetgen)      
-      if(hull && 
-      */
-      return -1;   
+      if(viennamesh::query::input::type(config) == viennamesh::key::geometry)
+      {
+         std::cout << "bnd geometry meshing .." << std::endl;
+      }
    }
    else
    if(input_extension == "hin")
@@ -110,16 +107,55 @@ int main(int argc, char *argv[])
    else
    if(input_extension == "gau32")
    {
-      std::cerr << "## input file format not supported: " << input_extension << std::endl;
-      std::cerr << "## shutting down .. " << std::endl;
-      return -1;   
+      typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_32t; 
+      typedef gsse::get_domain<unstructured_topology_32t, double, double,3>::type   domain_32t;
+      domain_32t domain;
+      domain.read_file(inputfile, false);
+      
+      typedef viennamesh::wrapper<viennamesh::tag::gsse01, domain_32t>     gsse01_wrapper_type;
+      gsse01_wrapper_type data_in(domain);      
+      
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::vgmodeler, gsse01_wrapper_type>::type   mesh_generator_type;
+      mesh_generator_type mesher(data_in);      
+
+      mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
+
+      typedef viennagrid::domain<viennagrid::config::tetrahedral_3d> domain_out_type;
+      domain_out_type domain_out;      
+      
+      typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
+      transfer_type  transfer;
+      transfer(mesher, domain_out);      
+      
+      viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
+      my_vtk_writer.writeDomain(domain_out, outputfile);      
    }
    else
    if(input_extension == "gts")
    {
-      std::cerr << "## input file format not supported: " << input_extension << std::endl;
-      std::cerr << "## shutting down .. " << std::endl;
-      return -1;   
+      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
+      domain_type domain;
+      
+      viennautils::io::gts_reader my_gts_reader;
+      my_gts_reader(domain, inputfile);      
+      
+      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     vgrid_wrapper_type;
+      vgrid_wrapper_type data_in(domain);      
+      
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::triangle, vgrid_wrapper_type>::type   mesh_generator_type;
+      mesh_generator_type mesher(data_in);      
+
+      mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
+
+      typedef viennagrid::domain<viennagrid::config::triangular_2d> domain_out_type;
+      domain_out_type domain_out;      
+      
+      typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
+      transfer_type  transfer;
+      transfer(mesher, domain_out);      
+      
+      viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
+      my_vtk_writer.writeDomain(domain_out, outputfile);
    }
    else
    {

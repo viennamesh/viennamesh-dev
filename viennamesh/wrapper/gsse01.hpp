@@ -18,6 +18,9 @@
 #include "viennamesh/tags.hpp"
 #include "viennautils/value_type.hpp"
 
+#include "gsse/domain.hpp"
+
+
 namespace viennamesh {
 
 namespace tag {
@@ -92,10 +95,11 @@ struct gsse01_cell_wrapper
 template<typename DomainT>
 struct gsse01_cell_complex_wrapper
 {
-   
+private:
    typedef typename DomainT::segment_type::cell_type                          gsse_cell_type;
    typedef typename gsse::domain_traits<DomainT>::vertex_on_cell_iterator     gsse_vertex_on_cell_iterator;
    
+public:
    typedef gsse01_cell_wrapper<gsse_cell_type, gsse_vertex_on_cell_iterator>  cell_type;   
    
    gsse01_cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
@@ -132,9 +136,10 @@ struct gsse01_cell_complex_wrapper
       return cell_iterator(*this, domain_.segment_container[this->segment_id()].cell_size());      
    }        
    
-  
+   inline DomainT& domain()      { return domain_;     }   
    inline size_t   segment_id()  { return segment_id_; }
    
+private:
    DomainT&  domain_;
    size_t   segment_id_;
 
@@ -194,10 +199,10 @@ struct wrapper <viennamesh::tag::gsse01, Datastructure>
       segment_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
       segment_iterator(wrapper_type& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
 
-      gsse01_cell_complex_wrapper<Datastructure> 
+      cell_complex_wrapper_type
       operator*() const
       {  
-         return gsse01_cell_complex_wrapper<Datastructure>((*this).obj().domain(), (*this).pos());
+         return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
       }            
    };   
    segment_iterator segment_begin()

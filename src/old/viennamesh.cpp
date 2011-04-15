@@ -188,12 +188,12 @@ int main(int argc, char * argv[])
       domain_32t domain;
       domain.read_file(inputfile, false);
       
-      typedef viennamesh::wrapper<viennamesh::tag::gsse01, domain_32t>     gsse01_wrapper_type;;
+      typedef viennamesh::wrapper<viennamesh::tag::gsse01, domain_32t>     gsse01_wrapper_type;
       gsse01_wrapper_type data_in(domain);      
       
       typedef viennamesh::result_of::mesh_generator<viennamesh::tag::vgmodeler, gsse01_wrapper_type>::type   mesh_generator_type;
       mesh_generator_type mesher(data_in);      
-       
+      
       mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
 
       typedef viennagrid::domain<viennagrid::config::tetrahedral_3d> domain_out_type;

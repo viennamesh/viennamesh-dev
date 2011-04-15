@@ -16,7 +16,7 @@
 
 #include <boost/fusion/include/make_map.hpp>
 
-//#include "viennamesh/interfaces.hpp"
+#include "viennamesh/interfaces.hpp"
 #include "viennamesh/tags.hpp"
 
 namespace viennamesh {
