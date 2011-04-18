@@ -24,6 +24,7 @@
 
 #include "viennagrid/domain.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
+#include "viennagrid/io/vtk_reader.hpp"
 
 #include "vgmodeler/hull_generation.hpp"
 
@@ -78,16 +79,20 @@ int main(int argc, char *argv[])
 
    if(input_extension == "vtu")
    {
-      std::cerr << "## input file format not supported: " << input_extension << std::endl;
-      std::cerr << "## shutting down .. " << std::endl;
-      return -1;   
+      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
+      domain_type domain;
+      
+      viennagrid::io::Vtk_reader<domain_type> my_vtk_reader;
+      my_vtk_reader(domain, inputfile);      
    }
    else
    if(input_extension == "pvd")
    {
-      std::cerr << "## input file format not supported: " << input_extension << std::endl;
-      std::cerr << "## shutting down .. " << std::endl;
-      return -1;   
+      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
+      domain_type domain;
+      
+      viennagrid::io::Vtk_reader<domain_type> my_vtk_reader;
+      my_vtk_reader(domain, inputfile);      
    }
    else
    if(input_extension == "bnd")
