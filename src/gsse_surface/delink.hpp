@@ -1,7 +1,7 @@
 /* =======================================================================
 
                      ---------------------------------------
-                                   VGMODELER
+                     ViennaMesh - The Vienna Meshing Library
                      ---------------------------------------
                             
    maintainers:    
@@ -9,32 +9,34 @@
                Johann Cervenka                   cervenka@iue.tuwien.ac.at
 
    developers:
-               Franz Stimpfl, Rene Heinzl, Philipp Schwaha
+               Franz Stimpfl, Rene Heinzl, Philipp Schwaha, Peter Fleischmann
 
    license:    
-               see file LICENSE in the base directory
+               LGPL, see file LICENSE in the ViennaMesh base directory
 
    Copyright (c) 2010, Institute for Microelectronics, TU Vienna.
    http://www.iue.tuwien.ac.at
 
    ======================================================================= */
-   
-#ifndef VGMODELER_HULLGENERATION_HULLMESHER
-#define VGMODELER_HULLGENERATION_HULLMESHER
+//
 
-#include <iostream>
+#ifndef GSSE_MESHING_DELINK
+#define GSSE_MESHING_DELINK
 
-int create_surface_mesh(std::string const& filename)
-{
-//  gsse_surface_interface   gsse_surface;
+// system includes
+//
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <math.h> 
+#include <float.h> 
+#include <limits.h>
 
-//  gsse_surface.readGeometry(filename_in);
-
-//  gsse_surface.triangulateSurface();
-//      
-//  gsse_surface.extractSurface(domain);
-
-  return 0;
-}
+// delink/surface includes
+//
+#include "surface_includes.hpp"
 
 #endif
+
+
+

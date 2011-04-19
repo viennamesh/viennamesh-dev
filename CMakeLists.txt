@@ -50,6 +50,9 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 
+#INCLUDE_DIRECTORIES("/mnt/data/libraries/vtk/vtk-install/include/vtk-5.6")
+#LINK_DIRECTORIES(/mnt/data/libraries/vtk/vtk-install/lib/vtk-5.6)
+
 # REMOVEME
 #add_subdirectory(tests)
 
