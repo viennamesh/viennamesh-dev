@@ -21,6 +21,7 @@
 #include "viennautils/convert.hpp"
 #include "viennautils/contio.hpp"
 #include "viennautils/io.hpp"
+#include "viennautils/file.hpp"
 
 #include "viennagrid/domain.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
@@ -69,10 +70,13 @@ int main(int argc, char *argv[])
    std::string inputfile(argv[1]);
    std::string outputfile(argv[2]);
    
-   std::string::size_type pos = inputfile.rfind(".")+1;
-   std::string input_extension = inputfile.substr(pos, inputfile.size());
-   pos = outputfile.rfind(".")+1;   
-   std::string output_extension = outputfile.substr(pos, outputfile.size());
+//   std::string::size_type pos = inputfile.rfind(".")+1;
+//   std::string input_extension = inputfile.substr(pos, inputfile.size());
+//   pos = outputfile.rfind(".")+1;   
+//   std::string output_extension = outputfile.substr(pos, outputfile.size());
+
+   std::string input_extension  = viennautils::file_extension(inputfile);
+   std::string output_extension = viennautils::file_extension(outputfile);
 
    typedef viennautils::config<viennautils::tag::xml>::type    config_type;
    config_type config;

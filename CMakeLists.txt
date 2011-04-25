@@ -10,9 +10,10 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 # set compiler flags
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-g -fPIC)
-   #ADD_DEFINITIONS(-Wall -O0 -g -pedantic -fPIC)
-   #ADD_DEFINITIONS(-O2 -fPIC)
+   ADD_DEFINITIONS(-g)
+   #ADD_DEFINITIONS(-g -Wall -pedantic)
+   #ADD_DEFINITIONS(-O2)
+   #ADD_DEFINITIONS(-O2 -Wall -pedantic)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # build external libraries
@@ -62,6 +63,7 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 #ADD_EXECUTABLE(ng src/netgen.cpp)
 #ADD_EXECUTABLE(tet src/tetgen.cpp)
 ADD_EXECUTABLE(generate src/generate.cpp)
+ADD_EXECUTABLE(mesh src/mesh.cpp)
 
 #link specific libraries to specific executables
 #TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
@@ -69,4 +71,4 @@ ADD_EXECUTABLE(generate src/generate.cpp)
 #TARGET_LINK_LIBRARIES(ng netgen)
 #TARGET_LINK_LIBRARIES(tet tetgen)
 TARGET_LINK_LIBRARIES(generate gtsio3 netgen tetgen triangle vgmodeler_volume pugixml)
-
+TARGET_LINK_LIBRARIES(mesh netgen tetgen)
