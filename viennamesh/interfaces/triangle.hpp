@@ -48,8 +48,8 @@ extern "C"  {
 #include "viennamesh/tags.hpp"
 
 
-#define MESH_KERNEL_DEBUG
-#define MESH_KERNEL_DEBUG_FULL
+//#define MESH_KERNEL_DEBUG
+//#define MESH_KERNEL_DEBUG_FULL
 
 /*
 TODO 

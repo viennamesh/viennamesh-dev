@@ -42,7 +42,7 @@
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
 
-#define MESH_KERNEL_DEBUG
+//#define MESH_KERNEL_DEBUG
 //#define MESH_KERNEL_DEBUG_FULL
 
 namespace viennamesh {
@@ -283,9 +283,9 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
          geometry_cont[pnt_index] = pnt;
       }      
       
+      std::size_t seg_id = 0;
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
-      std::size_t seg_id = 0;
       std::map<size_t, bool>  seg_check;
    #endif          
       //
