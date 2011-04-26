@@ -26,7 +26,7 @@
 #include "viennagrid/domain.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/io/vtk_reader.hpp"
-#include "viennagrid/io/bnd_reader.hpp"
+#include "viennagrid/io/gau_reader.hpp"
 
 #include "vgmodeler/hull_generation.hpp"
 
@@ -98,15 +98,14 @@ int main(int argc, char *argv[])
       {
          std::cout << "bnd geometry meshing .." << std::endl;
          
-         typedef viennagrid::domain<viennagrid::config::triangular_3d>                  domain_type;
-         domain_type domain;
+         viennautils::io::bnd_reader my_bnd_reader;
+         my_bnd_reader(inputfile);
+         //my_bnd_reader.dump();
          
-         viennagrid::io::importBND(domain, inputfile);
+         
          
 //         viennamesh::bnd_reader bnd;
 //         bnd.bnd2surface(inputfile);
-         
-         
          
          /*
          
@@ -138,15 +137,15 @@ int main(int argc, char *argv[])
    else
    if(input_extension == "gau32")
    {
-      typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_32t; 
-      typedef gsse::get_domain<unstructured_topology_32t, double, double,3>::type   domain_32t;
-      domain_32t domain;
-      domain.read_file(inputfile, false);
+      typedef viennagrid::domain<viennagrid::config::triangular_3d>        domain_type;
+      domain_type domain;
       
-      typedef viennamesh::wrapper<viennamesh::tag::gsse01, domain_32t>     gsse01_wrapper_type;
-      gsse01_wrapper_type data_in(domain);      
+      viennagrid::io::importGAU(domain, inputfile);      
       
-      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::vgmodeler, gsse01_wrapper_type>::type   mesh_generator_type;
+      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     wrapper_type;
+      wrapper_type data_in(domain);      
+      
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen, wrapper_type>::type   mesh_generator_type;
       mesh_generator_type mesher(data_in);      
 
       mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
