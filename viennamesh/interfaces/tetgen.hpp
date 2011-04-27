@@ -39,6 +39,7 @@
 
 // *** vienna includes
 #include "viennautils/dumptype.hpp"
+#include "viennautils/contio.hpp"
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
 
@@ -104,6 +105,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
          {
             typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
             this->find_point_in_segment(segment, pnt);
+            
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
             std::cout << "## MeshKernel::"+mesh_kernel_id+" - computed point in segment " 
@@ -152,8 +154,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
    #endif
       size_t si = 0;
 
-      typedef boost::array<std::size_t, 3>   boost_cell_type;
-      std::map<boost_cell_type, bool>        cell_uniquer;      
+      std::map<vmesh_cell_type, bool>        cell_uniquer;      
    #ifdef MESH_KERNEL_DEBUG_FULL
       size_t cell_cnt = 0;
    #endif
@@ -163,14 +164,15 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
          for(vmesh_cell_iterator cit = (*seg_iter).cell_begin();
              cit != (*seg_iter).cell_end(); cit++)
          {  
-            vmesh_cell_type vmesh_cell = *cit;
-            
-            boost_cell_type cell;
-            for(size_t i = 0; i < vmesh_cell.size(); i++)  
-               cell[i] = vmesh_cell[i];
-            std::sort(cell.begin(), cell.end());
-            //std::cout << cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
-            if(!cell_uniquer[cell])
+            vmesh_cell_type cell = *cit;
+            std::vector<std::size_t> cell_copy(cell.size());
+
+            for(size_t i = 0; i < cell.size(); i++)  
+               cell_copy[i] = cell[i];
+
+            std::sort(cell_copy.begin(), cell_copy.end());
+
+            if(!cell_uniquer[cell_copy])
             {
             #ifdef MESH_KERNEL_DEBUG_FULL
                std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding constraint   " << 
@@ -180,20 +182,39 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
                std::cout << std::endl;
                cell_cnt++;
             #endif               
-               cell_uniquer[cell] = true;
+               cell_uniquer[cell_copy] = true;
                
-               this->addConstraint(vmesh_cell);
+               this->addConstraint(cell);
             }
-         #ifdef MESH_KERNEL_DEBUG_FULL
-            else
-            { 
-               std::cout << "## MeshKernel::"+mesh_kernel_id+" - skipping constraint " << 
-                  cell_cnt << " : ";
-               for(size_t i = 0; i < cell.size(); i++)  
-                  std::cout << cell[i] << " ";
-               std::cout << std::endl;
-            }
-         #endif
+
+//            for(size_t i = 0; i < vmesh_cell.size(); i++)  
+//               cell[i] = vmesh_cell[i];
+//            std::sort(cell.begin(), cell.end());
+//            //std::cout << cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
+//            if(!cell_uniquer[cell])
+//            {
+//            #ifdef MESH_KERNEL_DEBUG_FULL
+//               std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding constraint   " << 
+//                  cell_cnt << " : ";
+//               for(size_t i = 0; i < cell.size(); i++)  
+//                  std::cout << cell[i] << " ";
+//               std::cout << std::endl;
+//               cell_cnt++;
+//            #endif               
+//               cell_uniquer[cell] = true;
+//               
+//               this->addConstraint(vmesh_cell);
+//            }
+//         #ifdef MESH_KERNEL_DEBUG_FULL
+//            else
+//            { 
+//               std::cout << "## MeshKernel::"+mesh_kernel_id+" - skipping constraint " << 
+//                  cell_cnt << " : ";
+//               for(size_t i = 0; i < cell.size(); i++)  
+//                  std::cout << cell[i] << " ";
+//               std::cout << std::endl;
+//            }
+//         #endif
          }
          si++;
       }            
@@ -375,8 +396,7 @@ private:
             cit != cell_complex.cell_end(); cit++)
       {
          vmesh_cell_type cell = *cit;
-         //std::cout << "region: " << cell << std::endl;
-         for(int dim = 0; dim < DIMG; dim++)
+         for(int dim = 0; dim < cell.size(); dim++)
          {
             if(!pnt_uniquer[cell[dim]])
             {  
@@ -388,10 +408,12 @@ private:
                point_cnt++;
             }
          }
-         boost::array< numeric_type , 3 > mapped_cell;
-         mapped_cell[0] = index_map[cell[0]];
-         mapped_cell[1] = index_map[cell[1]];
-         mapped_cell[2] = index_map[cell[2]];          
+         std::vector<numeric_type> mapped_cell(cell.size());
+         for(int i = 0; i < cell.size(); i++)
+         {
+           mapped_cell[i] = index_map[cell[i]];
+         }
+         
          this->addConstraint(mapped_cell);
       }
       
@@ -467,12 +489,13 @@ private:
       f->numberofholes = 0;
       f->holelist = NULL;
       p = &f->polygonlist[0];
-      p->numberofvertices = 3;
+      p->numberofvertices = constraint.size();
       p->vertexlist = new int[p->numberofvertices];
-      p->vertexlist[0] = constraint[0];
-      p->vertexlist[1] = constraint[1];
-      p->vertexlist[2] = constraint[2];
-
+      
+      for(int i = 0; i < p->numberofvertices; i++)
+      {
+        p->vertexlist[i] = constraint[i];
+      }
       mesher_facet_index++;   
    }
    template<typename ConstraintT>
@@ -486,11 +509,12 @@ private:
       f->numberofholes = 0;
       f->holelist = NULL;
       p = &f->polygonlist[0];
-      p->numberofvertices = 3;
+      p->numberofvertices = constraint.size();
       p->vertexlist = new int[p->numberofvertices];
-      p->vertexlist[0] = constraint[0];
-      p->vertexlist[1] = constraint[1];
-      p->vertexlist[2] = constraint[2];
+      for(int i = 0; i < p->numberofvertices; i++)
+      {
+        p->vertexlist[i] = constraint[i];
+      }
 
       mesher_facet_index++;      
    }   

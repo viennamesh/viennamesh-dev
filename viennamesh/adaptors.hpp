@@ -11,13 +11,9 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_WRAPPER_HPP
-#define VIENNAMESH_WRAPPER_HPP
+#ifndef VIENNAMESH_ADAPTORS_HPP
+#define VIENNAMESH_ADAPTORS_HPP
 
-#include "wrapper/viennagrid.hpp"
-#include "wrapper/gtsio.hpp"
-#include "wrapper/gsse01.hpp"
-#include "wrapper/bnd.hpp"
-#include "wrapper/hin.hpp"
+#include "viennamesh/adaptors/consistancy.hpp"
 
 #endif

@@ -11,13 +11,29 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_WRAPPER_HPP
-#define VIENNAMESH_WRAPPER_HPP
+#ifndef VIENNAMESH_ADAPTORS_BASE_HPP
+#define VIENNAMESH_ADAPTORS_BASE_HPP
 
-#include "wrapper/viennagrid.hpp"
-#include "wrapper/gtsio.hpp"
-#include "wrapper/gsse01.hpp"
-#include "wrapper/bnd.hpp"
-#include "wrapper/hin.hpp"
+#include "viennamesh/tags.hpp"
+
+namespace viennamesh {
+ 
+template <typename MethodTag>
+struct mesh_adaptor { };
+      
+   
+namespace result_of {
+
+template<typename MethodTag>  
+struct mesh_adaptor
+{
+   typedef viennamesh::mesh_adaptor<MethodTag>    type;
+};
+
+} // end namespace result_of
+   
+   
+   
+} // end namespace viennamesh
 
 #endif
