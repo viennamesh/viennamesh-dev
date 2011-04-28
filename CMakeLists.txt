@@ -36,6 +36,7 @@ INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
+INCLUDE_DIRECTORIES("external/cervpt-1.0/")
 #INCLUDE_DIRECTORIES("external/ViennaGrid/")
 #INCLUDE_DIRECTORIES("external/ViennaData/")
 #INCLUDE_DIRECTORIES("external/ViennaUtils/")
@@ -51,6 +52,11 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
+
+
+INCLUDE_DIRECTORIES("/mnt/data/libraries/cgal/cgal-install/include")
+LINK_DIRECTORIES(/mnt/data/libraries/cgal/cgal-install/lib)
+
 
 #INCLUDE_DIRECTORIES("/mnt/data/libraries/vtk/vtk-install/include/vtk-5.6")
 #LINK_DIRECTORIES(/mnt/data/libraries/vtk/vtk-install/lib/vtk-5.6)
@@ -71,5 +77,6 @@ ADD_EXECUTABLE(mesh src/mesh.cpp)
 #TARGET_LINK_LIBRARIES(vgmodeler vgmodeler_volume)
 #TARGET_LINK_LIBRARIES(ng netgen)
 #TARGET_LINK_LIBRARIES(tet tetgen)
-TARGET_LINK_LIBRARIES(generate gtsio3 netgen tetgen triangle vgmodeler_volume pugixml)
-TARGET_LINK_LIBRARIES(mesh netgen tetgen)
+TARGET_LINK_LIBRARIES(generate gtsio3 netgen tetgen triangle vgmodeler_volume pugixml CGAL CGAL_Core gmp boost_thread)
+TARGET_LINK_LIBRARIES(mesh netgen tetgen CGAL CGAL_Core gmp boost_thread)
+

@@ -18,5 +18,6 @@
 #include "viennamesh/interfaces/tetgen.hpp"
 #include "viennamesh/interfaces/vgmodeler.hpp"
 #include "viennamesh/interfaces/netgen.hpp"
+#include "viennamesh/interfaces/cervpt.hpp"
 
 #endif

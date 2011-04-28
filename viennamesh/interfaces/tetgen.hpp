@@ -93,23 +93,23 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
    #endif  
       if( segment_size > 1 )
       {
-      typedef std::vector<point_type>    region_points_type;
-      region_points_type region_points;
+        typedef std::vector<point_type>    region_points_type;
+        region_points_type region_points;
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with multi-segment input" << std::endl;
          std::size_t seg_cnt = 0;
       #endif      
-         point_type pnt;
          for(vmesh_segment_iterator seg_iter = data.segment_begin();
             seg_iter != data.segment_end(); seg_iter++)
          {
+            point_type pnt;
             typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
             this->find_point_in_segment(segment, pnt);
             
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
             std::cout << "## MeshKernel::"+mesh_kernel_id+" - computed point in segment " 
-               << seg_cnt << " : " << pnt[0] << " " << pnt[1] << std::endl;
+               << seg_cnt << " : " << pnt[0] << " " << pnt[1] << " " << pnt[2] << std::endl;
             seg_cnt++;
          #endif
          }
@@ -137,7 +137,6 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       for(geometry_iterator iter = data.geometry_begin();
           iter != data.geometry_end(); iter++)
       {
-         
       #ifdef MESH_KERNEL_DEBUG_FULL
           std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding point " << 
              std::distance(data.geometry_begin(), iter) << " : " << *iter << std::endl;
@@ -154,7 +153,8 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
    #endif
       size_t si = 0;
 
-      std::map<vmesh_cell_type, bool>        cell_uniquer;      
+      typedef std::vector<std::size_t>           cell_copy_type;
+      std::map<cell_copy_type, bool>        cell_uniquer;      
    #ifdef MESH_KERNEL_DEBUG_FULL
       size_t cell_cnt = 0;
    #endif
@@ -165,13 +165,16 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
              cit != (*seg_iter).cell_end(); cit++)
          {  
             vmesh_cell_type cell = *cit;
-            std::vector<std::size_t> cell_copy(cell.size());
+
+            // make sure a cell hasn't been already added ..
+            // therefore we copy the original cell, and sort it ascendingly
+            // due to the ascending order, we can compare it with other cells
+            cell_copy_type cell_copy(cell.size());
 
             for(size_t i = 0; i < cell.size(); i++)  
                cell_copy[i] = cell[i];
 
             std::sort(cell_copy.begin(), cell_copy.end());
-
             if(!cell_uniquer[cell_copy])
             {
             #ifdef MESH_KERNEL_DEBUG_FULL
@@ -186,6 +189,16 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
                
                this->addConstraint(cell);
             }
+         #ifdef MESH_KERNEL_DEBUG_FULL
+            else
+            { 
+               std::cout << "## MeshKernel::"+mesh_kernel_id+" - skipping constraint " << 
+                  cell_cnt << " : ";
+               for(size_t i = 0; i < cell.size(); i++)  
+                  std::cout << cell[i] << " ";
+               std::cout << std::endl;
+            }
+         #endif
 
 //            for(size_t i = 0; i < vmesh_cell.size(); i++)  
 //               cell[i] = vmesh_cell[i];
