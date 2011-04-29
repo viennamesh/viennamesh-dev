@@ -1,38 +1,23 @@
 
-/* =======================================================================
-   Copyright (c) 2011, Institute for Microelectronics, TU Vienna.
-   http://www.iue.tuwien.ac.at
-                             -----------------
-                CervPT - A simple polygon triangulator 
-                             -----------------
 
-   authors:      Johann Cervenka                 cervenka@iue.tuwien.ac.at
-                 Josef Weinbub                    weinbub@iue.tuwien.ac.at
 
-   license:    MIT (X11), see file LICENSE in the base directory
-======================================================================= */
-
-#ifndef CERVPT_POLY2TRI_HPP
-#define CERVPT_POLY2TRI_HPP
+#define myvector vector
 
 #include <cmath>
 #include <vector>
 #include <map>
 #include <fstream>
 
-#include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
-#include "CGAL/Constrained_Delaunay_triangulation_2.h"
-#include "CGAL/Constrained_triangulation_plus_2.h"
-#include "CGAL/Delaunay_mesher_2.h"
-#include "CGAL/Delaunay_mesh_face_base_2.h"
-#include "CGAL/Delaunay_mesh_size_criteria_2.h"
-#include "CGAL/Exact_predicates_exact_constructions_kernel.h"
-#include "CGAL/intersections.h"
+using namespace std;
 
-
-//#define POLY2TRI_DEBUG
-
-namespace cervpt {
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Constrained_Delaunay_triangulation_2.h>
+#include <CGAL/Constrained_triangulation_plus_2.h>
+#include <CGAL/Delaunay_mesher_2.h>
+#include <CGAL/Delaunay_mesh_face_base_2.h>
+#include <CGAL/Delaunay_mesh_size_criteria_2.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/intersections.h>
 
 typedef CGAL::Exact_predicates_exact_constructions_kernel   KK;
 typedef KK::Point_3                                         Point3;
@@ -60,8 +45,8 @@ struct point_c
 		c[1]=y;
 		c[2]=z;
 	}
-	double &operator[](const long i) { return c[i]; }
-	double operator[](const long i) const { return c[i]; }
+	double &operator[](const int i) { return c[i]; }
+	double operator[](const int i) const { return c[i]; }
 
 	point_c operator-(const point_c &p) const
 	{
@@ -125,15 +110,15 @@ double fabs(const point_c &p)
 }
 
 
-struct poly_c : std::vector<long>
+struct poly_c : myvector<int>
 {
-	poly_c(const std::vector<long> &m) : std::vector<long>(m) {}
+	poly_c(const myvector<int> &m) : myvector<int>(m) {}
 	struct const_circulator
 	{
 		const poly_c *father;
-		std::vector<long>::const_iterator I;
+		myvector<int>::const_iterator I;
 		const_circulator() : father(NULL) {}
-		const_circulator(const poly_c *father_, std::vector<long>::const_iterator I_) : father(father_), I(I_) {}
+		const_circulator(const poly_c *father_, myvector<int>::const_iterator I_) : father(father_), I(I_) {}
 		const_circulator operator--()
 		{
 			if (this->I==father->begin())
@@ -156,17 +141,17 @@ struct poly_c : std::vector<long>
 				this->I=father->begin();
 			return *this;
 		}
-		long operator*() const { return *I; }
+		int operator*() const { return *I; }
 		bool operator!=(const const_circulator &c) const { return I!=c.I; }
 	};
 	const_circulator circulator_begin() const { return const_circulator(this,this->begin()); }
-	poly_c(unsigned long i=0) : std::vector<long>(i) {}
-	void erase(const long i) { std::vector<long>::erase(std::vector<long>::begin()+i); }
+	poly_c(unsigned int i=0) : myvector<int>(i) {}
+	void erase(const int i) { myvector<int>::erase(myvector<int>::begin()+i); }
 };
 
 
-typedef std::vector<point_c>     points_c; 
-typedef std::vector<poly_c >     polys_c;
+typedef vector<point_c> points_c; 
+typedef vector<poly_c > polys_c;
 
 
 void solve(
@@ -184,26 +169,26 @@ void solve(
 	n=detn/det;
 }
 
-void correct_polys(polys_c &polys, const std::vector <long> &poly, const long iaa, const long iee)
+void correct_polys(polys_c &polys, const myvector <int> &poly, const int iaa, const int iee)
 {
-	const unsigned long ia=(iaa+poly.size())%poly.size();
-	const unsigned long ie=iee%poly.size();
-	for (unsigned long i=0; i<polys.size(); i++)
+	const unsigned int ia=(iaa+poly.size())%poly.size();
+	const unsigned int ie=iee%poly.size();
+	for (unsigned int i=0; i<polys.size(); i++)
 	{
-		for (unsigned long j=0; j<polys[i].size(); j++)
+		for (unsigned int j=0; j<polys[i].size(); j++)
 		{
 			if (polys[i][j]==poly[ia])
 				if (polys[i][(j+1)%polys[i].size()]==poly[ie])
 				{
 
-					for (long k=ia+1; k<iee; k++, j++)
+					for (int k=ia+1; k<iee; k++, j++)
 						//polys[i][j+1]=poly[k];
 						polys[i].insert(polys[i].begin()+j+1,poly[k]);
 					continue;
 				}
 				else if (polys[i][(j-1+polys[i].size())%polys[i].size()]==poly[ie])
 				{
-					for (long k=ia+1; k<iee; k++)
+					for (int k=ia+1; k<iee; k++)
 						//polys[i][j]=poly[k];
 						polys[i].insert(polys[i].begin()+j,poly[k]);
 					continue;
@@ -214,11 +199,11 @@ void correct_polys(polys_c &polys, const std::vector <long> &poly, const long ia
 
 
 
-void insert_point_cgal(std::vector<Point> &cgal_poly, std::map<Point,long> &find_cgal_poly, const long i, const Point &p)
+void insert_point_cgal(myvector<Point> &cgal_poly,map<Point,int> &find_cgal_poly, const int i, const Point &p)
 {
-	std::vector<Point>::iterator V=cgal_poly.begin()+i;
+	myvector<Point>::iterator V=cgal_poly.begin()+i;
 	cgal_poly.insert(V,p);
-	for (std::map<Point,long>::iterator I=find_cgal_poly.begin(); I!=find_cgal_poly.end(); I++)
+	for (map<Point,int>::iterator I=find_cgal_poly.begin(); I!=find_cgal_poly.end(); I++)
 	{
 		if (I->second>=i)
 			I->second++;
@@ -226,12 +211,12 @@ void insert_point_cgal(std::vector<Point> &cgal_poly, std::map<Point,long> &find
 	find_cgal_poly[p]=i;
 }
 
-long insert_point(points_c &points, poly_c &poly, const long iaa, const long iee, const long ii, const Point &pa, const Point &pe, const Point &pi)
+int insert_point(points_c &points, poly_c &poly, const int iaa, const int iee, const int ii, const Point &pa, const Point &pe, const Point &pi)
 {
 	// l*(pe-pa) + m*(pe-pa)T = pi-pa
 	//
-	const long ia=(iaa+poly.size())%poly.size();
-	const long ie=(iee)%poly.size();
+	const int ia=(iaa+poly.size())%poly.size();
+	const int ie=(iee)%poly.size();
 	
 	const point_c v1((pe.x()-pa.x()),(pe.y()-pa.y()),0);
 	const point_c v2((pa.y()-pe.y()),(pe.x()-pa.x()),0);
@@ -246,8 +231,8 @@ long insert_point(points_c &points, poly_c &poly, const long iaa, const long iee
 	return points.size()-1;
 }
 
-void insert_point(points_c &points, std::vector<Point> &cgal_poly, std::map<Point,long> &find_cgal_poly, Point &p2d,
-		point_c &v1, point_c &v1n, point_c &vn, point_c &p0, map<long,long> &addpoints)
+void insert_point(points_c &points, myvector<Point> &cgal_poly, map<Point,int> &find_cgal_poly, Point &p2d,
+		point_c &v1, point_c &v1n, point_c &vn, point_c &p0, map<int,int> &addpoints)
 {
 	double l=(p2d.x())/fabs(v1),m=(p2d.y())/fabs(v1n);
 
@@ -271,12 +256,12 @@ inline point_c project(const point_c &v1, const point_c &v1n, const point_c &vn,
 	return q;
 }
 
-void project_poly(const points_c &points, const poly_c &poly, std::map<long, point_c> &flatpoly, point_c &v1, point_c &v1n, point_c &vn, point_c &p0)
+void project_poly(const points_c &points, const poly_c &poly, map<int, point_c> &flatpoly, point_c &v1, point_c &v1n, point_c &vn, point_c &p0)
 {
-    const long d0=std::max(long((poly.size()-3))/2,long(1));
-    for (long d2=d0; d2>0; d2--)
-    for (long d1=d0; d1>0; d1--)
-    for (unsigned long i=0; i<poly.size(); i++)
+    const int d0=max(int((poly.size()-3))/2,1);
+    for (int d2=d0; d2>0; d2--)
+    for (int d1=d0; d1>0; d1--)
+    for (unsigned int i=0; i<poly.size(); i++)
     {
 	p0=points[poly[i]];
 	v1=points[poly[(i+d1)%poly.size()]]-points[poly[i]];
@@ -298,7 +283,7 @@ void project_poly(const points_c &points, const poly_c &poly, std::map<long, poi
 
     found:
 	flatpoly.clear();
-	for (unsigned long i=0; i<poly.size(); i++)
+	for (unsigned int i=0; i<poly.size(); i++)
 	{
 		point_c q(project(v1,v1n,vn,p0,points[poly[i]]));
 		flatpoly[i]=q;
@@ -308,79 +293,32 @@ void project_poly(const points_c &points, const poly_c &poly, std::map<long, poi
 
 
 
-long triangulate_poly(points_c &points,                        // global point container
-                      polys_c &polys,                          // global polygon container
-                      poly_c &poly,                            // current polygon - to be meshed
-                      std::vector<std::vector<long> > &tris,   // global output container
-                      long criterion)                          // meshing criterion
+int triangulate_poly(points_c &points, polys_c &polys, poly_c &poly, myvector<myvector<int> > &tris, int criterion)
 {
-	long inserted=0;
-	std::map<long,point_c>  flatpoly;
-	std::vector<Point>      cgal_poly;
-	std::map<Point,long>    find_cgal_poly;
+	int inserted=0;
+	map<int,point_c> flatpoly;
+	myvector<Point> cgal_poly;
+	map<Point,int> find_cgal_poly;
 	point_c v1,v1n,vnref,p0;
-	
-#ifdef POLY2TRI_DEBUG
-   std::cout << "The polygon indices are:                       ";
-	for (long i=0; i<poly.size(); i++)
-	{
-      std::cout << poly[i] << " | ";
-	}   
-   std::cout << std::endl;
-   std::cout << "The polygon points are:                       ";
-	for (long i=0; i<poly.size(); i++)
-	{
-      std::cout << points[poly[i]][0] << " " << points[poly[i]][1] << " " << points[poly[i]][2] << " | ";
-	}   
-   std::cout << std::endl;
-
-#endif			
-	
-	
-	// project the input polygon, which is embedded in a 3d space, to a 2d plane
-	// output in flatpoly object
-	//
 	project_poly(points,poly,flatpoly,v1,v1n,vnref,p0);
 
 	CDT cdt;
 
-	const long n=flatpoly.size();
-
-#ifdef POLY2TRI_DEBUG
-   std::cout << "The number of polygon points is:              " << n << std::endl;
-#endif
-
+	const int n=flatpoly.size();
+    //try 
+    {
 	cgal_poly.clear();
 	cgal_poly.resize(n);
 	//std::cout << "Inserting a grid of constraints " << std::endl;
 
-#ifdef POLY2TRI_DEBUG
-   std::cout << "The projected-polygon points are:             ";
-#endif		
-   // traverse the points of the flat polygon ..
-	for (long i=0; i<n; i++)
+	for (int i=0; i<n; i++)
 	{
-	   // extract the point information (it's 2d!) and 
-	   // copy it to the corresponding cgal polygon
-		cgal_poly[i] = Point( flatpoly[i][0], flatpoly[i][1] );
-		// register this point within the map
+		cgal_poly[i]=Point(flatpoly[i][0],flatpoly[i][1]);
 		find_cgal_poly[cgal_poly[i]]=i;
-		
-#ifdef POLY2TRI_DEBUG
-   std::cout << cgal_poly[i] << " | ";
-#endif
 	}
-#ifdef POLY2TRI_DEBUG
-   std::cout << std::endl;
-#endif
 
-
-   // traverse the cgal polygon and insert each aedge as a constraint 
-   // to the cgal mesh structure
-	for (long i=0; i<n; i++)
-	{
+	for (int i=0; i<n; i++)
 		cdt.insert_constraint(cgal_poly[i],cgal_poly[(i+1)%n]);
-	}
 
 	//CGAL::make_conforming_Delaunay_2(cdt) ;
 	//CGAL::refine_Delaunay_mesh_2(cdt);
@@ -399,39 +337,38 @@ long triangulate_poly(points_c &points,                        // global point c
 
 	assert(cdt.is_valid());
 
-//	ofstream dump2("dump2");
-//	for (long i=0; i<cgal_poly.size()+1; i++)
-//	{
-//		//dump2 << cgal_poly[i%cgal_poly.size()].x() << " " <<  cgal_poly[i%cgal_poly.size()].y() << endl;
-//		dump2 << points[poly[i%cgal_poly.size()]][0] << " " <<  points[poly[i%cgal_poly.size()]][1] << endl;
-//	}
-//	dump2.close();
-
+	ofstream dump2("dump2");
+	for (int i=0; i<cgal_poly.size()+1; i++)
+	{
+		//dump2 << cgal_poly[i%cgal_poly.size()].x() << " " <<  cgal_poly[i%cgal_poly.size()].y() << endl;
+		dump2 << points[poly[i%cgal_poly.size()]][0] << " " <<  points[poly[i%cgal_poly.size()]][1] << endl;
+	}
+	dump2.close();
+/*
   	int count = 0;
   	for (CDT::Finite_edges_iterator eit = cdt.finite_edges_begin();
        		eit != cdt.finite_edges_end();
        		++eit)
   	{
     		CDT::Edge &e=*eit;
-    		//cout << eit->second << " ";
+    		cout << eit->second << " ";
     		CDT::Face &f=*eit->first;
-    		//cout << *f.vertex(f.ccw(eit->second)) << " ";
-    		//cout << *f.vertex(f.cw(eit->second)) << endl;
+    		cout << *f.vertex(f.ccw(eit->second)) << " ";
+    		cout << *f.vertex(f.cw(eit->second)) << endl;
     		if (cdt.is_constrained(*eit)) ++count;
   	}
-#ifdef POLY2TRI_DEBUG
-  	std::cout << "The number of resulting constrained edges is: " <<  count << std::endl;
-  	std::cout << "The number of resulting points is:            " << cdt.number_of_vertices() << " and was " << n << endl;
-  	std::cout << "The number of resulting triangles is:         " << cdt.number_of_faces() << endl;
-   std::cout << "---------------------------------------------------------------" << std::endl;
-#endif 
+  	std::cout << "The number of resulting constrained edges is  ";
+  	std::cout <<  count << std::endl;*/
+
+  	//std::cout << "The number of resulting points is  " << cdt.number_of_vertices() << " and was " << n << endl;
+  	//std::cout << "The number of resulting triangles is  " << cdt.number_of_faces() << endl;
 
 	for (CDT::Constraint_iterator C=cdt.constraints_begin(); C!=cdt.constraints_end(); C++)
 	{
 		const Point &pa=C->first.first->point();
 		const Point &pe=C->first.second->point();
-		long i;
-		long direction=0;
+		int i;
+		int direction=0;
 		for (i=0; i<cgal_poly.size(); i++)
 		{
 			if (pa==cgal_poly[i])
@@ -456,7 +393,7 @@ long triangulate_poly(points_c &points,                        // global point c
 			continue;
 
 		CDT::Vertices_in_constraint_iterator V=++C->second->begin();
-		long j=i,k=i,pidx;
+		int j=i,k=i,pidx;
 		if (direction==1)
 		{ 
 			j++; k++;
@@ -519,9 +456,9 @@ long triangulate_poly(points_c &points,                        // global point c
 	//dump << flatpoly[0][0] << " " << flatpoly [0][1] << endl << endl;
 
 	//points_c dum;
-	long direction=0;
-	long trict=0;
-	std::map<long,long> addpoints;
+	int direction=0;
+	int trict=0;
+	map<int,int> addpoints;
   	for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
        		fit != cdt.finite_faces_end();
        		++fit)
@@ -533,7 +470,7 @@ long triangulate_poly(points_c &points,                        // global point c
 			continue;
 
 		tris.resize(trict+1);
-		for (long i=0; i<3; i++)
+		for (int i=0; i<3; i++)
 		{
 			const CDT::Vertex_handle ph=f.vertex(i);
 
@@ -547,7 +484,7 @@ long triangulate_poly(points_c &points,                        // global point c
 				insert_point(points,cgal_poly,find_cgal_poly,ph->point(),v1,v1n,vnref,p0,addpoints);
 				cerr << "Inside insert " << find_cgal_poly[ph->point()] << endl;
 			}
-			const long idx=find_cgal_poly[ph->point()];
+			const int idx=find_cgal_poly[ph->point()];
 
 			//dum.push_back(point_c());
 			//dum[dum.size()-1].resize(3);
@@ -566,7 +503,7 @@ long triangulate_poly(points_c &points,                        // global point c
 			*/
 		}
 
-		for (long i=0; i<3; i++)
+		for (int i=0; i<3; i++)
 		{
 			if (tris[trict][i]>=poly.size() || tris[trict][(i+1)%3]>=poly.size())
 				continue;
@@ -594,11 +531,11 @@ long triangulate_poly(points_c &points,                        // global point c
 	}
 
 	//ofstream dump("dump");
-	std::vector<long> h;
-	for (long idx=0; idx<tris.size(); idx++)
+	myvector<int> h;
+	for (int idx=0; idx<tris.size(); idx++)
 	{
 		h=tris[idx];
-		for (long i=0; i<3; i++)
+		for (int i=0; i<3; i++)
 		{
 			if (direction==1)
 				if (h[i]<poly.size())
@@ -647,98 +584,28 @@ long triangulate_poly(points_c &points,                        // global point c
 
 	//dump.close();
 	//system("gnuplot");
-
+    }
 
     return inserted;
 }
 
 
-void triangulate_polys(points_c &points, polys_c &polys, std::map<long,std::vector<std::vector<long> > > &tris)
+void triangulate_polys(points_c &points, polys_c &polys, map<int,myvector<myvector<int> > > &tris)
 {
-   std::cout << "poly2tri::Warning - triangulating also triangles - a problem?" << std::endl;
-
-	std::map<long,std::vector<long> > innerpoints;
+	map<int,myvector<int> > innerpoints;
 	tris.clear();
-	long inserted=1;//,run=0;
+	int inserted=1,run=0;
 	while (inserted)
 	{
 		inserted=0;
-		for (unsigned long i=0; i<polys.size(); i++)
-		{
-		   //if (polys[i].size()!=3) // NOTE: deal with the case that the input is already a triangle!
+		for (unsigned int i=0; i<polys.size(); i++)
+			if (polys[i].size()!=3)
 			{
 				inserted+=triangulate_poly(points, polys, polys[i], tris[i], 0);
+
 			}
-		}
-		//run++;
+		run++;
 	}
 }
-
-struct poly2tri
-{
-   // --------------------------------------------------------------------------
-   typedef point_c                                    point_type;
-   typedef points_c                                   point_container_type;
-   typedef poly_c                                     poly_type;
-   typedef polys_c                                    poly_container_type;
-   typedef std::vector<long>                          triangle_type;
-   typedef std::vector<triangle_type>                 triangle_container_type;
-   typedef std::map<long,triangle_container_type>     poly_triangle_cont_map_type;
-   // --------------------------------------------------------------------------
-   
-   // --------------------------------------------------------------------------   
-   template<typename PointT>
-   void add_point(PointT const& pnt)
-   {
-      points.push_back(point_type(pnt[0], pnt[1], pnt[2]));
-   }
-
-   template<typename ConstraintT>
-   void add_constraint(ConstraintT const& constraint)
-   {
-      poly_type   poly(constraint.size());
-      std::copy(constraint.begin(), constraint.end(), poly.begin());
-      polys.push_back(poly);
-   }
-   
-   std::size_t point_size()      { return points.size(); }
-   std::size_t constraint_size() { return polys.size(); }
-   std::size_t triangle_size()   { return tris.size(); }
-   
-   point_container_type&            point_cont() { return points; }
-   poly_triangle_cont_map_type&     triangles_cont() { return tris; }
-   
-   void reset_topology()
-   {
-      polys.clear();
-      tris.clear();
-   }
-   
-   void mesh()
-   {
-      assert(this->point_size() != 0);
-      assert(this->constraint_size() != 0);
-      
-      triangulate_polys(points,polys,tris);
-      
-      assert(this->triangle_size() != 0);
-   }
-   // --------------------------------------------------------------------------
-
-   // --------------------------------------------------------------------------
-   // input datastructures
-   point_container_type          points;
-   poly_container_type           polys;
-   
-   // output datastructure
-   // in here you find for each polygon, polys[i], the corresponding
-   // triangles, tris[i]
-   poly_triangle_cont_map_type   tris;
-   // --------------------------------------------------------------------------
-};
-
-} // end namespace cervpt
-
-#endif 
 
 

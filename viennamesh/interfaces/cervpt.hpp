@@ -29,14 +29,14 @@
 #include <boost/fusion/include/make_map.hpp>
 
 // *** cervpt includes
-#include "cervpt/poly2tri.hpp"
+#include "cervpt/poly2tri.hpp" 
 
 // *** vienna includes
 #include "viennautils/dumptype.hpp"
 #include "viennautils/contio.hpp"
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
-
+ 
 //#define MESH_KERNEL_DEBUG
 //#define MESH_KERNEL_DEBUG_FULL
 
@@ -53,7 +53,7 @@ struct mesh_kernel <viennamesh::tag::cervpt, DatastructureT>
 
    static const int DIMG = 3;
    static const int DIMT = 3;
-   static const int CELL_SIZE = DIMT+1;            // this holds only for simplices
+   static const int CELL_SIZE = DIMT;       
    
    typedef boost::array< numeric_type , DIMG >        point_type;
    typedef boost::array< numeric_type , CELL_SIZE >   cell_type;
@@ -78,6 +78,25 @@ struct mesh_kernel <viennamesh::tag::cervpt, DatastructureT>
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
    #endif
+   
+   
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing geometry" << std::endl;
+   #endif
+      typedef typename DatastructureT::geometry_iterator geometry_iterator;
+      for(geometry_iterator iter = data.geometry_begin();
+          iter != data.geometry_end(); iter++)
+      {
+      #ifdef MESH_KERNEL_DEBUG_FULL
+          std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding point " << 
+             std::distance(data.geometry_begin(), iter) << " : " << *iter << std::endl;
+      #endif   
+         
+         p2tri.add_point(*iter);
+      }   
+      
+
 
    }
    // -------------------------------------------------------------------------------------
@@ -112,6 +131,103 @@ struct mesh_kernel <viennamesh::tag::cervpt, DatastructureT>
    {  
       this->setOptions(paras);
 
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << std::endl;   
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing constraints" << std::endl;
+   #endif
+      size_t si = 0;
+
+      segment_cont.resize(std::distance(data.segment_begin(),data.segment_end()));
+
+   #ifdef MESH_KERNEL_DEBUG_FULL
+      size_t cell_cnt = 0;
+   #endif
+      for(vmesh_segment_iterator seg_iter = data.segment_begin();
+         seg_iter != data.segment_end(); seg_iter++)
+      {  
+//         if(si < 10)
+//         {
+//            si++;
+//            continue;
+//         }
+         
+         
+         for(vmesh_cell_iterator cit = (*seg_iter).cell_begin();
+             cit != (*seg_iter).cell_end(); cit++)
+         {  
+            vmesh_cell_type cell = *cit;
+
+         #ifdef MESH_KERNEL_DEBUG_FULL
+            std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding constraint   " << 
+               cell_cnt << " : ";
+            for(size_t i = 0; i < cell.size(); i++)  
+               std::cout << cell[i] << " ";
+            std::cout << std::endl;
+            cell_cnt++;
+         #endif               
+            p2tri.add_constraint(cell);
+         }
+         
+
+
+      #ifdef MESH_KERNEL_DEBUG
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - meshing:" << std::endl;
+         std::cout << "  input point size:  " << p2tri.point_size() << std::endl;
+         std::cout << "  input const size:  " << p2tri.constraint_size() << std::endl;      
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" starting mesh generation " << std::endl;               
+      #endif         
+      
+         p2tri.mesh();
+         
+         if ( !p2tri.triangle_size())      
+            std::cout << "\t::ERROR: no mesh has been created" << std::endl;
+         
+      #ifdef MESH_KERNEL_DEBUG
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - finished:" << std::endl;
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting geometry" << std::endl;
+      #endif                              
+         
+         typedef typename cervpt::poly2tri::poly_triangle_cont_map_type::iterator   polygon_iter_type;
+         typedef typename cervpt::poly2tri::triangle_container_type::iterator       triangle_iter_type;
+         
+         for(polygon_iter_type polyiter = p2tri.triangles_cont().begin(); 
+             polyiter != p2tri.triangles_cont().end(); polyiter++)
+         {
+            for(triangle_iter_type triiter = polyiter->second.begin();
+                triiter != polyiter->second.end(); triiter++)
+            {
+               cell_type cell;
+               std::copy( triiter->begin(), triiter->end(), cell.begin() );
+               segment_cont[si].push_back(cell);
+            }
+            
+         }
+         
+         
+         
+         // reset the input topolgy and the output  from the previous run
+         // 
+         p2tri.reset_topology();
+         
+         si++;
+      }                  
+      
+      //
+      // loading geometry data
+      //     NOTE --> as no new points are introduced, we can directly 
+      //     copy the input geometry space
+      //
+      typedef typename DatastructureT::geometry_iterator geometry_iterator;
+      for(geometry_iterator iter = data.geometry_begin();
+          iter != data.geometry_end(); iter++)
+      {
+         point_type pnt;
+         pnt[0] = (*iter)[0];
+         pnt[1] = (*iter)[1];
+         pnt[2] = (*iter)[2];
+         geometry_cont.push_back(pnt);
+      }   
+            
    }
    
    // -------------------------------------------------------------------------------------
@@ -160,6 +276,8 @@ private:
    segment_container_type       segment_cont;                     
 
    std::string mesh_kernel_id;
+   
+   cervpt::poly2tri  p2tri;
 };
 
 } // end namespace viennamesh

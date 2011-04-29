@@ -149,9 +149,9 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       //
    #ifdef MESH_KERNEL_DEBUG
       std::cout << std::endl;   
-      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing constraintss" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing constraints" << std::endl;
    #endif
-      size_t si = 0;
+      //size_t si = 0;
 
       typedef std::vector<std::size_t>           cell_copy_type;
       std::map<cell_copy_type, bool>        cell_uniquer;      
@@ -229,7 +229,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
 //            }
 //         #endif
          }
-         si++;
+         //si++;
       }            
    }
    // -------------------------------------------------------------------------------------
