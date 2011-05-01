@@ -5,17 +5,56 @@ cmake_minimum_required(VERSION 2.6)
 # build output verbosity
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-# if boost is not in the system path, add it here ..
-#SET(BOOSTPATH "/opt/boost")             
+
 
 # set compiler flags
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-g -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -frounding-math)
+#   ADD_DEFINITIONS(-g -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -frounding-math)
+   ADD_DEFINITIONS(-g -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
    #ADD_DEFINITIONS(-g)
    #ADD_DEFINITIONS(-g -Wall -pedantic)
    #ADD_DEFINITIONS(-O2)
    #ADD_DEFINITIONS(-O2 -Wall -pedantic)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+
+# ------------------------------------------------------------------------------
+#
+# *** CHECK FOR DEPENDENCIES ***
+#
+# ------------------------------------------------------------------------------
+
+# set modules directory
+#
+set(MODULES_DIR     ${CMAKE_SOURCE_DIR}/cmake )
+
+# check for BOOST
+#
+include(${MODULES_DIR}/FindBOOST.cmake)
+IF( BOOST_FOUND )
+   message(STATUS "setting BOOST Paths ..")
+   INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIRS})
+   LINK_DIRECTORIES(${BOOST_LIBRARIES})
+ENDIF()
+
+# check for GMP
+#
+include(${MODULES_DIR}/FindGMP.cmake)
+IF( GMP_FOUND )
+   message(STATUS "setting GMP Paths ..")
+   LINK_DIRECTORIES(${GMP_LIBRARIES})
+ENDIF()
+
+# check for CGAL
+#
+include(${MODULES_DIR}/FindCGAL.cmake)
+IF( CGAL_FOUND )
+   message(STATUS "setting CGAL Paths ..")
+   INCLUDE_DIRECTORIES(${CGAL_INCLUDE_DIRS})
+   LINK_DIRECTORIES(${CGAL_LIBRARIES})
+ENDIF()
+# ------------------------------------------------------------------------------
+
 
 # build external libraries
 #   those have to be build bevore the collected include 
@@ -54,8 +93,7 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 
 
-INCLUDE_DIRECTORIES("/mnt/data/libraries/cgal/cgal-install/include")
-LINK_DIRECTORIES(/mnt/data/libraries/cgal/cgal-install/lib)
+
 
 
 #INCLUDE_DIRECTORIES("/mnt/data/libraries/vtk/vtk-install/include/vtk-5.6")
@@ -78,5 +116,5 @@ ADD_EXECUTABLE(mesh src/mesh.cpp)
 #TARGET_LINK_LIBRARIES(ng netgen)
 #TARGET_LINK_LIBRARIES(tet tetgen)
 TARGET_LINK_LIBRARIES(generate gtsio3 netgen tetgen triangle vgmodeler_volume pugixml CGAL CGAL_Core gmp boost_thread)
-TARGET_LINK_LIBRARIES(mesh netgen tetgen CGAL CGAL_Core gmp boost_thread)
+TARGET_LINK_LIBRARIES(mesh tetgen)
 

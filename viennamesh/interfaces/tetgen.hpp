@@ -21,6 +21,7 @@
 // *** system includes
 #include <vector>
 #include <map>
+#include <cstring>
 
 // *** boost includes
 #include <boost/array.hpp>

@@ -18,8 +18,8 @@
 #include "viennagrid/io/gau_reader.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 
-#include "viennamesh/generator.hpp"
-#include "viennamesh/wrapper.hpp"
+#include "viennamesh/wrapper/viennagrid.hpp"
+#include "viennamesh/interfaces/tetgen.hpp"
 #include "viennamesh/transfer/viennagrid.hpp"
 
 int main(int argc, char *argv[])
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
    // set up a mesh generator 
    // in this case we use a specific generator: TetGen
    //
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen, vgrid_wrapper_type>::type   mesh_generator_type;
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen, vgrid_wrapper_type>::type   mesh_generator_type;
    mesh_generator_type mesher(data_in);      
 
    // execute the meshing process with default parameters

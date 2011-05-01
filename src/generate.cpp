@@ -28,9 +28,9 @@
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/gau_reader.hpp"
 
-#include "viennamesh/generator.hpp"
+#include "viennamesh/interfaces.hpp"
 #include "viennamesh/wrapper.hpp"
-#include "viennamesh/transfer/viennagrid.hpp"
+#include "viennamesh/transfer.hpp"
 #include "viennamesh/adaptors.hpp"
 
 namespace viennamesh {
