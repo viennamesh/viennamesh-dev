@@ -655,7 +655,7 @@ long triangulate_poly(points_c &points,                        // global point c
 
 void triangulate_polys(points_c &points, polys_c &polys, std::map<long,std::vector<std::vector<long> > > &tris)
 {
-   std::cout << "poly2tri::Warning - triangulating also triangles - a problem?" << std::endl;
+   //std::cout << "poly2tri::Warning - triangulating also triangles - a problem?" << std::endl;
 
 	std::map<long,std::vector<long> > innerpoints;
 	tris.clear();

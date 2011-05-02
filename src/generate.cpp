@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
       {
          viennautils::io::bnd_reader my_bnd_reader;
          my_bnd_reader(inputfile); 
-         my_bnd_reader.dump();
+         //my_bnd_reader.dump();
 
          typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>     bnd_wrapper_type;
          bnd_wrapper_type data_in(my_bnd_reader);      
@@ -97,6 +97,10 @@ int main(int argc, char *argv[])
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt, bnd_wrapper_type>::type   bnd_mesh_generator_type;
          bnd_mesh_generator_type mesher(data_in);       
          mesher();         
+
+         // typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::vgmodeler, bnd_wrapper_type>::type bnd_mesh_consistancy_type;
+         // bnd_mesh_consistancy_type     mesh_cons(data_in);
+         // mesh_cons();
 
          typedef viennagrid::domain<viennagrid::config::triangular_3d>  domain_out_type;
          domain_out_type domain_out;      
@@ -109,99 +113,99 @@ int main(int argc, char *argv[])
          my_vtk_writer.writeDomain(domain_out, outputfile);      
       }
    }
-//   else
-//   if(input_extension == "hin")
-//   {
-//      if(viennamesh::query::input::type(config) == viennamesh::key::geometry)
-//      {
-//         viennautils::io::hin_reader my_hin_reader;
-//         my_hin_reader(inputfile);
-//         //my_hin_reader.dump();
+   else
+   if(input_extension == "hin")
+   {
+      if(viennamesh::query::input::type(config) == viennamesh::key::geometry)
+      {
+         viennautils::io::hin_reader my_hin_reader;
+         my_hin_reader(inputfile);
+         //my_hin_reader.dump();
 
-//         typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>     hin_wrapper_type;
-//         hin_wrapper_type data_in(my_hin_reader);      
+         typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>     hin_wrapper_type;
+         hin_wrapper_type data_in(my_hin_reader);      
 
-//         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen, hin_wrapper_type>::type   hin_mesh_generator_type;
-//         hin_mesh_generator_type mesher(data_in);      
-//         mesher();         
+         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt, hin_wrapper_type>::type   hin_mesh_generator_type;
+         hin_mesh_generator_type mesher(data_in);      
+         mesher();         
 
-//         typedef viennagrid::domain<viennagrid::config::triangular_3d> domain_out_type;
-//         domain_out_type domain_out;      
+         typedef viennagrid::domain<viennagrid::config::triangular_3d> domain_out_type;
+         domain_out_type domain_out;      
 
-//         typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
-//         transfer_type  transfer;
-//         transfer(mesher, domain_out);      
+         typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
+         transfer_type  transfer;
+         transfer(mesher, domain_out);      
 
-//         viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
-//         my_vtk_writer.writeDomain(domain_out, outputfile);            
-//      }
-//   }
-//   else      
-//   if( input_extension == "vtu" )
-//   {
-//      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
-//      domain_type domain;
-//      
-//      viennagrid::io::importVTK(domain, inputfile);
-//   }
-//   else
-//   if(input_extension == "gau32")
-//   {
-//      typedef viennagrid::domain<viennagrid::config::triangular_3d>        domain_type;
-//      domain_type domain;
-//      
-//      viennagrid::io::importGAU(domain, inputfile);      
-//      
-//      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     gau_wrapper_type;
-//      gau_wrapper_type data_in(domain);      
-//      
-////      typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::consistancy>::type mesh_adaptor_type;
-////      mesh_adaptor_type mesh_adaptor;
-////      mesh_adaptor(data_in);
-//      
-//      
-//      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen, gau_wrapper_type>::type   gau_mesh_generator_type;
-//      gau_mesh_generator_type mesher(data_in);      
+         viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
+         my_vtk_writer.writeDomain(domain_out, outputfile);            
+      }
+   }
+   else      
+   if( input_extension == "vtu" )
+   {
+      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
+      domain_type domain;
+      
+      viennagrid::io::importVTK(domain, inputfile);
+   }
+   else
+   if(input_extension == "gau32")
+   {
+      typedef viennagrid::domain<viennagrid::config::triangular_3d>        domain_type;
+      domain_type domain;
+      
+      viennagrid::io::importGAU(domain, inputfile);      
+      
+      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     gau_wrapper_type;
+      gau_wrapper_type data_in(domain);      
+      
+//      typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::consistancy>::type mesh_adaptor_type;
+//      mesh_adaptor_type mesh_adaptor;
+//      mesh_adaptor(data_in);
+      
+      
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen, gau_wrapper_type>::type   gau_mesh_generator_type;
+      gau_mesh_generator_type mesher(data_in);      
 
-//      mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
+      mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
 
-//      typedef viennagrid::domain<viennagrid::config::tetrahedral_3d> domain_out_type;
-//      domain_out_type domain_out;      
-//      
-//      typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
-//      transfer_type  transfer;
-//      transfer(mesher, domain_out);      
-//      
-//      viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
-//      my_vtk_writer.writeDomain(domain_out, outputfile);      
-//   }
-//   else
-//   if(input_extension == "gts")
-//   {
-//      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
-//      domain_type domain;
-//      
-//      viennautils::io::gts_reader my_gts_reader;
-//      my_gts_reader(domain, inputfile);      
-//      
-//      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     vgrid_wrapper_type;
-//      vgrid_wrapper_type data_in(domain);      
-//      
-//      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::triangle, vgrid_wrapper_type>::type   mesh_generator_type;
-//      mesh_generator_type mesher(data_in);      
+      typedef viennagrid::domain<viennagrid::config::tetrahedral_3d> domain_out_type;
+      domain_out_type domain_out;      
+      
+      typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
+      transfer_type  transfer;
+      transfer(mesher, domain_out);      
+      
+      viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
+      my_vtk_writer.writeDomain(domain_out, outputfile);      
+   }
+   else
+   if(input_extension == "gts")
+   {
+      typedef viennagrid::domain<viennagrid::config::line_2d>                  domain_type;
+      domain_type domain;
+      
+      viennautils::io::gts_reader my_gts_reader;
+      my_gts_reader(domain, inputfile);      
+      
+      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     vgrid_wrapper_type;
+      vgrid_wrapper_type data_in(domain);      
+      
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::triangle, vgrid_wrapper_type>::type   mesh_generator_type;
+      mesh_generator_type mesher(data_in);      
 
-//      mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
+      mesher( boost::fusion::make_map<viennamesh::tag::criteria, viennamesh::tag::size>(viennamesh::tag::conforming_delaunay(), 1.0) );         
 
-//      typedef viennagrid::domain<viennagrid::config::triangular_2d> domain_out_type;
-//      domain_out_type domain_out;      
-//      
-//      typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
-//      transfer_type  transfer;
-//      transfer(mesher, domain_out);      
-//      
-//      viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
-//      my_vtk_writer.writeDomain(domain_out, outputfile);
-//   }
+      typedef viennagrid::domain<viennagrid::config::triangular_2d> domain_out_type;
+      domain_out_type domain_out;      
+      
+      typedef viennamesh::transfer<viennamesh::tag::viennagrid>      transfer_type;
+      transfer_type  transfer;
+      transfer(mesher, domain_out);      
+      
+      viennagrid::io::Vtk_writer<domain_out_type> my_vtk_writer;
+      my_vtk_writer.writeDomain(domain_out, outputfile);
+   }
    else
    {
       std::cerr << "## input file format not supported: " << input_extension << std::endl;

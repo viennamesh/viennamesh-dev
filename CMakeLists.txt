@@ -6,17 +6,23 @@ cmake_minimum_required(VERSION 2.6)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 
+# ------------------------------------------------------------------------------
+#
+# *** SET COMPILER FLAGS ***
+#
+# ------------------------------------------------------------------------------
 
-# set compiler flags
 IF(CMAKE_COMPILER_IS_GNUCXX)
-#   ADD_DEFINITIONS(-g -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -frounding-math)
-   ADD_DEFINITIONS(-g -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
-   #ADD_DEFINITIONS(-g)
-   #ADD_DEFINITIONS(-g -Wall -pedantic)
-   #ADD_DEFINITIONS(-O2)
-   #ADD_DEFINITIONS(-O2 -Wall -pedantic)
+   # Optimize Release Build Type with -O2 
+   set(CMAKE_CXX_FLAGS_RELEASE "-O2")  
+   # Strip binary   
+   set(CMAKE_EXE_LINKER_FLAGS "-s")    
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+# add specific debug flags
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+   ADD_DEFINITIONS(-DIODEBUG -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # ------------------------------------------------------------------------------
 #
@@ -26,35 +32,37 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # set modules directory
 #
-set(MODULES_DIR     ${CMAKE_SOURCE_DIR}/cmake )
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# check for BOOST
+# check for the Boost libraries
 #
-include(${MODULES_DIR}/FindBOOST.cmake)
-IF( BOOST_FOUND )
-   message(STATUS "setting BOOST Paths ..")
-   INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIRS})
-   LINK_DIRECTORIES(${BOOST_LIBRARIES})
-ENDIF()
+set(BOOST_MIN_VERSION 1.42.0)
+set(BOOST_LIBS thread)
+set(Boost_USE_STATIC_LIBS TRUE)
+set(Boost_USE_MULTITHREADED TRUE)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS ${BOOST_LIBS} REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
-# check for GMP
+# check for the PThreads library
 #
-include(${MODULES_DIR}/FindGMP.cmake)
-IF( GMP_FOUND )
-   message(STATUS "setting GMP Paths ..")
-   LINK_DIRECTORIES(${GMP_LIBRARIES})
-ENDIF()
+find_package(Threads REQUIRED)
 
-# check for CGAL
+# check for the GMP library
 #
-include(${MODULES_DIR}/FindCGAL.cmake)
-IF( CGAL_FOUND )
-   message(STATUS "setting CGAL Paths ..")
-   INCLUDE_DIRECTORIES(${CGAL_INCLUDE_DIRS})
-   LINK_DIRECTORIES(${CGAL_LIBRARIES})
-ENDIF()
+find_package(GMP REQUIRED)
+include_directories(${GMP_INCLUDE_DIRS})
+
+# check for the CGAL libraries
+#
+find_package(CGAL REQUIRED)
+ADD_DEFINITIONS(${CGAL_DEFINITIONS})   
+include_directories(${CGAL_INCLUDE_DIRS})
+
 # ------------------------------------------------------------------------------
-
+#
+# *** PROCESS RELATED CMAKE PROJECTS ***
+#
+# ------------------------------------------------------------------------------
 
 # build external libraries
 #   those have to be build bevore the collected include 
@@ -64,6 +72,12 @@ ADD_SUBDIRECTORY(external)
 
 # build ViennaUtils
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
+
+# ------------------------------------------------------------------------------
+#
+# *** SET INCLUDE PATHS OF MESH KERNELS AND RELATED VIENNASTAR PROJECTS ***
+#
+# ------------------------------------------------------------------------------
 
 # setup the include paths
 INCLUDE_DIRECTORIES(".")
@@ -93,28 +107,33 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 
 
+# ------------------------------------------------------------------------------
+#
+# *** SET MESH TOOLS RELATED LIBS ***
+#
+# ------------------------------------------------------------------------------
+set(CERVPT_LIBS  ${CGAL_LIBRARIES} ${GMP_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+set(GTSIO_LIBS gtsio3 z)
 
-
-
-#INCLUDE_DIRECTORIES("/mnt/data/libraries/vtk/vtk-install/include/vtk-5.6")
-#LINK_DIRECTORIES(/mnt/data/libraries/vtk/vtk-install/lib/vtk-5.6)
-
-# REMOVEME
-#add_subdirectory(tests)
+# ------------------------------------------------------------------------------
+#
+# *** SETUP APPLICATIONS ***
+#
+# ------------------------------------------------------------------------------
 
 #list all source files here
-#ADD_EXECUTABLE(viennamesh src/viennamesh.cpp)
-#ADD_EXECUTABLE(vgmodeler src/vgmodeler.cpp)
-#ADD_EXECUTABLE(ng src/netgen.cpp)
-#ADD_EXECUTABLE(tet src/tetgen.cpp)
 ADD_EXECUTABLE(generate src/generate.cpp)
 ADD_EXECUTABLE(mesh src/mesh.cpp)
+ADD_EXECUTABLE(playground src/playground.cpp)
+
+# ------------------------------------------------------------------------------
+#
+# *** LINK APPLICATIONS AGAINST SPECIFIC LIBRARIES ***
+#
+# ------------------------------------------------------------------------------
 
 #link specific libraries to specific executables
-#TARGET_LINK_LIBRARIES(viennamesh gtsio3 tetgen triangle vgmodeler_volume)
-#TARGET_LINK_LIBRARIES(vgmodeler vgmodeler_volume)
-#TARGET_LINK_LIBRARIES(ng netgen)
-#TARGET_LINK_LIBRARIES(tet tetgen)
-TARGET_LINK_LIBRARIES(generate gtsio3 netgen tetgen triangle vgmodeler_volume pugixml CGAL CGAL_Core gmp boost_thread)
+TARGET_LINK_LIBRARIES(generate netgen tetgen triangle vgmodeler_volume ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
 TARGET_LINK_LIBRARIES(mesh tetgen)
+TARGET_LINK_LIBRARIES(playground)
 
