@@ -30,6 +30,7 @@
 
 #include "viennamesh/interfaces/cervpt.hpp"
 #include "viennamesh/interfaces/netgen.hpp"
+#include "viennamesh/interfaces/tetgen.hpp"
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/transfer.hpp"
 #include "viennamesh/adaptors.hpp"
@@ -71,11 +72,6 @@ int main(int argc, char *argv[])
    std::string inputfile(argv[1]);
    std::string outputfile(argv[2]);
    
-//   std::string::size_type pos = inputfile.rfind(".")+1;
-//   std::string input_extension = inputfile.substr(pos, inputfile.size());
-//   pos = outputfile.rfind(".")+1;   
-//   std::string output_extension = outputfile.substr(pos, outputfile.size());
-
    std::string input_extension  = viennautils::file_extension(inputfile);
    std::string output_extension = viennautils::file_extension(outputfile);
 
@@ -92,7 +88,6 @@ int main(int argc, char *argv[])
       {
          viennautils::io::bnd_reader my_bnd_reader;
          my_bnd_reader(inputfile); 
-         //my_bnd_reader.dump();
 
          typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>     bnd_wrapper_type;
          bnd_wrapper_type wrapped_data(my_bnd_reader);      
@@ -113,7 +108,6 @@ int main(int argc, char *argv[])
       {
          viennautils::io::hin_reader my_hin_reader;
          my_hin_reader(inputfile);
-         //my_hin_reader.dump();
 
          typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>     hin_wrapper_type;
          hin_wrapper_type wrapped_data(my_hin_reader);      
@@ -138,7 +132,7 @@ int main(int argc, char *argv[])
       typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     gau_wrapper_type;
       gau_wrapper_type wrapped_data(domain);      
       
-      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type   netgen_mesh_generator_type;
+      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type   netgen_mesh_generator_type;
       netgen_mesh_generator_type mesher;      
 
       typedef netgen_mesh_generator_type::result_type        netgen_result_type;

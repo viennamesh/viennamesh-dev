@@ -32,8 +32,10 @@
 #include <boost/fusion/include/has_key.hpp>
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/make_map.hpp>
+#include <boost/shared_ptr.hpp>
 
 // *** tetgen includes
+// note: macros need to be set before including tetgen.h ..
 #define REAL double
 #define TETLIBRARY
 #include "tetgen/tetgen.h"
@@ -43,6 +45,7 @@
 #include "viennautils/contio.hpp"
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
+#include "viennagrid/domain.hpp"
 
 //#define MESH_KERNEL_DEBUG
 //#define MESH_KERNEL_DEBUG_FULL
@@ -51,33 +54,40 @@ namespace viennamesh {
 
 /** @brief tag-dispatched mesher kernel specialization for Tetgen
 */   
-template <typename DatastructureT>
-struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
+template<>
+struct mesh_kernel <viennamesh::tag::tetgen>
 {
+private:
    // -------------------------------------------------------------------------------------
-   typedef REAL      numeric_type;  
-   typedef int       integer_type;
+   typedef REAL            numeric_type;  
+   typedef std::size_t     integer_type;
 
-   static const int DIMG = 3;
-   static const int DIMT = 3;
-   static const int CELL_SIZE = DIMT+1;            // this holds only for simplices
+   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
+   typedef domain_type::config_type                                  domain_configuration_type;
+   typedef domain_configuration_type::cell_tag                       cell_tag;
    
-   typedef boost::array< numeric_type , DIMG >        point_type;
-   typedef boost::array< numeric_type , CELL_SIZE >   cell_type;
-   typedef std::vector < cell_type >                  topology_container_type;   
-   
-   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef typename DatastructureT::cell_type         vmesh_cell_type;
-   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;   
+   typedef viennagrid::result_of::ncell_type<domain_configuration_type, 0>::type                            vertex_type;   
+   typedef viennagrid::result_of::ncell_type<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
+   typedef viennagrid::result_of::ncell_container<domain_type, cell_tag::topology_level>::type              cell_container;
+   typedef viennagrid::result_of::ncell_container<cell_type, 0>::type                                       vertex_on_cell_container_type;
+   typedef viennagrid::result_of::iterator<vertex_on_cell_container_type>::type                             vertex_on_cell_iterator_type;
+
+   static const int DIMG = domain_configuration_type::dimension_tag::value;
+   static const int DIMT = domain_configuration_type::cell_tag::topology_level;   
+   static const int CELLSIZE = DIMT+1;
+
+   typedef viennamesh::mesh_kernel<viennamesh::tag::tetgen>          self_type;
+
+   typedef boost::array<numeric_type, DIMG>                          point_type;
    // -------------------------------------------------------------------------------------   
-
-   typedef std::vector < point_type >              geometry_container_type;
-   typedef std::vector <topology_container_type>   segment_container_type;      
-   typedef viennamesh::tag::mesh_kernel            datastructure_type; // type is used for viennamesh::traits   
+public:
+   typedef viennamesh::tag::mesh_kernel            datastructure_type; 
+   typedef domain_ptr_type                         result_type;
    // -------------------------------------------------------------------------------------   
    /** @brief constructor expects a ViennaMesh::wrapped datastructure
    */      
-   mesh_kernel(DatastructureT & data) : data(data) 
+   mesh_kernel()
    {
       mesh_kernel_id = "Tetgen";      
       
@@ -85,8 +95,48 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
    #endif
-      this->init();
-      
+   }
+   // -------------------------------------------------------------------------------------
+   
+   // -------------------------------------------------------------------------------------   
+   /** @brief destructor takes care of releasing mesh kernel memory
+   */      
+   ~mesh_kernel()
+   {
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - shutting down" << std::endl;
+   #endif
+      this->clear();
+   }   
+   // -------------------------------------------------------------------------------------
+   
+   // -------------------------------------------------------------------------------------   
+   /** @brief functor expects a parameter set based on a boost::fusion::map
+   */   
+   template <typename DatastructureT>
+   result_type operator()(DatastructureT& data) // default meshing
+   {
+      return (*this)(data, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
+   }   
+   template<typename DatastructureT, typename ParametersMapT>
+   result_type operator()(DatastructureT& data, ParametersMapT const& paras )  // TODO provide ct-test if fusion::map
+   {
+      // redirect to reference implementation 
+      ParametersMapT paras_new(paras);
+      return (*this)(data, paras_new);
+   }
+   template<typename DatastructureT, typename ParametersMapT>
+   result_type operator()(DatastructureT& data, ParametersMapT & paras)   // TODO provide ct-test if fusion::map
+   {  
+      this->init();   
+   
+      typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
+      typedef typename DatastructureT::cell_type         vmesh_cell_type;
+      typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;   
+
+      this->setOptions(paras);
+
+
       size_t segment_size = data.segment_size();
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
@@ -105,7 +155,7 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
          {
             point_type pnt;
             typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
-            this->find_point_in_segment(segment, pnt);
+            this->find_point_in_segment<DatastructureT>(data, segment, pnt);
             
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
@@ -201,70 +251,9 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
             }
          #endif
 
-//            for(size_t i = 0; i < vmesh_cell.size(); i++)  
-//               cell[i] = vmesh_cell[i];
-//            std::sort(cell.begin(), cell.end());
-//            //std::cout << cell[0] << " " << cell[1] << " " << cell[2] << std::endl;
-//            if(!cell_uniquer[cell])
-//            {
-//            #ifdef MESH_KERNEL_DEBUG_FULL
-//               std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding constraint   " << 
-//                  cell_cnt << " : ";
-//               for(size_t i = 0; i < cell.size(); i++)  
-//                  std::cout << cell[i] << " ";
-//               std::cout << std::endl;
-//               cell_cnt++;
-//            #endif               
-//               cell_uniquer[cell] = true;
-//               
-//               this->addConstraint(vmesh_cell);
-//            }
-//         #ifdef MESH_KERNEL_DEBUG_FULL
-//            else
-//            { 
-//               std::cout << "## MeshKernel::"+mesh_kernel_id+" - skipping constraint " << 
-//                  cell_cnt << " : ";
-//               for(size_t i = 0; i < cell.size(); i++)  
-//                  std::cout << cell[i] << " ";
-//               std::cout << std::endl;
-//            }
-//         #endif
          }
-         //si++;
       }            
-   }
-   // -------------------------------------------------------------------------------------
-   
-   // -------------------------------------------------------------------------------------   
-   /** @brief destructor takes care of releasing mesh kernel memory
-   */      
-   ~mesh_kernel()
-   {
-   #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::"+mesh_kernel_id+" - shutting down" << std::endl;
-   #endif
-      this->clear();
-   }   
-   // -------------------------------------------------------------------------------------
-   
-   // -------------------------------------------------------------------------------------   
-   /** @brief functor expects a parameter set based on a boost::fusion::map
-   */   
-   void operator()() // default meshing
-   {
-      (*this)(boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
-   }   
-   template<typename ParametersMapT>
-   void operator()(ParametersMapT const& paras )  // TODO provide ct-test if fusion::map
-   {
-      // redirect to reference implementation 
-      ParametersMapT paras_new(paras);
-      (*this)(paras_new);
-   }
-   template<typename ParametersMapT>
-   void operator()(ParametersMapT & paras)   // TODO provide ct-test if fusion::map
-   {  
-      this->setOptions(paras);
+
       // if there are more than one regions, spread the regional attribute
       if(in.numberofregions > 1) options.append("A");  
       
@@ -303,19 +292,27 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting geometry" << std::endl;
    #endif               
       
+      domain_ptr_type domain(new domain_type);               
+      
       //
       // extracting geometry data
       //
-      geometry_cont.resize(out.numberofpoints);
-      for(integer_type pnt_index = 0; pnt_index < out.numberofpoints; ++pnt_index)
+      domain->reserve_vertices(out.numberofpoints);             
+
+      std::size_t point_cnt = 0;
+      for(long pnt_index = 0; pnt_index < out.numberofpoints; ++pnt_index)
       {
          integer_type index = pnt_index * 3;
          
-         point_type pnt;
+         numeric_type pnt[DIMG];
          pnt[0] = out.pointlist[index];
          pnt[1] = out.pointlist[index+1];
          pnt[2] = out.pointlist[index+2];         
-         geometry_cont[pnt_index] = pnt;
+
+         vertex_type    vertex;
+         vertex.getPoint().setCoordinates(pnt);         
+         vertex.setID(point_cnt++);
+         domain->add(vertex);
       }      
       
       std::size_t seg_id = 0;
@@ -330,17 +327,21 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       // in the case of a single segment, this particular method is never 
       // called, therefore we have to set it manually to one
       if(segment_index == 0) segment_index = 1; 
-      segment_cont.resize(segment_index);
-      for(integer_type tet_index = 0; tet_index < out.numberoftetrahedra; ++tet_index)
+      
+      domain->create_segments(segment_index);
+      domain->reserve_cells(out.numberoftetrahedra);
+      
+      for(long tet_index = 0; tet_index < out.numberoftetrahedra; ++tet_index)
       {
          integer_type index = tet_index * 4; 
 
-         cell_type cell;
-         cell[0] = out.tetrahedronlist[index];
-         cell[1] = out.tetrahedronlist[index+1];
-         cell[2] = out.tetrahedronlist[index+2];         
-         cell[3] = out.tetrahedronlist[index+3];                  
-         
+         vertex_type *vertices[CELLSIZE];
+
+         vertices[0] = &(domain->vertex( out.tetrahedronlist[index] ));
+         vertices[1] = &(domain->vertex( out.tetrahedronlist[index+1] ));
+         vertices[2] = &(domain->vertex( out.tetrahedronlist[index+2] ));
+         vertices[3] = &(domain->vertex( out.tetrahedronlist[index+3] ));                           
+
          // only access triangle attributes if there are any
          // otherwise we get ourselves a segfault
          // if, for example, there is only one region, 
@@ -357,7 +358,9 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       #ifdef MESH_KERNEL_DEBUG
          seg_check[seg_id] = true;
       #endif
-         segment_cont[seg_id].push_back(cell);
+         cell_type cell;
+         cell.setVertices(vertices);
+         domain->segment(seg_id).add(cell);
       }
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracted segments: ";
@@ -368,21 +371,12 @@ struct mesh_kernel <viennamesh::tag::tetgen, DatastructureT>
       }
       std::cout << std::endl;
    #endif
+      this->clear();
+      return domain;
    }
    
    // -------------------------------------------------------------------------------------
 
-   // -------------------------------------------------------------------------------------
-   inline geometry_container_type &
-   geometry() const  { return geometry_cont; }         
-   inline geometry_container_type &
-   geometry()        { return geometry_cont; }         
-   // -------------------------------------------------------------------------------------
-   inline segment_container_type &
-   topology() const  { return segment_cont; }       
-   inline segment_container_type &
-   topology()        { return segment_cont; }       
-   // -------------------------------------------------------------------------------------
 
 private:   
    
@@ -399,59 +393,98 @@ private:
    // -------------------------------------------------------------------------------------   
    
    // -------------------------------------------------------------------------------------   
-   void find_point_in_segment(typename DatastructureT::cell_complex_wrapper_type & cell_complex, 
+   template<typename DatastructureT>
+   void find_point_in_segment(DatastructureT& data, 
+                              typename DatastructureT::cell_complex_wrapper_type & cell_complex, 
                               point_type& pnt)
    {
+      self_type   temp_mesher;
+      temp_mesher.init();
+   
+      typedef typename DatastructureT::geometry_iterator geometry_iterator;
+      typedef typename DatastructureT::cell_type         vmesh_cell_type;      
+      typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;         
+
       std::map<std::size_t, bool>  pnt_uniquer;
       std::map<std::size_t, std::size_t> index_map;
       std::size_t point_cnt = 0;
-      typedef typename DatastructureT::geometry_iterator geometry_iterator;
+
       for(vmesh_cell_iterator cit = cell_complex.cell_begin();
             cit != cell_complex.cell_end(); cit++)
       {
          vmesh_cell_type cell = *cit;
-         for(int dim = 0; dim < cell.size(); dim++)
+         for(std::size_t dim = 0; dim < cell.size(); dim++)
          {
             if(!pnt_uniquer[cell[dim]])
             {  
-               geometry_iterator geo = this->data.geometry_begin();
+               geometry_iterator geo = data.geometry_begin();
                std::advance(geo, cell[dim]);
-               this->addPoint( *geo ); 
+
+               temp_mesher.addPoint( *geo ); 
+
                pnt_uniquer[cell[dim]] = true;
                index_map[cell[dim]] = point_cnt;
                point_cnt++;
             }
          }
          std::vector<numeric_type> mapped_cell(cell.size());
-         for(int i = 0; i < cell.size(); i++)
+         for(std::size_t i = 0; i < cell.size(); i++)
          {
            mapped_cell[i] = index_map[cell[i]];
          }
          
-         this->addConstraint(mapped_cell);
+         temp_mesher.addConstraint(mapped_cell);
       }
-      
-      // minimal meshing
-      (*this)();     
 
-      //std::cout << this->segment_cont.size() << " " << this->segment_cont[0].size() << std::endl;
+      // minimal meshing
+      result_type temp_domain = temp_mesher(data);     
       
-      // check if there is at least one segment and at least one cell on this segment
-      if(this->segment_cont.size() > 0 && this->segment_cont[0].size() > 0)
+      if(temp_domain->template size<cell_tag::topology_level>() != 0)
       {
-         std::size_t cellid = 0;
-         this->barycenter(
-            geometry_cont[segment_cont[0][cellid][0]],  // first segment, first cell, first vertex
-            geometry_cont[segment_cont[0][cellid][1]],  // first segment, first cell, second vertex
-            geometry_cont[segment_cont[0][cellid][2]],  // first segment, first cell, third vertex
-            geometry_cont[segment_cont[0][cellid][3]],  // first segment, first cell, third vertex                          
-            pnt
-         );
+         cell_container cells = viennagrid::ncells<cell_tag::topology_level>(*temp_domain);      
+         cell_type & cell = *(cells.begin());
+         
+         std::vector< point_type >  cell_points;
+         
+          vertex_on_cell_container_type vertices = viennagrid::ncells<0>(cell);
+          for (vertex_on_cell_iterator_type vocit = vertices.begin();
+               vocit != vertices.end();
+                ++vocit)
+          {
+             point_type pnt;
+             pnt[0] = vocit->getPoint()[0];
+             pnt[1] = vocit->getPoint()[1];
+             pnt[2] = vocit->getPoint()[2];                          
+             cell_points.push_back( pnt );
+          }
+          
+          this->barycenter(cell_points[0], cell_points[1], cell_points[2], cell_points[3], pnt);
+          std::cout << "pnt: " << pnt[0] << std::endl;
+          return;
       }
       else 
       {
          std::cout << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
       }
+
+      //std::cout << this->segment_cont.size() << " " << this->segment_cont[0].size() << std::endl;
+      
+//      // check if there is at least one segment and at least one cell on this segment
+//      if(this->segment_cont.size() > 0 && this->segment_cont[0].size() > 0)
+//      {
+//         std::size_t cellid = 0;
+//         this->barycenter(
+//            geometry_cont[segment_cont[0][cellid][0]],  // first segment, first cell, first vertex
+//            geometry_cont[segment_cont[0][cellid][1]],  // first segment, first cell, second vertex
+//            geometry_cont[segment_cont[0][cellid][2]],  // first segment, first cell, third vertex
+//            geometry_cont[segment_cont[0][cellid][3]],  // first segment, first cell, third vertex                          
+//            pnt
+//         );
+//      }
+//      else 
+//      {
+//         std::cout << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
+//      }
       this->reset();
    }
    // -------------------------------------------------------------------------------------         
@@ -626,8 +659,6 @@ private:
    void clear()
    {
       freeMem();
-      geometry_cont.clear();
-      segment_cont.clear();    
    }
    // -------------------------------------------------------------------------------------           
 
@@ -642,7 +673,7 @@ private:
    // -------------------------------------------------------------------------------------           
    void freeMem()
    {
-      for(integer_type facet_index = 0; facet_index <  in.numberoffacets; ++facet_index)
+      for(long facet_index = 0; facet_index <  in.numberoffacets; ++facet_index)
       {
          f = &in.facetlist[facet_index];    
          p = &f->polygonlist[0];
@@ -661,8 +692,6 @@ private:
    // -------------------------------------------------------------------------------------           
    
    // -------------------------------------------------------------------------------------   
-   DatastructureT & data;   
-   
    std::string    options;
 
    tetgenio          in, 
@@ -676,8 +705,6 @@ private:
                   mesher_facet_index,
                   segment_index;   
                   
-   geometry_container_type      geometry_cont;      
-   segment_container_type       segment_cont;                     
 
    std::string mesh_kernel_id;
 };
