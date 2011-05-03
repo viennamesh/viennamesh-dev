@@ -50,10 +50,10 @@ namespace viennamesh {
 template<>
 struct mesh_kernel <viennamesh::tag::cervpt>
 {
+private:
    // -------------------------------------------------------------------------------------
    typedef long       integer_type;
    // -------------------------------------------------------------------------------------   
-
    typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
@@ -65,9 +65,9 @@ struct mesh_kernel <viennamesh::tag::cervpt>
 
    static const int DIMG = domain_configuration_type::dimension_tag::value;
    static const int DIMT = domain_configuration_type::cell_tag::topology_level;
-
-   typedef viennamesh::tag::mesh_kernel            datastructure_type; // type is used for viennamesh::traits   
-   
+   // -------------------------------------------------------------------------------------   
+public:
+   typedef viennamesh::tag::mesh_kernel            datastructure_type; 
    typedef domain_ptr_type                         result_type;
    // -------------------------------------------------------------------------------------   
    /** @brief constructor expects a ViennaMesh::wrapped datastructure

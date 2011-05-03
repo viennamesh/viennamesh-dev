@@ -28,7 +28,6 @@
 #include "viennautils/dumptype.hpp"
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
-#include "viennagrid/domain.hpp"
 
 namespace nglib {
 #include "nglib.h"
@@ -44,71 +43,45 @@ namespace nglib {
 
 namespace viennamesh {
 
-template<>
-struct mesh_kernel <viennamesh::tag::netgen>
+template <typename DatastructureT>
+struct mesh_kernel <viennamesh::tag::netgen, DatastructureT>
 {
-private:
    // -------------------------------------------------------------------------------------      
+   typedef double    numeric_type;  
    typedef int       integer_type;
 
-   typedef viennagrid::domain<viennagrid::config::tetrahedral_3d>    domain_type;
-   typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
-   typedef domain_type::config_type                                  domain_configuration_type;
-   typedef domain_configuration_type::numeric_type                   numeric_type;
-   typedef domain_configuration_type::cell_tag                       cell_tag;
-   
-   typedef viennagrid::result_of::ncell_type<domain_configuration_type, 0>::type                            vertex_type;   
-   typedef viennagrid::result_of::ncell_type<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
-
-   static const int DIMG = domain_configuration_type::dimension_tag::value;
-   static const int DIMT = domain_configuration_type::cell_tag::topology_level;
+   static const int DIMG = 3;
+   static const int DIMT = 3;
    static const int CELL_SIZE = DIMT+1;            // this holds only for simplices
- 
+   
+   typedef boost::array< numeric_type , DIMG >        point_type;
+   typedef boost::array< numeric_type , CELL_SIZE >   cell_type;
+   typedef std::vector < cell_type >                  topology_container_type;      
+   
+   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef typename DatastructureT::geometry_iterator vmesh_geometry_iterator;   
+   typedef typename DatastructureT::cell_type         vmesh_cell_type;
+   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
+   typedef typename DatastructureT::point_type        vmesh_point_type;         
+   
    typedef boost::shared_ptr<nglib::Ng_Mesh>          mesh_pointer_type;
    typedef std::vector<mesh_pointer_type>             mesh_container_type;
-   typedef mesh_container_type::iterator              mesh_iterator_type;         
-
-   typedef std::vector<vertex_type>                   vertex_container_type;
-
-   // -------------------------------------------------------------------------------------         
-public:
-   typedef viennamesh::tag::mesh_kernel            datastructure_type; 
-   typedef domain_ptr_type                         result_type;
+   typedef typename mesh_container_type::iterator     mesh_iterator_type;         
+   typedef typename std::map<point_type, std::size_t> vertex_map_type;
+   typedef typename vertex_map_type::iterator         vertex_map_iterator_type;   
+   
+   typedef std::vector < point_type >              geometry_container_type;
+   typedef std::vector <topology_container_type>   segment_container_type;         
+   typedef viennamesh::tag::mesh_kernel            datastructure_type; // type is used for viennamesh::traits
    // -------------------------------------------------------------------------------------         
    
-   mesh_kernel()
+   mesh_kernel(DatastructureT & data) : data(data) 
    {
       mesh_kernel_id = "Netgen";      
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
    #endif      
-   }
-   
-   // -------------------------------------------------------------------------------------      
-   ~mesh_kernel()
-   {
-   #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::"+mesh_kernel_id+" - shutting down" << std::endl;
-   #endif
-   }      
-   // -------------------------------------------------------------------------------------      
-   
-   // -------------------------------------------------------------------------------------      
-   template <typename DatastructureT>
-   result_type operator()(DatastructureT& data) // default meshing
-   {
-      return (*this)(data, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
-   }   
-   template<typename DatastructureT, typename ParametersMapT>
-   result_type operator()(DatastructureT& data, ParametersMapT const& paras )  // TODO provide ct-test if fusion::map
-   {
-      // redirect to reference implementation 
-      ParametersMapT paras_new(paras);
-      return (*this)(data, paras_new);
-   }
-   template<typename DatastructureT, typename ParametersMapT>
-   result_type operator()(DatastructureT& data, ParametersMapT & paras)   // TODO provide ct-test if fusion::map
-   {  
+
       std::size_t segment_size = data.segment_size();
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
@@ -119,15 +92,6 @@ public:
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with single-segment input" << std::endl;
    #endif                 
       const double value_min = 1.0e-15;   
-      
-      domain_ptr_type domain(new domain_type);         
-      
-      typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
-      typedef typename DatastructureT::geometry_iterator vmesh_geometry_iterator;   
-      typedef typename DatastructureT::cell_type         vmesh_cell_type;
-      typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
-      typedef typename DatastructureT::point_type        vmesh_point_type;         
-      
    
       std::size_t segment_cnt = 0;
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
@@ -216,10 +180,33 @@ public:
          segment_cnt++;
          mesh_container.push_back(meshpnt);         
       }            
+   }
    
+   // -------------------------------------------------------------------------------------      
+   ~mesh_kernel()
+   {
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - shutting down" << std::endl;
+   #endif
+
+   }      
+   // -------------------------------------------------------------------------------------      
    
-   
-   
+   // -------------------------------------------------------------------------------------      
+   void operator()() // default meshing
+   {
+      (*this)(boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
+   }   
+   template<typename ParametersMapT>
+   void operator()(ParametersMapT const& paras )  // TODO provide ct-test if fusion::map
+   {
+      // redirect to reference implementation 
+      ParametersMapT paras_new(paras);
+      (*this)(paras_new);
+   }
+   template<typename ParametersMapT>
+   void operator()(ParametersMapT & paras)   // TODO provide ct-test if fusion::map
+   {  
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - meshing:" << std::endl;
          std::cout << "  input region size: " << mesh_container.size() << std::endl;            
@@ -230,35 +217,21 @@ public:
          std::size_t region_cnt = 0;
       #endif            
       
+       // the mesh container size is the domain::segment size
+       segment_cont.resize(mesh_container.size());         
+
       // count the current mesh aka the current segment
       std::size_t mesh_cnt = 0;
       // threadID ensures that calclocalH and meshvolume get the same 
       // threadID. it is not used currently for parallel meshing, 
       // but for future extensions .. 
-      //std::size_t threadID = 0;
+      std::size_t threadID = 0;
 
       // map ensures a unique point set
-      // note: as we process one segment after another, 
-      // we need to keep track of the points of the previously processed segments ..
-      typedef boost::array<numeric_type, DIMG>           point_type;
-      typedef std::map<point_type, std::size_t>          vertex_map_type;
-      typedef vertex_map_type::iterator                  vertex_map_iterator_type;      
       vertex_map_type vertex_domain_mapping;
-      
-      // we have to use a temporary cell container too .. for the same reasons
-      typedef std::vector<cell_type>                   cell_cont_type;
-      typedef std::map<std::size_t, cell_cont_type >   segment_cell_map_type;
-      segment_cell_map_type segment_cell_map;
-      
-      // this container is a temporary container, which stores 
-      // the viennagrid vertices.
-      vertex_container_type vertex_container;
       
       // counts the global number of unique points
       std::size_t point_cnt = 0;
-      
-      // and the global number of cells ..
-      std::size_t global_cell_size = 0;
       
       for(mesh_iterator_type mesh_iter = mesh_container.begin();
           mesh_iter != mesh_container.end(); mesh_iter++)
@@ -295,39 +268,34 @@ public:
       #endif            
          
          std::map<std::size_t, std::size_t>  mesh_domain_mapping; 
-
-
-         
-         for(long i = 1; i <= point_size; i++)
+  
+        
+         for(std::size_t i = 1; i <= point_size; i++)
          {
-            numeric_type point[DIMG];
-            nglib::Ng_GetPoint (&(*meshpnt), i, point);
-
-            // note: we cannot use the array point for the lookup table,
-            // as arrays do not fulfill the map requirements, ie, copy constructible
-            // therefore we have to create a temporary point object, a boost array ..
-            point_type bpoint = {{ point[0],point[1],point[2] }}; 
-            vertex_map_iterator_type vdm_it = vertex_domain_mapping.find(bpoint);
-
+            //std::cout << "direct point output: " << (*meshpnt)[i] << std::endl;
+            
+            double ngpoint[DIMG];
+            nglib::Ng_GetPoint (&(*meshpnt), i, ngpoint);
+            point_type point = {{ ngpoint[0],ngpoint[1],ngpoint[2] }}; 
+            vertex_map_iterator_type vdm_it = vertex_domain_mapping.find(point);
             if(vdm_it == vertex_domain_mapping.end())          // point is not in the map
             {   
-               vertex_domain_mapping[bpoint] = point_cnt;
-               mesh_domain_mapping[i]       = point_cnt;
-
-               vertex_type    vertex;
-               vertex.getPoint().setCoordinates(point);         
-               vertex.setID(point_cnt);
-         
-               // we cannot directly push the vertices on the viennagrid domain, 
-               // as we have to know, how many in total we have. 
-               // therefore, we collect em in this container, and after all segments 
-               // have been processed, we push them alltogether on the domain
-               vertex_container.push_back(vertex);
-
+                //std::cout << "point is new " << std::endl;
+                //std::cout << "  mapping: " << point[0] << " " << point[1] << " " << point[2] << " -- " << point_cnt << std::endl;
+               vertex_domain_mapping[point] = point_cnt;
+               //mesh_domain_mapping[i-netgen::PointIndex::BASE] = point_cnt;
+                //std::cout << "  mapping: " << i << " -- " << point_cnt << std::endl;
+               mesh_domain_mapping[i] = point_cnt;
+               //std::cout << "   mapping: " << i-netgen::PointIndex::BASE << " -- " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+               //geometry_cont[i-netgen::PointIndex::BASE] = point;
+               //std::cout << point[0] << " " << point[1] << " " << point[2] << std::endl;
+               geometry_cont.push_back(point);
                point_cnt++;
             }
-            else  // point is already in the map - use this handle
+            else                                       // point is already in the map - use this handle
             {
+                //std::cout << "point alread added: " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+                //std::cout << "  mapping: " << i << " -- " << (*vdm_it).second << std::endl;
                mesh_domain_mapping[i] = (*vdm_it).second;    
             }            
 
@@ -336,65 +304,41 @@ public:
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
       #endif          
-         for(long i = 1; i <= element_size; i++)
+         for(std::size_t i = 1; i <= element_size; i++)
          {
-            int ngcell[CELL_SIZE]; 
-            
+            int ngcell[CELL_SIZE]; // netgen requires an int array ..:(
             nglib::Ng_GetVolumeElement (&(*meshpnt), i, ngcell);            
-
-               
-            vertex_type *vertices[CELL_SIZE];      
-
-            for(int ci = 0; ci < CELL_SIZE; ci++)
-            {
-               vertices[ci] = &(domain->vertex(ngcell[ci]));
-            }
-            
-            cell_type cell;
-            cell.setVertices(vertices);
-            segment_cell_map[mesh_cnt].push_back(cell);
-            global_cell_size++;
+            cell_type cell = {{ mesh_domain_mapping[ngcell[0]], 
+                                mesh_domain_mapping[ngcell[1]], 
+                                mesh_domain_mapping[ngcell[2]], 
+                                mesh_domain_mapping[ngcell[3]] }};
+            segment_cont[mesh_cnt].push_back(cell);
          }
          mesh_cnt++;
        }            
-       
-       
-      domain->reserve_vertices(vertex_container.size());       
-      for(vertex_container_type::iterator iter = vertex_container.begin();
-          iter != vertex_container.end(); iter++)
-      {
-         domain->add(*iter);
-      }
-      
-       
-      domain->create_segments(mesh_cnt);             
-       
-      // now that all segments and cells have been read, and due to that 
-      // we are aware of how many cells in total there are, 
-      // we can actually create the cells within the domain
-      std::cout << "global cell size: " << global_cell_size << std::endl;
-      domain->reserve_cells(global_cell_size);
-
-      for(typename segment_cell_map_type::iterator sit = segment_cell_map.begin();
-          sit != segment_cell_map.end(); sit++)
-      {
-         for(typename cell_cont_type::iterator cit = sit->second.begin();
-             cit != sit->second.end(); cit++)
-         {
-            domain->segment(sit->first).add(*cit);            
-         }
-      }       
-       
-      mesh_container.clear(); // cleanup ..
-      return domain;
    }
    // -------------------------------------------------------------------------------------     
    
+   // -------------------------------------------------------------------------------------
+   inline geometry_container_type &
+   geometry() const  { return geometry_cont; }         
+   inline geometry_container_type &
+   geometry()        { return geometry_cont; }         
+   // -------------------------------------------------------------------------------------
+   inline segment_container_type &
+   topology() const  { return segment_cont; }       
+   inline segment_container_type &
+   topology()        { return segment_cont; }       
+   // -------------------------------------------------------------------------------------      
+   
 private:   
    // -------------------------------------------------------------------------------------     
+   DatastructureT &              data;     
+   geometry_container_type       geometry_cont;      
+   segment_container_type        segment_cont;           
+   mesh_container_type           mesh_container;
    nglib::Ng_Meshing_Parameters  mesh_parameters;   
    std::string                   mesh_kernel_id;   
-   mesh_container_type           mesh_container;   
    // -------------------------------------------------------------------------------------     
 };
 
