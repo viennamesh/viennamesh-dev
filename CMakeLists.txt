@@ -21,7 +21,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # add specific debug flags
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-   ADD_DEFINITIONS(-DIODEBUG -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
+   ADD_DEFINITIONS(-Wall -DIODEBUG -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # ------------------------------------------------------------------------------
@@ -123,8 +123,10 @@ set(GTSIO_LIBS gtsio3 z)
 
 #list all source files here
 ADD_EXECUTABLE(generate src/generate.cpp)
-ADD_EXECUTABLE(mesh src/mesh.cpp)
-ADD_EXECUTABLE(playground src/playground.cpp)
+#ADD_EXECUTABLE(mesh src/mesh.cpp)
+#ADD_EXECUTABLE(playground src/playground.cpp)
+#ADD_EXECUTABLE(playground2 src/playground2.cpp)
+#ADD_EXECUTABLE(playground3 src/playground3.cpp)
 
 # ------------------------------------------------------------------------------
 #
@@ -134,6 +136,5 @@ ADD_EXECUTABLE(playground src/playground.cpp)
 
 #link specific libraries to specific executables
 TARGET_LINK_LIBRARIES(generate netgen tetgen triangle vgmodeler_volume ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
-TARGET_LINK_LIBRARIES(mesh tetgen)
-TARGET_LINK_LIBRARIES(playground)
+#TARGET_LINK_LIBRARIES(mesh tetgen)
 

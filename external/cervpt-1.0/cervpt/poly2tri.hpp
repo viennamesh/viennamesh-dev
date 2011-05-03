@@ -193,6 +193,7 @@ void correct_polys(polys_c &polys, const std::vector <long> &poly, const long ia
 		for (unsigned long j=0; j<polys[i].size(); j++)
 		{
 			if (polys[i][j]==poly[ia])
+			{
 				if (polys[i][(j+1)%polys[i].size()]==poly[ie])
 				{
 
@@ -208,6 +209,7 @@ void correct_polys(polys_c &polys, const std::vector <long> &poly, const long ia
 						polys[i].insert(polys[i].begin()+j,poly[k]);
 					continue;
 				}
+			}
 		}
 	}
 }
@@ -247,7 +249,7 @@ long insert_point(points_c &points, poly_c &poly, const long iaa, const long iee
 }
 
 void insert_point(points_c &points, std::vector<Point> &cgal_poly, std::map<Point,long> &find_cgal_poly, Point &p2d,
-		point_c &v1, point_c &v1n, point_c &vn, point_c &p0, map<long,long> &addpoints)
+		point_c &v1, point_c &v1n, point_c &vn, point_c &p0, std::map<long,long> &addpoints)
 {
 	double l=(p2d.x())/fabs(v1),m=(p2d.y())/fabs(v1n);
 
@@ -293,7 +295,7 @@ void project_poly(const points_c &points, const poly_c &poly, std::map<long, poi
 	if (poly.size()==3)
 		goto found;
     }
-    cerr << "No good vector found¿n";
+    std::cerr << "No good vector found¿n";
 	throw;
 
     found:
@@ -412,9 +414,9 @@ long triangulate_poly(points_c &points,                        // global point c
        		eit != cdt.finite_edges_end();
        		++eit)
   	{
-    		CDT::Edge &e=*eit;
+    		//CDT::Edge &e=*eit;
     		//cout << eit->second << " ";
-    		CDT::Face &f=*eit->first;
+    		//CDT::Face &f=*eit->first;
     		//cout << *f.vertex(f.ccw(eit->second)) << " ";
     		//cout << *f.vertex(f.cw(eit->second)) << endl;
     		if (cdt.is_constrained(*eit)) ++count;
@@ -430,7 +432,7 @@ long triangulate_poly(points_c &points,                        // global point c
 	{
 		const Point &pa=C->first.first->point();
 		const Point &pe=C->first.second->point();
-		long i;
+		std::size_t i;
 		long direction=0;
 		for (i=0; i<cgal_poly.size(); i++)
 		{
@@ -439,7 +441,7 @@ long triangulate_poly(points_c &points,                        // global point c
 		}
 		if (i==cgal_poly.size())
 		{
-			cerr << "Constraint start in Poly not found\n";
+			std::cerr << "Constraint start in Poly not found\n";
 			throw;
 		}
 		if (cgal_poly[(i+1)%cgal_poly.size()]==pe)
@@ -448,7 +450,7 @@ long triangulate_poly(points_c &points,                        // global point c
 			direction=-1;
 		else
 		{
-			cerr << "Constraint end in Poly not found\n";
+			std::cerr << "Constraint end in Poly not found\n";
 			throw;
 		}
 		//cerr << "SUBCONSTRAINT: " << C->second->size() << endl;
@@ -484,12 +486,12 @@ long triangulate_poly(points_c &points,                        // global point c
 				pidx=insert_point(points,poly,i,j,k,pe,pa,(*V)->point());
 				j++;
 			}
-			cerr << "Boundary insert " << pidx << endl;
+			std::cerr << "Boundary insert " << pidx << std::endl;
 		}
 		correct_polys(polys,poly,i,j);
 		if (V==C->second->end())
 		{
-			cerr << "Endpoint of constraint not in poly\n";
+			std::cerr << "Endpoint of constraint not in poly\n";
 			throw;
 		}
 	}
@@ -545,7 +547,7 @@ long triangulate_poly(points_c &points,                        // global point c
 			if (find_cgal_poly.find(ph->point())==find_cgal_poly.end())
 			{
 				insert_point(points,cgal_poly,find_cgal_poly,ph->point(),v1,v1n,vnref,p0,addpoints);
-				cerr << "Inside insert " << find_cgal_poly[ph->point()] << endl;
+				std::cerr << "Inside insert " << find_cgal_poly[ph->point()] << std::endl;
 			}
 			const long idx=find_cgal_poly[ph->point()];
 
@@ -589,7 +591,7 @@ long triangulate_poly(points_c &points,                        // global point c
 	}
 	if (direction==2 || direction==-2 || direction==0)
 	{
-		cerr << "Direction changes " << direction << "\n";
+		std::cerr << "Direction changes " << direction << "\n";
 		throw;
 	}
 

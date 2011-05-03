@@ -18,7 +18,7 @@
 
 namespace viennamesh {
    
-template <typename KernelTag, typename DatastructureT>
+template <typename KernelTag>
 struct mesh_kernel { };
    
 
@@ -31,10 +31,10 @@ struct generate_mesh_kernel  // TODO place property-fold in here
    typedef viennamesh::tag::triangle type;
 };
   
-template<typename MeshKernelTag, typename WrapperT>  
+template<typename MeshKernelTag>  
 struct mesh_generator
 {
-   typedef viennamesh::mesh_kernel<MeshKernelTag, WrapperT>    type;
+   typedef viennamesh::mesh_kernel<MeshKernelTag>    type;
 };
 
 } // end namespace result_of
