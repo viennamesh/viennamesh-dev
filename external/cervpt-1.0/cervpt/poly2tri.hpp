@@ -27,7 +27,7 @@
 #include "CGAL/Delaunay_mesh_face_base_2.h"
 #include "CGAL/Delaunay_mesh_size_criteria_2.h"
 #include "CGAL/Exact_predicates_exact_constructions_kernel.h"
-#include "CGAL/intersections.h"
+//#include "CGAL/intersections.h"
 
 
 //#define POLY2TRI_DEBUG

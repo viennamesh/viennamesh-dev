@@ -47,6 +47,7 @@ struct simplex              {};
 struct cuboid               {};
 
 struct consistancy          {};
+struct orienter             {};
 }
    
 } // end namespace viennamesh

@@ -32,8 +32,7 @@
 #include "viennamesh/interfaces/netgen.hpp"
 #include "viennamesh/interfaces/tetgen.hpp"
 #include "viennamesh/wrapper.hpp"
-#include "viennamesh/transfer.hpp"
-#include "viennamesh/adaptors.hpp"
+#include "viennamesh/adaptors/orienter.hpp"
 
 #include <boost/any.hpp> // removeme
 
@@ -88,15 +87,18 @@ int main(int argc, char *argv[])
       {
          viennautils::io::bnd_reader my_bnd_reader;
          my_bnd_reader(inputfile); 
-
+ 
          typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>     bnd_wrapper_type;
          bnd_wrapper_type wrapped_data(my_bnd_reader);      
 
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type   cervpt_mesh_generator_type;
-         cervpt_mesh_generator_type mesher;       
+         cervpt_mesh_generator_type    mesher;       
 
-         typedef cervpt_mesh_generator_type::result_type       cervpt_result_type;
-         cervpt_result_type result = mesher(wrapped_data);
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type  orienter_adaptor_type;
+         orienter_adaptor_type      orienter;
+
+         typedef orienter_adaptor_type::result_type       result_type;
+         result_type result = orienter(mesher(wrapped_data));
 
          viennagrid::io::exportVTK(*result, outputfile);
       }
@@ -115,8 +117,11 @@ int main(int argc, char *argv[])
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type   cervpt_mesh_generator_type;
          cervpt_mesh_generator_type mesher;      
 
-         typedef cervpt_mesh_generator_type::result_type       cervpt_result_type;
-         cervpt_result_type result = mesher(wrapped_data);         
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type  orienter_adaptor_type;
+         orienter_adaptor_type      orienter;
+
+         typedef orienter_adaptor_type::result_type       result_type;
+         result_type result = orienter(mesher(wrapped_data));
 
          viennagrid::io::exportVTK(*result, outputfile);
       }
@@ -128,8 +133,6 @@ int main(int argc, char *argv[])
       domain_type domain;
       
       viennagrid::io::importGAU(domain, inputfile);      
-      
-      viennagrid::io::exportVTK(domain, "input");      
       
       typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     gau_wrapper_type;
       gau_wrapper_type wrapped_data(domain);      
