@@ -13,15 +13,18 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 # ------------------------------------------------------------------------------
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   # Optimize Release Build Type with -O2 
+   # Optimize Release Build Type with -O2 instead of -O3
    set(CMAKE_CXX_FLAGS_RELEASE "-O2")  
-   # Strip binary   
-   set(CMAKE_EXE_LINKER_FLAGS "-s")    
+   # Strip release binaries   
+   set(CMAKE_EXE_LINKER_FLAGS_RELEASE"-s")    
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # add specific debug flags
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-   ADD_DEFINITIONS(-Wall -DIODEBUG -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
+   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG)
+#   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
+#   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DIODEBUG)   
+#   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -DIODEBUG)   
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # ------------------------------------------------------------------------------

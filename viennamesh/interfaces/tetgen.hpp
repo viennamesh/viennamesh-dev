@@ -62,7 +62,7 @@ private:
    typedef REAL            numeric_type;  
    typedef std::size_t     integer_type;
 
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef viennagrid::domain<viennagrid::config::tetrahedral_3d>     domain_type;
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
    typedef domain_configuration_type::cell_tag                       cell_tag;
@@ -106,7 +106,6 @@ public:
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - shutting down" << std::endl;
    #endif
-      this->clear();
    }   
    // -------------------------------------------------------------------------------------
    
@@ -128,7 +127,7 @@ public:
    template<typename DatastructureT, typename ParametersMapT>
    result_type operator()(DatastructureT& data, ParametersMapT & paras)   // TODO provide ct-test if fusion::map
    {  
-      this->init();   
+      this->init();      
    
       typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
       typedef typename DatastructureT::cell_type         vmesh_cell_type;
@@ -155,7 +154,7 @@ public:
          {
             point_type pnt;
             typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
-            this->find_point_in_segment<DatastructureT>(data, segment, pnt);
+            this->find_point_in_segment<DatastructureT>(data, segment, pnt, seg_cnt);
             
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
@@ -176,6 +175,8 @@ public:
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with single-segment input" << std::endl;
       }   
    #endif              
+   
+
    
       // traverse and add the geometry information
       // aka the set of points
@@ -226,6 +227,7 @@ public:
                cell_copy[i] = cell[i];
 
             std::sort(cell_copy.begin(), cell_copy.end());
+            
             if(!cell_uniquer[cell_copy])
             {
             #ifdef MESH_KERNEL_DEBUG_FULL
@@ -257,7 +259,7 @@ public:
       // if there are more than one regions, spread the regional attribute
       if(in.numberofregions > 1) options.append("A");  
       
-   #ifndef MESH_KERNEL_DEBUG_FULL
+   #ifndef MESH_KERNEL_DEBUG
       options.append("Q");
    #endif
    #ifdef MESH_KERNEL_DEBUG
@@ -279,11 +281,11 @@ public:
       // start meshing process
       //
       tetrahedralize(buffer, &in, &out);
+
+      free(buffer);
       
-      if ( !out.pointlist)      
-         std::cout << "\t::ERROR: pointlist" << std::endl;
-      if ( !out.tetrahedronlist)   
-         std::cout << "\t::ERROR: tetrahedronlist " << std::endl;      
+      if ( (!out.pointlist) || !out.tetrahedronlist )      
+         std::cerr << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - no mesh produced due to some input error" << std::endl;      
       
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - finished:" << std::endl;
@@ -294,83 +296,8 @@ public:
       
       domain_ptr_type domain(new domain_type);               
       
-      //
-      // extracting geometry data
-      //
-      domain->reserve_vertices(out.numberofpoints);             
-
-      std::size_t point_cnt = 0;
-      for(long pnt_index = 0; pnt_index < out.numberofpoints; ++pnt_index)
-      {
-         integer_type index = pnt_index * 3;
-         
-         numeric_type pnt[DIMG];
-         pnt[0] = out.pointlist[index];
-         pnt[1] = out.pointlist[index+1];
-         pnt[2] = out.pointlist[index+2];         
-
-         vertex_type    vertex;
-         vertex.getPoint().setCoordinates(pnt);         
-         vertex.setID(point_cnt++);
-         domain->add(vertex);
-      }      
-      
-      std::size_t seg_id = 0;
-   #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
-      std::map<size_t, bool>  seg_check;
-   #endif          
-      //
-      // extracting cell complex
-      //
-      // segment index is only increment in the addRegion method
-      // in the case of a single segment, this particular method is never 
-      // called, therefore we have to set it manually to one
-      if(segment_index == 0) segment_index = 1; 
-      
-      domain->create_segments(segment_index);
-      domain->reserve_cells(out.numberoftetrahedra);
-      
-      for(long tet_index = 0; tet_index < out.numberoftetrahedra; ++tet_index)
-      {
-         integer_type index = tet_index * 4; 
-
-         vertex_type *vertices[CELLSIZE];
-
-         vertices[0] = &(domain->vertex( out.tetrahedronlist[index] ));
-         vertices[1] = &(domain->vertex( out.tetrahedronlist[index+1] ));
-         vertices[2] = &(domain->vertex( out.tetrahedronlist[index+2] ));
-         vertices[3] = &(domain->vertex( out.tetrahedronlist[index+3] ));                           
-
-         // only access triangle attributes if there are any
-         // otherwise we get ourselves a segfault
-         // if, for example, there is only one region, 
-         // there is no need to call "add<region>", therefore
-         // we have to counter this case
-         if(out.numberoftetrahedronattributes > 0)
-         {
-            seg_id = out.tetrahedronattributelist[tet_index];
-         }
-         
-         //std::cout << "tri: " << tri_index << " : " << cell[0] << " " << cell[1] << " " 
-         //   << cell[2] << " attr: " << out.triangleattributelist[tri_index] << std::endl;
-         //std::cout << "transferring simplex to segment: " << seg_id << std::endl;
-      #ifdef MESH_KERNEL_DEBUG
-         seg_check[seg_id] = true;
-      #endif
-         cell_type cell;
-         cell.setVertices(vertices);
-         domain->segment(seg_id).add(cell);
-      }
-   #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracted segments: ";
-      for( std::map<size_t, bool>::iterator iter = seg_check.begin();
-           iter != seg_check.end(); iter++)
-      {
-         std::cout << iter->first << " ";
-      }
-      std::cout << std::endl;
-   #endif
+      transfer_to_domain(domain, out);
+   
       this->clear();
       return domain;
    }
@@ -396,7 +323,7 @@ private:
    template<typename DatastructureT>
    void find_point_in_segment(DatastructureT& data, 
                               typename DatastructureT::cell_complex_wrapper_type & cell_complex, 
-                              point_type& pnt)
+                              point_type& pnt, std::size_t segid = 0)
    {
       self_type   temp_mesher;
       temp_mesher.init();
@@ -420,6 +347,7 @@ private:
                geometry_iterator geo = data.geometry_begin();
                std::advance(geo, cell[dim]);
 
+         //      std::cout << "adding point: " << *geo << std::endl;
                temp_mesher.addPoint( *geo ); 
 
                pnt_uniquer[cell[dim]] = true;
@@ -432,40 +360,99 @@ private:
          {
            mapped_cell[i] = index_map[cell[i]];
          }
-         
+         //std::cout << "adding cell: " << mapped_cell << std::endl;
          temp_mesher.addConstraint(mapped_cell);
       }
 
-      // minimal meshing
-      result_type temp_domain = temp_mesher(data);     
       
-      if(temp_domain->template size<cell_tag::topology_level>() != 0)
-      {
-         cell_container cells = viennagrid::ncells<cell_tag::topology_level>(*temp_domain);      
-         cell_type & cell = *(cells.begin());
-         
-         std::vector< point_type >  cell_points;
-         
-          vertex_on_cell_container_type vertices = viennagrid::ncells<0>(cell);
-          for (vertex_on_cell_iterator_type vocit = vertices.begin();
-               vocit != vertices.end();
-                ++vocit)
-          {
-             point_type pnt;
-             pnt[0] = vocit->getPoint()[0];
-             pnt[1] = vocit->getPoint()[1];
-             pnt[2] = vocit->getPoint()[2];                          
-             cell_points.push_back( pnt );
-          }
-          
-          this->barycenter(cell_points[0], cell_points[1], cell_points[2], cell_points[3], pnt);
-          std::cout << "pnt: " << pnt[0] << std::endl;
-          return;
-      }
-      else 
-      {
+      std::string temp_options = "zpQ";
+      char* buffer;
+      buffer = (char *)malloc( temp_options.length() * sizeof(char) );
+      std::strcpy(buffer,temp_options.c_str());      
+      tetrahedralize(buffer, &temp_mesher.in, &temp_mesher.out);
+      free(buffer);
+
+      if ( (!temp_mesher.out.pointlist) || !temp_mesher.out.tetrahedronlist )      
          std::cout << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
-      }
+
+      point_type pnt1 = {{temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[0]*DIMG)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[0]*DIMG+1)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[0]*DIMG+2)]}};
+
+      point_type pnt2 = {{temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[1]*DIMG)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[1]*DIMG+1)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[1]*DIMG+2)]}};
+
+      point_type pnt3 = {{temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[2]*DIMG)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[2]*DIMG+1)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[2]*DIMG+2)]}};
+
+      point_type pnt4 = {{temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[3]*DIMG)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[3]*DIMG+1)],
+                          temp_mesher.out.pointlist[(temp_mesher.out.tetrahedronlist[3]*DIMG+2)]}};
+
+      temp_mesher.barycenter(pnt1, pnt2, pnt3, pnt4, pnt);
+
+   #ifdef MESH_KERNEL_DEBUG_FULL
+      // export the current segment to a vtk file, to investigate it ..
+      domain_ptr_type temp_domain(new domain_type);               
+      transfer_to_domain(temp_domain, temp_mesher.out);
+      viennagrid::io::exportVTK(*temp_domain, "premesh_seg_"+boost::lexical_cast<std::string>(segid));
+   #endif
+
+      temp_mesher.clear();
+
+//      boost::array<numeric_type, DIMG>    
+//      pnt[0] = out.pointlist[index];
+//      pnt[1] = out.pointlist[index+1];
+//      pnt[2] = out.pointlist[index+2];         
+
+
+//      temp_mesher.barycenter(, pnt);
+
+//      for(long tet_index = 0; tet_index < out.numberoftetrahedra; ++tet_index)
+//      {
+//         integer_type index = tet_index * 4; 
+
+//         vertex_type *vertices[CELLSIZE];
+
+//         vertices[0] = &(domain->vertex( out.tetrahedronlist[index] ));
+//         vertices[1] = &(domain->vertex( out.tetrahedronlist[index+1] ));
+//         vertices[2] = &(domain->vertex( out.tetrahedronlist[index+2] ));
+//         vertices[3] = &(domain->vertex( out.tetrahedronlist[index+3] ));                       
+
+
+
+//      // minimal meshing
+//      result_type temp_domain = temp_mesher(data);     
+//      
+//      if(temp_domain->template size<cell_tag::topology_level>() != 0)
+//      {
+//         cell_container cells = viennagrid::ncells<cell_tag::topology_level>(*temp_domain);      
+//         cell_type & cell = *(cells.begin());
+//         
+//         std::vector< point_type >  cell_points;
+//         
+//          vertex_on_cell_container_type vertices = viennagrid::ncells<0>(cell);
+//          for (vertex_on_cell_iterator_type vocit = vertices.begin();
+//               vocit != vertices.end();
+//                ++vocit)
+//          {
+//             point_type pnt;
+//             pnt[0] = vocit->getPoint()[0];
+//             pnt[1] = vocit->getPoint()[1];
+//             pnt[2] = vocit->getPoint()[2];                          
+//             cell_points.push_back( pnt );
+//          }
+//          
+//          this->barycenter(cell_points[0], cell_points[1], cell_points[2], cell_points[3], pnt);
+//      }
+//      else 
+//      {
+//         std::cout << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
+//      }
+//      this->reset();
+
 
       //std::cout << this->segment_cont.size() << " " << this->segment_cont[0].size() << std::endl;
       
@@ -485,7 +472,96 @@ private:
 //      {
 //         std::cout << "## MeshKernel::"+mesh_kernel_id+" [ERROR] - point in segment algorithm failed as pre-meshing failed!" << std::endl;
 //      }
-      this->reset();
+
+   }
+   // -------------------------------------------------------------------------------------         
+   
+   // -------------------------------------------------------------------------------------            
+   void transfer_to_domain(domain_ptr_type domain, tetgenio& mesh)
+   {
+      //
+      // extracting geometry data
+      //
+      domain->reserve_vertices(mesh.numberofpoints);             
+
+      std::size_t point_cnt = 0;
+      for(long pnt_index = 0; pnt_index < mesh.numberofpoints; ++pnt_index)
+      {
+         integer_type index = pnt_index * 3;
+         
+         numeric_type pnt[DIMG];
+         pnt[0] = mesh.pointlist[index];
+         pnt[1] = mesh.pointlist[index+1];
+         pnt[2] = mesh.pointlist[index+2];         
+
+         vertex_type    vertex;
+         vertex.getPoint().setCoordinates(pnt);         
+         vertex.setID(point_cnt++);
+         domain->add(vertex);
+      }      
+      
+      std::size_t seg_id = 0;
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracting topology" << std::endl;
+      std::map<size_t, bool>  seg_check;
+   #endif          
+      //
+      // extracting cell complex
+      //
+      // segment index is only increment in the addRegion method
+      // in the case of a single segment, this particular method is never 
+      // called, therefore we have to set it manually to one
+      if(segment_index == 0) segment_index = 1; 
+      
+      domain->create_segments(segment_index);
+      domain->reserve_cells(mesh.numberoftetrahedra);
+      
+      for(long tet_index = 0; tet_index < mesh.numberoftetrahedra; ++tet_index)
+      {
+         integer_type index = tet_index * 4; 
+
+         vertex_type *vertices[CELLSIZE];
+
+         vertices[0] = &(domain->vertex( mesh.tetrahedronlist[index] ));
+         vertices[1] = &(domain->vertex( mesh.tetrahedronlist[index+1] ));
+         vertices[2] = &(domain->vertex( mesh.tetrahedronlist[index+2] ));
+         vertices[3] = &(domain->vertex( mesh.tetrahedronlist[index+3] ));                           
+
+         // only access triangle attributes if there are any
+         // otherwise we get ourselves a segfault
+         // if, for example, there is only one region, 
+         // there is no need to call "add<region>", therefore
+         // we have to counter this case
+         if(mesh.numberoftetrahedronattributes > 0)
+         {
+            seg_id = mesh.tetrahedronattributelist[tet_index];
+         }
+
+      #ifdef MESH_KERNEL_DEBUG_FULL
+         std::cout << "tet: " << tet_index << " : " << vertices[0]->getID() << " " 
+                                                    << vertices[1]->getID() << " " 
+                                                    << vertices[2]->getID() << " " 
+                                                    << vertices[3]->getID() << " " 
+                                                    << "segid: " << mesh.tetrahedronattributelist[tet_index] 
+                                                    << std::endl;
+      #endif
+         
+      #ifdef MESH_KERNEL_DEBUG
+         seg_check[seg_id] = true;
+      #endif
+         cell_type cell;
+         cell.setVertices(vertices);
+         domain->segment(seg_id).add(cell);
+      }
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracted segments: ";
+      for( std::map<size_t, bool>::iterator iter = seg_check.begin();
+           iter != seg_check.end(); iter++)
+      {
+         std::cout << iter->first << " ";
+      }
+      std::cout << std::endl;
+   #endif   
    }
    // -------------------------------------------------------------------------------------         
    

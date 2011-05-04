@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
          cervpt_mesh_generator_type mesher;       
 
          typedef cervpt_mesh_generator_type::result_type       cervpt_result_type;
-         cervpt_result_type result = mesher(wrapped_data);         
+         cervpt_result_type result = mesher(wrapped_data);
 
          viennagrid::io::exportVTK(*result, outputfile);
       }
@@ -128,6 +128,8 @@ int main(int argc, char *argv[])
       domain_type domain;
       
       viennagrid::io::importGAU(domain, inputfile);      
+      
+      viennagrid::io::exportVTK(domain, "input");      
       
       typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     gau_wrapper_type;
       gau_wrapper_type wrapped_data(domain);      
