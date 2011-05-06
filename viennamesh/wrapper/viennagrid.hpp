@@ -20,7 +20,7 @@
 
 #include "viennagrid/forwards.h"
 #include "viennagrid/domain.hpp"
-#include "viennagrid/celltags.hpp"
+//#include "viennagrid/celltags.hpp"
 
 namespace viennamesh {
 
@@ -36,7 +36,7 @@ struct viennagrid_point_wrapper
 {
    // -------------------------------------------------------------------------------------------
    typedef viennagrid_point_wrapper<ArrayT>        self_type;
-   typedef typename ArrayT::numeric_type           result_type;
+   typedef typename ArrayT::value_type           result_type;
    // -------------------------------------------------------------------------------------------   
    viennagrid_point_wrapper(ArrayT& array) : array_(array) {}
    // -------------------------------------------------------------------------------------------   

@@ -489,13 +489,15 @@ private:
       {
          integer_type index = pnt_index * 3;
          
-         numeric_type pnt[DIMG];
-         pnt[0] = mesh.pointlist[index];
-         pnt[1] = mesh.pointlist[index+1];
-         pnt[2] = mesh.pointlist[index+2];         
+//         numeric_type pnt[DIMG];
+//         pnt[0] = mesh.pointlist[index];
+//         pnt[1] = mesh.pointlist[index+1];
+//         pnt[2] = mesh.pointlist[index+2];         
 
          vertex_type    vertex;
-         vertex.getPoint().setCoordinates(pnt);         
+         vertex.getPoint()[0] = mesh.pointlist[index];
+         vertex.getPoint()[1] = mesh.pointlist[index+1];
+         vertex.getPoint()[2] = mesh.pointlist[index+2];                  
          vertex.setID(point_cnt++);
          domain->add(vertex);
       }      
@@ -788,4 +790,5 @@ private:
 } // end namespace viennamesh
 
 #endif
+
 

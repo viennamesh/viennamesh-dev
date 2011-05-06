@@ -6,6 +6,7 @@
                              -----------------
 
    authors:    Josef Weinbub                         weinbub@iue.tuwien.ac.at
+               Franz Stimpfl
 
 
    license:    see file LICENSE in the base directory
@@ -17,7 +18,9 @@
 
 // *** vienna includes
 #include "viennamesh/adaptors/base.hpp"
+#include "viennamesh/data.hpp"
 #include "viennagrid/domain.hpp"
+#include "viennagrid/algorithm/cross_prod.hpp"
 #include "viennadata/api.hpp"
 
 // *** boost includes
@@ -42,14 +45,6 @@ if it's an odd number, the normal vector points inwards.
 */
 
 namespace viennamesh {
-
-template<typename VectorT>
-VectorT ex(VectorT const& v1, VectorT const& v2)
-{
-   return VectorT(v1[1]*v2[2]-v1[2]*v2[1], 
-                  v1[2]*v2[0]-v1[0]*v2[2],
-                  v1[0]*v2[1]-v1[1]*v2[0]);
-}
 
 template<typename VectorT>
 VectorT barycenter(VectorT const& p1, VectorT const& p2, VectorT const& p3)
@@ -118,12 +113,15 @@ struct mesh_adaptor <viennamesh::tag::orienter>
       std::size_t global_consistant = 0;
       std::size_t global_leftovers = 0;
       std::size_t global_errors = 0;   
-      std::size_t norm_vector_corrections = 0;
+      std::size_t norm_vector_corrections = 0;   
+      std::size_t global_corrected_cells = 0;   
    
       // traverse the segments ..
       //
       for (std::size_t si = 0; si < domain->segment_size(); ++si)
       {
+         if(si >= 1) continue;
+      
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
    #endif       
@@ -136,6 +134,13 @@ struct mesh_adaptor <viennamesh::tag::orienter>
          CellIterator first_cell = cells.begin();
          CellType & seed_cell = *first_cell;
          
+         // if this cell has been already dealt with by another segment, 
+         // proceed to the next cell
+         // note: the algorithm has to be based on an untainted cell ..
+         //
+         if (viennadata::find<viennamesh::data::orient, int>()(seed_cell))
+            continue;
+            
          // get the cell points
          //
          boost::array<PointType,CELLSIZE>     cell_points;
@@ -155,12 +160,13 @@ struct mesh_adaptor <viennamesh::tag::orienter>
          // compute the cell normal
          //
          PointType vec1 = cell_points[1]-cell_points[0];
-         PointType vec2 = cell_points[2]-cell_points[0];         
+         PointType vec2 = cell_points[2]-cell_points[0];
          
-         PointType normal = viennamesh::ex(vec1,vec2);
+         PointType normal = viennagrid::cross_prod(vec1,vec2);
          
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "  computed normal of cell: " << normal << std::endl;
+      std::cout << "  performing ray intersection tests .. " << std::endl;
    #endif                     
          
          // setup the ray
@@ -218,7 +224,7 @@ struct mesh_adaptor <viennamesh::tag::orienter>
          //
          if( intersections%2 != 0 )
          {
-            VertexType *vertices[viennagrid::subcell_traits<CellTag, 0>::num_elements];  
+            VertexType *vertices[viennagrid::traits::subcell_desc<CellTag, 0>::num_elements];  
 
             boost::array<index_type, CELLSIZE>    temp_cell;
             vi = 0;
@@ -242,53 +248,60 @@ struct mesh_adaptor <viennamesh::tag::orienter>
             
             norm_vector_corrections++;
          } 
-         
+
          // initiate an orientation quantity on all cells
          //
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
-           viennadata::access<std::string, int>("orient")(*cit) = 0; 
+           if (!viennadata::find<viennamesh::data::orient, int>()(*cit))
+             viennadata::access<viennamesh::data::orient, int>()(*cit) = 0; 
          }
          // the first cell is already oriented
          //
-         viennadata::access<std::string, int>("orient")(seed_cell) = 1; 
+         viennadata::access<viennamesh::data::orient, int>()(seed_cell) = 1; 
 
-         cell_orienter_recursive(domain, seed_cell);
+         // start the recursive orientation algorithm, originating from the seed cell
+         // --> all connected cells should be oriented consistantly with the seed cell 
+         //
+         std::size_t corrected_cells = 0;
+         std::size_t recursion_depth = 0;
+         cell_orienter_recursive(domain, seed_cell, si, corrected_cells, recursion_depth);
 
          std::size_t consistant = 0;
          std::size_t leftovers = 0;
          std::size_t errors = 0;
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
-            if(viennadata::access<std::string, int>("orient")(*cit) == 0) 
+            if(viennadata::access<viennamesh::data::orient, int>()(*cit) == 0) 
                leftovers++;
             else
-            if(viennadata::access<std::string, int>("orient")(*cit) == 1) 
+            if(viennadata::access<viennamesh::data::orient, int>()(*cit) == 1) 
                consistant++;
             else
-            if(viennadata::access<std::string, int>("orient")(*cit) == -1) 
+            if(viennadata::access<viennamesh::data::orient, int>()(*cit) == -1) 
                errors++;
          }      
 
-         global_consistant += consistant;
-         global_leftovers  += leftovers;
-         global_errors     += errors;
-
+         global_consistant       += consistant;
+         global_leftovers        += leftovers;
+         global_errors           += errors;
+         global_corrected_cells  += corrected_cells;
       #ifdef MESH_ADAPTOR_DEBUG
          std::cout << "  finished segment - statistics:" << std::endl;
-         std::cout << "      consistants:  " << consistant << std::endl;
-         std::cout << "      leftovers:    " << leftovers << std::endl;
-         std::cout << "      errors:       " << errors << std::endl;                  
+         std::cout << "      consistants:      " << consistant << std::endl;
+         std::cout << "      cell-corrections: " <<  corrected_cells << std::endl;
+         std::cout << "      leftovers:        " << leftovers << std::endl;
+         std::cout << "      errors:           " << errors << std::endl;                  
       #endif                              
          if(errors != 0 || leftovers != 0)
             std::cerr << "## MeshAdaptor::"+id+" - segment orientation experienced errors" << std::endl;
             
-         // remove the orientation quantity of the cells of the current segment
-         //
-         for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
-         {
-           viennadata::erase<std::string, int>("orient")(*cit); 
-         }            
+//         // remove the orientation quantity of the cells of the current segment
+//         //
+//         for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
+//         {
+//           viennadata::erase<std::string, int>("orient")(*cit); 
+//         }            
       }
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << std::endl;
@@ -301,8 +314,9 @@ struct mesh_adaptor <viennamesh::tag::orienter>
          
       std::cout << "------------------------------------------------------ " << std::endl;
       std::cout << "## MeshAdaptor::"+id+" - result statistics:" << std::endl;
-      std::cout << "   consistants:      " << global_consistant << std::endl;
       std::cout << "   seed-corrections: " <<  norm_vector_corrections << std::endl;
+      std::cout << "   cell-corrections: " <<  global_corrected_cells << std::endl;
+      std::cout << "   consistants:      " << global_consistant << std::endl;
       std::cout << "   leftovers:        " << global_leftovers << std::endl;
       std::cout << "   errors:           " << global_errors << std::endl;                  
       std::cout << "------------------------------------------------------ " << std::endl;      
@@ -313,8 +327,10 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    
    // -------------------------------------------------------------------------------------
    template<typename DomainTPtr, typename CellT>
-   bool cell_orienter_recursive(DomainTPtr& domain, CellT& cell)
+   bool cell_orienter_recursive(DomainTPtr& domain, CellT& cell, std::size_t si, std::size_t& corrected_cells, std::size_t& recursion_depth)
    {
+      std::cout << "cell recursion for cell: " << cell.getID() << std::endl;
+   
       // investigate how many neighbour cells have been dealt with so far ..
       //
       long number_of_not_oriented_cells = 0;
@@ -327,13 +343,17 @@ struct mesh_adaptor <viennamesh::tag::orienter>
 
          for (CellOnEdgeIterator coeit = cells.begin(); coeit != cells.end(); ++coeit)
          {         
-            if(viennadata::access<std::string, int>("orient")(*coeit) == 0)
+            if(viennadata::access<viennamesh::data::orient, int>()(*coeit) == 0)
                number_of_not_oriented_cells++;
          }
       }                  
       // stop condition for recursion
       //
-      if (number_of_not_oriented_cells == 0) return true;      
+      if (number_of_not_oriented_cells == 0)
+      {
+         std::cout << "  stopping recursion " << std::endl;
+         return true;      
+      }
       
       // orient the adjacent cells according to the given cell
       //
@@ -347,17 +367,33 @@ struct mesh_adaptor <viennamesh::tag::orienter>
             //
             if( coeit->getID() == cell.getID() )   continue;
             
-            // if this cell has already been dealt with regarding orientation, skip ..
+            // if this cell has already been dealt with regarding orientation ..
             // 
-            if (viennadata::access<std::string, int>("orient")(*coeit) != 0)     continue;            
+            if (viennadata::access<viennamesh::data::orient, int>()(*coeit) != 0)
+            {
+               // if this cell has already been dealt with by _another_ segment, 
+               // record that the orientation has to be considered inverse for this segment
+               //
+               if ( (viennadata::find<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*coeit)) &&
+                    (viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*coeit).find(si) == 
+                     viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*coeit).end() ) )
+               {
+                  std::cout << "  found already corrected cell .. " << std::endl;
+                  viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*coeit)[si]= -1;                
+               }
+               continue;
+            }
             
             if(is_consistant_orientation(*coeit, cell))
-            { 
-               viennadata::access<std::string, int>("orient")(*coeit) = 1;
+            {  
+               std::cout << "  is consitant" << std::endl;
+               viennadata::access<viennamesh::data::orient, int>()(*coeit) = 1;
+               viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*coeit)[si]= 1; 
             }
             // repair the orientation
             else
-            {
+            {  
+               std::cout << "  is NOT consitant" << std::endl;
                boost::array<index_type, CELLSIZE>    temp_cell;
                std::size_t vi = 0;
                VertexOnCellContainer vertices_for_cell = viennagrid::ncells<0>(*coeit);
@@ -368,7 +404,7 @@ struct mesh_adaptor <viennamesh::tag::orienter>
                   temp_cell[vi++] = vocit->getID();
                }                        
             
-               VertexType *vertices[viennagrid::subcell_traits<CellTag, 0>::num_elements];  
+               VertexType *vertices[viennagrid::traits::subcell_desc<CellTag, 0>::num_elements];  
                vertices[0] = &(domain->vertex(temp_cell[2]));               
                vertices[1] = &(domain->vertex(temp_cell[1]));
                vertices[2] = &(domain->vertex(temp_cell[0]));
@@ -379,16 +415,21 @@ struct mesh_adaptor <viennamesh::tag::orienter>
                //
                if(is_consistant_orientation(*coeit, cell))
                { 
-                  viennadata::access<std::string, int>("orient")(*coeit) = 1;
+                  //std::cout << "sucessfully corrected a cells orientation . " << std::endl;
+                  viennadata::access<viennamesh::data::orient, int>()(*coeit) = 1;
+                  viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*coeit)[si]= 1;                   
+                  corrected_cells++;
                }               
                else
                {
-                  viennadata::access<std::string, int>("orient")(*coeit) = -1;
+                  viennadata::access<viennamesh::data::orient, int>()(*coeit) = -1;
                   std::cerr << "ERROR @ cell-orienter-recursive: could not repair orientation .." << std::endl;
                }
             }
          }
       }                        
+      
+      //viennagrid::io::export_vtk(*domain, "recursion_"+boost::lexical_cast<std::string>(recursion_depth));         
       
       // by now, all adjacent cells have been dealt with
       // step into next recursion level
@@ -400,7 +441,7 @@ struct mesh_adaptor <viennamesh::tag::orienter>
          for (CellOnEdgeIterator coeit = cells.begin(); coeit != cells.end(); ++coeit)
          {         
             if( coeit->getID() == cell.getID() )   continue;
-            cell_orienter_recursive(domain, *coeit);            
+            cell_orienter_recursive(domain, *coeit, si, corrected_cells, recursion_depth);            
          }
       }                  
       return true; // TODO is this right?

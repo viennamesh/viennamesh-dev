@@ -315,7 +315,9 @@ public:
                mesh_domain_mapping[i]       = point_cnt;
 
                vertex_type    vertex;
-               vertex.getPoint().setCoordinates(point);         
+               vertex.getPoint()[0] = point[0];
+               vertex.getPoint()[1] = point[1];         
+               vertex.getPoint()[2] = point[2];                                 
                vertex.setID(point_cnt);
          
                // we cannot directly push the vertices on the viennagrid domain, 

@@ -27,12 +27,14 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/gau_reader.hpp"
+#include "viennagrid/algorithm/cell_normals.hpp"
 
 #include "viennamesh/interfaces/cervpt.hpp"
 #include "viennamesh/interfaces/netgen.hpp"
 #include "viennamesh/interfaces/tetgen.hpp"
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/adaptors/orienter.hpp"
+#include "viennamesh/adaptors/cell_normals.hpp"
 
 #include <boost/any.hpp> // removeme
 
@@ -88,19 +90,23 @@ int main(int argc, char *argv[])
          viennautils::io::bnd_reader my_bnd_reader;
          my_bnd_reader(inputfile); 
  
-         typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>     bnd_wrapper_type;
-         bnd_wrapper_type wrapped_data(my_bnd_reader);      
+         typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>      bnd_wrapper_type;
+         bnd_wrapper_type                 wrapped_data(my_bnd_reader);      
 
-         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type   cervpt_mesh_generator_type;
-         cervpt_mesh_generator_type    mesher;       
+         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_mesh_generator_type;
+         cervpt_mesh_generator_type       mesher;       
 
-         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type  orienter_adaptor_type;
-         orienter_adaptor_type      orienter;
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
+         orienter_adaptor_type            orienter;
+         
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cellnormals_adaptor_type;
+         cellnormals_adaptor_type         cell_normals;         
 
-         typedef orienter_adaptor_type::result_type       result_type;
-         result_type result = orienter(mesher(wrapped_data));
+         typedef cervpt_mesh_generator_type::result_type       result_type;
+         result_type result = cell_normals(mesher(wrapped_data));
+         //result_type result = cell_normals(orienter(mesher(wrapped_data)));
 
-         viennagrid::io::exportVTK(*result, outputfile);
+         viennagrid::io::export_vtk(*result, outputfile);
       }
    }
    else
@@ -111,19 +117,24 @@ int main(int argc, char *argv[])
          viennautils::io::hin_reader my_hin_reader;
          my_hin_reader(inputfile);
 
-         typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>     hin_wrapper_type;
-         hin_wrapper_type wrapped_data(my_hin_reader);      
+         typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>      hin_wrapper_type;
+         hin_wrapper_type                 wrapped_data(my_hin_reader);      
 
-         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type   cervpt_mesh_generator_type;
-         cervpt_mesh_generator_type mesher;      
+         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_mesh_generator_type;
+         cervpt_mesh_generator_type       mesher;      
 
-         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type  orienter_adaptor_type;
-         orienter_adaptor_type      orienter;
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
+         orienter_adaptor_type            orienter;
 
-         typedef orienter_adaptor_type::result_type       result_type;
-         result_type result = orienter(mesher(wrapped_data));
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cellnormals_adaptor_type;
+         cellnormals_adaptor_type         cell_normals;         
 
-         viennagrid::io::exportVTK(*result, outputfile);
+         typedef cervpt_mesh_generator_type::result_type       result_type;
+         //result_type result1 = cell_normals(mesher(wrapped_data));
+         result_type result2 = cell_normals(orienter(mesher(wrapped_data)));
+
+         //viennagrid::io::export_vtk(*result1, "non_corrected");
+         viennagrid::io::export_vtk(*result2, "corrected");         
       }
    }
    else
@@ -143,7 +154,7 @@ int main(int argc, char *argv[])
       typedef netgen_mesh_generator_type::result_type        netgen_result_type;
       netgen_result_type result = mesher(wrapped_data);         
 
-      viennagrid::io::exportVTK(*result, outputfile);
+      viennagrid::io::export_vtk(*result, outputfile);
    }
 //   else
 //   if(input_extension == "gts")
