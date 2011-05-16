@@ -130,10 +130,10 @@ int main(int argc, char *argv[])
          cellnormals_adaptor_type         cell_normals;         
 
          typedef cervpt_mesh_generator_type::result_type       result_type;
-         //result_type result1 = cell_normals(mesher(wrapped_data));
+         result_type result1 = cell_normals(mesher(wrapped_data));
          result_type result2 = cell_normals(orienter(mesher(wrapped_data)));
 
-         //viennagrid::io::export_vtk(*result1, "non_corrected");
+         viennagrid::io::export_vtk(*result1, "non_corrected");
          viennagrid::io::export_vtk(*result2, "corrected");         
       }
    }
