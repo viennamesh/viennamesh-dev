@@ -37,6 +37,7 @@
 #include "viennamesh/adaptors/cell_normals.hpp"
 
 #include <boost/any.hpp> // removeme
+#include <boost/type_traits/remove_pointer.hpp>
 
 namespace viennamesh {
 
@@ -133,8 +134,17 @@ int main(int argc, char *argv[])
          result_type result1 = cell_normals(mesher(wrapped_data));
          result_type result2 = cell_normals(orienter(mesher(wrapped_data)));
 
-         viennagrid::io::export_vtk(*result1, "non_corrected");
-         viennagrid::io::export_vtk(*result2, "corrected");         
+         typedef result_type::value_type                                                           domain_type;
+         typedef domain_type::config_type                                                          domain_configuration_type;
+         typedef viennagrid::result_of::ncell_type<domain_configuration_type, domain_configuration_type::cell_tag::topology_level>::type     cell_type;
+         
+         viennagrid::io::vtk_writer<domain_type>  my_vtk_writer;
+         my_vtk_writer.add_cell_data_normal(
+            viennagrid::io::io_data_accessor_segment_based<
+               cell_type, viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
+            >(viennagrid::seg_cell_normal_tag()), "cell_normals");
+         my_vtk_writer.writeDomain(*result1, "non_corrected.vtu");
+         my_vtk_writer.writeDomain(*result2, "corrected.vtu");                           
       }
    }
    else
