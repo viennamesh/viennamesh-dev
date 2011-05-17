@@ -94,6 +94,10 @@ public:
    // -------------------------------------------------------------------------------------      
    
    // -------------------------------------------------------------------------------------      
+   //
+   // ### Meshing Functor for a wrapped datastructure
+   //
+   // -------------------------------------------------------------------------------------         
    template <typename DatastructureT>
    result_type operator()(DatastructureT& data) // default meshing
    {
@@ -120,16 +124,16 @@ public:
    #endif                 
       const double value_min = 1.0e-15;   
       
-      domain_ptr_type domain(new domain_type);         
-      
+      //
+      // *** Extract the geometry and topology data of the wrapped datastructure
+      //     and transfer it to the mesh datastructure
+      //
       typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
       typedef typename DatastructureT::geometry_iterator vmesh_geometry_iterator;   
       typedef typename DatastructureT::cell_type         vmesh_cell_type;
       typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
       typedef typename DatastructureT::point_type        vmesh_point_type;         
       
-   
-      std::size_t segment_cnt = 0;
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
          seg_iter != data.segment_end(); seg_iter++)
       {
@@ -203,23 +207,169 @@ public:
             
             // build netgen cell
             integer_type el[3];
-             el[0] = cell[0];
-             el[1] = cell[1];
-             el[2] = cell[2];   
+            el[0] = cell[0];
+            el[1] = cell[1];
+            el[2] = cell[2];   
             
             //std::cout << "adding constraint: " << el << std::endl;
             
             // add netgen cell to mesh structure            
             nglib::Ng_AddSurfaceElement (&(*meshpnt), nglib::NG_TRIG, el);
          }
-         
-         segment_cnt++;
          mesh_container.push_back(meshpnt);         
       }            
    
+      domain_ptr_type domain(new domain_type);         
+
+      this->do_meshing(domain);
+
+      return domain;
+   }
+   // -------------------------------------------------------------------------------------     
    
+   // -------------------------------------------------------------------------------------      
+   //
+   // ### Meshing Functor for a ViennaGrid domain
+   //
+   // -------------------------------------------------------------------------------------
+   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >& hull_domain) // default meshing
+   {
+      return (*this)(hull_domain, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
+   }   
+   template<typename ParametersMapT>
+   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >& hull_domain, 
+                          ParametersMapT const& paras )  // TODO provide ct-test if fusion::map
+   {
+      // redirect to reference implementation 
+      ParametersMapT paras_new(paras);
+      return (*this)(hull_domain, paras_new);
+   }
+   template<typename ParametersMapT>
+   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >& hull_domain,
+                          ParametersMapT & paras)   // TODO provide ct-test if fusion::map
+   {  
+      typedef typename viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
+      typedef typename HullDomain::config_type                                HullDomainConfiguration;      
+      typedef typename HullDomain::segment_type                               HullSegmentType;      
+      typedef typename HullDomainConfiguration::cell_tag                      HullCellTag;      
+
+      typedef typename viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
+      typedef typename viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
+      typedef typename viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+      typedef typename viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
+      typedef typename viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
+      typedef typename viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;         
    
+      std::size_t segment_size = hull_domain->segment_size();
+   #ifdef MESH_KERNEL_DEBUG
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - detected segments: " << segment_size << std::endl;
+      if( segment_size > 1 )
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with multi-segment input" << std::endl;
+      else
+         std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with single-segment input" << std::endl;
+   #endif                 
+      const double value_min = 1.0e-15;      
    
+      //
+      // *** Extract the geometry and topology data of the ViennaGrid domain
+      //     and transfer it to the mesh datastructure
+      //
+      for (std::size_t si = 0; si < hull_domain->segment_size(); ++si)
+      {
+         std::cout << "extracting segment: " << si << std::endl;
+      
+         std::map<std::size_t, bool>         vertex_uniquer;
+         std::map<std::size_t, std::size_t>  segment_vertices;
+      
+         // create a new mesh datastructure for this segment
+         // the reason we use a pointer approach here, is that the 
+         // netgen::mesh object does not like to be placed within a vector ..
+         // however, this approach should not hit on performance, as nothing gets copied ..
+         //
+         mesh_pointer_type meshpnt = mesh_pointer_type(nglib::Ng_NewMesh());      
+      
+         HullSegmentType & seg = hull_domain->segment(si);      
+         HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
+         
+         for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
+         {
+            // TODO we should be able to use a ct-container here ..
+            typedef std::vector<std::size_t>  cell_vertex_mapping;
+            cell_vertex_mapping  cell;
+            
+            HullVertexOnCellContainer vertices_for_cell = viennagrid::ncells<0>(*cit);
+            for (HullVertexOnCellIterator vocit = vertices_for_cell.begin();
+                vocit != vertices_for_cell.end();
+                ++vocit)
+            {
+               std::size_t vertex_index = vocit->getID();
+               
+               if(!vertex_uniquer[vertex_index])
+               {
+                  // retrieve the geometry information
+                  HullPointType point = vocit->getPoint();
+
+                  numeric_type netgen_point[DIMG];               
+                  // set very small values to zero to increase
+                  // numerical stability
+                  if(std::abs(point[0]) <= value_min)
+                     netgen_point[0] = 0;
+                  else netgen_point[0] = point[0];
+                  
+                  if(std::abs(point[1]) <= value_min)
+                     netgen_point[1] = 0;
+                  else netgen_point[1] = point[1];
+                  
+                  if(std::abs(point[2]) <= value_min)
+                     netgen_point[2] = 0;
+                  else netgen_point[2] = point[2];
+
+                  // add the point to the mesh datastructure
+                  nglib::Ng_AddPoint (&(*meshpnt), netgen_point);
+                     
+                  // build a new cell with the correct vertex indices
+                  cell.push_back( nglib::Ng_GetNP(&(*meshpnt)) );
+                  
+                  // map the input vertex index with index within the mesh datastructure
+                  segment_vertices[vertex_index] =  nglib::Ng_GetNP(&(*meshpnt));
+                  
+                  // ensure that this vertex is not added again
+                  vertex_uniquer[vertex_index] = true;
+               }
+               else
+               {
+                  cell.push_back( segment_vertices[vertex_index] );
+               }
+            }                        
+            
+            // build netgen cell
+            integer_type el[3];
+            el[0] = cell[0];
+            el[1] = cell[1];
+            el[2] = cell[2];   
+            
+            //std::cout << "adding constraint: " << el << std::endl;
+            
+            // add netgen cell to mesh structure            
+            nglib::Ng_AddSurfaceElement (&(*meshpnt), nglib::NG_TRIG, el);            
+         }
+         mesh_container.push_back(meshpnt);         
+      }
+
+      domain_ptr_type domain(new domain_type);         
+      
+      this->do_meshing(domain);
+      
+      return domain;
+   }
+   // -------------------------------------------------------------------------------------                           
+   
+private:   
+
+   // -------------------------------------------------------------------------------------     
+   void do_meshing(domain_ptr_type domain)
+   {
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - meshing:" << std::endl;
          std::cout << "  input region size: " << mesh_container.size() << std::endl;            
@@ -351,15 +501,20 @@ public:
             {
                vertices[ci] = &(domain->vertex(ngcell[ci]));
             }
-            
+
             cell_type cell;
             cell.setVertices(vertices);
+            cell.setID(global_cell_size);            
+
+            std::cout << "  extracting cell: "; cell.print();
+
             segment_cell_map[mesh_cnt].push_back(cell);
+            
+          
             global_cell_size++;
          }
          mesh_cnt++;
        }            
-       
        
       domain->reserve_vertices(vertex_container.size());       
       for(vertex_container_type::iterator iter = vertex_container.begin();
@@ -367,32 +522,34 @@ public:
       {
          domain->add(*iter);
       }
-      
-       
+
+      std::cout << "mesh cnt: " << mesh_cnt << std::endl;
       domain->create_segments(mesh_cnt);             
        
       // now that all segments and cells have been read, and due to that 
       // we are aware of how many cells in total there are, 
       // we can actually create the cells within the domain
-      
+      std::cout << "global cell size: " << global_cell_size << std::endl;
       domain->reserve_cells(global_cell_size);
 
-      for(typename segment_cell_map_type::iterator sit = segment_cell_map.begin();
+      for(segment_cell_map_type::iterator sit = segment_cell_map.begin();
           sit != segment_cell_map.end(); sit++)
       {
-         for(typename cell_cont_type::iterator cit = sit->second.begin();
+         for(cell_cont_type::iterator cit = sit->second.begin();
              cit != sit->second.end(); cit++)
          {
+//            std::cout << "adding cell: "; 
+//            cit->print();
+//            std::cout << " to segment: " << sit->first << std::endl;
+            
             domain->segment(sit->first).add(*cit);            
          }
       }       
-       
-      mesh_container.clear(); // cleanup ..
-      return domain;
+
+      mesh_container.clear(); // cleanup ..   
    }
    // -------------------------------------------------------------------------------------     
-   
-private:   
+
    // -------------------------------------------------------------------------------------     
    nglib::Ng_Meshing_Parameters  mesh_parameters;   
    std::string                   mesh_kernel_id;   
@@ -403,3 +560,5 @@ private:
 } // end namespace viennamesh
 
 #endif 
+
+
