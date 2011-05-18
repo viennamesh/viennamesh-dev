@@ -1,0 +1,208 @@
+[/ Copyright Kevin Sopp 2008.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section Tutorial]
+
+
+[section General use]
+
+The only header you need to include to use the library is
+`<boost/mp_math/mp_int.hpp>`. This is a header-only library so deployment is easy.
+All functions and objects of this library live in namespace `boost::mp_math`.
+
+  #include <iostream>
+  #include <string>
+  #include <boost/mp_math/mp_int.hpp>
+
+  using namespace boost::mp_math;
+  using namespace std;
+
+  int main()
+  {
+    // init from string
+    mp_int<> x("93423894782394782347823947289374");
+    // init from integral type
+    mp_int<> y = 2340;
+    mp_int<> z = x * y;
+
+    // stream output reacts to stream flags
+    cout << hex << z << endl;
+
+    // automatic detection of radix using the base prefix 0x
+    z = "0xaaaabbbbccccddddeeeeffff222255557777";
+    
+    z /= y;
+
+    // explicit conversion to string according to formatting flags
+    string s = z.to_string<string>(ios::hex | ios::showbase);
+    cout << s << endl;
+
+    z -= z;
+
+    // explicit conversion to built in integral types - this will throw
+    // std::overflow_error if int does not have enough precision to hold the
+    // result
+    int result = z.to_integral<int>();
+    
+    return result;
+  }
+
+In most cases the `mp_int` type will behave like a built in integral type.
+
+[endsect][/General use]
+
+
+[section Random number generation]
+
+The random number generators have interfaces similar to Boost.Random. Including
+`<boost/random.hpp>` is not necessary because it is used internally by the
+`mp_int` random machinery. The random number engine `mt19937` that we use from
+here on lives in namespace `boost`.
+
+
+  const mp_int<> min(0U);
+  const mp_int<> max("0x8974651231456456564");
+  
+  uniform_mp_int<> generator(min, max);
+  
+  // Choose a random number engine.
+  mt19937 e;
+
+  // Now generate a random number.
+  mp_int<> r = generator(e);
+
+
+Another probably more useful alternative is to generate random numbers of a
+certain precision measured in bits.
+
+
+  // A generator for 2048 bit integers.
+  uniform_mp_int_bits<> generator(2048);
+
+  mt19937 e;
+  mp_int<> r = generator(e);
+
+Note that the numbers will always be 2048 bits large, i.e. the 2048th bit is
+always set to 1.
+
+[endsect][/Random number generation]
+
+
+
+[section Primality testing]
+
+Currently all primality tests in this library are probabilistic. A probabilistic
+primality test cannot ascertain that a prime candidate p is really prime. It can
+however ascertain that it is a composite number.
+
+Here we will learn how to test a number `p` for primality using the fermat
+primality test. We use boost::bind to bind the random number engine to the test
+functor. That is necessary because the test functor's function invocation
+operator needs the random number engine. The operator looks like this:
+
+  bool operator()(Engine& e, const mp_int<>& p) const;
+
+We need to bind the random number engine to the first parameter slot. Let's do
+it!
+
+  // Create the fermat test functor with 4 rounds of testing.
+  primality_fermat_test<> test(4);
+
+  // Create a random number engine.
+  mt19937 rng;
+
+  // Create a random 1024 bit candidate number.
+  mp_int<> p = uniform_mp_int_bits<>(1024)(rng);
+
+  bool is_p_prime = is_prime(p, bind(test, rng, _1));
+
+
+[endsect][/Primality testing]
+
+
+
+[section Prime number generation]
+
+
+[section prime_generator]
+
+First we will look at how to generate prime numbers using a simple trial
+division test. What this means is that the prime generator creates a random
+number and then repeatedly divides it by small primes until it finds a number
+that passes this test.
+
+  // Create a generator for 2048 bit primes.
+  prime_generator<primality_division_test> generator(2048);
+
+  // Create a random number engine.
+  mt19937 rng;
+
+  // Now create a prime.
+  mp_int<> prime = generator(rng);
+
+
+[endsect][/prime_generator]
+
+
+[section safe_prime_generator]
+
+A safe prime is a prime `p` for which `(p-1)/2` is also prime. Such prime numbers
+are much rarer and thus take longer to generate.
+
+Now we will look at how to use a more sophisticated primality test like
+`primality_miller_rabin_test` for prime number generation. It is very useful to
+combine this test with the `primality_division_test`. This will involve a bit of
+code, mostly because `primality_miller_rabin_test` and `safe_prime_generator`
+require a random number generator. The latter needs randomness to create a
+candidate to test for primality and the miller rabin test needs randomness to
+test the candidate effectively.
+
+  // Define a function object that checks a prime candidate p first with a trial
+  // division and then with the miller-rabin algorithm. For ease of use we give
+  // it default template arguments.
+  // It does not hold a reference to the random number engine because that could
+  // lead to lifetime problems.
+  template<
+    class Engine = mt19937,
+    class Distribution = uniform_mp_int_bits<>
+  >
+  struct primality_test
+  {
+    primality_division_test                   test1;
+    primality_miller_rabin_test<Distribution> test2;
+    Engine rng;
+
+    explicit tester(const Engine& e = Engine()) : rng(e) {}
+
+    bool operator()(const mp_int<>& p)
+    {
+      return test1(p) && test2(rng, p);
+    }
+  };
+
+  // Create a random number engine that we will feed to the different
+  // algorithms.
+  mt19937 rng;
+
+  // Create a generator for safe primes with 128 bits precision.
+  typedef safe_prime_generator<primality_test<>, uniform_mp_int_bits<> >
+    generator_type;
+  
+  generator_type generator(128, primality_test<>(rng));
+
+  mp_int<> prime = generator(rng);
+
+Remember, the generated numbers are ['probably] prime.
+
+[endsect][/safe_prime_generator]
+
+
+
+[endsect][/Prime number generation]
+
+
+
+[endsect][/Tutorial]
+

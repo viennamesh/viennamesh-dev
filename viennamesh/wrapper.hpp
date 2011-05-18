@@ -16,7 +16,7 @@
 
 #include "wrapper/viennagrid.hpp"
 #include "wrapper/gtsio.hpp"
-#include "wrapper/gsse01.hpp"
+//#include "wrapper/gsse01.hpp"
 #include "wrapper/bnd.hpp"
 #include "wrapper/hin.hpp"
 

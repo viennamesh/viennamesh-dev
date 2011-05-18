@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/tlc/!svn/ver/6753/trunk/mtl4/trunk/boost/numeric/itl/utility
+END
+solver_proxy.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/itl/utility/solver_proxy.hpp
+END
+exception.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/tlc/!svn/ver/6753/trunk/mtl4/trunk/boost/numeric/itl/utility/exception.hpp
+END

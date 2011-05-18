@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/tlc/!svn/ver/6866/trunk/mtl4/trunk/boost/numeric/itl/iteration
+END
+basic_iteration.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/tlc/!svn/ver/6866/trunk/mtl4/trunk/boost/numeric/itl/iteration/basic_iteration.hpp
+END
+noisy_iteration.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/tlc/!svn/ver/6764/trunk/mtl4/trunk/boost/numeric/itl/iteration/noisy_iteration.hpp
+END
+cyclic_iteration.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/tlc/!svn/ver/6764/trunk/mtl4/trunk/boost/numeric/itl/iteration/cyclic_iteration.hpp
+END

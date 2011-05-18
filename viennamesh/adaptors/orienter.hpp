@@ -123,8 +123,6 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
    #endif       
-         // get the first cell of the segment
-         //
          SegmentType & seg = domain->segment(si);
          CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
 

@@ -147,8 +147,9 @@ public:
         region_points_type region_points;
       #ifdef MESH_KERNEL_DEBUG
          std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with multi-segment input" << std::endl;
-         std::size_t seg_cnt = 0;
       #endif      
+         std::size_t seg_cnt = 0;
+
          for(vmesh_segment_iterator seg_iter = data.segment_begin();
             seg_iter != data.segment_end(); seg_iter++)
          {
@@ -160,8 +161,8 @@ public:
          #ifdef MESH_KERNEL_DEBUG
             std::cout << "## MeshKernel::"+mesh_kernel_id+" - computed point in segment " 
                << seg_cnt << " : " << pnt[0] << " " << pnt[1] << " " << pnt[2] << std::endl;
-            seg_cnt++;
          #endif
+            seg_cnt++;
          }
          for(typename region_points_type::iterator iter = region_points.begin();
              iter != region_points.end(); iter++)

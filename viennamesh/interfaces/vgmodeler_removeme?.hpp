@@ -29,7 +29,7 @@
 #include "viennamesh/interfaces/base.hpp"
 #include "viennamesh/tags.hpp"
 
-#include "vgmodeler/volume.hpp"
+#include "vgmodeler/volume_generation.hpp"
 
 namespace viennamesh {
 

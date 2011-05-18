@@ -14,6 +14,8 @@
 #ifndef VIENNAMESH_WRAPPER_GTSIO3_HPP
 #define VIENNAMESH_WRAPPER_GTSIO3_HPP
 
+#ifdef VIENNAMESH_HAVE_GTSIO
+
 #include "viennamesh/wrapper/wrapper_base.hpp"
 #include "viennamesh/tags.hpp"
 #include "viennautils/value_type.hpp"
@@ -327,4 +329,5 @@ struct wrapper <viennamesh::tag::gtsio3, Datastructure>
 
 } // end namespace viennamesh
 
+#endif
 #endif

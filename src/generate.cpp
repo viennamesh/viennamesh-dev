@@ -20,8 +20,12 @@
 #include "viennautils/config.hpp"
 #include "viennautils/convert.hpp"
 #include "viennautils/contio.hpp"
-#include "viennautils/io.hpp"
 #include "viennautils/file.hpp"
+#include "viennautils/io/bnd.hpp"
+#include "viennautils/io/hin.hpp"
+#ifdef VIENNAMESH_HAVE_GTSIO
+#include "viennautils/io/gts.hpp"
+#endif
 
 #include "viennagrid/domain.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
@@ -35,6 +39,7 @@
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/adaptors/orienter.hpp"
 #include "viennamesh/adaptors/cell_normals.hpp"
+//#include "viennamesh/adaptors/hull_quality.hpp"
 
 #include <boost/any.hpp> // removeme
 #include <boost/type_traits/remove_pointer.hpp>
@@ -119,19 +124,23 @@ int main(int argc, char *argv[])
          my_hin_reader(inputfile);
 
          typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>      hin_wrapper_type;
-         hin_wrapper_type                 wrapped_data(my_hin_reader);      
+         hin_wrapper_type                    wrapped_data(my_hin_reader);      
 
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_hull_mesh_generator_type;
-         cervpt_hull_mesh_generator_type       hull_mesher;      
+         cervpt_hull_mesh_generator_type     hull_mesher;      
 
          typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
-         orienter_adaptor_type            orienter;
+         orienter_adaptor_type               orienter;
 
          typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cell_normals_adaptor_type;
-         cell_normals_adaptor_type         cell_normals;         
+         cell_normals_adaptor_type           cell_normals;         
+         
+         //typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
+         //hull_quality_adaptor_type           hull_quality;                  
 
          typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
 
+//         hull_result_type hull_mesh = hull_quality(cell_normals(orienter(hull_mesher(wrapped_data))));
          hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
 
          typedef hull_result_type::value_type                                                      hull_domain_type;

@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/tlc/!svn/ver/6867/trunk/mtl4/trunk/boost/numeric/mtl
+END
+mtl.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/tlc/!svn/ver/6598/trunk/mtl4/trunk/boost/numeric/mtl/mtl.hpp
+END
+mtl_fwd.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/tlc/!svn/ver/6853/trunk/mtl4/trunk/boost/numeric/mtl/mtl_fwd.hpp
+END
+operations.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/tlc/!svn/ver/6855/trunk/mtl4/trunk/boost/numeric/mtl/operations.hpp
+END
+types.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/tlc/!svn/ver/6855/trunk/mtl4/trunk/boost/numeric/mtl/types.hpp
+END
+config.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/tlc/!svn/ver/6799/trunk/mtl4/trunk/boost/numeric/mtl/config.hpp
+END
+vectors.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/tlc/!svn/ver/6850/trunk/mtl4/trunk/boost/numeric/mtl/vectors.hpp
+END
+matrices.hpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/tlc/!svn/ver/6626/trunk/mtl4/trunk/boost/numeric/mtl/matrices.hpp
+END

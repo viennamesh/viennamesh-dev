@@ -49,6 +49,7 @@ struct cuboid               {};
 struct consistancy          {};
 struct orienter             {};
 struct cell_normals         {};
+struct hull_quality         {};
 }
    
 } // end namespace viennamesh

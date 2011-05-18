@@ -2,10 +2,6 @@ PROJECT(ViennaMesh)
 
 cmake_minimum_required(VERSION 2.6)
 
-# build output verbosity
-SET(CMAKE_VERBOSE_MAKEFILE ON)
-
-
 # ------------------------------------------------------------------------------
 #
 # *** SET COMPILER FLAGS ***
@@ -21,6 +17,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # add specific debug flags
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
+   SET(CMAKE_VERBOSE_MAKEFILE ON)
    ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_ADAPTOR_DEBUG)
 #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
 #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DIODEBUG)   
@@ -61,6 +58,9 @@ find_package(CGAL REQUIRED)
 ADD_DEFINITIONS(${CGAL_DEFINITIONS})   
 include_directories(${CGAL_INCLUDE_DIRS})
 
+
+SET(ENABLE_GTSIO OFF)
+
 # ------------------------------------------------------------------------------
 #
 # *** PROCESS RELATED CMAKE PROJECTS ***
@@ -73,8 +73,12 @@ include_directories(${CGAL_INCLUDE_DIRS})
 #   otherwise the netgen and vgmodeler libraries won't compile
 ADD_SUBDIRECTORY(external)
 
-# build ViennaUtils
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/")
+# build ViennaUtils:pugixml support
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/external/pugixml/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/pugixml/")
+IF(ENABLE_GTSIO)
+   # build ViennaUtils:gts support
+   ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/external/gts/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/gts/")
+ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
 #
@@ -83,32 +87,26 @@ ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/ "${CMAKE_CURRENT_BI
 # ------------------------------------------------------------------------------
 
 # setup the include paths
-INCLUDE_DIRECTORIES(".")
-INCLUDE_DIRECTORIES("external/triangle-1.6/")
-INCLUDE_DIRECTORIES("external/tetgen-1.4.3/")
-INCLUDE_DIRECTORIES("external/vgmodeler-2.0/")
-INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/volume_generation/include")
-INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
-INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
-INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
-INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
-INCLUDE_DIRECTORIES("external/cervpt-1.0/")
-#INCLUDE_DIRECTORIES("external/ViennaGrid/")
-#INCLUDE_DIRECTORIES("external/ViennaData/")
-#INCLUDE_DIRECTORIES("external/ViennaUtils/")
-#INCLUDE_DIRECTORIES("external/ViennaUtils/external/")
-#INCLUDE_DIRECTORIES("external/ViennaUtils/external/gsse01/")
-#INCLUDE_DIRECTORIES("external/ViennaUtils/external/gsse01/external/mauch")
 INCLUDE_DIRECTORIES("../ViennaGrid/")
 INCLUDE_DIRECTORIES("../ViennaData/")
 INCLUDE_DIRECTORIES("../ViennaUtils/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
+IF(ENABLE_GTSIO)
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
+ENDIF(ENABLE_GTSIO)
 
+
+INCLUDE_DIRECTORIES(".")
+INCLUDE_DIRECTORIES("external/triangle-1.6/")
+INCLUDE_DIRECTORIES("external/tetgen-1.4.3/")
+INCLUDE_DIRECTORIES("external/vgmodeler-2.0/")
+INCLUDE_DIRECTORIES("external/cervpt-1.0/")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
+INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
 
 # ------------------------------------------------------------------------------
 #
@@ -116,7 +114,10 @@ INCLUDE_DIRECTORIES("../ViennaUtils/external/gsse01/external/mauch")
 #
 # ------------------------------------------------------------------------------
 set(CERVPT_LIBS  ${CGAL_LIBRARIES} ${GMP_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-set(GTSIO_LIBS gtsio3 z)
+set(VGMODHULL_LIBS vgmodeler_hull stltopo meshstl)
+IF(ENABLE_GTSIO)
+   set(GTSIO_LIBS gtsio3 z)
+ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
 #
@@ -126,10 +127,6 @@ set(GTSIO_LIBS gtsio3 z)
 
 #list all source files here
 ADD_EXECUTABLE(generate src/generate.cpp)
-#ADD_EXECUTABLE(mesh src/mesh.cpp)
-#ADD_EXECUTABLE(playground src/playground.cpp)
-#ADD_EXECUTABLE(playground2 src/playground2.cpp)
-#ADD_EXECUTABLE(playground3 src/playground3.cpp)
 
 # ------------------------------------------------------------------------------
 #
@@ -137,7 +134,12 @@ ADD_EXECUTABLE(generate src/generate.cpp)
 #
 # ------------------------------------------------------------------------------
 
-#link specific libraries to specific executables
-TARGET_LINK_LIBRARIES(generate netgen tetgen triangle vgmodeler_volume ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
-#TARGET_LINK_LIBRARIES(mesh tetgen)
+#link specific libraries to specific executables  ${VGMODHULL_LIBS} netgen
+IF(ENABLE_GTSIO)
+   TARGET_LINK_LIBRARIES(generate netgen tetgen triangle ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
+ELSE()
+   TARGET_LINK_LIBRARIES(generate netgen ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})
+   #TARGET_LINK_LIBRARIES(generate netgen tetgen triangle pugixml ${CERVPT_LIBS})
+ENDIF(ENABLE_GTSIO)
+
 
