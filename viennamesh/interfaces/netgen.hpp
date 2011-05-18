@@ -396,7 +396,8 @@ private:
       vertex_map_type vertex_domain_mapping;
       
       // we have to use a temporary cell container too .. for the same reasons
-      typedef std::vector<cell_type>                   cell_cont_type;
+      typedef boost::array<int,CELL_SIZE>                 bngcell_type;
+      typedef std::vector<bngcell_type>                   cell_cont_type;
       typedef std::map<std::size_t, cell_cont_type >   segment_cell_map_type;
       segment_cell_map_type segment_cell_map;
       
@@ -493,23 +494,28 @@ private:
             int ngcell[CELL_SIZE]; 
             
             nglib::Ng_GetVolumeElement (&(*meshpnt), i, ngcell);            
-
                
-            vertex_type *vertices[CELL_SIZE];      
+//            vertex_type *vertices[CELL_SIZE];      
 
+            // sadly we have to copy the cell array into a boost array, 
+            // to be able to move it into the dynamic vector container.
+            // a normal array is not copyable ..  
+            //
+            bngcell_type  bngcell;
             for(int ci = 0; ci < CELL_SIZE; ci++)
             {
-               vertices[ci] = &(domain->vertex(ngcell[ci]));
+               bngcell[ci] = mesh_domain_mapping[ngcell[ci]];
+               //vertices[ci] = &(domain->vertex(ngcell[ci]));
             }
 
-            cell_type cell;
-            cell.setVertices(vertices);
-            cell.setID(global_cell_size);            
+//            cell_type cell;
+//            cell.setVertices(vertices);
+//            cell.setID(global_cell_size);            
 
-            std::cout << "  extracting cell: "; cell.print();
+//            std::cout << "  extracting cell: "; cell.print();
 
-            segment_cell_map[mesh_cnt].push_back(cell);
-            
+//            segment_cell_map[mesh_cnt].push_back(cell);
+              segment_cell_map[mesh_cnt].push_back(bngcell);            
           
             global_cell_size++;
          }
@@ -532,6 +538,7 @@ private:
       std::cout << "global cell size: " << global_cell_size << std::endl;
       domain->reserve_cells(global_cell_size);
 
+      std::size_t cell_id = 0;
       for(segment_cell_map_type::iterator sit = segment_cell_map.begin();
           sit != segment_cell_map.end(); sit++)
       {
@@ -542,7 +549,17 @@ private:
 //            cit->print();
 //            std::cout << " to segment: " << sit->first << std::endl;
             
-            domain->segment(sit->first).add(*cit);            
+            vertex_type *vertices[CELL_SIZE];      
+
+            for(int ci = 0; ci < CELL_SIZE; ci++)
+            {
+               vertices[ci] = &(domain->vertex( (*cit)[ci] ));
+            }            
+            
+            cell_type cell;
+            cell.setVertices(vertices);
+            cell.setID(cell_id++);          
+            domain->segment(sit->first).add(cell);            
          }
       }       
 
