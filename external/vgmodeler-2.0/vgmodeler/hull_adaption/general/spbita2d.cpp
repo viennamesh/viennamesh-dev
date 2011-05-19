@@ -12,9 +12,9 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
   SPARSE_BIT_ARRAY_2D :: SPARSE_BIT_ARRAY_2D (int ah, int aw)
   {

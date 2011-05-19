@@ -166,9 +166,9 @@ void convert_mesh_to_gsse(MeshT& mesh, FullSpaceT& full_space, MaterialT& materi
 
   // [INFO] save the mesh vertices in the space
   //
-  netgen::PointIndex pi; 
+  vgmnetgen::PointIndex pi; 
   long vi = 0;
-  for(pi = netgen::PointIndex::BASE; pi < mesh.GetNP()+netgen::PointIndex::BASE; pi++, vi++)
+  for(pi = vgmnetgen::PointIndex::BASE; pi < mesh.GetNP()+vgmnetgen::PointIndex::BASE; pi++, vi++)
     {
       CoordPosT vertex;
       vertex[0] = mesh[pi](0);      
@@ -189,7 +189,7 @@ void convert_mesh_to_gsse(MeshT& mesh, FullSpaceT& full_space, MaterialT& materi
      typename map_value_type::iterator cit;     
      for(cit = (*mcit).second.begin(); cit != (*mcit).second.end(); ++cit)
      {
-        netgen::SurfaceElementIndex si;    
+        vgmnetgen::SurfaceElementIndex si;    
         for(si = 0; si < mesh.GetNSE(); si++)
         {
 #ifdef DEBUGALL
@@ -198,7 +198,7 @@ void convert_mesh_to_gsse(MeshT& mesh, FullSpaceT& full_space, MaterialT& materi
 
            if(mesh.GetFaceDescriptor(mesh[si].GetIndex()).SurfNr() == (*cit).first)
            {
-              netgen::Element2d sel = mesh[si];
+              vgmnetgen::Element2d sel = mesh[si];
 
 #ifdef DEBUGALL              
               std::cout << ".. writing element " << (*cit).first+1 << " : " << sel << std::endl;
@@ -222,7 +222,7 @@ void convert_mesh_to_gsse(MeshT& mesh, FullSpaceT& full_space, MaterialT& materi
   }
   
 
-//   netgen::SurfaceElementIndex si;    
+//   vgmnetgen::SurfaceElementIndex si;    
 //   for(si = 0; si < mesh.GetNSE(); si++)
 //   {     
 //      typename MaterialT::iterator fit;
@@ -230,7 +230,7 @@ void convert_mesh_to_gsse(MeshT& mesh, FullSpaceT& full_space, MaterialT& materi
 //      {
 //         std::cout << "..face: " << (*fit).first << std::endl;
 
-//         netgen::Element2d sel = mesh[si];
+//         vgmnetgen::Element2d sel = mesh[si];
       
 //         if(mesh.GetFaceDescriptor(mesh[si].GetIndex()).SurfNr() == (*fit).first)
 //         {

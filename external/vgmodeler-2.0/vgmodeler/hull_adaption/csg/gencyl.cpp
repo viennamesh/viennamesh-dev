@@ -2,7 +2,7 @@
 #include <csg.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 GeneralizedCylinder :: GeneralizedCylinder (ExplicitCurve2d & acrosssection,

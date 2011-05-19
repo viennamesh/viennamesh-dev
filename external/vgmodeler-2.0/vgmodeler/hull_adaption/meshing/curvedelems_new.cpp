@@ -3,7 +3,7 @@
 #include "meshing.hpp"
 #ifdef CURVEDELEMS_NEW
 
-namespace netgen
+namespace vgmnetgen
 {
   
   //   bool rational = true;

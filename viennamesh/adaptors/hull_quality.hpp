@@ -21,7 +21,7 @@
 // *** boost includes
 
 // *** vgmodeler includes
-#include "vgmodeler/hull_adaption.hpp"
+#include "vgmodeler/hull_adaption/vgmodeler.hpp"
 
 //#define MESH_ADAPTOR_DEBUG
 
@@ -72,6 +72,7 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
 
       //vgmodeler::hull_adaptor    vghull;
       hull_adaptor    vghull;
+      vghull.add_hull_element(double(3.0));
 
       for (std::size_t si = 0; si < domain->segment_size(); ++si)
       {

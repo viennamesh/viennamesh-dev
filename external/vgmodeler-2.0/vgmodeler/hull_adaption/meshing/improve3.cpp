@@ -7,7 +7,7 @@
 #endif
 #include <opti.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 /*

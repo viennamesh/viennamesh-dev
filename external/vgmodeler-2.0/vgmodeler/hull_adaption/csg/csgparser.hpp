@@ -4,7 +4,7 @@
 
 
 
-//namespace netgen
+//namespace vgmnetgen
 //{
   enum TOKEN_TYPE
     { 

@@ -4,7 +4,7 @@
 #include "meshing.hpp"
 #ifndef CURVEDELEMS_NEW
 
-namespace netgen
+namespace vgmnetgen
 {
     
 
@@ -753,6 +753,6 @@ namespace netgen
     //	cout << "finished" << endl;
     }
 
-} // namespace netgen
+} // namespace vgmnetgen
 
 #endif

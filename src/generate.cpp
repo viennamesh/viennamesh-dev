@@ -39,7 +39,7 @@
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/adaptors/orienter.hpp"
 #include "viennamesh/adaptors/cell_normals.hpp"
-//#include "viennamesh/adaptors/hull_quality.hpp"
+#include "viennamesh/adaptors/hull_quality.hpp"
 
 #include <boost/any.hpp> // removeme
 #include <boost/type_traits/remove_pointer.hpp>
@@ -135,13 +135,13 @@ int main(int argc, char *argv[])
          typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cell_normals_adaptor_type;
          cell_normals_adaptor_type           cell_normals;         
          
-         //typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
-         //hull_quality_adaptor_type           hull_quality;                  
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
+         hull_quality_adaptor_type           hull_quality;                  
 
          typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
 
-//         hull_result_type hull_mesh = hull_quality(cell_normals(orienter(hull_mesher(wrapped_data))));
-         hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
+         hull_result_type hull_mesh = hull_quality(cell_normals(orienter(hull_mesher(wrapped_data))));
+//         hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
 
          typedef hull_result_type::value_type                                                      hull_domain_type;
          typedef hull_domain_type::config_type                                                     hull_domain_configuration_type;

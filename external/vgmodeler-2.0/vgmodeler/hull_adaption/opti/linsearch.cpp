@@ -22,7 +22,7 @@
 #include "opti.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
 const double eps0 = 1E-15;
 

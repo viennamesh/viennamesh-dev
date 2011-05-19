@@ -5,7 +5,7 @@
 
 
 
-namespace netgen
+namespace vgmnetgen
 {
   /*
 Meshing2Surfaces :: Meshing2Surfaces (const Surface & asurface)
@@ -158,7 +158,7 @@ PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
   //(*testout) << "hnewp " << hnewp << " s1 " << surfi1 << " s2 " << surfi2 << endl;
   if (surfi1 != -1 && surfi2 != -1 && surfi1 != surfi2)
     {
-      netgen::ProjectToEdge (geometry.GetSurface(surfi1), 
+      vgmnetgen::ProjectToEdge (geometry.GetSurface(surfi1), 
                              geometry.GetSurface(surfi2), 
                              hnewp);
       // (*testout) << "Pointbetween, newp = " << hnewp << endl
@@ -200,7 +200,7 @@ void RefinementSurfaces :: ProjectToSurface (Point<3> & p, int surfi)
 
 void RefinementSurfaces :: ProjectToEdge (Point<3> & p, int surfi1, int surfi2, const EdgePointGeomInfo & egi) const
 {
-  netgen::ProjectToEdge (geometry.GetSurface(surfi1), 
+  vgmnetgen::ProjectToEdge (geometry.GetSurface(surfi1), 
                          geometry.GetSurface(surfi2), 
                          p);
   

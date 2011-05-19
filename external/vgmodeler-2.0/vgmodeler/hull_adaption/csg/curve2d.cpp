@@ -3,7 +3,7 @@
 #include <myadt.hpp>
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 CircleCurve2d :: CircleCurve2d (const Point<2> & acenter, double arad)
   {

@@ -5,7 +5,7 @@
 #include <csg.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
   int CSGeometry :: changeval = 0;

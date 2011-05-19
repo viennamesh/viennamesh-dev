@@ -8,7 +8,7 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
   ARRAY<SpecialPoint> specpoints;
   static ARRAY<MeshPoint> spoints;

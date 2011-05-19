@@ -8,11 +8,12 @@ cmake_minimum_required(VERSION 2.6)
 #
 # ------------------------------------------------------------------------------
 
+
 IF(CMAKE_COMPILER_IS_GNUCXX)
    # Optimize Release Build Type with -O2 instead of -O3
    set(CMAKE_CXX_FLAGS_RELEASE "-O2")  
    # Strip release binaries   
-   set(CMAKE_EXE_LINKER_FLAGS_RELEASE"-s")    
+   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # add specific debug flags
@@ -114,7 +115,8 @@ INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
 #
 # ------------------------------------------------------------------------------
 set(CERVPT_LIBS  ${CGAL_LIBRARIES} ${GMP_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-set(VGMODHULL_LIBS vgmodeler_hull stltopo meshstl)
+#set(VGMODHULL_LIBS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+set(VGMODHULL_LIBS vgmodeler_hull)
 IF(ENABLE_GTSIO)
    set(GTSIO_LIBS gtsio3 z)
 ENDIF(ENABLE_GTSIO)
@@ -138,8 +140,10 @@ ADD_EXECUTABLE(generate src/generate.cpp)
 IF(ENABLE_GTSIO)
    TARGET_LINK_LIBRARIES(generate netgen tetgen triangle ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
 ELSE()
-   TARGET_LINK_LIBRARIES(generate netgen ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})
+   #TARGET_LINK_LIBRARIES(generate tetgen triangle pugixml ${CERVPT_LIBS})
    #TARGET_LINK_LIBRARIES(generate netgen tetgen triangle pugixml ${CERVPT_LIBS})
+   TARGET_LINK_LIBRARIES(generate ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})
+   #TARGET_LINK_LIBRARIES(generate ${VGMODHULL_LIBS} netgen tetgen triangle pugixml ${CERVPT_LIBS})   
 ENDIF(ENABLE_GTSIO)
 
 

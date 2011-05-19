@@ -3,7 +3,7 @@
 #include <linalg.hpp>
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 Parallelogram3d :: Parallelogram3d (Point<3> ap1, Point<3> ap2, Point<3> ap3)

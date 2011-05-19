@@ -3,7 +3,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
   void GetPureBadness(Mesh & mesh, ARRAY<double> & pure_badness,
 		      const BitArray & isnewpoint)

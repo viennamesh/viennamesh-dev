@@ -2,7 +2,7 @@
 
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 BSplineCurve2d :: BSplineCurve2d ()

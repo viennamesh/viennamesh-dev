@@ -8,7 +8,7 @@
 
 #include "stlgeom.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 
 
@@ -1009,7 +1009,7 @@ STLBoundarySeg (int ai1, int ai2, const ARRAY<Point<3> > & points,
   i2 = ai2; 
   p1 = points.Get(i1);
   p2 = points.Get(i2);
-  center = ::netgen::Center (p1, p2);
+  center = ::vgmnetgen::Center (p1, p2);
   rad = Dist (p1, center);
 
   p2d1 = chart->Project2d (p1);
@@ -1021,8 +1021,8 @@ STLBoundarySeg (int ai1, int ai2, const ARRAY<Point<3> > & points,
 
 void STLBoundarySeg :: Swap ()
 {
-  ::netgen::Swap (i1, i2);
-  ::netgen::Swap (p1, p2);
+  ::vgmnetgen::Swap (i1, i2);
+  ::vgmnetgen::Swap (p1, p2);
 }
 
 

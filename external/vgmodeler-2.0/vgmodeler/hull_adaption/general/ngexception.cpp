@@ -6,9 +6,9 @@
 
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
 
 

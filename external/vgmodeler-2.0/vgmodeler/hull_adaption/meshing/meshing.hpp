@@ -14,7 +14,7 @@
 
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
   extern int printmessage_importance;

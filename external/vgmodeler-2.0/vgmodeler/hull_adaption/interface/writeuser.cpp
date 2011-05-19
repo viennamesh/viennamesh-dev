@@ -10,7 +10,7 @@
 #include <geometry2d.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 #include "writeuser.hpp"
 

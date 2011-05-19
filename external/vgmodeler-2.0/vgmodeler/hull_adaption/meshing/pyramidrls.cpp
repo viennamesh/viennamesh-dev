@@ -1,4 +1,4 @@
-namespace netgen
+namespace vgmnetgen
 {
 const char * pyramidrules[] = {
 "tolfak 0.5\n",\

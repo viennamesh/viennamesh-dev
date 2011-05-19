@@ -24,28 +24,22 @@
 
 // #include <FlexLexer.h>
 
-namespace netgen {
+namespace vgmnetgen {
   extern void MeshFromSpline2D (SplineGeometry2d & geometry,
 				Mesh *& mesh, 
 				MeshingParameters & mp);
-}
+//}
 
-
-
-
-
-
-
-namespace nglib {
+//namespace vgmnglib {
 #include "nglib.h"
-}
+//}
 
-using namespace netgen;
+//using namespace vgmnetgen;
 
 // constants and types:
 
-namespace nglib
-{
+//namespace vgmnglib {
+
 // initialize, deconstruct Netgen library:
 void Ng_Init ()
 {
@@ -519,7 +513,7 @@ Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
   int retval = STLSurfaceMeshing (*stlgeometry, *me);
 
 #ifdef DEBUGALL
-  std::cout << ".. in nglib after STLSurfaceMeshing .. " << std::endl;
+  std::cout << ".. in vgmnetgen after STLSurfaceMeshing .. " << std::endl;
 #endif
 
   if (retval == MESHING3_OK)
@@ -594,7 +588,7 @@ Ng_Meshing_Parameters :: Ng_Meshing_Parameters()
 
 // compatibility functions:
 
-namespace netgen 
+namespace vgmnetgen 
 {
 
   char geomfilename[255];

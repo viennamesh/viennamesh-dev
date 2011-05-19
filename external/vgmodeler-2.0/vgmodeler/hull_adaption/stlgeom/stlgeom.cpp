@@ -11,7 +11,7 @@
 
 // #define DEBUGALL
 
-namespace netgen
+namespace vgmnetgen
 {
 
 //globalen searchtree fuer gesamte geometry aktivieren
@@ -2880,7 +2880,7 @@ void STLGeometry :: FindEdgesFromAngles()
       std::cout << ".. checking edge: " << sed << std::endl;
 #endif
 
-      // [FS][MOD] old Netgen code
+      // [FS][MOD] old vgmnetgen code
       //
 //       if (sed.GetStatus() == ED_CONFIRMED || 
 // 	  (sed.GetStatus() == ED_CANDIDATE && confcand))

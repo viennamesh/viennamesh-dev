@@ -1,0 +1,8 @@
+{
+   global:
+      extern "C++" {
+         hull_adaptor::*;
+      };
+   local: *;
+};
+

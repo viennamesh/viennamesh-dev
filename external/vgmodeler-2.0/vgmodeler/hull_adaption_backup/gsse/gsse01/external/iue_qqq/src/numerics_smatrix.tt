@@ -1,0 +1,969 @@
+/* ***********************************************************************
+   $Id: numerics_smatrix.tt,v 1.7 2003/12/22 17:00:40 wagner Exp $
+
+   Filename: numerics_smatrix.tt
+
+   Description:  Matrix class for element-wise matrix construction (templates)
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+             
+             SW  Stephan Wagner,   Institute of Microelectronics, TU Vienna
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF  18 May 1996  created
+   CF  18 May 1996  balanced binary tree insertion function started and done
+   CF  18 May 1996  SMatrix class started and done
+   CF  30 Jun 1996  some cleanups and methodology
+   CF  30 Jun 1996  some documentation added
+   CF  22 Nov 1996  allocation error checking added
+   SW  27 Nov 2001  enum Balance: prefix 'bal_' added due to compiler problems
+   SW   6 Feb 2002  qqq prefixed function names
+   SW  25 Feb 2002  SMatrix integration in this file due to x-ref problems
+   SW  03 Dec 2003  separated SMatrix files restored
+   SW  22 Dec 2003  existEntry method
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_smatrix_tt__included__
+#define   __numerics_smatrix_tt__included__
+
+
+/* 
+   The following code provides:
+
+   Class
+   qqqSMatrix<Number>             ... Sparse matrix structure for data entry
+   
+   Member functions
+   allocate(dimension,rowize)     ... define size and row/column wise storage
+   free()                         ... destroy all data
+   entry(row,column)              ... create and return matrix entry
+   clearRow(row)                  ... delete all entries in row (make zero)
+   clearCol(column)               ... delete all entries in column (make zero)
+   convertToMCSR(A,rowize)        ... put data into MCSR matrix A
+   isValid()                      ... data is valid (no allocation error)
+
+   Note:
+   1) Speed
+      Depending on rowize, the structure is allocated for row-wise or 
+      column-wise storage of off-diagonals. If rowize, then clearCol is
+      very slow (order of dimension), else clearRow is slow.
+      The other operation is of order of existing entries in the row/column
+      that is cleared.
+      Creating and returning a matrix entry is of order of 
+      log(existing entries) in the row/column of the entry.
+      Converting to MCSR is of order of number of existing entries.
+*/
+
+
+
+/* class qqqSMatrix<Number>
+   ========================
+   
+   This class provides a flexible structure for sparse matrices. 
+   New entries can easily be added at any place and any time.
+   When the matrix construction is finished, the matrix can be
+   converted to MCSR (Modified Compressed Sparse Row) or MCSC
+   (Modified Compressed Sparse Column) format for further use.
+
+   The purpose of this matrix format is for data entry only.
+   No further matrix operations are defined for this structure.
+   Diagonal elements are stored in an array, and off-diagonals in a 
+   balanced binary tree for each row, sorted by column.
+   On allocation, the dimension (number of rows/columns) must be 
+   specified and whether the off-diagonals should be stored row-wise
+   or column-wise. If the matrix is in rowized storage, deletion of
+   rows is very quick and deletion of columns slow, else the situation
+   is opposite.
+   */
+#define SMatrixPure        qqqSMatrix
+#define SMatrix            SMatrixPure<Number>
+#define Balance            qqqSMatrixBalance
+#define EntryPure          qqqSMatrixEntry
+#define Entry              qqqSMatrixEntry<Number>
+#define MCSR               qqqMCSR<Number>
+#define Index qqqIndex
+
+enum Balance 
+{
+    balLeft = -1,			/* Left subtree is deeper */
+    balEqual = 0,			/* Right subtree is deeper */
+    balRight = 1			/* Both subtrees have same depth */
+};
+
+template<class Number>
+class EntryPure
+{
+public:
+    Index      col;		/* Column of the entry */
+    Balance    bal;		/* Balance of binary tree below */
+    EntryPure  *fwd;		/* Pointer to node with higher column */
+    EntryPure  *bwd;		/* Pointer to node with lower column */
+    Number     val;	        /* Value of off-diagonal */    
+public:
+    inline void preset();	/* Preset with zero */
+};
+
+
+/* preset()
+
+   Preset off-diagonal element with zero number and pointers.
+   */
+template<class Number>
+inline void
+Entry::preset()
+{
+    col = -1;
+    bal = balEqual;
+    fwd = 0;
+    bwd = 0;
+    val = 0;
+}
+
+
+template<class Number>
+class SMatrixPure
+{
+    /* Matrix data */
+    /* =========== */
+
+    /* General data */
+private:
+    Index    n;			/* Dimension of the matrix               */
+    Number  *valdg;		/* Diagonal elements                     */
+    Entry  **offdg;		/* Off-diagonal elements                 */
+    bool     rowized;		/* Row by row organization
+				   (vs. column by column)                */
+    bool     balanceTree;       /* Inserted entries will be 'balanced'   */
+
+    /* Auxiliaries for off diagonals administration */
+private:
+    Entry  *offdga;		/* List of allocated off-diagonal arrays */
+    Entry  *offdgl;		/* List of free off-diagonals            */
+    Entry   dummy;		/* Dummy entry                           */
+    bool    allerr;		/* Misallocation of off-diagonals        */
+
+    /* assignment is prohibited */
+    SMatrixPure& operator=(const SMatrixPure&); 
+
+    /* Access functions */
+    /* ================ */
+
+    /* Administration */
+public:
+    inline         SMatrixPure();
+    inline        ~SMatrixPure();
+    inline bool    allocate(Index const dim, bool const rowize);
+    inline void    free();
+
+    /* Auxiliary administration */
+private:
+    inline        void    freeoffdg();
+    inline        Entry * getEntry();
+    inline        void    putbackEntry(Entry * const nd);
+    inline        Entry & findAndCreateEntry(Entry * &top, Index const col);
+    inline static Entry * findEntry(Entry * top, Index const col);
+    inline static void    untreeize(Entry * &top);
+    inline        void    rmtree(Entry * &top);
+    inline        void    clearTree(Entry *top);
+
+    /* Matrix manipulation */
+public:
+    inline Number  &entry(Index const row, Index const col);
+    inline void    clearRow(Index const row, bool const remove);
+    inline void    clearCol(Index const col, bool const remove);
+    bool           convertToMCSR(MCSR &A, bool const rowize);
+
+    bool           existEntry(Index const row, Index const col) const;
+
+    /* Consistency */
+    inline bool    isValid();
+};
+
+
+/* qqqSMatrix()
+
+   Constructor function. Creates an empty matrix. 
+   */
+template<class Number>
+inline
+SMatrix::SMatrixPure() : n(0),
+			 valdg(0),
+			 offdg(0),
+			 rowized(false),
+			 balanceTree(true),
+			 offdga(0),
+			 offdgl(0),
+			 allerr(false)
+{
+    dummy.preset();
+}
+
+/* freeoffdg()
+
+   Free all off-diagonals allocated in the matrix structure.
+   */
+template<class Number>
+inline void
+SMatrix::freeoffdg()
+{
+    for (Index jj = 0; jj < n; jj++) 
+	offdg[jj] = 0;
+    
+    for (Entry * p = offdga; p; p = offdga)
+    {
+	offdga = p->fwd;
+	delete[] p;
+    }
+
+    offdgl = 0;
+    dummy.preset();
+    allerr = false;
+}
+
+
+/* free()
+
+   Free everything allocated in the matrix structure.
+   */
+template<class Number>
+inline void
+SMatrix::free()
+{
+    freeoffdg();
+    if (valdg) delete[] valdg; valdg = 0;
+    if (offdg) delete[] offdg; offdg = 0;
+    rowized = false;
+    n = 0;
+}
+
+
+/* ~qqqSMatrix()
+
+   Destructor function. Frees everything allocated and deletes matrix.
+   */
+template<class Number>
+inline 
+SMatrix::~SMatrixPure()
+{
+    free();
+}
+
+
+/* allocate()
+
+   Allocate the basic structure for the specified matrix dimension.
+   */
+template<class Number>
+inline bool			/* Allocation was successful */
+SMatrix::allocate(
+    Index const dim,		/* New dimension of matrix */
+    bool  const rowize		/* Row by row organziation, off-diagonals
+				   of a row are sorted in a tree. This does
+				   not allow for clearing a column. If false,
+				   column organization, which does not allow 
+				   for clearing a row. */
+    )
+{
+    free();
+
+    // printf("%s[%d]: allocate: dim=%ld\n", __FILE__, __LINE__, qqqIndexToLong(dim));
+
+    valdg = new Number  [dim ? dim : 1];
+    offdg = new Entry*  [dim ? dim : 1];
+    if (!valdg || !offdg)
+    {
+	free();
+	return false;
+    }
+    n = dim;
+    rowized = rowize;
+    for (Index jj = 0; jj < dim; jj++)
+    {
+	valdg[jj] = 0;
+	offdg[jj] = 0;
+    }
+
+    balanceTree = true;
+    return true;
+}
+
+
+/* getEntry()
+ 
+   Return a new allocated off-diagonal entry. 
+   If allocation is not possible, a pointer to the dummy entry is returned
+   and a flag set.
+   If the entry is accessed the first time, it is initialized to zero.
+   */
+template<class Number>
+inline Entry *			/* Pointer to the entry */
+SMatrix::getEntry()
+{
+    Entry * p;
+
+    /* [SW]: Offdgl points to the next free (already allocated) entry
+       structure. 
+
+       If it's null, a new array of entry structures (dimension len) is
+       allocated. All of these arrays are linked by fwd members of the first
+       entries (position zero of each array), head of the linked list is offdga
+       that points to the array allocated at last. This linked list is used to
+       delete the arrays on destruction. All other entries are linked by
+       the fwd member, the last one points to null.
+
+       In the second part of the method the entry structure offdgl points to is
+       preset and offdgl is redirected to the next free entry structure in the
+       array (at the end of the array it points to null again).
+    */
+
+    if (!offdgl) 
+    {
+	if (allerr) 
+	    return &dummy;	
+
+	Index const len = qqqMax(n/2,1024);
+	p = new Entry[len];       // allocation of array
+	if (!p)                   // error?
+	{
+	    allerr = true;
+	    return &dummy;
+	}
+
+	for (Index ii = 1; ii < len - 1; ii++)
+	   p[ii].fwd = &p[ii+1];  // link of all entries except the first one
+	p[len-1].fwd = 0;         // last entry points to null
+
+	p->fwd = offdga;          // fwd member of first entry points to 
+	                          // current head of linked-list of arrays
+	offdga = p;               // head is updated to point to just allocated array
+
+	offdgl = &p[1];           // pointer of free entries points to second entry in the array
+    }
+
+    p = offdgl;                   // take the next free entry
+    offdgl = p->fwd;              // update free entry pointer
+    p->preset();                  // preset new entry
+    return p;                     // return entry
+}
+
+/* putbackEntry()
+ 
+   Put an entry which is not used furthermore back to the allocation list.
+   The entry will be reused in the next getEntry() call.
+   */
+template<class Number>
+inline void
+SMatrix::putbackEntry(
+    Entry * const nd		  /* The entry to be put back */
+    )
+{
+    nd->fwd = offdgl;
+    offdgl = nd;
+}
+
+
+/* findAndCreateEntry()
+
+   Find an entry in the balanced binary tree. If no entry is present,
+   create a new entry. 
+   If the entry is accessed the first time, it is initialized to zero.
+   Returns a reference to the new entry.
+   */
+template<class Number>
+inline Entry &			/* The entry in the tree */
+SMatrix::findAndCreateEntry(
+    Entry * &top,		/* The top node pointer - tree root. */
+    Index   const col		/* The column index of the entry. */
+    )
+{
+    /* Protect against disordering the tree */
+    if (allerr) return dummy;
+
+    /* 1. Empty tree */
+    if (!top)
+    {
+       Entry *nd = getEntry();
+       top = nd;
+       nd->col = col;
+       return *nd;
+    }
+
+    /* 2. Search and insert without balance */
+    Entry **u = &top;		/* *u is pointer to actual node */
+    Entry  *q = *u;		/* *q  is actual node */
+    Entry **t = u;		/* *t is pointer to last node on the
+				      way down with balance not equal */
+    while (q) 
+    {       
+       if (q->bal)		/* remember q as the last node on the */
+	  t = u;		/* way down with balance not equal */
+       
+       if (col < q->col)	/* move left */       
+	  u = &q->bwd;
+       else if (col > q->col)	/* move right */       	  
+	  u = &q->fwd;       
+       else			/* found node */       	  
+	  return *q;       
+       q = *u;			/* move down q */
+    }
+
+    /* leaf reached */
+    q = getEntry();
+    q->col = col;
+    *u = q;
+
+    if (balanceTree)
+    { // balanceTree
+       Entry  *s = *t;
+       Entry  *r, *p;
+       Balance a;
+
+#if QQQ_SMA_CHECK_BALANCE_NULL
+       if (s == 0)
+       {	  
+	  printf("%s[%d]: severe balance error, col=%ld\n", __FILE__, __LINE__, qqqIndexToLong(col));
+	  assert(0);
+       }
+#endif // QQQ_SMA_CHECK_BALANCE_NULL
+
+       /* State:
+	  q is the new inserted node,
+	  u is the address of the pointer q within the tree, 
+	  s is an indirect parent node of q with balance not equal,
+	  all nodes between s and q have balance equal,
+	  t is the address of the pointer s within the tree. */
+
+       /* 3. Adjust balance factors between nodes s and q */
+
+       if (col < s->col)		/* left subtree of s */
+       {
+	  a = balLeft;
+	  r = p = s->bwd;
+       }
+       else			/* right subtree of s */
+       {
+	  a = balRight;
+	  r = p = s->fwd;
+       }
+
+       while (p != q)
+       {
+
+#if QQQ_SMA_CHECK_BALANCE_NULL
+	  if ((q == 0) ||
+	      (p == 0))
+	  {	  
+	     printf("%s[%d]: severe balance error, col=%ld\n", __FILE__, __LINE__, qqqIndexToLong(col));
+	     assert(0);
+	  }
+#endif // QQQ_SMA_CHECK_BALANCE_NULL
+
+	  if (q->col < p->col) 
+	  {
+	     p->bal = balLeft;
+	     p = p->bwd;
+	  }
+	  else 
+	  {
+	     p->bal = balRight;
+	     p = p->fwd;
+	  }
+       }
+
+#if QQQ_SMA_CHECK_BALANCE_NULL
+       if ((q == 0) ||
+	   (p == 0))
+       {	  
+	  printf("%s[%d]: severe balance error, col=%ld\n", __FILE__, __LINE__, qqqIndexToLong(col));
+	  assert(0);
+       }
+#endif // QQQ_SMA_CHECK_BALANCE_NULL
+
+       /* State:
+       s is the node which requires re-balancing,
+       t is the address of the pointer s within the tree, 
+       r is the head of the subtree of s that has changed,
+         all nodes under r are balanced correctly and have
+	 balance left or right, not equal */
+
+    /* 4. Balance the node s */
+    
+       /* 4.1. Tree has grown higher */
+       if (!s->bal) 
+       {
+	  s->bal = a;
+	  return *q;
+       }
+
+       /* 4.2. Tree has gotten more balanced */
+       else if (s->bal != a) 
+       {
+	  s->bal = balEqual;
+	  return *q;
+       }
+
+       /* 4.3. Tree has gotten out of balance */
+
+       /* 4.3.1 Single rotation */
+       if (r->bal == a)
+       {
+	  /* Put r in the place of s, and 
+	     s one level downwards */
+	  *t = r;
+	  if (a == balRight) 
+	  {
+	     s->fwd = r->bwd;
+	     r->bwd = s;
+	  }
+	  else 
+	  {
+	     s->bwd = r->fwd;
+	     r->fwd = s;
+	  }
+	  /* Adjust balance of s and r */
+	  s->bal = balEqual;
+	  r->bal = balEqual;
+       }
+
+       /* 4.3.2. Double rotation */
+       else 
+       {
+	  /* Put p in the place of s, 
+	     s one level downwards, and 
+	     r beside s */
+	  if (a == balRight) 
+	  {
+	     p = r->bwd;
+
+#if QQQ_SMA_CHECK_BALANCE_NULL
+	     if (p == 0)
+	     {
+		/* [SW]: the tree must always kept balanced, otherwise this
+		   algorithm does not work properly. Thus ensure, that no entry
+		   is inserted in an unbalanced tree (e.g. untreeize() makes
+		   the tree unbalanced by purpose).
+		*/
+		printf("%s[%d]: severe balance error, col=%ld\n", __FILE__, __LINE__, qqqIndexToLong(col));
+		assert(0);
+	     }
+	     else
+#endif // QQQ_SMA_CHECK_BALANCE_NULL
+
+	     {
+		r->bwd = p->fwd;
+		p->fwd = r;
+		s->fwd = p->bwd;
+		p->bwd = s;
+		*t = p;
+	     }	     
+	  }
+	  else 
+	  {
+	     p = r->fwd;
+
+#if QQQ_SMA_CHECK_BALANCE_NULL
+	     if (p == 0)
+	     {
+		/* [SW]: see former comment */
+		printf("%s[%d]: severe balance error, col=%ld\n", __FILE__, __LINE__, qqqIndexToLong(col));
+		assert(0);
+	     }
+	     else
+#endif // QQQ_SMA_CHECK_BALANCE_NULL
+
+	     {
+		r->fwd = p->bwd;
+		p->bwd = r;
+		s->bwd = p->fwd;
+		p->fwd = s;
+		*t = p;
+	     }	     
+	  }
+	  /* Adjust balance of s, r, and p */
+	  if (!p->bal) 
+	  {
+	     s->bal = balEqual;
+	     r->bal = balEqual;
+	  }
+	  else if (p->bal == a) 
+	  {
+	     s->bal = (a == balRight) ? balLeft : balRight;
+	     r->bal = balEqual;
+	  }
+	  else 
+	  {
+	     s->bal = balEqual;
+	     r->bal = a;
+	  }
+	  p->bal = balEqual;
+       }
+    }
+    return *q;
+}
+
+/* existEntry
+
+   returns whether a specified entry is existing or not.
+*/
+template<class Number>
+inline bool			/* The entry in the tree */
+SMatrix::existEntry(Index const row, Index const col) const
+{
+   if (allerr)       /* protect */
+      return false;
+
+   /* diagonal entries are always existing */
+   if (row == col)
+      return true;
+
+   if (rowized)
+      return(findEntry(offdg[row], col) != 0);
+   else    
+      return(findEntry(offdg[col], row) != 0);
+}
+
+/* findEntry()
+
+   Finds an entry in the balanced binary tree. If no entry is present,
+   returns 0.
+   Returns a pointer to the new entry.
+   */
+template<class Number>
+inline Entry *			/* The entry in the tree */
+SMatrix::findEntry(
+    Entry * top,		/* The top node pointer - tree root. */
+    Index   const col		/* The column index of the entry. */
+    )
+{
+    Entry *q;
+    for (q = top; q; q = (col < q->col) ? q->bwd : q->fwd)
+	if (col == q->col)
+	    break;
+    return q;
+}
+
+
+/* untreeize()
+
+   Change the balanced binary tree into a doubly connected list, sorted
+   by the same criterion.
+
+   Effort: number of entries in list.
+   */
+template<class Number>
+inline void
+SMatrix::untreeize(
+    Entry * &top		/* The top node pointer - tree root. */
+    )
+{
+    Entry **p = &top;
+    Entry *q = *p;
+
+    while (q)
+    {
+	Entry *r = q->bwd;
+	
+	while (r)
+	{
+	    q->bwd = r->fwd;
+	    r->fwd = q;
+	    *p = r;
+	    q = r;
+	    r = q->bwd;
+	}
+
+	p = &q->fwd;
+	q = *p;
+    }
+
+    /* [SW]: note: new entries must not 'balanced' any more 
+       (see non-static convertToMCSR(...) 
+    */
+}
+
+
+/* rmtree()
+
+   Remove the binary balanced tree from the top node pointer.
+
+   Effort: number of entries in list.
+   */
+template<class Number>
+inline void
+SMatrix::rmtree(Entry * &top) /* The top node pointer - tree root. */
+{
+    Entry *q = top;
+
+    while (q)
+    {
+	Entry *r = q->bwd;
+	
+	while (r)
+	{
+	    q->bwd = r->fwd;
+	    r->fwd = q;
+	    q = r;
+	    r = q->bwd;
+	}
+
+	Entry * const s = q;
+	q = q->fwd;
+	putbackEntry(s);
+    }
+    top = 0;
+}
+
+/* clearTree()
+   does not remove the entries but sets them to zero since these entries
+   are probably used in the next Newton iteration. If these entries are
+   not included in the MCSR structure, a Newton adjustment error will occur.
+*/
+
+template<class Number>
+void
+SMatrix::clearTree(Entry *top)
+{   
+    if (top != 0)
+    {
+       top->val = 0;
+       if (top->fwd != 0) clearTree(top->fwd);
+       if (top->bwd != 0) clearTree(top->bwd);
+    }
+}
+
+/* entry()
+
+   Provides a reference to a numerical matrix entry. The number can be 
+   modified by the caller.
+
+   If the matrix entry is not already present, it will be automatically
+   created and preset with zero.
+
+   If the row or col arguments are out of range, or if a misallocation or
+   some other error occurred that makes returning the correct reference
+   impossible, a reference to the dummy entry is returned, modifying which
+   will not have any effect to further matrix operations.
+
+   */
+template<class Number>
+inline Number &			/* The modifiable number */
+SMatrix::entry(
+    Index const row,		/* The row index, range 0..n-1 */
+    Index const col		/* The column index, range 0..n-1 */
+    )
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (row < 0 || row >= n || col < 0 || col >= n)
+    {
+       printf("%s[%d] QQQ_EQS_CHECK_INDEX_BOUNDS, assertion violated!\n", __FILE__, __LINE__);
+       return dummy.val;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+
+    // printf("Entry request for row=%ld, col=%ld\n", qqqIndexToLong(row), qqqIndexToLong(col));
+
+    if (row == col)
+       return valdg[row];
+
+    if (rowized)
+       return(findAndCreateEntry(offdg[row],col).val);
+    else    
+       return(findAndCreateEntry(offdg[col],row).val);    
+}
+
+
+/* clearRow()
+
+   Clear a row (set all entries in the row to zero).
+
+   This is very inefficient if rowized is false.
+
+   Effort: n                   if rowized is false,
+           # of entries in row if rowized is true.
+   */
+template<class Number>
+inline void
+SMatrix::clearRow(
+    Index const row,		/* The number of the row to be cleared. */
+    bool  const remove          /* remove (true) entries or clear only */
+    )
+{
+    valdg[row] = 0;
+
+    if (rowized)
+    {
+       if (remove)
+	  rmtree(offdg[row]);
+       else clearTree(offdg[row]);
+    }
+    else
+    {
+       assert(0);
+       for (Index col = 0; col < n; col++)
+       {
+	  Entry * const p = findEntry(offdg[col],row);
+	  if (p) p->val = 0;
+       }
+    }
+}
+
+
+/* clearCol()
+
+   Clear a column (set all entries in the column to zero).
+
+   This is very inefficient if rowized is true.
+
+   Effort: n                    if rowized is true,
+           # of entries in col  if rowized is false.
+   */
+template<class Number>
+inline void
+SMatrix::clearCol(
+    Index const col,		/* The number of the col to be cleared. */
+    bool  const remove          /* remove (true) entries or clear only */
+    )
+{
+    valdg[col] = 0;
+    if (!rowized)
+    {
+       if (remove) rmtree(offdg[col]); 
+       else clearTree(offdg[col]);
+    }
+    else
+    {
+       assert(0);
+       for (Index row = 0; row < n; row++)
+       {
+	  Entry * const p = findEntry(offdg[row], col);
+	  if (p) p->val = 0;
+       }
+    }
+}
+
+
+/* convertToMCSR()
+
+   Convert the matrix to MCSR structure (Modified Compressed Sparse Row).
+   If rowize is false, then MCSC sructure is used instead (Modified Compressed
+   Sparse Column).
+   */
+template<class Number>
+bool				/* The conversion was successful */
+SMatrix::convertToMCSR(
+    MCSR      &A,		/* Output the converted matrix */
+    bool      const rowize	/* MCSR and not MCSC */
+    )
+{
+    bool transpose = (rowize != rowized);
+    Index nnz = n;
+
+    /* We might need an auxiliary array */
+    Index * const cnt = transpose ? (new Index[n]) : 0;
+    if (transpose)
+    {
+	if (!cnt)
+	    return false;
+	for (Index row = 0; row < n; row++)
+	    cnt[row] = 0;
+    }
+
+    /* Count off-diagonals */
+    for (Index row = 0; row < n; row++)
+    {
+	untreeize(offdg[row]);	
+	balanceTree = false;   /* new entries must not 'balanced' any more */
+	if (transpose)
+	    for (Entry *p = offdg[row]; p; p = p->fwd)
+	    {
+		nnz++;
+		cnt[p->col]++;
+	    }
+	else
+	    for (Entry *p = offdg[row]; p; p = p->fwd)
+		nnz++;
+    }
+
+    /* Allocate A */
+    // printf("allocate MCSR: n = %ld; nnz = %ld\n", qqqIndexToLong(n), qqqIndexToLong(nnz));
+
+    if (!A.allocate(n,nnz,rowize))
+    {
+	if (transpose) delete[] cnt;
+	return false;
+    }
+
+    Index  * const aidx = A.getidx();
+    Number * const aval = A.getval();
+
+    /* Convert the diagonal */
+    for (Index row = 0; row < n; row++)
+	aval[row] = valdg[row];
+
+    /* Simply convert */
+    if (rowize == rowized)
+    {
+	Index idxtop = n + 1;
+	for (Index row = 0; row < n; row++) {
+	    aidx[row] = idxtop;
+	    for (Entry *p = offdg[row]; p; p = p->fwd) {
+		aidx[idxtop] = p->col;
+		aval[idxtop] = p->val;
+		idxtop++;
+	    }
+	}
+	aidx[n] = idxtop;
+    }
+
+    /* Convert and transpose */
+    else
+    {
+	aidx[0] = n + 1;
+	aidx[1] = n + 1;
+	for (Index row = 1; row < n; row++)
+	    aidx[row+1] = aidx[row] + cnt[row-1];
+
+	for (Index row = 0; row < n; row++) {
+	    for (Entry *p = offdg[row]; p; p = p->fwd) {
+		Index const col = p->col;
+		Index const pos = aidx[col + 1]++;
+		aidx[pos] = row;
+		aval[pos] = p->val;
+	    }
+	}
+    }
+    
+    if (transpose) delete[] cnt;
+    return true;
+}
+
+/* isValid()
+
+   Check that the matrix is in a valid state, i.e. that no allocation
+   error has occurred.
+   The function returns true if no allocation error has occurred before
+   calling, else false.
+   */
+template<class Number>
+inline bool			/* No allocation error has occurred */
+SMatrix::isValid()
+{
+    return valdg && offdg && !allerr;
+}
+#undef SMatrixPure
+#undef SMatrix
+#undef Balance
+#undef EntryPure
+#undef Entry
+#undef MCSR
+#undef Index
+/* End of class qqqSMatrix<Number> */
+
+
+
+#endif // __numerics_smatrix_tt__included__

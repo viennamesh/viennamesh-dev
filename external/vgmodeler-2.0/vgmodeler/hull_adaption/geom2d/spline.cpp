@@ -9,7 +9,7 @@ Spline curve for Mesh generator
 #include <linalg.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 #include "spline.hpp"
 

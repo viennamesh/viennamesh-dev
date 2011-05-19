@@ -8,7 +8,7 @@
 #include <acisgeom.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 #include "writeuser.hpp"

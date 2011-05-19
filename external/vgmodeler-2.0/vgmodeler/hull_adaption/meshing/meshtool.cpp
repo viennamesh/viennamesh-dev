@@ -4,7 +4,7 @@
 #include <csg.hpp>
 #include <geometry2d.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
   int CheckSurfaceMesh (const Mesh & mesh)

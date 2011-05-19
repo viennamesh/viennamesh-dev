@@ -10,7 +10,7 @@
 #include <myadt.hpp>
 #include <gprim.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 #include "spline2d.hpp"
 #include "splinegeometry2.hpp"

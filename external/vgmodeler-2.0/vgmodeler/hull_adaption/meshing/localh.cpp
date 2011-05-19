@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 GradingBox :: GradingBox (const double * ax1, const double * ax2)

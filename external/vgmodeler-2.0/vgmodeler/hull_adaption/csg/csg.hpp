@@ -13,7 +13,7 @@
 
 #include <geometry2d.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 #include "surface.hpp"
 #include "solid.hpp"

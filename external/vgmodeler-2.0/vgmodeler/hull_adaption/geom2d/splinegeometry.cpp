@@ -10,10 +10,10 @@
 #include <geometry2d.hpp>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 
-  using namespace netgen;
+  using namespace vgmnetgen;
 
 template<int D>
 void SplineGeometry<D> :: LoadDataV2 ( ifstream & infile )

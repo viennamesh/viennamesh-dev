@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 
-namespace netgen
+namespace vgmnetgen
 {
   extern int IsInArray(int n, const ARRAY<int>& ia);
   extern int AddIfNotExists(ARRAY<int>& list, int x);

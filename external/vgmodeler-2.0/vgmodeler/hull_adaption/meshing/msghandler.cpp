@@ -1,7 +1,7 @@
 //File for handling warnings, errors, messages
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 int printmessage_importance = 6;

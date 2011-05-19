@@ -259,7 +259,7 @@ extern "C" {
 
 #endif
   
-namespace netgen {
+namespace vgmnetgen {
 #include "../visualization/soldata.hpp"
 }
 
@@ -285,7 +285,7 @@ namespace netgen {
     bool draw_volume;
     int order;        // order of elements, only partially supported 
     Ng_SolutionType soltype;  // type of solution function
-    netgen::SolutionData * solclass;
+    vgmnetgen::SolutionData * solclass;
   };
   
   // initialize solution data with default arguments

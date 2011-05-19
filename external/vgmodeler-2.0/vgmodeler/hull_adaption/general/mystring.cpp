@@ -32,7 +32,7 @@
 
  */
 
-namespace netgen
+namespace vgmnetgen
 {
 
 void DefaultStringErrHandler()

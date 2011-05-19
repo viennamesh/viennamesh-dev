@@ -4,7 +4,7 @@
 #include <csg.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
   void ExtrusionFace :: Init(void)

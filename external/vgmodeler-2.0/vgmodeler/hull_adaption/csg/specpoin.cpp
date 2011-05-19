@@ -20,7 +20,7 @@
 // #define DEVELOP
 
 
-namespace netgen
+namespace vgmnetgen
 {
   ARRAY<Box<3> > boxes;
 

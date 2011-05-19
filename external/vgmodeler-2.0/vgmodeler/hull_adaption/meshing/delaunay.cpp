@@ -3,7 +3,7 @@
 
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 

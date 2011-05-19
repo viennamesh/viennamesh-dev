@@ -9,7 +9,7 @@
 #include <csg.hpp>
 #include <meshing.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 class POINT3D

@@ -7,7 +7,7 @@
 #define M_PI        3.14159265358979323846
 #endif
 
-namespace netgen
+namespace vgmnetgen
 {
 
 ostream & operator<<(ostream  & s, const Point2d & p)

@@ -1,0 +1,44 @@
+# Copyright Kevin Sopp 2008.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+alias boost_fs : $(BOOST_ROOT)/libs/filesystem/build//boost_filesystem/<link>shared ;
+alias boost_po : $(BOOST_ROOT)/libs/program_options/build//boost_program_options/<link>shared ;
+
+project
+  :
+    requirements
+    <include>../../../..
+    <include>.
+    <link>static
+  ;
+
+
+
+# GMP (GNU Multiple Precision Arithmetic, http://gmplib.org/) library needs to
+# be installed for the benchmark to work
+# gmpxx is the library for the C++ bindings of gmp
+lib gmpxx : : <name>gmpxx ;
+lib gmp   : : <name>gmp ;
+
+lib tommath : tommath.cpp : <variant>release ;
+
+exe benchmark
+  :
+    benchmark.cpp
+    benchmark_runner.cpp
+    benchmark_mp_math.cpp
+    benchmark_libtom.cpp
+    benchmark_gmp.cpp
+    main.cpp
+    modes.cpp
+    tommath
+    gmpxx gmp
+    boost_fs
+    boost_po
+  :
+    <variant>release
+  ;
+
+

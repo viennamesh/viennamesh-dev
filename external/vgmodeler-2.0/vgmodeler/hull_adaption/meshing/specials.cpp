@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 // A special function for Hermann Landes, Erlangen

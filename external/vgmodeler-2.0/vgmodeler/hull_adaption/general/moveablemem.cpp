@@ -3,7 +3,7 @@
 
 #include <myadt.hpp>
 using namespace std;
-namespace netgen
+namespace vgmnetgen
 {
   
   NgMutex mem_mutex;

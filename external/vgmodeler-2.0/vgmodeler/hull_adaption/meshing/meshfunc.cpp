@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
   extern const char * tetrules[];
   // extern const char * tetrules2[];

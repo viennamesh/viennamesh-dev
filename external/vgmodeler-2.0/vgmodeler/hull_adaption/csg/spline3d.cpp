@@ -6,7 +6,7 @@
 #include <csg.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
 splinesegment3d :: splinesegment3d (const Point<3> & ap1, const Point<3> & ap2, 
 				    const Point<3> & ap3)

@@ -6,7 +6,7 @@
 #include <parallel.hpp>
 #endif
 
-namespace netgen
+namespace vgmnetgen
 {
 
 MeshTopology ::  MeshTopology (const Mesh & amesh)

@@ -1,0 +1,477 @@
+/* ***********************************************************************
+   $Id: numerics_bicgs.tt,v 1.7 2002/11/27 10:00:07 wagner Exp $
+
+   Filename: numerics_bicgs.tt
+
+   Description:  Biconjugate gradients stabilized solver (templates)
+
+   Acknowledgement: Method by H. A. Van der Vorst
+                    Hints by Otto Heinreichsberger.
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+             SW  Stephan Wagner,   Institute for Microelectronics, TU Vienna
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF   4 May 1996  created
+   CF   4 May 1996  BiCGStab function started
+   CF   5 May 1996  BiCGStab function finished
+   CF   5 May 1996  BiCGStab function documented
+   CF  11 May 1996  minor improvements (free before return)
+   CF   1 Jul 1996  some cleanups and methodology
+   CF  31 Dec 1996  made preconditioning optional
+   SW  06 Feb 2002  qqq prefixed function names
+   SW  31 Mar 2002  eas/sol adaption mode (improved accuracy)
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_bicgs_tt__included__
+#define   __numerics_bicgs_tt__included__
+
+
+/* 
+   The following code provides:
+
+   Function
+   qqqPreconditionedBiCGStab(...)    ... iterative solver for nonsymmetric system
+*/
+
+
+/* qqqPreconditionedBiCGStab()
+
+   Preconditioned version of the bi-conjugate gradients stabilized 
+   algorithm of solving linear systems of equations.
+
+   General description:
+   The algorithm solves the equation A * x = b, where A and b are 
+   specified. The matrix A must be specified in MCSR format. A
+   preconditioning matrix K must also be specified (see below).
+   The iteration stops when the Euclidean norm of the residual of
+   the current solution x is smaller than acc times the norm of 
+   right hand side b. The residual of a solution x is defined as
+   r(x) = b - A * x. The residual of the initial solution vector 0 
+   is b.
+   When no convergence is achieved within maxit iterations, the
+   function breaks off the iteration process and returns false.
+
+   Literature:
+   H. A. Van der Vorst
+   BI-CGSTAB: A Fast and Smoothly Converging Variant of BI-CG
+              for the Solution of Nonsymmetric Linear Systems.
+   Siam J. Sci. Stat. Comput., Vol. 13, No. 2, pp. 631-644, March 1992
+
+   Preconditioning:
+   The caller has the choice of using the preconditioning feature.
+   If the flag useK is specified, a preconditioning matrix K must
+   also be specified. K is actually the combination of two triangular
+   matrices, L and U, in one structure. The matrices L (lower triangular
+   with diagonal entries 1) and U (upper triangular with inverted diagonal
+   entries) should be suitably constructed by a preconditioner such that
+   L * U is an approximation to A. In consequence, (L * U)^-1 will 
+   approximate the inverse of A.
+   
+   Strategy:
+   The function call contains a strategy pararmeter. The purpose of this
+   parameter is to determine in the complex case the most efficient way
+   of evaluating the dot products. It is (to me, CF) not completely clear
+   how to apply dot products in the case of solving complex numbers.
+   The choices are: 
+   (1) Compute a member-wise product, i.e. the dot product of the vectors' 
+   real parts plus the dot product of the vectors' imaginary parts. 
+   This choice corresponds to the well-known and widely applied method 
+   of solving a complex equation system A * x = b by re-writing it as a 
+   real equation system of double size:
+   (Ar -Ai) * (xr) = (br)
+   (Ai  Ar)   (xi)   (bi)
+   However, this might not be the best solution in the complex case. The
+   special properties of the real matrix resulting from that 
+   transformation might make the usual product of vectors not be the best
+   choice.
+   (2) Apply a primitive dot product of complex vectors by multiplying
+   their members. This might be the generalization of the dot product
+   of real vectors. However, it is in general not used when performing
+   complex vector calculations.
+   (3) Apply a dot product of the conjugate of the first vector and the
+   original second vector. This is the method widely used in complex 
+   calculations, and the product of a vector with itself gives a real
+   result, which is the 2-norm of the vector. This seems the best choice.
+   However, it has to be found out, in which way the cases of dot products
+   correspond, i.e. in which products which vector has to be conjugated.
+   (*)
+   The strategy parameter controls the calculation of each dot product
+   by the special combination of its low order bits. To find out the
+   optimum combination of dot products, all combinations of different
+   bit patterns should be applied to the same problem.
+
+   Errors:
+   If the iteration converges or the residual norm was already
+   sufficiently small on entry, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_BICGS_MISALLOC      ... allocation of auxiliary arrays failed
+   - qqqERR_BICGS_NO_CONVERG    ... no convergence in maxit iterations
+
+
+   Effort: it * (dimension(A) + nonzeros(A) + nonzeros(K)).
+   BogoFlops:  2  * it      * (nonzeros(A) + nonzeros(K)) +
+              (14 * it - 3) *  dimension(A).
+   Space: 8 * dimension(A) * sizeof(Number).
+   missing one of 8 can be saved by using b for rt.
+   */
+#define MCSR      qqqMCSR<Number>
+#define ILUMatrix qqqILUMatrix<Number>
+#define Real      double
+#define Index     qqqIndex
+#define BogoFlops qqqBogoFlops
+#define Error     qqqError
+template <class Number>
+bool				    /* Solution is found.                     */
+qqqPreconditionedBiCGStab(
+    MCSR      const         &A,	    /* [I] A from A * x = b.                  */
+    ILUMatrix const         &K,	    /* [I] preconditioner: ILU factorized A.  */
+    Number    const * const  b,	    /* [I] RHS b. Length dimension of A.      */
+    Number          * const  x,     /* [O] solution x. Length dimension of A. */
+    Index                   &it,    /* [O] number of iterations used.         */
+    Real      const          acc,   /* [I] final accuracy.                    */
+    Real                    &resid, /* [O] final residual                     */
+    Index                    maxit, /* [I] maximum number of iterations.      */
+    bool                     useK,  /* [I] use the preconditioning matrix K   */
+    Error                   &error, /* [O] error information, in case the
+                                           return value is false.             */
+    Index     const   strategy = 84 /* [I] control parameter specifying how   
+                                           to calculate complex dot products  
+                                           products of vectors. Range 0..127. */
+    )
+{
+    Index    const n   = A.dimension();
+    Number * const 
+	r = new Number[qqqMax(n,1)]; /* Current residual vector */
+    Number * const 
+	r0 = new Number[qqqMax(n,1)];	/* Initial residual vector */
+    Number * const 
+	p = new Number[qqqMax(n,1)];
+    Number * const 
+	v = new Number[qqqMax(n,1)];
+    Number * const 
+	s = new Number[qqqMax(n,1)];
+    Number * const 
+	t = new Number[qqqMax(n,1)];
+    Number * const 
+	z = new Number[qqqMax(n,1)];
+    Number * const 
+	y = new Number[qqqMax(n,1)];
+			     
+    Number alpha = 1;		/* The alpha parameter of BiCGStab. */
+    Number beta  = 0;		/* The beta  parameter of BiCGStab. */
+    Number rho   = 1;		/* The rho   parameter of BiCGStab. */
+    Number omega = 1;		/* The omega parameter of BiCGStab. */
+    
+    /* Commentary convention:
+
+       The variable names have been kept from the original paper of 
+       VAN DER VORST.
+       The indices of the variable names in the comments are to be
+       interpreted as follows:
+           _0: Zeroth iteration   (it = 0)
+           _1: First iteration    (it = 1)
+           _o: Previous iteration (it - 1)
+           _n: Current iteratioin (it    )                           */
+
+     FunctionLog functionLog("qqqPreconditionedBiCGStab");
+
+    /* Allocation checks */
+    /* ================= */
+
+    if (!y || !z || !t || !s || !v || !p || !r0 || !r)
+    {
+	error = qqqERR_BICGS_MISALLOC;
+	if (y ) delete[] y;
+	if (z ) delete[] z;
+	if (t ) delete[] t;
+	if (s ) delete[] s;
+	if (v ) delete[] v;
+	if (p ) delete[] p;
+	if (r0) delete[] r0;
+	if (r ) delete[] r;
+	return false;
+    }
+
+#if 0
+    printf("numerics_bicgs.tt (199): evidence message: maxit=%ld, acc=%e.\n", 
+	   qqqIndexToLong(maxit), acc); 
+#endif
+
+    /* Initializations */
+    /* =============== */
+
+    it = 0;
+    if (maxit < 0) maxit = 0;
+
+    Real const minsize
+	= Real(1.0e6) * DBL_MIN;
+
+    /* Initialize the solution */
+    qqqInitializeVector(x,		/* x = 0 */
+			n,Number(0));
+
+    /* Norm of the right hand side */
+    Real const normb		/* ||b|| */ 
+	= qqqAbs(n,b);
+    
+    if (normb <= DBL_MIN)
+    {
+	delete[] y;
+	delete[] z;
+	delete[] t;
+	delete[] s;
+	delete[] v;
+	delete[] p;
+	delete[] r0;
+	delete[] r;
+	return true;
+    }
+
+    /* Initialize the residual r_0 */
+    qqqInitializeVector(z,		/* z = A * x = 0 */
+	       n,Number(0));
+    qqqCopy(r,n,b);		/* r = b - z = b */
+    Real normr = normb;		/* ||r||       */
+    
+    /* Initialize r0_0 */
+    if (strategy & 1)
+	qqqCjg(r0,n,r);		/* r0 = cjg(r) */
+    else
+	qqqCopy(r0,n,r);		/* r0 = r */
+
+#define SOL_ADAPTION_MODE 1
+#define OPEN_SIDE_EXIT 1
+#define BICGSTAB_PRINTF 0
+    
+#if SOL_ADAPTION_MODE
+    /* SOL adaption */
+    Real s2min = DBL_EPSILON;
+    Real eps = qqqMax(acc,s2min);
+    Real resNormRelative = normr/normb;
+#else
+    Real const normend = normb * qqqMax(acc,DBL_EPSILON_SQRT);
+#endif
+
+#if OPEN_SIDE_EXIT
+    bool side = false;
+#endif
+
+    /* Iteration loop */
+    /* ============== */
+
+#if BICGSTAB_PRINTF
+    printf("maxit = %ld\n", qqqIndexToLong(maxit));
+    printf("   it = %ld\n", qqqIndexToLong(it));
+    printf("resNR = % 35.28g\n", resNormRelative /* normr */);
+    printf("  eps = % 35.28g\n", eps /* normend */);
+#endif
+    
+    while((it < maxit) && 
+
+#if SOL_ADAPTION_MODE
+	  (resNormRelative > eps)
+#else
+	  (normr > normend)
+#endif
+	  )
+    {
+
+#if BICGSTAB_PRINTF
+        printf("iteration %ld:\n", qqqIndexToLong(it));
+#endif
+
+	it++;			/* Count the iteration */	
+
+	if (it == 1)
+	{
+	    /* Compute rho_1 = r0 * r_0 into rho */
+	    rho = qqqSqr(normb);	/* rho = r0 * r */
+
+#if BICGSTAB_PRINTF
+	    printf("first: rho = % 35.28g\n", qqqGetReal(rho));
+#endif
+
+	    /* Compute p_1 = r_0 into p  */
+	    qqqCopy(p,n,r);	/* p = r */
+	}
+	else
+	{
+	    /* Compute rho_n  = r0 * r_o into rho */
+	    /* Compute beta_n = rho_n/rho_o * alpha_o/omega_o into beta */
+	   Number hlp = rho * omega;
+
+#if BICGSTAB_PRINTF
+	   printf("   rho = % 35.28g\n", qqqGetReal(rho));
+	   printf("   omega = % 35.28g\n", qqqGetReal(omega));
+	   printf("   hlp = % 35.28g\n", qqqGetReal(hlp));
+#endif
+
+	   // beta = alpha/qqqFromZero(rho * omega,minsize);
+	   beta = alpha/qqqFromZero(hlp,minsize);
+
+#if BICGSTAB_PRINTF
+	   printf("beta = % 35.28g\n", qqqGetReal(beta));
+#endif
+
+	   rho =		/* rho = r0 * r */      
+	      ((strategy & 2) ? 
+	       ((strategy & 4) ? Number(qqqDotPrdMem(n,r0,r)) : qqqDotPrd(n,r0,r)) :
+	       ((strategy & 4) ?        qqqDotPrdCjg(n,r0,r)  : qqqDotPrdCjg(n,r,r0)));
+	    
+	   beta *= rho;
+
+#if BICGSTAB_PRINTF
+	    printf("rho = % 35.28g\n", qqqGetReal(rho));
+	    printf("beta = % 35.28g\n", qqqGetReal(beta));
+#endif
+	    	    
+	    /* Compute p_n = r_o + beta_n * (p_o - omega_o * v_o) into p */
+	    qqqLinear3(p,		/* p = r + beta * p - beta * omega * v */
+		       n,Number(1),r,beta,p,-(beta*omega),v);
+	}
+	
+	/* Compute v_n = A * (L * U)^-1 * p_n into v */
+	if (useK)
+	    qqqInvPrd(y,K,p);	/* y_n = K^-1 * p_n */
+	else
+	    qqqCopy(y,n,p);
+
+	qqqPrd(v,A,y);		/* v_n = A * y_n */
+
+	/* Compute alpha_n = rho_n / (r0 * v_n) into alpha */
+	Number const dotrtv =	/* dotrtv = r0 * v_n */	   
+	    ((strategy & 8) ? 
+	     ((strategy & 16) ? Number(qqqDotPrdMem(n,r0,v)) : qqqDotPrd(n,r0,v)) :
+	     ((strategy & 16) ?        qqqDotPrdCjg(n,r0,v)  : qqqDotPrdCjg(n,v,r0)));
+	
+	alpha = rho / qqqFromZero(dotrtv,minsize);
+
+#if BICGSTAB_PRINTF
+	printf("dot1 = % 35.28g\n", qqqGetReal(dotrtv));
+	printf("alpha = % 35.28g\n", qqqGetReal(alpha));
+#endif
+
+	/* Compute s_n = r_o - alpha_n * v_n into s */
+	qqqLinear2(s,		/* s = r - alpha * v */
+		   n,Number(1),r,-alpha,v);
+
+#if 0
+	if (it < 2)
+	{
+	   printf("-----------------------\n");
+	   printf("S-vector: -------------\n");
+	   for (qqqIndex ccirow = 0; ccirow < n; ccirow++)
+	      printf("   s[%4ld] = % 35.28g\n", qqqIndexToLong(ccirow), qqqGetReal(s[ccirow]));
+	   printf("End of S-vector -------\n");
+	   printf("-----------------------\n");
+	}
+#endif
+
+#if OPEN_SIDE_EXIT
+        /* Additional Stop Strategy [SW], see SIAM 1994, Templates for the Solution of Linear Systems, page 27 */
+	if (
+#if SOL_ADAPTION_MODE	    
+	    qqqAbs(n,s) / normb < eps
+#else
+	    qqqAbs(n,s) < normend
+#endif
+	    )
+        {
+	   /* x += alpha * y */
+           qqqAddLinear(x,n,alpha,y);
+           side = true;
+           break;
+        }        
+#endif
+	
+	/* Compute t_n = A * (L * U)^-1 * s_n into t */
+	if (useK)	   
+	    qqqInvPrd(z,K,s);	/* z_n = K^-1 * s_n */	
+	else
+	    qqqCopy(z,n,s);
+
+	qqqPrd(t,A,z);		/* t_n = A * z_n */
+
+	/* Compute omega_n = (t_n * s_n) / (t_n * t_n) into omega */
+	Number const dotts =	/* dotts = t_n * s_n */	   
+	   ((strategy & 32) ?
+	    ((strategy & 64) ? Number(qqqDotPrdMem(n,t,s)) : qqqDotPrd(n,t,s)) :
+	    ((strategy & 64) ?        qqqDotPrdCjg(n,t,s)  : qqqDotPrdCjg(n,s,t)));
+	
+	Number const dottt =	/* dottu = t_n * t_n */
+	    qqqDotSqrCjg(n,t);
+
+#if BICGSTAB_PRINTF
+	printf("dot2 = % 35.28g\n", qqqGetReal(dottt));	
+	printf("dotts = % 35.28g\n", qqqGetReal(dotts));
+	printf("omega = % 35.28g\n", qqqGetReal(omega));
+#endif
+
+	omega = dotts / qqqFromZero(dottt,minsize);	
+
+	/* Compute r_n = s_n - omega_n * t_n into r */
+	/* Compute x_n = x_o + alpha_n * p_n + omega_n * s_n into x */
+	qqqLinear2(r,		/* r = s - omega * t */
+		   n,Number(1),s,-omega,t);	
+	qqqAddLinear2(x,		/* x += alpha * y + omega * z */
+		      n,alpha,y,omega,z);
+						
+	/* Norm of new residual */
+	normr = qqqAbs(n,r);	/* normr = ||r|| */
+
+#if BICGSTAB_PRINTF
+	printf("normr = % 35.28g\n", normr);
+#endif
+
+#if SOL_ADAPTION_MODE
+        resNormRelative = normr / normb;
+#endif
+
+    } /* End of iteration loop: while (it < maxit ...) */
+
+
+    delete[] y;
+    delete[] z;
+    delete[] t;
+    delete[] s;
+    delete[] v;
+    delete[] p;
+    delete[] r0;
+    delete[] r;
+
+
+    if (
+#if OPEN_SIDE_EXIT
+	!side && 
+#endif
+#if SOL_ADAPTION_MODE
+	(resNormRelative > eps)
+#else
+	(normr > normend)
+#endif
+	)
+    {
+	error = qqqERR_BICGS_NO_CONVERG;
+	return false;
+    }
+
+    resid = normr;  /* CHECK_THIS [SW]: make a test comparison! */
+    return true;
+}
+#undef MCSR
+#undef ILUMatrix
+#undef Real
+#undef Index
+#undef BogoFlops
+#undef Error
+
+#endif // __numerics_bicgs_tt__included__
+

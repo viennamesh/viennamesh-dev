@@ -10,9 +10,9 @@
 
 /*
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
 #ifdef WIN32
 

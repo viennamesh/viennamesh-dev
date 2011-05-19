@@ -7,9 +7,9 @@
 
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
   long int NgProfiler::tottimes[SIZE];
   long int NgProfiler::starttimes[SIZE];
@@ -44,9 +44,9 @@ namespace netgen
 /*     
     char filename[100];
 #ifdef PARALLEL
-    sprintf (filename, "netgen.prof.%d", id);
+    sprintf (filename, "vgmnetgen.prof.%d", id);
 #else
-    sprintf (filename, "netgen.prof");
+    sprintf (filename, "vgmnetgen.prof");
 #endif
 
     FILE *prof = fopen(filename,"w");

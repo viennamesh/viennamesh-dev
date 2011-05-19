@@ -4,9 +4,9 @@
 #include <csg.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
 
   /*

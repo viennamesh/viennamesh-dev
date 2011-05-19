@@ -3,7 +3,7 @@
 
 #include <boost/lexical_cast.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
   static void glrender (int wait);
 
@@ -1716,7 +1716,7 @@ namespace netgen
 #include <visual.hpp>
 #include <stlgeom.hpp>
 
-namespace netgen 
+namespace vgmnetgen 
 {
 
   extern STLGeometry * stlgeometry;
@@ -2110,7 +2110,7 @@ namespace netgen
 
 
 #else
-namespace netgen
+namespace vgmnetgen
 {
   void glrender (int wait)
   { ; }

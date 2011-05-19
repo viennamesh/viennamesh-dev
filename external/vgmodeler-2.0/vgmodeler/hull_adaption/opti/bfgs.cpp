@@ -15,7 +15,7 @@
 #include "opti.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 void Cholesky (const DenseMatrix & a,

@@ -33,7 +33,7 @@ extern "C" {
 
 // #define DEBUGALL 1
 
-namespace netgen
+namespace vgmnetgen
 {
 
    template<typename ContainerT>
@@ -1395,7 +1395,7 @@ void STLFindEdges (STLGeometry & geom,
                            << std::endl;
 #endif
             
-                 netgen::Segment seg;
+                 vgmnetgen::Segment seg;
 
                  seg.si = (*cit).first; 
                  seg.edgenr = (*eit).first;  
@@ -1588,7 +1588,7 @@ void STLFindEdges (STLGeometry & geom,
 //                  }                       
 
 
-                 // [INFO] use the triangle number of the line segment calcualted by netgen only of it is on the same chart 
+                 // [INFO] use the triangle number of the line segment calcualted by vgmnetgen only of it is on the same chart 
                  //                 
 //                  if(geom.GetTriangle(seg.geominfo[0].trignum).GetFaceNum() == geom.GetTriangle(line->GetLeftTrig(ii)).GetFaceNum())
 //                  {
@@ -1734,7 +1734,7 @@ void STLFindEdges (STLGeometry & geom,
 //                   << ".. dist: " << line->GetDist(ii)
 //                   << std::endl;
         
-//         netgen::Segment seg;
+//         vgmnetgen::Segment seg;
         
 //         if(line->segment_info[(*aeit).second].facenum[0] == (*cit).first)
 //         {
@@ -1770,7 +1770,7 @@ void STLFindEdges (STLGeometry & geom,
 //         }                 
 
 
-//         // [INFO] use the triangle number of the line segment calcualted by netgen only of it is on the same chart 
+//         // [INFO] use the triangle number of the line segment calcualted by vgmnetgen only of it is on the same chart 
 //         //                 
 //         if(geom.GetTriangle(seg.geominfo[0].trignum).GetFaceNum() == geom.GetTriangle(line->GetLeftTrig(ii)).GetFaceNum())
 //         {
@@ -1830,7 +1830,7 @@ void STLFindEdges (STLGeometry & geom,
 //                      << ".. dist: " << line->GetDist(ii)
 //                      << std::endl;
            
-//            netgen::Segment seg;
+//            vgmnetgen::Segment seg;
               
 //            if(line->segment_info[material].facenum[0] == (*ccit).first)
 //            {
@@ -1931,7 +1931,7 @@ void STLFindEdges (STLGeometry & geom,
 //                         << ".. normal: " << geom.GetTriangle(line->segment_info[m].lefttrig).Normal()
 //                         << std::endl;             
         
-//               // use the +1 index, because the netgen indices start at 1 not at 0
+//               // use the +1 index, because the vgmnetgen indices start at 1 not at 0
 //               //
 
 //               for (int ii = 1; ii <= line->GetNS(); ii++)
@@ -1943,7 +1943,7 @@ void STLFindEdges (STLGeometry & geom,
 //                            << ".. dist: " << line->GetDist(ii)
 //                            << std::endl;
 
-//                  netgen::Segment seg;
+//                  vgmnetgen::Segment seg;
                  
 //                  std::vector<int> tmp_edge;
 //                  tmp_edge.push_back(point_map[line->StartP()]);
@@ -2026,7 +2026,7 @@ void STLFindEdges (STLGeometry & geom,
 //                            << ".. dist: " << line->GetDist(ii)
 //                            << std::endl;
               
-//                  netgen::Segment seg;
+//                  vgmnetgen::Segment seg;
 
 //                  std::vector<int> tmp_edge;
 //                  tmp_edge.push_back(point_map[line->EndP()]);

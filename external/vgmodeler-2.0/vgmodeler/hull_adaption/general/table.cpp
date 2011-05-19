@@ -11,9 +11,9 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
   BASE_TABLE :: BASE_TABLE (int size)
     : data(size)

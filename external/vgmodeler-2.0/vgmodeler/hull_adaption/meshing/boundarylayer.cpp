@@ -1,7 +1,7 @@
 #include <mystdlib.h>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 
 void InsertVirtualBoundaryLayer (Mesh & mesh)

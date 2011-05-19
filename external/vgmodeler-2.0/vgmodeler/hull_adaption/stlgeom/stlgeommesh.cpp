@@ -10,7 +10,7 @@
 
 #include "stlgeom.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 int EdgeUsed(int p1, int p2, ARRAY<INDEX_2>& edges, INDEX_2_HASHTABLE<int>& hashtab)
 {

@@ -6,7 +6,7 @@
 #include <meshing.hpp>
 
 
-namespace netgen
+namespace vgmnetgen
 {
 Identification :: Identification (int anr, const CSGeometry & ageom)
   : geom(ageom), identfaces(10)

@@ -1,0 +1,1689 @@
+#include <mystdlib.h>
+#include <myadt.hpp>
+
+#include <linalg.hpp>
+#include <gprim.hpp>
+
+#include <meshing.hpp>
+
+
+#include "stlgeom.hpp"
+
+#include <boost/lexical_cast.hpp>
+#include <map>
+
+
+namespace netgen
+{
+
+
+static void STLFindEdges (STLGeometry & geom,
+			  class Mesh & mesh)
+{
+  int i, j, k;
+  double h;
+
+  std::cout << "[FS] .. in STLFindEdges .." << std::endl;
+
+  h = mparam.maxh;
+
+  // mark edge points:
+  int ngp = geom.GetNP();
+
+  std::cout << ".. number of facedescriptors 0: " << mesh.GetNFD() << std::endl;
+  std::cout << ".. facedescriptor test: mesh.GetNSeg 0: " << mesh.GetNSeg() << std::endl;
+  std::cout << "..number of points: " << mesh.GetNP() << std::endl;
+  std::cout << "..number of edges: " << mesh.GetNE() << std::endl;
+
+  // [TEST][FS][LFS] .. commented out to control the feature size
+  //                    here the edges will be refined ..
+  //
+  h = 0.33;
+  geom.RestrictLocalH(mesh, h);
+  
+  PushStatusF("Mesh Lines");
+
+  ARRAY<STLLine*> meshlines;
+  ARRAY<Point3d> meshpoints;
+
+  PrintMessage(3,"Mesh Lines");
+
+  std::cout << ".. geom.GetNLines: " << geom.GetNLines() << std::endl;
+
+  for (i = 1; i <= geom.GetNLines(); i++)
+    {
+      meshlines.Append(geom.GetLine(i)->Mesh(geom.GetPoints(), meshpoints, h, mesh)); 
+
+//       SetThreadPercent(100.0 * (double)i/(double)geom.GetNLines());
+    }
+
+  geom.meshpoints.SetSize(0); //testing
+  geom.meshlines.SetSize(0);  //testing
+  for (i = 1; i <= meshpoints.Size(); i++)
+    {
+      geom.meshpoints.Append(meshpoints.Get(i)); //testing
+
+      int pim = mesh.AddPoint(meshpoints.Get(i));
+    }
+  //(++++++++++++++testing
+  for (i = 1; i <= geom.GetNLines(); i++)
+    {
+      geom.meshlines.Append(meshlines.Get(i));
+    }
+  //++++++++++++++testing)
+
+  PrintMessage(7,"feed with edges");
+
+  std::cout << ".. meshlines.Size(): " << meshlines.Size() << std::endl;
+  std::cout << ".. number of facedescriptors 1: " << mesh.GetNFD() << std::endl;
+  std::cout << "..number of points: " << mesh.GetNP() << std::endl;
+  std::cout << "..number of meshpoints: " << meshpoints.Size() << std::endl;
+
+  for (i = 1; i <= meshlines.Size(); i++)
+    {
+      STLLine* line = meshlines.Get(i);
+
+      std::cout << "store line " << i << std::endl;
+      std::cout << "..line->GetNS(): " << line->GetNS() << " :: material: " << line->material << std::endl;
+      int mat = line->material;
+
+      for (j = 1; j <= line->GetNS(); j++)
+	{
+	  int p1, p2;
+	  
+	  line->GetSeg(j, p1, p2);
+	  int trig1, trig2, trig1b, trig2b;
+
+	  if (p1 == p2) 
+	    cout << "Add Segment, p1 == p2 == " << p1 << endl;
+
+	  // Test auf geschlossener Rand mit 2 Segmenten 
+	      
+	  if ((j == 2) && (line->GetNS() == 2))
+	    {
+	      int oldp1, oldp2;
+	      line->GetSeg (1, oldp1, oldp2);
+	      if (oldp1 == p2 && oldp2 == p1)
+		{
+		  PrintMessage(7,"MESSAGE: don't use second segment");
+		  continue;
+		}
+	    }
+
+
+	  
+
+	  //mesh point number
+	  //p1 = geom2meshnum.Get(p1); // for unmeshed lines!!!
+	  //p2 = geom2meshnum.Get(p2); // for unmeshed lines!!!
+	  
+	  //left and right trigs
+	  trig1 = line->GetLeftTrig(j);
+	  trig2 = line->GetRightTrig(j);
+	  trig1b = line->GetLeftTrig(j+1);
+	  trig2b = line->GetRightTrig(j+1);
+	  
+	  std::cout << "j = " << j << ", p1 = " << p1 << ", p2 = " << p2 << endl;
+	  std::cout << "segm-trigs: "
+		    << "trig1 = " << trig1
+		    << ", trig1b = " << trig1b
+		    << ", trig2 = " << trig2
+		    << ", trig2b = " << trig2b << std::endl;
+
+	  if (trig1 <= 0 || trig2 <= 0 || trig1b <= 0 || trig2b <= 0)
+	    {
+	      std::cout << "negative trigs, "
+		   << ", trig1 = " << trig1
+		   << ", trig1b = " << trig1b
+		   << ", trig2 = " << trig2
+			<< ", trig2b = " << trig2b << std::endl;
+	    }
+	  /*
+	  (*testout) << "   trigs p1: " << trig1 << " - " << trig2 << endl;
+	  (*testout) << "   trigs p2: " << trig1b << " - " << trig2b << endl;
+	  (*testout) << "   charts p1: " << geom.GetChartNr(trig1) << " - " << geom.GetChartNr(trig2) << endl;
+	  (*testout) << "   charts p2: " << geom.GetChartNr(trig1b) << " - " << geom.GetChartNr(trig2b) << endl;
+	  */
+	  Point3d hp, hp2;
+	  Segment seg;
+	  seg.p1 = p1;
+	  seg.p2 = p2;
+	  
+	  // [FS][MOD] do not take the face information from the triangle, but from the edge,
+	  //           because in this case the edge knows to which segment it is connected
+	  //
+//     	  seg.si = geom.GetTriangle(trig1).GetFaceNum();	  
+    	  seg.si = line->facenums[0];
+	  
+	  std::cout << "..facenum comp: trig1: " << geom.GetTriangle(trig1).GetFaceNum() << " :: line: " << line->facenums[0] << std::endl;
+
+	  seg.edgenr = i;
+
+	  // [FS] material info
+	  //
+  	  seg.domin = mat;
+	  std::cout << ".. setting seg mat: " << seg.domin << std::endl;
+
+	  seg.epgeominfo[0].edgenr = i;
+	  seg.epgeominfo[0].dist = line->GetDist(j);
+	  seg.epgeominfo[1].edgenr = i;
+	  seg.epgeominfo[1].dist = line->GetDist(j+1);
+	  /*
+	  (*testout) << "seg = " 
+		     << "edgenr " << seg.epgeominfo[0].edgenr
+		     << " dist " << seg.epgeominfo[0].dist
+		     << " edgenr " << seg.epgeominfo[1].edgenr
+		     << " dist " << seg.epgeominfo[1].dist << endl;
+	  */
+	  
+	  seg.geominfo[0].trignum = trig1;
+	  seg.geominfo[1].trignum = trig1b;
+
+	  /*
+	  geom.SelectChartOfTriangle (trig1);
+	  hp = hp2 = mesh.Point (seg.p1);
+	  seg.geominfo[0].trignum = geom.Project (hp);
+
+	  (*testout) << "hp = " << hp2 << ", hp proj = " << hp << ", trignum = " << seg.geominfo[0].trignum << endl;
+	  if (Dist (hp, hp2) > 1e-5 || seg.geominfo[0].trignum == 0) 
+	    {
+	      (*testout) << "PROBLEM" << endl;
+	    }
+
+	  geom.SelectChartOfTriangle (trig1b);
+	  hp = hp2 = mesh.Point (seg.p2);
+	  seg.geominfo[1].trignum = geom.Project (hp);
+
+	  (*testout) << "hp = " << hp2 << ", hp proj = " << hp << ", trignum = " << seg.geominfo[1].trignum << endl;
+	  if (Dist (hp, hp2) > 1e-5 || seg.geominfo[1].trignum == 0) 
+	    {
+	      (*testout) << "PROBLEM" << endl;
+	    }
+	  */
+
+
+	  if (Dist (mesh.Point(seg.p1), mesh.Point(seg.p2)) < 1e-10)
+	    {
+	      std::cout << "ERROR: Line segment of length 0" << endl;
+	      std::cout << "pi1, 2 = " << seg.p1 << ", " << seg.p2 << endl;
+	      std::cout << "p1, 2 = " << mesh.Point(seg.p1)
+			 << ", " << mesh.Point(seg.p2) << endl;
+	      throw NgException ("Line segment of length 0");
+	    }
+	  
+	  mesh.AddSegment (seg);
+
+
+	  Segment seg2;
+	  seg2.p1 = p2;
+	  seg2.p2 = p1;
+
+	  // [FS][MOD]
+//     	  seg2.si = geom.GetTriangle(trig2).GetFaceNum();
+     	  seg2.si = line->facenums[1];
+
+	  std::cout << "..facenum comp: trig2: " << geom.GetTriangle(trig2).GetFaceNum() << " :: line: " << line->facenums[1] << std::endl;
+
+	  seg2.edgenr = i;
+
+	  // [FS] material info
+	  //
+ 	  seg2.domin = mat;
+	  std::cout << ".. setting seg2 mat: " << seg2.domin << std::endl;
+
+	  seg2.epgeominfo[0].edgenr = i;
+	  seg2.epgeominfo[0].dist = line->GetDist(j+1);
+	  seg2.epgeominfo[1].edgenr = i;
+	  seg2.epgeominfo[1].dist = line->GetDist(j);
+	  /*
+	  (*testout) << "seg = " 
+		     << "edgenr " << seg2.epgeominfo[0].edgenr
+		     << " dist " << seg2.epgeominfo[0].dist
+		     << " edgenr " << seg2.epgeominfo[1].edgenr
+		     << " dist " << seg2.epgeominfo[1].dist << endl;
+	  */
+	  
+	  seg2.geominfo[0].trignum = trig2b;
+	  seg2.geominfo[1].trignum = trig2;
+	  
+	  /*
+	  geom.SelectChartOfTriangle (trig2);
+	  hp = hp2 = mesh.Point (seg.p1);
+	  seg2.geominfo[0].trignum = geom.Project (hp);
+
+	  (*testout) << "hp = " << hp2 << ", hp proj = " << hp << ", trignum = " << seg.geominfo[0].trignum << endl;
+	  if (Dist (hp, hp2) > 1e-5 || seg2.geominfo[0].trignum == 0) 
+	    {
+	      (*testout) << "Get GeomInfo PROBLEM" << endl;
+	    }
+
+
+	  geom.SelectChartOfTriangle (trig2b);
+	  hp = hp2 = mesh.Point (seg.p2);
+	  seg2.geominfo[1].trignum = geom.Project (hp);
+	  (*testout) << "hp = " << hp2 << ", hp proj = " << hp << ", trignum = " << seg.geominfo[1].trignum << endl;
+	  if (Dist (hp, hp2) > 1e-5 || seg2.geominfo[1].trignum == 0) 
+	    {
+	      (*testout) << "Get GeomInfo PROBLEM" << endl;
+	    }
+	  */	  
+
+	  mesh.AddSegment (seg2);
+	    
+
+	  /*
+	  // should be start triangle and end triangle
+	  int bothtrigs1[2] = { trig1, trig1 };
+	  meshing.AddBoundaryElement (p1, p2, sizeof (bothtrigs1), &bothtrigs1);
+	  
+	  int bothtrigs2[2] = { trig2, trig2 };
+	  meshing.AddBoundaryElement (p2, p1, sizeof (bothtrigs2), &bothtrigs2);
+	  */
+	  
+	  for(int m=2; m<10; m++)
+	    {
+	      if(line->facenums[m] != -1)
+		{
+		  std::cout << ".. adding additional line segment: mat: " << m << std::endl;
+		  Segment seg3;
+
+		  // [FS][TEST] check if the orientation is really the problem here -> yes it is !
+		  //
+                  // [INFO] use orientation of left triangle 
+                  //
+                  // compare the orientation of segment to the orientation of the triangle edge
+                  //
+                  
+                  if(trig1 == line->segment_info[m-1].lefttrig)
+                  {
+                     seg3.p1 = p1;
+                     seg3.p2 = p2;
+
+                     seg3.epgeominfo[0].edgenr = i;
+                     seg3.epgeominfo[0].dist   = line->GetDist(j);
+                     seg3.epgeominfo[1].edgenr = i;
+                     seg3.epgeominfo[1].dist   = line->GetDist(j+1);
+        
+//                      seg3.geominfo[0].trignum  = line->segment_info[m-1].lefttrig;
+//                      seg3.geominfo[1].trignum  = line->segment_info[m-1].righttrig;
+                     
+                     // [FS][INFO] why should the trignum be the same as in the other case ?????
+                     //
+                     seg3.geominfo[0].trignum  = line->segment_info[m-1].righttrig;
+                     seg3.geominfo[1].trignum  = line->segment_info[m-1].lefttrig;	
+
+                  }
+		  else
+                  {
+                     std::cout << ".. in else .. " << std::endl;
+
+                     seg3.p1 = p2;
+                     seg3.p2 = p1;
+
+                     seg3.epgeominfo[0].edgenr = i;
+                     seg3.epgeominfo[0].dist   = line->GetDist(j+1);
+                     seg3.epgeominfo[1].edgenr = i;
+                     seg3.epgeominfo[1].dist   = line->GetDist(j);
+     
+                     seg3.geominfo[0].trignum  = line->segment_info[m-1].righttrig;
+                     seg3.geominfo[1].trignum  = line->segment_info[m-1].lefttrig;		      
+                  }                    
+
+		  std::cout << ".. p1: " << seg3.p1 << " :: p2: " << seg3.p2 << std::endl;
+        
+		  // [FS][MOD]
+		  //   	  seg3.si = geom.GetTriangle(trig2).GetFaceNum();
+		  seg3.si = line->facenums[m];
+        
+		  std::cout << "..facenum comp seg3: trig1: " << geom.GetTriangle(trig1).GetFaceNum() 
+                            << " :: line: " << line->facenums[m] << std::endl;
+        
+		  seg3.edgenr = i;
+        
+		  // [FS] material info
+		  //
+		  seg3.domin = mat;
+		  std::cout << ".. setting seg3 mat: " << seg3.domin << std::endl;        
+
+                  std::cout << ".. epgeominfo[0].edgenr: " << seg3.epgeominfo[0].edgenr
+                            << " :: epgeominfo[0].dist: "  << seg3.epgeominfo[0].dist
+                            << ".. epgeominfo[1].edgenr: " << seg3.epgeominfo[1].edgenr
+                            << " :: epgeominfo[1].dist: "  << seg3.epgeominfo[1].dist
+                            << std::endl;
+
+                  std::cout << "..lefttrig: "    << line->segment_info[m-1].lefttrig 
+                            << " :: righttrig: " << line->segment_info[m-1].righttrig << std::endl;
+
+		  std::cout << "..using trignum[0]: " << seg3.geominfo[0].trignum 
+                            << " :: [1]: " << seg3.geominfo[1].trignum << std::endl;
+        
+		  mesh.AddSegment (seg3);
+		}
+	    }
+	}
+    }
+
+  std::cout << ".. number of facedescriptors 2: " << mesh.GetNFD() << std::endl;
+
+
+  // [FS] .. face descriptor test
+  //
+  /* 
+  mesh.ClearFaceDescriptors();
+
+  std::cout << ".. facedescriptor test: mesh.GetNSeg 2: " << mesh.GetNSeg() << std::endl;
+
+  for (int i = 1; i <= mesh.GetNSeg(); i++)
+    {
+      std::cout << "segment " << mesh.LineSegment(i) << " :: material: " << mesh.LineSegment(i).domin << std::endl;
+      
+      // [FS][TEST] .. set all lines from the interface face to 0, meaning, that they are not meshed/used
+      //      
+//       if(mesh.LineSegment(i).si == 14 || mesh.LineSegment(i).si == 15 || mesh.LineSegment(i).si == 16 || mesh.LineSegment(i).si == 17)
+//       if(mesh.LineSegment(i).si == 11)
+// 	{
+// 	  mesh.LineSegment(i).si = 0;
+// 	}
+//       else
+	{
+	  int ok = 0;	
+	  for (int k = 1; k <= mesh.GetNFD(); k++)
+	    {
+
+		{
+		  if (mesh.GetFaceDescriptor(k).SegmentFits (mesh.LineSegment(i)))
+		    {
+		      ok = k;
+		      std::cout << "fits to " << k << std::endl;
+		    }
+		}
+	    }
+	  if (!ok)
+	    {
+	      ok = mesh.AddFaceDescriptor (FaceDescriptor (mesh.LineSegment(i)));
+	      
+	      std::cout << "add new FaceDescriptor, now " << ok << " :: " << mesh.GetFaceDescriptor(ok) << std::endl;	  
+	    }
+	  
+	  std::cout << "change from " << mesh.LineSegment(i).si; 
+	  
+	  mesh.LineSegment(i).si = ok;        
+	  
+	  std::cout << " to " << mesh.LineSegment(i).si << std::endl;
+	}
+    }
+  */
+  std::cout << ".. number of facedescriptors: " << mesh.GetNFD() << std::endl;
+  
+  //
+  // END facedescriptor test
+
+
+  // get the duplicate faces
+  //
+  /*
+  typedef std::map<std::pair<int,int>, int> face_t;
+  std::vector<face_t> usedfaces;
+  std::map<int,int> interface;
+  std::map<face_t, int> facemap;
+
+  for(int i = 1; i <= mesh.GetNFD(); i++)
+    {
+      face_t face;
+      
+      for(int j = 1; j <= mesh.GetNSeg(); j++)
+	{	  
+// 	  std::cout << "..line surface index: " << mesh.LineSegment(j).si << std::endl;
+	  if(mesh.LineSegment(j).si == i)
+	    {	      
+	      // add the line segment to the face 
+	      //
+	      std::pair<int,int> line(mesh.LineSegment(j).p1, mesh.LineSegment(j).p2);
+	      face[line] = j;
+	    }	      
+	}
+      
+      facemap[face] = i;      
+    }
+
+  std::cout << ".. facemap.size: " << facemap.size() << std::endl;
+
+  std::map<face_t, int>::iterator fmit1;
+  std::map<face_t, int>::iterator fmit2;
+
+  for(fmit1 = facemap.begin(); fmit1 != facemap.end(); ++fmit1)
+    {      
+      std::cout << ".. face: " << (*fmit1).second << " :: size: " << (*fmit1).first.size() << " :: ";
+      face_t face1 = (*fmit1).first;
+
+      face_t::iterator fit1;
+      for(fit1 = face1.begin(); fit1 != face1.end(); ++fit1)
+	{	  	      
+	  std::cout << (*fit1).first.first << " " << (*fit1).first.second << "|";
+	}
+      std::cout << std::endl;
+    }
+
+  for(fmit1 = facemap.begin(); fmit1 != facemap.end(); ++fmit1)
+    {      
+      std::cout << ".. face1: " << (*fmit1).second << " :: ";
+      face_t face1 = (*fmit1).first;
+
+      for(fmit2 = facemap.begin(); fmit2 != facemap.end(); ++fmit2)
+	{	  		  
+	  std::cout << ".. face2: " << (*fmit2).second << " :: ";
+	  face_t face2 = (*fmit2).first;
+	  
+	  if((*fmit1).second != (*fmit2).second)
+	    {
+	      
+	      int count = 0;
+	      
+	      face_t::iterator fit1;
+	      for(fit1 = face1.begin(); fit1 != face1.end(); ++fit1)
+		{	  	      
+		  // 	      std::cout << (*fit1).first.first << " " << (*fit1).first.second << "|";
+		  
+		  face_t::iterator fit2;
+		  for(fit2 = face2.begin(); fit2 != face2.end(); ++fit2)
+		    {
+		      if( (((*fit1).first.first == (*fit2).first.first) && ((*fit1).first.second == (*fit2).first.second)) ||
+			  (((*fit1).first.first == (*fit2).first.second) && ((*fit1).first.second == (*fit2).first.first)) )
+			{
+			  std::cout << " .. same found .. " << std::endl;
+			  count++;
+			}
+		    }
+		}
+
+	      if(count == face1.size() && count == face2.size())
+		{
+		  std::map<int,int>::iterator iit = interface.find((*fmit2).second);
+		  
+		  if( (iit == interface.end()) || ((*iit).second != (*fmit1).second))
+		    interface[(*fmit1).second] = (*fmit2).second;
+		}
+	    }
+	}
+      
+      std::cout << std::endl;
+    }
+  
+  std::cout << ".. interface size: " << interface.size() << std::endl;
+  std::map<int,int>::iterator iit;
+  for(iit = interface.begin(); iit != interface.end(); ++iit)
+    {
+      std::cout << " .. interface: " << (*iit).first << " :: " << (*iit).second << std::endl;
+    }
+  */
+
+  // [FS] .. face descriptor test
+  //
+
+//   mesh.ClearFaceDescriptors();
+
+//   std::cout << ".. facedescriptor test: mesh.GetNSeg 2: " << mesh.GetNSeg() << std::endl;
+
+//   for (int i = 1; i <= mesh.GetNSeg(); i++)
+//     {
+//       std::cout << "segment " << mesh.LineSegment(i) << std::endl;
+      
+//       // [FS][TEST] .. set all lines from the interface face to 0, meaning, that they are not meshed/used
+//       //      
+//       //       std::map<int,int>::iterator interface_it = interface.find(mesh.LineSegment(i).si);
+//       //       if(interface_it != interface.end())
+//       // 	{
+//       // 	  mesh.LineSegment(i).si = 0;
+//       // 	}
+//       //       else
+//       {
+// 	int ok = 0;	
+// 	for (int k = 1; k <= mesh.GetNFD(); k++)
+// 	  if (mesh.GetFaceDescriptor(k).SegmentFits (mesh.LineSegment(i)))
+// 	    {
+// 	      ok = k;
+// 	      std::cout << "fits to " << k << std::endl;
+// 	    }
+	  
+// 	if (!ok)
+// 	  {
+// 	    ok = mesh.AddFaceDescriptor (FaceDescriptor (mesh.LineSegment(i)));
+	      
+// 	    std::cout << "add new FaceDescriptor, now " << ok << std::endl;	  
+// 	  }
+	  
+// 	std::cout << "change from " << mesh.LineSegment(i).si; 
+	  
+// 	mesh.LineSegment(i).si = ok;        
+	  
+// 	std::cout << " to " << mesh.LineSegment(i).si << std::endl;
+//       }
+//     }
+
+//   std::cout << ".. number of facedescriptors: " << mesh.GetNFD() << std::endl;
+  //
+  // END facedescriptor test
+ 
+
+
+
+  PopStatus();
+
+  std::cout << "[FS] .. leaving STLFindEdges .." << std::endl;
+}
+
+
+
+
+void STLSurfaceMeshing1 (STLGeometry & geom,
+			 class Mesh & mesh,
+			 int retrynr);
+
+int STLSurfaceMeshing (STLGeometry & geom,
+		       class Mesh & mesh)
+{
+  int i, j;
+  PrintFnStart("Do Surface Meshing");
+  std::cout << "[FS] .. in STLSurfaceMeshing .." << std::endl;
+
+  geom.PrepareSurfaceMeshing();
+
+  mesh.Save ("mesh1.edges");
+
+  if (mesh.GetNSeg() == 0)
+    {
+      std::cout << " .. mesh.GetNSeg() is empty" << std::endl;
+      STLFindEdges (geom, mesh);
+    }
+
+ 
+  int nopen;
+  int outercnt = 20;
+
+  mesh.Save ("mesh2.edges");
+  
+  std::cout << "..number of segment: " << mesh.GetNSeg() << std::endl;
+  std::cout << "..number of points: " << mesh.GetNP() << std::endl;
+  std::cout << "..number of edges: " << mesh.GetNE() << std::endl;
+
+  for (i = 1; i <= mesh.GetNSeg(); i++)
+    {
+      const Segment & seg = mesh.LineSegment (i);
+      
+      std::cout << ".. linesegment " << i << " :: " << seg << std::endl;
+
+      if (seg.geominfo[0].trignum <= 0 || seg.geominfo[1].trignum <= 0)
+	{
+	  std::cout << "Problem with segment " << i << ": " << seg << endl;
+	}
+    }
+
+
+  do
+    {
+      outercnt--;
+      if (outercnt <= 0)
+	  return MESHING3_OUTERSTEPSEXCEEDED;
+
+      if (multithread.terminate)
+	{
+	  return MESHING3_TERMINATE;
+	}
+
+      mesh.FindOpenSegments();
+      nopen = mesh.GetNOpenSegments();
+
+      if (nopen)
+	{
+	  int trialcnt = 0;
+	  while (nopen && trialcnt <= 5)
+	    {
+
+	      // [FS] .. test
+	      //
+	      std::string blabla;
+	      std::cout << "============================================================================================================" << std::endl;
+	      std::cout << ".. wait for input in STLSurfaceMeshing .. ==================================================================" << std::endl;
+//  	      cin >> blabla;	      
+
+	      if (multithread.terminate)
+		{
+		  return MESHING3_TERMINATE;
+		}
+	      trialcnt++;
+	      STLSurfaceMeshing1 (geom, mesh, trialcnt);
+
+	      mesh.Save("fs_surface_mesh.vol");
+
+	      mesh.FindOpenSegments();
+	      nopen = mesh.GetNOpenSegments();
+//  	      nopen = 0;
+
+	      std::cout << ".. nopen after meshing run: " << nopen << std::endl;
+
+	      if (nopen)
+		{
+		  geom.ClearMarkedSegs();
+		  for (i = 1; i <= nopen; i++)
+		    {
+		      const Segment & seg = mesh.GetOpenSegment (i);
+
+		      std::cout << "..open segment: " << seg << std::endl;
+
+		      geom.AddMarkedSeg(mesh.Point(seg.p1),mesh.Point(seg.p2));
+		    }
+
+		  geom.InitMarkedTrigs();
+		  for (i = 1; i <= nopen; i++)
+		    {
+		      const Segment & seg = mesh.GetOpenSegment (i);
+		      geom.SetMarkedTrig(seg.geominfo[0].trignum,1);
+		      geom.SetMarkedTrig(seg.geominfo[1].trignum,1);
+		    }
+
+		  MeshOptimizeSTLSurface optmesh(geom);
+		  optmesh.SetFaceIndex (0);
+		  optmesh.SetImproveEdges (0);
+		  optmesh.SetMetricWeight (0);
+		  
+		  mesh.CalcSurfacesOfNode();
+		  optmesh.EdgeSwapping (mesh, 0);
+		  mesh.CalcSurfacesOfNode();
+		  optmesh.ImproveMesh (mesh);
+		}
+
+// 	      mesh.Compress();
+// 	      mesh.FindOpenSegments();
+// 	      nopen = mesh.GetNOpenSegments();
+
+	      if (trialcnt <= 5 && nopen)
+		{
+		  mesh.RemoveOneLayerSurfaceElements();
+
+		  if (trialcnt >= 4)
+		    {
+		      mesh.FindOpenSegments();
+		      mesh.RemoveOneLayerSurfaceElements();
+
+		      mesh.FindOpenSegments ();		  
+		      nopen = mesh.GetNOpenSegments();
+		    }
+		}
+	    }
+
+
+	  if (multithread.terminate)
+	    return MESHING3_TERMINATE;
+
+	  if (nopen)
+	    {
+	      
+	      PrintMessage(3,"Meshing failed, trying to refine");
+
+	      mesh.FindOpenSegments ();
+	      nopen = mesh.GetNOpenSegments();
+			  
+	      mesh.FindOpenSegments ();
+	      mesh.RemoveOneLayerSurfaceElements();
+	      mesh.FindOpenSegments ();
+	      mesh.RemoveOneLayerSurfaceElements();
+
+	      // Open edge-segments will be refined !
+	      INDEX_2_HASHTABLE<int> openseght (nopen+1);
+	      for (i = 1; i <= mesh.GetNOpenSegments(); i++)
+		{
+		  const Segment & seg = mesh.GetOpenSegment (i);
+		  INDEX_2 i2(seg.p1, seg.p2);
+		  i2.Sort();
+		  openseght.Set (i2, 1);
+		}
+
+	      
+	      mesh.FindOpenSegments ();
+	      mesh.RemoveOneLayerSurfaceElements();
+	      mesh.FindOpenSegments ();
+	      mesh.RemoveOneLayerSurfaceElements();
+	      
+
+	      INDEX_2_HASHTABLE<int> newpht(100);
+
+	      int nsegold = mesh.GetNSeg();
+	      for (i = 1; i <= nsegold; i++)
+		{
+		  Segment seg = mesh.LineSegment(i);
+		  INDEX_2 i2(seg.p1, seg.p2);
+		  i2.Sort();
+		  if (openseght.Used (i2))
+		    {
+		      // segment will be split
+		      PrintMessage(7,"Split segment ", int(seg.p1), "-", int(seg.p2));
+	      
+		      Segment nseg1, nseg2;
+		      EdgePointGeomInfo newgi;
+		      
+		      const EdgePointGeomInfo & gi1 = seg.epgeominfo[0];
+		      const EdgePointGeomInfo & gi2 = seg.epgeominfo[1];
+		      
+		      newgi.dist = 0.5 * (gi1.dist + gi2.dist);
+		      newgi.edgenr = gi1.edgenr;
+
+		      int hi;
+		      
+		      Point3d newp;
+		      int newpi;
+		      
+		      if (!newpht.Used (i2))
+			{
+			  newp = geom.GetLine (gi1.edgenr)->
+			    GetPointInDist (geom.GetPoints(), newgi.dist, hi);
+			  newpi = mesh.AddPoint (newp);
+			  newpht.Set (i2, newpi);
+			}
+		      else
+			{
+			  newpi = newpht.Get (i2);
+			  newp = mesh.Point (newpi);
+			}
+
+		      nseg1 = seg;
+		      nseg2 = seg;
+		      nseg1.p2 = newpi;
+		      nseg1.epgeominfo[1] = newgi;
+		      
+		      nseg2.p1 = newpi;
+		      nseg2.epgeominfo[0] = newgi;
+		      
+		      mesh.LineSegment(i) = nseg1;
+		      mesh.AddSegment (nseg2);
+		      
+		      mesh.RestrictLocalH (Center (mesh.Point(nseg1.p1),
+						   mesh.Point(nseg1.p2)),
+					   Dist (mesh.Point(nseg1.p1),
+						 mesh.Point(nseg1.p2)));
+		      mesh.RestrictLocalH (Center (mesh.Point(nseg2.p1),
+						   mesh.Point(nseg2.p2)),
+					   Dist (mesh.Point(nseg2.p1),
+						 mesh.Point(nseg2.p2)));
+		    }
+		}
+
+	    }
+
+	  nopen = -1;
+	}
+    
+      else
+
+	{
+	  std::cout << "mesh is closed, verifying ..." << std::endl;
+
+	  // [INFO] no open elements, check wrong elements (intersecting..)
+	  //
+
+	  PrintMessage(5,"check overlapping");
+	  // 	  mesh.FindOpenElements(); // would leed to locked points
+	  if(mesh.CheckOverlappingBoundary())
+	    {
+	      return MESHING3_BADSURFACEMESH;
+	    }
+
+
+	  geom.InitMarkedTrigs();
+
+	  for (i = 1; i <= mesh.GetNSE(); i++)
+	    if (mesh.SurfaceElement(i).BadElement())
+	      {
+		int trig = mesh.SurfaceElement(i).PNum(1);
+		geom.SetMarkedTrig(trig,1);
+		PrintMessage(7, "overlapping element, will be removed");
+	      }
+	  
+	  
+
+	  ARRAY<Point3d> refpts;
+	  ARRAY<double> refh;
+
+	  // was commented:
+
+	  for (i = 1; i <= mesh.GetNSE(); i++)
+	    if (mesh.SurfaceElement(i).BadElement())
+	      {
+		for (j = 1; j <= 3; j++)
+		  {
+		    refpts.Append (mesh.Point (mesh.SurfaceElement(i).PNum(j)));
+		    refh.Append (mesh.GetH (refpts.Last()) / 2);
+		  }
+		mesh.DeleteSurfaceElement(i);
+	      }
+	  	  
+	  // [FS] .. commenting out this part creates a surface mesh - this surface mesh is currently
+	  //         not consistent because the connecting layer is not meshed right
+	  // delete wrong oriented element
+	  for (i = 1; i <= mesh.GetNSE(); i++)
+	    {
+	      const Element2d & el = mesh.SurfaceElement(i);
+	      if (!el.PNum(1))
+		continue;
+
+	      Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)), 
+				      mesh.Point(el.PNum(2))),
+			       Vec3d (mesh.Point(el.PNum(1)), 
+				      mesh.Point(el.PNum(3))));
+	      Vec3d ng = geom.GetTriangle(el.GeomInfoPi(1).trignum).Normal();
+	      if (n * ng < 0)
+		{
+		  refpts.Append (mesh.Point (mesh.SurfaceElement(i).PNum(1)));
+		  refh.Append (mesh.GetH (refpts.Last()) / 2);
+		  mesh.DeleteSurfaceElement(i);
+		}
+	    }
+	  // end comments
+
+	  for (i = 1; i <= refpts.Size(); i++)
+	    mesh.RestrictLocalH (refpts.Get(i), refh.Get(i));
+
+	  mesh.RemoveOneLayerSurfaceElements();
+
+	  mesh.Compress();
+	  
+	  mesh.FindOpenSegments ();
+	  nopen = mesh.GetNOpenSegments();
+
+	  /*
+	  if (!nopen)
+	    {
+	      // mesh is still ok
+
+	      void STLSurfaceOptimization (STLGeometry & geom,
+					   class Mesh & mesh,
+					   MeshingParameters & mparam)
+	      
+	    }
+	  */
+	}
+      
+      std::cout << "..end while: nopen : " << nopen << std::endl;
+    }
+  while (nopen);
+  
+  mesh.Save("fs_surface_mesh.vol");
+    
+  mesh.Compress();
+  mesh.CalcSurfacesOfNode();
+
+  std::cout << ".. leaving STLSurfaceMeshing .. " << std::endl;
+
+  return MESHING3_OK;
+}
+
+
+
+
+
+
+void STLSurfaceMeshing1 (STLGeometry & geom,
+			 class Mesh & mesh,
+			 int retrynr)
+{
+  int i, j, k;
+  double h;
+
+  std::cout << " .. in STLSurfaceMeshing1 .. " << std::endl;  
+  
+  h = mparam.maxh;
+
+  mesh.FindOpenSegments();
+  
+  ARRAY<int> spiralps(0);
+  spiralps.SetSize(0);
+  for (i = 1; i <= geom.GetNP(); i++)
+    {
+      if (geom.GetSpiralPoint(i)) {spiralps.Append(i);}
+    }
+  
+  PrintMessage(7,"NO spiralpoints = ", spiralps.Size());
+  int spfound;
+  int sppointnum;
+  int spcnt = 0;
+
+  ARRAY<int> meshsp(mesh.GetNP());
+  for (i = 1; i <= mesh.GetNP(); i++)
+    {
+      meshsp.Elem(i) = 0;
+      for (j = 1; j <= spiralps.Size(); j++)
+	if (Dist2(geom.GetPoint(spiralps.Get(j)), mesh.Point(i)) < 1e-20) 
+	  meshsp.Elem(i) = spiralps.Get(j);
+    }
+
+
+  ARRAY<int> opensegsperface(mesh.GetNFD());
+  for (i = 1; i <= mesh.GetNFD(); i++)
+    opensegsperface.Elem(i) = 0;
+  for (i = 1; i <= mesh.GetNOpenSegments(); i++)
+    {
+      int si = mesh.GetOpenSegment (i).si;
+      if (si >= 1 && si <= mesh.GetNFD())
+	{
+	  opensegsperface.Elem(si)++;
+	}
+      else
+	{
+           cerr << "illegal face index: " << si << endl;
+	}
+    }
+
+  std::cout << ".. mesh.GetNFD: " << mesh.GetNFD() << std::endl;
+
+
+  double starttime = GetTime ();
+  int fnr = 1;
+//   for(fnr = mesh.GetNFD(); fnr > 0; fnr--)
+  for (fnr = 1; fnr <= mesh.GetNFD(); fnr++)
+    {
+      // [FS] .. test
+      //
+      std::string blabla;
+      std::cout << "##############################################################################################################" << std::endl;      
+      std::cout << ".. wait for input in STLSurfaceMeshing1 .. ###################################################################" << std::endl;
+      cin >> blabla;
+      
+      
+      /*      
+	// [FS][TEST] .. rewrite the face nr 9
+	//
+	if(fnr == 9)
+	{
+	  std::cout << ".. get mesh of this face from already meshed face " << std::endl;
+	  std::cout << ".. mesh points: " << mesh.GetNP() << std::endl;
+
+	  for (SurfaceElementIndex i = 0; i < mesh.GetNSE(); i++)
+	    std::cout << " surface el: " << i << " .. index: " << mesh[i].GetIndex() << std::endl;
+// 	    if ( (*this)[i].GetIndex () == facenr && (*this)[i][0] >= PointIndex::BASE &&
+// 		 !(*this)[i].IsDeleted() )
+// 	      sei.Append (i);
+
+
+	  
+	  std::map<Point3d, PointIndex> point_map;
+
+	  for(int t=1; t<=mesh.GetNP(); t++)
+	    {
+	      Point3d p = mesh.Point(t);
+
+	      std::cout << " point: " << t << " .. " << p << std::endl;
+
+	      std::map<Point3d, PointIndex>::iterator point_map_it = point_map.find(p);
+	      if(point_map_it == point_map.end())
+		{
+		  std::cout << "..point not found: " << p << std::endl;
+		  point_map[p] = t;
+		}
+	    }
+	  
+	  	  	  
+	  ARRAY<SurfaceElementIndex> sei;
+	  mesh.GetSurfaceElementsOfFace(3, sei);
+	  std::cout << "number surface elements of face 4: " << sei.Size() << std::endl;
+	  for(int t=0; t< sei.Size(); t++)
+	    {
+	      Element2d sel = mesh[sei[t]];
+	      std::cout << "original surface element: " << t << " .. " << sel << std::endl;
+	      std::cout << "surface element size: " << sel.GetNP() << std::endl;
+
+	      sel.SetIndex(12);
+
+// 	      for(int u=0; u<sel.GetNP(); u++)
+// 		{
+// 		  std::cout << "surf el geominfo: " << sel.GeomInfoPi(u+1) << std::endl;
+// 		  PointGeomInfo geominfopi = sel.GeomInfoPi(u+1); 
+//  		  geominfopi = geominfopi + 14;
+// 		  sel.GeomInfoPi(u+1) = geominfopi;
+// 		  std::cout << "surf el geominfo: " << sel.GeomInfoPi(u+1) << std::endl;
+
+// 		  Point3d p = mesh[sel[u]];
+// 		  std::cout << "before x: " << p.X() << " y: " << p.Y() << " z: " << p.Z() << std::endl;		  
+// 		  p.X() -= 3.0; 
+// // 		  p.Y() += 2.0;
+// 		  std::cout << "after  x: " << p.X() << " y: " << p.Y() << " z: " << p.Z() << std::endl;
+
+// 		  std::map<Point3d, PointIndex>::iterator point_map_it = point_map.find(p);
+// 		  if(point_map_it == point_map.end())
+// 		    {
+// 		      std::cout << "..point not found: " << p << std::endl;
+// 		      mesh.AddPoint(p);
+// 		      std::cout << ".. mesh points: " << mesh.GetNP() << std::endl;
+// // 		      sel.PNum(u+1) = mesh.GetNP()-1;		      
+// 		      sel[u] = mesh.GetNP();		      
+// 		      point_map[p] = mesh.GetNP();
+// 		    }
+// 		  else
+// 		    {
+// 		      sel[u] = (*point_map_it).second;		      
+// 		    }
+
+		}
+
+	      // change orientation
+	      //
+	      PointIndex pi = sel[0];
+	      sel[0] = sel[1];
+	      sel[1] = pi;
+
+	      std::cout << "after modification surface element: " << t << " .. " << sel << std::endl;
+	      mesh.AddSurfaceElement(sel);
+
+	    }
+
+
+	  std::string filename = "fs_surface_temp_"+ boost::lexical_cast<std::string>(fnr) +".vol";
+	  mesh.Save(filename);
+
+	  for (SurfaceElementIndex i = 0; i < mesh.GetNSE(); i++)
+	    std::cout << " surface el: " << i << " .. index: " << mesh[i].GetIndex() << std::endl;
+	}
+      else
+      */
+
+      // [FS][TEST] .. if the interface facet is not meshed, the whole structure can be meshed
+      //
+//       if(fnr == 9)
+// 	{
+// 	  std::cout << " ################# " << std::endl;
+// 	  std::cout << " SKIPPING FACENR 9" << std::endl;
+// 	  std::cout << " ################# " << std::endl;
+// 	}
+//       else
+      {
+	std::cout << ".. opensegsperface.Get(fnr): " <<  opensegsperface.Get(fnr) << std::endl;
+	
+	// [FS] .. what does opensegsperface do ? in our case always the same value
+	//
+	  if (opensegsperface.Get(fnr))
+	    {
+	std::cout << "..meshing face: " << fnr << " .. opensegsperface.Get(fnr): " <<  opensegsperface.Get(fnr) << std::endl;
+
+	if (multithread.terminate)
+	  return;
+	
+	PrintMessage(5,"Meshing surface ", fnr, "/", mesh.GetNFD());
+
+	// [FS] .. MeshingSTLSurface : public Meshing2
+	//
+	MeshingSTLSurface meshing (geom);
+	
+	meshing.SetStartTime (starttime);
+	
+	// [FS][INFO] add points to meshing2 and check for spiral points
+	//            if no spiral point is found the multipointgeomInfo variable is set to 
+	//
+	for (i = 1; i <= mesh.GetNP(); i++)
+	  {
+	    /*
+	      spfound = 0;
+	      for (j = 1; j <= spiralps.Size(); j++)
+	      {
+	      if (Dist2(geom.GetPoint(spiralps.Get(j)),mesh.Point(i)) < 1e-20) 
+		{spfound =  1; sppointnum = spiralps.Get(j);}
+		}
+	    */
+	    sppointnum = 0;
+	    if (i <= meshsp.Size())
+	      sppointnum = meshsp.Get(i);
+	    
+	  //spfound = 0;
+	    std::cout << "..sppointnum: " << sppointnum << std::endl;
+
+	  if (sppointnum)
+	    {
+	      MultiPointGeomInfo mgi;
+  
+	      int ntrigs = geom.NOTrigsPerPoint(sppointnum);
+	      spcnt++;
+	      
+	      for (j = 0; j < ntrigs; j++)
+		{
+		  PointGeomInfo gi;
+		  gi.trignum = geom.TrigPerPoint(sppointnum, j+1);
+		  mgi.AddPointGeomInfo (gi);
+		}
+	      
+	      // Einfuegen von ConePoint: Point bekommt alle
+	      // Dreiecke (werden dann intern kopiert)
+	      // Ein Segment zum ConePoint muss vorhanden sein !!!
+	      
+	      meshing.AddPoint (mesh.Point(i), i, &mgi);
+	      
+	    }
+	  else
+	    {
+	      meshing.AddPoint (mesh.Point(i), i);
+	    }
+	}
+      
+      
+      for (i = 1; i <= mesh.GetNOpenSegments(); i++)
+	{
+	  const Segment & seg = mesh.GetOpenSegment (i);
+	  // [FS] surface index must match the face descriptor nr
+	  //
+	  if (seg.si == fnr)
+	    {
+	      meshing.AddBoundaryElement (seg.p1, seg.p2, seg.geominfo[0], seg.geominfo[1]);
+	      std::cout << "..adding boundary el: p1: " << seg.p1 << " :: p2: " << seg.p2 << std::endl;
+	      std::cout << ".. seg.geominfo[0]: " << seg.geominfo[0]
+			<< ".. seg.geominfo[1]: " << seg.geominfo[1] << std::endl;
+	      
+	    }
+	}
+      
+      
+      PrintMessage(3,"start meshing, trialcnt = ", retrynr);
+
+      // [FS][TEST] .. testing if the lfs of a face can be given
+      //
+//       if(fnr == 11)
+//       h = 0.125;
+//       else
+//       h = 1000.0;
+                  
+      std::cout << ".. start meshing with h = " << h << std::endl;
+
+      meshing.GenerateMesh (mesh, h, fnr);  // face index
+
+      std::cout << " .. after GenerateMesh in STLSurfaceMeshing1 .. " << std::endl;
+
+
+      // [FS] .. test code
+	  ARRAY<SurfaceElementIndex> bla;
+	  mesh.GetSurfaceElementsOfFace(8, bla);
+	  std::cout << "number surface elements of face: " << bla.Size() << std::endl;
+	  for(int t=0; t< bla.Size(); t++)
+	    {
+	      Element2d sel = mesh[bla[t]];
+	      std::cout << "original surface element: " << t << " .. " << sel << std::endl;
+	      std::cout << "surface element size: " << sel.GetNP() << std::endl;
+
+	      for(int u=0; u<sel.GetNP(); u++)
+		{
+		  std::cout << "surf el geominfo: " << sel.GeomInfoPi(u+1) << std::endl;
+		}
+	    }
+
+
+      // [FS] .. test
+      //
+//       sleep(2);
+
+#ifdef OPENGL
+      extern void Render();
+      Render();
+#endif
+
+      std::string filename = "fs_surface_temp_"+ boost::lexical_cast<std::string>(fnr) +".vol";
+      mesh.Save(filename);
+
+      }
+  
+	} // if FS test
+    }    
+      
+  
+  mesh.CalcSurfacesOfNode();
+
+  std::cout << " .. leaving STLSurfaceMeshing1 .. " << std::endl;
+}
+
+
+
+void STLSurfaceOptimization (STLGeometry & geom,
+			     class Mesh & mesh,
+			     MeshingParameters & mparam)
+{
+  PrintFnStart("optimize STL Surface");
+
+
+  MeshOptimizeSTLSurface optmesh(geom);
+  //
+
+  int i, j;
+  /*
+  for (i = 1; i <= mparam.optsteps2d; i++)
+    {
+      EdgeSwapping (mesh, 1, 1);
+      CombineImprove (mesh, 1);
+      optmesh.ImproveMesh (mesh, 0, 10, 1, 1);
+    }
+  */
+
+  optmesh.SetFaceIndex (0);
+  optmesh.SetImproveEdges (0);
+  optmesh.SetMetricWeight (mparam.elsizeweight);
+
+  PrintMessage(5,"optimize string = ", mparam.optimize2d, " elsizew = ", mparam.elsizeweight);
+
+  for (i = 1; i <= mparam.optsteps2d; i++)
+    for (j = 1; j <= strlen(mparam.optimize2d); j++)
+      {
+	if (multithread.terminate)
+	  break;
+
+	//(*testout) << "optimize, before, step = " << mparam.optimize2d[j-1] << mesh.Point (3679) << endl;
+
+	mesh.CalcSurfacesOfNode();
+	switch (mparam.optimize2d[j-1])
+	  {
+	  case 's': 
+	    {
+	      optmesh.EdgeSwapping (mesh, 0);
+	      break;
+	    }
+	  case 'S': 
+	    {
+	      optmesh.EdgeSwapping (mesh, 1);
+	      break;
+	    }
+	  case 'm': 
+	    {
+	      optmesh.ImproveMesh(mesh);
+	      break;
+	    }
+	  case 'c': 
+	    {
+	      optmesh.CombineImprove (mesh);
+	      break;
+	    }
+	  }
+	//(*testout) << "optimize, after, step = " << mparam.optimize2d[j-1] << mesh.Point (3679) << endl;
+      }
+
+  geom.surfaceoptimized = 1;
+
+  mesh.Compress();
+  mesh.CalcSurfacesOfNode();
+
+
+}
+
+
+
+MeshingSTLSurface :: MeshingSTLSurface (STLGeometry & ageom)
+  : Meshing2(ageom.GetBoundingBox()), geom(ageom)
+{
+  ;
+}
+
+void MeshingSTLSurface :: DefineTransformation (const Point3d & p1, const Point3d & p2,
+						const PointGeomInfo * geominfo,
+						const PointGeomInfo * geominfo2)
+{
+  transformationtrig = geominfo[0].trignum;
+  
+  geom.DefineTangentialPlane(p1, p2, transformationtrig);
+}
+
+void MeshingSTLSurface :: TransformToPlain (const Point3d & locpoint, const MultiPointGeomInfo & gi,
+					    Point2d & plainpoint, double h, int & zone)
+{
+  int trigs[10000];
+  int i;
+
+  if (gi.GetNPGI() >= 9999) 
+    {
+      PrintError("In Transform to plane: increase size of trigs!!!");
+    }
+
+  for (i = 1; i <= gi.GetNPGI(); i++)
+    trigs[i-1] = gi.GetPGI(i).trignum;
+  trigs[gi.GetNPGI()] = 0;
+
+  //  int trig = gi.trignum;
+  //   (*testout) << "locpoint = " << locpoint;
+
+  Point<2> hp2d;
+  geom.ToPlane (locpoint, trigs, hp2d, h, zone, 1);
+  plainpoint = hp2d;
+
+  //  geom.ToPlane (locpoint, NULL, plainpoint, h, zone, 1);
+  /*
+  (*testout) << " plainpoint = " << plainpoint
+	     << " h = " << h 
+	     << endl;
+  */
+}
+
+/*
+int MeshingSTLSurface :: ComputeLineGeoInfo (const Point3d & p1, const Point3d & p2,
+					      int & geoinfosize, void *& geoinfo)
+{
+  static int geomtrig[2] = { 0, 0 };
+
+  Point3d hp;
+  hp = p1;
+  geomtrig[0] = geom.Project (hp);
+
+  hp = p2;
+  geomtrig[1] = geom.Project (hp);
+  
+  geoinfosize = sizeof (geomtrig);
+  geoinfo = &geomtrig;
+
+  if (geomtrig[0] == 0)
+    {
+      return 1;
+    }
+  return 0;
+}
+*/
+
+
+int MeshingSTLSurface :: ComputePointGeomInfo (const Point3d & p, PointGeomInfo & gi)
+{
+  // compute triangle of point,
+  // if non-unique: 0
+
+  Point<3> hp = p;
+  gi.trignum = geom.Project (hp);
+
+  if (!gi.trignum)
+    {
+      return 1;
+    }
+
+  return 0;
+}
+
+
+int MeshingSTLSurface :: 
+ChooseChartPointGeomInfo (const MultiPointGeomInfo & mpgi, 
+			  PointGeomInfo & pgi)
+{
+  int i;
+
+  for (i = 1; i <= mpgi.GetNPGI(); i++)
+    if (geom.TrigIsInOC (mpgi.GetPGI(i).trignum, geom.meshchart))
+      {
+	pgi = mpgi.GetPGI(i);
+	return 0;
+      }
+  /*
+  for (i = 0; i < mpgi.cnt; i++)
+    {
+      //      (*testout) << "d" << endl;
+      if (geom.TrigIsInOC (mpgi.mgi[i].trignum, geom.meshchart))
+	{
+	  pgi = mpgi.mgi[i];
+	  return 0;
+	}
+    }
+  */
+  PrintMessage(7,"INFORM: no gi on chart");
+  pgi.trignum = 1;
+  return 1;
+}
+
+
+
+int MeshingSTLSurface :: 
+IsLineVertexOnChart (const Point3d & p1, const Point3d & p2,
+		     int endpoint, const PointGeomInfo & gi)
+{
+  Vec3d baselinenormal = geom.meshtrignv;
+
+  int lineendtrig = gi.trignum;
+
+  
+  return geom.TrigIsInOC (lineendtrig, geom.meshchart);
+
+  //  Vec3d linenormal = geom.GetTriangleNormal (lineendtrig);
+  //  return ( (baselinenormal * linenormal) > cos (30 * (M_PI/180)) );
+}
+
+void MeshingSTLSurface :: 
+GetChartBoundary (ARRAY<Point2d > & points, 
+		  ARRAY<Point3d > & points3d,
+		  ARRAY<INDEX_2> & lines, double h) const
+{
+  points.SetSize (0);
+  points3d.SetSize (0);
+  lines.SetSize (0);
+  geom.GetMeshChartBoundary (points, points3d, lines, h);
+}
+
+
+
+
+int MeshingSTLSurface :: TransformFromPlain (Point2d & plainpoint,
+					     Point3d & locpoint, 
+					     PointGeomInfo & gi, 
+					     double h)
+{
+  //return 0, wenn alles OK
+  Point<3> hp3d;
+  int res = geom.FromPlane (plainpoint, hp3d, h);
+  locpoint = hp3d;
+  ComputePointGeomInfo (locpoint, gi);
+  return res;
+}
+
+
+int MeshingSTLSurface :: 
+BelongsToActiveChart (const Point3d & p, 
+		      const PointGeomInfo & gi)
+{
+  return (geom.TrigIsInOC(gi.trignum, geom.meshchart) != 0);
+}
+
+
+
+double MeshingSTLSurface :: CalcLocalH (const Point3d & p, double gh) const
+{
+  return gh;
+}
+
+double MeshingSTLSurface :: Area () const
+{
+  return geom.Area();
+}
+
+
+
+
+
+
+MeshOptimizeSTLSurface :: MeshOptimizeSTLSurface (STLGeometry & ageom)
+  : MeshOptimize2d(), geom(ageom)
+{
+  ;
+}
+
+
+void MeshOptimizeSTLSurface :: SelectSurfaceOfPoint (const Point<3> & p,
+						     const PointGeomInfo & gi)
+{
+  //  (*testout) << "sel char: " << gi.trignum << endl;
+  
+  geom.SelectChartOfTriangle (gi.trignum);
+  //  geom.SelectChartOfPoint (p);
+}
+
+
+void MeshOptimizeSTLSurface :: ProjectPoint (INDEX surfind, Point<3> & p) const
+{
+  if (!geom.Project (p))
+    {
+      PrintMessage(7,"project failed");
+      
+      if (!geom.ProjectOnWholeSurface(p)) 
+	{
+	  PrintMessage(7, "project on whole surface failed");
+	}
+    }
+
+  //  geometry.GetSurface(surfind)->Project (p);
+}
+
+void MeshOptimizeSTLSurface :: ProjectPoint2 (INDEX surfind, INDEX surfind2, Point<3> & p) const
+{
+  /*
+  ProjectToEdge ( geometry.GetSurface(surfind), 
+		  geometry.GetSurface(surfind2), p);
+  */
+}
+
+int  MeshOptimizeSTLSurface :: CalcPointGeomInfo(PointGeomInfo& gi, const Point<3> & p3) const
+{
+  Point<3> hp = p3;
+  gi.trignum = geom.Project (hp);
+
+  if (gi.trignum)
+    {
+      return 1;
+    }
+
+  return 0;
+  
+}
+
+void MeshOptimizeSTLSurface :: GetNormalVector(INDEX surfind, const Point<3> & p, Vec<3> & n) const
+{
+  n = geom.GetChartNormalVector();
+  
+  /*
+  geometry.GetSurface(surfind)->CalcGradient (p, n);
+  n /= n.Length();
+  if (geometry.GetSurface(surfind)->Inverse())
+    n *= -1;
+  */
+}
+  
+
+
+
+
+
+
+
+
+
+RefinementSTLGeometry :: RefinementSTLGeometry (const STLGeometry & ageom)
+  : Refinement(), geom(ageom)
+{
+  ;
+}
+
+RefinementSTLGeometry :: ~RefinementSTLGeometry ()
+{
+  ;
+}
+  
+void RefinementSTLGeometry :: 
+PointBetween  (const Point<3> & p1, const Point<3> & p2, double secpoint,
+	       int surfi, 
+	       const PointGeomInfo & gi1, 
+	       const PointGeomInfo & gi2,
+	       Point<3> & newp, PointGeomInfo & newgi)
+{
+  newp = p1+secpoint*(p2-p1);
+
+  /*
+  (*testout) << "surf-between: p1 = " << p1 << ", p2 = " << p2
+	     << ", gi = " << gi1 << " - " << gi2 << endl;
+  */
+
+  if (gi1.trignum > 0)
+    {
+      //      ((STLGeometry&)geom).SelectChartOfTriangle (gi1.trignum);
+
+      Point<3> np1 = newp;
+      Point<3> np2 = newp;
+      ((STLGeometry&)geom).SelectChartOfTriangle (gi1.trignum);
+      int tn1 = geom.Project (np1);
+
+      ((STLGeometry&)geom).SelectChartOfTriangle (gi2.trignum);
+      int tn2 = geom.Project (np2);
+
+      newgi.trignum = tn1; //urspruengliche version
+      newp = np1;          //urspruengliche version
+
+      if (!newgi.trignum) 
+	{ newgi.trignum = tn2; newp = np2; }
+      if (!newgi.trignum) newgi.trignum = gi1.trignum;
+
+      /*    
+      if (tn1 != 0 && tn2 != 0 && ((STLGeometry&)geom).GetAngle(tn1,tn2) < M_PI*0.05)	{
+	  newgi.trignum = tn1;
+	  newp = np1;
+	}
+      else
+	{
+	  newp = ((STLGeometry&)geom).PointBetween(p1, gi1.trignum, p2, gi2.trignum);
+	  tn1 = ((STLGeometry&)geom).Project(newp);
+	  newgi.trignum = tn1;
+
+	  if (!tn1) 
+	    {
+	      newp = Center (p1, p2);
+	      newgi.trignum = 0;
+	      
+	    }
+	}
+      */
+    }
+  else
+    {
+      //      (*testout) << "WARNING: PointBetween got geominfo = 0" << endl;
+      newp =  p1+secpoint*(p2-p1);
+      newgi.trignum = 0;
+    }
+     
+  //  (*testout) << "newp = " << newp << ", ngi = " << newgi << endl;
+}
+
+void RefinementSTLGeometry ::
+PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
+	      int surfi1, int surfi2, 
+	      const EdgePointGeomInfo & gi1, 
+	      const EdgePointGeomInfo & gi2,
+	      Point<3> & newp, EdgePointGeomInfo & newgi)
+{
+  /*
+  (*testout) << "edge-between: p1 = " << p1 << ", p2 = " << p2
+	     << ", gi1,2 = " << gi1 << ", " << gi2 << endl;
+  */
+  /*
+  newp = Center (p1, p2);
+  ((STLGeometry&)geom).SelectChartOfTriangle (gi1.trignum);
+  newgi.trignum = geom.Project (newp);
+  */
+  int hi;
+  newgi.dist = (1.0-secpoint) * gi1.dist + secpoint*gi2.dist;
+  newgi.edgenr = gi1.edgenr;
+
+  /*
+  (*testout) << "p1 = " << p1 << ", p2 = " << p2 << endl;
+  (*testout) << "refedge: " << gi1.edgenr
+	     << " d1 = " << gi1.dist << ", d2 = " << gi2.dist << endl;
+  */
+  newp = geom.GetLine (gi1.edgenr)->GetPointInDist (geom.GetPoints(), newgi.dist, hi);
+
+  //  (*testout) << "newp = " << newp << endl;
+}
+
+
+void RefinementSTLGeometry :: ProjectToSurface (Point<3> & p, int surfi)
+{
+  cout << "RefinementSTLGeometry :: ProjectToSurface not implemented!" << endl;
+};
+
+
+void RefinementSTLGeometry :: ProjectToSurface (Point<3> & p, int surfi,
+						PointGeomInfo & gi)
+{
+  ((STLGeometry&)geom).SelectChartOfTriangle (gi.trignum);
+  gi.trignum = geom.Project (p);
+  //  if (!gi.trignum) 
+  //    cout << "projectSTL failed" << endl;
+};
+
+ 
+}

@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
   //#include "../interface/writeuser.hpp"
   class MarkedTet;

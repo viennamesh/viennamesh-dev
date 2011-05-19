@@ -12,9 +12,9 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
   void INDEX_4 :: Sort ()
   {

@@ -13,7 +13,7 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 void Sort (const ARRAY<double> & values,

@@ -2,7 +2,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
   void Refinement :: Refine (Mesh & mesh)
   {

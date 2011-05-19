@@ -4,7 +4,7 @@
 #include <gprim.hpp>
 #include <linalg.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 Transformation3d :: Transformation3d ()
@@ -97,7 +97,7 @@ void Transformation3d :: CalcInverse (Transformation3d & inv) const
 	a.Elem(i, j) = lin[i-1][j-1];
     }
 
-  ::netgen::CalcInverse (a, inva);
+  ::vgmnetgen::CalcInverse (a, inva);
   inva.Mult (b, sol);
 
   for (i = 1; i <= 3; i++)

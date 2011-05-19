@@ -8,7 +8,7 @@
 #endif
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 extern const char * tetrules[];

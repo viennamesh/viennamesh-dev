@@ -6,7 +6,7 @@
 #include "meshing.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
   AdFront2::FrontPoint2 :: FrontPoint2 (const Point<3> & ap, PointIndex agi,
 					MultiPointGeomInfo * amgi, bool aonsurface)

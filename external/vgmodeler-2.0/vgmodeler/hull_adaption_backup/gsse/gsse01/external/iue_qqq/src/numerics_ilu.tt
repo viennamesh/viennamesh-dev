@@ -1,0 +1,1157 @@
+/* ***********************************************************************
+   $Id: numerics_ilu.tt,v 1.12 2004/08/29 11:42:37 entner Exp $
+
+   Filename: numerics_ilu.tt
+
+   Description:  Incomplete LU factorization preconditioner (templates)
+
+   Acknowledgement: Based on an idea of Youcef Saad. 
+                    Hints by Otto Heinreichsberger.
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF  27 Apr 1996  created
+   CF  27 Apr 1996  factorization function started
+   CF  29 Apr 1996  definition of preconditioned matrix class (in other file)
+   CF   1 May 1996  find smallest function started and done
+   CF   1 May 1996  sort largest  function started and done
+   CF   1 May 1996  sort largest  function started and done
+   CF   3 May 1996  factorization function optimized and beautified
+   CF   3 May 1996  templates reduced to one argument (Number)
+   CF   3 May 1996  templates reduced to one argument (Number) (in other file)
+   CF   4 May 1996  deleted auxiliary arrays on return
+   CF   4 May 1996  factorization function documented
+   CF   5 May 1996  inverse matrix multiplication function started and done
+   CF  11 May 1996  some minor improvements (colrow check before searching)
+   CF  16 May 1996  some minor changes (matrix type renamed to ...ILU...)
+   CF   1 Jul 1996  some cleanups and methodology
+   CF   1 Jul 1996  incorporated things from other file
+   CF   2 Oct 1996  added notes on parallelization/threads
+   CF  31 Dec 1996  added function returning nonzeros
+   SW   6 Feb 2002  qqq prefixed function names
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_ilu_tt__included__
+#define   __numerics_ilu_tt__included__
+
+
+/* 
+   The following code provides:
+
+   Class
+   qqqILUMatrix<Number>           ... Incomplete LU factorized matrix
+   
+   Member functions
+   allocate(dimension,nonzeros)   ... define size (number of rows and nonzeros)
+   free()                         ... destroy all data
+   nonzeros()                     ... return the nonzeros of K
+
+   Functions
+   qqqFactorizeILU(A,K,...)       ... incompletely factorize matrix A into K
+   qqqInvPrd(y,K,x)               ... calculate y = K^-1 * x
+
+   Note:
+   1) Operations
+      The format is designed to serve as a general format for the 
+      representation of matrices. Operations that are necessary in the
+      course of solving an equation system are usually provided in connection
+      with other matrix formats or "stand-alone", so that the set of 
+      operations defined in this file is very small.
+
+*/
+
+
+/* class qqqILUMatrix<Number>
+   ==========================
+
+   holds the preconditioned matrix, which consists of two triangular matrices
+   stored in one structure. The original matrix A is factorized into two
+   parts, A = L * U. This factorization is not done exactly, so the equation
+   is only approximately fulfilled.
+ */
+#define ILUMatrixPure qqqILUMatrix
+#define ILUMatrix     ILUMatrixPure<Number>
+#define MCSR          qqqMCSR<Number>
+#define Index         qqqIndex
+#define Real          double
+#define Error         qqqError
+#define BogoFlops     qqqBogoFlops
+
+template <class Number>
+class ILUMatrixPure;
+
+template <class Number>
+bool qqqFactorizeILU(MCSR const &,ILUMatrix &,Real,Index,Real &, // [RE] works with gcc 3.4.2 (cvs-branch)
+                     Index &,BogoFlops &,Error &);
+
+template <class Number>
+void qqqInvPrd (Number * const,ILUMatrix const &,Number const * const);
+
+template <class Number>
+class ILUMatrixPure 
+{
+
+    /* Matrix data */
+    /* =========== */
+
+private:
+    Index  n;			/* The dimension of the L and U matrices. */
+
+    Index  nnzall;		/* The value of nnz passed to allocate(). */
+
+    Number *val;		/* Length allocated. The values of the L and U
+				   part, both in the same MCSR storage format.
+				   val[0..n-1] are the diagonal elements of
+				   U. val[n] is unused.  val[n+1..] are the
+				   off diagonals of L and U, sorted by row. In
+				   each row, first the elements of L and then
+				   the elements of U are stored, with
+				   ascending column indices. */
+    Index  *idx;		/* Length allocated. Indices into val/idx.
+				   This array is parallel to val. idx[0..n]
+				   are the begin indices of the rows of L in
+				   val. idx[n] is the index of a fictitious
+				   n-th row, i.e. the index after the last
+				   used entry in val/idx or the length of
+				   val/idx.  idx[n+1..] are the column indices
+				   of the off diagonals stored in the parallel
+				   elements in val.  */
+    Index  *uidx;		/* Length n. Indices into val/idx. 
+				   uidx[0..n-1] are the begin indices of the
+				   rows of U in val. */
+
+public:
+
+    /* Access functions */
+    /* ================ */
+
+    /* Administration */
+
+    inline       ILUMatrixPure();
+    inline       ~ILUMatrixPure();
+    inline bool  allocate(Index const dimension, Index const nnz);
+    inline void  free();
+    inline Index nonzeros() const;
+
+    /* Matrix manipulation */
+    friend bool qqqFactorizeILU<Number>(MCSR const &,   ILUMatrix       &, Real, Index, Real &, Index &, BogoFlops &, Error &);
+    friend void qqqInvPrd      <Number>(Number * const, ILUMatrix const &, Number const * const);
+
+// #ifdef __ICC
+//    template <class Number>
+//    friend bool				/* Factorization was successful. */
+//    qqqFactorizeILU(MCSR const &,ILUMatrix &,Real,Index,Real &,Index &,BogoFlops &,Error &);
+//    template <class Number>
+//    friend void
+//    qqqInvPrd(Number * const,ILUMatrix const &,Number const * const);
+// #else
+// #ifdef __DECCXX
+//    friend bool qqqFactorizeILU(MCSR const &, ILUMatrix &, Real, Index,Real &, Index &, BogoFlops &, Error &);
+//    friend void qqqInvPrd(Number * const, ILUMatrix const &, Number const * const);
+// #else
+// #ifdef __xlC__
+//    friend bool qqqFactorizeILU<Number>(MCSR const &,ILUMatrix &,Real,Index,Real &,Index &,BogoFlops &,Error &);
+//    friend void qqqInvPrd<Number>(Number * const,ILUMatrix const &,Number const * const);
+// #else
+//    /* This is the common/standard (gcc) version (I think according to Stroustrup) */
+//    friend bool qqqFactorizeILU<>(MCSR const &,ILUMatrix &,Real,Index,Real &,Index &,BogoFlops &,Error &);
+//    friend void qqqInvPrd<>(Number * const,ILUMatrix const &,Number const * const);
+// #endif // __xlC__
+// #endif // __DECCXX
+// #endif // __ICC
+};
+
+
+/* qqqILUMatrix()
+
+   Constructor function. Creates an empty matrix.
+   */
+template <class Number>
+inline
+ILUMatrix::ILUMatrixPure()
+{
+    n   = nnzall = 0;
+    idx = uidx   = 0;
+    val =          0;
+}
+
+
+/* free()
+
+   Free everything allocated in the matrix structure.
+   */
+template <class Number>
+inline void
+ILUMatrix::free()
+{
+    if (uidx) delete[] uidx; uidx = 0;
+    if (idx ) delete[] idx;  idx  = 0;
+    if (val ) delete[] val;  val  = 0;
+    nnzall = 0;
+    n      = 0;
+}
+
+
+/* ~qqqILUMatrix()
+
+   Destructor function. Frees everything allocated and deletes matrix.
+   */
+template <class Number>
+inline
+ILUMatrix::~ILUMatrixPure()
+{
+    free();
+}
+
+/* allocate()
+
+   Allocate a matrix structure for the specified size.
+
+   Effort: constant.
+   BogoFlops: none.
+   Space: (nnz + 1) * (sizeof(Number) + sizeof(Index)) + dim * sizeof(Index)
+
+   */
+template <class Number>
+inline bool			/* Allocation was successful */
+ILUMatrix::allocate(
+    Index const dim,		/* New dimension of matrix */
+    Index const nnz		/* Number of nonzeros in matrix. This includes
+				   the diagonal of U, but excludes the
+				   diagonal of L which is unity. */
+    )
+{
+    if (dim < 0)   return false;
+    if (nnz < dim) return false;
+
+    /* Get rid of anything allocated before */
+    free();
+
+    /* Allocate */
+    
+    idx       = new Index [nnz + 1];
+    uidx      = new Index [dim ? dim : 1];
+val       = new Number[nnz + 1];
+    if (!val || !idx || !uidx) {
+	free();
+	return false;
+    }
+    n      = dim;
+    nnzall = nnz;
+    return true;
+}
+
+
+/* nonzeros()
+
+   Return the number of nonzero entries in the matrix.
+   */
+template <class Number>
+inline Index
+ILUMatrix::nonzeros() const
+{
+    if (n) return idx[n];
+    return 0;
+}
+/* End of class qqqILUMatrix */
+#undef ILUMatrixPure
+#undef ILUMatrix
+#undef MCSR
+#undef Index
+#undef Real
+#undef Error
+#undef BogoFlops
+
+
+
+/* sortSmallestFirst()
+
+   Find the smallest element of the array idx, and move it (together with
+   its alter ego in val) to position 0 by exchange with the element in
+   this position.
+
+   Update the array rev, so that if rev[i1] = i2, then idx[i2 - revoff] = i1.
+   The offset revoff comes from not passing idx and val in their full length.
+   
+   Effort: len.
+   BogoFlops: 0. */
+#define Index qqqIndex
+template <class Number>
+// [rp]
+//inline static void
+inline void
+qqqSortSmallestFirst(
+    Index  const        len,	/* Input length of arrays. */
+    Number      * const val,	/* Input/Output values array, length len. */
+    Index       * const idx,	/* Input/Output index  array, length len,
+				   parallel to val. */
+    Index       * const rev,	/* Input/Output reverse index array. */
+    Index  const        revoff	/* Input offset to numbers in rev. */
+    )
+{
+    Index  idxmin = idx[0];	/* Minimum column index in idx */
+    Index  jjmin  = 0;		/* Position of idxmin in idx */
+
+    /* Find the smallest column index */
+    for (Index jj = 1; jj < len; jj++)
+	if (idx[jj] < idxmin)
+	{
+	    idxmin = idx[jj];
+	    jjmin  = jj;
+	}
+
+    /* Exchange elements 0 and jjmin in idx, val, and rev */
+    /* Exchange idx */
+    Index const  h = idx[0];
+    idx[0]         = idxmin;
+    idx[jjmin]     = h;
+    /* Exchange rev */
+    rev[idxmin]    = revoff;
+    rev[h]         = revoff + jjmin;
+    /* Exchange val */
+    Number const s = val[0];
+    val[0]         = val[jjmin];
+    val[jjmin]     = s;
+    /* Now entry 0 has the smallest column index */
+}
+#undef Index
+
+
+/* sortLargestAbs()
+
+   Sort an array val, together with a parallel array idx, so that
+   the largest cutlen elements are in the first cutlen positions.
+
+   Any of the first cutlen elements is larger than (or at least equal to)
+   any of the others. Neither the first cutlen nor the other elements are 
+   sorted amongst themselves. 
+
+   Effort: len + log(len).
+   BogoFlops: 0. */
+#define Index qqqIndex
+#define Real  double
+template <class Number>
+//inline static void
+inline void
+qqqSortLargestAbs(
+    Index  const         len,	/* Input length of arrays */
+    Index  const         cutlen,/* Input number of largest elements */
+    Number       * const val,	/* Input/Output array to be sorted, 
+				   length len. */
+    Index        * const idx	/* Input/Output index array parallel to val,
+				   length len. */
+    )
+{
+    Index   i1 = 0;		/* Start of the sequence to be sorted */
+    Index   i2 = len - 1;	/* End   of the sequence to be sorted */
+    Number  t;			/* A comparison element */
+    Index   it;			/* The index value of t */
+    Real    tabs;		/* The absolute value of t */
+    Index   ii1;		/* Start of the unsorted part of the
+					 sequence */
+    Index   ii2;		/* End   of the unsorted part of the
+					 sequence */
+    Index   icomp;		/* Index of the element with which
+				   all other elements will be compared */
+
+    /* Check if we need not sort */
+    if (cutlen >= len || cutlen <= 0)
+	return;
+    /* Now 0 < cutlen < len */
+    
+    /* The algorithm:
+
+       The inner part:
+       ===============
+
+       The algorithm always sorts a subsequence compared to a specific
+       element. All elements in the subsequence are compared to the element.
+       Elements which are larger than the comparison element are put
+       in front of it; elements which are smaller or equal are put behind.
+       This takes A * ns time, where A is a constant and ns the length
+       of the sublist.
+
+       The outer part:
+       ===============
+
+       The algorithm starts with the full list as the initial sublist. 
+       It assumes that the elements in this list are sorted randomly and 
+       takes the (cutlen-1)-th element as comparison element for sorting 
+       this sublist (see inner part).  Of the two sublists which are 
+       thereby created, to the left and to the right of the comparison 
+       element, one can be neglected because it is either totally out of 
+       range or totally in the range (where range means the cutlen largest 
+       elements). The other sublist contains the index cutlen. To sort this 
+       other sublist, we proceed as with the total list. When the sublist is 
+       sufficiently small, we terminate. 
+
+       Efficiency:
+       ===========
+
+       The efficiency of this algorithm is approximately like that:
+       Best case:     A * len
+       Average:       B * len + C * log(len)
+       Worst case:    A * len * len/2
+
+       The average depends strongly on the order which the sequence 
+       shows before. If the comparison element is an extreme value 
+       (smallest or largest element), then sorting the sequence will 
+       only reduce the length of the sequence by 1. Therefore the worst
+       case is like for a full linear sort.
+
+       Compared to the usual sorting algorithms (e.g. quicksort) this one 
+       shows a slightly better behavior in the average case: the usual 
+       len * ln(len) term is substituted by an len + ln(len) term. The 
+       reason is that we do not insist on also sorting subsequences which 
+       do not contain the cutlen index, which would cost unnecessary time. */
+
+
+
+    /* The subsequence to be sorted reaches from i1 to i2 */
+    /* The indices cutlen-1 and cutlen 
+       are contained in the sequence */
+    while (1)
+    {
+	/* Take the comparison element of the subsequence to be sorted */
+	/* =========================================================== */
+
+	icomp = cutlen - 1;	/* Choose an element from inside
+				   and put the first element in its place
+				   to avoid worst case for pre-sorted
+				   lists. The element cutlen-1 seems to be
+				   most attractive, but we could also use
+				   (i1 + i2) / 2. */
+	t          = val[icomp];/* This becomes the comparison element, */
+	it         = idx[icomp];/* and the place becomes free */
+	tabs       = qqqAbs(t);
+	val[icomp] = val[i1];	/* Make i1 the free element instead of icomp */
+	idx[icomp] = idx[i1];
+
+	/* Sort the sequence compared to that element */
+	/* ========================================== */
+
+	/* First a subsequence of smaller elements,
+	   then the element itself,
+	   then a subsequence of larger or equal elements. */
+      
+	ii1 = i1;			/* This place is presently free */
+	ii2 = i2;			/* Here we start sorting */
+	while (ii2 > ii1)
+	{
+	    /* Skip elements from ii2 downwards which are smaller or equal t,
+	       they are already in the right place */
+
+	    while (ii2 > ii1 &&
+		   qqqAbs(val[ii2]) <= tabs)
+		ii2--;
+	    if (ii2 == ii1) break;
+
+	    /* Now ii2 contains an element which is larger than t.
+	       Put that element to the free place in ii1.
+	       This makes the place in ii2 the free place. */
+
+	    val[ii1] = val[ii2];
+	    idx[ii1] = idx[ii2];
+	    ii1++;
+	    /* Now the place in ii2 is free */
+
+
+	    /* Skip elements from ii1 upwards which are larger than t,
+	       they are already in the right place */
+
+
+	    while (ii1 < ii2 &&
+		   qqqAbs(val[ii1]) >  tabs)
+		ii1++;
+	    if (ii1 == ii2) break;
+
+	    /* Now ii1 contains an element which is smaller or equal t.
+	       Put that element in the free place in ii2.
+	       This makes the place in ii1 the free place. */
+
+	    val[ii2] = val[ii1];
+	    idx[ii2] = idx[ii1];
+	    ii2--;
+	    /* Now the place in ii1 is free */
+	}
+	/* Now ii1 == ii2 and is the only free place */
+	/* Put the comparison element there */
+	val[ii1] = t;
+	idx[ii1] = it;
+
+	/* Choose the subsequence with which to continue */
+	/* ============================================= */
+
+	/* Now we have sorted a subsequence from i1 to i2 
+	   which contains the indices cutlen-1 and cutlen, 
+	   and we know that all elements before ii1 are larger 
+	   than val[ii1] and all elements after ii1 are smaller
+	   or equal.
+
+	   If ii1 > cutlen, we still have to sort the subsequence
+	   from i1 to ii1 - 1.
+	   If ii1 < cutlen - 1, we still have to sort the subsequence
+	   from ii1 + 1 to i2.
+	   Else we are done: The border between cutlen-1 and cutlen is
+	   immediately before or after ii1. */
+
+	if (ii1 > cutlen)
+	    i2 = ii1 - 1;
+	else if (ii1 < cutlen - 1)
+	    i1 = ii1 + 1;
+	else
+	    return;
+    }
+}
+#undef Index
+#undef Real
+
+
+
+/* factorizeILU()
+
+   Factorize the input matrix A (in MCSR format) into a product of a
+   lower triangular matrix L and an upper triangular matrix U.
+
+   Incompleteness:
+   The factorization is not done completely; thus, A = L * U is only
+   approximately fulfilled. A dual truncation strategy is applied during 
+   factorization. Elements of L or U whose value is negligible are 
+   dropped instantaneously, and of the remainder only so many are kept 
+   that the size of L and U does not exceed the size of A by more than 
+   a certain amount.
+
+   Dropping strategy:
+   Elements of L and U whose size is less than the average size of 
+   elements in the same row in U, times the factor tol, are dropped.
+   Setting tol to zero will cause all elements to be kept. This will
+   result in much time spent for the elimination of each row.
+
+   Cutting off lines:
+   For each row in L and U, only a restricted number of elements is 
+   allowed. There is one element allowed for each element of A in the
+   same row on the same side of the diagonal, i.e. in the L or U part 
+   of A. Additionally, the parameter fill specifies the number of
+   additional elements accepted per row in L and U. Thus, a row in the
+   LU matrix can exceed the same row in A by as much as 2 * fill 
+   elements. 
+   Note that not all nonzero positions of A will be found in the final 
+   LU matrix. The clause "one element per element of A" does not mean
+   it has to be at the same position (i.e. for the same column index).
+   Of all elements for L and U that are calculated during elimination,
+   those with maximum size are kept.
+
+   Balance of tol and fill:
+   When choosing proper values for tol and fill, one has to apply
+   space and time considerations. 
+   .) The choice of fill is rather straightforward. The space used by 
+   the LU factorization will be the space of the original matrix A 
+   plus 2 * fill * dimension(A) elements. However, the fill parameter
+   does also influence the time consumption of the factorization, for
+   all the previous rows added to the current row in the Gaussian 
+   elimination process are taken from the U part of the factorization.
+   Their size is therefore heavily affected by the fill parameter.
+   Even worse, the more elements are thus put into the current row,
+   the more previous rows must be used for the elimination. So, the
+   influence of fill on the factorization time might be more than 
+   linear. (The influence of fill on the matrix-vector-operations
+   in the following solving process will be quite linear in time.)
+   .) The dropping tolerance is related to the fill parameter. Choosing
+   a tol too close to zero will result in an unnecessary number of
+   elements kept and calculated during the elimination of the current
+   row, only to be cut off afterwards when fill is used to restrict the
+   size of the row in L and U. Choosing tol too high might cause too many
+   elements to be dropped without taking part in the elimination and thus
+   change the results of the elimination.
+   
+   Sorting:
+   Since the incomplete factorization is close to the operation of a 
+   direct solver (in fact, by choosing tol=0 and fill=dimension(A) it 
+   degenerates into a rather inefficient direct solver), the bandwidth 
+   of the matrix A turns out to have a rather large influence on the 
+   speed and efficiency of the factorization. It is therefore a good 
+   idea to apply an ordering method (like Cuthill/McKee or such) to 
+   the matrix before the factorization.
+
+   Preconditions:
+   Some prerequisites are not checked in the function in order not to
+   increase execution time. Nevertheless they must be fulfilled. These
+   are (n is the dimension of A):
+   .) A.idx[0] must be n+1.
+   .) The elements of A.idx[0..n] must be in ascending order.
+   .) The elements of A.idx[n+1..A.idx[n]-1] must be in the range [0..n-1].
+   .) Duplicate column entries in the same row of A are explicitely allowed.
+   .) Column entries within a row of A need not be sorted.
+   .) The matrix A need not be symmetric.
+   .) The arrays for L and U in structure K must already be allocated.
+
+   Errors:
+   If the factorization is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_PRECOND_NOT_MCSR    ... matrix is not MCSR but MCSC format
+   - qqqERR_PRECOND_NO_SPACE    ... too little space allocated for LU matrix
+   - qqqERR_PRECOND_MISALLOC    ... allocation of auxiliary arrays failed
+   - qqqERR_PRECOND_ZERO_DIAG   ... zero diagonal element in U matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_PRECOND_SMALL_DIAG  ... diagonal element in U matrix too small,
+                                    error.getMatrixRow() indicates the row 
+
+   Effort: unpredictable.
+   BogoFlops: returned in flops.
+   Space: dimension(A) * (3 * sizeof(Index) + 2 * sizeof(Number)).
+   */
+#define MCSR      qqqMCSR<Number>
+#define ILUMatrix qqqILUMatrix<Number>
+#define Real      double
+#define Index     qqqIndex
+#define BogoFlops qqqBogoFlops
+#define Error     qqqError
+template <class Number>
+bool				/* Factorization was successful. */
+qqqFactorizeILU(
+    MCSR      const &A,		/* Input matrix to be factorized. */
+    ILUMatrix       &K,		/* Output factorized matrix. L and U in
+				   one ILUMCSR structure. Must already be
+				   allocated on input. */
+    Real      /* const [SW] */ tol,	/* Input positive real. Dropping
+                                   threshold. Entries whose absolute
+                                   is less than tolerance times the
+                                   average absolute row element size
+                                   are dropped. */
+    Index     /* const [SW] */ fill,	/* Input nonnegative integer. Each row
+                                   of L and each row of U will have a
+                                   maximum of fillPerHalfRow matrix
+                                   entries in addition to the original
+                                   number of nonzero elements in the
+                                   lower resp upper part of A. */
+    Real            &totalDrop,	/* Output real [0..1]. Fraction of
+                                   entries greater than the dropping
+                                   threshold that have been dropped
+                                   because of the limited fill-in. 
+				   Only valid if successful. */
+    Index           &rowDrop,	/* Output nonnegative integer.
+				   Maximum number of entries in a row
+				   in L or U greater than the dropping
+				   threshold that have been dropped
+				   because of the limited fill-in.
+				   Only valid if successful. */
+    BogoFlops       &flops,	/* Output estimate of floating-point
+				   operations performed in the
+				   function.  This is rather an
+				   estimate for the number of
+				   multiplications. */
+    Error           &error	/* Output error information, in case
+				   the return value is false. */
+    )
+{
+    /* Notes on parallelization:
+       This function is one major bottleneck in parallelization, since
+       it is one of the time-critical functions and does not easily
+       parallelize. It could be parallelized as follows:
+       For each thread create arrays with the temporary information, 
+       namely valL, idxL, and the like.
+       Then for e.g. four threads set the number of rows already finished
+       to zero and start factorizing the first four rows in parallel, 
+       using threads 0..3 for rows 0..3. Each thread must stop when it
+       would use a row that has not already been finished, and idle
+       until the number of finished rows has been updated. This number is the
+       only information shared (together with the matrix end indices in 
+       the beginnings of idx and uidx, so these must be volatile (or the
+       like between threads).
+       When thread 0 has finished row 0, it increments the number of 
+       finished rows and starts processing row 4.
+       */
+
+    FunctionLog functionLog("factorizeILU");
+
+    Index  const         n   = A.dimension();
+    Number const * const aval= A.getval();
+    Index  const * const aidx= A.getidx();
+    Number * const val = K.val;	/* A shorthand notation */
+    Index  * const idx = K.idx;	/* A shorthand notation */
+    Index  * const uidx= K.uidx;/* A shorthand notation */
+    Index    const nwk = K.nnzall+1;/* A shorthand notation */
+    Real   flop  = 0;		/* Total multiplications and divisions */
+    Real   com   = 0;		/* Total cutoff in matrix */
+    Index  cor   = 0;		/* Maximum cutoff in a row */
+    Index  idxtop;		/* First free entry for off diagonals in K */
+
+    /* MCSR check */
+    if (!A.isrowized())
+    {
+	error = qqqERR_PRECOND_NOT_MCSR;
+	flops = flop; //.value();	/* missing */
+	return false;
+    }
+
+    /* Auxiliary arrays */
+    Number * const
+	valL = new Number[qqqMax(n,1)]; /* Contains the non-zeros of the actual
+					row which are lefthand of the diag. */
+    Index * const
+	idxL = new Index[qqqMax(n,1)];	/* Contains the column indices for the
+					   entries in valL */
+    Number * const
+	valU = new Number[qqqMax(n,1)];	/* Contains the non-zeros of the
+					   actual row which are righthand of
+					   the diagonal, including the
+					   diagonal in valU[0].  The upper
+					   fields [n-row..n-1] contain the
+					   average norms of previously treated
+					   rows in U, in backward order:
+					   valU[n-colrow-1] is the norm of row
+					   colrow */
+    Index * const
+	idxU = new Index [qqqMax(n,1)];	/* Contains the column indices for the
+					   entries in valU */
+    Index * const
+	rev  = new Index[qqqMax(n,1)];	/* Contains for each column the index
+					   into valL/idxL (if the column number
+					   is less than row) or into valU/idxU
+					   (if the column number is larger than
+					   or equal row) where the off-diagonal
+					   for this column is stored. If the
+					   off-diagonal is not present in the
+					   respective list, rev contains -1. */
+
+    /* Allocation checks */
+    /* ================= */
+
+    if (!rev || !idxU || !valU || !idxL || !valL)
+    {
+	error = qqqERR_PRECOND_MISALLOC;
+	flops = flop; //.value();	/* missing */
+	if (rev ) delete[] rev;
+	if (idxU) delete[] idxU;
+	if (valU) delete[] valU;
+	if (idxL) delete[] idxL;
+	if (valL) delete[] valL;
+	return false;
+    }
+
+    /* Argument checks */
+    /* =============== */
+
+    if (fill < 0) fill = 0;
+    if (tol  < 0) tol  = 0;
+
+
+    /* The start index of off-diagonals in the factorized matrix */
+    /* ========================================================= */
+
+    /* Reserve the first n entries (index 0 to n-1) of the factorized matrix
+       for the diagonal; entry n must be free in the ILU matrix, because the idx
+       array needs this entry to terminate the last row.  From entry n + 1 on
+       both arrays, val and idx, go parallel and describe the non-zero
+       off-diagonals of the factorized matrix. */
+
+    idxtop = n + 1;
+    val[n] = 0;
+    idx[0] = idxtop;
+    
+    /* Initialize rev */
+    for (Index col = 0; col < n; col++) 
+	rev[col] = -1;		/* An invalid position */
+
+
+    /* Loop over all rows */
+    /* ================== */
+
+    for (Index row = 0; row < n; row++)
+    {
+
+	/* The row in the original matrix */
+	/* ============================== */
+
+	Index const j1 = aidx[row    ];	/* Start of row in aval */
+	Index const j2 = aidx[row + 1];	/* End   of row in aval */
+
+	/* Compute the drop level from the row sum norm */
+	/* ============================================ */
+
+	Real anorm = qqqAbs(aval[row]); /* diagonal element */
+	for (Index jj = j1; jj < j2; jj++) 
+	    anorm += qqqAbs(aval[jj]);
+	Real const dropLevel 
+	    = anorm * tol / (j2 - j1 + 1);
+
+	/* Put left and right part of row in arrays valL, valU */
+	/* =================================================== */
+
+	/* diagonal */
+	idxU[0]    = row;
+	valU[0]    = aval[row];
+	rev[row]   = 0;
+	Index lenU = 1;		/* Number of elements of valU/idxU in use */
+	Index lenL = 0;		/* Number of elements of valL/idxL in use */
+
+	/* off diagonals */
+	for (Index jj = j1; jj < j2; jj++)
+	{
+	    Number const s   
+		= aval[jj];	/* The off-diagonal */
+
+	    if (qqqAbs(s) < dropLevel) continue;
+
+	    Index  const col 
+		= aidx[jj];	/* The off-diagonal's column */
+	    Index  const pos 
+		= rev[col];	/* The position of the column in the
+				   off diagonals of the actual row.
+				   pos == -1 means not present. */
+
+	    /* Right part (with diagonal element): U */
+	    if (col >= row)
+	    {
+		if (pos == -1) {
+		    idxU[lenU] = col;
+		    valU[lenU] = s;
+		    rev[col]   = lenU;
+		    lenU++;
+		}
+		else		/* duplicate entry */
+		    valU[pos] += s;
+	    }
+	    /* Left part (without diagonal element): L */
+	    else
+	    {
+		if (pos == -1) {
+		    idxL[lenL] = col;
+		    valL[lenL] = s;
+		    rev[col]   = lenL;
+		    lenL++;
+		}
+		else		/* duplicate entry */
+		    valL[pos] += s;
+	    }
+	}
+
+	Index const lenL0 = lenL; /* L entries from original matrix A */
+	Index const lenU0 = lenU; /* U entries from original matrix A */
+
+	/* Eliminate previous rows */
+	/* ======================= */
+
+	Index colrow = -1;	/* Virtual row -1 
+				   added to row during elimination 
+				   in a virtual previous turn */
+	for (Index jj = 0; jj < lenL; jj++)
+	{
+
+	    /* Eliminate the smallest column number in the
+	       left off-diagonals of the current row       */
+	    /* =========================================== */
+
+	    /* Bring the smallest column number in idxL
+	       which has not yet been worked up 
+	       to position jj. 
+	       The smallest number must be larger than
+	       the column number colrow that has been used
+	       in the previous turn. There is a certain 
+	       chance that the next number is in the
+	       list, in which case we need not search. */
+	    colrow++;
+	    if (rev[colrow] != -1)
+	    {
+		Index const pos = rev[colrow];
+		if (pos != jj)
+		{
+		    /* Exchange idx */
+		    Index const  h = idxL[jj];
+		    idxL[jj]       = colrow;
+		    idxL[pos]      = h;
+		    /* Exchange rev */
+		    rev[colrow]    = jj;
+		    rev[h]         = pos;
+		    /* Exchange val */
+		    Number const s = valL[jj];
+		    valL[jj]       = valL[pos];
+		    valL[pos]      = s;
+		}
+	    }
+	    else
+		qqqSortSmallestFirst(lenL - jj,
+				     &valL[jj],
+				     &idxL[jj],
+				     rev, jj);
+	    colrow = idxL[jj];
+	    rev[colrow] = -1;	/* clean up, no further use */
+
+	    /* Get the multiplicative factor for the row 
+	       with which to be eliminated (colrow):
+	       fact = off-diagonal of row / diagonal of colrow.
+	       Note: val[colrow] is inverted diagonal of colrow. */
+
+	    Number const fact = valL[jj] * val[colrow];
+
+	    /* Skip elimination if factor is too small;
+	       use the average norm of row colrow 
+	       stored in valU[n - 1 - colrow] */
+
+	    if (qqqAbs(fact) * qqqReal(valU[n - 1 - colrow]) < dropLevel)
+		continue;
+
+	    /* Now really eliminate colrow in actual row */
+	    Index const k1 = uidx[colrow];   /* Start of colrow in U */
+	    Index const k2 =  idx[colrow+1]; /* End   of colrow in U */
+	    for (Index kk = k1; kk < k2; kk++)
+	    {
+		Number const s 
+		    = fact * val[kk]; /* The entry in row colrow times fact */
+		Index const col 
+		    =        idx[kk]; /* The column */
+		Index const pos 
+		    = rev[col];	/* The position of the column in the
+				   off-diagonals of the actual row.
+				   pos == -1 means not present. */
+
+		/* Drop small new entries s */
+		if (qqqAbs(s) < dropLevel && pos == -1)
+		    continue;
+
+		/* The right part: U */
+		if (col >= row)
+		{
+		    if (pos == -1)
+		    {
+			idxU[lenU] = col;
+			valU[lenU] = -s;
+			rev[col]   = lenU;
+			lenU++;
+		    }
+		    else
+			valU[pos] -= s;
+		}
+		/* The left part: L */
+		else
+		{
+		    if (pos == -1)
+		    {
+			idxL[lenL] = col;
+			valL[lenL] = -s;
+			rev[col]   = lenL;
+			lenL++;
+		    }
+		    else
+			valL[pos] -= s;
+		}
+	    } /* End of loop: kk = k1 .. k2-1 */
+	    /* Per turn we used 1 multiplication */ 
+	    flop += k2 - k1;
+
+	    /* Save multipliers (forwardly) 
+	       in eliminated space of valL, idxL.
+	       This will make up the L matrix. */
+	    valL[jj] = fact;
+
+	} /* End of elimination loop: jj = 0 .. lenL-1 */
+	/* Per turn we used 2 multiplications */
+	flop += 2 * lenL;
+
+
+	/* Update the L matrix */
+	/* =================== */
+
+	/* The largest off-diagonal elements */
+	/* --------------------------------- */
+
+
+	Index const lenLm
+	    = qqqMin(lenL,lenL0 + fill); /* actual length of row in L */
+	com  += lenL - lenLm;
+	cor   = qqqMax(cor,lenL - lenLm);
+	qqqSortLargestAbs(lenL,lenLm,valL,idxL);
+
+	if (idxtop > nwk - lenLm)
+	{
+	    error = qqqERR_PRECOND_NO_SPACE;
+	    flops = flop; //.value(); /* missing */
+	    delete[] rev;
+	    delete[] idxU;
+	    delete[] valU;
+	    delete[] idxL;
+	    delete[] valL;
+	    return false;
+	}
+	for (Index kk = 0; kk < lenLm; kk++)
+	{
+	    Number const s = valL[kk];
+	    if (s != 0)
+	    {
+		val[idxtop] = s;
+		idx[idxtop] = idxL[kk];
+		idxtop++;
+	    }
+	}
+
+	/* Update pointer to beginning of U part of row */
+	/* -------------------------------------------- */
+
+	uidx[row] = idxtop;
+
+
+	/* Update the U matrix */
+	/* =================== */
+
+	/* The diagonal element */
+	/* -------------------- */
+
+	/* Cry if the diagonal element is not present */
+	if (qqqAbs(valU[0]) <= DBL_MIN)
+	{
+	    if (valU[0] == 0)
+		error = qqqERR_PRECOND_ZERO_DIAG;
+	    else
+		error = qqqERR_PRECOND_SMALL_DIAG;
+	    error.setMatrixRow(row);
+	    flops = flop; //.value(); /* missing */
+	    delete[] rev;
+	    delete[] idxU;
+	    delete[] valU;
+	    delete[] idxL;
+	    delete[] valL;
+	    return false;
+	}
+
+	/* Store the inverted diagonal element */
+	val[row] = 1 / valU[0];
+
+	/* Reset reverse pointers in rev to zero (U-part) */
+	/* ---------------------------------------------- */
+
+	for (Index kk = 0; kk < lenU; kk++)
+	    rev[idxU[kk]] = -1;
+
+	/* The largest off-diagonal elements */
+	/* --------------------------------- */
+
+	Index const lenUm 
+	    = qqqMin(lenU,lenU0 + fill); /* actual length of row in U */
+	com  += lenU - lenUm;
+	cor   = qqqMax(cor,lenU - lenUm);
+	qqqSortLargestAbs(lenU - 1,lenUm - 1,&valU[1],&idxU[1]);
+
+	Real unorm = 0;		/* norm of row in U */
+	if (idxtop > nwk - lenUm + 1)
+	{
+	    error = qqqERR_PRECOND_NO_SPACE;
+	    flops = flop; //.value(); /* missing */
+	    delete[] rev;
+	    delete[] idxU;
+	    delete[] valU;
+	    delete[] idxL;
+	    delete[] valL;
+	    return false;
+	}
+	for (Index kk = 1; kk < lenUm; kk++)
+	{
+	    Number const s = valU[kk];
+	    if (s != 0)
+	    {
+		val[idxtop]  = s;
+		idx[idxtop]  = idxU[kk];
+		unorm     += qqqAbs(s);
+		idxtop++;
+	    }
+	}
+
+	/* Save row norm in valU (backwards) */
+	/* --------------------------------- */
+
+	/* This has been divided by (len+1) in the original */
+	valU[n - 1 - row] = (lenUm > 1) ? (unorm / (lenUm - 1)) : Real(0);
+
+	/* Update pointer to beginning of next row of val */
+	/* ---------------------------------------------- */
+
+	idx[row+1] = idxtop;
+
+    } /* End of main loop: row = 0..n-1 */
+    /* Per turn we used 3 divisions and 1 multiplication */
+    flop += 4 * n;
+    
+
+    /* Statistics */
+    totalDrop = ((idxtop > 1) ? 
+		 (com 
+		  / (com + idxtop - 1)) /* One entry (index n) is not used */
+		 : Real(0));
+    rowDrop   = cor;
+    flops     = flop; //.value();	/* missing */
+
+    delete[] rev;
+    delete[] idxU;
+    delete[] valU;
+    delete[] idxL;
+    delete[] valL;
+    return true;
+}
+#undef MCSR
+#undef ILUMatrix
+#undef Real
+#undef Index
+#undef BogoFlops
+#undef Error
+
+
+/* invprd()
+
+   Calculate the product of the inverse matrix K with the vector x.
+
+   The matrix K must be in ILU-MCSR format. The inversion of L and U
+   alone is a forward-backward substitution operation.
+
+   Effort: nonzeros(K).
+   BogoFlops: nonzeros(K).
+   */
+#define ILUMatrix  qqqILUMatrix<Number>
+#define Index     qqqIndex
+template<class Number>
+void
+qqqInvPrd(
+    Number          * const r,	/* Output result of K^-1 * x.
+				   May be the same vector as x.
+				   Length dimension of K. */
+    ILUMatrix const         &K, /* Input factorized matrix. L and U in
+				   one ILUMCSR structure. */
+    Number    const * const x	/* Input vector. Length dimension of K. */
+    )
+{
+    Index  const n = K.n;
+    Number const * const val  = K.val;
+    Index  const * const idx  = K.idx;
+    Index  const * const uidx = K.uidx;
+
+    /* Forward solve: computes r = L^-1 * x */
+    for (Index row = 0; row < n; row++)
+    {
+	Index const j1 = idx[row];
+	Index const j2 = uidx[row];
+	Number y = x[row];
+	for (Index jj = j1; jj < j2; jj++) y -= val[jj] * r[idx[jj]];
+	r[row] = y;
+    }
+
+    /* Backward solve: computes r = U^-1 * r = U^-1 * L^-1 * x */
+    for (Index row = n - 1; row >= 0; row--)
+    {
+	Index const j1 = uidx[row];
+	Index const j2 = idx[row+1];
+	Number y = r[row];
+	for (Index jj = j1; jj < j2; jj++) y -= val[jj] * r[idx[jj]];
+	r[row] = y * val[row];
+    }
+}
+#undef ILUMatrix 
+#undef Index
+
+
+
+#endif // __numerics_ilu_tt__included__

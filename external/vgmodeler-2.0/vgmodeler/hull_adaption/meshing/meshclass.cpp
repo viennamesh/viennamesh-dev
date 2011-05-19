@@ -7,7 +7,7 @@
 #include <parallel.hpp>
 #endif
 
-namespace netgen
+namespace vgmnetgen
 {
 
   Mesh :: Mesh ()
@@ -3457,7 +3457,7 @@ namespace netgen
 	      }
 
 
-	    const netgen::Point<3> *trip1[3], *trip2[3];	  
+	    const vgmnetgen::Point<3> *trip1[3], *trip2[3];	  
 	    for (k = 1; k <= 3; k++)
 	      {
 		trip1[k-1] = &Point (tri.PNum(k));
@@ -4426,7 +4426,7 @@ namespace netgen
     const double eps = 1.e-4;
     const Element & el = VolumeElement(element);
 
-    netgen::Point<3> lam;
+    vgmnetgen::Point<3> lam;
 
     if (el.GetType() == TET)
       {
@@ -4447,7 +4447,7 @@ namespace netgen
     
 
     Vec<3> deltalam,rhs;
-    netgen::Point<3> x;
+    vgmnetgen::Point<3> x;
     Mat<3,3> Jac,Jact;
 
     double delta=1;
@@ -4561,7 +4561,7 @@ namespace netgen
 	    sol.X() + sol.Y() + sol.Z() <= 1+eps)
 	  {
 	    ARRAY<Element> loctetsloc;
-	    ARRAY<netgen::Point<3> > pointsloc;
+	    ARRAY<vgmnetgen::Point<3> > pointsloc;
 	    
 	    VolumeElement(element).GetTetsLocal (loctetsloc);
 	    VolumeElement(element).GetNodesLocalNew (pointsloc);

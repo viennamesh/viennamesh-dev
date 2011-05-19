@@ -10,7 +10,7 @@
 
 #include "stlgeom.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 
 int chartdebug = 0;

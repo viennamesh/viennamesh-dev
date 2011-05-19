@@ -5,7 +5,7 @@
 // #include <prof.h>
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 

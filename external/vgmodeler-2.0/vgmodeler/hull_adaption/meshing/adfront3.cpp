@@ -4,7 +4,7 @@
 
 /* ********************** FrontPoint ********************** */
 
-namespace netgen
+namespace vgmnetgen
 {
 
 FrontPoint3 :: FrontPoint3 () 

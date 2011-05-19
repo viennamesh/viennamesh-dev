@@ -12,9 +12,9 @@
 #include <mystdlib.h>
 #include <myadt.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
-  using namespace netgen;
+  using namespace vgmnetgen;
 
   BlockAllocator :: BlockAllocator (unsigned asize, unsigned ablocks)
     : bablocks (0)

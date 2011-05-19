@@ -1,6 +1,6 @@
 #include <csg.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 Manifold :: Manifold () 
 {

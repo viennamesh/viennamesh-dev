@@ -8,7 +8,7 @@
 
 #include "stlgeom.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

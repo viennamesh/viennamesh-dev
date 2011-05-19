@@ -5,7 +5,7 @@
 // class DenseMatrix;
 #include <gprim.hpp>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 

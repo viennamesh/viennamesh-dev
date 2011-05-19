@@ -3,7 +3,7 @@
 #include <geometry2d.hpp>
 #include "meshing.hpp"
 
-namespace netgen
+namespace vgmnetgen
 {
 
   // static ARRAY<Point<2> > points2;

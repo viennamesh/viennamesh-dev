@@ -14,7 +14,7 @@
 
 
 
-namespace netgen
+namespace vgmnetgen
 {
 
 
@@ -1393,10 +1393,10 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
                     if(pmit == point_map.end())
                     {
-                       netgen::Point<3> p(point[0],point[1],point[2]);
+                       vgmnetgen::Point<3> p(point[0],point[1],point[2]);
                          
-                       netgen::Point<3> pmin = p - netgen::Vec<3> (pointtol, pointtol, pointtol);
-                       netgen::Point<3> pmax = p + netgen::Vec<3> (pointtol, pointtol, pointtol);
+                       vgmnetgen::Point<3> pmin = p - vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
+                       vgmnetgen::Point<3> pmax = p + vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
                          
                        pointtree->GetIntersecting (pmin, pmax, pintersect);
 
@@ -2508,10 +2508,10 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #endif
                     if(pmit == point_map.end())
                     {
-                       netgen::Point<3> p(point[0],point[1],point[2]);
+                       vgmnetgen::Point<3> p(point[0],point[1],point[2]);
                          
-                       netgen::Point<3> pmin = p - netgen::Vec<3> (pointtol, pointtol, pointtol);
-                       netgen::Point<3> pmax = p + netgen::Vec<3> (pointtol, pointtol, pointtol);
+                       vgmnetgen::Point<3> pmin = p - vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
+                       vgmnetgen::Point<3> pmax = p + vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
                          
                        pointtree->GetIntersecting (pmin, pmax, pintersect);
                          

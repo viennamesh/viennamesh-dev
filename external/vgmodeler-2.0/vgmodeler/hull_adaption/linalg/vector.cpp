@@ -3,7 +3,7 @@
 #include <linalg.hpp>
 #include <algorithm>
 
-namespace netgen
+namespace vgmnetgen
 {
 
 double BaseVector :: shit = 0;

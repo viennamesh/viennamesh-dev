@@ -17,7 +17,7 @@
 #include "../include/mydefs.hpp"
 
 
-namespace netgen
+namespace vgmnetgen
 {
 #include "ngexception.hpp"
 #include "parthreads.hpp"

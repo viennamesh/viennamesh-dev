@@ -7,7 +7,7 @@
 // #include <visual.hpp>
 #endif
 
-namespace netgen
+namespace vgmnetgen
 {
 
 class Neighbour

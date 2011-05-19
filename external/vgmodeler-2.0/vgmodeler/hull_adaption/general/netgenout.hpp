@@ -38,13 +38,13 @@ public:
 
 class Procs
 {
-  const netgen::FlatArray<int> procs;
+  const vgmnetgen::FlatArray<int> procs;
 
 public:
 
-  Procs ( const netgen::FlatArray<int> & aprocs ) : procs (aprocs) { ; }
+  Procs ( const vgmnetgen::FlatArray<int> & aprocs ) : procs (aprocs) { ; }
 
-  const netgen::FlatArray<int> & GetProcs () const { return procs; }
+  const vgmnetgen::FlatArray<int> & GetProcs () const { return procs; }
 };
 
 
@@ -70,7 +70,7 @@ public:
     out(aout),
     printheader(1)
   { 
-    if ( netgen::printmessage_importance >= imp.GetImp() )
+    if ( vgmnetgen::printmessage_importance >= imp.GetImp() )
       print = true;
     else
       print = false;
@@ -81,7 +81,7 @@ public:
     printheader(1)
   { 
 #ifdef PARALLEL
-    if ( netgen::id == proc.GetProc() )
+    if ( vgmnetgen::id == proc.GetProc() )
       print = true;
     else
       print = false;
@@ -99,7 +99,7 @@ public:
     printheader(1)
   { 
 #ifdef PARALLEL
-    if ( procs.GetProcs().Contains(netgen::id) )
+    if ( procs.GetProcs().Contains(vgmnetgen::id) )
       print = true;
     else
       print = false;
@@ -125,7 +125,7 @@ public:
 #ifdef PARALLEL
 	if ( printheader )
 	  {
-	    *out << "proc " << netgen::id << ": ";
+	    *out << "proc " << vgmnetgen::id << ": ";
 	    printheader = false;
 	  }
 #endif
