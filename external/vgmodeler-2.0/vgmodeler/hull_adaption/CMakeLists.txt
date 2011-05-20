@@ -108,9 +108,9 @@ SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-fPIC -DNO_PAR
 #set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version -Wl,-Bsymbolic")
 #set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-Bsymbolic")
 
-ADD_LIBRARY(vgmodeler_hull SHARED vgmodeler.cpp)
-TARGET_LINK_LIBRARIES(vgmodeler_hull vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-SET_TARGET_PROPERTIES(vgmodeler_hull PROPERTIES LINK_FLAGS "-shared -fPIC -Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version")
+#ADD_LIBRARY(vgmodeler_hull SHARED vgmodeler.cpp)
+#TARGET_LINK_LIBRARIES(vgmodeler_hull vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+#SET_TARGET_PROPERTIES(vgmodeler_hull PROPERTIES LINK_FLAGS "-shared -fPIC -Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version")
 # ------------------------------------------------------------------------------
 
 

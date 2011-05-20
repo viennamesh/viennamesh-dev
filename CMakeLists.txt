@@ -115,8 +115,8 @@ INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
 #
 # ------------------------------------------------------------------------------
 set(CERVPT_LIBS  ${CGAL_LIBRARIES} ${GMP_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-#set(VGMODHULL_LIBS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-set(VGMODHULL_LIBS vgmodeler_hull)
+set(VGMODHULL_LIBS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+#set(VGMODHULL_LIBS vgmodeler_hull)
 IF(ENABLE_GTSIO)
    set(GTSIO_LIBS gtsio3 z)
 ENDIF(ENABLE_GTSIO)
@@ -142,8 +142,8 @@ IF(ENABLE_GTSIO)
 ELSE()
    #TARGET_LINK_LIBRARIES(generate tetgen triangle pugixml ${CERVPT_LIBS})
    #TARGET_LINK_LIBRARIES(generate netgen tetgen triangle pugixml ${CERVPT_LIBS})
-   TARGET_LINK_LIBRARIES(generate ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})
-   #TARGET_LINK_LIBRARIES(generate ${VGMODHULL_LIBS} netgen tetgen triangle pugixml ${CERVPT_LIBS})   
+   #TARGET_LINK_LIBRARIES(generate ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})
+   TARGET_LINK_LIBRARIES(generate netgen ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})   
 ENDIF(ENABLE_GTSIO)
 
 

@@ -1,5 +1,5 @@
-#ifndef NGLIB
-#define NGLIB
+#ifndef VGMNGLIB
+#define VGMNGLIB
 
 /**************************************************************************/
 /* File:   nglib.hh                                                       */

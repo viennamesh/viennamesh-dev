@@ -21,7 +21,7 @@ INCLUDE_DIRECTORIES("netgen/libsrc/include")
 SET(LIBSRC_INT_TMP read_fnf_mesh.cpp readtetmesh.cpp readuser.cpp writeabaqus.cpp writediffpack.cpp
    writedolfin.cpp writeelmer.cpp writefeap.cpp writefluent.cpp writegmsh.cpp writejcm.cpp
    writepermas.cpp writetecplot.cpp writetet.cpp writetochnog.cpp writeuser.cpp
-   wuchemnitz.cpp writegmsh2.cpp)# writeOpenFOAM15x.cpp )
+   wuchemnitz.cpp writegmsh2.cpp writeOpenFOAM15x.cpp )
 FOREACH(SRC ${LIBSRC_INT_TMP})
    LIST(APPEND LIBSRC_INT ${CMAKE_CURRENT_SOURCE_DIR}/netgen/libsrc/interface/${SRC})
 ENDFOREACH(SRC)

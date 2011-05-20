@@ -156,16 +156,16 @@ int main(int argc, char *argv[])
              
          my_hull_vtk_writer.writeDomain(*hull_mesh, "hull_mesh.vtu");
 
-         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
-         netgen_volume_mesh_generator_type       volume_mesher;      
+//         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
+//         netgen_volume_mesh_generator_type       volume_mesher;      
 
-         typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
-         volume_result_type volume_mesh = volume_mesher(hull_mesh);
-         
-         typedef volume_result_type::value_type                                               volume_domain_type;         
-         
-         viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
-         my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
+//         typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
+//         volume_result_type volume_mesh = volume_mesher(hull_mesh);
+//         
+//         typedef volume_result_type::value_type                                               volume_domain_type;         
+//         
+//         viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
+//         my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
       }
    }
 //   else
