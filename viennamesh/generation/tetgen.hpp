@@ -43,7 +43,7 @@
 // *** vienna includes
 #include "viennautils/dumptype.hpp"
 #include "viennautils/contio.hpp"
-#include "viennamesh/interfaces/base.hpp"
+#include "viennamesh/generation/base.hpp"
 #include "viennamesh/tags.hpp"
 #include "viennagrid/domain.hpp"
 

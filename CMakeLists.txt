@@ -132,7 +132,7 @@ ENDIF(ENABLE_GTSIO)
 # ------------------------------------------------------------------------------
 
 #list all source files here
-ADD_EXECUTABLE(generate src/generate.cpp)
+ADD_EXECUTABLE(vmesh src/vmesh.cpp)
 
 # ------------------------------------------------------------------------------
 #
@@ -142,12 +142,9 @@ ADD_EXECUTABLE(generate src/generate.cpp)
 
 #link specific libraries to specific executables  ${VGMODHULL_LIBS} netgen
 IF(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(generate netgen tetgen triangle ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
+   TARGET_LINK_LIBRARIES(vmesh netgen tetgen triangle ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
 ELSE()
-   #TARGET_LINK_LIBRARIES(generate tetgen triangle pugixml ${CERVPT_LIBS})
-   #TARGET_LINK_LIBRARIES(generate netgen tetgen triangle pugixml ${CERVPT_LIBS})
-   #TARGET_LINK_LIBRARIES(generate ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})
-   TARGET_LINK_LIBRARIES(generate netgen ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})   
+   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})   
 ENDIF(ENABLE_GTSIO)
 
 

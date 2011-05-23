@@ -16,7 +16,7 @@
 
 
 // *** vienna includes
-#include "viennamesh/adaptors/base.hpp"
+#include "viennamesh/adaptation/base.hpp"
 
 // *** boost includes
 #include "boost/array.hpp"

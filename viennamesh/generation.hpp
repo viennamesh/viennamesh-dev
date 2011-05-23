@@ -6,23 +6,17 @@
                              -----------------
 
    authors:    Josef Weinbub                         weinbub@iue.tuwien.ac.at
-               Karl Rupp                                rupp@iue.tuwien.ac.at
 
 
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
+#ifndef VIENNAMESH_GENERATION_HPP
+#define VIENNAMESH_GENERATION_HPP
 
-#ifndef VIENNAMESH_GENERATE_HPP
-#define VIENNAMESH_GENERATE_HPP
+#include "viennamesh/generation/tetgen.hpp"
+#include "viennamesh/generation/netgen.hpp"
+#include "viennamesh/generation/cervpt.hpp"
+//#include "viennamesh/generation/triangle.hpp"
 
-namespace viennamesh {
-
-template<typename MesherT>
-void generate(MesherT& mesher)
-{
-   mesher(); // TODO use traits to decouple calling mechanisms!
-}
-
-} // end namespace viennamesh   
 #endif

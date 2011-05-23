@@ -17,7 +17,7 @@
 
 
 // *** vienna includes
-#include "viennamesh/adaptors/base.hpp"
+#include "viennamesh/adaptation/base.hpp"
 #include "viennamesh/data.hpp"
 #include "viennagrid/domain.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"

@@ -11,9 +11,9 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_ADAPTORS_HPP
-#define VIENNAMESH_ADAPTORS_HPP
+#ifndef VIENNAMESH_CLASSIFICATION_HPP
+#define VIENNAMESH_CLASSIFICATION_HPP
 
-#include "viennamesh/adaptors/consistancy.hpp"
+#include "viennamesh/classification/vgmodeler.hpp"
 
 #endif

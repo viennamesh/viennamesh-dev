@@ -33,13 +33,13 @@
 #include "viennagrid/io/gau_reader.hpp"
 #include "viennagrid/algorithm/cell_normals.hpp"
 
-#include "viennamesh/interfaces/cervpt.hpp"
-#include "viennamesh/interfaces/netgen.hpp"
-#include "viennamesh/interfaces/tetgen.hpp"
+#include "viennamesh/generation/cervpt.hpp"
+#include "viennamesh/generation/netgen.hpp"
+#include "viennamesh/generation/tetgen.hpp"
+#include "viennamesh/adaptation/orienter.hpp"
+#include "viennamesh/adaptation/cell_normals.hpp"
+#include "viennamesh/adaptation/hull_quality.hpp"
 #include "viennamesh/wrapper.hpp"
-#include "viennamesh/adaptors/orienter.hpp"
-#include "viennamesh/adaptors/cell_normals.hpp"
-#include "viennamesh/adaptors/hull_quality.hpp"
 
 #include <boost/any.hpp> // removeme
 #include <boost/type_traits/remove_pointer.hpp>
@@ -89,33 +89,48 @@ int main(int argc, char *argv[])
    configstream.close();
 
 
-//   if(input_extension == "bnd")
-//   {
-//      if(viennamesh::query::input::type(config) == viennamesh::key::geometry)
-//      {
-//         viennautils::io::bnd_reader my_bnd_reader;
-//         my_bnd_reader(inputfile); 
-// 
-//         typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>      bnd_wrapper_type;
-//         bnd_wrapper_type                 wrapped_data(my_bnd_reader);      
+   if(input_extension == "bnd")
+   {
+      if(viennamesh::query::input::type(config) == viennamesh::key::geometry)
+      {
+         viennautils::io::bnd_reader my_bnd_reader;
+         my_bnd_reader(inputfile); 
+ 
+         typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>      bnd_wrapper_type;
+         bnd_wrapper_type                    wrapped_data(my_bnd_reader);      
 
-//         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_mesh_generator_type;
-//         cervpt_mesh_generator_type       mesher;       
+         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_hull_mesh_generator_type;
+         cervpt_hull_mesh_generator_type     hull_mesher;       
 
-//         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
-//         orienter_adaptor_type            orienter;
-//         
-//         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cellnormals_adaptor_type;
-//         cellnormals_adaptor_type         cell_normals;         
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
+         orienter_adaptor_type               orienter;
+         
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cellnormals_adaptor_type;
+         cellnormals_adaptor_type            cell_normals;         
 
-//         typedef cervpt_mesh_generator_type::result_type       result_type;
-//         result_type result = cell_normals(mesher(wrapped_data));
-//         //result_type result = cell_normals(orienter(mesher(wrapped_data)));
+         typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
+         hull_quality_adaptor_type           hull_quality;                  
 
-//         viennagrid::io::export_vtk(*result, outputfile);
-//      }
-//   }
-//   else
+         typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
+
+         hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
+         hull_result_type adapted_hull_mesh = hull_quality(cell_normals(orienter(hull_mesher(wrapped_data))));
+
+         typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
+         netgen_volume_mesh_generator_type       volume_mesher;      
+
+         typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
+         volume_result_type volume_mesh = volume_mesher(hull_mesh);
+         volume_result_type adapted_volume_mesh = volume_mesher(adapted_hull_mesh);
+         
+         typedef volume_result_type::value_type                                               volume_domain_type;         
+         
+         viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
+         my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
+         my_volume_vtk_writer.writeDomain(*adapted_volume_mesh, "adapted_volume_mesh.vtu");         
+      }
+   }
+   else
    if(input_extension == "hin")
    {
       if(viennamesh::query::input::type(config) == viennamesh::key::geometry)
@@ -179,15 +194,34 @@ int main(int argc, char *argv[])
 //      viennagrid::io::importGAU(domain, inputfile);      
 //      
 //      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>     gau_wrapper_type;
-//      gau_wrapper_type wrapped_data(domain);      
+//      gau_wrapper_type                    wrapped_data(domain);      
 //      
-//      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type   netgen_mesh_generator_type;
-//      netgen_mesh_generator_type mesher;      
+//      typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
+//      orienter_adaptor_type               orienter;
+//      
+//      typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cellnormals_adaptor_type;
+//      cellnormals_adaptor_type            cell_normals;         
 
-//      typedef netgen_mesh_generator_type::result_type        netgen_result_type;
-//      netgen_result_type result = mesher(wrapped_data);         
+//      typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
+//      hull_quality_adaptor_type           hull_quality;                  
 
-//      viennagrid::io::export_vtk(*result, outputfile);
+//      typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
+
+//      hull_result_type hull_mesh = cell_normals(orienter(wrapped_data));
+//      hull_result_type adapted_hull_mesh = hull_quality(cell_normals(orienter(wrapped_data)));
+
+//      typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
+//      netgen_volume_mesh_generator_type       volume_mesher;      
+
+//      typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
+//      volume_result_type volume_mesh = volume_mesher(hull_mesh);
+//      volume_result_type adapted_volume_mesh = volume_mesher(adapted_hull_mesh);
+//      
+//      typedef volume_result_type::value_type                                               volume_domain_type;         
+//      
+//      viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
+//      my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
+//      my_volume_vtk_writer.writeDomain(*adapted_volume_mesh, "adapted_volume_mesh.vtu");         
 //   }
 //   else
 //   if(input_extension == "gts")

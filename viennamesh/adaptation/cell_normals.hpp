@@ -17,7 +17,7 @@
 
 
 // *** vienna includes
-#include "viennamesh/adaptors/base.hpp"
+#include "viennamesh/adaptation/base.hpp"
 #include "viennagrid/domain.hpp"
 
 #define MESH_ADAPTOR_DEBUG_FULL
