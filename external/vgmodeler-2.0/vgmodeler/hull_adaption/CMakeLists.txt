@@ -93,7 +93,7 @@ ENDFOREACH(SRC)
 #
 ADD_LIBRARY(vgmodeler_base STATIC ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG})
 SET_TARGET_PROPERTIES(vgmodeler_base 
-   PROPERTIES COMPILE_FLAGS "-fPIC -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -ftemplate-depth-99 -finline-limit=10000 -Wdisabled-optimization -funroll-loops -Wno-write-strings -I${CMAKE_CURRENT_SOURCE_DIR}/include")
+   PROPERTIES COMPILE_FLAGS "-fPIC -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -ftemplate-depth-99 -finline-limit=10000 -Wdisabled-optimization -funroll-loops -Wno-write-strings -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
 
 # note: we have to use specific include paths for these sources, as they won't compile
 # if gsse01 and gsse02 is used together in the global INCLUDE_DIRECTORIES path

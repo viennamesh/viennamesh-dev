@@ -22,6 +22,11 @@
 #include <cstring>
 #include <iostream>   
    
+   
+// *** include vgmodelers own netgen
+// note: required gsse01 to be included before including 
+// the nglib.h
+#include "gsse/domain.hpp"   
 namespace vgmnetgen {
 #include "interface/nglib.h"
 }
@@ -29,10 +34,12 @@ namespace vgmnetgen {
 
 
 
-namespace vgmmodeler {
+namespace vgmodeler {
 
 struct hull_adaptor
 {
+   typedef viennagrid::domain<viennagrid::config::triangular_3d> domain_type;
+
    hull_adaptor()
    {
       vgmnetgen::Ng_Init();
@@ -88,11 +95,11 @@ struct hull_adaptor
       vgmnetgen::Ng_STL_AddTriangle(geom, p1, p2, p3, n);
    }
 
-   void process()
-   {
-      
    
-      vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp);
+   void process(domain_type& domain, domain_type& new_domain)
+   {
+      vgmnetgen::Ng_STL_InitSTLGeometry(geom, domain);
+      vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp, new_domain);  
    }
 
    char                              * cfilename;   

@@ -14,6 +14,7 @@
   triangle->point, point->triangles, triangle->edge, 2-points->edge,...
 */
 
+
 class STLGeometry;
 
 #define STLBASE 1
@@ -339,9 +340,10 @@ public:
   void SaveBinary (const char* filename, const char* aname);
   void SaveSTLE (const char * filename); // stores trigs and edges
   
-   virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
+  virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
   virtual void InitSTLGeometry (const char * filename);
-
+  virtual void InitSTLGeometry (viennagrid::domain<viennagrid::config::triangular_3d>& domain);
+  
   virtual void TopologyChanged() {}; //do some things, if topology changed!
 
   /// Generate topology tables

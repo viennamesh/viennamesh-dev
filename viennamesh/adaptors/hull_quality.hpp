@@ -24,6 +24,9 @@
 // *** vgmodeler includes
 #include "vgmodeler/hull_adaption/vgmodeler.hpp"
 
+// *** gsse 01 includes
+#include "gsse/domain.hpp"
+
 //#define MESH_ADAPTOR_DEBUG
 
 
@@ -45,6 +48,8 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
 
    typedef domain_type::segment_type                                                                  SegmentType;
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
+   typedef viennagrid::result_of::ncell_container<domain_type, 0>::type                               GeometryContainer;      
+   typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
    typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
    typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
@@ -69,62 +74,53 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - starting up .." << std::endl;
    #endif            
-   
-      /*
+
+   #ifdef MESH_ADAPTOR_DEBUG
+      std::cout << "## MeshAdaptor::"+id+" - loading hull elements" << std::endl;
+   #endif       
       
-      1. transfer geometry, topology to vgmodeler datastructure
-      2. adapt hull
-      3. writeback result
+      vgmodeler::hull_adaptor vghull;
+
+      for (std::size_t si = 0; si < domain->segment_size(); ++si)
+      {
+         SegmentType & seg = domain->segment(si);
+         CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+
+         for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
+         {
+            boost::array<PointType,CELLSIZE>     triangle;
+            std::size_t vi = 0;       
+            VertexOnCellContainer vertices_for_cell = viennagrid::ncells<0>(*cit);
+            for (VertexOnCellIterator vocit = vertices_for_cell.begin();
+                vocit != vertices_for_cell.end();
+                ++vocit)
+            {
+               triangle[vi++] = vocit->getPoint();
+            }
+            
+            if(viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*cit)[si] == -1)
+            {
+               std::reverse(triangle.begin(), triangle.end());
+            }
+            
+            vghull.add_hull_element(triangle, 
+               viennadata::access<
+                  viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
+               >()(*cit)[si]); 
+            
+         }
+      }
       
-      */
+   #ifdef MESH_ADAPTOR_DEBUG
+      std::cout << "## MeshAdaptor::"+id+" - adapting mesh .." << std::endl;
+   #endif       
 
-      vgmmodeler::hull_adaptor    vghull;
+      input_type new_domain(new domain_type);   
+      vghull.process(*domain, *new_domain);
 
-      // transfer data to gsse domain
-      //
+      std::cout << "### WARNING - THE OLD DOMAIN STILL EXISTS!" << std::endl;
 
-
-//      for (std::size_t si = 0; si < domain->segment_size(); ++si)
-//      {
-//      #ifdef MESH_ADAPTOR_DEBUG
-//         std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
-//      #endif       
-
-//         SegmentType & seg = domain->segment(si);
-//         CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
-
-//         for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
-//         {
-//            boost::array<PointType,CELLSIZE>     triangle;
-//            std::size_t vi = 0;       
-//            VertexOnCellContainer vertices_for_cell = viennagrid::ncells<0>(*cit);
-//            for (VertexOnCellIterator vocit = vertices_for_cell.begin();
-//                vocit != vertices_for_cell.end();
-//                ++vocit)
-//            {
-//               triangle[vi++] = vocit->getPoint();
-//            }
-//            
-//            if(viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*cit)[si] == -1)
-//            {
-//               std::reverse(triangle.begin(), triangle.end());
-//            }
-//            
-//            vghull.add_hull_element(triangle, 
-//               viennadata::access<
-//                  viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
-//               >()(*cit)[si]); 
-//            
-//         }
-//      }
-//      
-//   #ifdef MESH_ADAPTOR_DEBUG
-//      std::cout << "## MeshAdaptor::"+id+" - adapting mesh .." << std::endl;
-//   #endif       
-
-//      vghull.process();
-
-      return domain;
+      return new_domain;
    }
    // -------------------------------------------------------------------------------------
    

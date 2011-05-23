@@ -6,13 +6,15 @@
 
 #include <meshing.hpp>
 
-#include "stlgeom.hpp"
-
 #include "gsse/domain.hpp"
 #include "gsse_orientor.hpp"
 #include "gsse/math/geometric_barycenter.hpp"
 
 
+#include "viennagrid/domain.hpp"
+#include "viennagrid/config/simplex.hpp"
+
+#include "stlgeom.hpp"
 
 namespace vgmnetgen
 {
@@ -511,6 +513,934 @@ STLGeometry *  STLTopology ::Load (const char* filename)
   return geom;  
 }
 
+void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::triangular_3d>& vgriddomain)
+{
+   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+
+   typedef domain_type::config_type                     DomainConfiguration;
+
+   typedef DomainConfiguration::numeric_type            CoordType;
+   typedef DomainConfiguration::dimension_tag           DimensionTag;
+   typedef DomainConfiguration::cell_tag                CellTag;
+
+   typedef domain_type::segment_type                                                                  SegmentType;
+   typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
+   typedef viennagrid::result_of::ncell_container<domain_type, 0>::type                               GeometryContainer;      
+   typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
+   typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
+   typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
+   typedef viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
+
+   static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
+   static const int CELLSIZE = DIMT+1;      
+
+  int i, j, k;
+
+   // ----------------------------------------------------------------------
+   //
+   // *** transfer viennagrid domain to gsse01 domain
+   //
+   // ----------------------------------------------------------------------
+   typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t; 
+   typedef gsse::get_domain<unstructured_topology_2t, double, double,3>::type    domain_32t;
+   typedef gsse::domain_traits<domain_32t>::cell_iterator		                  cell_iterator;
+   typedef gsse::domain_traits<domain_32t>::vertex_handle                        vertex_handle;
+   typedef gsse::domain_traits<domain_32t>::cell_2_vertex_mapping                cell_2_vertex_mapping;
+   typedef gsse::domain_traits<domain_32t>::segment_iterator	                  segment_iterator;
+   typedef gsse::domain_traits<domain_32t>::point_t                              point_t;
+   typedef gsse::domain_traits<domain_32t>::vertex_on_cell_iterator              vertex_on_cell_iterator;
+   typedef gsse::domain_traits<domain_32t>::edge_on_cell_iterator                edge_on_cell_iterator;
+   typedef gsse::domain_traits<domain_32t>::cell_on_edge_iterator                cell_on_edge_iterator;
+   typedef gsse::domain_traits<domain_32t>::storage_type                         storage_type;
+
+   domain_32t domain;
+
+//   typedef gsse::detail_topology::unstructured<2>                                   gsse_unstructured_topology_2t; 
+//   typedef gsse::get_domain<gsse_unstructured_topology_2t, double, double,3>::type  gsse_domain_type;      
+//   typedef ads::FixedArray<3, CoordType>                                            gsse_point_type;
+//   typedef gsse::domain_traits<gsse_domain_type>::segment_type                      gsse_segment_type;       
+//   typedef gsse::domain_traits<gsse_domain_type>::segment_iterator                  gsse_segment_iterator;      
+//   typedef gsse::segment_traits<gsse_segment_type>::cell_2_vertex_mapping            cell_2_vertex_mapping;
+
+//   gsse_domain_type domain;
+
+   // transfer geometry
+   //
+   GeometryContainer geometry = viennagrid::ncells<0>(vgriddomain);
+
+   for (GeometryIterator pit = geometry.begin(); pit != geometry.end(); ++pit)
+   {
+      PointType point = pit->getPoint();
+      point_t gssepoint;
+      gssepoint[0] = point[0];
+      gssepoint[1] = point[1];
+      gssepoint[2] = point[2];                        
+      domain.fast_point_insert(gssepoint);    
+   }
+   
+   std::size_t cell_counter = 0;
+   for (std::size_t si = 0; si < vgriddomain.segment_size(); ++si)
+   {
+      // transfer segment
+      //
+      SegmentType & seg = vgriddomain.segment(si);
+      segment_iterator gsse_segit = domain.add_segment();
+      (*gsse_segit).set_cell_index_offset(cell_counter);
+      cell_counter += seg.size<CellTag::topology_level>();
+      
+      // transfer topology
+      //
+      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
+      {
+         boost::array<std::size_t,CELLSIZE>     cell;
+         std::size_t vi = 0;       
+         VertexOnCellContainer vertices_for_cell = viennagrid::ncells<0>(*cit);
+         for (VertexOnCellIterator vocit = vertices_for_cell.begin();
+             vocit != vertices_for_cell.end();
+             ++vocit)
+         {
+            cell[vi++] = vocit->getID();
+         }
+         (*gsse_segit).add_cell_2(cell_2_vertex_mapping(cell[0], cell[1], cell[2]));
+         domain.add_vertex(cell[0], gsse_segit);
+         domain.add_vertex(cell[1], gsse_segit);
+         domain.add_vertex(cell[2], gsse_segit);            
+      }         
+   }
+   
+   domain.write_file("gsse_hull.gau32");
+   
+      int check_nm = 0;
+      if(check_nm)
+      {
+
+      // [INFO] checking for non-manifold edges 
+      //
+      typedef boost::array<long,2> edge_t;
+      std::vector<edge_t> non_manifold_edges;
+      std::vector<long> non_oriented_triangles;
+      
+      {
+         segment_iterator segit = domain.segment_begin();
+         for( ; segit != domain.segment_end(); ++segit)
+         {
+#ifdef DEBUGALL
+            std::cout << ".. seg: " << (*segit) << std::endl;
+#endif
+            cell_iterator cit;
+            for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
+            {                                                  
+               edge_on_cell_iterator eocit(*cit);
+               for( ;eocit.valid(); ++eocit)
+               {
+                  int count = 0;
+                  edge_t new_edge;
+                  cell_on_edge_iterator coeit(*eocit);
+                  for (; coeit.valid(); ++coeit, ++count) ;                  
+                  
+                  // [INFO] premises: there are no holes in the input
+                  //
+                  if (count != 2)
+                  {
+                     new_edge[0] = (*eocit).handle1();
+                     new_edge[1] = (*eocit).handle2();
+
+                     non_manifold_edges.push_back(new_edge);
+
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                               << " .. count: " << count <<  std::endl;
+                  }
+                  else
+                  {
+#ifdef DEBUGFULL
+                     std::cout << ".. manifold_edge: " << (*eocit).handle1() << " " << (*eocit).handle2()
+                               << " .. count: " << count <<  std::endl;
+#endif
+                  }
+               }                                            
+            }
+         }
+      }
+
+      std::cout << ".. non manifold edges found: " << non_manifold_edges.size() << std::endl;
+
+
+      // [INFO] orient the input domain BUT exclude all triangles adjacent to the non-manifold edges
+      //
+      {
+#ifdef DEBUGALL
+         std::cout << ".. before orientation checker .. " << std::endl;
+#endif
+         check_and_repair_orientation(domain, non_manifold_edges);        
+
+#ifdef DEBUGALL
+         std::cout << ".. after orientation checker .. " << std::endl;
+#endif
+      }
+
+
+      // [INFO] orient triangles adjacent to non-manifold edges according to their neighbour's orientation
+      //
+      {
+         segment_iterator segit = domain.segment_begin();
+         for( ; segit != domain.segment_end(); ++segit)
+         {
+            std::cout << ".. seg: " << (*segit) << std::endl;
+            
+            cell_iterator cit;
+            for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
+            {  
+               if(domain(*cit, "orientation")(0,0) == -2.0) // -2.0 triangle adjacent to non-manifold edge
+               {
+                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;                  
+
+                  int ci = 0;
+                  boost::array<long,3>   cell_handle;
+                  boost::array<double,3> cell_orient;
+                  
+                  // [INFO] check if the neighbouring triangles are consistently oriented
+                  // 
+                  for (edge_on_cell_iterator eocit(*cit); eocit.valid(); ++eocit)
+                  {
+#ifdef DEBUGALL
+                     std::cout << ".. current edge: " << (*eocit).handle1() << " " << (*eocit).handle2() << std::endl;
+#endif
+                     // [INFO] only check manifold edges => count == 2
+                     //
+                     int count = 0;
+                     cell_on_edge_iterator coeit2(*eocit);
+                     for( ; coeit2.valid(); ++coeit2, ++count) ;
+                     std::cout << "..count: " << count << std::endl;
+                     
+                     if(count == 2)
+                     {
+                        for(cell_on_edge_iterator coeit(*eocit); coeit.valid(); ++coeit)
+                        {
+                           // only use the correct oriented triangle
+                           //
+                           if ((*coeit).handle() == (*cit).handle())
+                              continue;
+
+#ifdef DEBUGALL
+                           std::cout << ".. checking triangle: " << (*coeit).handle()  << " .. ci: " << ci << std::endl;
+                           std::cout << ".. orientation: " << domain((*coeit), "orientation")(0,0) << std::endl;
+#endif
+
+                           cell_handle[ci] = (*coeit).handle();
+                           cell_orient[ci] = domain((*coeit), "orientation")(0,0);
+                           ci++;
+                        }
+                     }
+                     else
+                     {
+#ifdef DEBUGALL
+                        std::cout << "..non-manifold edge.." << std::endl;
+#endif
+                     }
+                  }
+                  
+                  if(ci == 2)
+                  {
+                     bool is_oriented_consistently = 0;
+                     
+                     if(cell_orient[0] == 1.0 && cell_orient[1] == 1.0)
+                     {
+                        is_oriented_consistently = 1;
+                     }
+                     else
+                     {
+#ifdef DEBUGALL
+                        std::cout << ".. neighbour not oriented consistently.." << std::cout;
+#endif
+                     }
+                     
+#ifdef DEBUGALL
+                     std::cout << "..is_oriented_consistently: " << is_oriented_consistently << std::endl;
+#endif
+                     
+                     if (is_oriented_consistently)
+                     {  
+                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]), 
+                                                                    (*segit).retrieve_topology().get_cell((*cit).handle()) );
+
+#ifdef DEBUGALL
+                        std::cout << "..correct: " << correct << std::endl;
+#endif
+                        
+                        // try to change this error immediatly
+                        //
+                        if(!correct)
+                        {
+                           long temp = (*segit).retrieve_topology().get_cell( (*cit).handle() )[1];
+                           (*segit).retrieve_topology().get_cell((*cit).handle())[1] = (*segit).retrieve_topology().get_cell((*cit).handle())[2];
+                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;                        
+
+#ifdef DEBUGALL
+                           std::cout << "..triangle: " << (*cit)
+                                     << ".. inverting orientation " 
+                                     << std::endl;
+#endif
+                        }                        
+                     }
+                  }
+                  else
+                  {
+#ifdef DEBUGALL
+                        std::cout << ".. possible error !!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;
+#endif
+                  }
+               }                                                         
+            }               
+         }                                                                                                        
+      }
+
+      long max_points = domain.point_size();
+
+#ifdef DEBUGALL
+      std::cout << "..point size: " << max_points << std::endl;
+#endif
+
+      std::map<edge_t, int> used_edges;
+      std::map<long, int> change_trigs;
+
+      // [INFO] duplicate non-manifold edges and resume normal meshing
+      //      
+      {
+         segment_iterator segit = domain.segment_begin();
+         for( ; segit != domain.segment_end(); ++segit)
+         {
+#ifdef DEBUGALL
+            std::cout << ".. seg: " << (*segit) << std::endl;
+#endif
+            cell_iterator cit;
+            for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
+            {                                    
+               edge_on_cell_iterator eocit(*cit);
+               for( ; eocit.valid() ; ++eocit)
+               {
+                  int count = 0;
+                  for(cell_on_edge_iterator coeit(*eocit) ; coeit.valid() ; ++coeit, ++count) ;
+                  
+                  // [INFO] premises: there are no holes in the input
+                  //
+                  edge_t edge;
+                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();                  
+                  if(edge[0] < edge[1])
+                     std::swap(edge[0], edge[1]);
+
+                  int trig_found = 0;
+
+                  // [INFO] only use non-manifold edges
+                  //
+                  if (count != 2 && used_edges[edge] != 1)
+                  {
+                     std::cout << "..base trig: " << (*cit) << std::endl;
+                     std::cout << "..nm-edge: " << (*eocit).handle1() << "-" << (*eocit).handle2() << std::endl;
+
+                     long change_trig_handle = -1;
+                     long first_trig_handle  = -1;
+                     long second_trig_handle = -1;
+
+                     for(cell_on_edge_iterator coeit(*eocit); coeit.valid() && !trig_found; ++coeit)
+                     {
+                        // only use the correctly oriented triangle
+                        //
+                        if ((*coeit).handle() == (*cit).handle())
+                           continue;
+                        
+#ifdef DEBUGALL
+                        std::cout << ".. checking triangle: " << (*coeit).handle() << " ";
+                        std::cout << "cell vertices: ";
+                        vertex_on_cell_iterator vocit(*coeit);                           
+                        while (vocit.valid())
+                        {
+                           std::cout << (*vocit).handle() << " ";
+                           vocit++;
+                        }
+                        std::cout << std::endl;
+#endif                        
+                         
+                        bool is_oriented_consistently = 
+                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ), 
+                                                         (*segit).retrieve_topology().get_cell( (*cit).handle() )  );
+                        
+                        // [INFO] exclude the triangle on the exact opposite side
+                        //
+//                        if(is_oriented_consistently)
+                        {
+                           std::cout << "..a match found" << std::endl;                           
+                                                   
+                           point_t base_point;
+                           long base_point_handle;
+                           int pi;
+                           int pc = 0;
+
+                           vertex_on_cell_iterator vocit(*coeit);                           
+                           std::cout << "cell vertices: ";
+                        
+                           while (vocit.valid())
+                           {
+                              if((*vocit).handle() != (*eocit).handle1() && (*vocit).handle() != (*eocit).handle2())
+                              {
+                                 base_point = domain.get_point(*vocit);
+                                 base_point_handle = (*vocit).handle();
+                                 std::cout << ".. base point: " << (*vocit).handle() ;
+                                 pi = pc;
+                              }
+//                               std::cout << (*vocit) << " ";
+                              vocit++;
+                              pc++;
+                           }
+                           std::cout << std::endl;
+
+                           edge_on_cell_iterator eocit2(*cit);
+                           for( ; eocit2.valid() && !trig_found ; ++eocit2)
+                           {
+                              std::cout << "..edge: " << (*eocit2).handle1() << " " << (*eocit2).handle2() << std::endl;
+
+                              int count2 = 0;
+                              for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() ; ++coeit2, ++count2) ;
+                              
+                              // [INFO] only use triangles not connected on the non-manifold edge
+                              //
+                              if (count2 == 2)
+                              {
+                                 for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() && !trig_found ; ++coeit2)
+                                 {
+                                    std::cout << ".. coeit2: " << (*coeit2) << std::endl;
+                                    
+                                    vertex_on_cell_iterator vocit2(*coeit2);                           
+                                    
+                                    int found_edge = 0;
+                                    int found_trig = 0;
+                                    while (vocit2.valid() && !trig_found)
+                                    {
+                                       std::cout << " " << (*vocit2).handle();
+                                       if((*vocit2).handle() == base_point_handle)
+                                       {
+                                          found_trig = 1;
+                                       }
+                                       if((*vocit2).handle() == edge[0])
+                                       {
+                                          found_edge = 1;
+                                       }
+                                       if(found_edge && found_trig)
+                                       {
+                                          std::cout << ".. connection to other trig found " << std::endl ;
+                                          used_edges[edge] = 1;                                          
+                                          trig_found = 1;
+
+                                          change_trig_handle = (*coeit2).handle();         
+                                          first_trig_handle  = (*coeit).handle();
+                                          second_trig_handle = (*cit).handle();
+                                       }
+                                       vocit2++;                                       
+                                    }
+                                    std::cout << std::endl;                               
+                                 }
+                              }
+                              std::cout << "..after count==2 " << std::endl;
+                           }
+                        }                                                                     
+                     }
+
+                     // apply changes
+                     // 
+                     if(trig_found)
+                     {
+//                         vertex_on_cell_iterator vocit3(*coeit2);                           
+//                         long pi = 0;
+//                         while (vocit3.valid())
+                        for(int pi=0; pi < 3; pi++)
+                        {
+                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl; 
+                           
+                           for(int ei=0; ei < 2; ei++)
+                           {
+                              if((*segit).retrieve_topology().get_cell(change_trig_handle)[pi] == edge[ei])
+                              {
+                                 // [INFO] nm-edge handling 
+                                 //
+#ifdef DEBUGALL
+                                 std::cout << ".. nm-edge point[" << ei << "] found: " << edge[ei] << std::endl ;
+#endif                                 
+//                                  point_t new_point;
+//                                  new_point = domain.get_point_fromhandle(edge[ei]);
+                                 
+                                 // [INFO] use barycenter calculation for new point 
+                                 //        => new point is inside the trig but not the original point
+                                 //                  
+                                 boost::array<point_t, 3> test_cell;
+                                 test_cell[0] = 
+                                    domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[0]);
+                                 test_cell[1] = 
+                                    domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[1]);
+                                 test_cell[2] = 
+                                    domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[2]);
+                                 
+                                 point_t bary_point = gsse::barycenter(test_cell.begin(), test_cell.end());
+
+                                 domain.fast_point_insert(bary_point);
+
+                                 std::cout << ".. added new point: " << domain.point_size()-1 << std::endl;
+
+                                 segment_iterator segit2 = domain.segment_begin();
+                                 for( ; segit2 != domain.segment_end(); ++segit2)
+                                 {
+                                    if(segit != segit2)
+                                    {
+                                       cell_iterator cit2;
+                                       for (cit2 = (*segit2).cell_begin(); cit2 != (*segit2).cell_end(); ++cit2)
+                                       {                
+                                          
+                                          if(compare_triangles(segit2, (*cit2).handle(), segit, first_trig_handle))
+                                          {
+                                             std::cout << ".. cell found .. " << (*cit2) << std::endl;
+                                             for(int ci=0; ci<3; ci++)
+                                             {
+                                                if(edge[0] == (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci])
+                                                   (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci] = domain.point_size()-1;
+                                             }
+                                          }
+
+                                          // second trig of nm-edge
+                                          //
+                                          if(compare_triangles(segit2, (*cit2).handle(), segit, second_trig_handle))
+                                          {
+                                             std::cout << ".. cell found .. " << (*cit2) << std::endl;
+                                             for(int ci=0; ci<3; ci++)
+                                             {
+                                                if(edge[0] == (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci])
+                                                   (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci] = domain.point_size()-1;
+                                             }
+                                          }
+                                          
+                                          // third trig but not of nm-edge
+                                          //
+                                          if(compare_triangles(segit2, (*cit2).handle(), segit, change_trig_handle))
+                                          {
+                                             std::cout << ".. cell found .. " << (*cit2) << std::endl;
+                                             for(int ci=0; ci<3; ci++)
+                                             {
+                                                if(edge[0] == (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci])
+                                                   (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci] = domain.point_size()-1;
+                                             }
+                                          }
+                                       }
+                                    }
+                                 }
+
+                                 (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] = domain.point_size()-1;
+
+                                 for(int ci=0; ci<3; ci++)
+                                 {
+                                    if(edge[0] == (*segit).retrieve_topology().get_cell(first_trig_handle)[ci])
+                                       (*segit).retrieve_topology().get_cell(first_trig_handle)[ci] = domain.point_size()-1;
+                                 }
+
+                                 for(int ci=0; ci<3; ci++)
+                                 {
+                                    if(edge[0] == (*segit).retrieve_topology().get_cell(second_trig_handle)[ci])
+                                       (*segit).retrieve_topology().get_cell(second_trig_handle)[ci] = domain.point_size()-1;
+                                 }
+                                                                                     
+                              }
+                           }
+                        }                                       
+                     }                     
+                  }                  
+               }
+            }
+         }
+      }
+
+
+
+
+
+
+                        // ################################################################
+                        // target are the points of both triangles under investigation                           
+                        //
+//                            if(test_point == 8274)
+//                            {
+//                               std::vector<long> target;
+//                               target.push_back(8272);
+//                               target.push_back(3306);
+// //                               target.push_back(8274);
+// //                               target.push_back(3298);
+                              
+//                               std::cout << ".. starting nearest match .. " << std::endl;
+                              
+//                               long max_counter = 10;
+//                               long result = find_nearest_match(domain, segit, cit, edge, target, max_counter);
+//                               if(result != -1)
+//                                  std::cout << ".. found .. " << result << std::endl;
+//                               else
+//                                  std::cout << ".. NOT found .. " << result << std::endl;
+                              
+//                               std::cout << ".. finishing .. " << std::endl;
+//                            }
+
+                        // ################################################################
+
+
+
+//                            point_t new_point1;
+//                            point_t new_point2;
+
+//                            // [TODO] quick hack ... redo if this idea works !!!
+//                            if(pi == 0)
+//                            {                           
+//                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
+//                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
+//                            }
+//                            else if(pi == 1)
+//                            {                           
+//                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
+//                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
+//                            }
+//                            else if(pi == 2)
+//                            {                           
+//                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
+//                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
+//                            }
+
+// //                           new_point1[2] += 0.0001;
+// //                            new_point2[2] += 0.0001;
+//                            std::cout << "..point1: " << new_point1 << std::endl;
+//                            std::cout << "..point2: " << new_point2 << std::endl;
+
+// //                            domain.fast_point_insert(new_point1);
+//                            domain.fast_point_insert(new_point2);
+                        
+//                            (*segit).retrieve_topology().get_cell((*cit).handle())[0] = base_point_handle;
+
+//                            if(pi == 0)
+//                            {                           
+// //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-2;
+//                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
+//                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
+//                            }
+//                            else if(pi == 1)
+//                            {                           
+// //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
+//                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
+//                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
+//                            }
+//                            else if(pi == 2)
+//                            {                           
+// //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
+//                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-1;
+//                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
+//                            }
+
+//                            std::cout << "..new trig: " << (*cit).handle()
+//                                      << " " << (*segit).retrieve_topology().get_cell((*cit).handle())[0]
+//                                      << " " << (*segit).retrieve_topology().get_cell((*cit).handle())[1]
+//                                      << " " << (*segit).retrieve_topology().get_cell((*cit).handle())[2]
+//                                      << std::endl;
+
+//                            bool is_oriented_consistently = 
+//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()), 
+//                                                             (*segit).retrieve_topology().get_cell((*cit).handle()) );
+
+//                            std::cout << ".. is_oriented_consistently: " << is_oriented_consistently << std::endl;
+
+//                            used_edges[edge] = 0;
+
+
+
+      std::cout << ".. before checking orientation the second time .. " << std::endl;
+      
+      check_and_repair_orientation_new(domain);
+
+      std::cout << ".. checking again for non-manifold edges .. " << std::endl;
+
+      {
+         segment_iterator segit = domain.segment_begin();
+         for( ; segit != domain.segment_end(); ++segit)
+         {
+#ifdef DEBUGALL
+            std::cout << ".. seg: " << (*segit) << std::endl;
+#endif
+            cell_iterator cit;
+            for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
+            {                                                  
+               edge_on_cell_iterator eocit(*cit);
+               for( ;eocit.valid(); ++eocit)
+               {
+                  int count = 0;
+                  edge_t new_edge;
+                  cell_on_edge_iterator coeit(*eocit);
+                  for (; coeit.valid(); ++coeit, ++count) ;
+                  
+                  // [INFO] premises: there are no holes in the input
+                  //
+                  if (count != 2)
+                  {
+                     new_edge[0] = (*eocit).handle1();
+                     new_edge[1] = (*eocit).handle2();
+
+                     non_manifold_edges.push_back(new_edge);
+
+#ifdef DEBUGALL
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                               << " .. count: " << count <<  std::endl;
+#endif
+                  }
+                  else
+                  {
+#ifdef DEBUGFULL
+                     std::cout << ".. manifold_edge: " << (*eocit).handle1() << " " << (*eocit).handle2()
+                               << " .. count: " << count <<  std::endl;
+#endif
+                  }
+               }                                            
+            }
+         }
+      }
+#ifdef DEBUGALL
+      domain.write_file("fs_output_test.gau32");
+#endif
+    }
+      
+#ifdef DEBUGALL
+      std::cout << "..point size: " << domain.point_size() << std::endl;
+#endif
+
+      trias.SetSize(0);
+      points.SetSize(0);
+  
+//      PrintMessage(3,"number of triangles = ", readtrigs.Size());
+
+      // [FS][MOD] set the size for multiple surfaces
+      //
+      material_size = domain.segment_size();
+    
+      // [FS][TODO] .. maybe this can be removed ? 
+      //           check if the bounding box really matters
+      //
+      segment_iterator segit = domain.segment_begin();
+      for( ; segit != domain.segment_end(); ++segit)
+	{      
+	  cell_iterator cit = (*segit).cell_begin();
+	  for( ; cit != (*segit).cell_end(); ++cit, i++)
+	    {	  
+	      vertex_on_cell_iterator vocit(*cit);
+	      while(vocit.valid())
+		{
+		  point_t point = domain.get_point(*vocit);
+		  Point<3> p(point[0],point[1],point[2]);		  
+		  boundingbox.Add(p);
+		  vocit++;
+		}
+	    }
+	}
+
+#ifdef DEBUGALL  
+      std::cout << "boundingbox: " << Point3d(boundingbox.PMin()) << " - " << Point3d(boundingbox.PMax()) << std::endl;
+#endif
+
+      ARRAY<int> pintersect;
+      Box<3> bb = boundingbox;
+      bb.Increase (1);
+  
+      pointtree = new Point3dTree (bb.PMin(), bb.PMax());
+  
+      typedef std::map<point_t, vertex_handle>::iterator point_map_iterator;
+      boost::array<vertex_handle, 3>                       element_container;
+
+      std::map<std::vector<int>, int>        triangle_map;
+
+      long element_counter = 1;  
+      long triangle_counter = 1;
+      i=0;
+      int material_number = 0;
+      segit = domain.segment_begin();
+      for( ; segit != domain.segment_end(); ++segit, ++material_number)
+      {      
+         cell_iterator cit = (*segit).cell_begin();
+
+	  std::map<point_t, vertex_handle> point_map;
+
+	  for( ; cit != (*segit).cell_end(); ++cit, i++)
+	    {      
+	      vertex_on_cell_iterator vocit(*cit);
+
+              int actual_count = 0;
+              
+	      for (int element_index = 0; element_index < 3; element_index++, ++vocit)
+              {
+                 if((*vocit).handle() != -1)
+                 {                      
+                    point_t point = domain.get_point(*vocit);
+                      
+                    point_map_iterator pmit = point_map.find(point);
+#ifdef DEBUGALL  
+                    std::cout << "..checking point: " << (*vocit).handle() << " :: " << point << std::endl;
+#endif
+                    if(pmit == point_map.end())
+                    {
+                       vgmnetgen::Point<3> p(point[0],point[1],point[2]);
+                         
+                       vgmnetgen::Point<3> pmin = p - vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
+                       vgmnetgen::Point<3> pmax = p + vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
+                         
+                       pointtree->GetIntersecting (pmin, pmax, pintersect);
+
+#ifdef DEBUGALL                         
+                       if (pintersect.Size() > 1)
+                          std::cout << "too many close points" << std::endl;
+#endif               
+          
+                       int foundpos = -1;
+                         
+                       // [INFO] ensure that a point is only added once => topological and geometrical unique
+                       //
+                       if (pintersect.Size())
+                          foundpos = pintersect[0];
+
+#ifdef DEBUGALL                         
+                       std::cout << "..foundpos: " << foundpos << std::endl;
+#endif
+                         
+                       if (foundpos == -1)
+                       {
+#ifdef DEBUGALL
+                          std::cout << "..adding point: " << p << std::endl;
+#endif
+                          foundpos = AddPoint(p);
+                          pointtree->Insert (p, foundpos);
+                       }
+                         
+                       point_map[point] = foundpos;
+                       element_container[element_index] = foundpos;
+                         
+                       element_counter++;		      
+                    }
+                    else
+                    {
+                       element_container[element_index] = (*pmit).second;
+                    }
+
+                    actual_count++;
+  
+                    // 	      Point<3> pmin = p - Vec<3> (pointtol, pointtol, pointtol);
+                    // 	      Point<3> pmax = p + Vec<3> (pointtol, pointtol, pointtol);
+  
+                    // 	      pointtree->GetIntersecting (pmin, pmax, pintersect);
+  
+                    // 	      std::cout << ".. after intersection test: " << std::endl;
+  
+                    // 	      if (pintersect.Size() > 1)
+                    // 		PrintError("too many close points");
+  
+                    // 	      int foundpos = -1;
+  
+                    // 	      // [FS] .. test: add the interface point a second time	 
+                    // 	      //
+  
+                    // 	      if (pintersect.Size())
+                    // 		foundpos = pintersect[0];
+  
+                    // 	      std::cout << ".. foundpos: " << foundpos << " :: for point: " << p <<  std::endl;
+  
+                    // 	      if (foundpos == -1)
+                    // 		{
+                    // 		  foundpos = AddPoint(p);
+                    // 		  pointtree->Insert (p, foundpos);
+                    // 		}
+                    // 	      st[k] = foundpos;
+                 }                 
+              }
+
+              if(actual_count == 3)
+              {
+
+	      // [INFO] .. calculate the normals from the gsse structure
+	      //
+ 	      STLTriangle st;  
+ 	      Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]), 
+				     GetPoint(element_container[2])-GetPoint(element_container[0]));
+	      normal.Normalize();
+	      st.SetNormal (normal);
+	      st.material[0] = material_number;
+	      st.material[1] = -1;
+	      
+	      st[0] = element_container[0];
+	      st[1] = element_container[1];
+	      st[2] = element_container[2];
+
+#ifdef DEBUGALL
+	      std::cout << "..triangle_counter: " << triangle_counter << std::endl;
+	      std::cout << "..st[0]: " << st[0] << std::endl;
+	      std::cout << "..st[1]: " << st[1] << std::endl;
+	      std::cout << "..st[2]: " << st[2] << std::endl;
+
+              std::cout << "..normal: " << normal << std::endl;
+              std::cout << "..material: " << st.material[0] << std::endl;
+#endif
+
+	      std::vector<int> triangle;
+	      triangle.push_back(st[0]);
+	      triangle.push_back(st[1]);
+	      triangle.push_back(st[2]);
+	      
+	      // [FS][INFO] this is done to for searching in the triangle_map
+	      //
+	      sort(triangle.begin(), triangle.end());
+
+	      std::map<std::vector<int>, int>::iterator tmit;
+	      tmit = triangle_map.find(triangle);
+	      
+	      if(tmit == triangle_map.end())
+		{
+#ifdef DEBUGALL
+		  std::cout << ".. adding new triangle" << std::endl;
+#endif
+
+		  triangle_map[triangle] = triangle_counter;
+		  
+		  if ( (st[0] == st[1]) ||
+		       (st[0] == st[2]) || 
+		       (st[1] == st[2]) )
+		    {
+		      PrintError("STL Triangle degenerated");
+		    }
+		  else
+                  {
+                     AddTriangle(st);
+                     triangle_counter++;                      
+                  }
+		}
+	      else
+		{
+		  // store the second material information onto the triangle
+		  //
+#ifdef DEBUGALL
+		  std::cout << "..triangle found: triangle_counter: " << (*tmit).second << " :: materialnum: " << material_number << std::endl;
+#endif
+
+		  GetTriangle((*tmit).second).material[1] = material_number;
+		}
+              }
+	    }
+
+      }
+
+
+
+
+  FindNeighbourTrigs();
+
+#ifdef DEBUGALL
+  std::cout << "[FS] .. end of NEW InitSTLGeometry: point size: " << GetNP() << std::endl;
+#endif
+}
 
 void STLTopology :: InitSTLGeometry(const char * filename)
 {

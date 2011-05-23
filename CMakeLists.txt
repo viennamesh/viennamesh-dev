@@ -68,6 +68,8 @@ SET(ENABLE_GTSIO OFF)
 #
 # ------------------------------------------------------------------------------
 
+INCLUDE_DIRECTORIES("../ViennaGrid/")
+INCLUDE_DIRECTORIES("../ViennaData/")
 # build external libraries
 #   those have to be build bevore the collected include 
 #   hierarchy of viennamesh is established here
@@ -88,8 +90,8 @@ ENDIF(ENABLE_GTSIO)
 # ------------------------------------------------------------------------------
 
 # setup the include paths
-INCLUDE_DIRECTORIES("../ViennaGrid/")
-INCLUDE_DIRECTORIES("../ViennaData/")
+
+
 INCLUDE_DIRECTORIES("../ViennaUtils/")
 INCLUDE_DIRECTORIES("../ViennaUtils/external/")
 IF(ENABLE_GTSIO)
@@ -103,6 +105,8 @@ INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")
 INCLUDE_DIRECTORIES("external/tetgen-1.4.3/")
 INCLUDE_DIRECTORIES("external/vgmodeler-2.0/")
+INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/hull_adaption/gsse/gsse01")
+INCLUDE_DIRECTORIES("external/vgmodeler-2.0/vgmodeler/hull_adaption/gsse/gsse01/external/mauch")
 INCLUDE_DIRECTORIES("external/cervpt-1.0/")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")

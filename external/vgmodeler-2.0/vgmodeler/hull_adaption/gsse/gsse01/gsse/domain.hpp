@@ -156,61 +156,61 @@ void colorize_segments(DomainT& domain)
 // ############
 
 
-enum topology_type_e {unstructured, structured, undefined};
+//enum topology_type_e {unstructured, structured, undefined};
 
-struct file_information
-{
-   long            dimension;
-   topology_type_e tt;
+//struct file_information
+//{
+//   long            dimension;
+//   topology_type_e tt;
 
-   friend std::ostream& operator<<(std::ostream& ostr, const file_information fi)
-   {
-      ostr << "fi dimension: " << fi.dimension << "  topology type: ";
-      if (fi.tt == unstructured)
-         ostr << " unstructured";
-      else if (fi.tt == structured)
-         ostr << " structured";
-      ostr << std::endl;
-      return ostr;
-   }
-};
+//   friend std::ostream& operator<<(std::ostream& ostr, const file_information fi)
+//   {
+//      ostr << "fi dimension: " << fi.dimension << "  topology type: ";
+//      if (fi.tt == unstructured)
+//         ostr << " unstructured";
+//      else if (fi.tt == structured)
+//         ostr << " structured";
+//      ostr << std::endl;
+//      return ostr;
+//   }
+//};
 
-file_information get_file_information(std::string filename)
-{
-   file_information fi;
-   fi.dimension=-1;
-   fi.tt = undefined;
+//file_information get_file_information(std::string filename)
+//{
+//   file_information fi;
+//   fi.dimension=-1;
+//   fi.tt = undefined;
 
-   //  ..............
+//   //  ..............
 
-   std::string file_ending;
-   std::string::size_type pos = filename.rfind(".")+1;
-   //std::cout << "  filename: " << filename.size() << std::endl;
-   //std::cout << "pos: "<< pos << std::endl;
-   file_ending = filename.substr(pos); 
+//   std::string file_ending;
+//   std::string::size_type pos = filename.rfind(".")+1;
+//   //std::cout << "  filename: " << filename.size() << std::endl;
+//   //std::cout << "pos: "<< pos << std::endl;
+//   file_ending = filename.substr(pos); 
 
-   if (file_ending == "ele")
-   {
-      fi.tt = unstructured;
-      fi.dimension=2;
-   }
+//   if (file_ending == "ele")
+//   {
+//      fi.tt = unstructured;
+//      fi.dimension=2;
+//   }
 
-   if (file_ending[2] =='u' )
-      fi.tt = unstructured;
-   else if (file_ending[2] =='s' )
-      fi.tt = structured;
+//   if (file_ending[2] =='u' )
+//      fi.tt = unstructured;
+//   else if (file_ending[2] =='s' )
+//      fi.tt = structured;
 
-   if (file_ending[3] == '1')
-      fi.dimension=1;
-   else if (file_ending[3] =='2')
-      fi.dimension=2;
-   else if (file_ending[3] =='3')
-      fi.dimension=3;
-   else if (file_ending[3] =='4')
-      fi.dimension=4;
+//   if (file_ending[3] == '1')
+//      fi.dimension=1;
+//   else if (file_ending[3] =='2')
+//      fi.dimension=2;
+//   else if (file_ending[3] =='3')
+//      fi.dimension=3;
+//   else if (file_ending[3] =='4')
+//      fi.dimension=4;
 
-   return fi;
-}
+//   return fi;
+//}
 
 
 }

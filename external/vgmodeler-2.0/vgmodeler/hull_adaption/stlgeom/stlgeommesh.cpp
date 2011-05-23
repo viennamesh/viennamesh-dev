@@ -8,6 +8,13 @@
 
 #include <meshing.hpp>
 
+// [JW] viennagrid has to be included prior to 
+// stlgeom, as the viennagrid domain has to be used within 
+// stltopology.hpp
+#include "viennagrid/domain.hpp"
+#include "viennagrid/config/simplex.hpp"
+
+
 #include "stlgeom.hpp"
 
 namespace vgmnetgen
@@ -1458,7 +1465,7 @@ void STLGeometry :: RestrictHChartDistOneChart(int chartnum, ARRAY<int>& acttrig
 
 
 //void * STLMeshingDummy (void *)
-int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh,
+int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain,
 			    int perfstepsstart, int perfstepsend, char* optstring)
 {
 #ifdef DEBUGALL
@@ -1534,7 +1541,14 @@ int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh,
 	}
 
       success = 0;
-      int retval = STLSurfaceMeshing (*stlgeometry, *mesh);
+      // --------------------------------------------------------------------
+      // --------------------------------------------------------------------
+      // --------------------------------------------------------------------
+      int retval = STLSurfaceMeshing (*stlgeometry, *mesh, domain);
+      // --------------------------------------------------------------------
+      // --------------------------------------------------------------------
+      // --------------------------------------------------------------------
+
 
       if (retval == MESHING3_OK)
 	{

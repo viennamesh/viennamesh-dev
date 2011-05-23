@@ -6,6 +6,13 @@
 
 #include <meshing.hpp>
 
+// [JW] viennagrid has to be included prior to 
+// stlgeom, as the viennagrid domain has to be used within 
+// stltopology.hpp
+#include "viennagrid/domain.hpp"
+#include "viennagrid/config/simplex.hpp"
+
+
 #include "stlgeom.hpp"
 #include <algorithm>
 
@@ -2019,6 +2026,99 @@ double STLGeometry :: GetGeomAngle(int t1, int t2)
   return Angle(n1,n2);
 }
 
+
+void STLGeometry :: InitSTLGeometry(viennagrid::domain<viennagrid::config::triangular_3d>& domain)
+{
+//  std::cout << "Init STL Geometry: readtrias size: " << readtrias.Size() << std::endl;
+
+  STLTopology::InitSTLGeometry(domain);
+
+  int i, j, k;
+
+  const double geometry_tol_fact = 1E8; //distances lower than max_box_size/tol are ignored
+
+  int np = GetNP();
+//  PrintMessage(5,"NO points= ", GetNP());
+  normals.SetSize(GetNP());
+  ARRAY<int> normal_cnt(GetNP()); // counts number of added normals in a point
+
+  for (i = 1; i <= np; i++)
+    {
+      normal_cnt.Elem(i) = 0;
+      normals.Elem(i) = Vec3d (0,0,0);
+    }
+
+  
+  for(i = 1; i <= GetNT(); i++)
+    {
+      //      STLReadTriangle t = GetReadTriangle(i);
+      //      STLTriangle st;
+
+      Vec<3> n = GetTriangle(i).Normal ();
+
+      for (k = 1; k <= 3; k++)
+	{
+	  int pi = GetTriangle(i).PNum(k);
+	  
+	  normal_cnt.Elem(pi)++;
+	  SetNormal(pi, GetNormal(pi) + n);
+	}
+    } 
+
+  // [INFO] normalize the normals
+  //
+  for (i = 1; i <= GetNP(); i++)
+    {
+      SetNormal(i,1./(double)normal_cnt.Get(i)*GetNormal(i));
+    }
+
+  trigsconverted = 1;
+
+  vicinity.SetSize(GetNT());
+  markedtrigs.SetSize(GetNT());
+  for (i = 1; i <= GetNT(); i++)
+    {
+      markedtrigs.Elem(i) = 0;
+      vicinity.Elem(i) = 1;
+    }
+
+  ha_points.SetSize(GetNP());
+  for (i = 1; i <= GetNP(); i++)
+    ha_points.Elem(i) = 0;
+
+  calcedgedataanglesnew = 0;
+  edgedatastored = 0;
+  edgedata.Clear();
+
+#ifdef DEBUGALL
+  std::cout << ".. before CalcEdgeData .. " << std::endl;
+#endif
+//   if (GetStatus() == STL_ERROR) return;
+
+  CalcEdgeData();
+
+#ifdef DEBUGALL
+  std::cout << "..here.." << std::endl;
+#endif
+
+  CalcEdgeDataAngles();
+
+#ifdef DEBUGALL
+  std::cout << "..here.." << std::endl;
+#endif
+
+  ClearLineEndPoints();
+
+#ifdef DEBUGALL
+  std::cout << "..here.." << std::endl;
+#endif
+
+  CheckGeometryOverlapping();
+  
+#ifdef DEBUGALL
+  std::cout << "[EXIT] .. STLGeometry :: InitSTLGeometry" << std::endl;
+#endif
+}
 
 void STLGeometry :: InitSTLGeometry(const char * filename)
 {

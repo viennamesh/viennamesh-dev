@@ -257,9 +257,10 @@ extern STLParameters stlparam;
 void STLMeshing (STLGeometry & geom,
 		 class Mesh & mesh);
 
-
 int STLSurfaceMeshing (STLGeometry & geom,
 			class Mesh & mesh);
+int STLSurfaceMeshing (STLGeometry & geom,
+			class Mesh & mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain);
 
 void STLSurfaceOptimization (STLGeometry & geom,
 			     class Mesh & mesh,

@@ -10,6 +10,8 @@
   
 */
 
+#include "viennagrid/domain.hpp"
+#include "viennagrid/config/simplex.hpp"
 
 #include <mystdlib.h>
 #include <myadt.hpp>
@@ -20,9 +22,9 @@
 #include <geometry2d.hpp>
 #include <meshing.hpp>
 
-
-
 // #include <FlexLexer.h>
+
+
 
 namespace vgmnetgen {
   extern void MeshFromSpline2D (SplineGeometry2d & geometry,
@@ -394,6 +396,35 @@ Ng_STL_Geometry * Ng_STL_NewGeometry ()
 } 
 
 // after adding triangles (and edges) initialize
+Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::domain<viennagrid::config::triangular_3d>& domain)
+{
+  STLGeometry* geo = (STLGeometry*)geom;
+
+// [FS][INFO] edited
+//  geo->InitSTLGeometry(readtrias);
+//  geo->InitSTLGeometry(filename);
+// [JW] added new specialization which gets a viennagrid::domain
+   geo->InitSTLGeometry(domain);
+
+  readtrias.SetSize(0);
+
+  if (readedges.Size() != 0)
+    {
+      int i;
+      /*
+      for (i = 1; i <= readedges.Size(); i+=2)
+	{
+	  cout << "e(" << readedges.Get(i) << "," << readedges.Get(i+1) << ")" << endl;
+	}
+      */
+      geo->AddEdges(readedges);
+    }
+
+  if (geo->GetStatus() == STLTopology::STL_GOOD || geo->GetStatus() == STLTopology::STL_WARNING) return NG_OK;
+  return NG_SURFACE_INPUT_ERROR;
+}
+
+// after adding triangles (and edges) initialize
 Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, const char * filename)
 {
   STLGeometry* geo = (STLGeometry*)geom;
@@ -463,7 +494,8 @@ Ng_Result Ng_STL_MakeEdges (Ng_STL_Geometry * geom,
 
 Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
                             Ng_Mesh* mesh,
-                            Ng_Meshing_Parameters * mp)
+                            Ng_Meshing_Parameters * mp, 
+                            viennagrid::domain<viennagrid::config::triangular_3d>& domain)
 {
 #ifdef DEBUGALL
    std::cout << "ENTER Ng_FS_SurfaceMesh" << std::endl;
@@ -472,7 +504,7 @@ Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
    STLGeometry* stlgeometry = (STLGeometry*)geom;
    Mesh* me = (Mesh*)mesh;
    
-   STLMeshingDummy(stlgeometry, me, 1, 6, "");
+   STLMeshingDummy(stlgeometry, me, domain, 1, 6, "");
 
 #ifdef DEBUGALL
    std::cout << "EXIT Ng_FS_SurfaceMesh" << std::endl;
@@ -583,13 +615,13 @@ Ng_Meshing_Parameters :: Ng_Meshing_Parameters()
 }
 
 
-}
+////}
 
 
-// compatibility functions:
+////// compatibility functions:
 
-namespace vgmnetgen 
-{
+////namespace vgmnetgen 
+////{
 
   char geomfilename[255];
 
@@ -619,4 +651,4 @@ void MyBeep (int i)
   ;
 }
 
-}
+} // end namespace vgmnetgen
