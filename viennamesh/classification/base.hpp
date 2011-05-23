@@ -14,7 +14,6 @@
 #ifndef VIENNAMESH_CLASSIFIER_BASE_HPP
 #define VIENNAMESH_CLASSIFIER_BASE_HPP
 
-#include "viennamesh/classifier.hpp"
 #include "viennamesh/tags.hpp"
 
 namespace viennamesh {

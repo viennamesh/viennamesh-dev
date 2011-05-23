@@ -70,6 +70,14 @@ SET(ENABLE_GTSIO OFF)
 
 INCLUDE_DIRECTORIES("../ViennaGrid/")
 INCLUDE_DIRECTORIES("../ViennaData/")
+INCLUDE_DIRECTORIES("../ViennaUtils/")
+INCLUDE_DIRECTORIES("../ViennaUtils/external/")
+IF(ENABLE_GTSIO)
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
+ENDIF(ENABLE_GTSIO)
+
 # build external libraries
 #   those have to be build bevore the collected include 
 #   hierarchy of viennamesh is established here
@@ -88,18 +96,6 @@ ENDIF(ENABLE_GTSIO)
 # *** SET INCLUDE PATHS OF MESH KERNELS AND RELATED VIENNASTAR PROJECTS ***
 #
 # ------------------------------------------------------------------------------
-
-# setup the include paths
-
-
-INCLUDE_DIRECTORIES("../ViennaUtils/")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/")
-IF(ENABLE_GTSIO)
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
-ENDIF(ENABLE_GTSIO)
-
 
 INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")

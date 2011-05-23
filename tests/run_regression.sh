@@ -19,7 +19,7 @@ if [ "$INPUT" != "" ]; then
    elif [ "$INPUT" == "submit" ] ; then
       mkdir -p $BUILDFOLDER
       cd $BUILDFOLDER
-      cmake ..
+      cmake -D CMAKE_BUILD_TYPE=Debug -D CGAL_INC_DIR=/mnt/data/libraries/cgal/cgal-install/include -D CGAL_LIB_DIR=/mnt/data/libraries/cgal/cgal-install/lib ../
       # build and submit results to online cdash service
       make Nightly -j$CORES
       echo ""
@@ -42,7 +42,7 @@ if [ "$INPUT" != "" ]; then
 else
    mkdir -p $BUILDFOLDER
    cd $BUILDFOLDER
-   cmake ..
+   cmake -D CMAKE_BUILD_TYPE=Debug -D CGAL_INC_DIR=/mnt/data/libraries/cgal/cgal-install/include -D CGAL_LIB_DIR=/mnt/data/libraries/cgal/cgal-install/lib ../
    # plain build without submit
    make -j$CORES
    make test

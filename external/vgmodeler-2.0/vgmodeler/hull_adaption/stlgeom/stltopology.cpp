@@ -611,7 +611,7 @@ void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::trian
       }         
    }
    
-   domain.write_file("gsse_hull.gau32");
+   //domain.write_file("gsse_hull.gau32");
    
       int check_nm = 0;
       if(check_nm)

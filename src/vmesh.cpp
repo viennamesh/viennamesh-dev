@@ -39,6 +39,7 @@
 #include "viennamesh/adaptation/orienter.hpp"
 #include "viennamesh/adaptation/cell_normals.hpp"
 #include "viennamesh/adaptation/hull_quality.hpp"
+#include "viennamesh/classification/vgmodeler.hpp"
 #include "viennamesh/wrapper.hpp"
 
 #include <boost/any.hpp> // removeme
@@ -174,9 +175,12 @@ int main(int argc, char *argv[])
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
          netgen_volume_mesh_generator_type       volume_mesher;      
 
+         typedef viennamesh::result_of::mesh_classifier<viennamesh::tag::vgmodeler>::type    mesh_classifier_type;
+         mesh_classifier_type mesh_classifier;
+
          typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
-         volume_result_type volume_mesh = volume_mesher(hull_mesh);
-         volume_result_type adapted_volume_mesh = volume_mesher(adapted_hull_mesh);
+         volume_result_type volume_mesh = mesh_classifier(volume_mesher(hull_mesh));
+         volume_result_type adapted_volume_mesh = mesh_classifier(volume_mesher(adapted_hull_mesh));
          
          typedef volume_result_type::value_type                                               volume_domain_type;         
          
