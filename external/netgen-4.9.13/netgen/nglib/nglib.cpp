@@ -971,7 +971,8 @@ namespace netgen
    //Destination for messages, errors, ...
    DLL_HEADER void Ng_PrintDest(const char * s)
    {
-      (*mycout) << s << flush;
+      //[JW] deactivated output
+      //(*mycout) << s << flush;
    }
 
    DLL_HEADER double GetTime ()
