@@ -259,7 +259,7 @@ public:
       // now that all segments and cells have been read, and due to that 
       // we are aware of how many cells in total there are, 
       // we can actually create the cells within the domain
-      std::cout << "global cell size: " << global_cell_size << std::endl;
+      //std::cout << "global cell size: " << global_cell_size << std::endl;
       domain->reserve_cells(global_cell_size);
 
       for(typename segment_cell_map_type::iterator sit = segment_cell_map.begin();

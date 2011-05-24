@@ -77,8 +77,11 @@ int main(int argc, char *argv[])
       return -1;
    }
    
+  
    std::string inputfile(argv[1]);
    std::string outputfile(argv[2]);
+
+   std::cout << "## " << argv[0] << " processing file: " << inputfile << std::endl;
    
    std::string input_extension  = viennautils::file_extension(inputfile);
    std::string output_extension = viennautils::file_extension(outputfile);
@@ -114,20 +117,33 @@ int main(int argc, char *argv[])
 
          typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
 
-         hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
+         //hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
          hull_result_type adapted_hull_mesh = hull_quality(cell_normals(orienter(hull_mesher(wrapped_data))));
+
+//         typedef hull_result_type::value_type                                                      hull_domain_type;
+//         typedef hull_domain_type::config_type                                                     hull_domain_configuration_type;
+//         typedef viennagrid::result_of::ncell_type<hull_domain_configuration_type, hull_domain_configuration_type::cell_tag::topology_level>::type     hull_cell_type;
+//         viennagrid::io::vtk_writer<hull_domain_type>  my_hull_vtk_writer;
+//         my_hull_vtk_writer.add_cell_data_normal(
+//            viennagrid::io::io_data_accessor_segment_based<
+//               hull_cell_type, viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
+//            >(viennagrid::seg_cell_normal_tag()), "cell_normals");
+//         my_hull_vtk_writer.writeDomain(*hull_mesh, "hull_mesh.vtu");
 
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
          netgen_volume_mesh_generator_type       volume_mesher;      
+         
+         typedef viennamesh::result_of::mesh_classifier<viennamesh::tag::vgmodeler>::type    mesh_classifier_type;
+         mesh_classifier_type mesh_classifier;
 
          typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
-         volume_result_type volume_mesh = volume_mesher(hull_mesh);
-         volume_result_type adapted_volume_mesh = volume_mesher(adapted_hull_mesh);
+         //volume_result_type volume_mesh = mesh_classifier(volume_mesher(hull_mesh));
+         volume_result_type adapted_volume_mesh = mesh_classifier(volume_mesher(adapted_hull_mesh));
          
          typedef volume_result_type::value_type                                               volume_domain_type;         
          
          viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
-         my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
+         //my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
          my_volume_vtk_writer.writeDomain(*adapted_volume_mesh, "adapted_volume_mesh.vtu");         
       }
    }
@@ -162,14 +178,11 @@ int main(int argc, char *argv[])
 //         typedef hull_result_type::value_type                                                      hull_domain_type;
 //         typedef hull_domain_type::config_type                                                     hull_domain_configuration_type;
 //         typedef viennagrid::result_of::ncell_type<hull_domain_configuration_type, hull_domain_configuration_type::cell_tag::topology_level>::type     hull_cell_type;
-//         
 //         viennagrid::io::vtk_writer<hull_domain_type>  my_hull_vtk_writer;
-//         
 //         my_hull_vtk_writer.add_cell_data_normal(
 //            viennagrid::io::io_data_accessor_segment_based<
 //               hull_cell_type, viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
 //            >(viennagrid::seg_cell_normal_tag()), "cell_normals");
-//             
 //         my_hull_vtk_writer.writeDomain(*hull_mesh, "hull_mesh.vtu");
 
          typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;

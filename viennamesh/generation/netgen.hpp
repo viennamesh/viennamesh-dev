@@ -81,7 +81,7 @@ public:
       mesh_kernel_id = "Netgen";      
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
-   #endif      
+   #endif
    }
    
    // -------------------------------------------------------------------------------------      
@@ -535,7 +535,7 @@ private:
       // now that all segments and cells have been read, and due to that 
       // we are aware of how many cells in total there are, 
       // we can actually create the cells within the domain
-      std::cout << "global cell size: " << global_cell_size << std::endl;
+      //std::cout << "global cell size: " << global_cell_size << std::endl;
       domain->reserve_cells(global_cell_size);
 
       std::size_t cell_id = 0;
