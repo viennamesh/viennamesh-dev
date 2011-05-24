@@ -532,12 +532,14 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
             {
                for(int dim = 0; dim < DIMG; dim++)
                {
+                  //std::cout << "classi debug: " << (vocit->getPoint())[dim] << std::endl;
                   simplex_point_array[(vi*DIMG)+dim] = (vocit->getPoint())[dim];
                }
                vi++;
             }                     
             
             simplex_classification_type classification(simplex_point_array,  simplex_point_array+SIMPLEX_POINT_SIZE);
+            //std::cout << "debug: " << classification.ResultName << std::endl;
             histogram[classification.ResultName]++;
 
             for(angle_iterator_type iter = classification.DiAngle.begin();

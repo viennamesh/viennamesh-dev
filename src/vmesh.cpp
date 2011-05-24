@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
          typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
 
-         //hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
+         hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(wrapped_data)));
          hull_result_type adapted_hull_mesh = hull_quality(cell_normals(orienter(hull_mesher(wrapped_data))));
 
 //         typedef hull_result_type::value_type                                                      hull_domain_type;
@@ -137,13 +137,13 @@ int main(int argc, char *argv[])
          mesh_classifier_type mesh_classifier;
 
          typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
-         //volume_result_type volume_mesh = mesh_classifier(volume_mesher(hull_mesh));
+         volume_result_type volume_mesh = mesh_classifier(volume_mesher(hull_mesh));
          volume_result_type adapted_volume_mesh = mesh_classifier(volume_mesher(adapted_hull_mesh));
          
          typedef volume_result_type::value_type                                               volume_domain_type;         
          
          viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
-         //my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
+         my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
          my_volume_vtk_writer.writeDomain(*adapted_volume_mesh, "adapted_volume_mesh.vtu");         
       }
    }

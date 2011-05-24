@@ -277,7 +277,7 @@ public:
       //
       for (std::size_t si = 0; si < hull_domain->segment_size(); ++si)
       {
-         std::cout << "extracting segment: " << si << std::endl;
+         //std::cout << "extracting segment: " << si << std::endl;
       
          std::map<std::size_t, bool>         vertex_uniquer;
          std::map<std::size_t, std::size_t>  segment_vertices;
@@ -529,7 +529,7 @@ private:
          domain->add(*iter);
       }
 
-      std::cout << "mesh cnt: " << mesh_cnt << std::endl;
+      //std::cout << "mesh cnt: " << mesh_cnt << std::endl;
       domain->create_segments(mesh_cnt);             
        
       // now that all segments and cells have been read, and due to that 
