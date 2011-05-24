@@ -98,8 +98,14 @@ struct hull_adaptor
    
    void process(domain_type& domain, domain_type& new_domain)
    {
-      vgmnetgen::Ng_STL_InitSTLGeometry(geom, domain);
-      vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp, new_domain);  
+      if(vgmnetgen::Ng_STL_InitSTLGeometry(geom, domain) != 0)
+      {
+         std::cerr << "vgmodeler::hull-adaptor: input mesh initialization failed" << std::endl;
+      }
+      else
+      {
+         vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp, new_domain);  
+      }
    }
 
    char                              * cfilename;   

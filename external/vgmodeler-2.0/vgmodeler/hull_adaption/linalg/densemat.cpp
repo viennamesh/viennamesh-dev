@@ -329,8 +329,8 @@ void CalcInverse (const DenseMatrix & m1, DenseMatrix & m2)
       
       for (i = 1; i <= n; i++)
 	{
-	  if (dots && i % 10 == 0)
-	    (*mycout) << "." << flush;
+//	  if (dots && i % 10 == 0)
+//	    (*mycout) << "." << flush;
 
 	  for (j = i; j <= n; j++)
 	    {

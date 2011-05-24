@@ -96,7 +96,7 @@ void CutOffAndCombine (Mesh & mesh, const Mesh & othermesh)
 		}
 	    }
 	}
-      cout << "." << flush;
+      //cout << "." << flush;
     }
   while (changed);
   cout << endl;
