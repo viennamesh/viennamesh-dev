@@ -562,12 +562,15 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
 //      this->dump_angles(angles, angle_stream);
 //      angle_stream.close();
       
+      }      
+
+
    #ifdef MESH_CLASSIFIER_DEBUG
       std::cout << "## MeshClassifier::"+id+" - result:" << std::endl;
    #endif  
       // dump the classification results in a human readable form to the screen
       this->dump_histogram(histogram, "  ", std::cout);         
-      }      
+
       return domain;
    }
    // -------------------------------------------------------------------------------------       
