@@ -21,7 +21,7 @@ if [ "$INPUT" != "" ]; then
       cd $BUILDFOLDER
       cmake -D CMAKE_BUILD_TYPE=Release -D CGAL_INC_DIR=$CGALINC -D CGAL_LIB_DIR=$CGALLIB ../
       # build and submit results to online cdash service
-      make Nightly -j$CORES
+      make Nightly ARGS=-j$CORES
       echo ""
       echo "regression result is available here:"
       echo "----------------------------------------------"
@@ -45,7 +45,7 @@ else
    cmake -D CMAKE_BUILD_TYPE=Release -D CGAL_INC_DIR=$CGALINC -D CGAL_LIB_DIR=$CGALLIB ../
    # plain build without submit
    make -j$CORES
-   make test
+   make test ARGS=-j$CORES
 fi
 
 

@@ -124,6 +124,8 @@ ENDIF(ENABLE_GTSIO)
 ADD_EXECUTABLE(net2d src/netgen_direct_2d.cpp)
 ADD_EXECUTABLE(netg src/netgen.cpp)
 ADD_EXECUTABLE(metasel src/meta_selection.cpp)
+ADD_EXECUTABLE(generate_hull src/generate_hull.cpp)
+ADD_EXECUTABLE(orient_hull src/orient_hull.cpp)
 ADD_EXECUTABLE(adapt_hull src/adapt_hull.cpp)
 
 # ------------------------------------------------------------------------------
@@ -133,6 +135,8 @@ ADD_EXECUTABLE(adapt_hull src/adapt_hull.cpp)
 # ------------------------------------------------------------------------------
 TARGET_LINK_LIBRARIES(net2d netgen)
 TARGET_LINK_LIBRARIES(netg netgen ${CERVPT_LIBS})
+TARGET_LINK_LIBRARIES(generate_hull ${CERVPT_LIBS} )
+TARGET_LINK_LIBRARIES(orient_hull ${CERVPT_LIBS} )
 TARGET_LINK_LIBRARIES(adapt_hull ${CERVPT_LIBS} ${VGMODHULL_LIBS})
 
 # ------------------------------------------------------------------------------
@@ -142,6 +146,37 @@ TARGET_LINK_LIBRARIES(adapt_hull ${CERVPT_LIBS} ${VGMODHULL_LIBS})
 # ------------------------------------------------------------------------------
 ADD_TEST(net2d net2d)
 ADD_TEST(netg netg)
+
+# hull generation process chain 
+#
+ADD_TEST(generate_hull1 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/cyl_mask_etched_flux.bnd)
+ADD_TEST(generate_hull2 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/litho_shaped_gates_sram_cell.bnd)
+ADD_TEST(generate_hull3 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/lto_depo_over_lines.bnd)
+ADD_TEST(generate_hull4 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/pecvd_layer_in_trench.bnd)
+ADD_TEST(generate_hull5 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/wordline_bitline_dram_cell.bnd)
+ADD_TEST(generate_hull6 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/etched_hole_with_oxide_etch_model.bnd)
+ADD_TEST(generate_hull7 generate_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/sputter_etched_trench_with_litho_mask.bnd)
+ADD_TEST(generate_hull8 generate_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX.bnd)
+ADD_TEST(generate_hull9 generate_hull ../../../ViennaMeshCollection/bnd_examples/cu_lowk_leti_right.bnd)
+ADD_TEST(generate_hull10 generate_hull ../../../ViennaMeshCollection/bnd_examples/after_line_ref.bnd)
+ADD_TEST(generate_hull11 generate_hull ../../../ViennaMeshCollection/bnd_examples/andi.bnd)
+
+# hull orientation process chain 
+#
+ADD_TEST(orient_hull1 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/cyl_mask_etched_flux.bnd)
+ADD_TEST(orient_hull2 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/litho_shaped_gates_sram_cell.bnd)
+ADD_TEST(orient_hull3 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/lto_depo_over_lines.bnd)
+ADD_TEST(orient_hull4 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/pecvd_layer_in_trench.bnd)
+ADD_TEST(orient_hull5 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/wordline_bitline_dram_cell.bnd)
+ADD_TEST(orient_hull6 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/etched_hole_with_oxide_etch_model.bnd)
+ADD_TEST(orient_hull7 orient_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/sputter_etched_trench_with_litho_mask.bnd)
+ADD_TEST(orient_hull8 orient_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX.bnd)
+ADD_TEST(orient_hull9 orient_hull ../../../ViennaMeshCollection/bnd_examples/cu_lowk_leti_right.bnd)
+ADD_TEST(orient_hull10 orient_hull ../../../ViennaMeshCollection/bnd_examples/after_line_ref.bnd)
+ADD_TEST(orient_hull11 orient_hull ../../../ViennaMeshCollection/bnd_examples/andi.bnd)
+
+# hull adaption process chain 
+#
 ADD_TEST(adapt_hull1 adapt_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/cyl_mask_etched_flux.bnd)
 ADD_TEST(adapt_hull2 adapt_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/litho_shaped_gates_sram_cell.bnd)
 ADD_TEST(adapt_hull3 adapt_hull ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/lto_depo_over_lines.bnd)
@@ -153,7 +188,5 @@ ADD_TEST(adapt_hull8 adapt_hull ../../../ViennaMeshCollection/bnd_examples/EEPRO
 ADD_TEST(adapt_hull9 adapt_hull ../../../ViennaMeshCollection/bnd_examples/cu_lowk_leti_right.bnd)
 ADD_TEST(adapt_hull10 adapt_hull ../../../ViennaMeshCollection/bnd_examples/after_line_ref.bnd)
 ADD_TEST(adapt_hull11 adapt_hull ../../../ViennaMeshCollection/bnd_examples/andi.bnd)
-
-
 
 
