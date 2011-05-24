@@ -11,7 +11,8 @@ cmake_minimum_required(VERSION 2.6)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
    # Optimize Release Build Type with -O2 instead of -O3
-   set(CMAKE_CXX_FLAGS_RELEASE "-O2")  
+   # and switched of compiler warnings (-w)
+   set(CMAKE_CXX_FLAGS_RELEASE "-O2 -w")  
    # Strip release binaries   
    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
