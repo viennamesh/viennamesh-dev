@@ -25,20 +25,24 @@
 #include "viennamesh/generation/cervpt.hpp"
 #include "viennamesh/adaptation/orienter.hpp"
 #include "viennamesh/adaptation/hull_quality.hpp"
+#include "viennamesh/generation/netgen.hpp"
 
 template<typename WrappedDataT>
 int meshing(WrappedDataT& wrapped_data)
 {
    typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_hull_mesh_generator_type;
-   cervpt_hull_mesh_generator_type     hull_mesher;       
+   cervpt_hull_mesh_generator_type        hull_mesher;       
 
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
-   orienter_adaptor_type               orienter;
+   orienter_adaptor_type                  orienter;
    
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
-   hull_quality_adaptor_type           hull_quality;                  
+   hull_quality_adaptor_type              hull_quality;                  
 
-   hull_quality(orienter(hull_mesher(wrapped_data)));
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
+   netgen_volume_mesh_generator_type      volume_mesher;      
+
+   volume_mesher(hull_quality(orienter(hull_mesher(wrapped_data))));
 
    return 0;
 }

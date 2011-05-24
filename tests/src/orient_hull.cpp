@@ -25,7 +25,7 @@
 #include "viennamesh/adaptation/orienter.hpp"
 
 template<typename WrappedDataT>
-int adapting_hull(WrappedDataT& wrapped_data)
+int meshing(WrappedDataT& wrapped_data)
 {
    typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_hull_mesh_generator_type;
    cervpt_hull_mesh_generator_type     hull_mesher;       
@@ -53,7 +53,7 @@ int process_file(std::string filename)
       typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>      bnd_wrapper_type;
       bnd_wrapper_type                    wrapped_data(my_bnd_reader);      
 
-      adapting_hull(wrapped_data);
+      meshing(wrapped_data);
    }
    else
    if(input_extension == "hin")
@@ -64,7 +64,7 @@ int process_file(std::string filename)
       typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>      hin_wrapper_type;
       hin_wrapper_type                    wrapped_data(my_hin_reader);      
 
-      adapting_hull(wrapped_data);
+      meshing(wrapped_data);
    }
    else
    {

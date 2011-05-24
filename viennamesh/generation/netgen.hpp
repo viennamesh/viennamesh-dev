@@ -232,12 +232,12 @@ public:
    // ### Meshing Functor for a ViennaGrid domain
    //
    // -------------------------------------------------------------------------------------
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >& hull_domain) // default meshing
+   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain) // default meshing
    {
       return (*this)(hull_domain, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
    }   
    template<typename ParametersMapT>
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >& hull_domain, 
+   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain, 
                           ParametersMapT const& paras )  // TODO provide ct-test if fusion::map
    {
       // redirect to reference implementation 
@@ -245,7 +245,7 @@ public:
       return (*this)(hull_domain, paras_new);
    }
    template<typename ParametersMapT>
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >& hull_domain,
+   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain,
                           ParametersMapT & paras)   // TODO provide ct-test if fusion::map
    {  
       typedef typename viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
