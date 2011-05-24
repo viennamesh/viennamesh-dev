@@ -38,13 +38,8 @@ int adapting_hull(WrappedDataT& wrapped_data)
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
    hull_quality_adaptor_type           hull_quality;                  
 
-   try{
-      hull_quality(orienter(hull_mesher(wrapped_data)));
-   }
-   catch(...)
-   {
-      return -1;
-   }
+   hull_quality(orienter(hull_mesher(wrapped_data)));
+
    return 0;
 }
 
