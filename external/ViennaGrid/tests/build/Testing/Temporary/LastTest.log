@@ -1,0 +1,1904 @@
+Start testing: Apr 15 13:47 CEST
+----------------------------------------------------------
+1/6 Testing: coboundary
+1/6 Test: coboundary
+Command: "/home/weinbub/git/ViennaGrid/tests/build/coboundary"
+Directory: /home/weinbub/git/ViennaGrid/tests/build
+"coboundary" start time: Apr 15 13:47 CEST
+Output:
+----------------------------------------------------------
+*****************
+* Test started! *
+*****************
+* sgf_reader::operator(): Reading file ../../examples/data/square8.sgf
+*
+* Test 2: Iteration over all edges adjacent to each vertex
+*
+Vertex (0x222f3b0) 0: 0 0
+---- Line 0x222fa38 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+---- Line 0x222fab8 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+
+
+Vertex (0x222f3c8) 1: 0.5 0
+---- Line 0x222fa38 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+---- Line 0x222fd78 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+---- Line 0x222fb38 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Line 0x222fc18 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+
+
+Vertex (0x222f3e0) 2: 1 0
+---- Line 0x222fd78 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+---- Line 0x222fdf8 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Line 0x222fed8 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+
+
+Vertex (0x222f3f8) 3: 0 0.5
+---- Line 0x222fab8 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Line 0x222fb38 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Line 0x222fc98 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Line 0x2230038 ---------
+* Vertices: 
+Vertex 0 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+
+
+Vertex (0x222f410) 4: 0.5 0.5
+---- Line 0x222fc18 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Line 0x222fdf8 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Line 0x222fc98 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Line 0x222ff58 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Line 0x22300b8 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Line 0x2230198 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+Vertex (0x222f428) 5: 1 0.5
+---- Line 0x222fed8 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+---- Line 0x222ff58 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Line 0x22302f8 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Line 0x22303d8 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f470): Vertex (0x222f470) 8: 1 1
+
+
+Vertex (0x222f440) 6: 0 1
+---- Line 0x2230038 ---------
+* Vertices: 
+Vertex 0 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Line 0x22300b8 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Line 0x2230218 ---------
+* Vertices: 
+Vertex 0 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+
+
+Vertex (0x222f458) 7: 0.5 1
+---- Line 0x2230198 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Line 0x22302f8 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Line 0x2230218 ---------
+* Vertices: 
+Vertex 0 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Line 0x2230458 ---------
+* Vertices: 
+Vertex 0 (0x222f470): Vertex (0x222f470) 8: 1 1
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+Vertex (0x222f470) 8: 1 1
+---- Line 0x22303d8 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f470): Vertex (0x222f470) 8: 1 1
+---- Line 0x2230458 ---------
+* Vertices: 
+Vertex 0 (0x222f470): Vertex (0x222f470) 8: 1 1
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+*
+* Test 2: Iteration over all cells adjacent to each facet
+*
+---- Line 0x222fa38 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+---- Triangle 0x222f490 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 2 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+
+
+---- Line 0x222fab8 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Triangle 0x222f490 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 2 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+
+
+---- Line 0x222fd78 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+---- Triangle 0x222f5a0 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 2 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+
+
+---- Line 0x222fb38 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Triangle 0x222f490 ---------
+* Vertices: 
+Vertex 0 (0x222f3b0): Vertex (0x222f3b0) 0: 0 0
+Vertex 1 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 2 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Triangle 0x222f518 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 2 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+
+
+---- Line 0x222fc18 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Triangle 0x222f518 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 2 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Triangle 0x222f5a0 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 2 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+
+
+---- Line 0x222fdf8 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Triangle 0x222f5a0 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 2 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Triangle 0x222f628 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 2 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+
+
+---- Line 0x222fed8 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+---- Triangle 0x222f628 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 2 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+
+
+---- Line 0x222fc98 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Triangle 0x222f518 ---------
+* Vertices: 
+Vertex 0 (0x222f3c8): Vertex (0x222f3c8) 1: 0.5 0
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 2 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+---- Triangle 0x222f6b0 ---------
+* Vertices: 
+Vertex 0 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 2 (0x222f440): Vertex (0x222f440) 6: 0 1
+
+
+---- Line 0x2230038 ---------
+* Vertices: 
+Vertex 0 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Triangle 0x222f6b0 ---------
+* Vertices: 
+Vertex 0 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 2 (0x222f440): Vertex (0x222f440) 6: 0 1
+
+
+---- Line 0x222ff58 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Triangle 0x222f628 ---------
+* Vertices: 
+Vertex 0 (0x222f3e0): Vertex (0x222f3e0) 2: 1 0
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 2 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+---- Triangle 0x222f7c0 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 2 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+---- Line 0x22300b8 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Triangle 0x222f6b0 ---------
+* Vertices: 
+Vertex 0 (0x222f3f8): Vertex (0x222f3f8) 3: 0 0.5
+Vertex 1 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 2 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Triangle 0x222f738 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+Vertex 2 (0x222f440): Vertex (0x222f440) 6: 0 1
+
+
+---- Line 0x2230198 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Triangle 0x222f738 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+Vertex 2 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Triangle 0x222f7c0 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 2 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+---- Line 0x22302f8 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Triangle 0x222f7c0 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 2 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Triangle 0x222f848 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f470): Vertex (0x222f470) 8: 1 1
+Vertex 2 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+---- Line 0x22303d8 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f470): Vertex (0x222f470) 8: 1 1
+---- Triangle 0x222f848 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f470): Vertex (0x222f470) 8: 1 1
+Vertex 2 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+---- Line 0x2230218 ---------
+* Vertices: 
+Vertex 0 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+Vertex 1 (0x222f440): Vertex (0x222f440) 6: 0 1
+---- Triangle 0x222f738 ---------
+* Vertices: 
+Vertex 0 (0x222f410): Vertex (0x222f410) 4: 0.5 0.5
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+Vertex 2 (0x222f440): Vertex (0x222f440) 6: 0 1
+
+
+---- Line 0x2230458 ---------
+* Vertices: 
+Vertex 0 (0x222f470): Vertex (0x222f470) 8: 1 1
+Vertex 1 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+---- Triangle 0x222f848 ---------
+* Vertices: 
+Vertex 0 (0x222f428): Vertex (0x222f428) 5: 1 0.5
+Vertex 1 (0x222f470): Vertex (0x222f470) 8: 1 1
+Vertex 2 (0x222f458): Vertex (0x222f458) 7: 0.5 1
+
+
+*******************************
+* Test finished successfully! *
+*******************************
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"coboundary" end time: Apr 15 13:47 CEST
+"coboundary" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: domain
+2/6 Test: domain
+Command: "/home/weinbub/git/ViennaGrid/tests/build/domain"
+Directory: /home/weinbub/git/ViennaGrid/tests/build
+"domain" start time: Apr 15 13:47 CEST
+Output:
+----------------------------------------------------------
+*****************
+* Test started! *
+*****************
+* instantiating 21u domain.. 
+* instantiating 22u domain.. 
+* instantiating 32u domain.. 
+* instantiating 33u domain.. 
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"domain" end time: Apr 15 13:47 CEST
+"domain" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: hypercube
+3/6 Test: hypercube
+Command: "/home/weinbub/git/ViennaGrid/tests/build/hypercube"
+Directory: /home/weinbub/git/ViennaGrid/tests/build
+"hypercube" start time: Apr 15 13:47 CEST
+Output:
+----------------------------------------------------------
+*****************
+* Test started! *
+*****************
+Adding vertices to segment:
+Vertices: 
+Vertex (0x9bc570) 0: 0 0 0
+Vertex (0x9bc590) 1: 1 0 0
+Vertex (0x9bc5b0) 2: 1 1 0
+Vertex (0x9bc5d0) 3: 0 1 0
+Vertex (0x9bc5f0) 4: 0 0 1
+Vertex (0x9bc610) 5: 1 0 1
+Vertex (0x9bc630) 6: 1 1 1
+Vertex (0x9bc650) 7: 0 1 1
+Vertex (0x9bc670) 8: 2 0 0
+Vertex (0x9bc690) 9: 2 1 0
+Vertex (0x9bc6b0) 10: 2 0 1
+Vertex (0x9bc6d0) 11: 2 1 1
+Edges: 
+---- Line 0x9bcf08 ---------
+   * Level 0: 
+      Vertex (0x9bc570) 0: 0 0 0
+      Vertex (0x9bc590) 1: 1 0 0
+---- Line 0x9bd088 ---------
+   * Level 0: 
+      Vertex (0x9bc5d0) 3: 0 1 0
+      Vertex (0x9bc570) 0: 0 0 0
+---- Line 0x9bd108 ---------
+   * Level 0: 
+      Vertex (0x9bc570) 0: 0 0 0
+      Vertex (0x9bc5f0) 4: 0 0 1
+---- Line 0x9bcf88 ---------
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+---- Line 0x9bd188 ---------
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc610) 5: 1 0 1
+---- Line 0x9be198 ---------
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc670) 8: 2 0 0
+---- Line 0x9bd008 ---------
+   * Level 0: 
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc5d0) 3: 0 1 0
+---- Line 0x9bd208 ---------
+   * Level 0: 
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc630) 6: 1 1 1
+---- Line 0x9be298 ---------
+   * Level 0: 
+      Vertex (0x9bc690) 9: 2 1 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+---- Line 0x9bd288 ---------
+   * Level 0: 
+      Vertex (0x9bc5d0) 3: 0 1 0
+      Vertex (0x9bc650) 7: 0 1 1
+---- Line 0x9bd308 ---------
+   * Level 0: 
+      Vertex (0x9bc5f0) 4: 0 0 1
+      Vertex (0x9bc610) 5: 1 0 1
+---- Line 0x9bd488 ---------
+   * Level 0: 
+      Vertex (0x9bc650) 7: 0 1 1
+      Vertex (0x9bc5f0) 4: 0 0 1
+---- Line 0x9bd388 ---------
+   * Level 0: 
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc630) 6: 1 1 1
+---- Line 0x9be418 ---------
+   * Level 0: 
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc6b0) 10: 2 0 1
+---- Line 0x9bd408 ---------
+   * Level 0: 
+      Vertex (0x9bc630) 6: 1 1 1
+      Vertex (0x9bc650) 7: 0 1 1
+---- Line 0x9be518 ---------
+   * Level 0: 
+      Vertex (0x9bc6d0) 11: 2 1 1
+      Vertex (0x9bc630) 6: 1 1 1
+---- Line 0x9be218 ---------
+   * Level 0: 
+      Vertex (0x9bc670) 8: 2 0 0
+      Vertex (0x9bc690) 9: 2 1 0
+---- Line 0x9be318 ---------
+   * Level 0: 
+      Vertex (0x9bc670) 8: 2 0 0
+      Vertex (0x9bc6b0) 10: 2 0 1
+---- Line 0x9be398 ---------
+   * Level 0: 
+      Vertex (0x9bc690) 9: 2 1 0
+      Vertex (0x9bc6d0) 11: 2 1 1
+---- Line 0x9be498 ---------
+   * Level 0: 
+      Vertex (0x9bc6b0) 10: 2 0 1
+      Vertex (0x9bc6d0) 11: 2 1 1
+Facets: 
+---- Quadrilateral 0x9bd6b8 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd088 ---------
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc570) 0: 0 0 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd008 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc5d0) 3: 0 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bcf88 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bcf08 ---------
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc590) 1: 1 0 0
+   * Level 0: 
+      Vertex (0x9bc570) 0: 0 0 0
+      Vertex (0x9bc5d0) 3: 0 1 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc590) 1: 1 0 0
+---- Quadrilateral 0x9bd858 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bcf08 ---------
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc590) 1: 1 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd188 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd308 ---------
+         * Level 0: 
+            Vertex (0x9bc5f0) 4: 0 0 1
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd108 ---------
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc5f0) 4: 0 0 1
+   * Level 0: 
+      Vertex (0x9bc570) 0: 0 0 0
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc5f0) 4: 0 0 1
+---- Quadrilateral 0x9bdd38 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd088 ---------
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc570) 0: 0 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd108 ---------
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc5f0) 4: 0 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd488 ---------
+         * Level 0: 
+            Vertex (0x9bc650) 7: 0 1 1
+            Vertex (0x9bc5f0) 4: 0 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd288 ---------
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc650) 7: 0 1 1
+   * Level 0: 
+      Vertex (0x9bc5d0) 3: 0 1 0
+      Vertex (0x9bc570) 0: 0 0 0
+      Vertex (0x9bc5f0) 4: 0 0 1
+      Vertex (0x9bc650) 7: 0 1 1
+---- Quadrilateral 0x9bd9f8 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bcf88 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd208 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd388 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd188 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc610) 5: 1 0 1
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc630) 6: 1 1 1
+      Vertex (0x9bc610) 5: 1 0 1
+---- Quadrilateral 0x9be6b8 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bcf88 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be298 ---------
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be218 ---------
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc690) 9: 2 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be198 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc670) 8: 2 0 0
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc690) 9: 2 1 0
+      Vertex (0x9bc670) 8: 2 0 0
+---- Quadrilateral 0x9be858 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be198 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc670) 8: 2 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be318 ---------
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be418 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd188 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc610) 5: 1 0 1
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc670) 8: 2 0 0
+      Vertex (0x9bc6b0) 10: 2 0 1
+      Vertex (0x9bc610) 5: 1 0 1
+---- Quadrilateral 0x9bdb98 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd008 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc5d0) 3: 0 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd288 ---------
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd408 ---------
+         * Level 0: 
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd208 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+   * Level 0: 
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc5d0) 3: 0 1 0
+      Vertex (0x9bc650) 7: 0 1 1
+      Vertex (0x9bc630) 6: 1 1 1
+---- Quadrilateral 0x9beb98 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be298 ---------
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd208 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be518 ---------
+         * Level 0: 
+            Vertex (0x9bc6d0) 11: 2 1 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be398 ---------
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc6d0) 11: 2 1 1
+   * Level 0: 
+      Vertex (0x9bc690) 9: 2 1 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc630) 6: 1 1 1
+      Vertex (0x9bc6d0) 11: 2 1 1
+---- Quadrilateral 0x9bded8 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd308 ---------
+         * Level 0: 
+            Vertex (0x9bc5f0) 4: 0 0 1
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd388 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd408 ---------
+         * Level 0: 
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd488 ---------
+         * Level 0: 
+            Vertex (0x9bc650) 7: 0 1 1
+            Vertex (0x9bc5f0) 4: 0 0 1
+   * Level 0: 
+      Vertex (0x9bc5f0) 4: 0 0 1
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc630) 6: 1 1 1
+      Vertex (0x9bc650) 7: 0 1 1
+---- Quadrilateral 0x9bed38 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be418 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be498 ---------
+         * Level 0: 
+            Vertex (0x9bc6b0) 10: 2 0 1
+            Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be518 ---------
+         * Level 0: 
+            Vertex (0x9bc6d0) 11: 2 1 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd388 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc630) 6: 1 1 1
+   * Level 0: 
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc6b0) 10: 2 0 1
+      Vertex (0x9bc6d0) 11: 2 1 1
+      Vertex (0x9bc630) 6: 1 1 1
+---- Quadrilateral 0x9be9f8 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be218 ---------
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc690) 9: 2 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be398 ---------
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be498 ---------
+         * Level 0: 
+            Vertex (0x9bc6b0) 10: 2 0 1
+            Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9be318 ---------
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc6b0) 10: 2 0 1
+   * Level 0: 
+      Vertex (0x9bc670) 8: 2 0 0
+      Vertex (0x9bc690) 9: 2 1 0
+      Vertex (0x9bc6d0) 11: 2 1 1
+      Vertex (0x9bc6b0) 10: 2 0 1
+Cells: 
+---- Hexahedron 0x9bc700 ---------
+   * Level 2: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bd6b8 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd088 ---------
+               * Level 0: 
+                  Vertex (0x9bc5d0) 3: 0 1 0
+                  Vertex (0x9bc570) 0: 0 0 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd008 ---------
+               * Level 0: 
+                  Vertex (0x9bc5b0) 2: 1 1 0
+                  Vertex (0x9bc5d0) 3: 0 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bcf88 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bcf08 ---------
+               * Level 0: 
+                  Vertex (0x9bc570) 0: 0 0 0
+                  Vertex (0x9bc590) 1: 1 0 0
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc590) 1: 1 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bd858 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bcf08 ---------
+               * Level 0: 
+                  Vertex (0x9bc570) 0: 0 0 0
+                  Vertex (0x9bc590) 1: 1 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd188 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd308 ---------
+               * Level 0: 
+                  Vertex (0x9bc5f0) 4: 0 0 1
+                  Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd108 ---------
+               * Level 0: 
+                  Vertex (0x9bc570) 0: 0 0 0
+                  Vertex (0x9bc5f0) 4: 0 0 1
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc5f0) 4: 0 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bd9f8 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bcf88 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd208 ---------
+               * Level 0: 
+                  Vertex (0x9bc5b0) 2: 1 1 0
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd388 ---------
+               * Level 0: 
+                  Vertex (0x9bc610) 5: 1 0 1
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd188 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc610) 5: 1 0 1
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bdb98 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd008 ---------
+               * Level 0: 
+                  Vertex (0x9bc5b0) 2: 1 1 0
+                  Vertex (0x9bc5d0) 3: 0 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd288 ---------
+               * Level 0: 
+                  Vertex (0x9bc5d0) 3: 0 1 0
+                  Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd408 ---------
+               * Level 0: 
+                  Vertex (0x9bc630) 6: 1 1 1
+                  Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd208 ---------
+               * Level 0: 
+                  Vertex (0x9bc5b0) 2: 1 1 0
+                  Vertex (0x9bc630) 6: 1 1 1
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc650) 7: 0 1 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bdd38 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd088 ---------
+               * Level 0: 
+                  Vertex (0x9bc5d0) 3: 0 1 0
+                  Vertex (0x9bc570) 0: 0 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd108 ---------
+               * Level 0: 
+                  Vertex (0x9bc570) 0: 0 0 0
+                  Vertex (0x9bc5f0) 4: 0 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd488 ---------
+               * Level 0: 
+                  Vertex (0x9bc650) 7: 0 1 1
+                  Vertex (0x9bc5f0) 4: 0 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd288 ---------
+               * Level 0: 
+                  Vertex (0x9bc5d0) 3: 0 1 0
+                  Vertex (0x9bc650) 7: 0 1 1
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc5f0) 4: 0 0 1
+            Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bded8 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd308 ---------
+               * Level 0: 
+                  Vertex (0x9bc5f0) 4: 0 0 1
+                  Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd388 ---------
+               * Level 0: 
+                  Vertex (0x9bc610) 5: 1 0 1
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd408 ---------
+               * Level 0: 
+                  Vertex (0x9bc630) 6: 1 1 1
+                  Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd488 ---------
+               * Level 0: 
+                  Vertex (0x9bc650) 7: 0 1 1
+                  Vertex (0x9bc5f0) 4: 0 0 1
+         * Level 0: 
+            Vertex (0x9bc5f0) 4: 0 0 1
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc650) 7: 0 1 1
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bcf08 ---------
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc590) 1: 1 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bcf88 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd008 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc5d0) 3: 0 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd088 ---------
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc570) 0: 0 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd108 ---------
+         * Level 0: 
+            Vertex (0x9bc570) 0: 0 0 0
+            Vertex (0x9bc5f0) 4: 0 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd188 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd208 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd288 ---------
+         * Level 0: 
+            Vertex (0x9bc5d0) 3: 0 1 0
+            Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd308 ---------
+         * Level 0: 
+            Vertex (0x9bc5f0) 4: 0 0 1
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd388 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd408 ---------
+         * Level 0: 
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc650) 7: 0 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd488 ---------
+         * Level 0: 
+            Vertex (0x9bc650) 7: 0 1 1
+            Vertex (0x9bc5f0) 4: 0 0 1
+   * Level 0: 
+      Vertex (0x9bc570) 0: 0 0 0
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc5d0) 3: 0 1 0
+      Vertex (0x9bc5f0) 4: 0 0 1
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc630) 6: 1 1 1
+      Vertex (0x9bc650) 7: 0 1 1
+---- Hexahedron 0x9bc990 ---------
+   * Level 2: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9be6b8 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bcf88 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be298 ---------
+               * Level 0: 
+                  Vertex (0x9bc690) 9: 2 1 0
+                  Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be218 ---------
+               * Level 0: 
+                  Vertex (0x9bc670) 8: 2 0 0
+                  Vertex (0x9bc690) 9: 2 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be198 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc670) 8: 2 0 0
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc670) 8: 2 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9be858 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be198 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc670) 8: 2 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be318 ---------
+               * Level 0: 
+                  Vertex (0x9bc670) 8: 2 0 0
+                  Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be418 ---------
+               * Level 0: 
+                  Vertex (0x9bc610) 5: 1 0 1
+                  Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd188 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc610) 5: 1 0 1
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc6b0) 10: 2 0 1
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9be9f8 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be218 ---------
+               * Level 0: 
+                  Vertex (0x9bc670) 8: 2 0 0
+                  Vertex (0x9bc690) 9: 2 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be398 ---------
+               * Level 0: 
+                  Vertex (0x9bc690) 9: 2 1 0
+                  Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be498 ---------
+               * Level 0: 
+                  Vertex (0x9bc6b0) 10: 2 0 1
+                  Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be318 ---------
+               * Level 0: 
+                  Vertex (0x9bc670) 8: 2 0 0
+                  Vertex (0x9bc6b0) 10: 2 0 1
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc6d0) 11: 2 1 1
+            Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9beb98 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be298 ---------
+               * Level 0: 
+                  Vertex (0x9bc690) 9: 2 1 0
+                  Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd208 ---------
+               * Level 0: 
+                  Vertex (0x9bc5b0) 2: 1 1 0
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be518 ---------
+               * Level 0: 
+                  Vertex (0x9bc6d0) 11: 2 1 1
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9be398 ---------
+               * Level 0: 
+                  Vertex (0x9bc690) 9: 2 1 0
+                  Vertex (0x9bc6d0) 11: 2 1 1
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,2->3,3->2,
+      ---- Quadrilateral 0x9bd9f8 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bcf88 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9bd208 ---------
+               * Level 0: 
+                  Vertex (0x9bc5b0) 2: 1 1 0
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd388 ---------
+               * Level 0: 
+                  Vertex (0x9bc610) 5: 1 0 1
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd188 ---------
+               * Level 0: 
+                  Vertex (0x9bc590) 1: 1 0 0
+                  Vertex (0x9bc610) 5: 1 0 1
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,2->2,3->3,
+      ---- Quadrilateral 0x9bed38 ---------
+         * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be418 ---------
+               * Level 0: 
+                  Vertex (0x9bc610) 5: 1 0 1
+                  Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be498 ---------
+               * Level 0: 
+                  Vertex (0x9bc6b0) 10: 2 0 1
+                  Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+            ---- Line 0x9be518 ---------
+               * Level 0: 
+                  Vertex (0x9bc6d0) 11: 2 1 1
+                  Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+            ---- Line 0x9bd388 ---------
+               * Level 0: 
+                  Vertex (0x9bc610) 5: 1 0 1
+                  Vertex (0x9bc630) 6: 1 1 1
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc6b0) 10: 2 0 1
+            Vertex (0x9bc6d0) 11: 2 1 1
+            Vertex (0x9bc630) 6: 1 1 1
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be198 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc670) 8: 2 0 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be218 ---------
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc690) 9: 2 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be298 ---------
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bcf88 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc5b0) 2: 1 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd188 ---------
+         * Level 0: 
+            Vertex (0x9bc590) 1: 1 0 0
+            Vertex (0x9bc610) 5: 1 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be318 ---------
+         * Level 0: 
+            Vertex (0x9bc670) 8: 2 0 0
+            Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be398 ---------
+         * Level 0: 
+            Vertex (0x9bc690) 9: 2 1 0
+            Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9bd208 ---------
+         * Level 0: 
+            Vertex (0x9bc5b0) 2: 1 1 0
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be418 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc6b0) 10: 2 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be498 ---------
+         * Level 0: 
+            Vertex (0x9bc6b0) 10: 2 0 1
+            Vertex (0x9bc6d0) 11: 2 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x9be518 ---------
+         * Level 0: 
+            Vertex (0x9bc6d0) 11: 2 1 1
+            Vertex (0x9bc630) 6: 1 1 1
+Permutation (local to global) for element to come:
+0->1,1->0,
+      ---- Line 0x9bd388 ---------
+         * Level 0: 
+            Vertex (0x9bc610) 5: 1 0 1
+            Vertex (0x9bc630) 6: 1 1 1
+   * Level 0: 
+      Vertex (0x9bc590) 1: 1 0 0
+      Vertex (0x9bc670) 8: 2 0 0
+      Vertex (0x9bc690) 9: 2 1 0
+      Vertex (0x9bc5b0) 2: 1 1 0
+      Vertex (0x9bc610) 5: 1 0 1
+      Vertex (0x9bc6b0) 10: 2 0 1
+      Vertex (0x9bc6d0) 11: 2 1 1
+      Vertex (0x9bc630) 6: 1 1 1
+*******************************
+* Test finished successfully! *
+*******************************
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"hypercube" end time: Apr 15 13:47 CEST
+"hypercube" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: io
+4/6 Test: io
+Command: "/home/weinbub/git/ViennaGrid/tests/build/io"
+Directory: /home/weinbub/git/ViennaGrid/tests/build
+"io" start time: Apr 15 13:47 CEST
+Output:
+----------------------------------------------------------
+*****************
+* Test started! *
+*****************
+* sgf_reader::operator(): Reading file ../examples/data/cube384.sgf
+Cannot open file ../examples/data/cube384.sgf
+File-Reader failed. Aborting program...
+*******************************
+* Test finished successfully! *
+*******************************
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"io" end time: Apr 15 13:47 CEST
+"io" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/6 Testing: segment
+5/6 Test: segment
+Command: "/home/weinbub/git/ViennaGrid/tests/build/segment"
+Directory: /home/weinbub/git/ViennaGrid/tests/build
+"segment" start time: Apr 15 13:47 CEST
+Output:
+----------------------------------------------------------
+*****************
+* Test started! *
+*****************
+Adding vertices to domain...
+0x1bea0f0
+0x1bea108
+0x1bea120
+0x1bea138
+0x1bea150
+0x1bea168
+Creating segments...
+Adding cells to segments...
+Filling segment 0...
+Filling segment 1...
+Vertices in Segment 0: 4
+Vertices in Segment 1: 4
+Cells in Segment 0: 2
+Cells in Segment 1: 2
+Printing vertices in segment 0:
+-- non-const --
+Vertex (0x1bea0f0) 0: 0 0
+Vertex (0x1bea108) 1: 0.5 0
+Vertex (0x1bea138) 3: 0 1
+Vertex (0x1bea150) 4: 0.5 1
+-- const --
+Vertex (0x1bea0f0) 0: 0 0
+Vertex (0x1bea108) 1: 0.5 0
+Vertex (0x1bea138) 3: 0 1
+Vertex (0x1bea150) 4: 0.5 1
+Printing vertices in segment 1:
+-- non-const --
+Vertex (0x1bea108) 1: 0.5 0
+Vertex (0x1bea120) 2: 1 0
+Vertex (0x1bea150) 4: 0.5 1
+Vertex (0x1bea168) 5: 1 1
+-- const --
+Vertex (0x1bea108) 1: 0.5 0
+Vertex (0x1bea120) 2: 1 0
+Vertex (0x1bea150) 4: 0.5 1
+Vertex (0x1bea168) 5: 1 1
+Printing cells in segment 0:
+-- non-const --
+---- Triangle 0x1bea2a0 ---------
+* Vertices: 
+Vertex 0 (0x1bea0f0): Vertex (0x1bea0f0) 0: 0 0
+Vertex 1 (0x1bea108): Vertex (0x1bea108) 1: 0.5 0
+Vertex 2 (0x1bea138): Vertex (0x1bea138) 3: 0 1
+---- Triangle 0x1bea328 ---------
+* Vertices: 
+Vertex 0 (0x1bea108): Vertex (0x1bea108) 1: 0.5 0
+Vertex 1 (0x1bea150): Vertex (0x1bea150) 4: 0.5 1
+Vertex 2 (0x1bea138): Vertex (0x1bea138) 3: 0 1
+-- const --
+---- Triangle 0x1bea2a0 ---------
+* Vertices: 
+Vertex 0 (0x1bea0f0): Vertex (0x1bea0f0) 0: 0 0
+Vertex 1 (0x1bea108): Vertex (0x1bea108) 1: 0.5 0
+Vertex 2 (0x1bea138): Vertex (0x1bea138) 3: 0 1
+---- Triangle 0x1bea328 ---------
+* Vertices: 
+Vertex 0 (0x1bea108): Vertex (0x1bea108) 1: 0.5 0
+Vertex 1 (0x1bea150): Vertex (0x1bea150) 4: 0.5 1
+Vertex 2 (0x1bea138): Vertex (0x1bea138) 3: 0 1
+Printing cells in segment 1:
+-- non-const --
+---- Triangle 0x1bea3b0 ---------
+* Vertices: 
+Vertex 0 (0x1bea108): Vertex (0x1bea108) 1: 0.5 0
+Vertex 1 (0x1bea120): Vertex (0x1bea120) 2: 1 0
+Vertex 2 (0x1bea150): Vertex (0x1bea150) 4: 0.5 1
+---- Triangle 0x1bea438 ---------
+* Vertices: 
+Vertex 0 (0x1bea120): Vertex (0x1bea120) 2: 1 0
+Vertex 1 (0x1bea168): Vertex (0x1bea168) 5: 1 1
+Vertex 2 (0x1bea150): Vertex (0x1bea150) 4: 0.5 1
+-- const --
+---- Triangle 0x1bea3b0 ---------
+* Vertices: 
+Vertex 0 (0x1bea108): Vertex (0x1bea108) 1: 0.5 0
+Vertex 1 (0x1bea120): Vertex (0x1bea120) 2: 1 0
+Vertex 2 (0x1bea150): Vertex (0x1bea150) 4: 0.5 1
+---- Triangle 0x1bea438 ---------
+* Vertices: 
+Vertex 0 (0x1bea120): Vertex (0x1bea120) 2: 1 0
+Vertex 1 (0x1bea168): Vertex (0x1bea168) 5: 1 1
+Vertex 2 (0x1bea150): Vertex (0x1bea150) 4: 0.5 1
+*******************************
+* Test finished successfully! *
+*******************************
+Adding vertices to domain...
+0x1bea0f0
+0x1bea110
+0x1bea130
+0x1bea150
+0x1bea170
+0x1bea190
+0x1bea1b0
+Creating segments...
+Adding cells to segments...
+Filling segment 0...
+Filling segment 1...
+Vertices in Segment 0: 5
+Vertices in Segment 1: 5
+Cells in Segment 0: 2
+Cells in Segment 1: 2
+Printing vertices in segment 0:
+-- non-const --
+Vertex (0x1bea0f0) 0: 0 0 0
+Vertex (0x1bea110) 1: 0.5 0 0
+Vertex (0x1bea150) 3: 0 1 0
+Vertex (0x1bea170) 4: 0.5 1 0
+Vertex (0x1bea1b0) 6: 0.5 0 1
+-- const --
+Vertex (0x1bea0f0) 0: 0 0 0
+Vertex (0x1bea110) 1: 0.5 0 0
+Vertex (0x1bea150) 3: 0 1 0
+Vertex (0x1bea170) 4: 0.5 1 0
+Vertex (0x1bea1b0) 6: 0.5 0 1
+Printing vertices in segment 1:
+-- non-const --
+Vertex (0x1bea110) 1: 0.5 0 0
+Vertex (0x1bea130) 2: 1 0 0
+Vertex (0x1bea170) 4: 0.5 1 0
+Vertex (0x1bea190) 5: 1 1 0
+Vertex (0x1bea1b0) 6: 0.5 0 1
+-- const --
+Vertex (0x1bea110) 1: 0.5 0 0
+Vertex (0x1bea130) 2: 1 0 0
+Vertex (0x1bea170) 4: 0.5 1 0
+Vertex (0x1bea190) 5: 1 1 0
+Vertex (0x1bea1b0) 6: 0.5 0 1
+Printing cells in segment 0:
+-- non-const --
+---- Tetrahedron 0x1beb4f0 ---------
+* Vertices: 
+Vertex 0 (0x1bea0f0): Vertex (0x1bea0f0) 0: 0 0 0
+Vertex 1 (0x1bea110): Vertex (0x1bea110) 1: 0.5 0 0
+Vertex 2 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 3 (0x1bea150): Vertex (0x1bea150) 3: 0 1 0
+---- Tetrahedron 0x1beb660 ---------
+* Vertices: 
+Vertex 0 (0x1bea110): Vertex (0x1bea110) 1: 0.5 0 0
+Vertex 1 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 2 (0x1bea150): Vertex (0x1bea150) 3: 0 1 0
+Vertex 3 (0x1bea170): Vertex (0x1bea170) 4: 0.5 1 0
+-- const --
+---- Tetrahedron 0x1beb4f0 ---------
+* Vertices: 
+Vertex 0 (0x1bea0f0): Vertex (0x1bea0f0) 0: 0 0 0
+Vertex 1 (0x1bea110): Vertex (0x1bea110) 1: 0.5 0 0
+Vertex 2 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 3 (0x1bea150): Vertex (0x1bea150) 3: 0 1 0
+---- Tetrahedron 0x1beb660 ---------
+* Vertices: 
+Vertex 0 (0x1bea110): Vertex (0x1bea110) 1: 0.5 0 0
+Vertex 1 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 2 (0x1bea150): Vertex (0x1bea150) 3: 0 1 0
+Vertex 3 (0x1bea170): Vertex (0x1bea170) 4: 0.5 1 0
+Printing cells in segment 1:
+-- non-const --
+---- Tetrahedron 0x1beb7d0 ---------
+* Vertices: 
+Vertex 0 (0x1bea110): Vertex (0x1bea110) 1: 0.5 0 0
+Vertex 1 (0x1bea130): Vertex (0x1bea130) 2: 1 0 0
+Vertex 2 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 3 (0x1bea170): Vertex (0x1bea170) 4: 0.5 1 0
+---- Tetrahedron 0x1beb940 ---------
+* Vertices: 
+Vertex 0 (0x1bea130): Vertex (0x1bea130) 2: 1 0 0
+Vertex 1 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 2 (0x1bea170): Vertex (0x1bea170) 4: 0.5 1 0
+Vertex 3 (0x1bea190): Vertex (0x1bea190) 5: 1 1 0
+-- const --
+---- Tetrahedron 0x1beb7d0 ---------
+* Vertices: 
+Vertex 0 (0x1bea110): Vertex (0x1bea110) 1: 0.5 0 0
+Vertex 1 (0x1bea130): Vertex (0x1bea130) 2: 1 0 0
+Vertex 2 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 3 (0x1bea170): Vertex (0x1bea170) 4: 0.5 1 0
+---- Tetrahedron 0x1beb940 ---------
+* Vertices: 
+Vertex 0 (0x1bea130): Vertex (0x1bea130) 2: 1 0 0
+Vertex 1 (0x1bea1b0): Vertex (0x1bea1b0) 6: 0.5 0 1
+Vertex 2 (0x1bea170): Vertex (0x1bea170) 4: 0.5 1 0
+Vertex 3 (0x1bea190): Vertex (0x1bea190) 5: 1 1 0
+*******************************
+* Test finished successfully! *
+*******************************
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"segment" end time: Apr 15 13:47 CEST
+"segment" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/6 Testing: simplex
+6/6 Test: simplex
+Command: "/home/weinbub/git/ViennaGrid/tests/build/simplex"
+Directory: /home/weinbub/git/ViennaGrid/tests/build
+"simplex" start time: Apr 15 13:47 CEST
+Output:
+----------------------------------------------------------
+*****************
+* Test started! *
+*****************
+Adding vertices to domain...
+0x23a50f0
+0x23a5108
+0x23a5120
+0x23a5138
+Adding cells to domain...
+Printing vertices in domain:
+-- non-const --
+Vertex (0x23a50f0) 0: 0 0
+Vertex (0x23a5108) 1: 1 0
+Vertex (0x23a5120) 2: 0 1
+Vertex (0x23a5138) 3: 1 1
+-- const --
+Vertex (0x23a50f0) 0: 0 0
+Vertex (0x23a5108) 1: 1 0
+Vertex (0x23a5120) 2: 0 1
+Vertex (0x23a5138) 3: 1 1
+Printing edges in domain:
+-- non-const --
+---- Line 0x23a53d8 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+---- Line 0x23a5458 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a54d8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a55b8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5138) 3: 1 1
+---- Line 0x23a5638 ---------
+   * Level 0: 
+      Vertex (0x23a5138) 3: 1 1
+      Vertex (0x23a5120) 2: 0 1
+-- const --
+---- Line 0x23a53d8 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+---- Line 0x23a5458 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a54d8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a55b8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5138) 3: 1 1
+---- Line 0x23a5638 ---------
+   * Level 0: 
+      Vertex (0x23a5138) 3: 1 1
+      Vertex (0x23a5120) 2: 0 1
+Printing facets in domain:
+-- non-const --
+---- Line 0x23a53d8 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+---- Line 0x23a5458 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a54d8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a55b8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5138) 3: 1 1
+---- Line 0x23a5638 ---------
+   * Level 0: 
+      Vertex (0x23a5138) 3: 1 1
+      Vertex (0x23a5120) 2: 0 1
+-- const --
+---- Line 0x23a53d8 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+---- Line 0x23a5458 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a54d8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5120) 2: 0 1
+---- Line 0x23a55b8 ---------
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5138) 3: 1 1
+---- Line 0x23a5638 ---------
+   * Level 0: 
+      Vertex (0x23a5138) 3: 1 1
+      Vertex (0x23a5120) 2: 0 1
+Printing cells in domain:
+-- non-const --
+---- Triangle 0x23a51c0 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a53d8 ---------
+         * Level 0: 
+            Vertex (0x23a50f0) 0: 0 0
+            Vertex (0x23a5108) 1: 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a5458 ---------
+         * Level 0: 
+            Vertex (0x23a50f0) 0: 0 0
+            Vertex (0x23a5120) 2: 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a54d8 ---------
+         * Level 0: 
+            Vertex (0x23a5108) 1: 1 0
+            Vertex (0x23a5120) 2: 0 1
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5120) 2: 0 1
+---- Triangle 0x23a5248 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a55b8 ---------
+         * Level 0: 
+            Vertex (0x23a5108) 1: 1 0
+            Vertex (0x23a5138) 3: 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a54d8 ---------
+         * Level 0: 
+            Vertex (0x23a5108) 1: 1 0
+            Vertex (0x23a5120) 2: 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a5638 ---------
+         * Level 0: 
+            Vertex (0x23a5138) 3: 1 1
+            Vertex (0x23a5120) 2: 0 1
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5138) 3: 1 1
+      Vertex (0x23a5120) 2: 0 1
+-- const --
+---- Triangle 0x23a51c0 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a53d8 ---------
+         * Level 0: 
+            Vertex (0x23a50f0) 0: 0 0
+            Vertex (0x23a5108) 1: 1 0
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a5458 ---------
+         * Level 0: 
+            Vertex (0x23a50f0) 0: 0 0
+            Vertex (0x23a5120) 2: 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a54d8 ---------
+         * Level 0: 
+            Vertex (0x23a5108) 1: 1 0
+            Vertex (0x23a5120) 2: 0 1
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5120) 2: 0 1
+---- Triangle 0x23a5248 ---------
+   * Level 1: (FullHandling)
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a55b8 ---------
+         * Level 0: 
+            Vertex (0x23a5108) 1: 1 0
+            Vertex (0x23a5138) 3: 1 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a54d8 ---------
+         * Level 0: 
+            Vertex (0x23a5108) 1: 1 0
+            Vertex (0x23a5120) 2: 0 1
+Permutation (local to global) for element to come:
+0->0,1->1,
+      ---- Line 0x23a5638 ---------
+         * Level 0: 
+            Vertex (0x23a5138) 3: 1 1
+            Vertex (0x23a5120) 2: 0 1
+   * Level 0: 
+      Vertex (0x23a5108) 1: 1 0
+      Vertex (0x23a5138) 3: 1 1
+      Vertex (0x23a5120) 2: 0 1
+Test for const iterator: 
+---- Line 0x23a53d8 ---------
+   * Level 0: 
+      Vertex (0x23a50f0) 0: 0 0
+      Vertex (0x23a5108) 1: 1 0
+Vertex (0x23a50f0) 0: 0 0
+Vertex (0x23a5108) 1: 1 0
+*******************************
+* Test finished successfully! *
+*******************************
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"simplex" end time: Apr 15 13:47 CEST
+"simplex" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 15 13:47 CEST

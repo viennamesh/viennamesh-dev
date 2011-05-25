@@ -69,14 +69,14 @@ SET(ENABLE_GTSIO OFF)
 #
 # ------------------------------------------------------------------------------
 
-INCLUDE_DIRECTORIES("../ViennaGrid/")
-INCLUDE_DIRECTORIES("../ViennaData/")
-INCLUDE_DIRECTORIES("../ViennaUtils/")
-INCLUDE_DIRECTORIES("../ViennaUtils/external/")
+INCLUDE_DIRECTORIES("external/ViennaGrid/")
+INCLUDE_DIRECTORIES("external/ViennaData/")
+INCLUDE_DIRECTORIES("external/ViennaUtils/")
+INCLUDE_DIRECTORIES("external/ViennaUtils/external/")
 IF(ENABLE_GTSIO)
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
+   INCLUDE_DIRECTORIES("external/ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
+   INCLUDE_DIRECTORIES("external/ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
+   INCLUDE_DIRECTORIES("external/ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
 ENDIF(ENABLE_GTSIO)
 
 # build external libraries

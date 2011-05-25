@@ -1,0 +1,7 @@
+coboundary 1 0.044359
+domain 1 0.00414205
+hypercube 1 0.00705695
+io 1 0.00460601
+segment 1 0.0138688
+simplex 1 0.00515485
+---

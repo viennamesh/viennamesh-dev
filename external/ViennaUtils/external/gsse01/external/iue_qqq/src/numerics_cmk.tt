@@ -1,0 +1,368 @@
+/* ***********************************************************************
+   $Id: numerics_cmk.tt,v 1.2 2002/02/07 11:49:03 wagner Exp $
+
+   Filename: numerics_cmk.tt
+
+   Description:  Sort the nodes of a matrix for a direct solver (templates)
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF  12 May 1996  created
+   CF  12 May 1996  determine sorting function started and done
+   CF  12 May 1996  mergesort function started and done
+   CF  02 Jul 1996  some cleanups and methodology
+   SW  06 Feb 2002  qqq prefixed function names
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_cmk_tt__included__
+#define   __numerics_cmk_tt__included__
+
+
+/* 
+   The following code provides:
+
+   Functions
+   qqqDetermineSorting(A,srt,...)    ... determine a sorting vector for matrix A
+*/
+
+
+/* qqqMergeSort()
+
+   Sort an array with the merge sort algorithm.
+
+   The entries of the array srt[0..len] are sorted such that
+   wgt[srt[i]] <= wgt[srt[j]] if i < j.
+
+   Effort: len * log(len).
+   BogoFlops: 0. */
+#define Index qqqIndex
+inline static void
+qqqMergeSort(
+    Index const         len,	/* Input length of arrays. */
+    Index       * const srt,	/* Input/Output Array to be sorted,
+				   length len. */
+    Index       * const aux,	/* Auxiliary array, length len. */
+    Index const * const wgt	/* Weight array. Length undetermined.
+				   Contains the weights for each srt[i]. */
+    )
+{
+    if (len <= 0) return;
+
+    /* Perform the first rush 'by hand', i.e. quicker */
+    for (Index jj = 0; jj < len - 1; jj += 2)
+    {
+	Index const j1 = srt[jj  ];
+	Index const j2 = srt[jj+1];
+	if (wgt[j1] <= wgt[j2])
+	    aux[jj] = j1, aux[jj+1] = j2;
+	else
+	    aux[jj] = j2, aux[jj+1] = j1;
+    }
+    if (len & 1) aux[len-1] = srt[len-1];
+
+    bool  toaux = true;		/* Last sorting was from src to aux */
+
+    /* The other rushes are more complicated */
+    /* Rush length slen = 2,4,8,... */
+    for (Index slen = 2; slen < len; slen += slen)
+    {
+	toaux  = !toaux;	/* New sorting direction */
+
+	/* Direction of sorting */
+	Index * const src = toaux ? srt : aux;
+	Index * const dst = toaux ? aux : srt;
+	Index s1 = 0;
+
+	while(s1 < len)
+	{
+	    Index       sd  = s1;
+	    Index       s2  = qqqMin(s1 + slen,len);
+	    Index const s1e = s2;
+	    Index const s2e = qqqMin(s2 + slen,len);
+
+	    /* Merge both rushes */
+	    if (s1 != s1e && s2 != s2e)
+		for (;;) {
+		    Index const c1 = wgt[src[s2]];
+		    while (s1 != s1e && wgt[src[s1]] <= c1)
+			dst[sd++] = src[s1++];
+		    if (s1 == s1e) break;
+
+		    Index const c2 = wgt[src[s1]];
+		    while (s2 != s2e && wgt[src[s2]] <= c2)
+			dst[sd++] = src[s2++];
+		    if (s2 == s2e) break;
+		}
+	    /* The rest of the first rush */
+	    while (s1 != s1e)
+		dst[sd++] = src[s1++];
+	    /* The rest of the second rush */
+	    while (s2 != s2e)
+		dst[sd++] = src[s2++];
+
+	    s1 = s2e;
+	}
+    }
+
+    /* If the result is on the aux array, put it to srt */
+    if (toaux)
+	for (Index jj = 0; jj < len; jj++)
+	    srt[jj] = aux[jj];
+}
+#undef Index
+
+
+/* qqqDetermineSorting()
+   
+   Determine a sorting that produces little fill-in with a direct solver.
+
+   For a nonsymmetric matrix A in MCSR format, a sorting vector srt is
+   produced that will give little fill-in when the matrix A is resorted
+   before calling a direct solver.
+
+   The method that is used resembles a Cuthill-McKee sorting, and the
+   final sorting vector is reverted before returning.
+
+   The vector srt contains for each position i the number of the node
+   of A which should be put to that position. It is therefore not well
+   suited for actually resorting the matrix; for that purpose the inverse
+   sorting vector should be produced from srt.
+
+   Errors:
+   If the sorting is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_DETSORT_MISALLOC    ... allocation of auxiliary arrays failed
+
+   Effort: nonzeros(A).
+   BogoFlops: 0.
+   Space: 3 * dimension(A) * sizeof(Index).
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+#define Error     qqqError
+template <class Number>
+bool				/* Sorting vector was determined. */
+qqqDetermineSorting(
+    MCSR       const &A,	/* Input matrix in MCSR format. */
+    Index    * const srt,	/* Output sorting vector.
+				   Length dimension of A. */
+    bool             &discon,	/* Output the matrix consists of
+				   disconnected sub-matrices. */
+    Error            &error	/* Output error information, in case
+				   the return value is false. */
+    )
+{
+    FunctionLog functionLog("qqqDetermineSorting");
+    
+    Index    const n   = A.dimension();
+    Index  * const idx = A.getidx();
+
+    /* Auxiliary arrays */
+    Index * const
+	aux = new Index[qqqMax(n,1)]; /* Auxiliary array for sorting */
+    Index * const
+	wgt = new Index[qqqMax(n,1)]; /* Contains for each node index i the
+				      weight of this node in the matrix,
+				      i.e. the number of nodes not already
+				      sorted to which this node has 
+				      connections. */
+    Index * const
+	rev = new Index[qqqMax(n,1)]; /* Reverse sorting array: rev[srt[i]]==i,
+				      is valid only for not-yet-sorted nodes */
+
+    /* Allocation checks */
+    /* ================= */
+
+    if (!rev || !wgt || ! aux)
+    {
+	error = qqqERR_DETSORT_MISALLOC;
+	if (rev) delete[] rev;
+	if (wgt) delete[] wgt;
+	if (aux) delete[] aux;
+	return false;
+    }
+
+    /* Initialize to the natural sorting */
+    /* ================================= */
+
+    for (Index jj = 0; jj < n; jj++) {
+	srt[jj] = jj;
+	rev[jj] = jj;
+    }
+
+    /* Perform two runs */
+    /* ================ */
+
+    /* The first run is used to find a good start node for the second
+       run in each set of nodes. A good choice is the end node of the
+       first run. */
+
+    for (int run = 0; run < 2; run++)
+    {
+	Index ns = 0;		/* Number of nodes already sorted */
+	Index np = 0;		/* Number of pre-sorted nodes (nodes
+				   in new node list) */
+	
+	/* Initialize wgt to say 'not-yet-sorted' for each node */
+	for (Index jj = 0; jj < n; jj++) wgt[jj] = -1;
+
+	while (ns < n) 
+	{
+	    Index const nsold = ns;
+
+	    /* Choose a start node */
+	    /* =================== */
+
+	    /* Simply add the next unsorted node to the new node list */
+	    np++;
+	    wgt[srt[ns]] = 0;	/* Setting the weight to zero calls this
+				   node 'sorted'. The number of adjacent
+				   nodes that is usually stored in the
+				   weight is not of interest here */
+	    /* And if this is not the total beginning, it must
+	       be the beginning of a new set of nodes */
+	    if (nsold) discon = true;
+
+	    /* Now work up the set of nodes */
+	    /* ============================ */
+
+	    while (ns < np) 
+	    {
+		/* Add new nodes to node list */
+		/* ========================== */
+	    
+		for (Index const npold = np; ns < npold; ns++) 
+		{
+		    Index const row = srt[ns];
+		    Index const j1  = idx[row    ];
+		    Index const j2  = idx[row + 1];
+		    for (Index jj = j1; jj < j2; jj++)
+		    {
+			Index const col = idx[jj];
+			if (wgt[col] == -1)
+			{
+			    /* Bring node 'col' to position 'np' in 
+			       the sorting array srt. */
+			    /* Use this complicated exchange method
+			       to keep the unsorted nodes in the upper
+			       part of srt. We might use that to find
+			       a start node of another set of nodes
+			       not connected to this set. */
+			    Index const h1 = srt[np];
+			    Index const h2 = rev[col];
+			    srt[np]        = col;
+			    rev[col]       = np;
+			    srt[h2]        = h1;
+			    rev[h1]        = h2;
+			    
+			    /* Initialize the weight (number of adjacent
+			       nodes) to zero. The node is hereby sorted. */
+			    wgt[col] = 0;
+			    np++;
+			}
+		    }
+		}
+
+		/* Determine weights of new nodes */
+		/* ============================== */
+	    
+		Index const npold = np;
+		for (Index kk = ns;
+		     kk < npold; 
+		     kk++)
+		{
+		    Index const row = srt[kk];
+		    Index const j1  = idx[row    ];
+		    Index const j2  = idx[row + 1];
+		    Index w = 0;
+		    for (Index jj = j1; jj < j2; jj++)
+			if (wgt[idx[jj]] == -1) 
+			    w++;
+		    wgt[row] = w;
+		}
+		     
+
+		/* Sort the new nodes by their weight */
+		/* ================================== */
+	
+		qqqMergeSort(np - ns, &srt[ns], aux, wgt);
+		/* This destroys the correspondence between srt and rev,
+		   but only in a section where we do not need it any 
+		   more. For nodes not yet sorted, this correspondence
+		   is intact. */
+	    }
+
+	    /* Revert the sorting */
+	    /* ================== */
+	    
+	    /* In the first run, revert each set of nodes independently.
+	       In the second run, revert the whole sorting array.
+	       The reason is that the matrix is structurally unsymmetric,
+	       and that nodes of a following set might reference those
+	       of a preceding set. This might give trouble when choosing
+	       the start node. For the whole equation system, however,
+	       it is better in this case to revert the whole sequence. */
+	    if (run == 0)
+	    {
+		Index jj = nsold;
+		Index kk = ns-1;
+		while (jj < kk)
+		{
+		    Index const h = srt[jj];
+		    srt[jj] = srt[kk];
+		    srt[kk] = h;
+		    jj++;
+		    kk--;
+		}
+	    }
+	}
+	
+	/* Create a correct rev array for the second run */
+	/* ============================================= */
+
+	if (run == 0)
+	    for (Index jj = 0; jj < n; jj++) rev[srt[jj]] = jj;
+
+	/* Revert the sorting */
+	/* ================== */
+	    
+	/* In the first run, revert each set of nodes independently.
+	   In the second run, revert the whole sorting array.
+	   The reason is that the matrix is structurally unsymmetric,
+	   and that nodes of a following set might reference those
+	   of a preceding set. This might give trouble when choosing
+	   the start node. For the whole equation system, however,
+	   it is better in this case to revert the whole sequence. */
+	if (run == 1)
+	{
+	    Index jj = 0;
+	    Index kk = n - 1;
+	    while (jj < kk)
+	    {
+		Index const h = srt[jj];
+		srt[jj] = srt[kk];
+		srt[kk] = h;
+		jj++;
+		kk--;
+	    }
+	}
+    }
+
+    delete[] rev;
+    delete[] wgt;
+    delete[] aux;
+    return true;
+}
+#undef MCSR
+#undef Index
+#undef Error
+
+
+#endif // __numerics_cmk_tt__included__

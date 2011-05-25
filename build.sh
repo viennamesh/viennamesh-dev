@@ -1,7 +1,3 @@
-# build the doxygen documentation
-cd doc/
-doxygen
-cd .. 
 
 # extract number of cores on the system
 CORES=`grep -c ^processor /proc/cpuinfo`
