@@ -139,9 +139,9 @@ ADD_EXECUTABLE(vmesh src/vmesh.cpp)
 
 #link specific libraries to specific executables  ${VGMODHULL_LIBS} netgen
 IF(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(vmesh netgen tetgen triangle ${GTSIO_LIBS} pugixml ${CERVPT_LIBS})
+   TARGET_LINK_LIBRARIES(vmesh netgen tetgen triangle ${GTSIO_LIBS} ${CERVPT_LIBS})
 ELSE()
-   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle pugixml ${CERVPT_LIBS})   
+   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS})   
 ENDIF(ENABLE_GTSIO)
 
 

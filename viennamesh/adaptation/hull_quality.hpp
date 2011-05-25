@@ -118,8 +118,6 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
       input_type new_domain(new domain_type);   
       vghull.process(*domain, *new_domain);
 
-      std::cout << "### WARNING - THE OLD DOMAIN STILL EXISTS!" << std::endl;
-
       return new_domain;
    }
    // -------------------------------------------------------------------------------------
