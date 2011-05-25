@@ -137,6 +137,7 @@ ADD_EXECUTABLE(orient_hull    src/orient_hull.cpp)
 ADD_EXECUTABLE(adapt_hull     src/adapt_hull.cpp)
 ADD_EXECUTABLE(vol_hull       src/generate_volume_of_hull.cpp)
 ADD_EXECUTABLE(vol_adapt_hull src/generate_volume_of_adapt_hull.cpp)
+ADD_EXECUTABLE(meta_sel       src/meta_selector.cpp)
 
 # ------------------------------------------------------------------------------
 #
@@ -148,6 +149,7 @@ TARGET_LINK_LIBRARIES(orient_hull      ${CERVPT_LIBS} )
 TARGET_LINK_LIBRARIES(adapt_hull       ${CERVPT_LIBS} ${VGMODHULL_LIBS})
 TARGET_LINK_LIBRARIES(vol_hull         netgen ${CERVPT_LIBS})
 TARGET_LINK_LIBRARIES(vol_adapt_hull   netgen ${CERVPT_LIBS} ${VGMODHULL_LIBS})
+TARGET_LINK_LIBRARIES(meta_sel          ${CERVPT_LIBS} tetgen netgen)
 
 # ------------------------------------------------------------------------------
 #
@@ -264,4 +266,9 @@ IF(ENABLE_TESTNONWORKINGINPUT)
    ADD_TEST(vol_adapt_hull15 vol_adapt_hull ../../../ViennaMeshCollection/bnd_examples/fdsoi_3d_25nm_sram.bnd)
    ADD_TEST(vol_adapt_hull17 vol_adapt_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
 ENDIF(ENABLE_TESTNONWORKINGINPUT)
+
+# miscellaneous
+#
+ADD_TEST(meta_sel meta_sel)
+
 

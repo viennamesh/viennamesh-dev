@@ -17,6 +17,7 @@
 // *** system includes
 #include <vector>
 #include <map>
+#include <cmath>
 
 // *** boost includes
 #include <boost/fusion/include/has_key.hpp>
@@ -72,6 +73,10 @@ private:
 
    // -------------------------------------------------------------------------------------         
 public:
+   typedef boost::fusion::result_of::make_map<
+      viennamesh::tag::cell_type, viennamesh::tag::algorithm,      
+      viennamesh::tag::simplex,   viennamesh::tag::advancing_front
+   >::type                                         properties_map_type;
    typedef viennamesh::tag::mesh_kernel            datastructure_type; 
    typedef domain_ptr_type                         result_type;
    // -------------------------------------------------------------------------------------         

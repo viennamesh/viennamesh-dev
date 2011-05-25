@@ -14,6 +14,9 @@
 #ifndef VIENNAMESH_INTERFACE_BASE_HPP
 #define VIENNAMESH_INTERFACE_BASE_HPP
 
+#include "viennagrid/domain.hpp"
+#include "viennagrid/config/simplex.hpp"
+
 #include "viennamesh/tags.hpp"
 
 namespace viennamesh {
