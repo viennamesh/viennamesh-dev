@@ -1,0 +1,57 @@
+\section{Building}
+
+Although ViennaMesh provides several dependencies within its external folder, 
+additional requirements are necessary.
+
+\begin{itemize}
+   \item CMake~\cite{cmake}
+   \item Boost~\cite{boost}
+   \item GMP~\cite{gmp}
+   \item CGAL~\cite{cgal}
+\end{itemize}
+
+Typically \texttt{CMake}, \texttt{CGAL}, and \texttt{GMP} are provided by 
+the distributions, for example, Ubuntu. However, CGAL maybe has to be installed manually.
+
+An exemplary build script is provided within the root folder of ViennaMesh. 
+\begin{exaipd}
+\begin{Verbatim}
+build.sh
+\end{Verbatim}
+\end{exaipd}
+
+Note that \texttt{Debug} and \texttt{Release} builds are available, by utilizing 
+the appropriate \texttt{CMake} configuration parameter.
+\begin{exaipd}
+\begin{Verbatim}
+-D CMAKE_BUILD_TYPE=Release
+-D CMAKE_BUILD_TYPE=Debug
+\end{Verbatim}
+\end{exaipd}
+
+The \texttt{CGAL} include and library paths have to be provided via the 
+respective \texttt{CMake} configuration parameters.
+\begin{exaipd}
+\begin{Verbatim}
+-D CGAL_INC_DIR=$CGALINC
+-D CGAL_LIB_DIR=$CGALLIB
+\end{Verbatim}
+\end{exaipd}
+
+Note that the build script expects the parameters \texttt{CGALINC} and 
+\texttt{CGALLIB} to be provided by the environment. 
+Certainly these paths can be entered statically within the build script.
+
+After the build process is finished, an application executable is available 
+within the build folder. 
+\begin{exaipd}
+\begin{Verbatim}
+build/vmesh
+\end{Verbatim}
+\end{exaipd}
+
+This executable is capable of producing volume meshes of high quality of 
+\texttt{bnd} and \texttt{hin} input files. 
+
+\TIP{Example input files can be found in the input/ folder.}
+

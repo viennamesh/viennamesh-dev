@@ -1,0 +1,101 @@
+\documentclass[11pt]{article}
+
+\usepackage[left=2.5cm,right=3.0cm,top=1cm,bottom=2cm,includeheadfoot]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{newcent}
+\usepackage{pstricks} 
+\usepackage{fancyhdr}
+\usepackage[dvips]{graphicx}
+\usepackage{makeidx}
+\usepackage{psfrag}
+\usepackage{alltt}
+\usepackage{index}
+\usepackage{fancyvrb}
+\usepackage{pst-blur}
+\usepackage{pst-grad}
+\usepackage{epsfig}
+%\usepackage{subfigure}
+\usepackage{subfig}
+\usepackage{pst-all}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage[colorlinks=true,linktocpage=true]{hyperref}
+
+%% Listings package START
+\usepackage{color}
+\usepackage{listings}
+
+\definecolor{darkblue}{rgb}{0,0,.6}
+\definecolor{darkred}{rgb}{.6,0,0}
+\definecolor{darkgreen}{rgb}{0,.6,0}
+\definecolor{red}{rgb}{.98,0,0}
+\definecolor{lightgrey}{rgb}{0.98,0.98,0.98}
+
+
+\lstloadlanguages{C++}
+\lstset{%
+  language=C++,
+  basicstyle=\small\ttfamily,
+  commentstyle=\itshape\color{darkgreen},
+  keywordstyle=\bfseries\color{darkblue},
+  stringstyle=\color{darkred},
+  showspaces=false,
+  showtabs=false,
+  columns=fixed,
+  backgroundcolor=\color{lightgrey},
+  numbers=none,
+  frame=single,
+  numberstyle=\tiny,
+  breaklines=true,
+  showstringspaces=false,
+  xleftmargin=0.1cm
+}%
+%% Listings package STOP
+
+
+%% head line
+
+\renewcommand{\headrulewidth}{0.5pt}
+\lhead{}
+\rhead{\includegraphics[scale=0.07]{../logo/logo_with_text_v1.eps}}
+
+%% foot line
+\cfoot{\large\thepage}  % center the page number
+
+\include{keywords} % [KR] This is a mess, we should delete unused Minimos-stuff
+\include{setup}
+
+\begin{document}
+\pagenumbering{roman}
+
+\include{cover}
+\include{contributors}
+
+\lhead{\small{Institute for Microelectronics, TU Wien}}
+
+\clearpage
+
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}} 
+\tableofcontents
+%\label{s:ipl:content} \index{IPL!content}
+
+\clearpage
+\pagenumbering{arabic}
+\include{introduction}
+\include{build}
+%\include{usage}
+%\include{results}
+\include{license}
+
+%\section{Bibliography}
+\clearpage
+\bibliographystyle{IEEEtran_v1.13}
+%\addcontentsline{toc}{chapter}{Bibliography} 
+\bibliography{viennamesh}
+
+%\cleardoublepage
+%\phantomsection
+%\addcontentsline{toc}{chapter}{Index}
+%\printindex
+
+\end{document}
