@@ -79,7 +79,7 @@ void process(WrappedDatastructureT& data)
          my_hull_vtk_writer.writeDomain(*hull_mesh, "hull_mesh.vtu");
 #endif
 
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type        netgen_volume_mesh_generator_type;
    netgen_volume_mesh_generator_type       volume_mesher;      
 
    typedef viennamesh::result_of::mesh_classifier<viennamesh::tag::vgmodeler>::type    mesh_classifier_type;

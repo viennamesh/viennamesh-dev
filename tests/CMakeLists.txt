@@ -37,6 +37,20 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # ------------------------------------------------------------------------------
 #
+# *** TEST ALL FILES ***
+#
+# ------------------------------------------------------------------------------
+SET(ENABLE_TESTNONWORKINGINPUT OFF)
+
+# ------------------------------------------------------------------------------
+#
+# *** USE INTERNAL VIENNASTAR PROJECTS ***
+#
+# ------------------------------------------------------------------------------
+SET(ENABLE_INTERNALVIENNASTAR OFF)
+
+# ------------------------------------------------------------------------------
+#
 # *** CHECK FOR DEPENDENCIES ***
 #
 # ------------------------------------------------------------------------------
@@ -55,6 +69,7 @@ find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS ${BOOST_LIBS} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # check for the PThreads library
+#    module provided by cmake
 #
 find_package(Threads REQUIRED)
 
@@ -69,35 +84,35 @@ find_package(CGAL REQUIRED)
 ADD_DEFINITIONS(${CGAL_DEFINITIONS})   
 include_directories(${CGAL_INCLUDE_DIRS})
 
-# ------------------------------------------------------------------------------
+# check for the GTS library
 #
-# *** TEST ALL FILES ***
-#
-# ------------------------------------------------------------------------------
-SET(ENABLE_TESTNONWORKINGINPUT OFF)
+find_package(GTS)
+IF(ENABLE_GTSIO)
+   # if GTS is available, check for the Z library
+   #    module provided by cmake
+   #
+   find_package(ZLIB REQUIRED)
+ENDIF(ENABLE_GTSIO)
 
-# ------------------------------------------------------------------------------
-#
-# *** GTS ***
-#
-# ------------------------------------------------------------------------------
-SET(ENABLE_GTSIO OFF)
 
 # ------------------------------------------------------------------------------
 #
 # *** PROCESS RELATED CMAKE PROJECTS ***
 #
 # ------------------------------------------------------------------------------
-INCLUDE_DIRECTORIES("../external/ViennaGrid/")
-INCLUDE_DIRECTORIES("../external/ViennaData/")
-INCLUDE_DIRECTORIES("../external/ViennaUtils/")
-INCLUDE_DIRECTORIES("../external/ViennaUtils/external/")
-IF(ENABLE_GTSIO)
-   INCLUDE_DIRECTORIES("../external/ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
-   INCLUDE_DIRECTORIES("../external/ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
-   INCLUDE_DIRECTORIES("../external/ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
-ENDIF(ENABLE_GTSIO)
-
+IF(ENABLE_INTERNALVIENNASTAR)
+   message(STATUS "Using Internal ViennaStar Projects")
+   INCLUDE_DIRECTORIES("../external/ViennaGrid/")
+   INCLUDE_DIRECTORIES("../external/ViennaData/")
+   INCLUDE_DIRECTORIES("../external/ViennaUtils/")
+   INCLUDE_DIRECTORIES("../external/ViennaUtils/external/")
+ELSE(ENABLE_INTERNALVIENNASTAR)
+   message(STATUS "Using External ViennaStar Projects")
+   INCLUDE_DIRECTORIES("../../ViennaGrid/")
+   INCLUDE_DIRECTORIES("../../ViennaData/")
+   INCLUDE_DIRECTORIES("../../ViennaUtils/")
+   INCLUDE_DIRECTORIES("../../ViennaUtils/external/")
+ENDIF(ENABLE_INTERNALVIENNASTAR)
 
 # build external libraries
 ADD_SUBDIRECTORY(../external "${CMAKE_CURRENT_BINARY_DIR}/external")
@@ -110,10 +125,19 @@ INCLUDE_DIRECTORIES("../external/vgmodeler-2.0/")
 INCLUDE_DIRECTORIES("../external/vgmodeler-2.0/vgmodeler/hull_adaption/gsse/gsse01")
 INCLUDE_DIRECTORIES("../external/vgmodeler-2.0/vgmodeler/hull_adaption/gsse/gsse01/external/mauch")
 INCLUDE_DIRECTORIES("../external/cervpt-1.0/")
+
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen")
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen/nglib")
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen/libsrc/include")
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen/libsrc/meshing")
+
+IF(ENABLE_GTSIO)
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsutil/src/include")
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsio3/src/include")
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsio3/src/shared/include")   
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsio3/src/manipulators/include")
+   include_directories("${GTS_INCLUDE_DIRS}/3rdPartyTools/libkdtree++")
+ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
 #
@@ -122,9 +146,8 @@ INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen/libsrc/meshing")
 # ------------------------------------------------------------------------------
 set(CERVPT_LIBS  ${CGAL_LIBRARIES} ${GMP_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 set(VGMODHULL_LIBS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-#set(VGMODHULL_LIBS vgmodeler_hull)
 IF(ENABLE_GTSIO)
-   set(GTSIO_LIBS gtsio3 z)
+   set(GTSIO_LIBS ${GTS_LIBRARIES} ${Z_LIBRARIES})
 ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
@@ -138,6 +161,8 @@ ADD_EXECUTABLE(adapt_hull     src/adapt_hull.cpp)
 ADD_EXECUTABLE(vol_hull       src/generate_volume_of_hull.cpp)
 ADD_EXECUTABLE(vol_adapt_hull src/generate_volume_of_adapt_hull.cpp)
 ADD_EXECUTABLE(meta_sel       src/meta_selector.cpp)
+ADD_EXECUTABLE(tetgen_test    src/tetgen.cpp)
+ADD_EXECUTABLE(triangle_test  src/triangle.cpp)
 
 # ------------------------------------------------------------------------------
 #
@@ -149,7 +174,9 @@ TARGET_LINK_LIBRARIES(orient_hull      ${CERVPT_LIBS} )
 TARGET_LINK_LIBRARIES(adapt_hull       ${CERVPT_LIBS} ${VGMODHULL_LIBS})
 TARGET_LINK_LIBRARIES(vol_hull         netgen ${CERVPT_LIBS})
 TARGET_LINK_LIBRARIES(vol_adapt_hull   netgen ${CERVPT_LIBS} ${VGMODHULL_LIBS})
-TARGET_LINK_LIBRARIES(meta_sel          ${CERVPT_LIBS} tetgen netgen)
+TARGET_LINK_LIBRARIES(meta_sel         ${CERVPT_LIBS} tetgen netgen)
+TARGET_LINK_LIBRARIES(tetgen_test      ${CERVPT_LIBS} tetgen)
+TARGET_LINK_LIBRARIES(triangle_test    triangle ${GTSIO_LIBS})
 
 # ------------------------------------------------------------------------------
 #
@@ -269,6 +296,7 @@ ENDIF(ENABLE_TESTNONWORKINGINPUT)
 
 # miscellaneous
 #
-ADD_TEST(meta_sel meta_sel)
+ADD_TEST(meta_sel       meta_sel)
+ADD_TEST(tetgen_test    tetgen_test ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/cyl_mask_etched_flux.bnd)
 
 

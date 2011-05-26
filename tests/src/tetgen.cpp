@@ -18,37 +18,34 @@
 #include "viennautils/file.hpp"
 
 #include "viennagrid/domain.hpp"
-#include "viennagrid/algorithm/cell_normals.hpp"
 
 #include "viennamesh/wrapper/hin.hpp"
 #include "viennamesh/wrapper/bnd.hpp"
 #include "viennamesh/generation/cervpt.hpp"
-#include "viennamesh/adaptation/orienter.hpp"
-#include "viennamesh/adaptation/hull_quality.hpp"
-#include "viennamesh/generation/netgen.hpp"
+#include "viennamesh/generation/tetgen.hpp"
 
 template<typename WrappedDataT>
 int meshing(WrappedDataT& wrapped_data)
 {
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_hull_mesh_generator_type;
-   cervpt_hull_mesh_generator_type        hull_mesher;       
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        hull_mesh_generator_type;
+   hull_mesh_generator_type      hull_mesher;       
 
-   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
-   orienter_adaptor_type                  orienter;
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type        volume_mesh_generator_type;
+   volume_mesh_generator_type    volume_mesher;      
+
+   typedef volume_mesh_generator_type::result_type       volume_result_type;   
    
-   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
-   hull_quality_adaptor_type              hull_quality;                  
+   std::cout << "testing TetGen directly on wrapped input data .. " << std::endl;
+   volume_result_type result1 = volume_mesher(wrapped_data);
 
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
-   netgen_volume_mesh_generator_type      volume_mesher;      
-
-   volume_mesher(hull_quality(orienter(hull_mesher(wrapped_data))));
+   std::cout << "testing TetGen on pre-processed domain .. " << std::endl;   
+   volume_result_type result2 = volume_mesher(hull_mesher(wrapped_data));
 
    return 0;
 }
 
 
-int process_file(std::string filename)
+int process_file(std::string filename) 
 {
    std::cout << "processing file: " << filename << std::endl;
 
@@ -99,5 +96,4 @@ int main(int argc, char *argv[])
   
    return 0;
 }
-
 

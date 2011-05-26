@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/domain.dir/src/domain.cpp.o  -o domain -rdynamic 

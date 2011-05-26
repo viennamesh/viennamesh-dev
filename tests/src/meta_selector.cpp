@@ -7,8 +7,6 @@
 #include "viennamesh/meta_selection.hpp"
 
 
-#include <boost/mpl/int.hpp>
-
 int main(int argc, char *argv[])
 {
    //

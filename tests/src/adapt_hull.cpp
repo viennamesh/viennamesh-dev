@@ -76,6 +76,7 @@ int process_file(std::string filename)
       std::cerr << "Error: Fileformat not supported of input file: " << filename << std::endl;
       return -1;
    }
+   return 0;
 }
 
 int main(int argc, char *argv[])
