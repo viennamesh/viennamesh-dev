@@ -1,0 +1,451 @@
+/* ********************************************************************************
+   $Id: numerics_gmres.tt,v 1.7 2004/07/31 11:17:54 mmntuser Exp $
+
+   Filename: numerics_gmres.tt
+
+   Description: General Minimal Residual (GMRES) (template)
+
+   Authors:  CS  Christoph Schwarz, Institute for Microelectronics
+             SW  Stephan Wagner,    Institute for Microelectronics
+
+   Who When       What
+   -----------------------------------------------------------------------
+   CS 27 Jul 2002 created
+   CS 13 Aug 2002 cleanups
+   CS 17 Sep 2002 finished
+   SW 23 Sep 2002 adaptation for complex-valued systems
+   *********************************************************************** */
+
+#ifndef   __numerics_gmres_tt__included__
+#define   __numerics_gmres_tt__included__
+
+/* 
+   The following code provides:
+
+   Function
+   qqqGMRES(...)    ... iterative solver for nonsymmetric system
+
+   Utility Functions:
+   qqqDivVector(...)                 ... divides a vector by a Number
+   qqqGmresFreeDynamicVariables(...) ... frees all dyn. allocated structures
+   qqqUpdate(...)                    ... performs GMRES update (see netlib)
+   qqqGeneratePlaneRotation(...)     ... generates plane rotation (see netlib)
+   qqqApplyPlaneRotation(...)        ... applies plane rotation (see netlib)
+*/
+
+/* Status output for debugging purposes */
+/* ==================================== */
+
+#define QQQ_GMRES_STATUS_OUTPUT 0
+#if     QQQ_GMRES_STATUS_OUTPUT
+static inline void printGmresStatus    (const char * text)      
+{ 
+   printf("      gmres: %s\n", text); 
+} 
+static inline void printGmresStatusBool(const char * text, const bool status) 
+{ 
+   printf("      gmres: %s, return value = %s\n", text, status ? "true" : "false");
+}
+#else
+static inline void printGmresStatus    (const char * /* text */)                          {} 
+static inline void printGmresStatusBool(const char * /* text */, const bool /* status */) {}
+#endif // QQQ_GMRES_STATUS_OUTPUT
+
+
+/* Utility functions */
+/* ================= */
+
+template <class Number>
+void qqqGmresFreeDynamicVariables(
+            Number * const & v1, Number * const & v2, Number * const & v3,
+            Number * const & v4, Number * const & v5, Number * const & v6,
+            long dim = 0,
+            Number * * const & m1 = /* (Number * * const) */ 0, 
+	    Number * * const & m2 = /* (Number * * const) */ 0 )
+{
+  if (v1) delete[] v1;
+  if (v2) delete[] v2;
+  if (v3) delete[] v3;
+  if (v4) delete[] v4;
+  if (v5) delete[] v5;
+  if (v6) delete[] v6;
+  if (m1)
+  {
+     for (long ic = 0; ic < dim; ic++)
+        if (m1[ic])
+           delete[] m1[ic];
+     delete[] m1;
+  }
+
+  if (m2)
+  {
+     for (long ic = 0; ic < dim; ic++)
+        if (m2[ic])
+           delete[] m2[ic];
+     delete[] m2;
+  }
+
+}
+
+/* CHECK_THIS [SW]: move to numerics_vector? */
+template <class Number>
+bool qqqDivVector(                        /* only returns false if division by zero */
+            Number	   * const  x,    /* ouput vector       */
+            qqqIndex	     const  len,  /* length of vectors  */
+            Number   const * const  y,    /* input vector       */
+            Number 	     const  z)    /* value to divide by */
+{
+   printGmresStatus("qqqDivVector...");
+
+  if (z == Number(0.0))
+     return false;
+  for (qqqIndex ii=0; ii < len; ii++)
+     x[ii] = y[ii] * (1.0 / z);
+  return true;
+}
+
+template <class Number>
+bool qqqUpdate( 	           /* returns false on misallocation */
+            Number   * const & x,  /* Vector x                       */
+            long               n,  /* Lengt of Vector x              */
+            int		       k,  /* controls state of iteration    */
+            Number  ** const & h,  /* Hessenberg-Matrix              */
+            Number   * const & s,  /* Vector s                       */
+            long	       m,  /* Length of Vector s             */
+            Number  ** const & v ) /* array of vectors ~ matrix      */
+{
+  printGmresStatus("qqqUpdate...");
+
+  Number * y = new Number[m];
+  if (!y)
+     return false;
+  qqqCopy(y, m, s);
+
+  for (long i = k; i >= 0; i--)
+  {
+     // printf("y[%ld] = %g\n", i, qqqGetReal(y[i]));
+     // printf("h[%ld][%ld] = %g\n", i, i, qqqGetReal(h[i][i]));
+     if (h[i][i] != 0) // [SW]: protect against nan (Linux) or floating point exceptions (OSF)
+       y[i] /= h[i][i]; 
+     for (long j = i - 1; j >= 0; j--)
+        y[j] -= h[j][i] * y[i];
+  }
+  for (long j = 0; j <= k; j++)
+     qqqAddLinear(x, n, y[j], v[j]);
+  delete[] y; y = 0;
+  return true;
+}
+
+template <class Number>
+void
+qqqGeneratePlaneRotation(
+            Number &dx, 
+            Number &dy, 
+            Number &cs, 
+            Number &sn)
+{
+  printGmresStatus("qqqGeneratePlaneRotation...");
+
+  if (dy == Number(0.0))
+  {
+     cs = Number(1.0);
+     sn = Number(0.0);
+  }
+  else 
+     if (qqqAbs(dy) > qqqAbs(dx))
+     {
+        Number temp = dx / dy;
+        sn = Number(1.0) / qqqSqrt(Number(1.0) + temp * temp);
+        cs = temp * sn;
+     }
+     else
+     {
+        Number temp = dy / dx;
+        cs = Number(1.0) / qqqSqrt(Number(1.0) + temp * temp);
+        sn = temp * cs;
+     }
+}
+
+template <class Number>
+void
+qqqApplyPlaneRotation(Number &dx, Number &dy, Number &cs, Number &sn)
+{
+  printGmresStatus("qqqApplyPlaneRotation...");
+
+  Number temp = cs * dx + sn * dy;
+  dy = -sn * dx + cs * dy;
+  dx = temp;
+}
+
+/* qqqGMRES()
+   
+   Solves linear systems of equations. The implementation was based on
+   the netlib template.
+
+   REMARKS:
+   
+   The Preconditioned GMRES(m) Method takes a parameter m which specifies
+   when to restart the iteration loop with the vector calculated until then
+   used as new start value.
+*/
+template <class Number>
+bool qqqGMRES(                        
+            qqqMCSR     <Number>  const &A,      /* [I] Matrix A from Ax=b                  */
+            qqqILUMatrix<Number>  const &K,      /* [I] Preconditioner K (ILU factorized A) */
+            Number const * const  b,             /* [I] rhs Vector b, length dimension of A */
+            Number  *      const  x,             /* [O] solution vector x                   */  
+            qqqIndex             &it,            /* [O] count iterations used               */
+            double         const  acc,           /* [I] final accuracy                      */
+            double               &resid,         /* [O] final residual                      */
+            qqqIndex              maxit,         /* [I] maximum iterations allowed          */
+            bool                  useK,          /* [I] determines use of preconditioner    */
+            qqqError             &error,         /* [O] error information                   */
+            qqqIndex       const  m,             /* [I] iterations of inner loop            */
+            qqqBogoFlops         &bogos,         /* [O] bogoflops used                      */
+            qqqIndex       const  strategy = 84) /* [I] control parameter specifying how to
+                                                      calculate complex dot products of 
+                                                      vectors. Range 0..127.  
+                                                      see BiCGStab for further details.     */
+{
+  if (m == 0)
+  {
+     error = qqqERR_GMRES_M_ZERO;
+     return false;
+  }
+
+  double const s2min = DBL_EPSILON;
+  double         eps = qqqMax(acc, s2min);
+
+#if QQQ_GMRES_STATUS_OUTPUT
+  printf("      gmres: %s (line %d): evidence message: maxit=%ld, eps=%e (acc=%e), m=%ld\n", __FILE__, __LINE__,
+         qqqIndexToLong(maxit), eps, acc, qqqIndexToLong(m)); 
+#endif // QQQ_GMRES_STATUS_OUTPUT
+
+  bogos = 0; /* output parameter initialization */
+
+  qqqIndex nnzA = A.nonzeros();
+  qqqIndex nnzK;
+  nnzK = (useK) ? K.nonzeros(): qqqIndex(0);
+  qqqIndex const n = A.dimension();
+
+  //double resid;
+  int i, j = 1, k;
+  Number * const s  = new Number[qqqMax(m+1,1)];
+  Number * const cs = new Number[qqqMax(m+1,1)];
+  Number * const sn = new Number[qqqMax(m+1,1)];
+  Number * const w  = new Number[qqqMax(n  ,1)];
+  Number * const r  = new Number[qqqMax(n  ,1)];
+  Number * const y  = new Number[qqqMax(n,  1)];
+
+  /* Allocation of matrix h (upper hessenberg, dimension: (m+1) x (m) */
+  /* ================================================================ */
+
+  printGmresStatus("Allocation of Upper Hessenberg...");
+
+  Number * * H = new Number *[m+1];
+  if (!H)
+  {
+     error = qqqERR_GMRES_MISALLOC;
+     qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s);
+     return false;
+  }
+  else
+  {
+     long ic;
+     bool allocerror = false;
+     for (ic = 0; (!allocerror) && (ic < m+1); ic++)
+     {
+        H[ic] = new Number[qqqMax(m,1)];
+        if (!H[ic])
+           allocerror = true;
+     }
+     if (allocerror)
+     {
+        error = qqqERR_GMRES_MISALLOC;
+        qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, H);
+        return false;
+     }
+     for (ic = 0; ic < m+1; ic++)
+        qqqInitializeVector(H[ic],m,Number(0.0));
+  }
+
+  FunctionLog functionLog("qqqGMRES");
+
+  if ( !y || !r || !w || !sn || !cs || !s )
+  {
+     error = qqqERR_GMRES_MISALLOC;
+     qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, H);
+     return false;
+  }
+  
+  qqqInitializeVector(x, n, Number(0)); /* initial guess of x is set to zero */
+  double normb; /* ||b|| */
+  if (useK)
+  {	
+     qqqInvPrd(y, K, b);
+     normb = qqqAbs(n, y);
+  }
+  else	
+     normb = qqqAbs(n, b); 
+
+  qqqPrd (y, A, x); /* r = M^-1 * (b - A*x) */
+  qqqCopy(r, n, b);
+  qqqAddLinear(r, n, Number(-1.0), y);
+  if (useK)
+  {
+     qqqCopy  (y, n, r);
+     qqqInvPrd(r, K, y);
+  }
+
+  double beta = qqqAbs(n,r);
+
+  if (normb == 0.0)
+     normb = 1;
+
+  if ((resid = beta / normb) <= eps)
+  {
+     /* FINAL RESIDUAL IS RETURNED THROUGH RESID IS PARAMETER OF qqqSolverParameters */
+     /* [cs] REMOVE / OBSOLETE : 'return of final residual not implemented for qqq' */
+     qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, H);
+     return true;
+  }
+
+  /* allocation of matrix v, dimension m+1 */
+  /* ===================================== */
+
+  printGmresStatus("Allocation of v...");
+
+  Number **v = new Number *[m+1];
+  if (!v)
+  {
+     error = qqqERR_GMRES_MISALLOC;
+     qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, H);
+     return false;
+  }
+  else
+  {
+     long ic;
+     bool allocerror = false;
+     for (ic = 0; (!allocerror) && (ic < m+1); ic++)
+     {
+        v[ic] = new Number[qqqMax(n,1)];
+        if (!v[ic])
+           allocerror = true;
+     }
+     if (allocerror)
+     {
+        error = qqqERR_GMRES_MISALLOC;
+        qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, H, v);
+        return false;
+     }
+     /* initialize matrix entries */
+     for (ic = 0; ic < m+1; ic++)
+        qqqInitializeVector(v[ic], n, Number(0.0));
+  }
+
+  qqqInitializeVector(cs, m+1, Number(0.0));
+  qqqInitializeVector(sn, m+1, Number(0.0));
+
+  /* going into main iteration loop */
+  /* ============================== */
+
+  printGmresStatus("Main iteration loop...");
+
+  while (j <= maxit)
+  {
+     qqqDivVector(v[0], n, r, Number(beta)); /* v[0] = r / ||r||  */
+     bogos += n;
+     qqqInitializeVector(s, m+1, Number(0.0));
+     s[0] = beta;
+
+     /* this is the inner iteration loop */
+     /* -------------------------------- */
+
+     for (i = 0; (i < m) && (j <= maxit); i++, j++) 
+     {
+        qqqPrd(y, A, v[i]); /* w = M^-1*(A*v[i]) */
+        bogos += nnzA;
+        if (useK)
+        {
+           qqqInvPrd(w, K, y);
+           bogos += nnzK;
+        }
+        else
+           qqqCopy  (w, n, y);
+
+        for (k = 0; k <= i; k++)
+        {
+           H[k][i] = 
+              ((strategy & 8) ?
+               ((strategy & 16) ? Number(qqqDotPrdMem(n, w, v[k])) : qqqDotPrd   (n, w   , v[k]))
+               :
+               ((strategy & 16) ?        qqqDotPrdCjg(n, w, v[k])  : qqqDotPrdCjg(n, v[k], w   )));
+
+           qqqAddLinear(w, n, Number(-1.0)*H[k][i], v[k]);
+           bogos += 2 * n;
+        }
+          
+        H[i+1][i] = qqqAbs(n, w);
+        qqqDivVector(v[i+1], n, w, H[i+1][i]);
+        bogos += 2 * n;
+
+	printGmresStatus("Rotations...");
+        
+        for (k = 0; k < i; k++)
+           qqqApplyPlaneRotation(H[k][i], H[k+1][i], cs[k], sn[k]);
+        qqqGeneratePlaneRotation(H[i][i], H[i+1][i], cs[i], sn[i]);
+        qqqApplyPlaneRotation(   H[i][i], H[i+1][i], cs[i], sn[i]);
+        qqqApplyPlaneRotation(   s[i]   , s[i+1]   , cs[i], sn[i]);
+
+        if ((resid = qqqAbs(s[i+1]) / normb) < eps)
+        {
+           bogos += n; /* Update() */
+           if (!qqqUpdate(x, n, i, H, s, m+1, v))
+           {
+              error = qqqERR_GMRES_MISALLOC;
+              qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, H, v);
+              return false;
+           }
+           it = j;
+           qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, v, H);
+           return true;
+        }
+     } /* end of inner iteration loop */
+
+     printGmresStatus("Update...");
+
+     bogos += n;
+     if (!qqqUpdate(x, n, m-1, H, s, m+1, v))
+     {
+        error = qqqERR_GMRES_MISALLOC;
+        qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, v, H);
+        return false;
+     }
+
+     qqqPrd (y, A, x);	/* r = M.solve(b - A*x) */
+     qqqCopy(r, n, b);
+     qqqAddLinear(r, n, Number(-1.0), y);
+     qqqCopy(y, n, r);
+     if (useK)
+     {
+        qqqInvPrd(r, K, y);
+        bogos += nnzK;
+     }
+     beta = qqqAbs(n, r);
+     bogos += nnzA + 2 * n;
+     if ((resid = beta/normb) < eps)
+     {
+        it = j;
+        qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, v, H);
+        return true;
+     }
+     // else printf("remaining: %g (eps=%g)\n", resid, eps);
+  } /* end of main iteration loop */
+
+  qqqGmresFreeDynamicVariables(y, r, w, sn, cs, s, m+1, v, H);
+  error = qqqERR_GMRES_NO_CONVERG;
+  it = j;
+  return false;
+}
+
+#endif //   __numerics_gmres_tt__included__

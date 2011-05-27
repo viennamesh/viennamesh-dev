@@ -60,24 +60,42 @@ find_package(CGAL REQUIRED)
 ADD_DEFINITIONS(${CGAL_DEFINITIONS})   
 include_directories(${CGAL_INCLUDE_DIRS})
 
+# check for the GTS library
+#
+find_package(GTS)
+IF(ENABLE_GTSIO)
+   # if GTS is available, check for the Z library
+   #    module provided by cmake
+   #
+   find_package(ZLIB REQUIRED)
+ENDIF(ENABLE_GTSIO)
 
-SET(ENABLE_GTSIO OFF)
+# ------------------------------------------------------------------------------
+#
+# *** USE INTERNAL VIENNASTAR PROJECTS ***
+#
+# ------------------------------------------------------------------------------
+SET(ENABLE_INTERNALVIENNASTAR ON)
 
 # ------------------------------------------------------------------------------
 #
 # *** PROCESS RELATED CMAKE PROJECTS ***
 #
 # ------------------------------------------------------------------------------
+IF(ENABLE_INTERNALVIENNASTAR)
+   message(STATUS "Using Internal ViennaStar Projects")
+   INCLUDE_DIRECTORIES("external/ViennaGrid/")
+   INCLUDE_DIRECTORIES("external/ViennaData/")
+   INCLUDE_DIRECTORIES("external/ViennaUtils/")
+   INCLUDE_DIRECTORIES("external/ViennaUtils/external/")
+ELSE(ENABLE_INTERNALVIENNASTAR)
+   message(STATUS "Using External ViennaStar Projects")
+   INCLUDE_DIRECTORIES("../ViennaGrid/")
+   INCLUDE_DIRECTORIES("../ViennaData/")
+   INCLUDE_DIRECTORIES("../ViennaUtils/")
+   INCLUDE_DIRECTORIES("../ViennaUtils/external/")
+ENDIF(ENABLE_INTERNALVIENNASTAR)
 
-INCLUDE_DIRECTORIES("external/ViennaGrid/")
-INCLUDE_DIRECTORIES("external/ViennaData/")
-INCLUDE_DIRECTORIES("external/ViennaUtils/")
-INCLUDE_DIRECTORIES("external/ViennaUtils/external/")
-IF(ENABLE_GTSIO)
-   INCLUDE_DIRECTORIES("external/ViennaUtils/external/gts/UtilityLibs/gtsutil/src/include")
-   INCLUDE_DIRECTORIES("external/ViennaUtils/external/gts/UtilityLibs/gtsio3/src/")
-   INCLUDE_DIRECTORIES("external/ViennaUtils/external/gts/3rdPartyTools/libkdtree++")
-ENDIF(ENABLE_GTSIO)
 
 # build external libraries
 #   those have to be build bevore the collected include 
@@ -87,16 +105,6 @@ ADD_SUBDIRECTORY(external)
 
 # build ViennaUtils:pugixml support
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/external/pugixml/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/pugixml/")
-IF(ENABLE_GTSIO)
-   # build ViennaUtils:gts support
-   ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/external/gts/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/gts/")
-ENDIF(ENABLE_GTSIO)
-
-# ------------------------------------------------------------------------------
-#
-# *** SET INCLUDE PATHS OF MESH KERNELS AND RELATED VIENNASTAR PROJECTS ***
-#
-# ------------------------------------------------------------------------------
 
 INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")
@@ -110,6 +118,14 @@ INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/nglib")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/include")
 INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
 
+IF(ENABLE_GTSIO)
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsutil/src/include")
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsio3/src/include")
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsio3/src/shared/include")   
+   include_directories("${GTS_INCLUDE_DIRS}/UtilityLibs/gtsio3/src/manipulators/include")
+   include_directories("${GTS_INCLUDE_DIRS}/3rdPartyTools/libkdtree++")
+ENDIF(ENABLE_GTSIO)
+
 # ------------------------------------------------------------------------------
 #
 # *** SET MESH TOOLS RELATED LIBS ***
@@ -117,9 +133,8 @@ INCLUDE_DIRECTORIES("external/netgen-4.9.13/netgen/libsrc/meshing")
 # ------------------------------------------------------------------------------
 set(CERVPT_LIBS  ${CGAL_LIBRARIES} ${GMP_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 set(VGMODHULL_LIBS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-#set(VGMODHULL_LIBS vgmodeler_hull)
 IF(ENABLE_GTSIO)
-   set(GTSIO_LIBS gtsio3 z)
+   set(GTSIO_LIBS ${GTS_LIBRARIES} ${Z_LIBRARIES})
 ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
@@ -139,8 +154,8 @@ ADD_EXECUTABLE(vmesh src/vmesh.cpp)
 
 #link specific libraries to specific executables  ${VGMODHULL_LIBS} netgen
 IF(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(vmesh netgen tetgen triangle ${GTSIO_LIBS} ${CERVPT_LIBS})
-ELSE()
+   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS} ${GTSIO_LIBS})
+ELSE(ENABLE_GTSIO)
    TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS})   
 ENDIF(ENABLE_GTSIO)
 

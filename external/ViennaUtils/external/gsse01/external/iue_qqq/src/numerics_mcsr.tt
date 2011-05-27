@@ -1,0 +1,3622 @@
+/* ***********************************************************************
+   $Id: numerics_mcsr.tt,v 1.23 2004/11/19 15:37:54 gehring Exp $
+
+   Filename: numerics_mcsr.tt
+
+   Description:  MCSR matrix format class and functions (templates)
+                 Matrix class for element-wise matrix construction (templates)
+
+   Acknowledgement: Matrix inversion based on an algorithm 
+                    from a book by Josef Stoer.
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+             SW  Stephan Wagner,   Institute for Microelectronics, TU Vienna
+             GM  Georg Mach,       Institute for Microelectronics, TU Vienna
+
+   Who When         What
+   ------------------------------------------------------------------------------
+   CF  18 May 1996  created
+   CF   5 May 1996  Matrix vector multiplication function (in other file)
+   CF  18 May 1996  MCSR matrix class started
+   CF  18 May 1996  MCSR structure described
+   CF  26 May 1996  Matrix matrix multiplication function (in other file)
+   CF  26 May 1996  Matrix inversion function (in other file)
+   CF  27 May 1996  Matrix full inversion function (in other file)
+   CF  27 May 1996  Matrix transformation function (in other file)
+   CF  30 Jun 1996  some cleanups and methodology
+   CF  30 Jun 1996  renamed Matrix to MCSR
+   CF   1 Jul 1996  incorporated things from other file
+   CF  22 Jan 1996  Matrix matrix summation function
+   CF  24 Jan 1996  Matrix scaling function
+   CF  24 Jan 1996  renamed matrix sum function to linear2
+   CF  24 Jan 1996  completed transform function (conjugate)
+   SW  05 Feb 2002  MCSR::getEntry() method
+   SW  06 Feb 2002  qqq prefixed function names
+   SW  18 Feb 2002  MCSR::writeMatrix() method
+   SW  25 Feb 2002  SMatrix integration in this file due to x-ref problems
+   SW  25 Feb 2002  MCSR::readMatrix() method
+   SW  27 Feb 2002  clearValues(), addEntry(), clearRow(), clearCol() MCSR methods
+   SW  04 Mar 2002  SMatrix::clearTree() and MCSR::getEntryPtr() methods
+   SW  06 Jun 2002  Update: clearRow(), clearCol(), getEntryPtr()
+   SW  20 Nov 2002  MCSR-CSR conversion methods
+   GM  31 Jan 2003  MCSR to Full Matrix conversion methods, check hermitian method
+   GM  03 Feb 2003  isReal method
+   SW  06 Feb 2003  qqqPrd altered
+   GM  12 Feb 2003  qqqAssign included
+   GM  12 Feb 2003  Full Matrix to MCSR conversion methods
+   SW  03 Dec 2003  separated SMatrix files restored, new CSR conversion method
+   AG  19 Nov 2004  added setEntry method
+
+   ******************************************************************************* */
+
+#ifndef   __numerics_mcsr_tt__included__
+#define   __numerics_mcsr_tt__included__
+
+#ifndef __xlC__
+#include "numerics_lu.hh"
+#endif // __xlC__
+
+#include <assert.h>
+
+template <class Number> 
+class qqqSMatrix;
+
+/* ******************************************************************* */
+/* MCSR DECLARATION ************************************************** */
+/* ******************************************************************* */
+
+/* 
+   The following code provides:
+
+   Inline Methods (new) [GM]:
+   qqqAssign(*target,re,im)       ... writes double (if im == 0) and qqqComplex into target
+
+   Class
+   qqqMCSR<Number>                ... MCSR or MCSC matrix structure
+   
+   Member functions
+   allocate(...)                  ... define size and storage mode (MCSR/MCSC)
+   free()                         ... destroy all data
+   entry(row,column)              ... create and return matrix entry; [SW]: was never implemented
+   changerowized()                ... change storage mode (MCSR/MCSC)
+   dimension()                    ... the matrix size (number of rows/columns)
+   nonzeros()                     ... the matrix fill (number of nonzeros)
+   getval()                       ... the beginning of the values array
+   getidx()                       ... the beginning of the index array
+
+   New Methods [SW]:
+   getEntry(row,col,ptr,error)    ... returns matrix entry, conventional style
+   addEntry(row,col,entry)        ... adds entry to an existing entry
+   writeMatrix(name,sort,val)     ... writes matrix to file "name"; spec.: sorting, omitting values
+   readMatrix(filename)           ... reads matrix from file
+   clearValues(presetDiag = 0)    ... clears value array, presets diagonal entries
+   clearRow(row,remove)           ... clears row and removes entries if necessary
+   clearCol(col,remove            ... clears col and removes entries if necessary
+   getEntryPtr(row,col)           ... return a pointer to an entry
+
+   New Methods [GM]:
+   convertToFull(...)             ... converts MCSR-Matrix into Full Matrix
+   convertFromFull(...)           ... converts Full Matrix into MCSR-Matrix
+   isHermitian()                  ... check if matrix is hermitian / symmetric
+   isReal()                       ... check if matrix is real
+
+   Functions
+   qqqPrd(y,A,x)                  ... vector y = matrix A * vector x
+   qqqPrd(R,A,B,error)            ... matrix R = matrix A * matrix B
+   qqqLinear2(R,fa,A,fb,B,error)  ... matrix R = fa * matrix A + fb * matrix B
+   qqqInvert(R,A,error)           ... matrix R = matrix A^-1
+   qqqInvertFullMatrix(R,n,A)     ... matrix R = matrix A^-1, dimension n
+   qqqTransform(R,A,...)          ... general matrix format conversion
+   qqqScale(R,A,Sr,Sc,error)      ... scale the matrix
+
+   Note:
+   1) Operations
+      The format is designed to serve as a general format for the 
+      representation of matrices. Operations that are necessary in the
+      course of solving an equation system are usually provided in connection
+      with other matrix formats or "stand-alone", so that the set of 
+      operations defined in this file is very small.
+
+*/
+
+
+/* class qqqMCSR<Number>
+   =====================
+   
+   This class provides a MCSR or MCSC matrix structure.
+
+   MCSR stands for Modified Compressed Sparse Row, and
+   MCSC stands for Modified Compressed Sparse Column.
+
+   Format description: General
+   An MCSR or MCSC matrix is very well suited for sparse matrices with
+   the diagonal elements all nonzero. It consists of two parallel arrays
+   of equal length, one index array (idx) and one values array (val).
+
+   Format description: Dimension and Nonzeros
+   The dimension of the matrix is n. The number of nonzeros in the matrix
+   is nnz (which is not stored in this structure). Note that a diagonal
+   element counts as a nonzero element for purposes of matrix format, 
+   even if its numerical value is zero (which is considered purely 
+   accidental). Also, some off-diagonals may be stored even though they
+   have a numerical value of zero.
+
+   Format description: Index range
+   The index range for rows and columns begins with 0 and ends before
+   the value of n (C style indexing). Negative indices and indices
+   greater or equal n are illegal.
+
+   Format description: Diagonal elements
+   The diagonal elements of the matrix are stored in the beginning of the
+   val array. The number val[i] holds the matrix entry for row i, column i.
+
+   Format description: Off diagonal elements (MCSR)
+   The off diagonal elements are stored after the diagonal elements in the
+   val array. The storage place val[n] is not used (for reasons discussed
+   below). The off diagonals are sorted by row; the elements of each row
+   are packed together to a sequence. The val array contains these sequences
+   for all rows, starting with the off diagonals of row 0. There is no
+   space between the sequences, i.e. the off diagonals of row 1 follow 
+   immediately after those of row 0. The last off diagonal (frequently 
+   found in row n-1) is stored at val[nnz], due to the single unused
+   storage place val[n].
+   The index array idx runs in parallel to val and holds the column index
+   to each off diagonal entry. These column indices can be found in
+   idx[n+1..nnz].
+
+   Format description: Row begin indices (MCSR)
+   The lower part of the index array idx contains for each row the begin
+   index into the upper part of val/idx, where the off diagonals are 
+   stored. To enable a consistent treatment of all rows, including row
+   n-1, in loops, it is convenient to store the begin index of a 
+   fictitious n-th row in idx[n], which terminates row n-1.
+   This index is responsible for leaving val[n] unused, to keep the arrays
+   parallel.
+   Thus, idx[0] == n+1 starts the off diagonals of row 0, and the last row
+   n-1 terminates before idx[n] = nnz+1.
+
+   Format description: Off diagonals (MCSC)
+   The off diagonals in the MCSC structure are stored in much the same way
+   as in the MCSR structure, only that off diagonals are grouped by column
+   and one seqence of off diagonals of the same column is packed after
+   another. So, it can be considered the transposed matrix stored in MCSR
+   format.
+
+   Format description: Column begin indices (MCSC)
+   Likewise, the lower part of idx contains for each column the begin
+   index into the upper part of val/idx, where the off diagonals are
+   stored. The value idx[n] gives the beginning of a fictitious n-th
+   column.
+
+   Duplicate entries
+   It depends on the function that works up the matrix structure whether
+   duplicate entries are allowed, and how they are treated. Generally
+   they are best avoided, for there is not always an unambiguous way
+   to treat them. If duplicate entries are allowed, a function will
+   explicitely state so. Note that in this case a duplicate entry
+   for the diagonal element may also be present in the off-diagonal
+   section.
+
+   Sorted entries
+   Likewise, it depends on the function that works up the matrix
+   whether the entries of the off-diagonals must be sorted by ascending
+   column indices within a row (this is for MCSR; in the case of MCSC
+   it would concern sorting by row within a column).
+   A function should specify whether off diagonals have to be sorted.
+
+   Format variations
+   For the purpose of saving memory space, variations of the format
+   described above are allowed. These variations concern matrices
+   without diagonal elements (or where the diagonal elements all have
+   the same value, e.g. 1 (unity)), and matrices that contain only
+   elements in rows (MCSR) or columns (MCSC) above a certain number.
+   For this purpose, a starting offset can be specified on allocation
+   of the internal arrays. It is the responsibility of the users of
+   the matrix structure, then, not to address any array elements
+   below the respective start indices.
+   
+   Array access
+   Instead of very specialized element access functions, general access
+   to the arrays val and idx is provided to the public. The reason is
+   that most functions will use these arrays to access the elements of
+   the matrix very efficiently.
+   Only allocation and deallocation of the arrays themselves are 
+   restricted to the specialized member function that serve this purpose.
+   */
+#define MCSRPure qqqMCSR
+#define MCSR MCSRPure<Number>
+#define Index qqqIndex
+#define Error qqqError
+
+/* Write functions for Template [GM] */
+inline bool qqqAssign(double     *target, double const re, double const im);
+inline bool qqqAssign(qqqComplex *target, double const re, double const im);
+
+template <class Number>
+class MCSRPure
+{
+    /* Matrix data */
+    /* =========== */
+
+    /* General data */
+private:
+    Index  n;			/* Dimension of the matrix                    */
+    Index  nnzall;		/* The value of nnz passed to allocate()      */
+    Number *val;		/* Nonzero diagonals and off diagonals        */
+    Index  *idx;		/* Indices                                    */
+    bool   rowized;		/* Row by row organization (MCSR)
+				   (vs. column by column - MCSC)              */
+    Index  valstart;		/* Start index of values array.
+				   Nonnegative value. If positive, 
+				   the beginning of the values array is to 
+				   be considered somewhere before the actual 
+				   value of the pointer val.                  */
+    Index  idxstart;		/* Start index of idx array.
+				   Nonnegative value. If positive, 
+				   the beginning of the index array is to 
+				   be considered somewhere before the actual
+				   value of the pointer idx.                  */
+
+    /* Provide CSR format */
+    Number *a;
+    int    *ia;
+    int    *ja;
+    int    csrnnz;
+
+    /* assignment is prohibited */
+    MCSRPure& operator=(const MCSR&); 
+
+
+    /* Access functions */
+    /* ================ */
+
+    /* Administration */
+public:
+    inline         MCSRPure();
+    inline         ~MCSRPure();
+    inline bool    allocate(Index const dim, 
+			    Index const nnz, 
+			    bool  const rowize,
+			    Index const unusedidx = 0,
+			    Index /* isn't const */ unusedval = -1);
+    inline void    free();
+
+    /* Matrix manipulation */
+public:
+   inline void     changerowized();
+   inline bool     isrowized() const;
+   inline Index    dimension() const;
+   inline Index    nonzeros()  const;
+   inline Number * getval()    const;
+   inline Index  * getidx()    const;
+
+   /*  getEntry and setEntry method [SW] */
+   bool getEntry(Index const nRow, Index const nCol, Number &nEntry, Error &nError) const;
+   Number *getEntryPtr(Index const nRow, Index const nCol) const;
+   bool addEntry(Index const nRow, Index const nCol, Number const nEntry);
+   bool setEntry(Index const nRow, Index const nCol, Number const nEntry);
+
+   /* reading, writing and comparing */
+   bool writeDXMatrix(const char* filename) const;
+   bool writeMatrix  (const char* filename, const bool sort, const bool values = true);
+//   bool writeMatrixConst(const char* filename, const bool sort, const bool values = true);
+   bool readMatrix   (const char* filename);
+
+   bool compareMatrix(MCSR &nA, qqqIndex const zeronnz = 0) const;
+
+   /* clear the value array, set diag to presetDiag */
+   void clearValues(const Number presetDiag = 0);
+
+   /* clear either row or col */
+   bool clearRow(qqqIndex const row);
+   bool clearCol(qqqIndex const col);
+
+   /* conversion CSR -> MCSR -> CSR */
+   bool           convertToCSR(bool fortran, bool sortedDiag);
+   inline Number* getCSRa()   const { return a;      }
+   inline int*    getCSRia()  const { return ia;     }
+   inline int*    getCSRja()  const { return ja;     }
+   inline int     getCSRnnz() const { return csrnnz; }
+
+   bool convertToCSR  (Number *b, int *ib, int *jb) const;
+   bool convertFromCSR(int    const         dim,
+		       Number const * const b,
+		       int    const * const ib,
+		       int    const * const jb);
+
+   /* conversion Full -> MCSR -> Full [GM] */
+   bool convertToFull(Number           **feld,
+                      qqqIndex   const   shiftIndex = 0,
+                      bool       const   magicNumber = false) const;
+   bool convertToFull(double           **feldRe,
+                      double           **feldIm,
+                      qqqIndex   const   shiftIndex = 0,
+                      bool       const   magicNumber = false) const;
+   bool convertFromFull(Number         **feld,                    
+                        qqqIndex const   dim, 
+                        qqqIndex const   shiftIndex = 0,
+                        bool     const   magicNumber = false);
+   bool convertFromFull(double         **feldRe, 
+                        double         **feldIm, 
+                        qqqIndex const   dim, 
+                        qqqIndex const   shiftIndex = 0,
+                        bool     const   magicNumber = false);
+
+   /* symmetric and isReal method [GM] */
+   bool isHermitian() const;
+   bool isReal() const;
+
+#ifndef __xlC__
+   /* calculate determinant */
+   Number calcDeterminant() const;
+#endif // __xlC__
+};
+
+/* qqqMCSR()
+
+   Constructor function. Creates an empty matrix. 
+   */
+template<class Number>
+inline 
+MCSR::MCSRPure() : n(0),
+		   nnzall(0),
+		   val(0),
+		   idx(0),
+		   rowized(false),
+		   valstart(0),
+		   idxstart(0),
+		   a(0),
+		   ia(0),
+		   ja(0),
+		   csrnnz(0)
+{ }
+
+/* free()
+
+   Free everything allocated in the matrix structure.
+   */
+template<class Number>
+inline void
+MCSR::free()
+{
+    n = 0;
+    nnzall = 0;
+    delete[] val; val = 0;
+    delete[] idx; idx = 0;
+    rowized = false;
+    valstart = 0;
+    idxstart = 0;
+
+    /* CSR structures */
+    delete[] a;   a = 0;
+    delete[] ia; ia = 0;
+    delete[] ja; ja = 0;
+}
+
+
+/* ~qqqMCSR()
+
+   Destructor function. Frees everything allocated and deletes matrix.
+   */
+template<class Number>
+inline 
+MCSR::~MCSRPure()
+{
+    free();
+}
+
+
+/* allocate()
+
+   Allocate the arrays for the specified matrix dimension.
+   */
+template<class Number>
+inline bool			/* Allocation was successful */
+MCSR::allocate(
+    Index const dim,		/* New dimension of matrix */
+    Index const nnz,		/* Number of nonzeros in matrix. All diagonals
+				   count as nonzeros, regardless whether they
+				   are numerically zero or not. */
+    bool  const rowize,		/* Row by row organziation - MCSR - and not
+				   column by column organization - MCSC. */
+    Index const unusedidx,	/* The number of unused entries at the
+				   beginning of the idx array. These will 
+				   not be allocated, so that idx points to 
+				   the first used entry. Default 0. */
+    Index /* const [SW] */ unusedval	/* The number of unused entries at the
+				   beginning of the val array. These will
+				   not be allocated, so that val points
+				   to the first used entry. Default same
+				   as unusedidx. */
+    )
+{
+    /* Free anything allocated before */
+    free();
+    
+    if (dim < 0) return false;
+    if (nnz < dim) return false;
+    if (unusedidx < 0 || unusedidx > dim) return false;
+    if (unusedval < -1 || unusedval > dim) return false;
+
+    if (unusedval == -1) 
+	unusedval = unusedidx;
+    val = new Number[nnz + 1 - unusedval];
+    idx = new Index [nnz + 1 - unusedidx];
+
+    if (!val || !idx)
+    {
+	free();
+	return false;
+    }
+
+    n                  = dim;
+    idx[dim-unusedidx] = 0;
+    val[dim-unusedval] = 0;
+    nnzall             = nnz;
+    rowized            = rowize;
+    valstart           = unusedval;
+    idxstart           = unusedidx;
+    return true;
+}
+
+
+/* dimension()
+
+   Return the matrix dimension (number of rows/columns).
+   */
+template<class Number>
+inline Index  /* const */		/* Matrix dimension */
+MCSR::dimension() const
+{
+    return n;
+}
+
+
+/* changerowized()
+
+   Change the 'rowized' flag of the matrix, i.e. the interpretation
+   as MCSR to MCSC or vice versa.
+
+   It is recommended not to use this function directly but to
+   call 'transform', which provides a save interface to matrix changes.
+   */
+template<class Number>
+inline void
+MCSR::changerowized()
+{
+    rowized = !rowized;
+}
+
+
+/* isrowized()
+
+   Return whether the matrix is rowized (i.e. in MCSR structure),
+   as opposed to not rowized (MCSC structure).
+   */
+template<class Number>
+inline bool			/* Matrix is MCSR */
+MCSR::isrowized() const
+{
+    return rowized;
+}
+
+
+/* nonzeros()
+
+   Return the current number of nonzeros in the matrix.
+   Every diagonal entry counts as a nonzero regardless whether it is
+   present or whether it actually holds a zero value.
+   Also, each off diagonal entry that is present but holds a zero value
+   counts as a nonzero. Thus, the return value is information about
+   the matrix structure, not the numerical values.
+   */
+template<class Number>
+inline Index /* const */		/* Number of nonzeros in matrix */
+MCSR::nonzeros() const
+{
+    if (n) return idx[n-idxstart] - 1;
+    else   return 0;
+}
+
+
+/* getval()
+
+   Return the beginning of the val array. Note that this includes any
+   unused section at the beginning, so it is not the same as the 
+   allocated pointer. Therefore the user must refrain from addressing
+   any parts below what is actually allocated.
+   */
+template<class Number>
+inline Number * /* const */		/* Beginning of val, including unused parts */
+MCSR::getval() const
+{
+    return val - valstart;
+}
+
+
+/* getidx()
+
+   Return the beginning of the idx array. Note that this includes any
+   unused section at the beginning, so it is not the same as the 
+   allocated pointer. Therefore the user must refrain from addressing
+   any parts below what is actually allocated.
+   */
+template<class Number>
+inline Index * /* const */		/* Beginning of idx, including unused parts */
+MCSR::getidx() const
+{
+    return idx - idxstart;
+}
+
+/* getEntryPtr(...)
+
+   returns a pointer to an entry. The given indices are used independently of
+   the storage format.
+*/
+template<class Number>
+Number *
+MCSR::getEntryPtr(Index const nRow, Index const nCol) const
+{
+   if (nRow == nCol)
+   {
+      /* Diagonal entry */
+       return &val[nRow];
+   }
+   else
+   {
+      Number * val = getval();
+      Index  * idx = getidx();
+
+      /* Off-Diagonal entry */     
+      qqqIndex const j1 = idx[nRow];    /* begin of the off-diag-sequence of the given row */
+      qqqIndex const j2 = idx[nRow+1];  /* end of this sequence */
+
+      for (Index ccicol = j1; ccicol < j2; ccicol++)  /* loop over all off-diags */
+	 if (nCol == idx[ccicol])    
+	    return &val[ccicol];
+   }   
+   return 0;
+}
+
+#if 0
+template<class Number>
+Number *
+MCSR::getEntryPtrConst(Index const nRow, Index const nCol) const
+{
+  return(getEntryPtr(nRow, nCol));
+}
+#endif
+
+/* getEntry(...)
+
+   sets the passed reference to the requested value, gives error information
+   and returns true on success or false in case of an error. The given indices
+   are used independently of the storage format.
+
+   Error messages:
+   - qqqERR_MCSRENTRY_UNUSED    ... structure not used 
+   - qqqERR_MCSRENTRY_BAD_ARGS  ... arguments either < 0 or > dimension 
+   - qqqERR_MCSRENTRY_NO_ENTRY  ... entry does not exist
+*/
+template<class Number>
+bool 
+MCSR::getEntry(
+    Index    const nRow, 
+    Index    const nCol, 
+    Number  &nNumber, 
+    Error   &nError) const
+{
+   Index dim = dimension();
+
+   if (dim == 0)
+   {
+      nError = qqqERR_MCSRENTRY_UNUSED;
+      return(false);
+   }   
+
+   if ((nRow < 0) || (nRow > dim) || (nCol < 0) || (nCol > dim))
+   {
+      nError = qqqERR_MCSRENTRY_BAD_ARGS;
+      return(false);
+   }   
+
+   qqqIndex ccicol;
+   bool retval = true;
+
+   Number * val = getval();
+   Index  * idx = getidx();
+
+   if (nRow == nCol)
+   {
+      /* Diagonal entry */
+       nNumber = val[nRow];
+   }
+   else
+   {
+      /* Off-Diagonal entry */
+      retval  = false;
+     
+      qqqIndex const j1 = idx[nRow];    /* begin of the off-diag-sequence of the given row */
+      qqqIndex const j2 = idx[nRow+1];  /* end of this sequence */
+
+      for (ccicol = j1; ccicol < j2; ccicol++)  /* loop over all off-diags */
+      {
+	 if (nCol == idx[ccicol])    
+	 {
+	    retval  = true;
+	    nNumber = val[ccicol];
+	    break;
+	 }
+      }
+   }
+
+   if (!retval)
+   {
+      nError = qqqERR_MCSRENTRY_NO_ENTRY;
+      return(false);      
+   }
+
+   return true;
+}
+
+/* addEntry(...)
+
+   is a fast and very specialized method used in the MMNT assembly process. The
+   given indices are interpreted as MCSR indices and swapped in case of a MCSC
+   matrix (thus, they are not used independently of the storage format). If the
+   requested entry is found, the given value is added and the method return
+   true. Otherwise, the method returns false.
+*/
+template<class Number>
+bool 
+MCSR::addEntry(Index const nRow, Index const nCol, Number const nNumber) 
+{
+   if (nRow == nCol)
+   {
+      /* Diagonal entry */
+      val[nRow] += nNumber;
+      return true;
+   }
+   else
+   {
+      Index forArg = (rowized) ? nRow : nCol;
+      Index offArg = (rowized) ? nCol : nRow;
+
+      /* Off-Diagonal entry */ 
+      qqqIndex const j1 = idx[forArg];    /* begin of the off-diag-sequence of the given row */
+      qqqIndex const j2 = idx[forArg+1];  /* end of this sequence */
+
+      for (qqqIndex ccicol = j1; ccicol < j2; ccicol++)  /* loop over all off-diags */
+      {
+	 if (offArg == idx[ccicol])    
+	 {
+	    val[ccicol] += nNumber;
+	    return true;
+	 }
+      }
+   }
+   return false;
+}
+
+/* setEntry(...)
+   A copy of addEntry, but the value is not added but directly set [AG].
+*/
+template<class Number>
+bool 
+MCSR::setEntry(Index const nRow, Index const nCol, Number const nNumber) 
+{
+   if (nRow == nCol)
+   {
+      /* Diagonal entry */
+      val[nRow] = nNumber;
+      return true;
+   }
+   else
+   {
+      Index forArg = (rowized) ? nRow : nCol;
+      Index offArg = (rowized) ? nCol : nRow;
+
+      /* Off-Diagonal entry */ 
+      qqqIndex const j1 = idx[forArg];    /* begin of the off-diag-sequence of the given row */
+      qqqIndex const j2 = idx[forArg+1];  /* end of this sequence */
+
+      for (qqqIndex ccicol = j1; ccicol < j2; ccicol++)  /* loop over all off-diags */
+      {
+	 if (offArg == idx[ccicol])    
+	 {
+	    val[ccicol] = nNumber;
+	    return true;
+	 }
+      }
+   }
+   return false;
+}
+
+template<class Number>
+bool
+MCSR::isHermitian() const
+{
+  //  printf("isHermitian: dim = %ld\n", qqqIndexToLong(dimension()));  
+
+  for (qqqIndex ccirow = 0; ccirow < dimension(); ccirow++)
+  {
+     if (qqqGetImag(val[ccirow]) != 0) // main diag must be real!
+        return false;
+     for (qqqIndex ccicol = idx[ccirow]; ccicol < idx[ccirow+1]; ccicol++)
+     {
+        Number const * const entry = getEntryPtr(idx[ccicol], ccirow); // A(i,j) and A(j,i) must be conjugated complex
+        if ((entry == 0) || (qqqGetReal(*entry) != qqqGetReal(val[ccicol])) || (qqqGetImag(*entry) != -qqqGetImag(val[ccicol])))
+           return false;
+     }
+  }
+
+  /* Return hermitian */      
+  return true;
+}
+
+template<class Number>
+bool
+MCSR::isReal() const
+{
+  //  printf("isReal: dim = %ld\n", qqqIndexToLong(dimension()));  
+
+  for (qqqIndex ccirow = 0; ccirow < dimension(); ccirow++)
+  {
+     if (qqqGetImag(val[ccirow]) != 0) // main diag
+        return false;
+     for (qqqIndex ccicol = idx[ccirow]; ccicol < idx[ccirow+1]; ccicol++)
+        if (qqqGetImag(val[ccicol]) != 0)
+           return false ;
+  }
+
+  /* Return real */      
+  return true;
+}
+
+/* writeDXMatrix(...)
+
+   prints the matrix to be illustrated by the Data Explorer.
+   note: -) The real-valued part is taken only.
+         -) Zero off-diagonal entries are omitted.
+*/
+
+template<class Number>
+bool
+MCSR::writeDXMatrix(const char* filename) const
+{
+   if ((n == 0) || (strlen(filename) > 25))
+      return false;
+
+   char fbuffer[35];
+   snprintf(fbuffer, 33, "%s.general", filename);
+   FILE *setup = fopen(fbuffer, "w");
+   if (setup == 0)
+      return false;
+
+   snprintf(fbuffer, 33, "%s.mat", filename);
+   FILE *matdat = fopen(fbuffer, "w");
+   if (matdat == 0)
+   {
+      fclose(setup);
+      return false;
+   }
+
+   qqqIndex skippedEntries = 0;
+   char const * const formatLine = "%4ld %4ld %25.18g\n";
+   for (qqqIndex ccirow = 0; ccirow < dimension(); ccirow++)
+   {
+      long const currRow = qqqIndexToLong(ccirow);
+      // write diagonal entry
+      fprintf(matdat, formatLine, currRow, -currRow, qqqGetReal(val[ccirow]));
+      
+      // write all off-diagonal entries if present
+      for (qqqIndex ccicol = idx[ccirow]; ccicol < idx[ccirow+1]; ccicol++)
+	 if (qqqGetReal(val[ccicol]) != 0)
+	    fprintf(matdat, formatLine, qqqIndexToLong(idx[ccicol]), -currRow, qqqGetReal(val[ccicol]));
+	 else
+	    skippedEntries++;
+   }
+
+   fprintf(setup, "file = %s\n", fbuffer);
+   fprintf(setup, "points = %ld\n", qqqIndexToLong(nonzeros() - skippedEntries));
+   fprintf(setup, "format = ascii\n");
+   fprintf(setup, "interleaving = field\n");
+   fprintf(setup, "majority = row\n");
+   fprintf(setup, "field = locations, field0\n");
+   fprintf(setup, "structure = 2-vector, scalar\n");
+   fprintf(setup, "type = float, float\n");
+   fprintf(setup, "end\n");
+   fclose(setup);
+   fclose(matdat);
+
+   return true;
+}
+
+/* writeMatrix(...)
+
+   and auxiliary methods
+*/
+
+/*                 01234567890123456789012345678901234567 */
+#define SEPARATOR "==================================="
+#define STRLENGTH 37
+
+inline
+void writePureEntry(const qqqIndex     colidx,
+		          FILE        *matdat, 
+		    const qqqComplex&  nValue)
+{
+   char const * const formatComplexCol = "    %4ld (% 25.18e, % 25.18e)\n";
+   fprintf(matdat, formatComplexCol,
+	   qqqIndexToLong(colidx), qqqGetReal(nValue), qqqGetImag(nValue));
+}
+
+inline
+void writePureEntry(const qqqIndex  colidx,
+		          FILE     *matdat, 
+		    const double    nValue)
+{
+   char const * const formatRealCol = "    %4ld  % 25.18e\n";  
+   fprintf(matdat, formatRealCol, qqqIndexToLong(colidx), nValue);
+}
+
+template<class Number>
+bool
+MCSR::writeMatrix(const char* filename, const bool sort, const bool values)
+{
+   FILE *matdat = fopen(filename, "w");
+   qqqError internalError;
+   
+   if (matdat == 0)
+      return false;
+   
+   /* format strings */
+   char  const * const formatRow = "  row %4ld\n"; 
+   Index const         WriteDim  = dimension();
+   Index ccirow, ccicol; 
+
+   if (WriteDim == 0)
+      return false;
+
+   /* sort the matrix to ensure ascending off-diagonals */
+   if (sort) qqqTransform(*this, *this, 0, true, false, this->rowized, false, internalError);
+      
+   /* header */
+   fprintf(matdat, "QQQ-assembled MCSR-MATRIX\n");
+   fprintf(matdat, "dimension: %ld\n", WriteDim);
+   fprintf(matdat, SEPARATOR "\n");
+   
+   /* loop over all rows */
+   for (ccirow = 0; ccirow < WriteDim; ccirow++)
+   {
+      qqqIndex const j1 = idx[ccirow];    /* begin of the off-diag-sequence */
+      qqqIndex const j2 = idx[ccirow+1];  /* end of this sequence */
+      
+      fprintf(matdat, formatRow, qqqIndexToLong(ccirow));
+      
+      if (values)
+      {
+	 /* until the diagonal entry */
+	 for (ccicol = j1; (ccicol < j2) && (idx[ccicol] < ccirow); ccicol++)
+	    writePureEntry(idx[ccicol], matdat, val[ccicol]);
+	 
+	 /* diagonal entry: be careful: ccirow <> ccicol! ccirow must be taken */
+	 writePureEntry(ccirow, matdat, val[ccirow]);
+	 
+	 /* until the end */
+	 for (; ccicol < j2; ccicol++)
+	    writePureEntry(idx[ccicol], matdat, val[ccicol]);
+      }
+      else
+      {
+	 char const * const formatCol = "    %4ld\n";  
+
+	 /* until the diagonal entry */
+	 for (ccicol = j1; (ccicol < j2) && (idx[ccicol] < ccirow); ccicol++)
+	    fprintf(matdat, formatCol, idx[ccicol]);
+	 
+	 /* diagonal entry: be careful: ccirow <> ccicol! ccirow must be taken */
+	 fprintf(matdat, formatCol, ccirow);
+	 
+	 /* until the end */
+	 for (; ccicol < j2; ccicol++)
+	    fprintf(matdat, formatCol, idx[ccicol]);
+      }
+   }
+   
+   fprintf(matdat, SEPARATOR "\n");
+   
+   fclose(matdat);
+   return true;
+}
+
+/* readMatrix(...)
+
+
+
+
+
+   and auxiliary methods
+*/
+
+/* avoiding RTTI stuff... */
+inline bool insertEntry(qqqComplex& nEntry, qqqComplex nValue)
+{
+   // printf("   Complex entry: ( %g, %g)\n", qqqGetReal(nValue), qqqGetImag(nValue));
+   nEntry = nValue;
+   return true;
+}
+inline bool insertEntry(double& nEntry, double nValue)
+{
+   // printf("   Double entry: %g\n", nValue);
+   nEntry = nValue;
+   return true;
+}
+inline bool insertEntry(double& /* nEntry */, qqqComplex /* nValue */)
+{
+   return false;
+}
+inline bool insertEntry(qqqComplex& /* nEntry */, double /* nValue */)
+{
+   return false;
+}
+
+template<class Number>
+bool
+MCSR::readMatrix(const char* filename)
+{
+   FILE *matdat = fopen(filename, "r");
+   qqqError internalError;
+ 
+   if (matdat == 0)
+      return false;
+
+   long dimension, currRow = 0, currCol;
+   int retval;
+   char rsLEN[STRLENGTH];
+   char r1s1[2], r2s1[2], r3s1[2];
+   double currDouble, currImag;
+
+   bool success = false;
+
+   qqqSMatrix<Number> readSMatrix;
+      
+   do
+   {
+      /* file header check and retrieving dimension */
+      if ((retval = fscanf(matdat, "%s", rsLEN)) != 1)
+	 break;
+      else if (strcmp(rsLEN, "QQQ-assembled") != 0)
+      {
+	 if (strcmp(rsLEN, "EAS-assembled") == 0)
+	    printf("Reading EAS-assembled matrix...\n");
+	 else
+	    break;
+      }
+      if ((fscanf(matdat, "%s", rsLEN) != 1) || 
+	  (strcmp(rsLEN, "MCSR-MATRIX") != 0))
+	 break;
+      if (((retval = fscanf(matdat, "%s %ld", rsLEN, &dimension)) != 2) ||
+	  (strcmp(rsLEN, "dimension:") != 0))
+	 break;
+      if (((retval = fscanf(matdat, "%s", rsLEN)) != 1) || 
+	  (strcmp(rsLEN, SEPARATOR) != 0))
+	 break;
+
+      /* allocation of a new smatrix structure */
+      if (!readSMatrix.allocate(dimension, true))
+	 break;
+
+      success = true;
+   } while(0);
+
+   if (!success)
+   {
+      fclose(matdat);
+      return false;
+   }
+
+   success = false;
+   while (!success) 
+   {
+      if ((retval = fscanf(matdat, "%ld %lf", &currCol, &currDouble)) == 2)
+      {	 
+	 if (!insertEntry(readSMatrix.entry(currRow, currCol), currDouble))
+	    break;
+      }
+      else if (retval == 1)
+      {
+	 if (fscanf(matdat, "%1s %lf %1s %lf %1s", r1s1, &currDouble, r2s1, &currImag, r3s1) == 5)
+	 {
+	    // printf("Entry for row=%ld, col=%ld\n", currRow, currCol);
+	    if (!insertEntry(readSMatrix.entry(currRow, currCol), qqqComplex(currDouble, currImag)))
+	       break;
+	 }
+	 else break;
+      }
+      else if (retval == 0)
+      {
+	 if ((retval = fscanf(matdat, "%s %ld", rsLEN, &currRow)) == 2)
+	    continue;
+	 else if ((retval == 1) && (strcmp(rsLEN, SEPARATOR) == 0))
+	    success = true;
+	 else break;
+      }
+      else break;
+   }
+
+   fclose(matdat);
+
+   if (success)
+      success = readSMatrix.convertToMCSR(*this, true);
+
+   readSMatrix.free();
+   return success;
+}
+
+/* compareMatrix(...) 
+
+*/
+template<class Number>
+bool
+MCSR::compareMatrix(MCSR &cA, qqqIndex const zeronnz) const 
+{
+   qqqIndex ccirow = -1;
+   qqqIndex index  = 0;
+
+   assert(zeronnz == 0);
+
+   if ((n      == cA.dimension()) &&
+       (nnzall == cA.nonzeros() + zeronnz))
+   {
+      Number   const * const myVal = getval();
+      qqqIndex const * const myIdx = getidx();
+      
+      Number   const * const caVal = cA.getval();
+      qqqIndex const * const caIdx = cA.getidx();
+
+      for (ccirow = 0; ccirow < nnzall; ccirow++)
+      {
+#if 0
+         if (zeronnz != 0)
+	 printf("Compare mine [%ld,%ld] (%g, %g) and [%ld,%ld] (%g, %g)\n",
+		qqqGetReal(myVal[ccirow]), qqqGetImag(myVal[ccirow-index]),
+		qqqGetReal(caVal[ccirow]), qqqGetImag(caVal[ccirow-index]));
+#endif
+	 if ((myVal[ccirow] != caVal[ccirow-index]) || 
+	     (myIdx[ccirow] != caIdx[ccirow-index]))
+         {
+#if 0
+            if (myVal[ccirow] == 0.0)
+            {
+               index++;
+               printf("Index = %ld", qqqIndexToLong(index));
+            }
+            else
+#endif
+               break;
+         }
+      }
+   }
+#if 1
+   else printf("Structure problem (n = %ld vs. %ld; nnz = %ld vs. %ld\n",
+	       qqqIndexToLong(n), qqqIndexToLong(cA.dimension()),
+	       qqqIndexToLong(nnzall), qqqIndexToLong(cA.nonzeros()));
+#endif
+
+   if (ccirow != nnzall)
+      return false;
+
+   return true;
+}
+
+/* clearValues(...), clearRow() and clearCol(...)
+
+*/
+
+template<class Number>
+void 
+MCSR::clearValues(const Number presetDiag)
+{
+   /* diagonal */
+   for (qqqIndex ccirow = 0; ccirow < n; ccirow++)
+      val[ccirow] = presetDiag;
+
+   for (qqqIndex ccirow = n; ccirow <= nnzall; ccirow++)
+      val[ccirow] = 0;
+}
+
+template<class Number>
+bool 
+MCSR::clearRow(qqqIndex const row)
+{
+   if (!rowized)
+   {
+      // printf("%s[%d] (clearRow): matrix not rowized!\n", __FILE__, __LINE__);
+      return false;
+   }
+
+   /* clear the diagonal */
+   val[row] = 0;
+
+   /* clear the off-diagonals */
+   for (qqqIndex ccirow = idx[row]; ccirow < idx[row+1]; ccirow++)
+      val[ccirow] = 0;
+
+   return true;
+}
+
+template<class Number>
+bool
+MCSR::clearCol(qqqIndex const col)
+{
+   if (rowized)
+   {
+      // printf("%s[%d] (clearCol): matrix rowized!\n", __FILE__, __LINE__);
+      return false;
+   }
+
+   /* clear the diagonal */
+   val[col] = 0;
+
+   /* clear the off-diagonals */
+   for (qqqIndex ccirow = idx[col]; ccirow < idx[col+1]; ccirow++)
+      val[ccirow] = 0;
+
+   return true;
+}
+
+/* convertToCSR(...) 
+
+   This method converts the MCSR structures in private CSR structures. The
+   format of CSR (compressed sparse row) is ambigous. For that reason two 
+   different formats are supported:
+   1.) Ascending column index of all entries (sortedDiag = true). The zero 
+       diagonal entries are skipped causing decrementing the csrnnz variable.
+   2.) The diagonal entry (also zero) of a row is followed by 
+       its off-diagonals
+
+   The first format is required by the Pardiso solver system, the second one 
+   by SAMG. The allocated structures are deleted in the free method which is
+   finally called by the destructor.
+
+   If the fortran flag is true, the indices are shifted by one in order to
+   adhere to the Fortran indexing.
+
+   The method return false if allocation fails, otherwise true.
+*/
+template<class Number>
+bool
+MCSR::convertToCSR(bool fortran, bool sortedDiag)
+{
+  int const dim = dimension();
+  int const nnz = nonzeros();
+  int aidx = 0;
+
+  delete[]  a;
+  delete[] ia;
+  delete[] ja;
+
+  a  = new Number[nnz];
+  ia = new int[dim+1];
+  ja = new int[nnz];
+
+  if ((a == 0) || (ia == 0) || (ja == 0))
+  {
+     delete[]  a;
+     delete[] ia;
+     delete[] ja;
+     return false;
+  }
+
+  csrnnz = nnz;
+
+  for (int ccirow = 0; ccirow < dim; ccirow++)
+  {
+     ia[ccirow] = aidx;
+     int const j1 = idx[ccirow];
+     int const j2 = idx[ccirow+1];
+
+     if (!sortedDiag) // required by SAMG
+     {
+	/* Diagonal element */
+	a [aidx] = val[ccirow];
+	ja[aidx] = ccirow;
+	aidx++;
+
+	/* Off-Diagonals */
+	for (int odiags = j1; odiags < j2; odiags++, aidx++)
+	{
+	   a [aidx] = val[odiags];
+	   ja[aidx] = idx[odiags];
+	}
+     }
+     else // required by PARDISO
+     {
+	int odiags = 0;
+	int j1 = idx[ccirow];
+	int j2 = idx[ccirow+1];
+
+	/* until the diagonal entry */
+	for (odiags = j1; (odiags < j2) && (idx[odiags] < ccirow); odiags++, aidx++)
+	{
+	   a [aidx] = val[odiags];
+	   ja[aidx] = idx[odiags];
+	}
+	
+	/* diagonal entry: be careful: ccirow <> odiags! ccirow must be taken */
+	if (val[ccirow] != 0.0)
+	{
+	   a [aidx] = val[ccirow];
+	   ja[aidx] = ccirow;
+	   aidx++;
+	}
+	else csrnnz--; // if the diagonal is zero, it will be skipped. For that reason
+	               // the number of nonzeros has to be decremented.
+	
+	/* until the end */
+	for (; odiags < j2; odiags++, aidx++)
+	{
+	   a [aidx] = val[odiags];
+	   ja[aidx] = idx[odiags];
+	}
+     }
+  }
+
+  ia[dim] = aidx; // == nnz
+
+  /* Shift indices for Fortran functions */
+  if (fortran)
+  {
+     for (int ii=0; ii < dim + 1; ii++)
+	ia[ii] += 1;
+
+     for (int jj=0; jj < nnz; jj++)
+	ja[jj] += 1;
+  }
+
+  return true;
+}
+
+/* convertToCSR(...) 
+   and 
+   convertFromCSR(...)
+
+   These methods allow an easy transformation to and from CSR formats.
+   Specification of the CSR format meets SAMG requirements.
+   The structures have to be already allocated.
+*/
+template<class Number>
+bool
+MCSR::convertToCSR(Number *b, int *ib, int *jb) const
+{
+   // printf("This is function MCSR::convertToCSR\n");
+
+  int dim = dimension();
+  int bidx = 0;
+
+  for (int ccirow = 0; ccirow < dim; ccirow++)
+  {
+     ib[ccirow] = bidx;
+
+     /* Diagonal element */
+     b [bidx] = val[ccirow];
+     jb[bidx] = ccirow;
+
+     bidx++;
+
+     /* Off-Diagonals */
+     for (int odiags = idx[ccirow]; odiags < idx[ccirow+1]; odiags++)
+     {
+	b[bidx]  = val[odiags];
+	jb[bidx] = idx[odiags];
+	bidx++;
+     }
+  }
+
+  ib[dim] = bidx; // == nnz
+
+  return true;
+}
+
+template<class Number>
+bool
+MCSR::convertFromCSR(int    const         dim,
+		     Number const * const b,
+		     int    const * const ib,
+		     int    const * const jb)
+{
+   // printf("This is function MCSR::convertFromCSR\n");
+
+  int aidx = dim+1;
+
+  free();
+  allocate(dim, ib[dim], true);
+
+  qqqIndex* idx = getidx();
+  Number  * val = getval();
+
+  for (int ccirow = 0; ccirow < dim; ccirow++)
+  {
+     /* Diagonal element */
+     val[ccirow] = b[ib[ccirow]];
+     idx[ccirow] = aidx;
+
+     /* Off-Diagonals */
+     for (int odiags = ib[ccirow] + 1; odiags < ib[ccirow+1]; odiags++)
+     {
+	val[aidx] =  b[odiags];
+	idx[aidx] = jb[odiags];
+	aidx++;
+     }
+  }
+
+  idx[dim] = aidx;
+  return true;
+}
+
+
+/* convertToFull()
+   and
+   convertFromFull()
+
+   The magic number concept:
+   For testing the convertToFull and convertFromFull methods with MCSR matrices
+   containing one or more 0 valued elements a magic number (magnum) was implemented.
+   In the convertToFull functions all elements containing 0 in the MCSR matrix are
+   replaced by the magic number, in the convertFromFull functions the magic number
+   is replaced by a 0 valued element.
+*/
+#define magnum 9999.1234
+
+template<class Number>
+bool 
+MCSR::convertToFull(Number         **feld, 
+                    qqqIndex const   shiftIndex,
+                    bool     const   magicNumber) const
+{
+  //  printf("This is ConvertToFull(Number **feld)\n");
+
+  /* Declaration and Initialization */
+  qqqIndex dim = dimension();
+
+  for (qqqIndex ccirow = shiftIndex; ccirow < dim + shiftIndex; ++ccirow)
+  {
+     for(qqqIndex ccicol = shiftIndex; ccicol < dim + shiftIndex; ++ccicol)
+     {
+        feld[ccirow][ccicol] = 0.0;
+     }
+  }
+
+  /* Get Values from MCSR */
+  qqqIndex ccicol = 0;
+  for(qqqIndex ccirow = 0; ccirow < dim; ccirow++)
+  {
+     feld[ccirow + shiftIndex][ccirow + shiftIndex] = val[ccirow]; // main diag values
+     for(qqqIndex odiag = idx[ccirow]; odiag < idx[ccirow + 1]; ++odiag)
+     {
+        ccicol = idx[odiag];
+        if (magicNumber)
+        {
+           if (val[odiag] != 0.0)
+           {
+              if (val[odiag] == magnum) // abort conversion because magic number value found
+                 return false;
+              feld[ccirow + shiftIndex][ccicol + shiftIndex] = val[odiag];
+           }
+           else
+              feld[ccirow + shiftIndex][ccicol + shiftIndex] = magnum; // magic number
+        }
+        else
+           feld[ccirow + shiftIndex][ccicol + shiftIndex] = val[odiag];
+     }
+  }
+  return true;
+}
+
+template<class Number>
+bool 
+MCSR::convertToFull(double         **feldRe, 
+                    double         **feldIm, 
+                    qqqIndex const   shiftIndex,
+                    bool     const   magicNumber) const
+{
+  // printf("This is ConvertToFull(double **feldRe, double **feldIm): %d\n", qqqIndexToLong(shiftIndex));
+
+  /* Declaration and Initialization */
+  qqqIndex dim      = dimension();
+
+  for (qqqIndex ccirow = shiftIndex; ccirow < dim + shiftIndex; ++ccirow)
+  {
+     for(qqqIndex ccicol = shiftIndex; ccicol < dim + shiftIndex; ++ccicol)
+     {
+        feldRe[ccirow][ccicol] = 0.0;
+        feldIm[ccirow][ccicol] = 0.0;
+     }
+  }
+
+  /* Get Values from MCSR */ 
+  qqqIndex ccicol =0;
+  for(qqqIndex ccirow = 0; ccirow < dim; ccirow++)
+  {
+     feldRe[ccirow + shiftIndex][ccirow + shiftIndex] = qqqReal(val[ccirow]); // main diag values
+     feldIm[ccirow + shiftIndex][ccirow + shiftIndex] = qqqImag(val[ccirow]); // main diag values
+     for(qqqIndex odiag = idx[ccirow]; odiag < idx[ccirow + 1]; ++odiag)
+     {
+        ccicol = idx[odiag];
+        if (magicNumber)
+        {
+           if (val[odiag] != 0.0)
+           {
+              if (val[odiag] == magnum) // abort conversion because magic number value found
+                 return false;
+              feldRe[ccirow + shiftIndex][ccicol + shiftIndex] = qqqReal(val[odiag]); 
+              feldIm[ccirow + shiftIndex][ccicol + shiftIndex] = qqqImag(val[odiag]); 
+           }
+           else
+              feldRe[ccirow + shiftIndex][ccicol + shiftIndex] = magnum; // magic number
+        }
+        else
+        {
+           feldRe[ccirow + shiftIndex][ccicol + shiftIndex] = qqqReal(val[odiag]); 
+           feldIm[ccirow + shiftIndex][ccicol + shiftIndex] = qqqImag(val[odiag]); 
+        }
+     }
+  }
+
+  return true;
+}
+
+template<class Number>
+bool 
+MCSR::convertFromFull(Number         **feld, 
+                      qqqIndex const   dim, 
+                      qqqIndex const   shiftIndex,
+                      bool     const   magicNumber)
+{
+  //  printf("This is ConvertFromFull(Number **feld)\n");
+
+  /* Declaration and Initialization */
+  long nnz = dim;
+
+  /* Count off-diag elements different from 0 */
+  for (qqqIndex ccirow = shiftIndex; ccirow < dim + shiftIndex; ++ccirow)
+  {
+     for (qqqIndex ccicol = shiftIndex; ccicol < dim + shiftIndex; ++ccicol)
+     {
+        if ((ccirow != ccicol) && (feld[ccirow][ccicol] != 0.0))
+        {
+           nnz++;
+        }
+     }
+  }
+
+  /* Allocate MCSR-Matrix */
+  free();
+  if (!allocate(dim, nnz, true))
+  {
+     printf("Fehler\n");
+     return(false);
+  }
+
+  /* Fill in Elements */
+  qqqIndex odiag = dim + 1;
+  for (qqqIndex ccirow = 0; ccirow < dim; ccirow++)
+  {
+     idx[ccirow] = odiag;
+     for (qqqIndex ccicol = 0; ccicol < dim; ccicol++)
+     {
+        if (ccirow == ccicol)
+        {
+           val[ccirow] = feld[ccirow + shiftIndex][ccirow + shiftIndex];
+        }
+        else
+        {
+           if (feld[ccirow + shiftIndex][ccicol + shiftIndex] != 0)
+           {
+              if ((magicNumber) && (feld[ccirow + shiftIndex][ccicol + shiftIndex] == magnum))
+                 val[odiag] = 0.0; // magic number
+              else
+                 val[odiag] = feld[ccirow + shiftIndex][ccicol + shiftIndex];
+              idx[odiag] = ccicol;
+              odiag++;
+           }
+        }
+     }
+  }
+  idx[dim] = nnz + 1;
+
+  assert(odiag == nnz + 1);
+  return true;
+}
+
+template<class Number>
+bool 
+MCSR::convertFromFull(double         **feldRe, 
+                      double         **feldIm, 
+                      qqqIndex const   dim, 
+                      qqqIndex const   shiftIndex,
+                      bool     const   magicNumber)
+{
+  //  printf("This is ConvertFromFull(double **feldRe, **feldIm, qqqIndex const dim, qqqIndex  const shiftIndex)\n");
+
+  /* Declaration and Initialization */
+  long nnz      = dim;
+  bool isDouble = (sizeof(Number) == sizeof(double));
+
+  /* Count off-diag elements different from 0 */
+  for (qqqIndex ccirow = shiftIndex; ccirow < dim + shiftIndex; ++ccirow)
+  {
+     for (qqqIndex ccicol = shiftIndex; ccicol < dim + shiftIndex; ++ccicol)
+     {
+        if (feldRe[ccirow][ccicol] != 0.0 || (feldIm[ccirow][ccicol] != 0.0))
+        {
+           if ((isDouble) && (feldIm[ccirow][ccicol]) != 0)
+              return false; // Cannot convert complex fields into real Matrix
+           if (ccirow != ccicol)
+              nnz++;
+        }
+     }
+  }
+
+  /* Allocate MCSR-Matrix */
+  free();
+  if (!allocate(dim, nnz, true))
+  {
+     printf("Fehler\n");
+     return(false);
+  }
+
+  /* Fill in Elements */
+  qqqIndex odiag = dim + 1;
+  for (qqqIndex ccirow = 0; ccirow < dim; ccirow++)
+  {
+     idx[ccirow] = odiag;
+     for (qqqIndex ccicol = 0; ccicol < dim; ccicol++)
+     {
+        if (ccirow == ccicol)
+        {
+           qqqAssign(&val[ccirow], feldRe[ccirow + shiftIndex][ccirow + shiftIndex], feldIm[ccirow + shiftIndex][ccirow + shiftIndex]);
+        }
+        else
+        {
+           if ((feldRe[ccirow + shiftIndex][ccicol + shiftIndex] != 0) || (feldIm[ccirow + shiftIndex][ccicol + shiftIndex] != 0))
+           {
+              if ((magicNumber) && (feldRe[ccirow + shiftIndex][ccicol + shiftIndex] == magnum)
+                                && (feldIm[ccirow + shiftIndex][ccicol + shiftIndex] == 0.0))
+                 qqqAssign(&val[odiag], 0.0, 0.0); // magic number
+              else
+                 qqqAssign(&val[odiag], feldRe[ccirow+shiftIndex][ccicol+shiftIndex], feldIm[ccirow+shiftIndex][ccicol+shiftIndex]);
+              idx[odiag] = ccicol;
+              odiag++;
+           }
+        }
+     }
+  }
+  idx[dim] = nnz + 1;
+
+  assert(odiag == nnz + 1);
+  return true;
+}
+
+#ifndef __xlC__
+template<class Number>
+Number
+MCSR::calcDeterminant() const
+{
+   qqqLUMatrix<Number>  K;
+   qqqIndex             maxspace  = 0;
+   qqqIndex             space;
+   qqqBogoFlops         maxbogo   = 0;
+   qqqBogoFlops         bogo;
+   qqqError             error;
+   Number               det       = 1;
+
+   /* factorize to LU */
+   if (!qqqFactorizeLU(*this, K, maxspace, space, maxbogo, bogo, error))
+   {
+      printf("Error when factorizing matrix.\n");
+      return 0.0;
+   }
+
+   /* Check if dimension is correct */
+   assert(K.n == n);
+
+   /* Calculate determinant */
+   for (qqqIndex i = 0; i < n; ++i)
+      det /= K.valD[i];
+
+   return det;
+}
+#endif // __xlC__
+
+#undef MCSRPure
+#undef MCSR
+#undef Index
+/* End of class qqqMCSR<Number> */
+
+
+
+/* prd()
+
+   Multiply a matrix in MCSR format with a vector.
+
+   Effort: nonzeros(A).
+   BogoFlops: nonzeros(A).
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+template<class Number, class NumberVec, class NumberRes>
+void
+qqqPrd(
+    NumberRes       * const r,	/* Output result of A * x.
+				   Must be a different storage place from x.
+				   Length dimension of A. */
+    MCSR      const        &A,	/* Input matrix in MCSR format. */
+    NumberVec const * const x	/* Input vector. Length dimension of A. */
+    )
+{
+    Index  const n = A.dimension();
+    Number const * const val = A.getval();
+    Index  const * const idx = A.getidx();
+
+    if (A.isrowized()) 
+    {
+	for (Index row = 0; row < n; row++)
+	{
+	   Index const j1 = idx[row];
+	   Index const j2 = idx[row+1];
+	   NumberRes y = val[row] * x[row];
+	   
+	   for (Index jj = j1; jj < j2; jj++) 	    
+	      y += val[jj] * x[idx[jj]];
+	   
+	   r[row] = y;
+	}
+    }
+    else
+    {
+	for (Index row = 0; row < n; row++)
+	   r[row] = val[row] * x[row];
+	for (Index row = 0; row < n; row++)
+	{
+	   Index const j1 = idx[row];
+	   Index const j2 = idx[row+1];
+	   NumberVec const y = x[row];
+	   for (Index jj = j1; jj < j2; jj++) r[idx[jj]] += val[jj] * y;
+	}
+    }
+}
+#undef MCSR
+#undef Index
+
+
+/* prd()
+
+   Multiply two matrices in MCSR format.
+
+   The result matrix is not sorted on output. The input matrices A and B
+   need not be sorted either. Duplicate entries are explicitely allowed.
+
+   Errors:
+   If the multiplication is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_MATPRD_NOT_MCSR     ... a matrix is not in MCSR but MCSC format
+   - qqqERR_MATPRD_MISALLOC     ... allocation of auxiliary arrays failed
+   - qqqERR_MATPRD_DIMENSION    ... dimension of the matrices does not match
+
+   Effort: unpredictable.
+   BogoFlops: unpredictable.
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+#define Error     qqqError
+template<class Number>
+bool				  /* Multiplication was successful     */
+qqqPrd(
+    MCSR         &R,		  /* Output result of A * B.
+				     Must be a different storage place
+				     from A and B.                     */
+    MCSR   const &A,		  /* Input matrix A in MCSR format.    */
+    MCSR   const &B,		  /* Input matrix B in MCSR format.    */
+    Error        &error,	  /* Output error information, in case
+				     the return value is false.        */
+    bool const offDiags  = false, /* keep zero off-diagonals of A      */
+    bool const offDiagsB = false  /* keep zero off-diagonals of B      */
+    )
+{
+    FunctionLog functionLog("qqqPrd(mat,mat)");
+
+    Index  const         n    = A.dimension();
+    Number const * const aval = A.getval();
+    Index  const * const aidx = A.getidx();
+    Number const * const bval = B.getval();
+    Index  const * const bidx = B.getidx();
+
+    /* Matrix check */
+    if (B.dimension() != n) 
+    {
+	error = qqqERR_MATPRD_DIMENSION;
+	return false;
+    }
+
+    if (!A.isrowized() || !B.isrowized()) 
+    {
+	error = qqqERR_MATPRD_NOT_MCSR;
+	return false;
+    }
+
+    /* Auxiliary arrays */
+    Number * const val = new Number[qqqMax(n,1)];
+    Index  * const idx = new Index [qqqMax(n,1)];
+    Index  * const rev = new Index [qqqMax(n,1)];
+
+    /* Allocation check */
+    if (!val || !idx || !rev)
+    {
+	error = qqqERR_MATPRD_MISALLOC;
+	if (rev) delete[] rev;
+	if (idx) delete[] idx;
+	if (val) delete[] val;
+	return false;
+    }
+
+    /* Preset rev array */
+    for (Index jj = 0; jj < n; jj++) rev[jj] = -1;
+    
+
+    /* For each row in R and A */
+    /* ======================= */
+
+    /* This is the symbolic multiplication to determine the space.
+       The numerical multiplication is below. */
+    Index nnz = n;
+    for (Index row = 0; row < n; row++)
+    {
+	/* Create the row of R in idx/val */
+	/* ============================== */
+	
+	Index len = 0;
+
+	/* diagonal of A */
+	{
+	    Index  const colrow = row;
+	    Number const y      = aval[row];
+	    
+	    if (y != 0) 
+	    {
+		/* diagonal of B */
+		{
+		    Index  const col = colrow;
+		    Number const s   = bval[colrow];
+
+		    if (s != 0) 
+		    {
+			Index const pos = rev[col];
+			if (pos == -1) {
+			    idx[len] = col;
+			    rev[col] = len;
+			    len++;
+			}
+		    } /* End of if s != 0 */
+		} /* End of diagonal of B */
+		
+		/* off diagonals of B */
+		Index const k1 = bidx[colrow];
+		Index const k2 = bidx[colrow+1];
+		for (Index kk = k1; kk < k2; kk++)
+		{
+		    Index  const col = bidx[kk];
+		    Number const s   = bval[kk];
+		    
+		    if (!offDiagsB && (s == 0)) continue;
+		    Index const pos = rev[col];
+		    if (pos == -1) 
+		    {
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		    }
+		} /* End of loop kk=k1..k2-1 */
+	    } /* End of if y != 0 */
+	} /* End of diagonal of A */
+
+	/* off diagonals of A */
+	Index const j1 = aidx[row];
+	Index const j2 = aidx[row+1];
+	for (Index jj = j1; jj < j2; jj++) {
+	    Index  const colrow = aidx[jj];
+	    Number const y      = aval[jj];
+
+	    if ((!offDiags) && (y == 0)) continue;
+	    
+	    /* diagonal of B */
+	    {
+		Index  const col = colrow;
+		Number const s   = bval[colrow];
+		if (s != 0) 
+		{
+		    Index const pos = rev[col];
+		    if (pos == -1) {
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		    }
+		} /* End of if s != 0 */
+	    } /* End of diagonal of B */
+
+	    /* off diagonals of B */
+	    Index const k1 = bidx[colrow];
+	    Index const k2 = bidx[colrow+1];
+	    for (Index kk = k1; kk < k2; kk++)
+	    {
+		Index  const col = bidx[kk];
+		Number const s   = bval[kk];
+
+		if (!offDiagsB && (s == 0)) continue;
+		Index const pos = rev[col];
+		if (pos == -1) {
+		    idx[len] = col;
+		    rev[col] = len;
+		    len++;
+		}
+	    } /* End of for kk=k1..k2-1 */
+	} /* End of for jj=j1..j2-1 */
+
+
+	/* Store the row in R */
+	/* ================== */
+
+	/* here only count */
+	nnz += len;
+	if (rev[row] != -1) nnz--; /* do not count the diagonal */
+	
+	/* Reset the rev array */
+	/* =================== */
+	
+	for (Index jj = 0; jj < len; jj++)
+	    rev[idx[jj]] = -1;
+    }
+
+
+    /* Allocate the R matrix */
+    /* ===================== */
+
+    if (!R.allocate(n,nnz,true))
+    {
+	error = qqqERR_MATPRD_MISALLOC;
+	delete[] rev;
+	delete[] idx;
+	delete[] val;
+	return false;
+    }
+    Number * const rval = R.getval();
+    Index  * const ridx = R.getidx();
+
+
+
+    /* For each row in R and A */
+    /* ======================= */
+
+    /* This is the numerical multiplication. */
+    Index idxtop = n+1;
+    for (Index row = 0; row < n; row++)
+    {
+	/* Create the row of R in idx/val */
+	/* ============================== */
+	
+	Index len = 0;
+
+	/* diagonal of A */
+	{
+	    Index  const colrow = row;
+	    Number const y      = aval[row];
+	    
+	    if (y != 0) 
+	    {
+		/* diagonal of B */
+		{
+		    Index  const col = colrow;
+		    Number const s   = bval[colrow];
+		    if (s != 0) 
+		    {
+			Index const pos = rev[col];
+			if (pos == -1) {
+			    val[len] = y * s;
+			    idx[len] = col;
+			    rev[col] = len;
+			    len++;
+			}
+			else
+			    val[pos] += y * s;
+		    } /* End of if s != 0 */
+		} /* End of diagonal of B */
+
+		/* off diagonals of B */
+		Index const k1 = bidx[colrow];
+		Index const k2 = bidx[colrow+1];
+		for (Index kk = k1; kk < k2; kk++)
+		{
+		    Index  const col = bidx[kk];
+		    Number const s   = bval[kk];
+		    
+		    if (!offDiagsB && (s == 0)) continue;
+		    Index const pos = rev[col];
+		    if (pos == -1) 
+		    {
+			val[len] = y * s;
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		    }
+		    else
+			val[pos] += y * s;
+		} /* End of loop kk=k1..k2-1 */
+	    } /* End of if y != 0 */
+	} /* End of diagonal of A */
+
+	/* off diagonals of A */
+	Index const j1 = aidx[row];
+	Index const j2 = aidx[row+1];
+	for (Index jj = j1; jj < j2; jj++) {
+	    Index  const colrow = aidx[jj];
+	    Number const y      = aval[jj];
+
+	    if ((!offDiags) && (y == 0)) continue;	    
+
+	    /* diagonal of B */
+	    {
+		Index  const col = colrow;
+		Number const s   = bval[colrow];
+		if (s != 0) 
+		{
+		    Index const pos = rev[col];
+		    if (pos == -1) 
+		    {
+		        val[len] = y * s;
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		    }
+		    else
+		        val[pos] += y * s;
+		} /* End of if s != 0 */
+	    } /* End of diagonal of B */
+
+	    /* off diagonals of B */
+	    Index const k1 = bidx[colrow];
+	    Index const k2 = bidx[colrow+1];
+	    for (Index kk = k1; kk < k2; kk++)
+	    {
+		Index  const col = bidx[kk];
+		Number const s   = bval[kk];
+
+		if ((!offDiagsB) && (s == 0)) continue;
+		Index const pos = rev[col];
+		if (pos == -1) 
+		{
+		    val[len] = y * s;
+		    idx[len] = col;
+		    rev[col] = len;
+		    len++;
+		}
+		else
+		    val[pos] += y * s;
+	    } /* End of for kk=k1..k2-1 */
+	} /* End of for jj=j1..j2-1 */
+
+
+	/* Store the row in R */
+	/* ================== */
+
+	rval[row] = 0;
+	ridx[row] = idxtop;
+	for (Index jj = 0; jj < len; jj++)
+	{
+	    Index const col = idx[jj];
+	    
+	    /* diagonal */
+	    
+	    if (col == row)
+		rval[col] = val[jj];
+	    else
+	    {
+		rval[idxtop] = val[jj];
+		ridx[idxtop] = col;
+		idxtop++;
+	    }
+	}
+	
+	/* Reset the rev array */
+	/* =================== */
+	
+	for (Index jj = 0; jj < len; jj++)
+	    rev[idx[jj]] = -1;
+    }
+    ridx[n] = idxtop;
+
+    delete[] rev;
+    delete[] idx;
+    delete[] val;
+    return true;
+}
+#undef MCSR
+#undef Index
+#undef Error
+
+
+
+/* linear2()
+
+   Add two matrices in MCSR format.
+
+   The result matrix is not sorted on output. The input matrices A and B
+   need not be sorted either. Duplicate entries are explicitely allowed.
+
+   Errors:
+   If the multiplication is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_MATSUM_NOT_MCSR     ... a matrix is not in MCSR but MCSC format
+   - qqqERR_MATSUM_MISALLOC     ... allocation of auxiliary arrays failed
+   - qqqERR_MATSUM_DIMENSION    ... dimension of the matrices does not match
+
+   Effort:    nonzeros(A) + nonzeros(B).
+   BogoFlops: nonzeros(A) + nonzeros(B).
+   */
+#define MCSR      qqqMCSR<Number>
+#define Index     qqqIndex
+#define Error     qqqError
+template<class Number>
+bool				/* Summation was successful */
+qqqLinear2(
+    MCSR         &R,		/* Output result of fa * A + fb * B.
+				   Must be a different storage place from
+				   A and B. */
+    Number const  fa,		/* Input factor for matrix B */
+    MCSR   const &A,		/* Input matrix A in MCSR format. */
+    Number const  fb,		/* Input factor for matrix B */
+    MCSR   const &B,		/* Input matrix B in MCSR format. */
+    Error        &error,	/* Output error information, in case
+				   the return value is false. */
+    bool const offDiags = false /* keep zero off-diagonals of A */
+    )
+{
+    FunctionLog functionLog("qqqLinear2(mat,mat)");
+
+    Index  const         n    = A.dimension();
+    Number const * const aval = A.getval();
+    Index  const * const aidx = A.getidx();
+    Number const * const bval = B.getval();
+    Index  const * const bidx = B.getidx();
+
+    /* Matrix check */
+    if (B.dimension() != n) {
+	error = qqqERR_MATSUM_DIMENSION;
+	return false;
+    }
+    if (!A.isrowized() || !B.isrowized()) {
+	error = qqqERR_MATSUM_NOT_MCSR;
+	return false;
+    }
+
+    /* Auxiliary arrays */
+    Number * const val = new Number[qqqMax(n,1)];
+    Index  * const idx = new Index [qqqMax(n,1)];
+    Index  * const rev = new Index [qqqMax(n,1)];
+
+    /* Allocation check */
+    if (!val || !idx || !rev)
+    {
+	error = qqqERR_MATSUM_MISALLOC;
+	if (rev) delete[] rev;
+	if (idx) delete[] idx;
+	if (val) delete[] val;
+	return false;
+    }
+
+    /* Preset rev array */
+    for (Index jj = 0; jj < n; jj++) rev[jj] = -1;
+    
+
+    /* For each row */
+    /* ============ */
+
+    /* This is the symbolic summation to determine the space.
+       The numerical summation is below. */
+    Index nnz = n;
+    for (Index row = 0; row < n; row++)
+    {
+	/* Create the row of R in idx/val */
+	/* ============================== */
+	
+	Index len = 0;
+
+	/* off diagonals of A */
+	Index const j1 = aidx[row];
+	Index const j2 = aidx[row+1];
+	for (Index jj = j1; jj < j2; jj++)
+	{
+	    Index  const col = aidx[jj];
+	    Number const s   = aval[jj];
+
+	    if ((!offDiags) && (s == 0)) continue;
+	    Index const pos = rev[col];
+	    if (pos == -1) 
+	    {
+		idx[len] = col;
+		rev[col] = len;
+		len++;
+	    }
+	} /* End of for jj=j1..j2-1 */
+
+	/* off diagonals of B */
+	Index const k1 = bidx[row];
+	Index const k2 = bidx[row+1];
+	for (Index kk = k1; kk < k2; kk++)
+	{
+	    Index  const col = bidx[kk];
+	    Number const s   = bval[kk];
+	    
+	    if (s == 0) continue;
+	    Index const pos = rev[col];
+	    if (pos == -1) 
+	    {
+		idx[len] = col;
+		rev[col] = len;
+		len++;
+	    }
+	} /* End of loop kk=k1..k2-1 */
+
+
+	/* Store the row in R */
+	/* ================== */
+
+	/* here only count */
+	nnz += len;
+	if (rev[row] != -1) nnz--; /* do not count the diagonal */
+	
+	/* Reset the rev array */
+	/* =================== */
+	
+	for (Index jj = 0; jj < len; jj++)
+	    rev[idx[jj]] = -1;
+    }
+
+
+    /* Allocate the R matrix */
+    /* ===================== */
+
+    if (!R.allocate(n,nnz,true))
+    {
+	error = qqqERR_MATSUM_MISALLOC;
+	delete[] rev;
+	delete[] idx;
+	delete[] val;
+	return false;
+    }
+    Number * const rval = R.getval();
+    Index  * const ridx = R.getidx();
+
+
+
+    /* For each row */
+    /* ============ */
+
+    /* This is the numerical summation. */
+    Index idxtop = n+1;
+    for (Index row = 0; row < n; row++)
+    {
+	/* Create the row of R in idx/val */
+	/* ============================== */
+	
+	Index len = 0;
+
+	/* diagonal */
+	rval[row] = fa * aval[row] + fb * bval[row];
+
+	/* off diagonals of A */
+	Index const j1 = aidx[row];
+	Index const j2 = aidx[row+1];
+	for (Index jj = j1; jj < j2; jj++)
+	{
+	    Index  const col = aidx[jj];
+	    Number const s   = aval[jj];
+
+	    if ((!offDiags) && (s == 0)) continue;
+	    Index const pos = rev[col];
+	    if (pos == -1) 
+	    {
+		val[len] = fa * s;
+		idx[len] = col;
+		rev[col] = len;
+		len++;
+	    }
+	    else
+		val[pos] += fa * s;
+	} /* End of for jj=j1..j2-1 */
+
+	/* off diagonals of B */
+	Index const k1 = bidx[row];
+	Index const k2 = bidx[row+1];
+	for (Index kk = k1; kk < k2; kk++)
+	{
+	    Index  const col = bidx[kk];
+	    Number const s   = bval[kk];
+	    
+	    if (s == 0) continue;
+	    Index const pos = rev[col];
+	    if (pos == -1) 
+	    {
+		val[len] = fb * s;
+		idx[len] = col;
+		rev[col] = len;
+		len++;
+	    }
+	    else
+		val[pos] += fb * s;
+	} /* End of loop kk=k1..k2-1 */
+
+
+	/* Store the row in R */
+	/* ================== */
+
+	ridx[row] = idxtop;
+	for (Index jj = 0; jj < len; jj++)
+	{
+	    Index const col = idx[jj];
+	    
+	    /* diagonal */
+	    if (col == row)
+		rval[col] += val[jj];
+	    else
+	    {
+		rval[idxtop] = val[jj];
+		ridx[idxtop] = col;
+		idxtop++;
+	    }
+	}
+	
+	/* Reset the rev array */
+	/* =================== */
+	
+	for (Index jj = 0; jj < len; jj++)
+	    rev[idx[jj]] = -1;
+    }
+    ridx[n] = idxtop;
+
+    delete[] rev;
+    delete[] idx;
+    delete[] val;
+    return true;
+}
+#undef MCSR
+#undef Index
+#undef Error
+
+
+
+/* qqqInvert()
+
+   Invert a matrix in MCSR or MCSC format.
+
+   The result matrix is sorted on output. The result matrix is in the
+   same format as the input matrix (either MCSR or MCSC).
+
+   The input matrix A need not be sorted. Duplicate entries are 
+   explicitely allowed.
+
+   Groups:
+   The space and time consumption depend heavily on the group size
+   of A. The group size is the number of nodes in a group. A group
+   is a bunch of nodes that are connected to each other (directly
+   or indirectly). Two nodes are directly connected if a matrix entry
+   exists such that the first node is the row index and the second node
+   the column index of that entry.
+
+   Effort:
+   The space and time consumption will be the dimension of the matrix A
+   times an average group size (space) or the square of another average
+   group size (time), respectively. The averages have to be chosen
+   properly. The maximum group size of A gives an upper limit for 
+   space and time.
+
+   Errors:
+   If the inversion is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_MATINV_ALGORITHM    ... an algorithmic error was detected
+   - qqqERR_MATINV_MISALLOC     ... allocation of auxiliary arrays failed
+   - qqqERR_MATINV_ZERO_DIAG    ... zero diagonal element in R matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_MATINV_SMALL_DIAG   ... diagonal element in R matrix too small,
+                                    error.getMatrixRow() indicates the row 
+
+   Effort: dimension(A) * (average group size(A))^2.
+   BogoFlops: less than dimension(A) * (maximum group size(A))^2.
+   Space: less than dimension(A) * (maximum group size(A)).
+
+   Note: missing the performance can be increased by removing the 
+         algorithmic tests.
+   */
+#define MCSR      qqqMCSR<Number>
+#define Real      double
+#define Index     qqqIndex
+#define Error     qqqError
+template<class Number>
+bool				/* Inversion was successful */
+qqqInvert(
+    MCSR         &R,		/* Output A^-1.
+				   Must be a different storage place from A. */
+    MCSR   const &A,		/* Input matrix A in MCSR or MCSC format. */
+    Error        &error		/* missing auch oben beschreiben */
+    )
+{
+    FunctionLog functionLog("qqqInvert(mat)");
+
+    Index  const         n    = A.dimension();
+    Number const * const aval = A.getval();
+    Index  const * const aidx = A.getidx();
+
+    /* Auxiliary arrays */
+    Index  * const grp = new Index [qqqMax(n,1)];
+    Index  * const cnt = new Index [qqqMax(n,1)];
+
+    /* Allocation check */
+    if (!grp || !cnt)
+    {
+	error = qqqERR_MATINV_MISALLOC;
+	if (cnt) delete[] cnt;
+	if (grp) delete[] grp;
+	return false;
+    }
+
+    /* Determine groups of matrix nodes */
+    /* ================================ */
+
+    /* If a row contains entries for two columns col1 and col2,
+       both nodes col1 and col2 must be in the same group. 
+       Build as many groups as possible. */
+    
+    /* Start by making each node its own group */
+    for (Index row = 0; row < n; row++) grp[row] = row;
+
+    /* Merge groups as long as we find linked nodes in different groups */
+    for (bool changed = true; changed;) {
+	changed = false;
+	for (Index row = 0; row < n; row++) {
+	    Index const j1 = aidx[row];
+	    Index const j2 = aidx[row+1];
+	    
+	    /* The minimum group that this node is connected to */
+	    Index grpmin = grp[row];
+	    for (Index jj = j1; jj < j2; jj++)
+		grpmin = qqqMin(grpmin,grp[aidx[jj]]);
+	    
+	    /* Set all nodes this node is connected to
+	       to this minimum group */
+	    for (Index jj = j1; jj < j2; jj++) {
+		if (grpmin < grp[aidx[jj]]) changed = true;
+		grp[aidx[jj]] = grpmin;
+	    }
+	}
+    }
+    /* Now for each node i the first node of its group is given in grp[i] */
+
+    /* Count nodes in groups */
+    /* ===================== */
+
+    for (Index row = 0; row < n; row++) cnt[row] = 0;
+    for (Index row = 0; row < n; row++) cnt[grp[row]]++;
+    for (Index row = 0; row < n; row++) cnt[row] = cnt[grp[row]];
+    /* Now cnt[i] contains the number of nodes in group grp[i],
+       which contains node i */
+
+    /* Count off diagonals */
+    /* =================== */
+
+    Index nnz = 0;
+    for (Index row = 0; row < n; row++) nnz += cnt[row];
+    
+    /* Allocate the R matrix */
+    /* ===================== */
+
+    if (!R.allocate(n,nnz,A.isrowized()))
+    {
+	error = qqqERR_MATINV_MISALLOC;
+	delete[] cnt;
+	delete[] grp;
+	return false;
+    }
+    Number * const rval = R.getval();
+    Index  * const ridx = R.getidx();
+
+    /* Prepare the index array of the R matrix */
+    /* ======================================= */
+
+    /* Preset ridx so that after having filled in all nodes
+       it will be correct */
+    ridx[0] = n+1;
+    ridx[1] = n+1;
+    for (Index row = 1; row < n; row++)
+	ridx[row+1] = ridx[row] + cnt[row-1] - 1;
+
+    /* Add the off diagonals to the base nodes of each group */
+    for (Index row = 1; row < n; row++)
+    {
+	Index const basenode = grp[row];
+	if (basenode == row) continue; /* diagonal element of a base node */
+	Index const jj = ridx[basenode+1]++;
+	ridx[jj] = row;
+    }
+    /* Now for each basenode, ridx[basenode+1] is correct,
+       but for each other node this does not hold */
+
+    /* Add the off diagonals to the other nodes */
+    for (Index row = 1; row < n; row++)
+    {
+	Index const basenode = grp[row];
+	if (basenode == row) continue; /* it's a base node */
+
+	/* First add an entry for the base node, which will not be
+	   found in the off diagonals of the base node (of course) */
+	Index kk = ridx[row+1];
+	ridx[kk++] = basenode;
+
+	/* Note: ridx[basenode] is correct because we have handled row
+	   basenode-1 already. ridx[basenode+1] is correct anyway. */
+	Index const j1 = ridx[basenode];
+	Index const j2 = ridx[basenode+1];
+	for (Index jj = j1; jj < j2; jj++) 
+	{
+	    /* Off diagonal of base node */
+	    Index const col = ridx[jj];
+
+	    /* If the off diagonal of the base node is the
+	       diagonal of node row ... */
+	    if (col == row) continue;
+
+	    /* Else copy all off diagonal column numbers */
+	    ridx[kk++] = col;
+	}
+	/* Now make ridx[row+1] correct */
+	ridx[row+1] = kk;
+    }
+
+    /* Determine node-in-group index */
+    /* ============================= */
+    
+    /* Change cnt to give for each node the index of this node
+       within its group, i.e. when all nodes of a group are
+       numbered consecutively starting by 0 for the base node,
+       then cnt gives the number of each node. */
+
+    /* This destroys grp[row] */
+
+    for (Index row = 0; row < n; row++) {
+	if (grp[row] == row) {
+	    cnt[row] = 0;
+	    grp[row] = 1; /* Use this as the actual group top index */
+	}
+	else
+	    cnt[row] = grp[grp[row]]++;
+    }
+
+    /* Preset the matrix R with A */
+    /* ========================== */
+
+    for (Index jj = 0; jj < ridx[n]; jj++) rval[jj] = 0;
+    for (Index row = 0; row < n; row++) {
+	/* diagonal */
+	rval[row] = aval[row];
+
+	/* off diagonals */
+	Index const j1 = aidx[row];
+	Index const j2 = aidx[row+1];
+	Index const k1 = ridx[row];
+	for (Index jj = j1; jj < j2; jj++) {
+	    Index  const col = aidx[jj];
+	    Number const s   = aval[jj];
+
+	    /* diagonal */
+	    if (col == row)
+		rval[col] += s;
+	    else {
+		Index const kpos = (col > row) ? cnt[col]-1 : cnt[col];
+		if (ridx[k1+kpos] != col) {
+		    error = qqqERR_MATINV_ALGORITHM;
+		    R.free();
+		    delete[] cnt;
+		    delete[] grp;
+		    return false;
+		}
+		rval[k1+kpos] += s;
+	    }
+	}
+    }
+
+    /* Perform the inversion */
+    /* ===================== */
+
+    /* ******************************************************************
+       The algorithm is based upon
+          Josef Stoer
+          Einfuehrung in die Numerische Mathematik I
+          4th edition
+          Springer Verlag Berlin Heidelberg New York Tokyo,
+       but with heavy modifications for MCSR format.
+
+       The algorithm when denoted for a full matrix a[n,n] reads:
+
+       for (dgn = 0; dgn < n; dgn++) {
+           facdgn = 1 / a[dgn,dgn];
+
+           for (row = 0; row < n; row++) if (row != dgn) {
+	       a[row,dgn] *= facdgn;
+	       fac = a[row,dgn];
+	       for (col = 0; col < n; col++) if (col != dgn)
+	           a[row,col] -= fac * a[dgn,col];
+           }
+
+	   for (col = 0; col < n; col++) if (col != dgn)
+	       a[dgn,col] *= -facdgn;
+
+	   a[dgn,dgn] = facdgn;
+       }
+
+       This algorithm is spread over a contigous set of connected nodes
+       of a matrix (a node group), and for each node group this algorithm
+       is performed. The meanings of dgn, row, and col are retained, but
+       the rows connected with the current row dgn are spread all over
+       the matrix.
+       ****************************************************************** */
+
+#if 1				/* This is the new version */
+
+    /* For each node */
+    /* ============= */
+
+    for (Index dgn = 0; dgn < n; dgn++) 
+    {
+
+	/* 1. Make facdgn the inverted diagonal */
+	/* ==================================== */
+
+	if (qqqAbs(rval[dgn]) <= DBL_MIN)
+	{
+	    if (rval[dgn] == 0)
+		error = qqqERR_MATINV_ZERO_DIAG;
+	    else
+		error = qqqERR_MATINV_SMALL_DIAG;
+	    error.setMatrixRow(dgn);
+	    R.free();
+	    delete[] cnt;
+	    delete[] grp;
+	    return false;
+	}
+	Number const facdgn = 1 / rval[dgn]; /* R[dgn,dgn] */
+	Index  const dgnpos = cnt[dgn];
+
+
+
+	/* 2. In the rows connected to row dgn: */
+	/* ==================================== */
+
+	Index const j1 = ridx[dgn];
+	Index const j2 = ridx[dgn+1];
+	for (Index ii = j1; ii < j2; ii++) {
+	    Index const row       = ridx[ii];
+	    Index const dgnposrow = (dgn > row) ? dgnpos-1 : dgnpos;
+	    Index const offR      = ridx[row];
+	    
+
+	    /* 2.1. Multiply column dgn by facdgn */
+	    /* ================================== */
+
+	    /* R[row,dgn] *= 1 / R[dgn,dgn] */
+	    if (ridx[offR+dgnposrow] != dgn) {
+		error = qqqERR_MATINV_ALGORITHM;
+		R.free();
+		delete[] cnt;
+		delete[] grp;
+		return false;
+	    }
+	    rval[offR+dgnposrow] *= facdgn;
+
+
+	    /* 2.2. To other columns, add row dgn */
+	    /* ================================== */
+
+	    Number const fac = rval[offR+dgnposrow]; /* R[row,dgn] */
+	    for (Index kk = j1; kk < j2; kk++)
+	    {
+		Index const col       = ridx[kk];
+		Index const colpos    = cnt[col];
+		Index const colposrow = (col > row) ? colpos-1 : colpos;
+		
+		Number const ele = rval[kk]; /* R[dgn,col] */
+
+		/* R[row,col] -= R[row,dgn] * R[dgn,col] */
+		if (col == row)
+		    rval[row] -= fac * ele;
+		else {
+		    if (ridx[offR+colposrow] != col) {
+			error = qqqERR_MATINV_ALGORITHM;
+			R.free();
+			delete[] cnt;
+			delete[] grp;
+			return false;
+		    }
+		    rval[offR+colposrow] -= fac * ele;
+		}
+	    }
+	}
+
+
+	/* 3. Multiply row dgn (except diagonal) by -facdgn */
+	/* ================================================ */
+
+	for (Index kk = j1; kk < j2; kk++)
+	{
+	    /* R[dgn,col] *= -1 / R[dgn,dgn] */
+	    rval[kk] *= -facdgn;
+	}
+
+
+	/* 4. Set diagonal to facdgn */
+	/* ========================= */
+
+	/* R[dgn,dgn] = 1 / R[dgn,dgn]*/
+	rval[dgn] = facdgn;
+    }
+
+
+
+#else  /* This is the old version */
+    assert(0); /* [SW] */
+    for (Index dgn = 0; dgn < n; dgn++) 
+    {
+	if (abs(rval[dgn]) <= Real::ABSMIN())
+	{
+	    if (rval[dgn] == 0)
+		error = qqqERR_MATINV_ZERO_DIAG;
+	    else
+		error = qqqERR_MATINV_SMALL_DIAG;
+	    error.setMatrixRow(row);
+	    R.free();
+	    delete[] cnt;
+	    delete[] grp;
+	    return false;
+	}
+	Number const facdgn = 1 / rval[dgn]; /* R[dgn,dgn] */
+	Index  const dgnpos = cnt[dgn];
+
+	/* Multiply column dgn (except diagonal) by facdgn */
+	Index const j1 = ridx[dgn];
+	Index const j2 = ridx[dgn+1];
+	for (Index jj = j1; jj < j2; jj++)
+	{
+	    Index const row = ridx[jj];
+	    Index const pos = (dgn > row) ? dgnpos-1 : dgnpos;
+	    Index const k1  = ridx[row];
+	    if (ridx[k1+pos] != dgn) {
+		error = qqqERR_MATINV_ALGORITHM;
+		R.free();
+		delete[] cnt;
+		delete[] grp;
+		return false;
+	    }
+	    /* R[row,dgn] *= 1 / R[dgn,dgn] */
+	    rval[k1+pos] *= facdgn;
+	}
+
+	/* Set diagonal to facdgn */
+	/* R[dgn,dgn] = 1 / R[dgn,dgn]*/
+	rval[dgn] = facdgn;
+
+	/* Other columns: add row dgn to row row */
+	for (Index jj = j1; jj < j2; jj++)
+	{
+	    Index const col = ridx[jj];
+	    Index const colpos = cnt[col];
+
+	    Number const fac = rval[jj]; /* R[dgn,col] */
+
+	    for (Index ii = j1; ii < j2; ii++) {
+		Index const row = ridx[ii];
+		Index const pos1 = (col > row) ? colpos-1 : colpos;
+		Index const pos2 = (dgn > row) ? dgnpos-1 : dgnpos;
+		Index const k1  = ridx[row];
+
+		if (ridx[k1+pos2] != dgn) {
+		    error = qqqERR_MATINV_ALGORITHM;
+		    R.free();
+		    delete[] cnt;
+		    delete[] grp;
+		    return false;
+		}
+		Number const ele = rval[k1+pos2]; /* R[row,dgn] */
+
+		if (col == row) {
+		    /* R[row,col] -= R[row,dgn] * R[dgn,col] */
+		    rval[row] -= ele * fac;
+		}
+		else {
+		    if (ridx[k1+pos1] != col) {
+			error = qqqERR_MATINV_ALGORITHM;
+			R.free();
+			delete[] cnt;
+			delete[] grp;
+			return false;
+		    }
+		    /* R[row,col] -= R[row,dgn] * R[dgn,col] */
+		    rval[k1+pos1] -= ele * fac;
+		}
+	    }
+
+	    /* R[dgn,col] *= -R[dgn,dgn] (new diagonal element) */
+	    rval[jj] *= -facdgn;
+	}
+	
+    }
+#endif /* end of old version */
+
+    delete[] cnt;
+    delete[] grp;
+    return true;
+}
+#undef MCSR
+#undef Real
+#undef Index
+#undef Error
+
+
+/* invertfullmatrix()
+
+   Invert a matrix in full format.
+
+   Input and output matrices must be contigous arrays of values,
+   sorted either by row or by column. The output matrix will be sorted
+   in the same way as the input matrix.
+
+   No pivoting is done, so the input matrix must be 'well-behaved'.
+
+   The function returns true if the inversion was successful, false
+   if the matrix is numerically singular.
+
+   Effort:
+   The algorithm performs exactly dimension(A)^3 floating point
+   multiplications or divisions.
+
+   Effort: dimension(A)^3.
+   BogoFlops: dimension(A)^3.
+   Space: 0.
+   */
+#define Real      double
+#define Index     qqqIndex
+template<class Number>
+bool				/* Inversion was successful */
+qqqInvertFullMatrix(
+    Number       * const R,	/* Output A^-1.
+				   Can be the same storage place as A. */
+    Index          const n,	/* Input dimension of A and R. */
+    Number const * const A	/* Input matrix A in full format. */
+    )
+{
+    /* ******************************************************************
+       The algorithm is based upon
+          Josef Stoer
+          Einfuehrung in die Numerische Mathematik I
+          4th edition
+          Springer Verlag Berlin Heidelberg New York Tokyo,
+       but with some modifications.
+
+       The algorithm when denoted for a full matrix a[n,n] reads:
+
+       for (dgn = 0; dgn < n; dgn++) {
+           facdgn = 1 / a[dgn,dgn];
+
+           for (row = 0; row < n; row++) if (row != dgn) {
+	       a[row,dgn] *= facdgn;
+	       fac = a[row,dgn];
+	       for (col = 0; col < n; col++) if (col != dgn)
+	           a[row,col] -= fac * a[dgn,col];
+           }
+
+	   for (col = 0; col < n; col++) if (col != dgn)
+	       a[dgn,col] *= -facdgn;
+
+	   a[dgn,dgn] = facdgn;
+       }
+       ****************************************************************** */
+
+    if (R != A)	for (Index jj = 0; jj < n * n; jj++) R[jj] = A[jj];
+
+    for (Index dgn = 0; dgn < n; dgn++) {
+	Number const valdgn = R[dgn *n+ dgn];
+
+	if (qqqAbs(valdgn) <= DBL_MIN)
+	    return false;
+
+	Number const facdgn = 1 / valdgn;
+	
+	for (Index row = 0; row < n; row++) if (row != dgn) {
+	    R[row *n+ dgn] *= facdgn;
+	    Number const fac = R[row *n+ dgn];
+	    for (Index col = 0; col < n; col++) if (col != dgn)
+		R[row *n+ col] -= fac * R[dgn *n+ col];
+	}
+
+	for (Index col = 0; col < n; col++) if (col != dgn)
+	    R[dgn *n+ col] *= -facdgn;
+
+	R[dgn *n+ dgn] = facdgn;
+    }
+    return true;
+}
+#undef Real
+#undef Index
+
+
+
+/* transform()
+
+   Transform a matrix in MCSR or MCSC format.
+
+   Transform performs one or more of the following operations:
+   o) Change from MCSR to MCSC or vice versa.
+   o) Transposition of matrix.
+   o) Conjugation of matrix.
+   o) Rearrangement of matrix according to a permutation vector.
+   o) Sorting of the off diagonal entries.
+
+   MCSR versus MCSC:
+   The data structures in the matrix are interpreted as MCSR or MCSC,
+   respectively, depending on the state of the rowized flag in the matrix.
+   To convert from one format to the other, call this function with
+   a different 'rowized' flag as a parameter.
+   This call will invoke a transposition of the matrix structures, so
+   that the matrix described by the result structure is the same as 
+   described by the input structure (unless you perform any of the other
+   operations).
+   If you only want to change the state of the 'rowized' flag without
+   changing the structures, so that a different matrix is described
+   by the same internal data interpreted in the other format, then
+   you should call this function with 'rowized' changed and with
+   'transpose' enabled. The function will note that both operations
+   result in a transposition each, and that both transpositions undo
+   each other, so no operation will be effectively performed.
+
+   Transpose:
+   If you specify the respective flag, the result data structure will 
+   represent the same matrix as the input structure but for a 
+   transposition operation.
+   Note that this does not always imply a transposition is done internally,
+   since a change from MCSR to MCSC (or the other way) performed in the
+   same operation means that the internal data structures are unchanged
+   and only the 'rowized' flag is changed.
+   
+   Conjugation:
+   The transposition and MCSR to MCSC conversion described above do not
+   affect the numbers in the matrix. If the matrix consists of complex
+   numbers and you want the numbers to be conjugated together with the
+   other operations (e.g. a transposition in complex numbers usually
+   goes along with conjugating the numbers), specify the respective flag.
+
+   Permutation:
+   If a permutation vector is specified, the result matrix R is the original
+   matrix A permuted by a matrix P in the following way: R = P A P^-1.
+   P is a matrix consisting of a single entry '1' in each row and in each
+   column, all other entries are 0. P^-1 is the same as P^t (transposed).
+   The permutation vector 'perm' specifies the matrix P, in that it holds
+   for each column i the row perm[i] for which the entry P[perm[i],i] is 1.
+   In terms of source and destination indices this means that A[i,j]
+   becomes R[perm[i],perm[j]].
+
+   Sorting:
+   If the flag 'sort' is specified, the matrix entries are sorted on 
+   output, i.e. within each row (MCSR) or column (MCSC) the entries
+   are sorted by ascending column (MCSR) or row (MCSC) index.
+
+   Duplicate entries:
+   Duplicate entries are not removed from the matrix but kept duplicate.
+
+   Errors:
+   If the transformation is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_TRANSFORM_BADPERM   ... permutation vector does not contain
+                                    each index between 0 and n-1 exactly once
+   - qqqERR_TRANSFORM_MISALLOC  ... allocation of auxiliary matrix or
+                                    result matrix failed
+
+   Effort: nonzeros(A).
+   BogoFlops: 0.
+   Space: nonzeros(A) * (sizeof(Number) + sizeof(Index)).
+   */
+#define MCSR      qqqMCSR<Number>
+#define Real      double
+#define Index     qqqIndex
+#define Error     qqqError
+template<class Number>
+bool				/* Transformation was successful. */
+qqqTransform(
+    MCSR                 &R,	/* Output transformed matrix A.
+				   May be the same storage place as A. */
+    MCSR   const         &A,	/* Input matrix A in MCSR or MCSC format. */
+    Index  const * const perm,	/* Input new positions array for permutation, 
+				   length dimension of A. Can be 0, in which
+				   case no permutation is done. */
+    bool   const         sort,	/* Sort the off diagonal entries. */
+    bool   const         transp,/* Transpose the matrix. */
+    bool   const         rowize,/* Use MCSR for output, not MCSC. */
+    bool   const         conjug,/* Conjugate the matrix entries. */
+    Error                &error	/* Output error information, in case
+				   the return value is false. */
+    )
+{
+    FunctionLog functionLog("qqqTransform(mat)");
+
+    Index  const         n    = A.dimension();
+    Index  const         nnz  = A.nonzeros();
+    Number const * const aval = A.getval();
+    Index  const * const aidx = A.getidx();
+
+    /* Determine whether we have to transpose effectively */
+    bool   const trpeff = transp ^ (rowize != A.isrowized());
+
+    /* Determine whether we are to work in place */
+    bool   const inplace = &A == &R;
+
+    /* We have all combinations of the following booleans:
+       perm    ... permute the matrix according to the vector perm 
+       trpeff  ... effectively transpose the matrix structure
+       sort    ... sort the off diagonal entries of the matrix
+       inplace ... both matrices are in the same place
+       conjug  ... conjugate the matrix elements (if they are complex) */
+
+    /* 1. All combinations with permutation */
+    /* ==================================== */
+
+    if (perm) 
+    {
+	/* All such combinations are handled with an auxiliary matrix X */
+	MCSR X;
+	if (!X.allocate(n,nnz,true)) {
+	    error = qqqERR_TRANSFORM_MISALLOC;
+	    return false;
+	}
+	Number * const xval = X.getval();
+	Index  * const xidx = X.getidx();
+
+	/* Check for correct permutation vector */
+	for (Index row = 0; row < n; row++)
+	    if (perm[row] < 0 || perm[row] >= n) {
+		error = qqqERR_TRANSFORM_BADPERM;
+		return false;
+	    }
+	for (Index row = 0; row < n; row++)
+	    xidx[perm[row]] = row;
+	for (Index row = 0; row < n; row++)
+	    if (xidx[perm[row]] != row) {
+		error = qqqERR_TRANSFORM_BADPERM;
+		return false;
+	    }
+	/* Now xidx is a reverse permutation vector, this 
+	   is used when copying from A to X below. */
+
+	/* A to X: Copy and exchange complete rows */
+	/* ======================================= */
+
+	if (trpeff) /* Do not transpose here but lateron from X to R */
+	{
+	    /* Use the reverse permutation vector in xidx */
+	    Index idxtop = n + 1;
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const srcrow = xidx[row];
+		xidx[row] = idxtop;
+		Index const j1 = aidx[srcrow];
+		Index const j2 = aidx[srcrow + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    xval[idxtop] = aval[jj];
+		    xidx[idxtop] = aidx[jj];
+		    idxtop++;
+		}
+	    }
+	    xidx[n] = idxtop;
+	    /* Copy (without permutation) the diagonal */
+	    for (Index row = 0; row < n; row++)
+		xval[row] = aval[row];
+	}
+
+	/* A to X: Transpose and permute from columns to rows */
+	/* ================================================== */
+
+	else /* Do two transpositions altogether */
+	{
+	    /* Count off diagonals in each row of X */
+	    for (Index row = 1; row <= n; row++)
+		xidx[row] = 0;
+	    for (Index row = 0; row < n; row++) {
+		Index const j1 = aidx[row];
+		Index const j2 = aidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = perm[aidx[jj]];
+		    xidx[col+1]++;
+		}
+	    }
+	    /* Determine row begin indices of X */
+	    xidx[0] = n + 1;
+	    for (Index row = 1; row < n; row++)
+		xidx[row] += xidx[row-1];
+	    /* Shift upwards by one to prepare for the following insert */
+	    for (Index row = n; row > 0; row--)
+		xidx[row] = xidx[row-1];
+	    /* Insert entries and correct row begin indices of X */
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = aidx[row];
+		Index const j2 = aidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = perm[aidx[jj]];
+		    Index const pos = xidx[col+1];
+		    xidx[pos] = row;
+		    xval[pos] = aval[jj];
+		    xidx[col+1]++;
+		}
+	    }
+	    /* Copy (without permutation) the diagonal */
+	    for (Index row = 0; row < n; row++)
+		xval[row] = aval[row];
+	}
+
+	/* X to R: Transpose and permute from columns to rows */
+	/* ================================================== */
+
+	if (!R.allocate(n,nnz,rowize)) {
+	    error = qqqERR_TRANSFORM_MISALLOC;
+	    return false;
+	}
+	Index  * const ridx = R.getidx();
+	Number * const rval = R.getval();
+
+	/* Count off diagonals in each row of R */
+	for (Index row = 1; row <= n; row++)
+	    ridx[row] = 0;
+	for (Index row = 0; row < n; row++) {
+	    Index const j1 = xidx[row];
+	    Index const j2 = xidx[row + 1];
+	    for (Index jj = j1; jj < j2; jj++) {
+		Index const col = perm[xidx[jj]];
+		ridx[col+1]++;
+	    }
+	}
+	/* Determine row begin indices of R */
+	ridx[0] = n + 1;
+	for (Index row = 1; row < n; row++)
+	    ridx[row] += ridx[row-1];
+	/* Shift upwards by one to prepare for the following insert */
+	for (Index row = n; row > 0; row--)
+	    ridx[row] = ridx[row-1];
+	/* Insert entries and correct row begin indices of R */
+	if (conjug)
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = xidx[row];
+		Index const j2 = xidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = perm[xidx[jj]];
+		    Index const pos = ridx[col+1];
+		    ridx[pos] = row;
+		    rval[pos] = qqqCjg(xval[jj]);
+		    ridx[col+1]++;
+		}
+	    }
+	else
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = xidx[row];
+		Index const j2 = xidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = perm[xidx[jj]];
+		    Index const pos = ridx[col+1];
+		    ridx[pos] = row;
+		    rval[pos] = xval[jj];
+		    ridx[col+1]++;
+		}
+	    }
+	/* Permute the diagonal */
+	if (conjug)
+	    for (Index row = 0; row < n; row++)
+		rval[perm[row]] = qqqCjg(xval[row]);
+	else
+	    for (Index row = 0; row < n; row++)
+		rval[perm[row]] = xval[row];
+	
+	/* This has automatically sorted the off diagonals */
+    }
+
+
+    /* 2.   Combinations without permutation */
+    /* 2.1. Combinations with effective transposition */
+    /* ============================================== */
+
+    else if (trpeff)
+    {
+	/* A to X: Copy */
+	/* ============ */
+
+	/* In case of an inplace transformation,
+	   copy A to the auxiliary matrix X */
+	MCSR X;
+	if (inplace) {
+	    if (!X.allocate(n,nnz,true)) {
+		error = qqqERR_TRANSFORM_MISALLOC;
+		return false;
+	    }
+	    Number * const xval = X.getval();
+	    Index  * const xidx = X.getidx();
+
+	    for (Index jj = 0; jj <= nnz; jj++) {
+		xval[jj] = aval[jj];
+		xidx[jj] = aidx[jj];
+	    }
+	}
+	/* Use X or A as a source */
+	Number const * const xval = inplace ? X.getval() : aval;
+	Index  const * const xidx = inplace ? X.getidx() : aidx;
+
+	/* X to R: Transpose */
+	/* ================= */
+
+	if (!R.allocate(n,nnz,rowize)) {
+	    error = qqqERR_TRANSFORM_MISALLOC;
+	    return false;
+	}
+	Index  * const ridx = R.getidx();
+	Number * const rval = R.getval();
+
+	/* Count off diagonals in each row of R */
+	for (Index row = 1; row <= n; row++)
+	    ridx[row] = 0;
+	for (Index row = 0; row < n; row++) {
+	    Index const j1 = xidx[row];
+	    Index const j2 = xidx[row + 1];
+	    for (Index jj = j1; jj < j2; jj++) {
+		Index const col = xidx[jj];
+		ridx[col+1]++;
+	    }
+	}
+	/* Determine row begin indices of R */
+	ridx[0] = n + 1;
+	for (Index row = 1; row < n; row++)
+	    ridx[row] += ridx[row-1];
+	/* Shift upwards by one to prepare for the following insert */
+	for (Index row = n; row > 0; row--)
+	    ridx[row] = ridx[row-1];
+	/* Insert entries and correct row begin indices of R */
+	if (conjug)
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = xidx[row];
+		Index const j2 = xidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = xidx[jj];
+		    Index const pos = ridx[col+1];
+		    ridx[pos] = row;
+		    rval[pos] = qqqCjg(xval[jj]);
+		    ridx[col+1]++;
+		}
+	    }
+	else
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = xidx[row];
+		Index const j2 = xidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = xidx[jj];
+		    Index const pos = ridx[col+1];
+		    ridx[pos] = row;
+		    rval[pos] = xval[jj];
+		    ridx[col+1]++;
+		}
+	    }
+	/* Copy the diagonal */
+	if (conjug)
+	    for (Index row = 0; row < n; row++)
+		rval[row] = qqqCjg(xval[row]);
+	else
+	    for (Index row = 0; row < n; row++)
+		rval[row] = xval[row];
+	
+	/* This has automatically sorted the off diagonals */
+    }
+
+    /* 2.     Combinations without permutation */
+    /* 2.2.   Combinations without transposition */
+    /* 2.2.1. Sorting the off diagonal matrix elements */
+    /* =============================================== */
+
+    else if (sort)
+    {
+	/* Sorting is handled with an auxiliary matrix X */
+	MCSR X;
+	if (!X.allocate(n,nnz,true)) {
+	    error = qqqERR_TRANSFORM_MISALLOC;
+	    return false;
+	}
+	Number * const xval = X.getval();
+	Index  * const xidx = X.getidx();
+
+	/* A to X: Transpose */
+	/* ================= */
+
+	/* Count off diagonals in each row of X */
+	for (Index row = 1; row <= n; row++)
+	    xidx[row] = 0;
+	for (Index row = 0; row < n; row++) {
+	    Index const j1 = aidx[row];
+	    Index const j2 = aidx[row + 1];
+	    for (Index jj = j1; jj < j2; jj++) {
+		Index const col = aidx[jj];
+		xidx[col+1]++;
+	    }
+	}
+	/* Determine row begin indices of X */
+	xidx[0] = n + 1;
+	for (Index row = 1; row < n; row++)
+	    xidx[row] += xidx[row-1];
+	/* Shift upwards by one to prepare for the following insert */
+	for (Index row = n; row > 0; row--)
+	    xidx[row] = xidx[row-1];
+	/* Insert entries and correct row begin indices of X */
+	for (Index row = 0; row < n; row++)
+	{
+	    Index const j1 = aidx[row];
+	    Index const j2 = aidx[row + 1];
+	    for (Index jj = j1; jj < j2; jj++) {
+		Index const col = aidx[jj];
+		Index const pos = xidx[col+1];
+		xidx[pos] = row;
+		xval[pos] = aval[jj];
+		xidx[col+1]++;
+	    }
+	}
+	/* Copy the diagonal */
+	for (Index row = 0; row < n; row++)
+	    xval[row] = aval[row];
+
+
+	/* X to R: Transpose */
+	/* ================= */
+
+	if (!R.allocate(n,nnz,rowize)) {
+	    error = qqqERR_TRANSFORM_MISALLOC;
+	    return false;
+	}
+	Index  * const ridx = R.getidx();
+	Number * const rval = R.getval();
+
+	/* Count off diagonals in each row of R */
+	for (Index row = 1; row <= n; row++)
+	    ridx[row] = 0;
+	for (Index row = 0; row < n; row++) {
+	    Index const j1 = xidx[row];
+	    Index const j2 = xidx[row + 1];
+	    for (Index jj = j1; jj < j2; jj++) {
+		Index const col = xidx[jj];
+		ridx[col+1]++;
+	    }
+	}
+	/* Determine row begin indices of R */
+	ridx[0] = n + 1;
+	for (Index row = 1; row < n; row++)
+	    ridx[row] += ridx[row-1];
+	/* Shift upwards by one to prepare for the following insert */
+	for (Index row = n; row > 0; row--)
+	    ridx[row] = ridx[row-1];
+	/* Insert entries and correct row begin indices of R */
+	if (conjug)
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = xidx[row];
+		Index const j2 = xidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = xidx[jj];
+		    Index const pos = ridx[col+1];
+		    ridx[pos] = row;
+		    rval[pos] = qqqCjg(xval[jj]);
+		    ridx[col+1]++;
+		}
+	    }
+	else
+	    for (Index row = 0; row < n; row++)
+	    {
+		Index const j1 = xidx[row];
+		Index const j2 = xidx[row + 1];
+		for (Index jj = j1; jj < j2; jj++) {
+		    Index const col = xidx[jj];
+		    Index const pos = ridx[col+1];
+		    ridx[pos] = row;
+		    rval[pos] = xval[jj];
+		    ridx[col+1]++;
+		}
+	    }
+	/* Copy the diagonal */
+	if (conjug)
+	    for (Index row = 0; row < n; row++)
+		rval[row] = qqqCjg(xval[row]);
+	else
+	    for (Index row = 0; row < n; row++)
+		rval[row] = xval[row];
+	
+	/* This has automatically sorted the off diagonals */
+    }
+
+    /* 2.       Combinations without permutation */
+    /* 2.2.     Combinations without transposition */
+    /* 2.2.2.   No sorting of off diagonal elements */
+    /* 2.2.2.1. A and R are not in the same place */
+    /* ========================================== */
+
+    /* missing conjug!!!!! */
+    else if (!inplace)
+    {
+	/* A to R: Copy */
+	/* ============ */
+
+	if (!R.allocate(n,nnz,rowize)) {
+	    error = qqqERR_TRANSFORM_MISALLOC;
+	    return false;
+	}
+	Number * const rval = R.getval();
+	Index  * const ridx = R.getidx();
+
+	if (conjug)
+	    for (Index jj = 0; jj <= nnz; jj++) {
+		rval[jj] = qqqCjg(aval[jj]);
+		ridx[jj] =        aidx[jj];
+	    }
+	else
+	    for (Index jj = 0; jj <= nnz; jj++) {
+		rval[jj] = aval[jj];
+		ridx[jj] = aidx[jj];
+	    }
+    }
+
+    /* 2.       Combinations without permutation */
+    /* 2.2.     Combinations without transposition */
+    /* 2.2.2.   No sorting of off diagonal elements */
+    /* 2.2.2.2. A and R are in the same place, gladly */
+    /* ============================================== */
+
+    else
+    {
+	/* We only have to change the rowized flag of A/R */
+	if (rowize != A.isrowized())
+	    R.changerowized();
+
+	Number * const rval = R.getval();
+	if (conjug)
+	    for (Index jj = 0; jj <= nnz; jj++)
+		rval[jj] = qqqCjg(aval[jj]);
+    }
+
+    /* We need not free anything,
+       since X is freed by its destructor */
+    return true;
+}
+#undef MCSR
+#undef Real
+#undef Index
+#undef Error
+
+
+/* scale()
+
+   Scale a matrix in MCSR or MCSC format.
+
+   The matrix is multiplied by a diagonal matrix Sr (row scaling matrix)
+   from the left and by a diagonal matrix Sc (column scaling matrix) from
+   the right. Both scaling matrices are specified as vectors.
+
+   MCSR versus MCSC:
+   The data structures in the matrix are interpreted as MCSR or MCSC,
+   respectively, depending on the state of the rowized flag in the matrix.
+
+   Errors:
+   If the transformation is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_SCALE_ROW_SMALL     ... too small element in row scaling matrix Sr
+                                    error.getMatrixRow() indicates the row,
+   - qqqERR_SCALE_COLUMN_SMALL  ... too small element in col. scaling matrix Sc
+                                    error.getMatrixRow() indicates the row,
+   - qqqERR_SCALE_MISALLOC      ... allocation of result matrix failed
+
+   Effort: nonzeros(A).
+   BogoFlops: 2 * nonzeros(A) if both scalings are done, else nonzeros(A).
+   Space: 0.
+   */
+#define MCSR      qqqMCSR<Number>
+#define Real      double
+#define Index     qqqIndex
+#define Error     qqqError
+template<class Number>
+bool				/* Transformation was successful. */
+qqqScale(
+    MCSR                 &R,	/* Output transformed matrix A.
+				   May be the same storage place as A. */
+    MCSR   const         &A,	/* Input matrix A in MCSR or MCSC format. */
+    Number const         *Sr,	/* Row scaling matrix, inverted [SW], can be 0,
+				   in which case no row scaling is done */
+    Number const         *Sc,	/* Column scaling matrix, can be 0,
+				   in which case no column scaling is done */
+    Error                &error	/* Output error information, in case
+				   the return value is false. */
+    )
+{
+    FunctionLog functionLog("scale(mat)");
+
+    Index  const         n    = A.dimension();
+    Index  const         nnz  = A.nonzeros();
+    Number const * const aval = A.getval();
+    Index  const * const aidx = A.getidx();
+    Number const * const sr   = A.isrowized() ? Sr : Sc;
+    Number const * const sc   = A.isrowized() ? Sc : Sr;
+    
+
+    /* Determine whether we are to work in place */
+    bool   const inplace = &A == &R;
+
+    /* Check scaling arrays against zero elements */
+    if (Sr)
+    {
+	for (Index jj = 0; jj < n; jj++)
+	    if (qqqAbs(Sr[jj]) <= DBL_MIN)
+	    {
+		error = qqqERR_SCALE_ROW_SMALL;
+		error.setMatrixRow(jj);
+		return false;
+	    }
+    }
+    if (Sc)
+    {
+	for (Index jj = 0; jj < n; jj++)
+	    if (qqqAbs(Sc[jj]) <= DBL_MIN)
+	    {
+		error = qqqERR_SCALE_COLUMN_SMALL;
+		error.setMatrixRow(jj);
+		return false;
+	    }
+    }
+
+
+    /* Allocate the destination matrix */
+
+    if (!inplace)
+    {
+	if (!R.allocate(n,nnz,A.isrowized())) {
+	    error = qqqERR_SCALE_MISALLOC;
+	    return false;
+	}
+    }
+    Number * const rval = R.getval();
+    Index  * const ridx = R.getidx();
+
+
+    /* Scale */
+
+    if (sr && sc)
+    {
+	for (Index row = 0; row < n; row++)
+	{
+	    Index  const j1 = aidx[row  ];
+	    Index  const j2 = aidx[row+1];
+	    Number const fr = sr  [row];
+	    
+	    /* The diagonal element */
+	    ridx[row] = aidx[row];
+	    rval[row] = aval[row] * (fr / sc[row]);
+	    
+	    for (Index jj = j1; jj < j2; jj++) 
+	    {
+		Index const col = aidx[jj];
+		ridx[jj] = col;
+		rval[jj] = aval[jj] * (fr / sc[col]);
+	    }
+	}
+    }
+    else if (sr)
+    {
+	for (Index row = 0; row < n; row++)
+	{
+	    Index  const j1 = aidx[row  ];
+	    Index  const j2 = aidx[row+1];
+	    Number const fr = sr  [row];
+	    
+	    /* The diagonal element */
+	    ridx[row] = aidx[row];
+	    rval[row] = aval[row] * fr;
+	    
+	    for (Index jj = j1; jj < j2; jj++) 
+	    {
+		Index const col = aidx[jj];
+		ridx[jj] = col;
+		rval[jj] = aval[jj] * fr;
+	    }
+	}
+    }
+    else if (sc)
+    {
+	for (Index row = 0; row < n; row++)
+	{
+	    Index const j1 = aidx[row  ];
+	    Index const j2 = aidx[row+1];
+	    
+	    /* The diagonal element */
+	    ridx[row] = aidx[row];
+	    rval[row] = aval[row] / sc[row];
+	    
+	    for (Index jj = j1; jj < j2; jj++) 
+	    {
+		Index const col = aidx[jj];
+		ridx[jj] = col;
+		rval[jj] = aval[jj] / sc[col];
+	    }
+	}
+    }
+    else if (!inplace)
+    {
+	for (Index row = 0; row < n; row++)
+	{
+	    Index const j1 = aidx[row  ];
+	    Index const j2 = aidx[row+1];
+	    
+	    /* The diagonal element */
+	    ridx[row] = aidx[row];
+	    rval[row] = aval[row];
+	    
+	    for (Index jj = j1; jj < j2; jj++) 
+	    {
+		ridx[jj] = aidx[jj];
+		rval[jj] = aval[jj];
+	    }
+	}
+    }
+    rval[n] = 0;
+    ridx[n] = aidx[n];
+
+    return true;
+}
+
+inline bool
+qqqAssign(double *target, double const re, double const im)
+{
+  if (im != 0)
+  {
+     return false;
+  }
+  *target = re;
+  return true;
+}
+
+inline bool
+qqqAssign(qqqComplex *target, double const re, double const im)
+{
+  *target = qqqComplex(re, im);
+  return true;
+}
+
+#undef MCSR
+#undef Real
+#undef Index
+#undef Error
+
+#endif // __numerics_mcsr_tt__included__

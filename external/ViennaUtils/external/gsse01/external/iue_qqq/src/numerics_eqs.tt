@@ -1,0 +1,4315 @@
+/* ***********************************************************************
+   $Id: numerics_eqs.tt,v 1.42 2006/12/27 11:25:29 cervenka Exp $
+
+   Filename: numerics_eqs.tt
+
+   Description:  Equation system building and solving (templates file)
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+             SW  Stephan Wagner,   Institute for Microelectronics, TU Vienna
+
+   Who When         What
+   -------------------------------------------------------------------------
+   CF  15 Jan 1997  created
+   CF  15 Jan 1997  started defining the class
+   CF  26 Jan 1997  ended defining the class
+   SW  2000 - 2001  mmnt integration, scaling
+   SW  28 Nov 2001  advanced version of transferred-transformation algorithm
+   SW  06 Feb 2002  qqq prefixed function names
+   SW  13 Feb 2002  division of allocation/free methods
+   SW  27 Feb 2002  first Newton adjustment step
+   SW  04 Mar 2002  second Newton adjustment step
+   SW  05 Mar 2002  MCSC=MCSR^T; third Newton adjustment step
+   SW  08 Mar 2002  improved sorting; forth Newton adjustment step
+   SW  05 Apr 2002  eas like compiling
+   SW  28 Aug 2002  system input/output reordered, parameters refined
+   SW  17 Apr 2003  qqqEquationInfo class
+   *************************************************************************   */
+
+#ifndef   __numerics_eqs_tt__included__
+#define   __numerics_eqs_tt__included__
+
+#include <assert.h>
+#include <stdlib.h>
+
+/* Status output for debugging purposes */
+/* ==================================== */
+
+// #define QQQ_ASSEMBLY_STATUS_OUTPUT 1
+#if     QQQ_ASSEMBLY_STATUS_OUTPUT
+static inline void printAssemblyStatus(const char *text)        { printf(text); }
+#else
+static inline void printAssemblyStatus(const char * /* text */) {}
+#endif // QQQ_ASSEMBLY_STATUS_OUTPUT
+
+/* Return values of the fast lane function */
+/* ======================================= */
+
+enum qqqCFLreturn
+{
+   qqqCFL_NOT_ACTIVATED,
+   qqqCFL_OK,
+   qqqCFL_BOUNDARY_ERROR,
+   qqqCFL_GUMMEL_ERROR,
+   qqqCFL_ALLOCATION_ERROR
+};
+
+/* Class declaration of qqqEQSaux */
+/* ============================== */
+
+template<class Number>
+class qqqEQSaux
+{
+private:
+   qqqSMatrix<Number> mAs;   /* Symbolic As */ 
+   qqqSMatrix<Number> mAb;   /* Symbolic Ab */
+   qqqSMatrix<Number> mTb;   /* Symbolic Tb */
+   qqqSMatrix<Number> mTv;   /* Symbolic Tv */
+
+   /* Newton Adjustment Steps Matrices */
+   qqqMCSR<Number> mcsrAs;              /* Level1, Step 1 */
+   qqqMCSR<Number> mcsrAb;              /* Level1, Step 1 */
+   qqqMCSR<Number> mcsrTv;              /* Level1, Step 1 */
+   qqqMCSR<Number> mcsrTb;              /* Level1, Step 2 */
+   qqqMCSR<Number> auxFastLaneBoundary; /* Level2, Step 3 or easLikeCompiling */
+   qqqMCSR<Number> auxFastLaneGummel;   /* Level2, Step 3 or easLikeCompiling */
+   qqqMCSR<Number> auxFastLanePermuted; /* Level3, Step 4 */
+   qqqMCSR<Number> auxFastLaneE;	/* Level3, Step 4 */
+   qqqMCSR<Number> auxFastLaneO;        /* Level3, Step 4 */
+   qqqMCSR<Number> auxFastLaneC;        /* Level3, Step 4 */
+
+   Number    *vBs;                /* bs values of all RHS-vectors      */
+   Number   **mBs;                /* pointers to all bs-vectors        */ 
+   Number    *vBb;                /* bb values of all RHS-vectors      */
+   Number   **mBb;                /* pointers to all bb-vectors        */ 
+   Number    *vX;                 /* values of all solution vectors    */
+   Number   **mX;                 /* pointers to all solution vectors  */
+   Number    *vSc;                /* values for column scaling (right) */
+   Number    *vSr;                /* values for row scaling (left)     */
+   bool      *vE;                 /* eliminate flags                   */
+   qqqIndex  *vP;                 /* priority flags                    */
+   qqqIndex   n;                  /* Dimension                         */
+   qqqIndex   nx;                 /* Number of RHS Vectors             */
+
+   Number    *auxVector;          /* auxiliary vector                  */
+   qqqIndex  *sortVector;         /* kept sorting vector               */
+   qqqIndex  *invSortVector;      /* kept inverted sorting vector      */
+   qqqIndex  *preelimVector;      /* kept preelimination vector        */
+   qqqIndex  *invPreelimVector;   /* kept inverted preelim. vector     */
+   qqqIndex   preelimEndrow;      /* kept preelimination end row       */ 
+   bool       preelimSort;        /* sorting during preelimination     */
+								       
+   /* This is set to false if an internal error has been detected.  Everything
+      is OK if this is true and all matrices are valid.  This flag does not
+      detect allocation errors for matrix off-diagonals.  It does also not show
+      row or column index bounds errors unless the program has been compiled
+      with the QQQ_EQS_CHECK_INDEX_BOUNDS enabled in machine.h ([SW] mach2.h -
+      also eliminated, see type_all.hh). */
+   bool     valid;
+   qqqError internalError;
+   
+   /* Configuration flags */
+   bool useTb;              /* Transformation matrix?   */
+   bool useTv;              /* Variable Transformation? */
+   bool useSc;              /* Column scaling?          */
+   bool useSr;              /* Row scaling?             */
+   bool useE;               /* Elimination flags?       */
+   bool useP;               /* Priority flags?          */
+
+   bool processReadTv;      /* mcsrTv is read from file */
+
+   Number dummy;            /* Dummy valued needed for "NULL-references" */
+   
+public:
+    qqqEQSaux();
+   ~qqqEQSaux();
+   
+   /* Administration functions */
+   bool allocate(
+	      qqqSolverParameters &parms,         /* [I] solver parameters    */
+	const bool                 initE = false, /* [I] initialization value */
+	const qqqIndex             initP = -1);   /* [I] initialization value */
+
+   bool allocateNewton(
+              qqqSolverParameters &parms);        /* [I] solver parameters */
+
+   void free();
+   void freeNewton();
+
+   /* Input/Output functions */
+   bool writeLinearSystem(
+        qqqMCSR<Number>     &A,        /* [I/O] matrix to be written (sorted)  */
+	const char*          filename, /* [I]   name of the matrix output file */
+	      bool           preelims, /* [I]   write preelimination flags?    */
+	      bool           qnames,   /* [I]   write quantity information?    */
+	      Number       **rhs,      /* [I]   write rhs vectors?             */
+	qqqSolverParameters &parms);   /* [I/O] solver parameters              */
+
+   bool readLinearSystem(
+        qqqSolverParameters &parms);         /* [I/O] solver parameters   */
+
+   /* Solving and Error Management */
+   bool solve(qqqSolverParameters &parms);   /* [I/O] solver parameters   */
+   bool isValid(qqqError &error);            /* [O] error information     */
+   bool isValidBool();
+
+   inline qqqIndex getUnsortedIndex(qqqIndex const index) const; /* [I] sorted index   */
+   inline qqqIndex getSortedIndex  (qqqIndex const index) const; /* [I] unsorted index */
+
+   /* Access functions (quick) */
+   inline qqqIndex dimension         () const;
+   inline qqqIndex getNumberRhs      () const;
+   inline Number&  As                (qqqIndex const row, qqqIndex const col);
+   inline Number&  Ab                (qqqIndex const row, qqqIndex const col);
+   inline void     AbClearRow        (qqqIndex const row, bool     const remove);
+   inline void     AsClearRow        (qqqIndex const row, bool     const remove);
+   inline Number&  Tb                (qqqIndex const row, qqqIndex const col);
+   inline void     TbClearCol        (qqqIndex const col, bool     const remove);
+   inline Number&  Tv                (qqqIndex const row, qqqIndex const col);
+   inline Number&  Sr                (qqqIndex const row);
+   inline Number&  Sc                (qqqIndex const row);
+   inline Number&  bs                (qqqIndex const row, qqqIndex const col);
+   inline Number&  bb                (qqqIndex const row, qqqIndex const col);
+   inline Number&  x                 (qqqIndex const row, qqqIndex const col);
+   inline void     setEliminateFlag  (qqqIndex const row, bool eliminate);
+   inline bool     getEliminateFlag  (qqqIndex const row);
+   inline qqqIndex getPriority       (qqqIndex const row);
+   inline void     setPriority       (qqqIndex const row, qqqIndex const priority);
+
+   /* Direct Access Methods */
+   inline Number  *getXArray(qqqIndex const col);
+   inline Number  *getBsArray(qqqIndex const col);
+   inline Number  *getScArray();
+   inline Number  *getSrArray();
+
+   inline bool     existAsEntry     (qqqIndex const row, qqqIndex const col) const { return mAs.existEntry(row, col); }
+
+   /* First Newton Adjustment Step */
+   bool clearNewton(qqqSolverParameters &parms);
+   bool	addMcsrAs(qqqIndex const row, qqqIndex const col, Number const value);
+   bool	addMcsrAb(qqqIndex const row, qqqIndex const col, Number const value);
+   bool	addMcsrTb(qqqIndex const row, qqqIndex const col, Number const value);
+   bool	addMcsrTv(qqqIndex const row, qqqIndex const col, Number const value);
+   void mcsrAbClearRow(qqqIndex const row);
+   void mcsrAsClearRow(qqqIndex const row);
+   void mcsrTbClearCol(qqqIndex const col);
+
+   /* Second Newton Adjustment Step */
+   inline Number   *getMcsrTbArray();
+   inline qqqIndex *getMcsrTbIndexArray();
+
+   /* Third Newton Adjustment Step */
+   qqqCFLreturn compilationFastLane();   
+
+   /* Two-Phases-Models */
+   bool prepareStepOneMatrices(qqqSolverParameters &parms);			       
+
+   bool addRHSLineEntry  (qqqIndex const row, Number const value, qqqIndex const col);
+   bool addRHSEntry      (qqqIndex const row, Number const value, qqqIndex const col);
+   bool addRHSDoubleEntry(qqqIndex const row1, qqqIndex const row2, 
+			  Number const value1, Number const value2, qqqIndex const col);
+
+   bool addMatrixLineEntry(qqqIndex const row, qqqIndex const col, 
+			   Number const value, bool const conventional);
+   bool addMatrixEntry    (qqqIndex const row, qqqIndex const col, 
+			   Number const value, bool const conventional);
+
+   bool addMatrixDoubleEntry(qqqIndex const row1, qqqIndex const row2, qqqIndex const col,
+			     Number const value1, Number const value2, bool const conventional);
+
+   inline bool getReadMatrix(qqqMCSR<Number> &matrix);
+
+   bool callNumericalServer(const char *numServer, const char *numServerHost, qqqSolverParameters &parms);
+};
+
+/* Class definition of qqqEQSaux */
+/* ============================= */
+
+/* qqqEQSaux()
+
+   constructs the structure and presets it with zeros. Afterwards,
+   the function allocate() must be called.
+   */
+template<class Number>
+qqqEQSaux<Number>::qqqEQSaux() : 
+    vBs(0),
+    mBs(0),
+    vBb(0),
+    mBb(0),
+    vX (0),
+    mX (0),
+    vSc(0),
+    vSr(0),
+    vE (0),
+    vP (0),
+    n  (0),
+    nx (0),
+    auxVector       (0),
+    sortVector      (0),
+    invSortVector   (0),
+    preelimVector   (0),
+    invPreelimVector(0),
+    preelimEndrow   (0),
+    preelimSort     (false),
+    valid           (true),
+    useTb           (false),
+    useTv           (false),
+    useSc           (false),
+    useSr           (false),
+    useE            (false),
+    useP            (false),
+    processReadTv   (false)
+{ }
+
+
+/* ~qqqEQSaux()
+
+   deletes the structure. It frees everything allocated before.
+   The structure may be deleted anytime.
+   */
+template<class Number>
+qqqEQSaux<Number>::~qqqEQSaux()
+{
+    free();
+}
+
+
+/* allocate()
+
+   allocates all permanent data structures.
+   
+   The function can be called anytime; it discards all previous information
+   stored in the equation system and resets the error information.
+
+   The function returns true on successful allocation, false on allocation
+   errors or bad parameters (dim or rhs too small).  If the function returns
+   false, the function isValid() can be used to determine the error.
+   */
+template<class Number>
+bool 
+qqqEQSaux<Number>::allocate(
+            qqqSolverParameters &parms,    /* [I/O] solver parameters  */
+      const bool                 initE,    /* [I] initialization value */
+      const qqqIndex             initP     /* [I] initialization value */
+      )
+{	
+
+    free();
+    n                = parms.dimension;
+    nx               = parms.nrhs;
+    useE             = parms.useE;
+    useP             = parms.useP;
+
+    // printf("allocate (n=%ld)...\n", qqqIndexToLong(n));
+
+    if (n <= 0)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BADDIMENSION;
+	    parms.setErrorString("Allocation: invalid dimension given (dimension =", n);
+	    valid = false;
+	}
+	return false;
+    }
+    if (nx < 1)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BADNUMBEROFX;
+	    parms.setErrorString("Allocation: invalid number of rhs vectors given (number =", nx);
+	    valid = false;
+	}
+	return false;
+    }
+
+    auxVector = new Number[n];
+    if (auxVector == 0)
+    {
+      internalError = qqqERR_EQS_SL_MISALLOC;
+      parms.setErrorString("Solve: Could not allocate auxiliary structure");
+      valid = false;
+      return false;
+    }
+
+    if (useE)  vE  = new bool[n];
+    if (useP ) vP  = new qqqIndex[n];
+
+    /* Check the vector allocation */
+    if (useE  &&  vE == 0   ||
+	useP  &&  vP == 0)
+    {
+	free();
+	internalError = qqqERR_EQS_SY_MISALLOC;
+	parms.setErrorString("Allocation: could not allocate elimination/priority structures");
+	valid = false;
+	return false;
+    }
+
+    if (useE) 
+    {       
+       for (qqqIndex ii = 0; ii < n; ii++) 
+	  vE[ii] = initE;
+    }
+
+    if (useP) 
+       for (qqqIndex ii = 0; ii < n; ii++) 
+	  vP[ii] = initP;
+
+    return true;
+}
+
+/* allocateNewton()
+
+   allocates all data used in one Newton iteration step. The function can be
+   called anytime; it discards all previous Newton information stored in the
+   equation system and resets the error information.
+
+   The function returns true on successful allocation, false on allocation
+   errors or bad parameters (dim or rhs too small).  If the function returns
+   false, the function isValid() can be used to determine the error.
+
+*/
+template<class Number>
+bool
+qqqEQSaux<Number>::allocateNewton(
+      qqqSolverParameters &parms)  /* [I/O] solver parameters */
+{	
+   // printf("allocateNewton (n=%ld)...\n", qqqIndexToLong(n));
+
+   qqqIndex nrhs = this->nx;
+   freeNewton();
+
+   /* 3rd Newton Adjustment Step requires a straightforward compilation process: */
+   /* CHECK_THIS [SW]; enable this again; preparation method?                    */
+   if (parms.invertedTv)
+   {
+      printf("Flag invertedTv is not provided at the moment!\n");
+      return false;
+   }
+
+   useTb = parms.useTb;
+   useTv = parms.useTv;
+   useSc = parms.useSc;
+   useSr = parms.useSr;
+    
+   /* Check for zero dimension */
+   if (n == 0)
+      return true;
+   
+   /* Allocate As, Tb, Ab, Tv */
+   if (!mAs.allocate(n, true))
+   {
+      freeNewton();
+      internalError = qqqERR_EQS_AS_MISALLOC;
+      parms.setErrorString("Allocation: could not allocate As structure");
+      valid = false;
+      return false;
+   }
+
+   bool allocT = (useTb && !parms.easLikeCompiling);
+   if (allocT)
+   {
+      if (!mAb.allocate(n, true))
+      {
+	 freeNewton();
+	 internalError = qqqERR_EQS_AB_MISALLOC;
+	 parms.setErrorString("Allocation: could not allocate Ab structure");
+	 valid = false;
+	 return false;
+      }
+   }
+
+   if (useTb)
+   {
+      if (!mTb.allocate(n,false))
+      {
+	 freeNewton();
+	 internalError = qqqERR_EQS_TB_MISALLOC;
+	 parms.setErrorString("Allocation: could not allocate Tb structure");
+	 valid = false;
+	 return false;
+      }
+   }
+
+   if (useTv)
+   {
+      if (!mTv.allocate(n,true))
+      {
+	 freeNewton();
+	 internalError = qqqERR_EQS_TV_MISALLOC;
+	 parms.setErrorString("Allocation: could not allocate Tv structure");
+	 valid = false;
+	 return false;
+      }
+   }      
+
+   /* Allocate the vectors */
+   vBs             = new Number[n * nrhs];   
+   if (allocT) vBb = new Number[n * nrhs];
+   vX              = new Number[n * nrhs];
+
+#if 0
+   if (useSc)  vSc = new Number[n];
+   else /* CHECK_THIS [SW]: mmsit.cc prerequisite */
+#endif
+      vSc = new Number[n];
+
+#if 0
+   if (useSr)  vSr = new Number[n];
+   else /* CHECK_THIS [SW]: mmsit.cc prerequisite */
+#endif
+      vSr = new Number[n];      
+      
+   if (nrhs > 1)
+   {
+      mBs = new Number*[nrhs];
+      if (allocT)
+	 mBb = new Number*[nrhs];
+      mX  = new Number*[nrhs];     
+      for (qqqIndex ii = 0; ii < nrhs; ii++)
+      {
+	 mBs[ii] = &vBs[ii * n];
+	 if (allocT)
+	    mBb[ii] = &vBb[ii * n];
+	 mX[ii] = &vX [ii * n];
+      }      
+   }
+   else
+   {
+      mBs = &vBs;
+      if (allocT)
+	 mBb = &vBb;
+      mX  = &vX;
+   }
+   
+   /* Check the vector allocation */
+   if (
+       !vBs              ||
+       (allocT && !vBb)  ||
+       !vX               ||
+       (useSc  && !vSc)  ||
+       (useSr  && !vSr)  ||
+       !mBs              ||
+       (allocT && !mBb)  ||
+       !mX              
+       )
+   {      
+      freeNewton();
+      internalError = qqqERR_EQS_SY_MISALLOC;
+      parms.setErrorString("Allocation: could not allocate Newton structures");
+      valid = false;
+      return false;
+   } 
+   
+   /* Set the multi-vector arrays */
+   for (qqqIndex ii = 0; ii < nrhs; ii++)
+   {
+      mBs            [ii] = &vBs[ii * n];
+      if (allocT) mBb[ii] = &vBb[ii * n];
+      mX             [ii] = &vX [ii * n];
+   }
+      
+   /* Preset the matrices and vectors */
+   Number const ONE  = 1;
+   Number const ZERO = 0;
+   if (useTb)  qqqInitializeVector(&mTb.entry(0,0),n,ONE);
+   if (useTv)  qqqInitializeVector(&mTv.entry(0,0),n,ONE);
+               qqqInitializeVector(vBs,n*nx,ZERO);
+   if (allocT) qqqInitializeVector(vBb,n*nx,ZERO);
+   if (useSc)  qqqInitializeVector(vSc,n,ONE);
+   if (useSr)  qqqInitializeVector(vSr,n,ONE);
+      
+   return true;
+}
+
+
+/* free()
+
+   frees everything allocated in the structure.
+
+   The function can be called anytime. It resets all error information
+   and discards any information previously stored in the equation system.
+   */
+template<class Number>
+void
+qqqEQSaux<Number>::free()
+{
+   //printf("qqqEQSaux::free()...\n");
+
+    freeNewton();
+
+    delete[] auxVector; auxVector = 0;
+
+    if (vP != 0) delete[] vP ; vP  = 0;
+    if (vE != 0) delete[] vE ; vE  = 0;
+
+    n  = 0;
+    nx = 0;
+
+    if (preelimVector    != 0) delete[] preelimVector;
+    if (invPreelimVector != 0) delete[] invPreelimVector;
+    preelimVector         = 0;
+    invPreelimVector      = 0;
+
+    useE = false;
+    useP = false;
+
+    if (sortVector    != 0) delete[] sortVector;
+    if (invSortVector != 0) delete[] invSortVector;
+    sortVector         = 0;
+    invSortVector      = 0;
+}
+
+/* freeNewton()
+
+   frees all Newton dependent data structures.
+
+   The function can be called anytime. It resets all error information and
+   discards any information previously stored in the equation system.
+*/
+template<class Number>
+void
+qqqEQSaux<Number>::freeNewton()
+{
+   // printf("qqqEQSaux freeNewton()...\n");
+   qqqError const no_error;
+
+   if (mX  != 0 && mX  != &vX ) delete[] mX;  mX  = 0;
+   if (mBb != 0 && mBb != &vBb) delete[] mBb; mBb = 0;
+   if (mBs != 0 && mBs != &vBs) delete[] mBs; mBs = 0;
+
+   if (vSr     != 0) delete[] vSr;     vSr = 0;
+   if (vSc     != 0) delete[] vSc;     vSc = 0;
+   if (vX      != 0) delete[] vX ;     vX  = 0;
+   if (vBb     != 0) delete[] vBb;     vBb = 0;
+   if (vBs     != 0) delete[] vBs;     vBs = 0;   
+
+   /* Symbolic Matrices */
+   mTv.free();
+   mTb.free();
+   mAb.free();
+   mAs.free();
+
+   /* Newton Adjustment Steps */
+   mcsrAs.free();
+   mcsrAb.free();
+   mcsrTv.free();
+   mcsrTb.free();
+   auxFastLaneGummel.free();    
+   auxFastLaneBoundary.free();
+   auxFastLanePermuted.free();
+   auxFastLaneC.free();
+   auxFastLaneO.free();
+   auxFastLaneE.free();
+
+   valid          = true;
+   internalError  = no_error;
+   useTb          = false;
+   useTv          = false;
+   useSc          = false;
+   useSr          = false;
+}
+
+/* writeLinearSystem()
+
+   The system matrix, elimination flags, the first right hand side vector and
+   the requested quantity information (if available) is written to the
+   specified file. During the first call (solveCount==1) a new file is created,
+   otherwise this file is appended (due to EAS compatibility). If the filename
+   equals "-", stdout is used for output.
+
+   Four auxiliary functions are used to create the output strings for the
+   supported data types.
+*/
+
+inline
+void writeRhs(      FILE       *matdat,
+	      const qqqComplex  nValue)
+{
+   char const * const formatComplexRhs  = "   rhs (% 35.28g, % 35.28g)\n";
+   fprintf(matdat, formatComplexRhs, qqqGetReal(nValue), qqqGetImag(nValue));
+}
+
+inline 
+void writeRhs(        FILE   *matdat,
+	        const double  nValue)
+{
+   char const * const formatRealRhs     = "   rhs  % 35.28g\n";
+   fprintf(matdat, formatRealRhs, nValue);
+}
+
+inline
+void writeEntry(const bool           qnames,
+		const qqqIndex       colidx,
+		      FILE          *matdat, 
+		const bool           preelims,
+		const bool           elim,
+		const qqqComplex&    nValue,
+		qqqSolverParameters &parms)
+{
+   char const * const formatComplexColQ = "%s%4ld (% 35.28g, % 35.28g)\t[%7ld] %s \n";
+   char const * const formatComplexCol  = "%s%4ld (% 35.28g, % 35.28g)\n";
+
+   if (qnames) 
+   {
+      std::string qname;
+      qqqIndex const offset = parms.equationInfo.getEquationInformation(colidx, qname);
+
+      fprintf(matdat, formatComplexColQ, (preelims && elim) ? " *  ":"    ",
+	      qqqIndexToLong(colidx), qqqGetReal(nValue), qqqGetImag(nValue), 
+	      offset, qname.c_str()); 
+      return;
+      
+   }
+
+   fprintf(matdat, formatComplexCol, (preelims && elim) ? " *  ":"    ",
+	   qqqIndexToLong(colidx), qqqGetReal(nValue), qqqGetImag(nValue));
+}
+
+inline
+void writeEntry(const bool      qnames,
+		const qqqIndex  colidx,
+		      FILE     *matdat, 
+		const bool      preelims,
+		const bool      elim,
+		const double    nValue,
+		qqqSolverParameters &parms)
+{
+   char const * const formatRealColQ    = "%s%4ld  % 35.28g\t[%7ld] %s \n";
+   char const * const formatRealCol     = "%s%4ld  % 35.28g\n";
+
+   if (qnames) 
+   {
+      std::string qname;
+      qqqIndex const offset = parms.equationInfo.getEquationInformation(colidx, qname);
+
+      fprintf(matdat, formatRealColQ, (preelims && elim) ? " *  " : "    ",
+	      qqqIndexToLong(colidx), nValue, 
+	      offset, qname.c_str());
+      return;
+   }
+   
+   fprintf(matdat, formatRealCol, (preelims && elim) ? " *  ":"    ",
+	   qqqIndexToLong(colidx), nValue);
+}
+
+template<class Number>
+bool
+qqqEQSaux<Number>::writeLinearSystem(
+    qqqMCSR<Number>     &A,           /* [I/O] matrix to be written (sorted)  */				
+    const char*          filename,    /* [I]   name of the matrix output file */
+          bool           preelims,    /* [I]   write preelimination flags?    */
+          bool           qnames,      /* [I]   write quantity information?    */
+    Number             **rhs,         /* [I]   write rhs vectors?             */
+    qqqSolverParameters &parms        /* [I/O] solver parameters              */
+    )
+{
+   // printf("writeLinearSystem...\n");
+
+   FILE *matdat = 0;
+   long const counter = parms.writeOnly ? 1 : qqqIndexToLong(parms.solveCount);
+
+   if (strcmp(filename, "-") == 0)
+      matdat = stdout;
+   else
+      matdat = fopen(filename, (counter == 1) ? "w" : "a");
+
+   if (matdat == 0)
+      return false;
+
+   qqqMCSR<Number> &WriteMatrix = A;
+
+   if (preelims && (vE == 0))
+      preelims = false;
+      
+   /* format strings */
+   char const * const formatRowQ        = "%srow %4ld\t[%7ld] %s\n";
+   char const * const formatRow         = "%srow %4ld\n";
+
+   qqqIndex   ccirow, ccicol; 
+
+   /* sort the matrix to ensure ascending off-diagonals */
+   qqqTransform(WriteMatrix, WriteMatrix, 0, true, false, true, false, internalError);
+
+   qqqIndex const         WriteDim = WriteMatrix.dimension();
+   Number   const * const val      = WriteMatrix.getval();
+   qqqIndex const * const idx      = WriteMatrix.getidx();
+    
+   if (parms.equationInfo.getNumQuantities() == -1)
+      qnames = false;
+  
+   /* header */
+   fprintf(matdat, "=================== MATRIX (%ldx%ld) ===================\n", 
+	   WriteDim, counter); // parms.solveCount /* EAS: WriteDim */
+
+   /* loop over all rows */
+   for (ccirow = 0; ccirow < WriteDim; ccirow++)
+   {
+      qqqIndex const j1 = idx[ccirow];    /* begin of the off-diag-sequence */
+      qqqIndex const j2 = idx[ccirow+1];  /* end of this sequence */
+
+      if (qnames) 
+      {
+	 std::string qname;
+	 qqqIndex const offset = parms.equationInfo.getEquationInformation(ccirow, qname);
+	 fprintf(matdat, formatRowQ, (preelims && vE[ccirow]) ? "* ":"  ", qqqIndexToLong(ccirow), 
+		 offset, qname.c_str());
+      }
+      else
+	 fprintf(matdat, formatRow, (preelims && vE[ccirow]) ? "* ":"  ", qqqIndexToLong(ccirow));
+
+      /* until the diagonal entry */
+      for (ccicol = j1; (ccicol < j2) && (idx[ccicol] < ccirow); ccicol++)
+	 writeEntry(qnames, /*eqsOwner,*/ idx[ccicol], matdat, preelims, preelims ? vE[idx[ccicol]] : 0, 
+		    val[ccicol], parms);
+ 
+      /* diagonal entry: be careful: ccirow <> ccicol! ccirow must be taken */
+      writeEntry(qnames, /*eqsOwner,*/ ccirow, matdat, preelims, preelims ? vE[ccirow] : 0, 
+		 val[ccirow], parms);
+
+      /* until the end */
+      for (; ccicol < j2; ccicol++)
+	 writeEntry(qnames, /*eqsOwner,*/ idx[ccicol], matdat, preelims, preelims ? vE[idx[ccicol]] : 0, 
+		    val[ccicol], parms);
+	    
+      if ((rhs != 0) && (*rhs != 0))
+	 for(qqqIndex nnx=0; nnx < nx; ++nnx)
+	    writeRhs(matdat, rhs[nnx][ccirow]); // mBs[nnx][ccirow]);
+   }
+  
+   fprintf(matdat, "--------------------------------------------------------\n");
+   fclose(matdat);
+   return true;
+}
+
+template<class Number>
+bool                                   
+qqqEQSaux<Number>::readLinearSystem(
+      qqqSolverParameters &parms)         /* [I/O] solver parameters              */
+{
+
+                    /* 1234567890123456789012345678901234567890123456789012345 */
+#define END_OF_MATRIX "-------------------------------------------------------"
+#define EQSSTRLENGTH 60
+
+   /* Discard everything and allocate new structures */
+   /* ============================================== */
+   free();
+
+   if (parms.useTv)
+      processReadTv = true;
+
+   /* obligatory overruling... */
+   parms.useTb            = false;
+   parms.useTv            = false;
+   parms.improvedSorting  = false;
+   parms.easLikeCompiling = false;
+#if QQQ_MECHANICAL
+   parms.useMechanical    = false;
+#endif
+
+   if (!allocate(parms) || !allocateNewton(parms))
+   {
+      valid = false;
+      return false;
+   }
+     
+   /* Configuration settings */
+   /* ====================== */
+
+   char filename[40];
+   sprintf(filename, "%s.sys", parms.readSystem);
+
+   // printf("Reading %s\n", filename);
+   FILE *matdat = 0;
+   if ((matdat = fopen(filename, "r")) == 0)
+   {
+      parms.setErrorString("Linear system input file not found");
+      internalError = qqqERR_READLIN_FILE_ERROR;
+      valid = false;
+      return false;
+   }
+
+   /* Go to the requested matrix in file */
+   /* ================================== */
+
+   qqqIndex       matrixCounter   = 1;
+   qqqIndex const requestedMatrix = parms.solveCount;
+
+   printf("Matrix Reading Started (request = %ld) ...\n", qqqIndexToLong(requestedMatrix));
+
+   char rsLEN[EQSSTRLENGTH];
+   int  retval;
+
+   while (matrixCounter != requestedMatrix)
+   {
+      if ((retval = fscanf(matdat, "%s", rsLEN)) == 1)
+      {
+	 if ((strcmp(rsLEN, END_OF_MATRIX) == 0) || (strcmp(rsLEN, END_OF_MATRIX "-") == 0))
+	    matrixCounter++;
+      } 
+      else 
+	 break;
+   }
+
+   if (matrixCounter != requestedMatrix)
+   {
+      internalError = qqqERR_READLIN_REQUEST_MAT;
+      parms.setErrorString("Requested matrix in linear system input file not found (request =", 
+			   requestedMatrix);
+      valid = false;
+      fclose(matdat);
+      return false;
+   }
+
+   qqqSMatrix<Number> &readSMatrix = mAs;
+   bool quantityInformation = true;
+   bool success = false;
+   long currRow;
+
+   do
+   {
+
+      /* File header check and dimension retrieving */
+      /* ========================================== */
+
+      long dimension, solveCount;
+      char *endptr, *endptr2;
+
+      /* =================== MATRIX (%ldx%ld) ===================\n */
+      retval = fscanf(matdat, "%s", rsLEN);
+      if ((retval != 1) || (strcmp(rsLEN, "===================") != 0)) 
+	 break;
+      retval = fscanf(matdat, "%s", rsLEN);
+      if ((retval != 1) || (strcmp(rsLEN, "MATRIX") != 0)) 
+	 break;
+      retval = fscanf(matdat, "%s", rsLEN);
+      if ((retval != 1) || (rsLEN[0] != '(')) 
+	 break;
+      dimension = strtol(&rsLEN[1], &endptr, 10);  
+      if (endptr[0] != 'x') 
+	 break;
+      solveCount = strtol(&endptr[1], &endptr2, 10);
+      if (endptr2[0] != ')') 
+	 break;
+      retval = fscanf(matdat, "%s", rsLEN);
+      if ((retval != 1) || (strcmp(rsLEN, "===================") != 0)) 
+	 break;
+
+      if (dimension != parms.dimension)
+      {
+	 parms.setErrorString("Linear system input file dimension mismatch (dim =", dimension);
+	 internalError = qqqERR_READLIN_DIMENSION;
+	 break;
+      }
+      if ((solveCount != parms.solveCount) && (solveCount != dimension))
+      {
+	 parms.setErrorString("Linear system input file header mismatch");
+	 internalError = qqqERR_READLIN_CHAOS;
+	 break;
+      }
+
+      printf("Header checked: dim=%ld, sC=%ld\n", qqqIndexToLong(dimension), qqqIndexToLong(solveCount));
+
+
+      /* Read linear system */
+      /* ================== */
+
+      long   currCol, ofs;
+      double currDouble;
+      
+      qqqIndex mismatch = 0;
+
+      char str1[EQSSTRLENGTH], str2[EQSSTRLENGTH];
+      char qi1[EQSSTRLENGTH],  qi2[EQSSTRLENGTH];
+
+      double currImag = 0.0;
+      char bra1[EQSSTRLENGTH], bra2[EQSSTRLENGTH], bra3[EQSSTRLENGTH];
+
+      /* Check if quantity information was written to file */
+      long positionInFile = ftell(matdat);
+      char *ptrToChar = str2;
+      if (((retval = fscanf(matdat, "%s", str1)) == 1) && (strcmp(str1, "*") == 0))
+         retval = fscanf(matdat, "%s", str1);
+      if ((retval == 1) && (fscanf(matdat, "%s %s", str2, qi1) == 2))
+      {
+         if ((strcmp(str1, "row") == 0) && ((currRow = strtol(str2, &ptrToChar, 10)) == 0))
+         {
+            if (strcmp(qi1, "[") != 0)
+               quantityInformation = false;
+         }
+         else
+         {
+            internalError = qqqERR_READLIN_FORMAT;
+            internalError.setMatrixRow(-1);
+            parms.setErrorString("Format mismatch: initial row number not given or not zero");
+            break;
+         }
+      }
+      else
+      {
+         internalError = qqqERR_READLIN_FORMAT;
+         internalError.setMatrixRow(0);
+
+         parms.setErrorString("Format mismatch: was not able to determine if quantity information was written");
+         break;
+      }
+      if (fseek(matdat, positionInFile, SEEK_SET) == -1)
+      {
+         internalError = qqqERR_READLIN_FILE_ERROR;
+         parms.setErrorString("Could not perform seek fseek operation within linear system input file");
+         break;
+      }
+
+      printf("Reading linear system file %s quantity information\n", (quantityInformation)?"with":"without");
+
+      while (!success)
+      {   // !success
+
+         /* -------------------------------------------------- 
+          var.1:      * row    0	[   0] CTC/s3
+          var.2:      *     0 (              1,               0)	[   0] CTC/s3 
+          var.4:          rhs (              0,               0)
+          var.3:            6 (             -1,               0)	[   0] BTEC/s3 
+          var.5:        row    6	[   0] BTEC/s3
+            -------------------------------------------------- */
+
+	 /* Variant 1: * row    0      [   0] CTC/s2                            */
+	 /* Variant 2:  *     0   1.000000000000000000e+00     [   0] CTC/s2    */
+	 /* Variant 3:       10   0.000000000000000000e+00     [   0] CPO/s2    */
+	 /* Variant 4:    rhs   0.000000000000000000e+00                        */
+	 /* Variant 5:   row   10      [   0] CPO/s2                            */
+	 /* Variant 6: -------------------------------------------------------- */
+
+         /* For complex systems the matrix entries are given in the format:     */
+         /*                     '( 1.000000e+00, 1.0000000e+00)'                */
+
+
+         if ((retval = fscanf(matdat, "%ld %lf", &currCol, &currDouble)) == 2)
+         {
+            /* Variant 3 real valued */
+            qqqAssignValue(readSMatrix.entry(currRow, currCol), currDouble, currImag);
+            
+            if ((quantityInformation) && (fscanf(matdat, "%s %ld %s %s", qi1, &ofs, qi2, str1) != 4))
+               mismatch = 60;
+         }
+         else if (retval == 1)
+         {
+            if ((retval = fscanf(matdat, "%1s %lf %1s %lf %1s", bra1, &currDouble, bra2, &currImag, bra3)) == 5)
+            {
+               /* Variant 3 complex valued */
+               qqqAssignValue(readSMatrix.entry(currRow, currCol), currDouble, currImag);
+               
+               if ((quantityInformation) && (fscanf(matdat, "%s %ld %s %s", qi1, &ofs, qi2, str1) != 4))
+                  mismatch = 61;
+            }
+            else
+               mismatch = 10;
+         }
+         else /* no number at beginning of line */
+         {
+            if ((retval = fscanf(matdat, "%s", str1)) == 1)
+            {
+               if (strcmp(str1, "*") == 0) /* elimination flag */
+               {
+                  if ((retval = fscanf(matdat, "%ld %lf", &currCol, &currDouble)) == 2)
+                  {
+                     /* Variant 2 real valued */
+                     qqqAssignValue(readSMatrix.entry(currRow, currCol), currDouble, currImag);
+
+                     if ((quantityInformation) && (fscanf(matdat, "%s %ld %s %s", qi1, &ofs, qi2, str1) != 4))
+                        mismatch = 62;
+                  }
+                  else if (retval == 1)
+                  {
+                     if ((retval = fscanf(matdat, "%1s %lf %1s %lf %1s", bra1, &currDouble, bra2, &currImag, bra3)) == 5)
+                     {
+                        /* Variant 2 complex valued ? */
+                        qqqAssignValue(readSMatrix.entry(currRow, currCol), currDouble, currImag);
+                        
+                        if ((quantityInformation) && (fscanf(matdat, "%s %ld %s %s", qi1, &ofs, qi2, str1) != 4))
+                           mismatch = 63;
+                     }
+                     else
+                        mismatch = 1;
+                  }
+                  else if ((retval = fscanf(matdat, "%s %ld", str2, &currRow)) == 2)
+                  {
+                     if (strcmp(str2, "row") == 0)
+                     {
+                        /* Variant 1 */
+                        if (useE)
+                           vE[currRow] = true;
+
+			if (quantityInformation)
+			{
+			  if (fscanf(matdat, "%s %ld %s %s", qi1, &ofs, qi2, str1) != 4)
+			    mismatch = 64;
+			  else 
+			  {
+			     /* store quantity information */
+			     // printf("%ld: qi1=\"%s\", ofs=%ld, qi2=\"%s\", str1=\"%s\"\n", qqqIndexToLong(currRow), qi1, ofs, qi2, str1);
+			     if (!parms.equationInfo.addReadEquationToQuantity(currRow, ofs, std::string(str1)))
+				mismatch = 35;
+			  }
+			}
+                     }
+                     else
+                        mismatch = 2;
+                  }
+               } //elim flag
+
+               /* Number of RHS vectors to be written: nx */
+               else if (strcmp(str1, "rhs") == 0)
+               {
+                  if ((retval = fscanf(matdat, "%lf", &currDouble)) == 1)
+                  {
+                     /* Variant 4 real valued */
+                     qqqAssignValue(vBs[currRow], currDouble, currImag);
+
+                     for (qqqIndex nnx = 1; (nnx < nx) && !mismatch; ++nnx)
+                     {
+                        if ((retval = fscanf(matdat, "%s", str1)) == 1)
+                        {
+                           if (strcmp(str1, "rhs") == 0)
+                           {
+                              if ((retval = fscanf(matdat, "%lf", &currDouble)) == 1)
+                                 qqqAssignValue(mBs[nnx][currRow], currDouble, currImag);
+                              else
+                                 mismatch = 31; /* no value for real RHS vector */
+                           }
+                           else
+                              mismatch = 32; /* not enough RHS vectors in file  */
+                        }
+                        else
+                           mismatch = 33; /* unexpected end of file */
+                     }
+                  }
+                  else if ((retval = fscanf(matdat, "%1s %lf %1s %lf %1s", bra1, &currDouble, bra2, &currImag, bra3)) == 5)
+                  {
+                     /* Variant 4 complex valued */
+                     qqqAssignValue(vBs[currRow], currDouble, currImag);
+
+                     for (qqqIndex nnx = 1; (nnx < nx) && !mismatch; ++nnx)
+                     {
+                        if ((retval = fscanf(matdat, "%s", str1)) == 1)
+                        {
+                           if (strcmp(str1, "rhs") == 0)
+                           {
+                              if ((retval = fscanf(matdat, "%1s %lf %1s %lf %1s", bra1, &currDouble, bra2, &currImag, bra3)) == 5)
+                                 qqqAssignValue(mBs[nnx][currRow], currDouble, currImag);
+                              else
+                                 mismatch = 31; /* no value for complex rhs vector */
+                           }
+                           else
+                              mismatch = 32; /* not enough rhs vectors in file */
+                        }
+                        else
+                           mismatch = 33; /* unexpected end of file */
+                     }
+                  }
+                  else
+                  {
+                     mismatch = 3;
+                  }
+               }
+
+               else if (strcmp(str1, "row") == 0)
+               {
+                  if ((retval = fscanf(matdat, "%ld", &currRow)) == 1)
+                  {
+                     /* Variant 5 */
+		    if (quantityInformation)
+		    {
+		      if (fscanf(matdat, "%s %ld %s %s", qi1, &ofs, qi2, str1) != 4)
+			 mismatch = 65;
+		      else 
+		      {
+			 /* store quantity information */
+			 // printf("%ld: qi1=\"%s\", ofs=%ld, qi2=\"%s\", str1=\"%s\"\n", qqqIndexToLong(currRow), qi1, ofs, qi2, str1);
+			 if (!parms.equationInfo.addReadEquationToQuantity(currRow, ofs, std::string(str1)))
+			    mismatch = 35;
+		      }
+		    }
+                  }
+                  else
+                     mismatch = 11;
+               }
+               else if (strcmp(str1, END_OF_MATRIX) == 0)
+               {
+                  /* Variant 6 */
+                  success = true;
+               }
+               else
+               {
+                  mismatch = 4;
+               }
+            }
+            else
+            {
+               mismatch = 5;
+            }
+         }
+
+	 if (mismatch > 0)
+	 {
+	    internalError = qqqERR_READLIN_FORMAT;
+	    internalError.setMatrixRow(currRow);
+	    printf("MISMATCH = %ld\n", qqqIndexToLong(mismatch));
+	    switch(mismatch)
+	    {
+	    case 1: 
+	       parms.setErrorString("Format mismatch: error between column number and value (row =", currRow);
+	       break;
+	    case 2: 
+	       parms.setErrorString("Format mismatch: String 'row' not found (previous row =", currRow);
+	       break;	      
+	    case 3:	      
+	       parms.setErrorString("Format mismatch: error between \"rhs\" and value (row =", currRow);
+	       break;	      
+	    case 4:  	      
+	       parms.setErrorString("Format mismatch: line starting string mismatch (previous row =", currRow);
+	       break;	      
+	    case 5: 	      
+	       parms.setErrorString("Format mismatch: unexpected end of file (previous row =", currRow);
+	       break;
+            case 10:
+               parms.setErrorString("Format mismatch: line starting with number, but no value (previous row =", currRow);
+               break;
+            case 11:
+               parms.setErrorString("Format mismatch: \"row\" found without number (previous row =", currRow);
+               break;
+            case 31:
+               parms.setErrorString("Format mismatch: no value for further rhs-vector (previous row =", currRow);
+               break;
+            case 32:
+               parms.setErrorString("Format mismatch: not enough rhs-vectors in file (previous row =", currRow);
+               break;
+            case 33:
+               parms.setErrorString("Format mismatch: unexpected EOF while reading rhs vectors (previous row =", currRow);
+               break;
+            case 35:
+               parms.setErrorString("Format mismatch: quantity information is bad (row =", currRow);
+               break;
+            case 60:
+            case 61:
+            case 62:
+            case 63:
+            case 64:
+            case 65:
+               parms.setErrorString("Format mismatch: could not remove quantity information (previous row =", currRow);
+               break;
+
+	    default: 
+	       parms.setErrorString("Format mismatch: kind of mismatch unknown (row =", currRow);
+	    }
+	    break;
+	 }
+      }        // while
+   } while(0); // for breaks only
+   
+   fclose(matdat);
+
+   if (quantityInformation)
+   { 
+      if (parms.dimension != parms.equationInfo.getNb())
+      {
+	 printf("parms.dim = %ld, nb=%ld\n", qqqIndexToLong(parms.dimension), qqqIndexToLong(parms.equationInfo.getNb()));
+	 if (internalError.getError() != qqqERR_READLIN_FORMAT)
+	    internalError = qqqERR_READLIN_QUAN_DIM;
+	 success = false;
+      }
+   }
+
+   if (success && parms.readAuxiliary)
+   {
+      if (processReadTv)
+      {      
+	 sprintf(filename, "%s%ld.tv", parms.readSystem, qqqIndexToLong(parms.solveCount));
+	 // printf("Reading %s\n", filename);
+	 if (!mcsrTv.readMatrix(filename))
+	    internalError = qqqERR_READLIN_AUX_TV;
+      }
+      
+      if (useSc)
+      {
+	 sprintf(filename, "%s%ld.sc", parms.readSystem, qqqIndexToLong(parms.solveCount));
+	 // printf("Reading %s\n", filename);
+	 if (!qqqReadVector(vSc, parms.dimension, filename))
+	    internalError = qqqERR_READLIN_AUX_SC;
+      }
+      
+      if (useSr)
+      {
+	 sprintf(filename, "%s%ld.sr", parms.readSystem, qqqIndexToLong(parms.solveCount));
+	 // printf("Reading %s\n", filename);
+	 if (!qqqReadVector(vSr, parms.dimension, filename))
+	    internalError = qqqERR_READLIN_AUX_SR;
+      }
+   }
+
+   if (!internalError.noError())
+   {
+      if (internalError.getError() != qqqERR_READLIN_FORMAT)
+	 parms.setErrorString(internalError.mapErrorMessage());
+      valid = false;
+      readSMatrix.free();
+      return false;
+   }
+
+   parms.solveCount--;   
+   return true;
+}
+
+/* compilationFastLane()
+
+   reuses old result structures
+   => the same sequence of mathematical operations
+*/
+
+template<class Number>
+qqqCFLreturn
+qqqEQSaux<Number>::compilationFastLane()
+{
+   //printf("compilationFastLane\n");
+
+   /* General Initialization and Allocation */
+   /* ===================================== */
+
+   qqqIndex         const dimFl = this->n;
+   
+   /* Auxiliary arrays */
+   Number    * const val = new Number[qqqMax(dimFl,1)];
+   qqqIndex  * const idx = new qqqIndex[qqqMax(dimFl,1)];
+   qqqIndex  * const rev = new qqqIndex[qqqMax(dimFl,1)];
+
+   /* Allocation check */
+   if (!val || !idx || !rev)
+   {
+      internalError = qqqERR_MATPRD_MISALLOC;
+      if (idx) delete[] idx;
+      if (val) delete[] val;
+      if (rev) delete[] rev;
+      return qqqCFL_ALLOCATION_ERROR;
+   }
+
+   /* Preset rev array */
+   for (qqqIndex jj = 0; jj < n; jj++) rev[jj] = -1;
+
+
+   /* The Row Transformation (Boundary System) */
+   /* ======================================== */
+
+   if (useTb)
+   { // useTb
+
+      /* result structure auxFastLaneBoundary is known */
+      Number   * const valFl = auxFastLaneBoundary.getval();
+      qqqIndex * const idxFl = auxFastLaneBoundary.getidx();
+
+      /* input matrices */
+      Number   const * const valAs = mcsrAs.getval();
+      qqqIndex const * const idxAs = mcsrAs.getidx();
+      Number   const * const valAb = mcsrAb.getval();
+      qqqIndex const * const idxAb = mcsrAb.getidx();
+      Number   const * const valTb = mcsrTb.getval();
+      qqqIndex const * const idxTb = mcsrTb.getidx();
+
+      for (qqqIndex row = 0; row < dimFl; row++)
+      { // main for-loop
+
+	 /* Create the row of R in idx/val */
+	 /* ============================== */
+
+	 /* 1st step: Multiplying Tb * As */
+	 /* ----------------------------- */
+	 
+	 qqqIndex len = 0;
+	 
+	 /* diagonal of A */
+	 {
+	    qqqIndex  const colrow = row;
+	    Number const y      = valTb[row];
+	    
+	    if (y != 0) 
+	    {
+	       /* diagonal of B */
+	       {
+		  qqqIndex const col = colrow;
+		  Number const s   = valAs[colrow];
+		  if (s != 0) 
+		  {
+		     qqqIndex const pos = rev[col];
+		     if (pos == -1) 
+		     {
+			val[len] = y * s;
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		     }
+		     else
+			val[pos] += y * s;
+		  } /* End of if s != 0 */
+	       } /* End of diagonal of B */
+	    
+	       /* off diagonals of B */
+	       qqqIndex const k1 = idxAs[colrow];
+	       qqqIndex const k2 = idxAs[colrow+1];
+	       for (qqqIndex kk = k1; kk < k2; kk++)
+	       {
+		  qqqIndex  const col = idxAs[kk];
+		  Number const s   = valAs[kk];
+	       
+		  if (s == 0) continue;
+		  qqqIndex const pos = rev[col];
+		  if (pos == -1) 
+		  {
+		     val[len] = y * s;
+		     idx[len] = col;
+		     rev[col] = len;
+		     len++;
+		  }
+		  else
+		     val[pos] += y * s;
+	       } /* End of loop kk=k1..k2-1 */
+	    } /* End of if y != 0 */
+	 } /* End of diagonal of A */
+
+	 /* off diagonals of A */
+	 qqqIndex const j1 = idxTb[row];
+	 qqqIndex const j2 = idxTb[row+1];
+	 for (qqqIndex jj = j1; jj < j2; jj++) 
+	 {
+	    qqqIndex  const colrow = idxTb[jj];
+	    Number const y      = valTb[jj];
+	 
+	    if (y == 0) continue;
+	 
+	    /* diagonal of B */
+	    {
+	       qqqIndex  const col = colrow;
+	       Number const s   = valAs[colrow];
+	       if (s != 0) 
+	       {
+		  qqqIndex const pos = rev[col];
+		  if (pos == -1) {
+		     val[len] = y * s;
+		     idx[len] = col;
+		     rev[col] = len;
+		     len++;
+		  }
+		  else
+		     val[pos] += y * s;
+	       } /* End of if s != 0 */
+	    } /* End of diagonal of B */
+	 
+	    /* off diagonals of B */
+	    qqqIndex const k1 = idxAs[colrow];
+	    qqqIndex const k2 = idxAs[colrow+1];
+	    for (qqqIndex kk = k1; kk < k2; kk++)
+	    {
+	       qqqIndex  const col = idxAs[kk];
+	       Number const s   = valAs[kk];
+	    
+	       if (s == 0) continue;
+	       qqqIndex const pos = rev[col];
+	       if (pos == -1) 
+	       {
+		  val[len] = y * s;
+		  idx[len] = col;
+		  rev[col] = len;
+		  len++;
+	       }
+	       else
+		  val[pos] += y * s;
+	    } /* End of for kk=k1..k2-1 */
+	 } /* End of for jj=j1..j2-1 */
+      
+
+	 /* 2nd step: Add all Ab entries to R */
+	 /* --------------------------------- */
+
+	 /* diagonal of Ab */
+	 {
+	    qqqIndex  const colrow = row;
+	    Number    const y      = valAb[row];
+	    
+	    if (y != 0) 
+	    {
+	       qqqIndex const col = colrow;
+	       qqqIndex const pos = rev[col];
+	       if (pos == -1) 
+	       {
+		  val[len] = y;
+		  idx[len] = col;
+		  rev[col] = len;
+		  len++;
+	       }
+	       else
+		  val[pos] += y;
+	    }
+	 }
+
+	 /* off diagonals of Ab */
+	 {
+	    qqqIndex const colrow = row;
+
+	    qqqIndex const k1 = idxAb[colrow];
+	    qqqIndex const k2 = idxAb[colrow+1];
+	    for (qqqIndex kk = k1; kk < k2; kk++)
+	    {
+	       qqqIndex  const col = idxAb[kk];
+	       Number    const y   = valAb[kk];
+	    
+	       if (y == 0) continue;
+	       qqqIndex const pos = rev[col];
+	       if (pos == -1) 
+	       {
+		  val[len] = y;
+		  idx[len] = col;
+		  rev[col] = len;
+		  len++;
+	       }
+	       else
+		  val[pos] += y;
+	    }
+	 }
+
+	 /* Store the row in R */
+	 /* ================== */
+
+	 for (qqqIndex jj = 0; jj < len; jj++)
+	 {
+	    qqqIndex const col = idx[jj];
+	    if (col == row)
+	       valFl[col] = val[jj];
+	    else
+	    {
+	       bool found = false;
+	       for (qqqIndex rr = idxFl[row]; rr < idxFl[row+1]; rr++)
+	       {
+		  if (idxFl[rr] == col)
+		  {
+		     valFl[rr] = val[jj];
+		     found = true;
+		     break;
+		  }
+	       }
+	       if (!found) 
+		  return qqqCFL_BOUNDARY_ERROR;
+	    }
+	 }
+
+	 /* Reset the rev array */
+	 /* =================== */
+	 for (qqqIndex jj = 0; jj < len; jj++)
+	    rev[idx[jj]] = -1;
+
+      } // main for-loop
+   } // useTb
+
+
+   /* 3rd Step: The Gummel (Variable) Transformation */
+   /* ============================================== */
+
+   if (useTv)
+   { // useTv
+      qqqMCSR<Number> &A_OVERLAY = useTb ? auxFastLaneBoundary : mcsrAs;
+
+      /* result structure auxFastLaneGummel is known */
+      Number   * const valFl = auxFastLaneGummel.getval();
+      qqqIndex * const idxFl = auxFastLaneGummel.getidx();
+
+      /* input matrices */
+      Number   const * const valTv = mcsrTv.getval();
+      qqqIndex const * const idxTv = mcsrTv.getidx();
+      Number   const * const valOv = A_OVERLAY.getval();
+      qqqIndex const * const idxOv = A_OVERLAY.getidx();
+
+      for (qqqIndex row = 0; row < dimFl; row++)
+      { // main for-loop
+
+	 /* Create the row of R in idx/val */
+	 /* ============================== */
+	 
+	 qqqIndex len = 0;
+	 
+	 /* diagonal of A */
+	 {
+	    qqqIndex const colrow = row;
+	    Number   const y      = valOv[row];
+	    
+	    if (y != 0) 
+	    {
+	       /* diagonal of B */
+	       {
+		  qqqIndex const col = colrow;
+		  Number   const s   = valTv[colrow];
+		  if (s != 0) 
+		  {
+		     qqqIndex const pos = rev[col];
+		     if (pos == -1) 
+		     {
+			val[len] = y * s;
+			idx[len] = col;
+			rev[col] = len;
+			len++;
+		     }
+		     else
+			val[pos] += y * s;
+		  } /* End of if s != 0 */
+	       } /* End of diagonal of B */
+	    
+	       /* off diagonals of B */
+	       qqqIndex const k1 = idxTv[colrow];
+	       qqqIndex const k2 = idxTv[colrow+1];
+	       for (qqqIndex kk = k1; kk < k2; kk++)
+	       {
+		  qqqIndex const col = idxTv[kk];
+		  Number   const s   = valTv[kk];
+	       
+		  if (s == 0) continue;
+		  qqqIndex const pos = rev[col];
+		  if (pos == -1) 
+		  {
+		     val[len] = y * s;
+		     idx[len] = col;
+		     rev[col] = len;
+		     len++;
+		  }
+		  else
+		     val[pos] += y * s;
+	       } /* End of loop kk=k1..k2-1 */
+	    } /* End of if y != 0 */
+	 } /* End of diagonal of A */
+
+	 /* off diagonals of A */
+	 qqqIndex const j1 = idxOv[row];
+	 qqqIndex const j2 = idxOv[row+1];
+	 for (qqqIndex jj = j1; jj < j2; jj++) 
+	 {
+	    qqqIndex const colrow = idxOv[jj];
+	    Number   const y      = valOv[jj];
+	 
+	    if (y == 0) continue;
+	 
+	    /* diagonal of B */
+	    {
+	       qqqIndex const col = colrow;
+	       Number   const s   = valTv[colrow];
+	       if (s != 0) 
+	       {
+		  qqqIndex const pos = rev[col];
+		  if (pos == -1) {
+		     val[len] = y * s;
+		     idx[len] = col;
+		     rev[col] = len;
+		     len++;
+		  }
+		  else
+		     val[pos] += y * s;
+	       } /* End of if s != 0 */
+	    } /* End of diagonal of B */
+	 
+	    /* off diagonals of B */
+	    qqqIndex const k1 = idxTv[colrow];
+	    qqqIndex const k2 = idxTv[colrow+1];
+	    for (qqqIndex kk = k1; kk < k2; kk++)
+	    {
+	       qqqIndex const col = idxTv[kk];
+	       Number   const s   = valTv[kk];
+	    
+	       if (s == 0) continue;
+	       qqqIndex const pos = rev[col];
+	       if (pos == -1) 
+	       {
+		  val[len] = y * s;
+		  idx[len] = col;
+		  rev[col] = len;
+		  len++;
+	       }
+	       else
+		  val[pos] += y * s;
+	    } /* End of for kk=k1..k2-1 */
+	 } /* End of for jj=j1..j2-1 */
+      
+	 /* Store the row in R */
+	 /* ================== */
+
+	 // printf("row %ld (%ld entries)\n", qqqIndexToLong(row), qqqIndexToLong(len));
+	 for (qqqIndex jj = 0; jj < len; jj++)
+	 {
+	    qqqIndex const col = idx[jj];
+
+	    if (col == row)
+	       valFl[col] = val[jj];
+	    else
+	    {
+	       bool found = false;
+	       for (qqqIndex rr = idxFl[row]; rr < idxFl[row+1]; rr++)
+	       {
+		  if (idxFl[rr] == col)
+		  {
+		     valFl[rr] = val[jj];
+		     found = true;
+		     break;
+		  }
+	       }
+	       if (!found) 
+		  return qqqCFL_GUMMEL_ERROR;
+	    }
+	 }
+
+	 /* Reset the rev array */
+	 /* =================== */
+	 for (qqqIndex jj = 0; jj < len; jj++)
+	    rev[idx[jj]] = -1;
+
+      } // main for-loop
+   } // useTv
+
+   delete[] rev;
+   delete[] idx;
+   delete[] val;
+
+   return qqqCFL_OK;
+}
+
+template<class Number>
+bool
+qqqEQSaux<Number>::prepareStepOneMatrices(qqqSolverParameters &parms)
+{
+   /* Analytical Solution for Transferred-Transformation Problem 
+      ==========================================================
+            Dec 2000: basic version
+            Nov 2001: advanced version
+         04 Mar 2002: second Newton Adjustment Step
+         05 Mar 2002: identity MCSC=MCSR^T
+	 25 Mar 2002: two phases models
+	 28 May 2002: use original factor for additional entries
+      ==========================================================
+   */
+
+#define COMPARE_TTP_INPUT_OUTPUT 0
+#if COMPARE_TTP_INPUT_OUTPUT
+   char filename[18];
+   bool first = true;
+#endif
+
+   if ((!useTb) && (!useTv))
+      return true;
+
+   bool const processSMatrix = 
+      (!parms.adjustLevel1      ||  parms.adjustRecover      || 
+       ((parms.solveCount == 1) && !parms.easLikeCompiling)  ||
+       ((parms.solveCount == 0) &&  parms.easLikeCompiling));
+
+#if 0
+   printf("prepareTransformationMatrix; aN1=%s, iC=%s, pS=%s\n", 
+	  parms.adjustLevel1 ? "true" : "false",
+	  easLikeCompiling   ? "true" : "false",
+	  processSMatrix     ? "true" : "false");
+#endif
+
+   if (useTb)
+   { // useTb
+      if (parms.fixTbProblem)
+      { // (fixTbProblem)
+
+	 bool restart;
+
+	 do
+	 {
+	    restart = false;
+
+	    if (processSMatrix)
+	    {
+	       if (!mTb.convertToMCSR(mcsrTb, false))   // convert to MCSC format 
+	       {		
+		  parms.setErrorString("Could not convert Tb structure to MCSR format");
+		  internalError = qqqERR_EQS_SY_CONVERSION;
+		  return false;
+	       }
+	    }
+
+#if COMPARE_TTP_INPUT_OUTPUT
+	       if (first)
+	       {
+		  first = false;
+		  sprintf(filename, "Tb_pre_all_%ld.mat", parms.solveCount);
+		  mcsrTb.writeMatrix(filename, false);
+	       }
+#endif // COMPARE_TTP_INPUT_OUTPUT
+
+	    qqqIndex *jt = mcsrTb.getidx();
+	    Number    *t = mcsrTb.getval();
+	    qqqIndex dim = mcsrTb.dimension();
+	    qqqIndex nnz = mcsrTb.nonzeros();
+	    qqqIndex currow = 0;
+	    qqqIndex nentries;
+
+	    for (qqqIndex ccirow = dim+1; ccirow < nnz; ccirow++)
+	    { // for
+
+	       while (jt[currow+1] <= ccirow)     // derive current row number 
+		  currow++; 
+
+	       if (processSMatrix)
+	       {
+		  /* Use the still existing SMatrix */	
+		  if (jt[jt[ccirow]] != (jt[jt[ccirow]+1]))
+		  {
+		     Number origFactor = mTb.entry(jt[ccirow], currow);
+		     if (origFactor != 0)
+		     {		     		     
+			nentries = qqqIndexToLong(jt[jt[ccirow]+1]) - qqqIndexToLong(jt[jt[ccirow]]);
+			for (qqqIndex ccirow2 = jt[jt[ccirow]]; ccirow2 < jt[jt[ccirow]] + nentries; ccirow2++)
+			{
+#if 0
+			   if (currow == 81895) printf("src=%ld; t[]=%5.2g: new entry(col=%ld, row=%ld) = %5.2g\n", 						       
+						       qqqIndexToLong(jt[ccirow]),
+						       qqqGetReal(t[ccirow2]), 
+						       qqqIndexToLong(jt[ccirow2]),
+						       qqqIndexToLong(currow), qqqGetReal(origFactor));
+#endif
+
+			   if (t[ccirow2] != 0) // skip zero entries
+			      mTb.entry(jt[ccirow2], currow) = origFactor;			   
+			}
+			
+			mTb.entry(jt[ccirow], currow) = 0.0; // be careful: mTb is not transposed!
+			restart = true;
+			break;  // is necessary
+		     }
+		  }
+	       }
+	       else
+	       {		
+		  /* Use the current MCSC matrix (additionally needed entries are still present) */
+		  if (jt[jt[ccirow]] != jt[jt[ccirow]+1])
+		  {
+		     Number origFactor = t[ccirow] != 0.0;
+
+		     if (origFactor != 0)
+		     {		     
+			nentries = qqqIndexToLong(jt[jt[ccirow]+1]) - qqqIndexToLong(jt[jt[ccirow]]);
+			for (qqqIndex ccirow2 = jt[jt[ccirow]]; ccirow2 < jt[jt[ccirow]] + nentries; ccirow2++)
+			{
+			   if (t[ccirow2] != 0)
+			   {
+			      Number *currMCSRentry;
+			      if ((currMCSRentry = mcsrTb.getEntryPtr(currow, jt[ccirow2])) != 0)
+				 *currMCSRentry = t[ccirow];
+			      else 
+				 /* This case WILL and MUST not occur. If the source matrix is equal to the 
+				    existing one, also the correction result must be the same! 
+				    For that reason this kind of Newton adjustment error is not treated */
+				 assert(0);
+			   }
+			}
+			t[ccirow] = 0.0;
+			restart = true;
+			break;  // is necessary
+		     }
+		  }
+	       }
+	    }
+	 
+	    if (processSMatrix) 
+	    {
+	       if (restart)
+	       {
+		  // printf("restart\n");
+		  mcsrTb.free();
+	       }
+	       else mTb.free();
+	    }
+
+	 } while (restart);
+
+	 /* matrix multiplication requires MCSR format */
+	 if (!parms.easLikeCompiling)
+	 {
+#if COMPARE_TTP_INPUT_OUTPUT
+	    sprintf(filename, "Tb_post_all_%ld.mat", parms.solveCount);
+	    mcsrTb.writeMatrix(filename, false);
+#endif // COMPARE_TTP_INPUT_OUTPUT
+
+	    qqqTransform(mcsrTb, mcsrTb, 0, true, false, true, false, internalError);
+	 }
+
+      } // (fixTbProblem)
+      else
+      {
+	 if (processSMatrix)
+	 {
+	    if (!mTb.convertToMCSR(mcsrTb, parms.easLikeCompiling ? false : true))
+	    {		
+	       parms.setErrorString("Could not convert Tb structure to MCSR format");
+	       internalError = qqqERR_EQS_SY_CONVERSION;
+	       return false;
+	    }
+	 }
+	 mTb.free();
+      }
+   }
+
+   /* Now we also want to prepare the GAT-Matrix */
+   if (useTv && processSMatrix)
+   {      
+      if (!mTv.convertToMCSR(mcsrTv, true))
+      {		
+	 parms.setErrorString("Could not convert Tv structure to MCSR format");
+	 internalError = qqqERR_EQS_SY_CONVERSION;
+	 return false;
+      }
+      mTv.free();
+   }
+
+   return true;
+}
+
+
+/* solve()
+
+   compiles and solves the linear system.
+
+   This function can be called anytime after the equation system has been
+   successfully allocated. After a call to this function, the information about
+   the equation system is lost; therefore the function cannot be called again,
+   nor can the functions for building up the equation systems be called.  The
+   only functions to be called after this one are x() and free().
+
+   The function returns true if solving was successful, false if it
+   encountered an error. In this case, the error value can be obtained by
+   isValid().
+   */
+template<class Number>
+bool
+qqqEQSaux<Number>::solve(qqqSolverParameters &parms)   /* [I/O] solver parameters */
+{
+
+   /* Configuration settings */
+   /* ====================== */
+
+   printAssemblyStatus("solve: start\n");
+
+   parms.solveCount++;
+   Number *vtempSc = 0; 
+   Number *vtempSr = 0;
+
+   bool updateInvPreelimVector  = false;
+   bool const blockAdjustLevel2 = !parms.adjustLevel1 || 
+                                  !parms.adjustLevel2 || parms.adjustRecover;
+   bool       blockAdjustLevel3 =  blockAdjustLevel2  || !parms.adjustLevel3;
+   bool const easLikeCompiling  = parms.easLikeCompiling;
+
+   /* Check for misallocation or other errors */
+   /* ======================================= */
+
+   /* An error condition has been set by one of the member functions */
+    if (!valid)
+	return false;
+
+    /* Check for zero size matrix */
+    if (n == 0)
+	return true;
+
+    if ((parms.solveCount == 1) || !parms.adjustLevel1 || parms.adjustRecover)
+    {   
+       /* Check mAs and convert to mcsrAs */
+       if (!mAs.isValid())
+	  return false;          
+  
+       if (!mAs.convertToMCSR(easLikeCompiling ? 
+			      (useTv ? auxFastLaneGummel : auxFastLaneBoundary) 
+			      : mcsrAs, true))
+       {	  
+	  parms.setErrorString("Could not convert As structure to MCSR format");
+	  internalError = qqqERR_EQS_SY_CONVERSION;
+	  return false;
+       }  
+
+       mAs.free();
+       
+       if (useTb && !easLikeCompiling)
+       {
+	  /* Check mAb and convert to mcsrAb */
+	  if (!mAb.isValid())
+	     return false;
+
+	  if (!mAb.convertToMCSR(mcsrAb,true))
+	  {	  
+	     parms.setErrorString("Could not convert Ab structure to MCSR format");
+	     internalError = qqqERR_EQS_SY_CONVERSION;
+	     return false;
+	  }  
+
+	  mAb.free();
+       }      
+    }
+
+    if (!easLikeCompiling)
+    {
+       if (!prepareStepOneMatrices(parms))
+	  return false;
+       // printf("TTP finished\n");
+    }
+#if 1 /* CHECK_THIS [SW]: this code is not necessary */
+    else
+    {
+       mcsrAs.free();
+       if (useTv)        
+	 auxFastLaneBoundary.free();        
+       else if (useTb)        	  
+	 auxFastLaneGummel.free();       
+    }
+#endif
+
+    /* Track the matrix development */
+    /* ============================ */
+
+    if ((parms.segmentSystem != 0) &&
+	(strlen(parms.segmentSystem) < 15) &&
+	(parms.isComplex || !parms.writeComplex))
+    {
+       char filename[80];
+
+       bool const useStdout = (strcmp(parms.segmentSystem, "-") == 0);
+
+       sprintf(filename, "%s.sys", parms.segmentSystem);
+       // printf("Writing %s\n", filename);
+       writeLinearSystem(mcsrAs, useStdout ? parms.linearSystem : filename, true, true, mBs, parms);
+    }
+
+    if ((parms.boundarySystem != 0) &&
+	(strlen(parms.boundarySystem) < 15) &&
+	(parms.isComplex || !parms.writeComplex))
+    {
+       char filename[80];
+
+       bool const useStdout = (strcmp(parms.boundarySystem, "-") == 0);
+
+       sprintf(filename, "%s.sys", parms.boundarySystem);
+       // printf("Writing %s\n", filename);
+       writeLinearSystem(mcsrAb, useStdout ? parms.linearSystem : filename, true, true, mBb, parms);
+    }
+
+    if ((parms.transformation != 0) &&
+	(strlen(parms.transformation) < 15) &&
+	(parms.isComplex || !parms.writeComplex))
+    {
+       char filename[80];
+
+       bool const useStdout = (strcmp(parms.transformation, "-") == 0);
+
+       sprintf(filename, "%s.sys", parms.transformation);
+       // printf("Writing %s\n", filename);
+       writeLinearSystem(mcsrTb, useStdout ? parms.linearSystem : filename, true, true, 0, parms);
+    }
+
+    if (parms.trackMatrix)
+    {
+       /* CHECK_THIS [SW]: boolean return value discarded */
+       mcsrAs.writeDXMatrix("dx_as");
+       mcsrAb.writeDXMatrix("dx_ab");
+       mcsrTb.writeDXMatrix("dx_tb");
+       mcsrTv.writeDXMatrix("dx_tv");
+    }
+
+#if 0 // main directive for low-level printing
+    char filename[18];
+#if 0
+    sprintf(filename, "mcsrAs_str_%ld.mat", parms.solveCount);
+    mcsrAs.writeMatrix(filename, false, false);
+#endif
+#if 1
+    sprintf(filename, "mcsrAs_all_%ld.mat", parms.solveCount);
+    mcsrAs.writeMatrix(filename, false);
+#endif
+#if 0
+    sprintf(filename, "mcsrAb_str_%ld.mat", parms.solveCount);
+    mcsrAb.writeMatrix(filename, false, false);
+#endif
+#if 1
+    sprintf(filename, "mcsrAb_all_%ld.mat", parms.solveCount);
+    mcsrAb.writeMatrix(filename, false);
+#endif
+#if 0
+    sprintf(filename, "mcsrTb_str_%ld.mat", parms.solveCount);
+    mcsrTb.writeMatrix(filename, false, false);
+#endif
+#if 1
+    sprintf(filename, "mcsrTb_all_%ld.mat", parms.solveCount);
+    mcsrTb.writeMatrix(filename, false);
+#endif
+#if 0
+    sprintf(filename, "mcsrTv_str_%ld.mat", parms.solveCount);
+    mcsrTv.writeMatrix(filename, false, false);
+#endif
+#if 0
+    sprintf(filename, "mcsrTv_all_%ld.mat", parms.solveCount);
+    mcsrTv.writeMatrix(filename, false);
+#endif
+#endif // main directive
+
+    /* Compile the equation system */
+    /* =========================== */
+
+    printAssemblyStatus("solve: start compiling\n");
+
+    /* Calculate A_OVERLAY = Tb * As + Ab */
+    /*    Third Newton Adjustment Step    */
+    /* ---------------------------------- */
+
+    /* 1st step: row transformation      */
+    /* 2nd step: boundary system         */
+    /* 3rd step: variable transformation */
+
+    /* backward-compatibility */
+    // qqqMCSR<Number> &Tv            = mcsrTv;
+
+
+    /* The following code should ensure that A_TRANSFORMED
+       references the result matrix in the end of the 
+       procedure, regardless of the configuration */
+       
+    qqqMCSR<Number> &A_TRANSFORMED = 
+       (!useTb && !useTv) ? mcsrAs :
+       ( useTb && !useTv) ? auxFastLaneBoundary : auxFastLaneGummel;
+
+    if (!easLikeCompiling && (useTb || useTv))
+    { // (!easLikeCompiling && (useTb || useTv))
+
+       // printf("Row Transformation/Gummel Compiling\n");
+
+       qqqCFLreturn retCFL = qqqCFL_NOT_ACTIVATED;       
+
+       if ((parms.solveCount > 1) && (!blockAdjustLevel2))
+       {
+	  //printf("adjustLevel2\n");
+	  	  
+	  retCFL = compilationFastLane();
+	  if (retCFL == qqqCFL_ALLOCATION_ERROR)
+	  {
+	     parms.setErrorString("CFL: could not allocate auxiliary structures");
+	     internalError = qqqERR_MATPRD_MISALLOC;
+	     return false;
+	  }
+	  if (retCFL != qqqCFL_OK)
+	  {
+	     blockAdjustLevel3   = true;
+	     parms.adjustFailed2 = true;
+	     if (parms.adjustReport)
+	     {
+		if (retCFL == qqqCFL_BOUNDARY_ERROR)	     
+		    printf("qqqCFL_BOUNDARY_ERROR occurred, "
+			   "compilation conventionally repeated\n");
+		else if (retCFL == qqqCFL_GUMMEL_ERROR)					
+		   printf("qqqCFL_GUMMEL_ERROR occurred, "
+			  "compilation conventionally repeated\n");	     
+	     }
+	  }
+       }
+
+       if (useTb && ((retCFL == qqqCFL_NOT_ACTIVATED) || 
+		     (retCFL == qqqCFL_BOUNDARY_ERROR)))
+       {	     
+	  qqqMCSR<Number> auxMultRow;
+	 
+	  /* Calculate AUX2 = Tb * As 
+	     false...skip zeros in Tb
+	     true ...keep zeros in As
+	  */
+	  if (!qqqPrd(auxMultRow, mcsrTb, mcsrAs, internalError, false, true))
+	  {
+	     valid = false;
+	     return false;
+	  }       
+	  
+	  /* Calculate A_OVERLAY = AUX2 + Ab = Tb * As + Ab */
+	  Number const ONE = 1;
+	  if (!qqqLinear2(auxFastLaneBoundary, ONE, auxMultRow, ONE, 
+			  mcsrAb, internalError, true))
+	  {
+	     valid = false;
+	     return false;
+	  }
+
+	  auxMultRow.free();
+       }
+	  
+       if (useTv && (retCFL != qqqCFL_OK))
+       {
+	  qqqMCSR<Number> &A_OVERLAY = useTb ? auxFastLaneBoundary : mcsrAs;
+
+#if QQQ_MECHANICAL // [SW]: unauthorized code; use carefully:
+	  if (parms.useMechanical)
+	  {
+	     qqqMCSR<Number> A_INTERMEDIATE;
+	     qqqMCSR<Number> A_TVT;
+
+	     /* Transpose matrix Tv */
+	     if (!qqqTransform(A_TVT,           /* [O]: A_TVT (Tv transposed) */ 
+			       mcsrTv,          /* [I]: A_OVERLAY             */
+			       NULL,            /* new positions vector       */
+			       true,	        /* sort the off diagonals     */
+			       true,	        /* no transposition           */
+			       true,	        /* bring to MCSR (rowize)     */
+			       false, 	        /* do not conjugate           */
+			       internalError))  /* error information          */
+	     {	   
+		valid = false;
+		return false;
+	     }
+	     
+	     /* Calculate A_INTERMEDIATE = A_OVERLAY * A_TVT */	     
+	     if (!qqqPrd(A_INTERMEDIATE, A_OVERLAY, A_TVT, internalError, true))
+	     {
+		valid = false;
+		return false;
+	     }	  
+	     
+	     /* Calculate A_TRANSFORMED = Tv * A_INTERMEDIATE */
+	     if (!qqqPrd(auxFastLaneGummel, mcsrTv, A_INTERMEDIATE, internalError, true))
+	     {
+		valid = false;
+		return false;
+	     }
+	     
+	     A_TVT.free();
+	     A_INTERMEDIATE.free();
+	  }
+	  else
+#endif // QQQ_MECHANICAL
+	  {
+	     /* Calculate A_TRANSFORMED = A_OVERLAY * Tv ([SW]: original code) */
+	     if (!qqqPrd(auxFastLaneGummel, A_OVERLAY, mcsrTv, internalError, true))
+	     {
+		valid = false;
+		return false;
+	     }	  
+	  }
+       }
+       
+       /* Right hand side vectors */
+       if (useTb)
+       {
+	  /* Change bs to the original Tb * bs */
+	  for (qqqIndex ii = 0; ii < nx; ii++)
+	  {
+	     qqqPrd(auxVector, mcsrTb, mBs[ii]);
+	     qqqCopy(mBs[ii], n, auxVector);
+	  }
+	  
+	  /* Change bs to the original Tb * bs + bb */
+	  Number const ONE = 1;
+	  for (qqqIndex ii = 0; ii < nx; ii++)	  
+	     qqqLinear2(mBs[ii], n, ONE, mBs[ii], ONE, mBb[ii]);
+	  
+       }
+
+#if QQQ_MECHANICAL
+       if (parms.useMechanical)
+       {
+	  /* Change bs to bs = Tv * bs */
+	  for (qqqIndex ii = 0; ii < nx; ii++)
+	  {
+	     qqqPrd(auxVector, mcsrTv, mBs[ii]);
+	     qqqCopy(mBs[ii], n, auxVector);
+	  }
+       }
+#endif // QQQ_MECHANICAL
+
+
+    } // (!easLikeCompiling && (useTb || useTv))
+    // else { printf("nothing has to be compiled\n"); } 
+
+    /* Matrix Printing Facilities */
+    /* ========================== */   
+
+    bool writeOuterSolutionVector = false;
+    if ((parms.linearSystem != 0) &&
+	(strlen(parms.linearSystem) < 15) &&
+	(parms.isComplex || !parms.writeComplex))
+    {
+       char filename[80];
+
+       bool const useStdout = (strcmp(parms.linearSystem, "-") == 0);
+
+       sprintf(filename, "%s.sys", parms.linearSystem);
+       // printf("Writing %s\n", filename);
+       writeLinearSystem(A_TRANSFORMED, useStdout ? 
+			 parms.linearSystem : filename, true, true, mBs, parms);
+
+       if (parms.writeAuxiliary)
+       {
+	  long const counter = parms.writeOnly ? 1 : qqqIndexToLong(parms.solveCount);
+
+	  sprintf(filename, "%s%ld.cfg", parms.linearSystem, counter);
+	  // printf("Writing %s\n", filename);
+	  parms.writeParameters(filename);
+
+	  if (useTv)
+	  {	    
+	     sprintf(filename, "%s%ld.tv", parms.linearSystem, counter);
+	     // printf("Writing %s\n", filename);
+	     mcsrTv.writeMatrix(filename, true, true);
+	  }
+
+	  if (useSc)
+	  {
+	     sprintf(filename, "%s%ld.sc", parms.linearSystem, counter);
+	     // printf("Writing %s\n", filename);
+	     qqqWriteVector(vSc, parms.dimension, filename);
+	  }
+
+	  if (useSr)
+	  {
+	     sprintf(filename, "%s%ld.sr", parms.linearSystem, counter);
+	     // printf("Writing %s\n", filename);
+	     qqqWriteVector(vSr, parms.dimension, filename);
+	  }
+
+	  if (parms.writeOnly)
+	  {
+	     /* Since the equation system is successfully written, 
+		the solve method is immedialely left (numserver project). */
+	     return true;
+	  }
+
+	  writeOuterSolutionVector = true;
+       }
+    }
+
+    if (parms.trackMatrix)
+    {
+       /* CHECK_THIS [SW]: boolean return value discarded */
+       A_TRANSFORMED.writeDXMatrix("dx_compiled");
+    }
+
+#define READ_SRT_VEC 0
+#if READ_SRT_VEC
+
+    /* Reading Sorting Vector: supported, is working properly (05/2002)
+       matches sorting output in eas.c
+    */
+
+    bool readSrtVec = true;
+#endif // READ_SRT_VEC
+
+    /* Preeliminate: Calculate C = E * P * (Tb * As + Ab) * Tv * Pt */
+    /* ============================================================ */   
+
+    printAssemblyStatus("solve: start preelimination\n");
+
+    if   (useE)
+    { // (useE)
+
+        /* range check and removing of unused equations [SW] */
+        /* ------------------------------------------------- */
+        
+        Number         * const val = A_TRANSFORMED.getval();
+        qqqIndex const * const idx = A_TRANSFORMED.getidx();
+        for (qqqIndex ccirow = 0; ccirow < n; ccirow++)
+        {
+            Number const s = val[ccirow];
+            if (qqqAbs(s) <= DBL_MIN)
+            {
+               if (s == 0)
+               {
+		  if (vE[ccirow])
+		     internalError = qqqERR_PREELIM_ZERO_DIAG;
+
+                  if (parms.removeUnused)
+                  {                 
+                     qqqIndex const j1 = idx[ccirow];
+                     qqqIndex const j2 = idx[ccirow+1];
+		     
+		     // [SW]: CHECK_THIS
+		     bool allOffDiagsZero = true;
+		     for (qqqIndex ccicol = j1; ccicol < j2; ccicol++)
+		     {
+			if (val[ccicol] != 0)
+			{
+			   allOffDiagsZero = false;
+			   break;
+			}
+		     }
+
+                     if (allOffDiagsZero) // || (j1 == j2)) /* no off-diagonals */
+		     {
+		        if (mBs[0][ccirow] != 0)
+			{
+			   internalError = qqqERR_PREELIM_INVALID;
+			   parms.setErrorString("Preelimination: invalid "
+						"equation found (row =", ccirow);
+			}
+			else
+			{
+			   val[ccirow] = 1.0;
+			   vE[ccirow] = true;              
+			   internalError = qqqERR_EVERYTHING_OK;
+#if 0
+			   printf("unused[%ld]: j1=%ld, j2=%ld, diag=%e\n", 
+				  qqqIndexToLong(ccirow), qqqIndexToLong(j1), 
+				  qqqIndexToLong(j2), qqqReal(val[ccirow]));
+#endif
+			}
+                     }
+		  }
+               }
+               else if (vE[ccirow])
+	       {
+		  internalError = qqqERR_PREELIM_SMALL_DIAG;
+		  parms.setErrorString("Preelimination: small diagonal element "
+				       "found (row =", ccirow);
+	       }
+		  
+	       switch (internalError.getError())
+	       {
+	       case qqqERR_PREELIM_ZERO_DIAG:
+		  parms.setErrorString("Preelimination: zero diagonal element "
+				       "found (row =", ccirow);
+	       case qqqERR_PREELIM_SMALL_DIAG:
+	       case qqqERR_PREELIM_INVALID:
+                  internalError.setMatrixRow(ccirow);
+                  valid = false;
+                  return false;
+	       default: break;
+	       }
+           }
+        }
+
+        if (preelimVector == 0)
+        {
+ 	    printAssemblyStatus("solve: creating a new preelimination vector\n");
+
+            preelimEndrow = n;
+
+            /* Allocate the permutation vector */
+	    preelimVector    = new qqqIndex[qqqMax(n,1)];
+            invPreelimVector = new qqqIndex[qqqMax(n,1)];  /* [SW] */
+	    if (!preelimVector || !invPreelimVector)
+	    {
+	       internalError = qqqERR_EQS_PE_MISALLOC;
+	       parms.setErrorString("Solve: could not allocate preelimination vector structures");
+	       valid = false;
+	       return false;
+	    }
+
+	    /* Preset the permutation vector */
+	    qqqIndex ifree = 0;
+	    for (qqqIndex ii = 0; ii < n; ii++)
+	        if (!vE[ii])
+		   preelimVector[ii] = ifree++;
+	    preelimEndrow = ifree;
+	    for (qqqIndex ii = 0; ii < n; ii++)
+	        if (vE[ii])
+		   preelimVector[ii] = ifree++;
+
+#if READ_SRT_VEC
+	    if (readSrtVec)
+	    {	     	 	 
+	       printf("read the sorting vector...\n");
+	       FILE *srtvecfile = 0;
+	       if ((srtvecfile = fopen("sortvector.vec", "r")) != 0)
+	       {
+		  int retval;
+		  long currSrtValue;
+		  qqqIndex ccirow = 0;
+		  while (((retval = fscanf(srtvecfile, "%ld", 
+					   &currSrtValue)) == 1) && (ccirow < n))
+		  {
+		     while (vE[ccirow]) ccirow++;
+		     preelimVector[ccirow++] = qqqIndex(currSrtValue);
+		  }	       
+		  fclose(srtvecfile);
+
+		  if (ccirow != parms.preelimDim)
+		  {
+		     internalError = qqqERR_READSORT_DIM;
+		     parms.setErrorString("invalid sorting vector found (dimension =", ccirow);
+		  }
+		  else
+		     preelimSort = true;
+	       }
+	       else
+	       {
+		  internalError = qqqERR_READSORT_FILE_ERROR;
+		  parms.setErrorString("sorting vector file not found");
+	       }
+	    }
+#endif // READ_SRT_VEC
+	    
+            if (!qqqInvertPermutation(invPreelimVector, n, preelimVector))
+	    {
+	       internalError = qqqERR_PREELIM_BADPERM;
+	       parms.setErrorString("inversion of preelimination vector failed");
+	    }
+	    
+	    if (!internalError.noError())
+	    {
+	       valid = false;
+	       return false;
+	    }  
+        }
+
+        printAssemblyStatus("solve: start matrix transformation for preelimination\n");
+
+	/* Permute the matrix */
+	if (!qqqTransform(auxFastLanePermuted, /* [O]: auxFastLanePermuted */ 
+			  A_TRANSFORMED,       /* [I]: A_TRANSFORMED       */
+			  preelimVector,       /* new positions vector     */
+			  true,	               /* sort the off diagonals   */
+			  false,	       /* no transposition         */
+			  true,	               /* bring to MCSR (rowize)   */
+			  false,	       /* do not conjugate         */
+			  internalError))      /* error information        */
+	{	   
+	   valid = false;
+	   return false;
+	}
+
+	/* Pre-eliminate the matrix */
+	qqqBogoFlops flops;	/* missing remove that and work up */
+
+	printAssemblyStatus("solve: start actual preelimination\n");
+	if (!qqqPreeliminate(auxFastLanePermuted,  /* [I]: auxFastLanePermuted */
+			     auxFastLaneO,         /* [O]: O                   */
+			     auxFastLaneC,         /* [O]: C                   */
+			     auxFastLaneE,         /* [O]: E                   */
+			     preelimEndrow, flops,
+			     internalError,
+			     (!blockAdjustLevel3 &&      /* Newton Adjustment  */
+			      (parms.solveCount > 1))))  /* Level 3            */
+	{
+	    valid = false;
+	    return false;
+	}
+
+	/* is not used for acceleration (qqqTransfer is not too slow) */
+	auxFastLanePermuted.free();
+
+	printAssemblyStatus("solve: permute and pre-eliminate the right hand sides\n");
+
+	/* Permute and pre-eliminate the right hand sides */
+	for (qqqIndex ii = 0; ii < nx; ii++)
+	{
+	    qqqPermute(auxVector, n, mBs[ii], preelimVector);
+	    qqqPreeliminateVector(mBs[ii], auxFastLaneE, auxVector);
+	}
+
+	/* Permute the predefined scaling vectors [SW] */
+	if (parms.scale)
+	{
+
+	   if (useSc && (!parms.scaCalcVec || (parms.scaSide == 4) || 
+			                      (parms.scaSide == 5)))
+	   {
+	      qqqPermute(auxVector, n, vSc, preelimVector);
+	      qqqCopy(vSc, n, auxVector);
+	   }
+	   if (useSr)
+	   {
+	      qqqPermute(auxVector, n, vSr, preelimVector);
+	      qqqCopy(vSr, n, auxVector);
+	   }
+	}
+
+	if (parms.trackMatrix)
+	{
+	   /* CHECK_THIS [SW]: boolean return value discarded */
+	   auxFastLaneC.writeDXMatrix("dx_preeliminated");
+	}
+
+
+#if QQQ_EXTERNAL_SOLVERS
+       if (parms.external)
+	 parms.extParams.doPreelimination(parms.externalModule, parms.externalType, n, preelimVector);
+#endif // QQQ_EXTERNAL_SOLVERS
+
+    } // (useE)
+    else
+    {
+       if (!qqqTransform(auxFastLaneC, A_TRANSFORMED, 0, 
+			 false, false, true, false, internalError))
+       {
+	  // printf("Bad Transform2\n");
+ 	  valid = false;
+	  return false;
+       }
+    }
+
+    parms.preelimDim = auxFastLaneC.dimension();
+
+#if QQQ_ASSEMBLY_STATUS_OUTPUT
+    printf("solve: set preelimDim = %ld\n", qqqIndexToLong(parms.preelimDim));
+#endif // QQQ_ASSEMBLY_STATUS_OUTPUT
+
+    /* Sorting Facilities */
+    /* ================== */
+
+    printAssemblyStatus("solve: start sorting\n");
+
+    if   (parms.sort && !preelimSort)
+    { // (parms.sort && (!parms.improvedSorting || (sortVector == 0) || !useE))
+
+       if   (sortVector == 0)
+       { // (sortVector == 0)   
+
+	  printAssemblyStatus("solve: creating a new sorting vector\n");
+
+  	  /* Allocate the sorting index array */
+	  sortVector    = new qqqIndex[parms.preelimDim];
+          invSortVector = new qqqIndex[parms.preelimDim];
+	  if (!sortVector || !invSortVector)
+	  {
+	     delete[] sortVector;    sortVector    = 0;
+	     delete[] invSortVector; invSortVector = 0;
+	     parms.setErrorString("Solve: could not allocate sorting vector structures");
+	     internalError = qqqERR_SOLVE_MISALLOC;
+	     valid = false;
+	     return false;
+	  }
+
+#if READ_SRT_VEC
+	  /* here the sorting vector should only be read if preelimination
+	     is not enabled! */
+	  if ((readSrtVec) && (!useE))
+	  {	     	 	 
+	     printAssemblyStatus("Read the sorting vector...\n");
+
+	     FILE *srtvecfile = 0;
+	     if ((srtvecfile = fopen("sortvector.vec", "r")) != 0)
+	     {
+		int retval;
+		long currSrtValue;
+		qqqIndex ccirow = 0;
+		while (((retval = fscanf(srtvecfile, "%ld", &currSrtValue)) == 1) && 
+		       (ccirow < parms.preelimDim))
+		   invSortVector[ccirow++] = qqqIndex(currSrtValue);
+		fclose(srtvecfile);
+
+		if (ccirow != parms.preelimDim)
+		{
+		   internalError = qqqERR_READSORT_DIM;
+		   parms.setErrorString("invalid sorting vector found (dimension =", ccirow);
+		}
+		else if (!qqqInvertPermutation(sortVector, parms.preelimDim, invSortVector))
+		{
+		   internalError = qqqERR_READSORT_BADPERM;
+		   parms.setErrorString("inversion of read sorting vector failed");
+		}
+	     }
+	     else
+	     {
+		internalError = qqqERR_READSORT_FILE_ERROR;
+		parms.setErrorString("sorting vector file not found");
+	     }
+	     
+	     if (!internalError.noError())
+	     {
+		valid = false;
+		return false;
+	     }	  
+	  }
+	  else
+#endif // READ_SRT_VEC
+	  {
+	     /* Sort the equations */
+	     // printf("determine sorting vector...\n");
+	     if (!qqqDetermineSorting(auxFastLaneC, sortVector, 
+				      parms.disconnected, internalError))
+	     {
+		parms.setErrorString("Sorting: allocation of auxiliary arrays failed");
+		valid = false;
+		return false;
+	     } 
+	  }
+          	  
+	  if (!qqqInvertPermutation(invSortVector, parms.preelimDim, sortVector))
+	  { 	     
+	     parms.setErrorString("inversion of sorting vector failed");
+	     internalError = qqqERR_SORT_BADPERM;
+	     valid = false;
+	     return false;
+	  }
+
+	  if (parms.improvedSorting && useE)
+	  {
+	     for (qqqIndex ccirow = 0; ccirow < n; ccirow++)
+	     {
+		qqqIndex currPV = preelimVector[ccirow];
+		if (currPV < parms.preelimDim) 
+		   preelimVector[ccirow] = invSortVector[currPV];		
+	     }	   	     
+	     updateInvPreelimVector = true;
+	  }
+       }
+
+       printAssemblyStatus("solve: start actual sorting\n");
+
+       /* now actually sort the matrix */       
+       if (!qqqTransform(auxFastLaneC, auxFastLaneC, invSortVector, 
+			 true, false, true, false, internalError))
+       {	  
+	  valid = false;
+	  return false;
+       }
+
+       printAssemblyStatus("solve: start sorting of right hand side vectors\n");
+
+       /* Sort the RHS vectors */
+       for (qqqIndex ii = 0; ii < nx; ii++)
+       {
+	  qqqPermute(auxVector, parms.preelimDim, mBs[ii], invSortVector);
+	  qqqCopy(mBs[ii], parms.preelimDim, auxVector);
+       }
+
+       /* Sort the Scaling vectors */
+       if (parms.scale)
+       {
+
+	  if (useSc && (!parms.scaCalcVec || (parms.scaSide == 4) || (parms.scaSide == 5)))
+	  {
+             qqqPermute(auxVector, parms.preelimDim, vSc, invSortVector);
+             qqqCopy(vSc, n, auxVector);
+          }
+          if (useSr)
+          {
+             qqqPermute(auxVector, parms.preelimDim, vSr, invSortVector);
+             qqqCopy(   vSr, parms.preelimDim, auxVector);
+          }
+       }
+
+       if (parms.trackMatrix)
+       {
+	  /* CHECK_THIS [SW]: boolean return value discarded */
+	  auxFastLaneC.writeDXMatrix("dx_sorted");
+       }
+
+#if QQQ_EXTERNAL_SOLVERS
+       if (parms.external)
+	 parms.extParams.doSort(parms.externalModule, parms.externalType, parms.preelimDim, invSortVector);
+#endif // QQQ_EXTERNAL_SOLVERS
+
+    }
+
+    /* CHECK_THIS [SW]: what's that? */
+    if (parms.sort)
+    {  
+       parms.destroyed = true;
+    }
+    else
+    {
+       /* We do not have a guess about the connectivity */
+       //printf("no sorting...\n");
+       parms.disconnected = false;
+    }
+
+    qqqTransform(auxFastLaneC, auxFastLaneC, 0, true, false, true, false, internalError);
+
+    /* Organize New Scaling Facilities [SW] */
+    /* ------------------------------------ */
+
+    printAssemblyStatus("solve: start scaling\n");
+
+    if (parms.scale)
+    {
+       /* CHECK_THIS [SW]: additional dependencies */
+       if (!useSc && !useSr)
+       {
+	  parms.setErrorString("scaling is requested but no structures allocated");
+	  internalError = qqqERR_EQS_NO_SCALE_STRUCTS;
+	  valid = false;
+	  return false;
+       }
+
+       /* calculate own vectors if necessary */
+       if (parms.scaCalcVec)
+       {
+
+	  if (!calculateScalingVectors(auxFastLaneC, vSc, vSr, parms, internalError))
+	  {
+	     switch (internalError.getError())
+	     {
+	     case qqqERR_CALCVEC_DIAG_RANGE:
+	     case qqqERR_CALCVEC_SCPRE_RANGE:
+	     case qqqERR_CALCVEC_DIAG_SMALL:
+	     case qqqERR_CALCVEC_DIAG_ZERO: break;
+	     default: parms.setErrorString(internalError.mapErrorMessage());
+	     }
+
+	     valid = false;
+	     // return false; // [SW]
+	  }
+
+	  for (qqqIndex ccirow = parms.preelimDim; ccirow < n; ccirow++)   
+	     vSr[ccirow] = vSc[ccirow] = 0.0; 
+
+	  parms.invertedSc = true;
+	  parms.invertedSr = false;
+       }
+
+       /* Invert predefined Scaling Vectors */  
+       if (useSc && !parms.invertedSc)
+       {
+          vtempSc = new Number[n];
+          if (vtempSc == 0)
+          {
+             internalError = qqqERR_EQS_VTSC_MISALLOC;
+	     valid = false;
+	     return false;	
+          }
+	  for (qqqIndex ii = 0; ii < parms.preelimDim; ii++)
+	  {
+             Number const s = vSc[ii];
+	     if (qqqAbs(s) <= DBL_MIN)
+	     {
+                delete[] vtempSc;
+		internalError = qqqERR_EQS_SCALECOLHUGE;
+		internalError.setMatrixRow(ii);
+		valid = false;
+		return false;
+	     }
+             vtempSc[ii] = 1 / s;
+	  }
+       }
+       else vtempSc = vSc;
+
+       if (useSr && parms.invertedSr)
+       {
+          vtempSr = new Number[n];
+	  if (vtempSr == 0)
+          {
+             internalError = qqqERR_EQS_VTSR_MISALLOC;
+	     if (useSc && !parms.invertedSc) delete[] vtempSc;
+	     valid = false;
+	     return false;	
+          }
+	  for (qqqIndex ii = 0; ii < parms.preelimDim; ii++)
+	  {
+	     Number const s = vSr[ii];
+	     if (qqqAbs(s) <= DBL_MIN)
+	     {
+                delete[] vtempSr;
+                if (useSc && !parms.invertedSc) delete[] vtempSc;
+		internalError = qqqERR_EQS_SCALECOLHUGE;
+		internalError.setMatrixRow(ii);
+		valid = false;
+		return false;
+	     }
+	     vtempSr[ii] = 1 / s;
+	  }
+       }
+       else vtempSr = vSr;
+
+       // printf("qqq-scaling...\n");
+       
+       if (!qqqScale(auxFastLaneC, auxFastLaneC, (useSr ? vtempSr : 0), (useSc ? vtempSc : 0), internalError))
+       {
+          // printf("Scaling [numerics_eqs.tt] was not successful: error = %d\n", internalError.getError());
+
+	  switch (internalError.getError())
+	  {
+	  case qqqERR_SCALE_ROW_SMALL:
+	     parms.setErrorString("Scaling: row entry too small (row =", n);
+	     break;
+	  case qqqERR_SCALE_COLUMN_SMALL:
+	     parms.setErrorString("Scaling: column entry too small (row =", n);
+	     break;
+	  case qqqERR_SCALE_MISALLOC:
+	     parms.setErrorString("Scaling: misallocation");
+	     break;
+	  default:
+	     parms.setErrorString("Scaling: unknown error");
+	  }
+
+          if (useSr && parms.invertedSr)  delete[] vtempSr;
+          if (useSc && !parms.invertedSc) delete[] vtempSc;
+	  valid = false;
+          // return false; // [SW]
+       }       
+
+       /* Scale the RHS */
+       if (useSr)
+	  for (qqqIndex ii = 0; ii < nx; ii++)
+	  {
+	     Number * const rp = mBs[ii];
+	     for (qqqIndex jj = 0; jj < parms.preelimDim; jj++)
+	        rp[jj] *= vtempSr[jj];
+	  }
+
+       if (parms.trackMatrix)
+       {
+	  /* CHECK_THIS [SW]: boolean return value discarded */
+	  auxFastLaneC.writeDXMatrix("dx_scaled");
+       }
+    }
+    else
+    {
+       // printf("no scaling...\n");
+    }
+
+#define CHECK_FOR_DIAGONAL_DOMINANCE 0 // not supported
+#if CHECK_FOR_DIAGONAL_DOMINANCE
+//     bool checkDiagonalDominance = true;
+//     if (checkDiagonalDominance)
+//     {
+// 	  Number * const val = auxFastLaneC.getval();
+// 	  qqqIndex const * const idx = auxFastLaneC.getidx();
+// 	  double offdiagsum, diag, ratios=0.0;
+// 	  qqqIndex notdd = 0;
+// 
+// 	  for (qqqIndex ddirow = 0; ddirow < parms.preelimDim; ddirow++)
+// 	  {
+// 	     qqqIndex const j1 = idx[ddirow];    /* begin of the off-diag-sequence */
+// 	     qqqIndex const j2 = idx[ddirow+1];  /* end of the this sequence */
+// 	     
+// 	     diag = qqqAbs(val[ddirow]);
+// 	     
+// 	     if (diag == 0) assert(0);
+// 	     
+// 	     offdiagsum = 0;
+// 	     
+// 	     for (qqqIndex ddicol = j1; ddicol < j2; ddicol++)
+// 		offdiagsum+=qqqAbs(val[ddicol]);  
+// 	     
+// 	     if (offdiagsum > diag)
+// 	     {
+// 		notdd++;
+// 		printf("No Diagonal Dominance in Row = %ld.\n", qqqIndexToLong(ddirow));
+// 		printf("diag = %10.15g; offdiagsum = %10.15g; ratio = %10.15g\n", 
+// 		       diag, offdiagsum, offdiagsum/diag); 
+// 	     }
+// 
+// 	     ratios+=offdiagsum/diag;
+// 
+// 	  }
+// 	  ratios/=parms.preelimDim; /* arithmetic average */
+// 	  
+// 	  printf("notdd = %ld; share = %5.2g; avg_ratio = %15.10g\n",
+// 		 qqqIndexToLong(notdd), (double)notdd/parms.preelimDim, ratios);
+// 	  
+//     }
+#endif
+
+    /* Inner system matrix and auxiliary files output feature */
+    /* ====================================================== */
+
+#define QQQ_ENABLE_INNER_OUTPUT_FEATURE 1 // two blocks; is supported
+#if     QQQ_ENABLE_INNER_OUTPUT_FEATURE
+
+    bool writeInnerSolutionVector = false;
+    char innerFilename[80];
+
+    if ((parms.innerSystem != 0) && 
+	(strlen(parms.innerSystem) < 15) &&
+	(parms.solveCount < 10000))
+    {
+       sprintf(innerFilename, "%s%ld.mat", parms.innerSystem, parms.solveCount);
+       if (!auxFastLaneC.writeMatrix(innerFilename, true, true))
+	  printf("Writing of inner matrix failed!\n");
+
+       if (parms.writeAuxiliary)
+       {
+	  for (qqqIndex ccirhs = 0; ccirhs < parms.nrhs; ccirhs++)
+	  {
+	     sprintf(innerFilename, "%s%ld.rhs%ld", parms.innerSystem, parms.solveCount, qqqIndexToLong(ccirhs));
+	     if (!qqqWriteVector(mBs[ccirhs], auxFastLaneC.dimension(), innerFilename))
+		printf("Writing of inner rhs vector %ld failed!\n", qqqIndexToLong(ccirhs));
+	  }
+
+	  sprintf(innerFilename, "%s%ld.cfg", parms.innerSystem, parms.solveCount);
+	  if (!parms.writeParameters(innerFilename))
+	     printf("Writing of parameter configuration failed!\n");
+
+	  sprintf(innerFilename, "%s%ld.srt", parms.innerSystem, parms.solveCount);
+	  FILE *srtinfo = fopen(innerFilename, "w");
+	  if (srtinfo != 0)
+	  {
+	     for (qqqIndex ccirow = 0; ccirow < parms.preelimDim; ccirow++)
+		fprintf(srtinfo, "%ld = %ld\n", 
+			qqqIndexToLong(ccirow), 
+			qqqIndexToLong(getUnsortedIndex(ccirow)));
+	     fclose(srtinfo);
+	  }      
+       }     
+       writeInnerSolutionVector = true;
+    }
+#endif // QQQ_ENABLE_INNER_OUTPUT_FEATURE
+
+
+    /* ====================================================================== */
+    /* Solve the equation system                                              */
+    /* ====================================================================== */
+
+#if QQQ_ASSEMBLY_STATUS_OUTPUT
+   printf("solve: start solving (nrhs=%ld, dim=%ld, nonzeros=%ld).\n", 
+	  qqqIndexToLong(nx),
+	  qqqIndexToLong(auxFastLaneC.dimension()), 
+	  qqqIndexToLong(auxFastLaneC.nonzeros()));
+#endif // QQQ_ASSEMBLY_STATUS_OUTPUT
+
+
+#if __DECCXX
+    if (!qqqSolveLinearSystem(auxFastLaneC, 
+			      const_cast<Number const * const * const>(mBs), 
+			      const_cast<Number       * const * const>(mX), 
+			      parms, internalError))
+#else
+    if (!qqqSolveLinearSystem(auxFastLaneC, mBs, mX, parms, internalError))
+#endif // __DECCXX
+    {
+       if (useSr && parms.invertedSr)  delete[] vtempSr;
+       if (useSc && !parms.invertedSc) delete[] vtempSc;
+       valid = false;
+       return false;
+    }
+
+    /* ====================================================================== */
+    /* ====================================================================== */ 
+
+    printAssemblyStatus("solve: back from solving\n");
+
+    /* Solution counterpart of inner comparing feature */
+    /* =============================================== */
+    
+#if QQQ_ENABLE_INNER_OUTPUT_FEATURE
+    if (writeInnerSolutionVector)
+    {
+       for (qqqIndex ccirhs = 0; ccirhs < parms.nrhs; ccirhs++)
+       {
+	  sprintf(innerFilename, "%s%ld.sol%ld", parms.innerSystem, parms.solveCount, qqqIndexToLong(ccirhs));
+	  // printf("Writing %s\n", innerFilename);
+	  if (!qqqWriteVector(mX[ccirhs], auxFastLaneC.dimension(), innerFilename))
+	     printf("Writing of inner solution vector (%ld) failed!\n", qqqIndexToLong(ccirhs));
+       }
+    }
+#endif // QQQ_ENABLE_INNER_OUTPUT_FEATURE
+
+
+    /* Clean-Up New Scaling Facilities [SW] */
+    /* ==================================== */
+
+    if (parms.scale)
+    {
+       /* De-Scale the solution vectors */
+       if (useSc)
+       {
+	  for (qqqIndex ii = 0; ii < nx; ii++)
+	  {
+	     Number * const xp = mX[ii];
+	     for (qqqIndex jj = 0; jj < parms.preelimDim; jj++)
+	        xp[jj] /= vtempSc[jj];
+	  }	  
+       }
+
+       /* De-Scale the right hand side vectors */
+       if (useSr)
+       {
+	  for (qqqIndex ii = 0; ii < nx; ii++)
+	  {
+	     Number * const rp = mBs[ii];
+	     for (qqqIndex jj = 0; jj < parms.preelimDim; jj++)
+	        rp[jj] /= vtempSr[jj];
+	  }
+       }
+
+       /* delete temporary scaling vectors */
+       if (useSc && !parms.invertedSc && vtempSc != 0) delete[] vtempSc;
+       if (useSr && parms.invertedSr && vtempSr != 0) delete[] vtempSr;
+    }
+
+    /* Clean-Up New Sorting Facilities [SW] */
+    /* ==================================== */
+
+    if (parms.sort)
+    {	
+       if (!parms.improvedSorting || !useE || updateInvPreelimVector)
+       {       
+	  /* Sort back the scaling vectors [SW] and solution vectors */
+	  /* ------------------------------------------------------- */
+	  
+	  for (qqqIndex ii = 0; ii < nx; ii++)
+	  {
+	     qqqPermute(auxVector, parms.preelimDim, mX[ii], sortVector);
+	     qqqCopy(mX[ii], parms.preelimDim, auxVector);
+	     qqqPermute(auxVector, parms.preelimDim, mBs[ii], sortVector);
+	     qqqCopy(mBs[ii], parms.preelimDim, auxVector);
+	  }
+	  
+	  if (parms.scale)
+	  {
+	     if (useSr)
+	     {
+		qqqPermute(auxVector, parms.preelimDim, vSr, sortVector); /* [SW] */ 
+		qqqCopy(vSr, parms.preelimDim, auxVector);
+	     }
+	     if (useSc)
+	     {
+		qqqPermute(auxVector, parms.preelimDim, vSc, sortVector); /* [SW] */
+		qqqCopy(vSc, parms.preelimDim, auxVector);
+	     }
+	  }
+       }
+
+#if SUPPORT_ERROR_PARAMETERS
+	/* Sort back the error row and column */
+	/* ---------------------------------- */
+	
+	if (parms.errorRow != -1)
+	    parms.errorRow  = sortVector[parms.errorRow];
+	if (parms.errorCol != -1)
+	    parms.errorCol  = sortVector[parms.errorCol];
+#endif // SUPPORT_ERROR_PARAMETERS
+
+	/* Remember that the input data is recovered */
+	parms.destroyed = false;
+    }
+
+    /* Solve the preeliminated equations */
+    /* ================================= */
+
+    if (useE)
+    {
+	/* Backsubstitute the preeliminated equations */
+	for (qqqIndex ii = 0; ii < nx; ii++)	
+	   qqqPreeliminateBackSolve(mX[ii], auxFastLaneO, preelimEndrow, mBs[ii]);
+
+	/* Permute the solution and right hand side vectors */
+	for (qqqIndex ii = 0; ii < nx; ii++)
+	{
+	    qqqPermute(auxVector, n, mX[ii], invPreelimVector);
+	    qqqCopy(mX[ii], n, auxVector);
+	    qqqPermute(auxVector, n, mBs[ii], invPreelimVector);
+	    qqqCopy(mBs[ii], n, auxVector);
+	}
+
+	if (parms.scale)
+        {
+	   /* inverted permutation of calculated vSr and vSc [SW] */
+	   if (useSr)
+           {
+	      qqqPermute(auxVector, n, vSr, invPreelimVector);
+              qqqCopy(vSr, n, auxVector);
+           }
+           if (useSc)
+           { 
+	      qqqPermute(auxVector, n, vSc, invPreelimVector);
+              qqqCopy(vSc, n, auxVector);
+           }
+        } 
+
+	/* Update Inverted Preelimination Vector (parms.improvedSorting) */
+	if (updateInvPreelimVector)
+	{
+	   if (!qqqInvertPermutation(invPreelimVector, n, preelimVector))
+	   { 
+	      parms.setErrorString("inversion of preelimination vector failed");
+	      internalError = qqqERR_SOLVE_BADPERM;
+	      valid = false;
+	      return false;
+	   }
+
+	   /* these vectors are not needed any longer */
+	   delete[] sortVector;    sortVector = 0;  
+	   delete[] invSortVector; invSortVector = 0;
+	   preelimSort = true;
+	}
+    }
+
+    /* Transform the solution */
+    /* ====================== */
+
+    /* Transform the solution vectors */
+    if (useTv || processReadTv)
+    {
+	for (qqqIndex ii = 0; ii < nx; ii++)
+	{
+	    qqqPrd(auxVector, mcsrTv, mX[ii]);
+	    qqqCopy(mX[ii], n, auxVector);
+	}
+    }
+
+    /* Solution counterpart of outer comparing feature */
+    /* =============================================== */
+
+    if (writeOuterSolutionVector) // (parms.linearSystem != 0) && (parms.writeAuxiliary))
+    {
+       char filename[22];
+       for (qqqIndex ccirhs = 0; ccirhs < parms.nrhs; ccirhs++)
+       {
+	  sprintf(filename, "%s%ld.sol%ld", parms.linearSystem, qqqIndexToLong(parms.solveCount), qqqIndexToLong(ccirhs));
+	  // printf("Writing %s\n", filename);
+	  if (!qqqWriteVector(mX[ccirhs], n, filename))
+	     printf("Writing of complete solution vector (%ld) failed!\n", qqqIndexToLong(ccirhs));
+       }
+    }
+
+    /* Free all MCSR structures if they are not needed any longer */
+    /* ========================================================== */
+
+    if (!parms.adjustLevel1)
+    {
+       mcsrAs.free();
+       mcsrAb.free();
+       mcsrTv.free();
+       mcsrTb.free();
+       
+       if (easLikeCompiling)
+       {	  	  
+	  auxFastLaneBoundary.free();
+	  auxFastLaneGummel.free();
+       }
+    }
+
+    if (!parms.adjustLevel2 && !easLikeCompiling)
+    {              
+       auxFastLaneBoundary.free();
+       auxFastLaneGummel.free();
+    }
+    if (!parms.adjustLevel3)
+    {
+       // auxFastLanePermuted.free(); not used yet
+       auxFastLaneC.free();
+       auxFastLaneO.free();
+       auxFastLaneE.free();
+    }
+
+    return true;
+}
+
+
+/* isValid()
+
+   returns whether all operations up to the time of calling have succeeded.
+   
+   If all operations from creating the object or from the last call to free()
+   up to the time of calling have been successful,
+   the function returns true and the error parameter is not changed.
+   Otherwise, the error parameter will be set to a parameter (see type_error
+   for further details */
+
+template<class Number>
+bool
+qqqEQSaux<Number>::isValid(qqqError &error)
+{
+   /* An error condition has been set
+      by one of the member functions */
+   if (!valid)
+   {
+      error = internalError;
+      return false;
+   }
+
+   if (n == 0)
+      return true;
+
+   /* A misallocation has happened in one of the
+      structural matrices */
+   if (!mAs.isValid())
+   {
+      internalError = qqqERR_EQS_AS_MISALLOC;
+      valid = false;
+      error = internalError;
+      return false;
+   }
+
+   return true;
+   
+#if 0
+   /* CHECK_THIS: create a new isValid method */
+   /* CATETEGORY: easLikeCompiling            */
+//    if (!easLikeCompiling)
+//    {
+// 	 if (useTb && !mAb.isValid())
+// 	 {
+// 	    internalError = qqqERR_EQS_AB_MISALLOC;
+// 	    valid = false;
+// 	    error = internalError;
+// 	    return false;
+// 	 }
+// 	 if (useTb && !mTb.isValid())
+// 	 {
+// 	    internalError = qqqERR_EQS_TB_MISALLOC;
+// 	    valid = false;
+// 	    error = internalError;
+// 	    return false;
+// 	 }
+// 	 if (useTv && !mTv.isValid())
+// 	 {
+// 	    internalError = qqqERR_EQS_TV_MISALLOC;
+// 	    valid = false;
+// 	    error = internalError;
+// 	    return false;
+// 	 }
+//    }
+//    return true;
+#endif
+}
+
+
+/* isValidBool()
+
+   is like isValid but does not return the error information.
+   */
+template<class Number>
+bool
+qqqEQSaux<Number>::isValidBool()
+{
+   /* An error condition has been set
+      by one of the member functions */
+   if (!valid)
+      return false;
+   
+   if (n == 0)
+      return true;
+   
+   /* A misallocation has happened in one of the
+      structural matrices */
+   if (!mAs.isValid())
+   {
+      internalError = qqqERR_EQS_AS_MISALLOC;
+      valid = false;
+      return false;
+   }
+
+#if 0
+   /* CHECK_THIS: create a new isValidBool method */
+   /* CATETEGORY: easLikeCompiling            */
+//    if (useTb && !mAb.isValid())
+//    {
+// 	 internalError = qqqERR_EQS_AB_MISALLOC;
+// 	 valid = false;
+// 	 return false;
+//    }
+//    if (useTb && !mTb.isValid())
+//    {
+// 	 internalError = qqqERR_EQS_TB_MISALLOC;
+// 	 valid = false;
+// 	 return false;
+//    }
+//    if (useTv && !mTv.isValid())
+//    {
+// 	 internalError = qqqERR_EQS_TV_MISALLOC;
+// 	 valid = false;
+// 	 return false;
+//    }
+#endif
+   return true;
+}
+
+/* getUnsortedIndex(...)
+
+   returns the original index of a preeliminated and/or sorted index. */
+template<class Number>
+inline qqqIndex 
+qqqEQSaux<Number>::getUnsortedIndex(
+        qqqIndex const index) const         /* [I] sorted index          */
+{
+  qqqIndex const sortIndex = 
+      (sortVector != 0) ? sortVector[index] : index;
+   return((invPreelimVector != 0) ? invPreelimVector[sortIndex] : sortIndex);
+}
+
+/* getSortedIndex(...)
+
+   returns the index of an equation after preelimination/sorting. */
+template<class Number>
+inline qqqIndex 
+qqqEQSaux<Number>::getSortedIndex(
+        qqqIndex const index) const         /* [I] sorted index          */
+{
+  printf("index = %ld, preelim=%s\n", qqqIndexToLong(index), vE[index] ? "true" : "false");
+
+  qqqIndex preelimIndex = -1;
+
+  if (preelimVector != 0)
+    preelimIndex = preelimVector[index];
+  if (invSortVector != 0)
+    preelimIndex = invSortVector[preelimIndex];
+  return preelimIndex;
+
+  // qqqIndex const sortIndex = 
+  //     (sortVector != 0) ? invSortVector[index] : index;
+  // return((invPreelimVector != 0) ? invPreelimVector[sortIndex] : sortIndex);
+}
+
+
+
+/* dimension()
+
+   returns the dimension of the equation system, a nonnegative integer
+   number. The return value is only valid if the system has been successfully
+   allocated; if this is not known, it can be checked by isValid(). */
+template<class Number>
+inline qqqIndex
+qqqEQSaux<Number>::dimension() const
+{
+    return n;
+}
+
+
+/* getNumberRhs()
+
+   returns the number of different right hand side vectors of the equation
+   system, a positive integer number. The return value is only valid if the
+   system has been successfully allocated; if this is not known, it can be
+   checked by isValid(). */
+template<class Number>
+inline qqqIndex
+qqqEQSaux<Number>::getNumberRhs() const
+{
+    return nx;
+}
+
+
+/* As()
+
+   returns a reference to the matrix entry at position row/col. It returns
+   a reference to a dummy value if the position specification is out of
+   range. In this case, if the define QQQ_EQS_CHECK_INDEX_BOUNDS has been
+   enabled at compilation time, the internal error parameter is set and
+   the data is marked invalid; else the indexing error is silently ignored.
+   If the position specification indicates a valid position, the matrix
+   entry at this position can be modified in an arbitrary way. */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::As(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    /* [SW]: Due to performance considerations, index checking should always be
+       switched off. In order to use it, please comment the assert statement out.
+    */
+    assert(0); /* index checking should be switched off */
+    if (row < 0 || row >= n || col < 0 || col >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_AS;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    return mAs.entry(row,col);
+}
+
+
+/* Ab()
+
+   is similar to As(). */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::Ab(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useTb || row < 0 || row >= n || col < 0 || col >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_AB;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    return mAb.entry(row,col);
+}
+
+
+/* AbClearRow()
+
+   sets the specified row in Ab to all zeros. If the row specification is
+   out of range, no operation is performed, and if the function has been
+   compiled with the define QQQ_EQS_CHECK_INDEX_BOUNDS, the internal error
+   parameter is set and the data is marked invalid. */
+template<class Number>
+inline void
+qqqEQSaux<Number>::AbClearRow(qqqIndex const row, bool const remove)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useTb || row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_AB;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    mAb.clearRow(row, remove);
+}
+
+template<class Number>
+inline void
+qqqEQSaux<Number>::AsClearRow(qqqIndex const row, bool const remove)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_AS;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    mAs.clearRow(row, remove);
+}
+
+/* Tb()
+
+   is similar to As(). */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::Tb(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useTb || row < 0 || row >= n || col < 0 || col >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_TB;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    // printf("mTb.entry(%ld, %ld):\n", qqqIndexToLong(row), qqqIndexToLong(col));
+    return mTb.entry(row,col);
+}
+
+
+/* TbClearCol()
+
+   sets the specified column in Tb to all zeros. If the column specification
+   is out of range, no operation is performed, and if the function has been
+   compiled with the define QQQ_EQS_CHECK_INDEX_BOUNDS, the internal error
+   parameter is set and the data is marked invalid. */
+template<class Number>
+inline void
+qqqEQSaux<Number>::TbClearCol(qqqIndex const col, bool const remove)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useTb || col < 0 || col >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_TB;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    mTb.clearCol(col, remove);
+}
+
+
+/* Tv()
+
+   is similar to As(). */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::Tv(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useTv || row < 0 || row >= n || col < 0 || col >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_TV;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    return mTv.entry(row,col);
+}
+
+
+/* Sr()
+
+   returns a reference to the matrix diagonal at position row/row. It returns
+   a reference to a dummy value if the position specification is out of
+   range. In this case, if the define QQQ_EQS_CHECK_INDEX_BOUNDS has been
+   enabled at compilation time, the internal error parameter is set and
+   the data is marked invalid; else the indexing error is silently ignored.
+   If the position specification indicates a valid position, the matrix
+   entry at this position can be modified in an arbitrary way. */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::Sr(qqqIndex const row)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useSr || row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_SR;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (vSr) return vSr[row];
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_SR;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#else
+    else dummy = 0; return dummy;
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+
+/* Sr()
+
+   is similar to Sc(). */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::Sc(qqqIndex const row)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useSc || row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_SC;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (vSc) return vSc[row];
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (valid)
+    {
+	internalError = qqqERR_EQS_BOUNDS_SC;
+	valid = false;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    dummy = 0;
+    return dummy;
+}
+
+
+/* bs()
+
+   returns a reference to the right hand side entry at position row.
+   It returns a reference to a dummy value if the position specification
+   is out of range. In this case, if the define QQQ_EQS_CHECK_INDEX_BOUNDS
+   has been enabled at compilation time, the internal error parameter is
+   set and the data is marked invalid; else the indexing error is silently
+   ignored. If the position specification indicates a valid position,
+   the rhs entry at this position can be modified in an arbitrary way. */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::bs(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (row < 0 || row >= n || col < 0 || col >= nx)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_BS;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (mBs && mBs[col]) return mBs[col][row];
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_BS;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#else
+    else dummy = 0; return dummy;
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+
+/* bb()
+
+   is similar to bs(). */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::bb(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useTb || row < 0 || row >= n || col < 0 || col >= nx)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_BB;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (mBb && mBb[col]) return mBb[col][row];
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_BB;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#else
+    else dummy = 0; return dummy;
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+
+/* x()
+
+   is similar to bs(). */
+template<class Number>
+inline Number&
+qqqEQSaux<Number>::x(qqqIndex const row, qqqIndex const col)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (row < 0 || row >= n || col < 0 || col >= nx)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_X;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (mX && mX[col]) return mX[col][row];
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_X;
+	    valid = false;
+	}
+	dummy = 0;
+	return dummy;
+    }
+#else
+    else dummy = 0; return dummy;
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+
+/* setEliminateFlag()
+
+   sets the eliminate flag for the equation/variable pair with index row.
+   If the index is out of range, no flag is set, and if the define
+   QQQ_EQS_CHECK_INDEX_BOUNDS has been enabled at compilation time,
+   the internal error parameter is set and the data is marked invalid;
+   else the indexing error is silently ignored. */
+template<class Number>
+inline void
+qqqEQSaux<Number>::setEliminateFlag(qqqIndex const row, bool eliminate)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useE || row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_ELIM;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (vE) vE[row] = eliminate;
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_ELIM;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+template<class Number>
+inline bool 
+qqqEQSaux<Number>::getEliminateFlag (qqqIndex const row)
+{
+   if (vE) return(vE[row]); else return(false);
+}
+
+/* getPriority()
+
+   gets the priority number for the equation/variable pair with index row.
+   If the index is out of range, -1 is returned, and if the define
+   QQQ_EQS_CHECK_INDEX_BOUNDS has been enabled at compilation time,
+   the internal error parameter is set and the data is marked invalid;
+   else the indexing error is silently ignored. */
+template<class Number>
+inline qqqIndex
+qqqEQSaux<Number>::getPriority(qqqIndex const row)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useP || row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_PRIO;
+	    valid = false;
+	}
+	return -1;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (vP) return vP[row];
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_PRIO;
+	    valid = false;
+	}
+	return -1;
+    }
+#else
+    else return -1;
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+
+/* setPriority()
+
+   sets the priority number for the equation/variable pair with index row.
+   If the index is out of range, no value is set, and if the define
+   QQQ_EQS_CHECK_INDEX_BOUNDS has been enabled at compilation time,
+   the internal error parameter is set and the data is marked invalid;
+   else the indexing error is silently ignored. */
+template<class Number>
+inline void
+qqqEQSaux<Number>::setPriority(qqqIndex const row,qqqIndex const priority)
+{
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (!useP || row < 0 || row >= n)
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_PRIO;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+    if (vP) vP[row] = priority;
+#if QQQ_EQS_CHECK_INDEX_BOUNDS
+    else
+    {
+	if (valid)
+	{
+	    internalError = qqqERR_EQS_BOUNDS_PRIO;
+	    valid = false;
+	}
+	return;
+    }
+#endif // QQQ_EQS_CHECK_INDEX_BOUNDS
+}
+
+/* Direct Access Methods 
+
+   for arrays: sol, rhs, sc, and sr (templates)
+
+   These methods return the address of the respective array to enable
+   fast and direct access
+*/
+
+template<class Number>
+inline Number  *qqqEQSaux<Number>::getXArray(qqqIndex const col)
+{
+   return mX[col];
+}
+
+template<class Number>
+inline Number  *qqqEQSaux<Number>::getBsArray(qqqIndex const col)
+{
+   return mBs[col];
+}
+
+template<class Number>
+inline Number  *qqqEQSaux<Number>::getScArray()
+{
+   return vSc;
+}
+
+template<class Number>
+inline Number  *qqqEQSaux<Number>::getSrArray()
+{
+   return vSr;
+}
+
+/* First Newton Adjustment Step Methods */
+/* ==================================== */
+
+/* clearNewton()
+
+   is called instead of allocateNewton() and clears all values in the
+   Newton-related structures. So the structures and indices may remain and only
+   the values are changed.
+*/
+
+template<class Number>
+inline bool qqqEQSaux<Number>::clearNewton(qqqSolverParameters &parms)
+{
+   //printf("qqqEQSaux::clearNewton\n");
+
+   Number const ONE  = 1;
+   Number const ZERO = 0;
+
+   qqqError const no_error;
+   internalError = no_error;
+
+   /* Preset matrices: */
+   if (parms.adjustLevel1)
+   {
+      if (useTb) mcsrTb.clearValues(ONE);
+      if (useTv) mcsrTv.clearValues(ONE);
+	    
+      if (parms.easLikeCompiling)
+      {	 
+	 if (useTv) 	 	    
+	    auxFastLaneGummel.clearValues();	 
+	 else if (useTb) 
+	    auxFastLaneBoundary.clearValues();	    	 
+	 else 
+	    mcsrAs.clearValues();
+      }
+      else
+      {
+	 if (!qqqTransform(mcsrTb, mcsrTb, 0, true, false, false, false, internalError))
+	    return false;
+	 mcsrAs.clearValues();
+	 if (useTb) 
+	    mcsrAb.clearValues();	 	 
+      }
+   } 
+
+   if ((parms.adjustLevel2) && (!parms.easLikeCompiling))
+   {
+      if (useTb) auxFastLaneBoundary.clearValues();
+      if (useTv) auxFastLaneGummel.clearValues();
+   }
+   
+   /* Preset vectors: */
+   qqqInitializeVector(vBs, n*nx, ZERO);
+   if (useTb && !parms.easLikeCompiling) 
+      qqqInitializeVector(vBb, n*nx, ZERO);
+   if (useSc) qqqInitializeVector(vSc, n, ONE);
+   if (useSr) qqqInitializeVector(vSr, n, ONE);
+
+   return true;
+}
+
+/* MCSR access methods 
+   for matrices As, Ab, Tb, Tv (real- and complex-valued)
+
+   These methods add a value to the given position within the respective
+   matrix and return true if this was successful.
+*/
+template<class Number>
+inline bool qqqEQSaux<Number>::addMcsrAs(qqqIndex const row, qqqIndex const col, Number const value)
+{
+   return mcsrAs.addEntry(row, col, value);
+}
+
+template<class Number>
+inline bool qqqEQSaux<Number>::addMcsrAb(qqqIndex const row, qqqIndex const col, Number const value)
+{
+   return mcsrAb.addEntry(row, col, value);
+}
+
+template<class Number>
+inline bool qqqEQSaux<Number>::addMcsrTb(qqqIndex const row, qqqIndex const col, Number const value)
+{
+   return mcsrTb.addEntry(row, col, value);
+}
+
+template<class Number>
+inline bool qqqEQSaux<Number>::addMcsrTv(qqqIndex const row, qqqIndex const col, Number const value)
+{
+   return mcsrTv.addEntry(row, col, value);
+}
+
+/* MCSR row or col clearing methods
+   for matrices Ab, As, and Tb
+   
+   We know for sure, that all matrices have the right storage format. For that
+   reason a severe error must have been occurred which justifies the call of
+   assert(0).
+*/
+template<class Number>
+inline void qqqEQSaux<Number>::mcsrAbClearRow(qqqIndex const row)
+{
+   if (!mcsrAb.clearRow(row))
+      assert(0);
+}
+
+template<class Number>
+inline void qqqEQSaux<Number>::mcsrAsClearRow(qqqIndex const row)
+{
+   if (!mcsrAs.clearRow(row))
+      assert(0);
+}
+
+template<class Number>
+inline void qqqEQSaux<Number>::mcsrTbClearCol(qqqIndex const col)
+{   
+   if (!mcsrTb.clearCol(col))
+      assert(0);
+}
+
+
+/* Second Newton Adjustment Step Methods */
+/* ===================================== */
+
+template <class Number>
+inline Number *qqqEQSaux<Number>::getMcsrTbArray()
+{
+   return mcsrTb.getval();
+}
+
+template <class Number>
+inline qqqIndex *qqqEQSaux<Number>::getMcsrTbIndexArray()
+{
+   return mcsrTb.getidx();
+}
+
+/* Two Phases Models */ 
+/* ================= */
+
+template<class Number>
+inline
+bool qqqEQSaux<Number>::addRHSLineEntry(qqqIndex const row, Number const value, qqqIndex const col)
+{
+   mBs[col][row] += value;
+   return true;
+}
+
+template<class Number>
+bool qqqEQSaux<Number>::addRHSEntry(qqqIndex const row, Number const value, qqqIndex const col)
+{   
+   Number   const * const val = mcsrTb.getval();
+   qqqIndex const * const idx = mcsrTb.getidx();
+
+   qqqIndex j1 = idx[row];
+   qqqIndex j2 = idx[row+1];
+
+   /* Diagonal of Transformation Matrix */
+   mBs[col][row] += val[row] * value;
+
+   /* Off-Diagonals of Transformation Matrix */
+   for (qqqIndex ccicol = j1; ccicol < j2; ccicol++)
+      mBs[col][idx[ccicol]] += val[ccicol] * value;
+	       
+   return true;
+}
+
+template<class Number>
+bool qqqEQSaux<Number>::addRHSDoubleEntry(qqqIndex const row1, qqqIndex const row2, 
+			  Number const value1, Number const value2, qqqIndex const col)
+{
+   Number   const * const val = mcsrTb.getval();
+   qqqIndex const * const idx = mcsrTb.getidx();
+
+   /* Diagonals of Transformation Matrix */
+   mBs[col][row1] += val[row1] * value1;
+   mBs[col][row2] += val[row2] * value2;
+
+   /* Off-Diagonals of Transformation Matrix */
+   qqqIndex j1 = idx[row1];
+   qqqIndex j2 = idx[row1+1];
+   qqqIndex k1 = idx[row2];
+   qqqIndex k2 = idx[row2+1];
+   
+   qqqIndex ccicol  = j1;
+   qqqIndex ccicol2 = k1;
+   
+   qqqIndex nrElem1 = j2-j1;
+   qqqIndex nrElem2 = k2-k1;
+
+   if ((nrElem1 > 0) && (nrElem2 > 0))
+   {      
+      for (; (ccicol < j2) && (idx[ccicol] <= idx[k2-1]); ccicol++)
+      {
+	 for (; (ccicol2 < k2) && (idx[ccicol2] < idx[ccicol]); ccicol2++)	    	    	       
+	    mBs[col][idx[ccicol2]] += val[ccicol2] * value2;
+	 
+	 if (idx[ccicol] == idx[ccicol2])
+	 {	       
+	    Number commonValue = val[ccicol] * value1 + val[ccicol2] * value2;
+	    mBs[col][idx[ccicol]] += commonValue;
+	    ccicol2++;
+	 } 
+	 else     	    	       	    
+	    mBs[col][idx[ccicol]] += val[ccicol] * value1;	    
+      }
+   }
+   	 		   
+   for (;ccicol2 < k2; ccicol2++)      		 
+      mBs[col][idx[ccicol2]] += val[ccicol2] * value2;
+      	 	 
+   for (; ccicol < j2; ccicol++)     	 
+      mBs[col][idx[ccicol]] += val[ccicol] * value1;
+
+   return true;
+}
+
+template<class Number>
+bool qqqEQSaux<Number>::addMatrixLineEntry(qqqIndex const row, qqqIndex const col, 
+			Number const value, bool const conventional)
+{   
+   Number const * const valTv = mcsrTv.getval();
+   qqqIndex const * const idxTv = mcsrTv.getidx();
+
+   if (value == 0)
+      return true;
+
+   if (conventional) 
+   {
+      As(row, col) += value;   
+      if (useTv)
+      {	 
+	 if (idxTv[col] + 1 == idxTv[col+1])
+	 {
+	    /* store multiplication result in 64-bit double format */	    
+	    Number multResult = value * valTv[idxTv[col]];
+	    As(row, idxTv[idxTv[col]]) += multResult;	 
+	 }
+      }
+   }
+   else      
+   {
+      qqqMCSR<Number> &target = (useTv) ? auxFastLaneGummel : auxFastLaneBoundary;
+      bool retval = target.addEntry(row, col, value);   
+
+      if (useTv)
+      {
+	 if (idxTv[col] + 1 == idxTv[col+1])
+	 {
+	    retval = retval && target.addEntry(row, idxTv[idxTv[col]], value * valTv[idxTv[col]]);
+	 }
+      }
+
+      return retval;
+   }
+   return true;
+}
+
+template<class Number>
+bool qqqEQSaux<Number>::addMatrixEntry(
+     qqqIndex const row, qqqIndex const col, 
+     Number const value, bool const conventional)
+{
+   Number   const * const val = mcsrTb.getval();
+   qqqIndex const * const idx = mcsrTb.getidx();
+   qqqIndex j1 = idx[row];
+   qqqIndex j2 = idx[row+1];
+
+   /* Diagonal of Transformation Matrix */
+   bool retval = addMatrixLineEntry(row, col, val[row] * value, conventional);
+
+   /* Off-Diagonals of Transformation Matrix */
+   for (qqqIndex ccicol = j1; ccicol < j2; ccicol++)
+      retval = retval && addMatrixLineEntry(idx[ccicol], col, val[ccicol] * value, conventional);
+
+   return retval;
+}
+
+template<class Number>
+bool qqqEQSaux<Number>::addMatrixDoubleEntry(
+     qqqIndex const row1, qqqIndex const row2, qqqIndex const col,
+     Number const value1, Number const value2, bool const conventional)
+{
+   Number   const * const val = mcsrTb.getval();
+   qqqIndex const * const idx = mcsrTb.getidx();
+
+   bool retval;
+
+   if (value1 == 0)         
+      if (value2 != 0) return addMatrixEntry(row2, col, value2, conventional);
+      else return true;  
+   if (value2 == 0)
+      return addMatrixEntry(row1, col, value1, conventional);
+      
+   /* Diagonals of Transformation Matrix */
+   retval = addMatrixLineEntry(row1, col, val[row1] * value1, conventional);
+   retval = retval && addMatrixLineEntry(row2, col, val[row2] * value2, conventional); 
+
+   /* Off-Diagonals of Transformation Matrix */
+   qqqIndex j1 = idx[row1];
+   qqqIndex j2 = idx[row1+1];
+   qqqIndex k1 = idx[row2];
+   qqqIndex k2 = idx[row2+1];
+
+   qqqIndex ccicol  = j1;
+   qqqIndex ccicol2 = k1;
+
+   qqqIndex nrElem1 = j2-j1;
+   qqqIndex nrElem2 = k2-k1;
+
+   if ((nrElem1 > 0) && (nrElem2 > 0))
+   {  
+      for (; (ccicol < j2) && (idx[ccicol] <= idx[k2-1]); ccicol++)
+      {
+	 for(; (ccicol2 < k2) && (idx[ccicol2] < idx[ccicol]); ccicol2++)	    	    	       
+	    retval = retval && addMatrixLineEntry(idx[ccicol2], col, val[ccicol2] * value2, conventional);
+	 
+	 if (idx[ccicol] == idx[ccicol2])
+	 {	       
+	    Number commonValue = val[ccicol] * value1 + val[ccicol2] * value2;
+	    retval = retval && addMatrixLineEntry(idx[ccicol], col, commonValue, conventional);
+	    ccicol2++;
+	 } 
+	 else     	    	       	    
+	    retval = retval && addMatrixLineEntry(idx[ccicol], col, val[ccicol] * value1, conventional);
+      }     
+   }
+
+   for (;ccicol2 < k2; ccicol2++)      		 
+      retval = retval && addMatrixLineEntry(idx[ccicol2], col, val[ccicol2] * value2, conventional);
+      	 	 
+   for (; ccicol < j2; ccicol++)     	 
+      retval = retval && addMatrixLineEntry(idx[ccicol], col, val[ccicol] * value1, conventional);   
+   
+   return retval;
+}
+
+/* Input-Output auxiliary method */
+/* ============================= */
+
+template<class Number>
+inline bool
+qqqEQSaux<Number>::getReadMatrix(qqqMCSR<Number> &matrix)
+{
+   return(mAs.convertToMCSR(matrix, true));
+}
+
+template<class Number>
+inline bool
+qqqEQSaux<Number>::callNumericalServer(const char          *numServer, 
+				       const char          *numServerHost,
+				       qqqSolverParameters &parms)
+{
+   char  pwd[140];
+   char  cfg[140];
+   char  log[140];
+   char  sol[140];
+   char sol0[140];
+   char  cmd[340];
+
+   long const counter = 1; // qqqIndexToLong(parms.solveCount)
+
+   sprintf(pwd,  "%s", getenv("PWD"));
+   sprintf(sol,  "%s%ld.sol",  parms.linearSystem, counter);
+   sprintf(sol0, "%s0", sol);
+   sprintf(cfg,  "%s%ld.cfg ", parms.linearSystem, counter);
+   sprintf(log,  "%s%ld.log ", parms.linearSystem, counter);
+
+   /* Remove the old system vector file */
+   sprintf(cmd, "rm -f %s/%s", pwd, sol0);
+   if (system(cmd) != 0)
+   {
+      internalError = qqqERR_NUMSRV_REMOVE;
+      parms.setErrorString("Could not remove old solution vector file.");
+      return false;
+   }
+   // else printf("File %s removed.\n", cmd);
+
+   /* Create command for numerical server */
+   sprintf(cmd, "ssh %s %s %s/%s %s/%s %s/%s %ld > %s", 
+	   numServerHost,
+	   numServer, 
+	   pwd, parms.linearSystem, 
+	   pwd, cfg, 
+	   pwd, sol, 
+#if QQQ_PARDISO_AVAILABLE
+	   qqqIndexToLong(parms.extParams.numProc),
+#else
+           long(1),
+#endif // QQQ_PARDISO_AVAILABLE
+	   log
+	   );
+
+   /* Call the numerical server */
+
+   // printf("Final Command: %s\n", cmd);
+   if (system(cmd) != 0)
+   {
+      internalError = qqqERR_NUMSRV_SYSTEM;
+      parms.setErrorString("Could not call numerical server.");
+      return false;
+   }
+
+   qqqIndex const vecretval = qqqReadVector(mX[0], parms.dimension, sol0);
+
+   if (vecretval == parms.dimension)
+      return true;
+
+   switch (vecretval)
+   {
+   case -1: internalError = qqqERR_NUMSRV_SOL_FILE;   break;
+   case -2: internalError = qqqERR_NUMSRV_SOL_HEADER; break;
+   case -3: internalError = qqqERR_NUMSRV_SOL_DIM;    break;
+   case -4: internalError = qqqERR_NUMSRV_SOL_EOF;    break;
+   case -5: internalError = qqqERR_NUMSRV_SOL_TYPE;   break;
+   default: internalError = qqqERR_NUMSRV_SOL_FORMAT;
+   }
+
+   if ((internalError.getError() == qqqERR_NUMSRV_SOL_FORMAT) &&
+       (vecretval > 0) && (vecretval < parms.dimension))
+   {
+      parms.setErrorString("Format error in solution vector file (row =", vecretval);
+      internalError.setMatrixRow(vecretval);
+   }
+   else
+      parms.setErrorString(internalError.mapErrorMessage());
+
+   return false;
+}
+
+#endif // __numerics_eqs_tt__included__

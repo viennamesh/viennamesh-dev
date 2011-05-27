@@ -48,7 +48,7 @@ int process_file(std::string filename)
 
    if(input_extension == "sgf")
    {
-      typedef viennagrid::domain<viennagrid::config::triangular_2d>     domain_type;
+      typedef viennagrid::domain<viennagrid::config::line_2d>     domain_type;
       domain_type domain;
    
       viennagrid::io::sgf_reader my_sgf_reader;
@@ -57,7 +57,7 @@ int process_file(std::string filename)
       typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      wrapper_type;
       wrapper_type                    wrapped_data(domain);      
 
-      meshing(wrapped_data);
+      meshing(wrapped_data); 
    }
    else
    {

@@ -104,6 +104,7 @@ struct viennagrid_cell_wrapper
    // -------------------------------------------------------------------------------------------   
    result_type size() const
    {
+      //return viennagrid::traits::subcell_desc<VgridCellT, 0>::num_elements;
       result_type i = 0;
       for(vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
           vocit != vertex_on_cell_cont_.end(); vocit++)
@@ -114,6 +115,7 @@ struct viennagrid_cell_wrapper
    }
    result_type size() 
    {
+      //return viennagrid::traits::subcell_desc<VgridCellT, 0>::num_elements;   
       result_type i = 0;
       for(vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
           vocit != vertex_on_cell_cont_.end(); vocit++)

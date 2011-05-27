@@ -1,0 +1,2693 @@
+/* ***********************************************************************
+   $Id: numerics_solve.tt,v 1.24 2004/07/31 11:17:56 mmntuser Exp $
+
+   Filename: numerics_solve.tt
+
+   Description:  Solve a linear equation system
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+             SW  Stephan Wagner,    Institute for Microelectronics
+             CS  Christoph Schwarz, Institute for Microelectronics
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF  22 Nov 1996  created
+   CF  22 Nov 1996  started solving function
+   CF  31 Dec 1996  added the functionality for iterative solving
+   CF   1 Jan 1997  removed errors (debugging)
+   CF   3 Jan 1997  on-paper corrections entered
+   SW   6 Feb 2002  qqq prefixed function names
+   CS  13 Aug 2002  introduced 2nd iterative solver gmres
+   CS  02 Sep 2002  added gmres configuration for bogos and aux
+   CS  08 Nov 2002  clean-up of function sequence, preparing multigrid
+   SW  20 Nov 2002  multigrid solver integration
+   CS  22 Jan 2003  multiple-rhs vector integration
+   SW  10 Mar 2003  external interface added
+   SW  03 Dec 2003  interface to external solver module PARDISO
+   ***********************************************************************   */
+
+#ifndef   __numerics_solve_tt__included__
+#define   __numerics_solve_tt__included__
+
+
+/* Status output for debugging purposes */
+/* ==================================== */
+
+// #define QQQ_SOLVE_STATUS_OUTPUT 1
+
+#if     QQQ_SOLVE_STATUS_OUTPUT
+static inline void printSolveStatus    (const char * text)      { printf(text); } 
+static inline void printSolveStatusBool(const char * text, const bool status) 
+{ 
+   printf("%s, return value = %s\n", text, status ? "true" : "false");
+}
+#else
+static inline void printSolveStatus    (const char * /* text */)                          {} 
+static inline void printSolveStatusBool(const char * /* text */, const bool /* status */) {}
+#endif // QQQ_SOLVE_STATUS_OUTPUT
+
+/* Definition of solve functions */
+/* ============================= */
+
+#define MCSR      qqqMCSR<Number>
+#define LUMatrix  qqqLUMatrix<Number>
+#define ILUMatrix qqqILUMatrix<Number>
+#define Real      double
+#define Index     qqqIndex
+#define SolPar    qqqSolverParameters
+#define Error     qqqError
+#define BogoFlops qqqBogoFlops
+
+/* qqqSolveLinearSystemDirect()
+
+   This function provides encapsulation for code that logically belongs
+   to solve_linear_system(). Please see the comment for this function for
+   an appropriate description.
+
+   Errors:
+   If the solving is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_DIRECT_NOT_MCSR     ... matrix is not MCSR but MCSC format
+   - qqqERR_DIRECT_MISALLOC     ... allocation of auxiliary arrays failed
+   - qqqERR_DIRECT_HUGE         ... space requirements exceed index range
+   - qqqERR_DIRECT_MAXSPACE     ... space requirements exceed limit
+   - qqqERR_DIRECT_MAXFLOPS     ... time requirements exceed limit
+   - qqqERR_DIRECT_ZERO_DIAG    ... zero diagonal element in U matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_DIRECT_SMALL_DIAG   ... diagonal element in U matrix too small,
+                                    error.getMatrixRow() indicates the row 
+   - qqqERR_SOLVE_USERLIMIT     ... user defined limit for space or time
+                                    would be exceeded on solving
+
+   Effort:    keeps within the user-defined limits specified in parms
+   BogoFlops: keeps within the user-defined limits specified in parms
+   Space:     keeps within the user-defined limits specified in parms
+   */
+template <class Number>
+bool
+qqqSolveLinearSystemDirect(
+  Index  const                 n,  /* [I]  dimension of the equation system,
+                                           must be at least 1.                 */
+  Index  const       actualBytes,  /* [I]  current number of bytes allocated   */
+  Index  const       actualNumbs,  /* [I]  current number of numbers allocated */
+  LUMatrix                   &LU,  /* [IO] factorization structure             */
+  MCSR   const                &A,  /* [I]  system matrix                       */
+  Number const * const * const b,  /* [I]  right-hand-side vector              */
+  Number       * const * const x,  /* [O]  solution vector of A * x = b        */
+  SolPar                  &parms,  /* [IO] solver parameters                   */
+  Error                   &error   /* [O]  error information, in case
+                                           the return value is false.          */
+  )
+{
+    BogoFlops    lBogo;	        /* Limit for bogoflops of current call      */
+    BogoFlops    bogo;		/* Actually used bogoflops in current call  */
+    Index        lNumber;	/* Limit for allocation of current call     */
+    Index        allNumber;	/* Actually used allocation of current call */
+    bool         returnValue;	/* The return value of the factorization
+				   function is temporarily stored here      */
+
+    /* Note the usage of a direct solver */
+    /* ================================= */
+
+    parms.directUsed    = true;
+
+    /* Determine the proper limits */
+    /* =========================== */
+
+    /* No default limit for bogoflops */
+    lBogo = 0;
+
+    /* Total bogoflops */
+    if (parms.lBogoCum != 0)
+    {
+	if (parms.lBogoCum - parms.bogoUsedCum <= 0)
+	{
+	    parms.setParmsErrorNum(3); // parms.errornum = 3;
+	    parms.setErrorString("limit for cumulative CPU-time of solver exceeded");
+	    parms.setMessageString("user-specified limit exceeded, no solving done");
+	    error = qqqERR_SOLVE_USERLIMIT;
+	    return false;
+	}
+	lBogo = parms.lBogoCum - parms.bogoUsedCum;
+    }
+
+    /* One-time bogoflops */
+    if (parms.lBogoOnce != 0)
+    {
+	if (parms.lBogoOnce - parms.bogoUsedOnce <= 0)
+	{
+	    parms.setParmsErrorNum(3); // parms.errornum = 3;
+	    parms.setErrorString("limit for CPU-time of solver exceeded");
+	    parms.setMessageString("user-specified limit exceeded, no solving done");
+	    error = qqqERR_SOLVE_USERLIMIT;
+	    return false;
+	}
+	if (lBogo == 0 || 
+	    lBogo > parms.lBogoOnce - parms.bogoUsedOnce)
+	    lBogo = parms.lBogoOnce - parms.bogoUsedOnce;
+    }
+    
+    /* One-time direct bogoflops */
+    if (parms.lBogoDiOnce != 0)
+    {
+	if (parms.lBogoDiOnce <= 0)
+	{
+	    parms.setParmsErrorNum(3); // parms.errornum = 3;
+	    parms.setErrorString("limit for CPU-time of direct solver exceeded");
+	    parms.setMessageString("user-specified limit exceeded, no solving done");
+	    error = qqqERR_SOLVE_USERLIMIT;
+	    return false;
+	}
+	if (lBogo == 0 || 
+	    lBogo > parms.lBogoDiOnce)
+	    lBogo = parms.lBogoDiOnce;
+    }
+
+    /* No default limit for space */
+    lNumber = 0;
+
+    /* Space in bytes */
+    if (parms.lByteMax != 0)
+    {
+	if ((parms.lByteMax
+	     - actualBytes
+	     - 2 * n * sizeof(Index))
+	    / sizeof(Number) <= 0)
+	{
+	    parms.setParmsErrorNum(3); // parms.errornum = 3;
+	    parms.setErrorString("limit for memory allocation of solver exceeded");
+	    parms.setMessageString("user-specified limit exceeded, no solving done");
+	    error = qqqERR_SOLVE_USERLIMIT;
+	    return false;
+	}
+	lNumber = (parms.lByteMax 
+		    - actualBytes
+		    - 2 * n * sizeof(Index));
+    }
+
+    /* Space in Numbers */
+    if (parms.lNumbDiMax != 0)
+    {
+	if (parms.lNumbDiMax 
+	    - actualNumbs <= 0)
+	{
+	    parms.setParmsErrorNum(3); // parms.errornum = 3;
+	    parms.setErrorString("limit for memory allocation of direct solver exceeded");
+	    parms.setMessageString("user-specified limit exceeded, no solving done");
+	    error = qqqERR_SOLVE_USERLIMIT;
+	    return false;
+	}
+	if (lNumber == 0 ||
+	    lNumber > parms.lNumbDiMax - actualNumbs)
+	    lNumber = parms.lNumbDiMax - actualNumbs;
+    }
+    
+	
+
+    /* Call the direct solver */
+    /* ====================== */
+
+    /* This uses bogo (maximum lBogo) bogoflops and allNumber
+       (maximum lNumber) numbers allocation. The total space allocated
+       is 2 * dimension(A) * sizeof(Index) + allNumber * sizeof(Number)
+       bytes. If this changes, please change the code above. */
+
+    printSolveStatus("direct solver...\n");
+    returnValue = qqqFactorizeLU(A,LU,lNumber,allNumber,lBogo,bogo,error);
+    printSolveStatusBool("direct solver", returnValue);
+
+    /* Count the space allocated */
+    /* ========================= */
+
+    if (parms.numbUsed < actualNumbs + allNumber)
+	parms.numbUsed = actualNumbs + allNumber;
+    if ((unsigned)parms.byteUsed < (actualBytes
+			   + 2 * n * sizeof(Index)
+			   + allNumber * sizeof(Number)))
+	parms.byteUsed = (actualBytes
+			   + 2 * n * sizeof(Index)
+			   + allNumber * sizeof(Number));
+
+
+    /* Count the bogoflops */
+    /* =================== */
+
+    parms.bogoUsedOnce += bogo;
+    parms.bogoUsedCum  += bogo;
+
+    /* Check the success */
+    /* ================= */
+
+    if (!returnValue)
+    {
+	/* Error mapping */
+	switch (error.getError())
+	{
+	case qqqERR_DIRECT_NOT_MCSR:
+	    parms.setParmsErrorNum(1);
+	    parms.setErrorString("matrix has MCSC format, should have MCSR");
+	    break;
+	case qqqERR_DIRECT_MISALLOC:
+	    parms.setParmsErrorNum(2);
+	    parms.setErrorString("misallocation in direct solver");
+	    break;
+	case qqqERR_DIRECT_HUGE:
+	    parms.setParmsErrorNum(2);
+	    parms.setErrorString("misallocation in direct solver");
+	    break;
+	case qqqERR_DIRECT_MAXSPACE: 
+	    parms.setParmsErrorNum(3);
+	    parms.setErrorString("user-specified space limit exceeded, no solving done");
+	    break;
+	case qqqERR_DIRECT_MAXFLOPS:
+	    parms.setParmsErrorNum(3);
+	    parms.setErrorString("user-specified time limit exceeded, no solving done");
+	    break;
+	case qqqERR_DIRECT_ZERO_DIAG:
+	    parms.setParmsErrorNum(4);                    
+	    parms.setParmsErrorRow(error.getMatrixRow());
+	    parms.setParmsErrorCol(error.getMatrixRow());
+	    parms.setErrorString("zero diagonal element in direct solver");
+	    break;
+	case qqqERR_DIRECT_SMALL_DIAG:
+	    parms.setParmsErrorNum(5);                   
+	    parms.setParmsErrorRow(error.getMatrixRow());
+	    parms.setParmsErrorCol(error.getMatrixRow());
+	    parms.setErrorString("small diagonal element in direct solver");
+	    break;
+	default:
+	    parms.setParmsErrorNum(9); // parms.errornum = 9;
+	    parms.setErrorString("unspecified error in direct solver");
+	    break;
+	}
+	parms.setMessageString("direct solver failed");
+	return false;
+    }
+
+
+    /* Determine the proper limits */
+    /* =========================== */
+
+    if (lBogo != 0)
+    {
+	lBogo -= bogo;
+        /* CHECK_THIS [CS]:
+	   bogos for backsolving are checked against limit, but never accounted for. */
+	/* allNumber is nonzeros(LU), qqqInvPrd uses nnz(LU) bogos */
+	if (lBogo <= (qqqIndexToReal(allNumber) * parms.nrhs))
+	{
+	    parms.setParmsErrorNum(3); // parms.errornum = 3;
+
+	    parms.setErrorString("limit for CPU-time of solver exceeded at backsolving");
+	    parms.setMessageString("user-specified limit exceeded, no solving done");
+	    error = qqqERR_SOLVE_USERLIMIT;
+	    return false;
+	}
+    }
+
+    /* Calculate the solution vector */
+    /* ============================= */
+
+    printSolveStatus("direct: solution vector...\n");
+    for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+       qqqInvPrd(x[ii],LU,b[ii]);
+
+    return true;
+}
+
+
+
+/* qqqSolveLinearSystemIterative()
+
+   This function provides encapsulation for code that logically belongs
+   to qqqSolveLinearSystem(). Please see the comment for this function for
+   an appropriate description.
+
+   Errors:
+   If the solving is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_PRECOND_NOT_MCSR    ... matrix is not MCSR but MCSC format
+   - qqqERR_PRECOND_NO_SPACE    ... too little space allocated for LU matrix
+   - qqqERR_PRECOND_MISALLOC    ... allocation of auxiliary arrays failed
+   - qqqERR_PRECOND_ZERO_DIAG   ... zero diagonal element in U matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_PRECOND_SMALL_DIAG  ... diagonal element in U matrix too small,
+                                    error.getMatrixRow() indicates the row 
+   - qqqERR_BICGS_MISALLOC      ... allocation of auxiliary arrays failed
+   - qqqERR_BICGS_NO_CONVERG    ... no convergence in maxit iterations
+   - qqqERR_GMRES_MISALLOC      ... allocation of auxiliary arrays failed
+   - qqqERR_GMRES_NO_CONVERG    ... no convergence in maxit iterations
+   - qqqERR_GMRES_M_ZERO        ... bad m parameter for GMRES(m)
+   - qqqERR_SOLVE_USERLIMIT     ... user defined limit for space or time
+                                    would be exceeded on solving
+   - qqqERR_SOLVE_MISALLOC      ... allocation of auxiliary arrays failed
+
+   Effort:    see bogoflops
+   BogoFlops: keeps within the user-defined limits specified in parms,
+              except for the preconditioner for the iterative solving,
+	      which might take more time if the estimation was bad or if
+	      it is called the first time; this is quite unlikely
+   Space:     keeps within the user-defined limits specified in parms
+   */
+template <class Number>
+bool
+qqqSolveLinearSystemIterative(
+  Index  const                 n,  /* [I]  dimension of the equation system,
+                                           must be at least 1.                 */
+  Index  const       actualBytes,  /* [I]  current number of bytes allocated   */
+  Index  const       actualNumbs,  /* [I]  current number of numbers allocated */
+  ILUMatrix                   &K,  /* [IO] preconditioning matrix              */
+  MCSR   const                &A,  /* [I]  system matrix                       */
+  Number const * const * const b,  /* [I]  right-hand-side vector              */
+  Number       * const * const x,  /* [O]  solution vector of A * x = b        */
+  SolPar                  &parms,  /* [IO] solver parameters                   */
+  Error                   &error   /* [O]  error information, in case
+                                           the return value is false.          */
+  )
+{
+          A.writeDXMatrix("systemmatrix_iterative.txt");
+
+    /* ************* */
+    /* CONFIGURATION */
+    /* ************* */
+
+    /* This configuration should only be done by a person sufficiently
+       experienced with the solver/preconditioner combination used here.
+       All other persons should keep their hands off these parameters. */
+
+    /* If the number of iterations is neither restricted by a CPU time
+       limit nor by a limit to the number of iterations itself,
+       this is the default limit applied. */
+#define DEFAULT_ITERATION_LIMIT 1000
+
+    /* This should be a factor less than 1 but close to. It is not critical.
+       It describes the reduction of the fill-in after an attempt to
+       allocate the factorization space has failed. The fill-in is reduced
+       and the attempt is retried. There is nothing time-critical inbetween.
+       There should be no necessity to change this value. */
+#define REDUCE_FILL_AFTER_MISALLOC() {fill = (9 * fill) / 10;}
+
+    /* The following parameters describe the ideal ratio of the CPU time
+       used by the preconditioner and the solver.
+       Experience shows that the total solving time has a minimum at some
+       ratio of solver and preconditioner time. Whether this minimum ratio
+       is the same for different types of problems is not known; however,
+       the influence seems to be rather small, and the minimum fairly
+       broad.
+       Therefore an 'optimum range' of the ratio is defined here, and the
+       system tries to reach a ratio in this range in repeated calls for
+       linear systems of the same origin.
+       The ratio is given as 
+       (bogoflops of solver) / (bogoflops of preconditioner).
+
+       The first parameter is the minimum ratio and the second is the
+       maximum ratio of the ideal range.
+
+       If this is changed, change also SOLVER_RESTART_TIME_FACTOR. */
+#define SOLVER_MINIMUM_TIME_FACTOR 2.0   // 2.0
+#define SOLVER_MAXIMUM_TIME_FACTOR 5.0  // 5.0
+
+    /* If the CPU time consumption of the solver for the current problem
+       exceeds this range by far, the solver is interrupted and the
+       preconditioner tried again. However, this is not done immediately
+       when the solver reaches the SOLVER_MAXIMUM_TIME_FACTOR, in order
+       not to waste the effort done until then. Another factor specifies
+       the point at which the solver is interrupted and the preconditioner
+       starts again. It must be larger than SOLVER_MAXIMUM_TIME_FACTOR. 
+
+       If this is changed, change also PRECONDITIONER_SHARE_TO_RESTART. */
+#define SOLVER_RESTART_TIME_FACTOR 12.0 // 12.0
+
+    /* These parameters define the change of the fill-in in several
+       situations. There are three different situations classified:
+       strong increase  is a rather heavy increase used after the
+                        solver did not converge or the preconditioner
+                        failed with a pseudo-singular matrix
+       light increase   is an increase that is used after convergence
+                        to produce an increased fill-in for the next
+                        run, if the ratio of solver and preconditioner
+                        times is not good
+       light decrease   is used in the same way as light increase
+
+       An increase is generally created by increasing the current fill-in
+       by a factor (given through numerator and denominator) and adding
+       a share of the average row length of the original matrix (given by
+       another numerator and the same denominator).
+       To account for the fractional part that is cut off, an additional
+       constant is added.
+       A decrease is created just by multiplication with a factor.
+       */
+#define FILLIN_STRONG_INCREASE_ROWLENNUM    2
+#define FILLIN_STRONG_INCREASE_NUMERATOR   12
+#define FILLIN_STRONG_INCREASE_DENOMINATOR  8
+#define FILLIN_LIGHT_INCREASE_ROWLENNUM     1
+#define FILLIN_LIGHT_INCREASE_NUMERATOR     9
+#define FILLIN_LIGHT_INCREASE_DENOMINATOR   8
+#define FILLIN_LIGHT_DECREASE_NUMERATOR     9
+#define FILLIN_LIGHT_DECREASE_DENOMINATOR  10
+
+    /* These parameters define the change of the dropping threshold
+       in several situations. The situations are the same as they are
+       described above for the fill-in. The terms 'increase' and 'decrease'
+       are reverted. */
+#define TOLERANCE_STRONG_DECREASE_FACTOR  0.15
+#define TOLERANCE_LIGHT_DECREASE_FACTOR   0.6
+#define TOLERANCE_LIGHT_INCREASE_FACTOR   1.5
+
+    /* This is a very critical parameter.
+       See the description of PRECONDITIONER_SHARE_TO_RESTART for a more
+       detailed explanation. 
+       This description should give a good estimation of the factor
+       by which the preconditioning time increases if both fill-in and
+       dropping threshold are increased after the solver did not converge.
+
+       The preconditioning time will show an approximative square dependence
+       on the fill-in and a rather heavy dependence (inverted square or
+       cubic or even worse) on the dropping threshold. However, the influence
+       of the dropping threshold is somehow reduced if the fill-in is limited.
+       The parameters that have an influence are
+       FILLIN_STRONG_INCREASE_NUMERATOR
+       FILLIN_STRONG_INCREASE_DENOMINATOR
+       TOLERANCE_STRONG_DECREASE_FACTOR
+       */
+#define FILLIN_STRONG_INCREASE_FACTOR             \
+    ((double) FILLIN_STRONG_INCREASE_NUMERATOR /  \
+     (double) FILLIN_STRONG_INCREASE_DENOMINATOR)
+#define APPROXIMATE_PRECONDITIONING_TIME_INCREASE	\
+	(FILLIN_STRONG_INCREASE_FACTOR 			\
+	 * FILLIN_STRONG_INCREASE_FACTOR		\
+	 + 1.0						\
+	 / (TOLERANCE_STRONG_DECREASE_FACTOR))
+
+    /* This is a very critical parameter.
+       It relates the bogoflops of the last preconditioner call to
+       the bogoflops that are free immediately after this call.
+       This parameter describes the maximum fraction of the preconditioner
+       bogoflops divided by the free bogoflops for which the preconditioner
+       may be called again with more preconditioning effort.
+
+       If this value is too high, then the preconditioner will be called
+       again in situations where there is just a little bit of CPU time
+       left. The result might be that after the next call there is hardly
+       time left for the solver, so the call was really unproductive since
+       the solver will not be able to make use of the better preconditioned
+       system (because it is not left any time). Even worse, the next
+       call to the preconditioner might take more time than is left, so
+       the function might exceed its time limits.
+
+       If the value is too low then it prevents the preconditioner from
+       being called again, which could result in a system being called
+       numerically singular (resp. ill-conditioned) that would easily
+       have been solved by better preconditioning.
+
+       The rationale how to come to a good value for a parameter is this:
+       The current call to the preconditioner has taken x time, the 
+       current call to the solver will take x * SOLVER_RESTART_TIME_FACTOR
+       time, the next call to the preconditioner will take about
+       x2 = x * APPROXIMATE_PRECONDITIONING_TIME_INCREASE time, so for
+       the next solver call there should be at least
+       x2 * SOLVER_MAXIMUM_TIME_FACTOR time left to make re-preconditioning
+       worthwile. */
+
+#define PRECONDITIONER_SHARE_TO_RESTART                     \
+	(1.0 / (SOLVER_RESTART_TIME_FACTOR 		    \
+		+ APPROXIMATE_PRECONDITIONING_TIME_INCREASE \
+		* (1.0 + SOLVER_MAXIMUM_TIME_FACTOR)))
+
+    /* These functions are used to adjust the balance between dropping
+       threshold and fill-in. They define the lower and upper end of
+       an optimum range of the fill-in to tolerance balance. */
+#define FILLIN_TOO_SMALL() \
+        (totalDrop >= 0.75 ||       \
+         rowDrop >= (6 * (rowlen / 2 + fill)))
+#define FILLIN_TOO_LARGE() \
+	(totalDrop <= 0.15 &&      \
+	 rowDrop <= ((rowlen / 2 + fill) / 3))
+
+    /* Now here are some functions that implement the updates. These
+       should not be changed. */
+#define PRECONDITIONER_SHOULD_NOT_BE_CALLED_AGAIN() \
+	(bogo > freeBogo * Real(PRECONDITIONER_SHARE_TO_RESTART))
+#define FILLIN_STRONG_INCREASE()					\
+	{fill = ((fill * FILLIN_STRONG_INCREASE_NUMERATOR	\
+		  + rowlen * FILLIN_STRONG_INCREASE_ROWLENNUM)	\
+		 / FILLIN_STRONG_INCREASE_DENOMINATOR + 2); }
+#define FILLIN_LIGHT_INCREASE()					\
+	{fill = ((fill * FILLIN_LIGHT_INCREASE_NUMERATOR	\
+		  + rowlen * FILLIN_LIGHT_INCREASE_ROWLENNUM)	\
+		 / FILLIN_LIGHT_INCREASE_DENOMINATOR + 1); }
+#define FILLIN_LIGHT_DECREASE()				\
+	{fill = (fill * FILLIN_LIGHT_DECREASE_NUMERATOR	\
+		 / FILLIN_LIGHT_DECREASE_DENOMINATOR); }
+#define TOLERANCE_STRONG_DECREASE()			\
+	{tol *= Real(TOLERANCE_STRONG_DECREASE_FACTOR); }
+#define TOLERANCE_LIGHT_DECREASE()			\
+	{tol *= Real(TOLERANCE_LIGHT_DECREASE_FACTOR); }
+#define TOLERANCE_LIGHT_INCREASE()			\
+	{tol *= Real(TOLERANCE_LIGHT_INCREASE_FACTOR); }
+/*
+  bogoPerIteration:
+  -----------------
+  The following macros ("text-query-replace") are used to configure the 
+  BogoFlops that are used by the iterative solver functions.
+  If you don't know what this is, don't touch it.
+
+  PreconditionedBiCGStab uses:
+    2 * nonzeros(A) + 2 * nonzeros(K) + 14 * dimension(A)
+  GMRES(m) uses:
+    (2 * dimension(A) * (2 * m + (m * (m + 1)) / 2) + 
+     (m + 1) * (nonzeros(A) + nonzeros(K)) + 4n       ) / m
+   Attention: This does not include the bogos used for restart due to m.
+
+*/
+#define BICGS_BOGO_PER_IT \
+        (Real(2) * nnz + Real(2) * nnzK + Real(14) * n)
+
+#define GMRESM_BOGO_PER_IT \
+        ((2 * n * (2 * parms.gmresM + parms.gmresM / Real(2.0) * \
+         (parms.gmresM + 1)) + (parms.gmresM) * (nnz + nnzK)) \
+         / (double) parms.gmresM)
+
+
+  /*
+        ((2 * n * (2 * parms.gmresM + parms.gmresM / Real(2.0) * \
+         (parms.gmresM + 1)) + (parms.gmresM + 1) * (nnz + nnzK) + 4 * n) \
+         / (double) parms.gmresM)
+          (nnz + nnzK + 2 + (parms.gmresM * (parms.gmresM + 1) / Real(2.0))) 
+*/
+  
+  
+
+/*
+  solverAuxNumbers / solverAuxBytes:
+  ----------------------------------
+  These parameters describe the number of "Numbers" allocated by
+  the solver functions as auxillary vectors or arrays.
+  The amount of allocated memory for auxillary variables in bytes
+  is obtained by multiplying the amount of numbers with their size.
+
+  PreconditionedBiCGStab:   8 * dimension(A)
+  GMRES(m):                 3 * (m + 1) + 3 * dimension(A) +
+                             + (m + 1) * m + (m + 1) * dimension(A)
+*/
+#define BICGS_AUX \
+        n * 8
+#define GMRESM_AUX \
+        3 + 4 * (parms.gmresM + n) + parms.gmresM * parms.gmresM + parms.gmresM * n
+
+    /* ******************** */
+    /* END OF CONFIGURATION */
+    /* ******************** */
+
+    Index const  nnz =		/* Nonzeros of A */
+	A.nonzeros();
+    Index const  rowlen =	/* Average row length of A */
+	(nnz + n - 1) / n;
+    bool returnValue = false;   /* The return value of several functions
+				   is temporarily stored here */
+
+    /* Note the usage of an iterative solver */
+    /* ===================================== */
+
+    parms.iterativeUsed = true;
+
+    /* Solve with preconditioning */
+    /* ========================== */
+
+    if (parms.precond)
+    {
+	/* Scratch arrays to set aside reserved space before
+	   trying the allocation of the factorization area */
+	Real  *a1 = 0;
+	Real  *a2 = 0;
+	Real  *a3 = 0;
+	Real  *a4 = 0;
+	Real  *a5 = 0;
+	Real  *a6 = 0;
+	Real  *a7 = 0;
+	Real  *a8 = 0;
+	Index *i1 = 0;
+	Index *i2 = 0;
+	Index *i3 = 0;
+
+	/* The range in which the parameters fill and tol may vary.
+	   They are influenced by user-defined limits, operating system
+	   resources (allocation capabilities) and matrix condition. */
+	Index minFill;		/* The minimum fillin for this run,
+				   depends on user-specified limits and
+				   matrix condition */
+	Index maxFill;		/* The maximum fillin for this run,
+				   depends on user-specified fillin limits,
+				   user-specified CPU time limits (bogoflops),
+				   and allocation possibilities */
+	Real  minTol;		/* The minimum dropping threshold for this run,
+				   depends on user-specified tol limits and
+				   user-specified CPU time limits
+				   (bogoflops) */
+	Real  maxTol;		/* The maximum dropping threshold for this run,
+				   depends on user-specified tol limits and
+				   matrix condition */
+
+	
+	printSolveStatus("   iterative solve: Solve with preconditioning...\n");
+
+	/* 1. Set limits for fill-in and tolerance */
+	/* ======================================= */
+
+	/* In this part, the limits
+	   maxFill
+	   minFill
+	   maxTol
+	   minTol
+	   are determined according to user-specified limitations
+	   of themselves and of the allocated memory. */
+
+
+	/* Preset reasonably */
+	maxFill = qqqSGNMAX(Index(0));
+	minFill = 0;
+	maxTol  = 1.0;
+	minTol  = 0.0;
+
+	/* Consider user-defined limits for fill-in */
+	if (minFill < parms.fillMin)
+	    minFill = parms.fillMin;
+	if (parms.fillMax != -1 &&
+	    maxFill > parms.fillMax)
+	    maxFill = parms.fillMax;
+	if (maxFill < minFill)
+	    maxFill = minFill;
+
+	/* Consider user-defined limits for dropping threshold */
+	if (maxTol > parms.tolMax)
+	    maxTol = parms.tolMax;
+	if (minTol < parms.tolMin)
+	    minTol = parms.tolMin;
+	if (minTol > maxTol)
+	    minTol = maxTol;
+
+	/* Consider user-defined limits for allocation space */
+	
+        Index solverAuxNumbers;
+        Index solverAuxBytes;
+
+	printSolveStatus("   iterative solve: User-defined limits...\n");
+
+        if (parms.iterativeType != qqqIT_GMRES)
+           solverAuxNumbers = BICGS_AUX;
+        else /* GMRES */
+           solverAuxNumbers = GMRESM_AUX;
+        solverAuxBytes = solverAuxNumbers * sizeof(Number);
+
+        Index const preAuxNumbers    = n * 2;
+	Index const preAuxBytes      = n * (2 * sizeof(Number)
+					      + 3 * sizeof(Index));
+	Index const preNofillNumbers = (nnz + 1);
+	Index const preNofillBytes   = ((nnz + 1) * (sizeof(Number)
+						       + sizeof(Index)) 
+					  + n * sizeof(Index));
+	Index const prePFillNumbers = n * 2;
+	Index const prePFillBytes   = n * 2 * (sizeof(Number)
+						  + sizeof(Index));
+        bool gmresMNeedsDecrease = false;
+
+	do
+        {
+           if (gmresMNeedsDecrease)
+           {
+              gmresMNeedsDecrease = false;
+              parms.gmresM = parms.gmresM - 1;
+#if 0
+              printf("m was changed due to allocation limits. (new m: %ld)\n", qqqIndexToLong(parms.gmresM));
+#endif
+              solverAuxNumbers = GMRESM_AUX;
+              solverAuxBytes = solverAuxNumbers * sizeof(Number);
+           }
+
+           Index allocation_maxFill = qqqSGNMAX(Index(0));
+           if (parms.lNumbItMax != 0)
+              allocation_maxFill = qqqMin(allocation_maxFill,
+                                          ((parms.lNumbItMax
+                                            - actualNumbs
+                                            - qqqMax(solverAuxNumbers,
+                                                     preAuxNumbers)
+                                            - preNofillNumbers
+                                            + prePFillNumbers)
+                                           / prePFillNumbers - 1));
+           if (parms.lByteMax != 0)
+              allocation_maxFill = qqqMin(allocation_maxFill,
+                                          ((parms.lByteMax
+                                            - actualBytes
+                                            - qqqMax(solverAuxBytes,preAuxBytes)
+                                            - preNofillBytes
+                                            + prePFillBytes)
+                                           / prePFillBytes - 1));
+           if (allocation_maxFill < 0)
+           {
+              if (parms.iterativeType == qqqIT_GMRES && parms.gmresM > 10)
+              {
+                 gmresMNeedsDecrease = true;
+              }
+              else
+              {
+                 parms.setParmsErrorNum(3); // parms.errornum = 3;
+                 parms.setErrorString("limit for memory allocation of solver exceeded");
+                 parms.setMessageString("user-specified limit exceeded, no solving done");
+                 error = qqqERR_SOLVE_USERLIMIT;
+                 return false;
+              }
+           }
+
+           if (maxFill > allocation_maxFill && allocation_maxFill >= 0)
+              maxFill = allocation_maxFill;
+           if (minFill > maxFill)
+              minFill = maxFill;
+
+        } while (gmresMNeedsDecrease);
+
+        
+	/* 2. Perform optimization loop */
+	/* ============================ */
+
+	/* This part organizes the looping over preconditioner and
+	   solver, with repeated allocation of the factorization
+	   structure and parameter changes. */
+
+	/* This flag is for remembering that an allocation of the
+	   factorization structure has failed. Afterwards, the next
+	   successful allocation is 'frozen', i.e. no further
+	   allocations are done. */
+	// bool allocation_failed = false;
+	
+	/* Whether we have succeeded in solving the equation system */
+	bool solved = false;
+
+	/* How much fill-in we have already allocated */
+	Index fill_allocated = -1;
+
+	/* The actual fill-in we are going to start with */
+	Index fill = parms.fillSuggest;
+
+	/* The actual tolerance we are going to start with */
+	Real  tol  = parms.tolSuggest;
+
+	/* The number of bytes/Numbers used by the preconditioner */
+	Index preBytes   = 0;
+	Index preNumbers = 0;
+
+	printSolveStatus("   iterative solve: perform optimization loop...\n");
+
+	Index currRhsVector = 0;
+	while (!solved)
+	{
+
+	    /* 3. Adjust tolerance and fill-in */
+	    /* =============================== */
+
+	    /* Restrict them to their limits */
+
+	    fill = qqqMin(qqqMax(fill,minFill), maxFill);
+	    tol  = qqqMin(qqqMax(tol ,minTol ), maxTol );
+
+	    /* 4. Allocate the K matrix */
+	    /* ======================== */
+
+	    if (fill > fill_allocated)
+	    {
+		/* Once an allocation was successful after an allocation
+		   had failed, the values of fill_allocated and maxFill
+		   are equal; therefore this part cannot be entered any
+		   more. */
+
+		/* Allocate auxiliary stuff
+		   so that the required space is reserved */
+		if (preAuxBytes >
+		    solverAuxBytes)
+		{
+		    i1 = new Index[n];
+		    i2 = new Index[n];
+		    i3 = new Index[n];
+		    a1 = new Real[n];
+		    a2 = new Real[n];
+		    if (!i1 || !i2 || !i3 || !a1 || !a2)
+		    {
+			if (a2) delete[] a2; a2 = 0;
+			if (a1) delete[] a1; a1 = 0;
+			if (i3) delete[] i3; i3 = 0;
+			if (i2) delete[] i2; i2 = 0;
+			if (i1) delete[] i1; i1 = 0;
+		    }
+		}
+		else
+		{
+		    a1 = new Real[n];
+		    a2 = new Real[n];
+		    a3 = new Real[n];
+		    a4 = new Real[n];
+		    a5 = new Real[n];
+		    a6 = new Real[n];
+		    a7 = new Real[n];
+		    a8 = new Real[n];
+		    if (!a1 || !a2 || !a3 || !a4 || !a5 || !a6 || !a7 || !a8)
+		    {
+			if (a8) delete[] a8; a8 = 0;
+			if (a7) delete[] a7; a7 = 0;
+			if (a6) delete[] a6; a6 = 0;
+			if (a5) delete[] a5; a5 = 0;
+			if (a4) delete[] a4; a4 = 0;
+			if (a3) delete[] a3; a3 = 0;
+			if (a2) delete[] a2; a2 = 0;
+			if (a1) delete[] a1; a1 = 0;
+		    }
+		}
+		if (!a1)
+		{
+		    parms.setParmsErrorNum(2); // parms.errornum = 2;
+
+		    parms.setErrorString("misallocation in iterative preconditioning");
+		    parms.setMessageString("preconditioning failed, no solving done");
+		    error = qqqERR_SOLVE_MISALLOC;
+		    return false;
+		}
+		
+		/* Allocate the factorization structure */
+		preNumbers = nnz + 2 * fill * n;
+		preBytes   = preNumbers * (sizeof(Index)
+					     + sizeof(Number));
+		returnValue = K.allocate(n,preNumbers);
+		
+		/* Deallocate auxiliary stuff */
+		if (a8) delete[] a8; a8 = 0;
+		if (a7) delete[] a7; a7 = 0;
+		if (a6) delete[] a6; a6 = 0;
+		if (a5) delete[] a5; a5 = 0;
+		if (a4) delete[] a4; a4 = 0;
+		if (a3) delete[] a3; a3 = 0;
+		if (a2) delete[] a2; a2 = 0;
+		if (a1) delete[] a1; a1 = 0;
+		if (i3) delete[] i3; i3 = 0;
+		if (i2) delete[] i2; i2 = 0;
+		if (i1) delete[] i1; i1 = 0;
+	
+		/* If the allocation has failed,
+		   try again with lower fill-in */
+		if (!returnValue)
+		{
+		    if (fill == 0)
+		    {
+			parms.setParmsErrorNum(2); // parms.errornum = 2;
+			parms.setErrorString("misallocation in preconditioner");
+			parms.setMessageString("preconditioning failed, no solving done");
+			error = qqqERR_SOLVE_MISALLOC;
+			return false;
+		    }
+		    
+		    // allocation_failed = true;
+		    fill_allocated    = -1;
+		    
+		    /* Reduce the fill-in for the next try */
+		    REDUCE_FILL_AFTER_MISALLOC();
+		    if (fill < 0) fill = 0;
+
+		    /* Adjust the limits */
+		    maxFill = fill;
+		    if (minFill > maxFill)
+			minFill = maxFill;
+
+		    /* Try again with the new fill-in */
+		    continue;
+		}
+	    }
+
+
+	    /* 5. Determine whether there is room for improvement */
+	    /* ================================================== */
+
+	    bool fillCanBeImproved = (fill < maxFill);
+	    bool tolCanBeImproved  = (tol  > minTol);
+		
+	    /* 6. Call the preconditioner */
+	    /* ========================== */
+
+	    Index     rowDrop;	/* Maximum elements dropped in a row */
+	    Real      totalDrop;/* Fraction of elements dropped total */
+	    BogoFlops bogo;	/* Bogoflops consumed by preconditioner */
+	    Error     internalError; /* To catch preconditioner or solver
+					 errors before they affect the
+					 error variable that is returned by
+					 this function */
+
+
+	    /* This uses auxiliary arrays of size
+	       n * (3 * sizeof(Index) + 2 * sizeof(Number)).
+	       If this changes, please change the code above. */
+
+	    printSolveStatus("   iterative solve: call the preconditioner...\n");
+	    returnValue = qqqFactorizeILU(A, K, tol, fill, totalDrop, rowDrop, bogo, internalError);
+	    printSolveStatusBool("   iterative solve: preconditioner returned", returnValue);
+
+	    /* Count the preconditionings done */
+	    parms.preItUsed++;
+
+	    /* Count the CPU time used */
+	    /* The bogo value shows the number of bogoflops used
+	       even in case of an error */
+	    parms.bogoUsedCum  += bogo;
+	    parms.bogoUsedOnce += bogo;
+
+	    /* Count the space allocated */
+	    if (parms.byteUsed < 
+		actualBytes 
+		+ preAuxBytes
+		+ preBytes)
+		parms.byteUsed = 
+		    actualBytes 
+		    + preAuxBytes
+		    + preBytes;
+
+	    if (parms.numbUsed < 
+		actualNumbs
+		+ preAuxNumbers
+		+ preNumbers)
+		parms.numbUsed =
+		    actualNumbs
+		    + preAuxNumbers
+		    + preNumbers;
+
+
+	    /* Note the parameters used */
+	    parms.fillUsed = fill;
+	    parms.tolUsed  = tol;
+
+	    /* 7. Check the CPU time limits */
+	    /* ============================ */
+
+	    /* Determine the bogoflops we have left */
+	    BogoFlops freeBogo = 0;
+	    if (parms.lBogoCum != 0)
+	    {
+		if (freeBogo == 0 ||
+		    freeBogo > parms.lBogoCum - parms.bogoUsedCum)
+		    freeBogo = parms.lBogoCum - parms.bogoUsedCum;
+		if (freeBogo == 0)
+		    freeBogo = -1;
+	    }
+	    if (parms.lBogoOnce != 0)
+	    {
+		if (freeBogo == 0 ||
+		    freeBogo > parms.lBogoOnce - parms.bogoUsedOnce)
+		    freeBogo = parms.lBogoOnce - parms.bogoUsedOnce;
+		if (freeBogo == 0)
+		    freeBogo = -1;
+	    }
+	    if (parms.lBogoItOnce != 0)
+	    {
+		if (freeBogo == 0 ||
+		    freeBogo > parms.lBogoItOnce - bogo)
+		    freeBogo = parms.lBogoItOnce - bogo;
+		if (freeBogo == 0)
+		    freeBogo = -1;
+	    }
+	    
+	    /* If no bogoflops are left, report an error */
+	    if (freeBogo < 0)
+	    {
+		parms.setParmsErrorNum(3); // parms.errornum = 3;
+		parms.setErrorString("limit for CPU-time of preconditioner exceeded");
+		parms.setMessageString("user-specified limit exceeded, no solving done");
+		error = qqqERR_SOLVE_USERLIMIT;
+		return false;
+	    }
+	    
+	    /* If we are hard at the CPU time limit,
+	       prevent further preconditioning */
+	    if (freeBogo != 0 &&
+		PRECONDITIONER_SHOULD_NOT_BE_CALLED_AGAIN())
+	    {
+		fillCanBeImproved = false;
+		tolCanBeImproved = false;
+	    }
+
+	    /* Check the success */
+	    if (!returnValue)
+	    {
+		/* Error mapping */
+		switch (internalError.getError())
+		{
+		case qqqERR_PRECOND_NOT_MCSR:
+		    parms.setParmsErrorNum(1); // parms.errornum = 1;
+		    parms.setErrorString("matrix has MCSC format, should have MCSR");
+		    error = internalError;
+		    break;
+		case qqqERR_PRECOND_NO_SPACE:
+		    parms.setParmsErrorNum(1); // parms.errornum = 1;
+		    parms.setErrorString("too little space reserved for preconditioning");
+		    error = internalError;
+		    break;
+		case qqqERR_PRECOND_MISALLOC:
+		    parms.setParmsErrorNum(2); // parms.errornum = 2;
+		    parms.setErrorString("misallocation in preconditioner");
+		    error = internalError;
+		    break;
+		case qqqERR_PRECOND_ZERO_DIAG:
+		case qqqERR_PRECOND_SMALL_DIAG:
+		    break;
+		default:
+		    parms.setParmsErrorNum(9); // parms.errornum = 9;
+		    parms.setErrorString("unspecified error in preconditioner");
+		    error = internalError;
+		    break;
+		}
+
+		if (internalError.getError() != qqqERR_PRECOND_ZERO_DIAG &&
+		    internalError.getError() != qqqERR_PRECOND_SMALL_DIAG)
+		{
+		    parms.setMessageString("preconditioner failed, no solving done");
+                    error = internalError;
+		    return false;
+		}
+
+		/* Now we have only a singularity or ill-condition
+		   problem: try to re-precondition more heavily */
+		
+		if (!fillCanBeImproved &&
+		    !tolCanBeImproved)
+		{
+		    parms.setParmsErrorNum(4); 
+		    parms.setParmsErrorRow(internalError.getMatrixRow()); 
+		    parms.setParmsErrorCol(internalError.getMatrixRow()); 
+		    parms.setErrorString("preconditioner failed due to ill-conditioned"
+					 " matrix and/or time limit");
+		    error = internalError;
+		    return false;
+		}
+
+		/* Improve parameters and re-try factorization */
+		FILLIN_STRONG_INCREASE();
+		TOLERANCE_STRONG_DECREASE();
+		continue;
+	    }
+
+	    /* 7. Calculate the maximum iterations */
+	    /* =================================== */
+
+	    Index     const nnzK = K.nonzeros();
+            BogoFlops bogoPerIteration;
+            
+            if (parms.iterativeType != qqqIT_GMRES)
+               bogoPerIteration = BICGS_BOGO_PER_IT;  // * parms.nrhs;
+            else /* GMRES */
+               bogoPerIteration = GMRESM_BOGO_PER_IT; // * parms.nrhs;
+
+	    if (fillCanBeImproved ||
+		tolCanBeImproved)
+	    {
+	       /* Limit the iterations by the proper bogoflops
+		  in ratio to the preconditioner bogoflops */
+	       // printf("%s[%d]: freeBogo = %e\n", __FILE__, __LINE__, double(freeBogo));
+	       BogoFlops const bogos_from_preconditioner =
+		  qqqMax(bogo * Real(SOLVER_RESTART_TIME_FACTOR),
+			 bogoPerIteration * 2);
+	       if (freeBogo == 0 || 
+		   freeBogo > bogos_from_preconditioner)
+		  freeBogo = bogos_from_preconditioner;
+	       if (freeBogo == 0)
+		  freeBogo = -1;
+	       // printf("%s[%d]: freeBogo = %e\n", __FILE__, __LINE__, double(freeBogo));
+	    }
+	    else if (freeBogo == 0)
+	    {	       
+	       freeBogo =
+		  qqqMax(Index(DEFAULT_ITERATION_LIMIT), parms.lItMax) 
+		  * bogoPerIteration;	       
+	    }
+
+	    Index const maxItBogoflopped = 
+		qqqTruncate((freeBogo
+			     + 3 * n)
+			    / bogoPerIteration);
+
+	    Index const maxIt = 
+		(parms.lItMax != 0) ? 
+		qqqMin(maxItBogoflopped,parms.lItMax) : maxItBogoflopped;
+
+	    if (maxIt <= 0)
+	    {
+		parms.setParmsErrorNum(3); // parms.errornum = 3;
+		if (parms.lItMax < 0)
+		    parms.setErrorString("limit for iterations exceeded");
+		else
+		    parms.setErrorString("limit for CPU time of iterative solver exceeded");
+		parms.setMessageString("user-specified limit exceeded, no solving done");
+		error = qqqERR_SOLVE_USERLIMIT;
+		return false;
+	    }
+
+#if 0
+	    printf("maxIt=%ld, maxItBogoflopped=%ld, lItMax=%ld, m=%ld\n", 
+		   qqqIndexToLong(maxIt), 
+		   qqqIndexToLong(maxItBogoflopped),
+		   qqqIndexToLong(parms.lItMax),
+                   qqqIndexToLong(parms.gmresM));
+            printf("calculated bogos: %g\n", maxIt * GMRESM_BOGO_PER_IT);
+#endif
+
+
+	    /* 8. Call the iterative solver */
+	    /* ============================ */
+
+	    /* This uses 
+	         2 * it      * (nonzeros(A) + nonzeros(K)) +
+	       (14 * it - 3) *  dimension(A)
+	       bogoflops. If this changes, please change 
+	       the code above and below. */
+	    /* This uses auxiliary arrays of size n * 8 * sizeof(Number).
+	       If this changes, please change the code above. */
+
+            BogoFlops solverBogo = 0; /* used to count bogos consumed by the functions below */
+
+	    /* Loop over all RHS vectors, start with currRhsVector=0
+	       (initialized outside of the while loop); Once a solution is
+	       found, the respective RHS vector is skipped next time. */
+
+            for (; currRhsVector < parms.nrhs; ++currRhsVector)
+            {
+               parms.solIterations = 0;
+               switch (parms.iterativeType)
+               {
+                  case qqqIT_BICGSTAB:
+		     printSolveStatus("   iterative solve: call qqqPreconditionedBiCGStab...\n");
+                     returnValue =
+                        qqqPreconditionedBiCGStab(A, K, b[currRhsVector], x[currRhsVector],
+                                                  parms.solIterations,
+                                                  parms.solAccuracy,
+                                                  parms.solFinalNorm,
+                                                  maxIt,
+                                                  true,
+                                                  internalError,
+                                                  parms.strategy);
+		     printSolveStatusBool("   iterative solve: qqqPreconditionedBiCGStab returned", returnValue);
+                     break;
+                  case qqqIT_GMRES:
+		     printSolveStatus("   iterative solve: call qqqGMRES...\n");
+                     returnValue =
+                        qqqGMRES(A, K, b[currRhsVector], x[currRhsVector],
+                                 parms.solIterations,
+                                 parms.solAccuracy,
+                                 parms.solFinalNorm,
+                                 maxIt,
+                                 true,
+                                 internalError,
+                                 parms.gmresM,
+                                 parms.gmresBogo,
+                                 parms.strategy);
+		     printSolveStatusBool("   iterative solve: qqqGMRES returned", returnValue);
+                     break;
+                  default:
+                     internalError = qqqERR_SOLVE_BADCONF;
+                     returnValue = false;
+                     break;
+               }
+               parms.solItCum += parms.solIterations;
+
+               /* Count the CPU time used */
+               if (parms.iterativeType != qqqIT_GMRES)
+                  solverBogo += 
+                     bogoPerIteration * parms.solIterations - 3 * n;
+               else
+                  solverBogo += parms.gmresBogo;
+#if 0
+               if (parms.iterativeType == qqqIT_GMRES)
+               {
+                  printf("used: %6.2g\n", parms.gmresBogo);
+                  printf("calc: %6.2g\n", parms.solIterations * bogoPerIteration );
+               }
+#endif
+               if (returnValue == false)
+                  break;
+            }
+
+            parms.bogoUsedCum  += solverBogo;
+            parms.bogoUsedOnce += solverBogo;
+               
+	    /* Count the space allocated */
+	    if (parms.byteUsed < 
+		actualBytes 
+		+ solverAuxBytes
+		+ preBytes)
+	       parms.byteUsed = 
+		  (actualBytes 
+		   + solverAuxBytes
+		   + preBytes);
+
+	    if (parms.numbUsed <
+		actualNumbs
+		+ solverAuxNumbers
+		+ preNumbers)
+		parms.numbUsed =
+		    actualNumbs 
+		    + solverAuxNumbers
+		    + preNumbers;
+
+	    /* Calculate the fraction of preconditioner
+	       bogos and total bogos */
+	    parms.preShare = (bogo / (bogo + solverBogo));
+
+	    /* Check the success */
+	    if (!returnValue)
+	    {
+		/* Error mapping */
+		switch (internalError.getError())
+		{
+		case qqqERR_SOLVE_BADCONF:
+		    parms.setParmsErrorNum(9); // parms.errornum = 2;
+		    parms.setErrorString("bad iterative solver configuration given");
+		    error = internalError;
+		    break;
+		case qqqERR_BICGS_MISALLOC:
+		case qqqERR_GMRES_MISALLOC:
+		    parms.setParmsErrorNum(2); // parms.errornum = 2;
+		    parms.setErrorString("misallocation in iterative solver");
+		    error = internalError;
+		    break;
+		case qqqERR_BICGS_NO_CONVERG:
+		case qqqERR_GMRES_NO_CONVERG:
+		    break;
+		case qqqERR_GMRES_M_ZERO:
+		    parms.setParmsErrorNum(9); // parms.errornum = 9;
+		    parms.setErrorString("zero m parameter for GMRES(m) iterative solver");
+		    error = internalError;
+		    break;
+		default:
+		    parms.setParmsErrorNum(9); // parms.errornum = 9;
+		    parms.setErrorString("unspecified error in iterative solver");
+		    error = internalError;
+		    break;
+		}
+
+		if ((internalError.getError() != qqqERR_BICGS_NO_CONVERG) &&
+		    (internalError.getError() != qqqERR_GMRES_NO_CONVERG))
+		{
+  		    parms.setMessageString("iterative solver failed, no solving done");
+		    return false;
+		}
+
+		/* Now we have only a singularity or ill-condition
+		   problem: try to re-precondition more heavily */
+
+		if (!fillCanBeImproved &&
+		    !tolCanBeImproved)
+		{
+		    parms.setParmsErrorNum(4); // parms.errornum = 4;
+		    parms.setErrorString("iterative solver failed due to ill-conditioned"
+					 " matrix and/or time limit");
+		    error = internalError;
+		    return false;
+		}
+
+		/* Improve parameters and re-try factorization */
+		if (FILLIN_TOO_SMALL())
+		{
+		    FILLIN_STRONG_INCREASE();
+		    TOLERANCE_LIGHT_DECREASE();
+		}
+		else if (FILLIN_TOO_LARGE())
+		{
+		    FILLIN_LIGHT_INCREASE();
+		    TOLERANCE_STRONG_DECREASE();
+		}
+		else
+		{
+		    FILLIN_STRONG_INCREASE();
+		    TOLERANCE_STRONG_DECREASE();
+		}
+		continue;
+	    }
+	    
+	    /* The equation system is solved */
+	    solved = true;
+ 
+	    /* 9. Guess good tolerance and fill-in for next time */
+	    /* ================================================= */
+
+	    /* Increase preconditioning */
+	    if (solverBogo > Real(SOLVER_MAXIMUM_TIME_FACTOR) * bogo)
+	    {
+		if (FILLIN_TOO_SMALL())
+		{
+		    FILLIN_LIGHT_INCREASE();
+		}
+		else if (FILLIN_TOO_LARGE())
+		{
+		    TOLERANCE_LIGHT_DECREASE();
+		}
+		else
+		{
+		    FILLIN_LIGHT_INCREASE();
+		    TOLERANCE_LIGHT_DECREASE();
+		}
+	    }
+	    /* Decrease preconditioning */
+	    else if (solverBogo < Real(SOLVER_MINIMUM_TIME_FACTOR) * bogo)
+	    {
+		if (FILLIN_TOO_SMALL())
+		{
+		    TOLERANCE_LIGHT_INCREASE();
+		}
+		else if (FILLIN_TOO_LARGE())
+		{
+		    FILLIN_LIGHT_DECREASE();
+		}
+		else
+		{
+		    FILLIN_LIGHT_DECREASE();
+		    TOLERANCE_LIGHT_INCREASE();
+		}
+	    }
+	    parms.fillSuggest = fill;
+	    parms.tolSuggest  = tol;
+	} /* while (!solved) */
+   }
+
+    /* 10. Solve without preconditioning */
+    /* ================================= */
+
+    else 
+    {
+	printSolveStatus("solve without preconditioning\n");
+
+	/* Consider user-defined limits for allocation space */
+        Index solverAuxNumbers;
+        Index solverAuxBytes;
+
+        if (parms.iterativeType != qqqIT_GMRES)
+           solverAuxNumbers = BICGS_AUX;
+        else /* GMRES */
+           solverAuxNumbers = GMRESM_AUX;
+        solverAuxBytes = solverAuxNumbers * sizeof(Number);
+	
+        bool gmresMNeedsDecrease = false;
+        do
+        {
+           if (gmresMNeedsDecrease)
+           {
+              gmresMNeedsDecrease = false;
+              parms.gmresM = parms.gmresM - 1;
+              solverAuxNumbers = GMRESM_AUX;
+              solverAuxBytes = solverAuxNumbers * sizeof(Number);
+           }
+
+           if (parms.lByteMax != 0 &&
+               parms.lByteMax - actualBytes - solverAuxBytes  < 0 ||
+               parms.lNumbItMax != 0 &&
+               parms.lNumbItMax - actualNumbs - solverAuxNumbers < 0)
+           {
+              if (parms.iterativeType == qqqIT_GMRES && parms.gmresM > 10)
+              {
+                 gmresMNeedsDecrease = true;
+              }
+              else
+              {
+                 parms.setParmsErrorNum(3); // parms.errornum = 3;
+                 parms.setErrorString("limit for memory allocation of iterative solver exceeded");
+                 parms.setMessageString("user-specified limit exceeded, no solving done");
+                 error = qqqERR_SOLVE_USERLIMIT;
+                 return false;
+              }
+           }
+        } while (gmresMNeedsDecrease);
+
+	/* Check the CPU time limits */
+
+	/* Determine the bogoflops we have left */
+	BogoFlops freeBogo = 0;
+	if (parms.lBogoCum != 0)
+	{
+	    if (freeBogo == 0 ||
+		freeBogo > parms.lBogoCum - parms.bogoUsedCum)
+		freeBogo = parms.lBogoCum - parms.bogoUsedCum;
+	    if (freeBogo == 0)
+		freeBogo = -1;
+	}
+	if (parms.lBogoOnce != 0)
+	{
+	    if (freeBogo == 0 ||
+		freeBogo > parms.lBogoOnce - parms.bogoUsedOnce)
+		freeBogo = parms.lBogoOnce - parms.bogoUsedOnce;
+	    if (freeBogo == 0)
+		freeBogo = -1;
+	}
+	if (parms.lBogoItOnce != 0)
+	{
+	    if (freeBogo == 0 ||
+		freeBogo > parms.lBogoItOnce)
+		freeBogo = parms.lBogoItOnce;
+	    if (freeBogo == 0)
+		freeBogo = -1;
+	}
+
+        BogoFlops bogoPerIteration;
+        qqqIndex nnzK = 0; /* needed for compatibility */
+
+        if (parms.iterativeType != qqqIT_GMRES)
+           bogoPerIteration = BICGS_BOGO_PER_IT;
+        else /* GMRES */
+           bogoPerIteration = GMRESM_BOGO_PER_IT;
+
+	if (freeBogo == 0)
+	    freeBogo =
+		qqqMax(Index(DEFAULT_ITERATION_LIMIT),
+		    parms.lItMax)
+	    * bogoPerIteration;
+
+	Index const maxItBogoflopped =
+	    qqqTruncate((freeBogo
+			 + 3 * n) 
+			/ bogoPerIteration);
+	Index const maxIt =
+	    (parms.lItMax != 0) ? 
+             qqqMin(maxItBogoflopped,parms.lItMax) : maxItBogoflopped;
+        
+        /*
+          if (parms.iterativeType == qqqIT_GMRES))
+            while (maxIt < parms.gmresM)
+            {
+              parms.gmresM -= 1;
+              bogoPerIteration = GMRESM_BOGO_PER_IT;
+              maxItBogoflopped = qqqTruncate((freeBogo + 3 * n) / bogoPerIteration);
+              maxIt = (parms.lItMax != 0) ? qqqMin(maxItBogoflopped, parms.lItMax) : maxItBogoflopped;
+            }
+        */
+        
+        if (maxIt <= 0)
+        {
+           parms.setParmsErrorNum(3); // parms.errornum = 3;
+           if (parms.lItMax < 0)
+              parms.setErrorString("limit for iterations exceeded");
+           else
+              parms.setErrorString("limit for CPU time of iterative solver exceeded");
+           parms.setMessageString("user-specified limit exceeded, no solving done");
+           error = qqqERR_SOLVE_USERLIMIT;
+           return false;
+        }
+            
+	/* The amount of bogoflops and space for auxiliary arrays used by the solver
+           can be found in the "CONFIGURATION" section of this file.
+        */
+
+        BogoFlops solverBogo = 0;
+
+        for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+        {
+           switch(parms.iterativeType)
+           {
+              case qqqIT_BICGSTAB:
+                 returnValue =
+                    qqqPreconditionedBiCGStab(A, K, b[ii], x[ii],
+                                              parms.solIterations,
+                                              parms.solAccuracy,
+                                              parms.solFinalNorm,
+                                              maxIt,
+                                              false,
+                                              error,
+                                              parms.strategy);
+                 break;
+              case qqqIT_GMRES:
+                 returnValue =
+                    qqqGMRES(A, K, b[ii], x[ii],
+                             parms.solIterations,
+                             parms.solAccuracy,
+                             parms.solFinalNorm,
+                             maxIt,
+                             false, 
+                             error,
+                             parms.gmresM,
+                             parms.gmresBogo,
+                             parms.strategy);
+                 break;	
+              default: returnValue = false; break;
+           }
+           parms.solItCum += parms.solIterations;
+           
+           /* Count the CPU time used */
+           if (parms.iterativeType != qqqIT_GMRES)
+              solverBogo += bogoPerIteration * parms.solIterations - 3 * n;
+           else
+              solverBogo += parms.gmresBogo;
+           
+           if (returnValue == false)
+              break;
+        }
+
+	parms.bogoUsedCum  += solverBogo;
+	parms.bogoUsedOnce += solverBogo;
+
+	/* Count the space allocated */
+	if (parms.byteUsed < 
+	    actualBytes 
+	    + solverAuxBytes)
+	    parms.byteUsed = 
+		actualBytes 
+		+ solverAuxBytes;
+
+	if (parms.numbUsed < 
+	    actualNumbs
+	    + solverAuxNumbers)
+	    parms.numbUsed =
+		actualNumbs 
+		+ solverAuxNumbers;
+
+	/* Check the success */
+	if (!returnValue)
+	{
+	    /* Error mapping */
+	    switch (error.getError())
+	    {
+	    case qqqERR_BICGS_MISALLOC:
+	    case qqqERR_GMRES_MISALLOC:
+		parms.setParmsErrorNum(2);
+		parms.setErrorString("misallocation in iterative solver");
+		break;
+	    case qqqERR_BICGS_NO_CONVERG:
+	    case qqqERR_GMRES_NO_CONVERG:
+		parms.setParmsErrorNum(4);
+		parms.setErrorString("iterative solver failed due to ill-conditioned"
+				     " matrix and/or time limit");
+		break;
+	    case qqqERR_GMRES_M_ZERO:
+	       parms.setParmsErrorNum(9);
+	       parms.setErrorString("zero m parameter for GMRES(m) iterative solver");
+	       break;
+	    default:
+		parms.setParmsErrorNum(9);
+		parms.setErrorString("unspecified error in iterative solver");
+		break;
+	    }
+	    parms.setMessageString("iterative solver failed, no solving done");
+	    return false;
+	}
+    } /* else (=without precond) [SW] */
+
+    return true;
+}
+
+#if QQQ_EXTERNAL_SOLVERS
+
+#define QQQ_CALL_PARDISO 1
+
+#ifdef __GNUC__
+#define QQQ_CALL_SAMG    0 // there is no SAMG for GNU at the moment
+#else
+#define QQQ_CALL_SAMG    1
+#endif
+
+/* qqqSolveLinearSystemExternal()
+
+   These are the interface functions to external solver systems.
+*/
+
+#if QQQ_PARDISO_AVAILABLE
+bool
+qqqSolveLinearSystemPardiso(
+  int 	         n,     /* [I]: dimension                  */
+  double * const a,     /* [I]  CSR values                 */
+  int    * const ia,    /* [I]  first  CSR index vector    */
+  int    * const ja,    /* [I]  second CSR index vector    */
+  double * const b,     /* [I]  right-hand-side vector     */
+  double * const x,     /* [I]  solution vector            */
+  int            mtype, /* [I]  matrix type                */
+  SolPar &       parms, /* [IO] solver parameters          */
+  Error  &       error  /* [O]  error information, in case */
+  )
+{
+   int     solPhase =  11;
+   int    *maxfct   = &parms.extParams.maxfct;
+   int    *mnum     = &parms.extParams.mnum;
+   int    *phase    = &solPhase;
+   int     nrhs     =  static_cast<int>(parms.nrhs);
+   int    *iparm    =  parms.extParams.iparm;
+   int     msglvl   =  (parms.extParams.isMessageLevel(qqqEXT_MSGLVL_STATISTICAL)) ? 1 : 0;
+   int    &err      =  parms.extParams.error;
+   void   *pt       =  parms.extParams.pt;
+   int     idum;
+   double  ddum;
+   bool    success  = false;
+
+   bool const interfaceMessages  = parms.extParams.isMessageLevel(qqqEXT_MSGLVL_INTERFACE);
+
+   /* Determine number of available processors */
+   /* ---------------------------------------- */
+
+   if (parms.extParams.numProc <= 0)
+   {
+      char *var = getenv("OMP_NUM_THREADS");
+      if (var != 0)
+	 sscanf(var, "%d", &iparm[2]);
+   }
+   else
+      iparm[2] = parms.extParams.numProc;
+
+   if (parms.externalType == qqqEXTTYPE_PARDISO_CGS)
+      iparm[3] = 10*abs(static_cast<int>(log10(parms.solAccuracy))) + 1;
+
+   if (interfaceMessages)
+      printf("Pardiso will use %d processor(s)...\n", iparm[2]);
+
+   do
+   {
+      if (parms.extParams.symbolic && !parms.adjustRecover)
+      {
+	 solPhase = 23;
+	 if (interfaceMessages)
+	    printf("Numerical and substitution phase...\n");
+
+#if QQQ_CALL_PARDISO
+	 QQQ_PARDISO(pt, maxfct, mnum, &mtype, phase, &n, a, ia, ja, &idum, &nrhs,
+		     iparm, &msglvl, b, x, &err);
+#endif // QQQ_CALL_PARDISO
+
+	 if (err != 0)
+	 {
+	    error = qqqERR_PARDISO_NFB;
+	    break;
+	 }
+
+	 if (iparm[3] > 0)
+	    parms.solIterations = iparm[19];
+
+	 return true;
+      }
+
+      /* Start symbolic factorization */
+      /* ---------------------------- */
+
+      if (interfaceMessages)
+	 printf("Symbolic factorization phase...\n");
+
+#if QQQ_CALL_PARDISO
+      QQQ_PARDISO(pt, maxfct, mnum, &mtype, phase, &n, a, ia, ja, &idum, &nrhs,
+		  iparm, &msglvl, &ddum, &ddum, &err);
+#else
+      assert(0);
+#endif // QQQ_CALL_PARDISO
+	 
+      if (err != 0)
+      {
+	 error = qqqERR_PARDISO_SYM;
+	 break;
+      }
+
+      parms.extParams.symbolic = true;
+
+      /* Start numerical factorization */
+      /* ----------------------------- */
+	 
+      solPhase = 22;
+      if (interfaceMessages)
+	 printf("Numerical factorization phase...\n");
+	 
+#if QQQ_CALL_PARDISO
+      QQQ_PARDISO(pt, maxfct, mnum, &mtype, phase, &n, a, ia, ja, &idum, &nrhs,
+		  iparm, &msglvl, &ddum, &ddum, &err);
+#endif // QQQ_CALL_PARDISO
+	 
+      if (err != 0)
+      {
+	 error = qqqERR_PARDISO_NUM;
+	 break;
+      }
+
+      /* Start forward-backward substitution */
+      /* ----------------------------------- */
+	 
+      solPhase = 33;
+      if (interfaceMessages)
+	 printf("Forward-Backward substitution...\n");
+	 
+#if QQQ_CALL_PARDISO
+      QQQ_PARDISO(pt, maxfct, mnum, &mtype, phase, &n, a, ia, ja, &idum, &nrhs,
+		  iparm, &msglvl, b, x, &err);
+#endif // QQQ_CALL_PARDISO
+	 
+      if (err != 0)
+      {
+	 error = qqqERR_PARDISO_FBS;
+	 break;
+      }
+
+      if (iparm[3] > 0)
+	 parms.solIterations = iparm[19];
+	
+      success = true;
+
+   } while(0);
+
+   if (!success)
+   {
+      parms.extParams.symbolic = false;
+
+      for (int ccirow = 0; ccirow < 64; ccirow++) { parms.extParams.pt[ccirow] = 0; }
+      
+      solPhase = -1;
+      if (interfaceMessages)
+	 printf("Error in PARDISO (%d): free factorization structures...\n", parms.extParams.error);
+	 
+#if QQQ_CALL_PARDISO
+      QQQ_PARDISO(pt, maxfct, mnum, &mtype, phase, &n, a, ia, ja, &idum, &nrhs,
+		  iparm, &msglvl, &ddum, &ddum, &err);
+#endif // QQQ_CALL_PARDISO
+
+      return false;
+   }
+
+   return true;
+}
+#endif // QQQ_PARDISO_AVAILABLE
+
+
+bool
+qqqSolveLinearSystemExternal(
+  Index              const   /* n           */, /* [I]  dimension of the equation system    */
+  Index              const   /* actualBytes */, /* [I]  current number of bytes allocated   */
+  Index              const   /* actualNumbs */, /* [I]  current number of numbers allocated */
+#if QQQ_PARDISO_AVAILABLE
+  qqqMCSR<qqqComplex>      &          A       , /* [I]  system matrix                       */
+  qqqComplex const * const * const    b       , /* [I]  right-hand-side vector              */
+  qqqComplex       * const * const    x       , /* [I]  solution vector of A * x = b        */
+#else
+  qqqMCSR<qqqComplex>      &       /* A */    , /* [I]  system matrix                       */
+  qqqComplex const * const * const /* b */    , /* [I]  right-hand-side vector              */
+  qqqComplex       * const * const /* x */    , /* [I]  solution vector of A * x = b        */
+#endif // QQQ_EXTERNAL_SOLVERS
+  SolPar                   & parms            , /* [IO] solver parameters                   */
+  Error                    & error              /* [O]  error information, in case
+                                                        the return value is false.          */
+  )
+{
+   switch (parms.externalModule)
+   {
+   case qqqEXT_NONE:
+      error = qqqERR_EXT_NONE;
+      parms.setErrorString("No external complex-valued solver module specified");
+      return false;
+#if QQQ_SAMG_AVAILABLE
+   case qqqEXT_SAMG:
+      error = qqqERR_SAMG_NO_COMPLEX;
+      parms.setErrorString("Multigrid Solver: for real-valued systems only");
+      return false;
+#endif // QQQ_SAMG_AVAILABLE
+#if QQQ_PARDISO_AVAILABLE
+   case qqqEXT_PARDISO:
+      {
+	 if (!A.convertToCSR(true, true))
+	 {
+	    error = qqqERR_EXT_CSR_FAILED;
+	    return false;
+	 }
+
+	 /* [SW]: CHECK_THIS: castmania */
+	 double *a  = (double *)A.getCSRa();
+	 int    *ia = A.getCSRia();
+	 int    *ja = A.getCSRja();
+
+#if 1
+	 /* We have to allocate a new complex-valued array. */
+	 /* CHECK_THIS: put new/delete outside Newton */
+
+	 typedef struct { double r, i; } fcomplex;
+	 fcomplex *rhs = new fcomplex[A.dimension() * parms.nrhs];
+	 fcomplex *sol = new fcomplex[A.dimension() * parms.nrhs];
+
+	 for (qqqIndex ii = 0; ii < parms.nrhs; ii++)
+	    for (qqqIndex ccirow = 0; ccirow < A.dimension(); ccirow++)
+	    {
+	       rhs[ii * A.dimension() + ccirow].r = qqqGetReal(b[ii][ccirow]);
+	       rhs[ii * A.dimension() + ccirow].i = qqqGetImag(b[ii][ccirow]);
+	    }
+
+	 qqqSolveLinearSystemPardiso(A.dimension(), a, ia, ja, (double *)rhs, (double *)sol, 13, parms, error);
+
+	 for (qqqIndex ii = 0; ii < parms.nrhs; ii++)
+	    for (qqqIndex ccirow = 0; ccirow < A.dimension(); ccirow++)
+	    {
+	       qqqReal(x[ii][ccirow]) = sol[ii * A.dimension() + ccirow].r;
+	       qqqImag(x[ii][ccirow]) = sol[ii * A.dimension() + ccirow].i;
+	    }
+	 
+	 delete[] rhs;
+	 delete[] sol;
+	 break;
+#endif
+      }
+#endif // QQQ_PARDISO_AVAILABLE
+   default:
+      error = qqqERR_EXT_INVALID_COMPLEX;
+      parms.setErrorString("Invalid external complex-valued solver module specified");
+      return false;
+   }
+
+   return true;
+}
+
+bool
+qqqSolveLinearSystemExternal(
+  Index          const   /* n           */, /* [U]  dimension of the equation system    */
+  Index          const   /* actualBytes */, /* [U]  current number of bytes allocated   */
+  Index          const   /* actualNumbs */, /* [U]  current number of numbers allocated */
+#if QQQ_SAMG_AVAILABLE || QQQ_PARDISO_AVAILABLE
+  qqqMCSR<double>&                A       , /* [I]  system matrix                       */
+  double const * const * const    b       , /* [I]  right-hand-side vector              */
+  double       * const * const    x       , /* [I]  solution vector of A * x = b        */
+#else // QQQ_SAMG_AVAILABLE || QQQ_PARDISO_AVAILABLE
+  qqqMCSR<double>&             /* A */    , /* [U]  system matrix                       */
+  double const * const * const /* b */    , /* [U]  right-hand-side vector              */
+  double       * const * const /* x */    , /* [U]  solution vector of A * x = b        */
+#endif // QQQ_SAMG_AVAILABLE || QQQ_PARDISO_AVAILABLE
+  SolPar               & parms            , /* [IO] solver parameters                   */
+  Error                & error              /* [O]  error information, in case
+                                                    the return value is false.          */
+  )
+{
+   switch (parms.externalModule)
+   {
+   case qqqEXT_NONE:
+      error = qqqERR_EXT_NONE;
+      parms.setErrorString("No external solver module specified");
+      return false;
+
+#if QQQ_SAMG_AVAILABLE
+   case qqqEXT_SAMG:
+      {
+	 /* Provide CSR structures */
+	 /* ---------------------- */
+
+	 if (!A.convertToCSR(true, false))
+	 {
+	    error = qqqERR_EXT_CSR_FAILED;
+	    return false;
+	 }
+
+	 double *a  = A.getCSRa();
+	 int    *ia = A.getCSRia();
+	 int    *ja = A.getCSRja();
+	 int    dim = A.dimension();   // == nnu
+	 int    nnz = A.nonzeros();    // == nna
+
+#if 0
+	 printf("%s[%d]: nnu=%d, nna=%d\n", __FILE__, __LINE__, dim, nnz);
+	 printf("ia[nnu] - 1 = %d\n", ia[dim] - 1);
+#endif
+
+	 /* Status and parameters */
+	 /* ===================== */
+
+	 bool const interfaceMessages = parms.extParams.isMessageLevel(qqqEXT_MSGLVL_INTERFACE);
+
+	 bool const amg   = (parms.externalType == qqqEXTTYPE_AMG_BICGSTAB) || (parms.externalType == qqqEXTTYPE_AMG_GMRES);
+	 bool const gmres = (parms.externalType == qqqEXTTYPE_ILU_GMRES)    || (parms.externalType == qqqEXTTYPE_AMG_GMRES);
+
+	 /* Primary parameters */
+	 /* ------------------ */
+
+	 /* 
+	    -) nsolve=[a][b][c]:    a: approach: 1=variable-, 2=unknown-, 3=point-, 4=point-based (with s. interpolation)
+	                            b: smooting: 1=ILU
+				    c: primary matrix: 0=direct, 1-2: geometry-based, 3-4: norm-based
+	    -) ncyc=[a][b][c][d..]: a: cycle: 1=V
+	                            b: accelerator: 2=BICGSTAB, 3=GMRES
+ 	                            c: Krylow: 9=>20
+	                            d: iteration maximum
+            -) iswtch=[a][b][c.]:   a: setup: 5=always make a new setup, 4=memory is not released
+ 	                            b: memory extension switch: 1=SAMG allocates
+                                    c: select default values for secondary parameters
+	 */
+
+	 int    nsys   =  amg ? parms.extParams.mgridNsys : 1; // [I]: number of unknowns
+	 int    matrix =  22;                                  // [I]: matrix structure: 22 = 
+	 int    nsolve =  amg ? 313 : 11;                      // [I]: solver control
+	 int    ifirst =  1;                                   // [I]: initial guess:     1 = zero
+	 double eps    =  parms.solAccuracy;                   // [I]: accuracy parameter for iterative solver
+
+	 int    const mult =  (parms.lItMax < 10) ? 10 : (parms.lItMax < 100) ? 100 : 1000; /* fast and effective */
+	 int          ncyc =  (gmres ? 139 : 129) * mult + parms.lItMax;
+
+	 int    iswtch         =  4120;    // [I]: controls repeated calls of SAMG
+	 double a_cmplx        =  0;       // [I]: memory control (standard setting)
+	 double g_cmplx        =  0;       // [I]: memory control (standard setting)
+	 double p_cmplx        =  0;       // [I]: memory control (standard setting)
+	 double w_avrge        =  0;       // [I]: memory control (standard setting)
+	 double chktol         = -1;       // [I]: controls checking of input matrix:       -1 = no checking
+	 int    idump          =  0;       // [I]: controls messages during setup phase:     0 = coarsening history
+	 int    iout           =  2;       // [I]: controls messages during solution phase:  2 = standard history
+	 int    enable_sorting =  1;       // [I]: controls AMG sorting (amg_mmnt only):     1 = AMG-sorting on
+	 double res_in         = -1.0;     // [O]: residual of the first guess
+	 double res_out        = -1.0;     // [O]: residual of final approximation
+	 int    ncyc_done      = -1;       // [O]: total number of cycles (iterations) performed
+	 int    ierr           =  0;       // [O]: error indicator
+
+	 int *iscale = new int[nsys];      // [I]: vector iscale indicates which unknowns require scaling
+	 if (iscale == 0)
+	 {
+	    error = qqqERR_SAMG_MISALLOC;
+	    return false;
+	 }
+	 for (int i = 0; i < nsys; i++)
+	    iscale[i]=0;
+
+#if QQQ_CALL_SAMG // these lines finally require the SAMG library
+
+	 /* Secondary parameters */
+	 /* -------------------- */
+
+	 if (!parms.extParams.isMessageLevel(qqqEXT_MSGLVL_STATISTICAL))
+	 {
+	   iout         = -1;
+	   idump        = -1;
+	   int modemess = -3;
+
+	   if      (parms.extParams.isMessageLevel(qqqEXT_MSGLVL_GENERAL))
+	      modemess =  0;
+	   else if (parms.extParams.isMessageLevel(qqqEXT_MSGLVL_WARNING))
+	      modemess = -1;
+	   else if (parms.extParams.isMessageLevel(qqqEXT_MSGLVL_ERROR))
+	      modemess = -2;
+	      
+	   QQQ_SAMG_SET_MODE_MESS(&modemess);         // [I]: mode of messages parameter
+	 }
+	   
+	 if (!amg)	                              // Settings for one-level solvers only
+	 {
+	    int levelx = 1;                           // [I]: maximum number of levels to be used
+	    int nrd    = 1;                           // [I]: pre-smoothing  parameter
+	    int nru    = 0;                           // [I]: post-smoothing parameter
+	    QQQ_SAMG_SET_LEVELX(&levelx);
+	    QQQ_SAMG_SET_NRD   (&nrd);
+	    QQQ_SAMG_SET_NRU   (&nru);
+
+	    /* For one-level solvers, we activate the AMG sorting only 
+	      if the CMK sorting is deactivated. */
+	    enable_sorting = parms.sort ? 0 : 1;
+	 }
+
+	 int negdiag      = -1000;                    // [I]: max. number of non-positive diagonal entries
+	 int negdiagbrute = 0;                        // [I]: interpolation method in respect to negdiag
+	 QQQ_SAMG_SET_NEG_DIAG      (&negdiag);       
+	 QQQ_SAMG_SET_NEG_DIAG_BRUTE(&negdiagbrute);
+
+
+	 /* Solver Call */
+	 /* =========== */
+
+	 for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+	 {
+	    double *mgridRhs = const_cast<double *>(b[ii]); // Is it constant?
+
+	    if (interfaceMessages)
+	       printf("Calling SAMG Solver %s-%s %s AMG sorting...\n", 
+		      amg ? "AMG" : "ILU", 
+		      gmres ? "GMRES" : "BICGSTAB",
+		      (enable_sorting == 1) ? "with" : "without");
+
+	    QQQ_SAMG(&dim,                        /* int      */
+		     &nnz,                        /* int      */
+		     &nsys,                       /* int      */
+		     &ia[0],                      /* int[]    */
+		     &ja[0],                      /* int[]    */
+		     &a[0],                       /* double[] */
+		     &mgridRhs[0],                /* double[] */   
+		     &(x[ii][0]),                 /* double[] */
+		     &parms.extParams.mgridIu[0], /* int[]    */
+		     &parms.extParams.mgridNdiu,  /* int      */
+		     &parms.extParams.mgridIp[0], /* int[]    */
+		     &parms.extParams.mgridNdip,  /* int      */
+		     &matrix,                     /* int      */
+		     &iscale[0],                  /* int[]    */
+		     &res_in,                     /* double   */
+		     &res_out,                    /* double   */
+		     &ncyc_done,                  /* int      */
+		     &ierr,                       /* int      */
+		     &nsolve,                     /* int      */
+		     &ifirst,			  /* int      */
+		     &eps,			  /* double   */
+		     &ncyc,			  /* int      */
+		     &iswtch,			  /* int      */
+		     &a_cmplx,			  /* double   */
+		     &g_cmplx,			  /* double   */
+		     &p_cmplx,			  /* double   */
+		     &w_avrge,			  /* double   */
+		     &chktol,			  /* double   */
+		     &idump,			  /* int      */
+		     &iout,			  /* int      */
+		     &enable_sorting);		  /* int      */
+
+	    // printf("ierr = %d\n", ierr);
+
+	    if (ierr > 0)
+	       break;
+
+	    iswtch = 1120; // only right-hand-sides are modified
+	 }
+
+	 /* Error message mapping */
+	 /* ===================== */
+
+	 // printf("ierr = %d\n", ierr);
+
+	 if (ierr > 0)
+	 {
+	    if (ierr < 100)
+	       error = qqqERR_SAMG_GENERAL;
+	    else if (ierr < 200)
+	       error = qqqERR_SAMG_SETUP;
+	    else if (ierr < 300)
+	       error = qqqERR_SAMG_SOLUTION;
+	    else if (ierr < 900)
+	       error = qqqERR_SAMG_AUXILIARY;
+	    else if (ierr < 1000)
+	       error = qqqERR_SAMG_SOLCOARSE;
+
+	    switch (ierr)
+	    {
+	    case 20:
+	    case 30: error = qqqERR_SAMG_PARAMETER; break;
+	    case 40: 
+	    case 50: error = qqqERR_SAMG_INPUT;     break;
+	    case 60:
+	    case 70: error = qqqERR_SAMG_MEMORY;    break;
+	    }
+
+	    if (interfaceMessages)
+	       printf("SAMG returned with error %d.\n", ierr);
+	 }
+
+	 if ((ierr < 0) && interfaceMessages)
+	    printf("SAMG returned with warning %d.\n", ierr);
+
+	 QQQ_SAMG_REFRESH(&ierr);
+
+	 /* Return more information about the solving process:
+	    subroutine samg_get_levels_created(ival)
+	    returns ival=levels_created
+	    > 0 : number of levels successfully created in the setup phase.
+	    = 0 : no levels available, samg_crnsg has never been performed 
+	          (which is the case e.g. for nnu<nptmn, levelx=1, igam>4). 
+	    < 0 : an error has occurred in the last samg_crsng run.
+	 */
+
+	 int levels = -1;
+	 QQQ_SAMG_GET_LEVELS_CREATED(&levels);
+	 // printf("levels created = %d\n", levels);
+
+	 if (levels < 0)
+	    error = qqqERR_SAMG_CRSNG;
+	 else
+	 {
+	    if (amg)
+	    {
+	       if (levels == 0)
+		  error = qqqERR_SAMG_LEVEL;
+	       else
+		  parms.solIterations = static_cast<qqqIndex>(ncyc_done*10 + (levels <= 9 ? levels : 9));
+	    }
+	    else
+	       parms.solIterations = static_cast<qqqIndex>(ncyc_done);
+	 }
+#else
+	 assert(0);
+#endif // QQQ_CALL_SAMG
+      
+	 if (error.noError())
+	    return true;
+	 break;
+      }
+#endif // QQQ_SAMG_AVAILABLE
+
+#if QQQ_PARDISO_AVAILABLE
+   case qqqEXT_PARDISO:
+      {
+
+	 // printf("Sorting...\n");
+	 // qqqTransform(A, A, 0, true, false, true, false, error);
+
+	 if (!A.convertToCSR(true, true))
+	 {
+	    error = qqqERR_EXT_CSR_FAILED;
+	    return false;
+	 }
+
+	 double *a  = A.getCSRa();
+	 int    *ia = A.getCSRia();
+	 int    *ja = A.getCSRja();
+
+#if 0 // CSR-IO
+	 int const dim = A.dimension();
+	 int const nnz = A.nonzeros();
+	 FILE *pardiso = fopen("nac.mat", "w");
+	 if (pardiso != NULL)
+	 {
+	    fprintf(pardiso, "%d\n", dim);
+	    fprintf(pardiso, "%d\n", nnz);
+
+	    for (int ccirow = 0; ccirow < dim+1; ccirow++)
+	       fprintf(pardiso, "%4d: %d\n", ccirow+1, ia[ccirow]);
+
+	    for (int ccirow = 0; ccirow < nnz; ccirow++)
+	       fprintf(pardiso, "%4d: %d\n", ccirow+1, ja[ccirow]);
+
+	    for (int ccirow = 0; ccirow < nnz; ccirow++)
+	       fprintf(pardiso, "%4d: %g\n", ccirow+1, a[ccirow]);
+
+	    fclose(pardiso);
+	 }
+#endif
+
+	 return qqqSolveLinearSystemPardiso(A.dimension(), a, ia, ja, (double *)(b[0]), (double *)(x[0]), 11, parms, error);
+      }
+#endif // QQQ_PARDISO_AVAILABLE
+
+   default:
+      error = qqqERR_EXT_INVALID_DOUBLE;
+      parms.setErrorString("Invalid external real-valued solver module specified");
+   } // switch
+
+   return false;
+}
+#endif // QQQ_EXTERNAL_SOLVERS
+
+
+/* qqqSolveLinearSystem()
+
+   This function solves a linear system of the form A * x = b. It offers
+   several choices as to the method of solving, all of which can be
+   adjusted in the solver parameter structure that this function takes
+   as an argument.
+
+   Parameters:
+   The matrix A is in MCSR format (modified compressed sparse row). This
+   format is described where the data type is defined.
+   The vectors x and b are plain arrays of numbers.
+   The parameter parms is a data structure holding several data items that
+   influence the performance of this function. The function also returns
+   statistical and error information in this structure.
+
+   Sorting:
+   If the flag sort is set in the parms structure, the function tries
+   to sort the equations before passing them on to the preconditioner and
+   iterative solver or to the direct solver. Sorting is currently done by
+   a Cuthill-McKee-like algorithm.
+   In the case of a direct solver it is absolutely necessary to have the
+   equations sorted. Otherwise the bandwidth of the factorization will
+   be too large.
+   In the case of an iterative solver, experiments show that sorting the
+   equations has a positive influence on preconditioning, for the same
+   reasons.
+   On the whole, sorting the equations is highly recommended except if
+   the equations are already properly pre-sorted on entering this function.
+
+   Solving choices:
+   Solving the equation system is either done by a direct solver (Gaussian
+   factorization, LU decomposition) or by an iterative solver with
+   preconditioning. At least one of these choices must be enabled by
+   the proper flags in the parms structure. If both solvers are enabled,
+   the iterative is tried first. If both fail, the error information of the
+   direct solver is returned.
+
+   Direct solver:
+   The direct solver performs an LU decomposition of the matrix. The LU
+   factorization is complete, i.e. no elements are dropped. In order to 
+   keep the space requirements within reasonable limits, it is highly
+   recommended to enable sorting of the equations before.
+   The direct solver adheres strictly to the user-specified limits.
+   If both space and time limits are specified, the space limit is checked
+   first (in linear time), then the time limit is checked.
+   The direct solver is more efficient than an incomplete LU factorization
+   with so large a fill-in and so low a dropping threshold (see below)
+   that no elements are dropped. In the usual case, however, the 
+   combination of preconditioning and iterative solving is more efficient.
+
+   Preconditioner and iterative solver:
+   The preconditioner and the iterative solver usually go together, although
+   it is possible to disable preconditioning by unsetting the proper
+   parameter in the parms structure.
+   If both of them are applied, then a loop is performed. The loop tries
+   preconditioning with varying parameter sets for fill-in (fill) and
+   dropping threshold (tol). The depth of the preconditioning is increased
+   until the iterative solver succeeds or a user-defined limit is
+   exhausted.
+   Once a solution is reached, a new parameter set (fill and tol) is
+   determined that will hopefully be close to the optimum when the
+   function is next called. Thus, the function 'learns' about the
+   condition of the equation system and uses the information to reduce
+   the overall computing time.
+   To approach the minimum computing time, a simple heuristic scheme
+   is used. From the experience of several experiments, a range of
+   the ratio of preconditioning time and solving time is determined
+   for which the total time is close to an optimum. The function tries
+   to approach a ratio in this range. If the solving time was too large,
+   the guess for the next call will specify more preconditioning; if the
+   solving time was too short, preconditioning will be reduced.
+   Once a try of the loop has started and preconditioning has succeeded,
+   the iterative solver is tried until a maximum ratio is reached, then
+   it is interrupted and preconditioning is repeated.
+   An exception to this is when preconditioning cannot be improved,
+   either for space (resp. allocation) restrictions or for user-limits
+   on the computation time. In such cases, the iterative solver is run
+   until the final time limit for the whole call or the maximum iteration
+   count is reached.
+   Although the ratios of solver and preconditioner time that are used
+   in optimizing the parameter set may be off the optimum, the difference
+   in run-time between the truly optimum parameter set and a set within
+   the specified range of time ratios is expected to be rather small.
+
+   User limits:
+   In the parms structure, the user may specify several limits to the
+   run-time ('bogoflops'), memory allocation, and parameter values used.
+   Limits to memory allocation are in obeyed strictly. There are limits
+   for the total number of bytes and for the number of 'numbers', i.e.
+   reals or complex numbers, depending on the instantiation of the 
+   template.
+   Limits to the CPU time are specified in 'bogoflops', which are
+   multiplications or divisions of numbers. These limits are obeyed
+   strictly by the direct solver and by the iterative solver, but only
+   heuristically by the preconditioner. The reason is that it is impossible
+   to estimate the preconditioning effort for different parameter sets.
+   Especially, there may be two situations when the preconditioner
+   exceeds the user-specified limits: either in the first call to the
+   preconditioner for the matrix (when no run-time guesses can be made)
+   or if by a change in the parameters fill and tol the preconditioning
+   time is so heavily increased that it exceeds expectations by far.
+   In normal operations, this should not be the case.
+   Limits to the number of iterations of the iterative solver are always
+   strictly obeyed. They specify the iterations in a single try, not in
+   the whole call to this function. That means, after re-preconditioning,
+   the solver starts over with zero iteration count.
+   Any of these limits can be specified as 'unlimited' by setting it to
+   zero in the parms structure.
+   The fill and tol parameters can also be restricted by the user.
+   An unlimited fill-in can be specified by setting the maximum fill
+   parameter to -1. 0 is a valid maximum parameter for the fill-in.
+   If a maximum fill-in is specified less than the minimum fill-in,
+   the minimum value is taken as a maximum. If the minimum fill-in
+   cannot be allocated, the minimum is reduced.
+   An unlimited dropping threshold (i.e. no dropping for size) can be
+   specified by setting the minimum tol to 0. This may drastically
+   increase the preconditioning effort. The maximum tol should
+   be a value less than 1 but close to.
+   If tol and fill are not in a good balance, the preconditioner will either
+   waste a lot of space that is not filled with values (fill and tol high)
+   or will waste a lot of time calculating values higher than tol that
+   will finally be dropped for space needs. Therefore, the function tries
+   to approach a balance between both values. The criteria for a good
+   balance are heuristically found and take the maximum and the average 
+   drop per row into account.
+   Note that on machines that allow virtually unlimited allocation of
+   memory as long as it is not accessed (like Linux), it is absolutely
+   necessary to specify an allocation limit (preferrably in bytes).
+
+   Input Data Integrity:
+   Sorting the equations will modify the original matrix and the original
+   right-hand-side vector. The function will try to undo this modification
+   in all cases. If this function returns true, the matrix is essentially
+   unchanged on output (that is, the data structures represent the same
+   matrix as on input but with the off diagonals sorted).
+   If the function returns false, restoring the data might have failed.
+   In this case, the flag destroyed in the parms structure is set.
+
+   Decomposition:
+   In some cases the matrix consists of several sub-matrices which do not
+   show interconnectivity (cross-diagonal elements). In these cases, the
+   flag disconnected in the parms structure will be set on output, but only
+   if sorting the equations has been enabled.
+
+   Error reporting:
+   Errors occurring in this function or its subfunctions are reported in a
+   twofold way:
+   (1) The error parameter is set to a value describing the nature of the
+       error (and perhaps the function that found it). This scheme is
+       consistent with error reporting throughout the rest of the simulator.
+       The parameter is only set in case of a final error of the function,
+       otherwise it is not touched.
+   (2) In the parms parameter, an entry errornum gives a less detailed
+       classification of the error that is probably better suited to
+       error reporting in connection with solving equation systems.
+       A proper error string is also set in this structure and can be
+       used for user information during iteration progress. This error
+       information is always set, even if solving was successful.
+   If the equation system is sorted, a double error might result from 
+   the inability to undo the sorting after an error has occurred in one
+   of the subfunctions. In this case, only the sorting error is reported.
+   This should not happen in practical situations, however, for the space
+   and algorithmic requirements of back-sorting are identic to those for
+   the original sorting and will therefore most likely not create an error.
+
+   Zero size problems:
+   Zero size matrices/vectors are 'solved' by returning without action.
+   The flags iterativeUsed and directUsed in the parms structure are
+   both reset.
+
+   Comparison:
+   To enable verification of solving methods, a comparison mode is provided.
+   In this mode, the solution vector that is yielded by the solving process
+   is compared to a (previously computed) 'correct' value that is calculated
+   using a direct solver with sorting. The norm of the difference in the
+   solution is computed and stored in the compareNorm parameter of the
+   parms structure. The norm is the maximum difference value at a single
+   position of the vectors, divided by the maximum element of both vectors.
+   Contrary to what has been stated above, space and time limits will not
+   be strictly kept when comparison mode is enabled. Both limits are kept
+   for the 'normal solving', but none of them are considered on calculating
+   the reference solution. The intention is to provide a behaviour that is
+   absolutely identic to non-comparison mode except that a value is provided
+   that gives the accuracy reached.
+
+   Message string:
+   A message string is set by this function that indicates some statistics
+   of the solving in case of success or a short description of the error
+   in case of failure. The message string is intended to be used together
+   with the header strings that are also present in the parms structure
+   and that are set when the parms structure is initialized.
+
+   Functional encapsulation:
+   Note that this function actually only performs the sorting and calls
+   a subfunction (qqqSolveLinearSytemNoCompare()) for all the other tasks.
+   This is to provide a practical means of administering the cleanup code.
+   This subfunction calls sub-subfunctions on the other hand. The total
+   functionality, however, is described here, so that to the caller it 
+   looks as if there were only this function.
+
+   Errors:
+   If the solving is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_DIRECT_NOT_MCSR     ... matrix is not MCSR but MCSC format
+   - qqqERR_DIRECT_MISALLOC     ... allocation of auxiliary arrays failed
+   - qqqERR_DIRECT_HUGE         ... space requirements exceed index range
+   - qqqERR_DIRECT_MAXSPACE     ... space requirements exceed limit
+   - qqqERR_DIRECT_MAXFLOPS     ... time requirements exceed limit
+   - qqqERR_DIRECT_ZERO_DIAG    ... zero diagonal element in U matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_DIRECT_SMALL_DIAG   ... diagonal element in U matrix too small,
+                                    error.getMatrixRow() indicates the row 
+   - qqqERR_PRECOND_NOT_MCSR    ... matrix is not MCSR but MCSC format
+   - qqqERR_PRECOND_NO_SPACE    ... too little space allocated for LU matrix
+   - qqqERR_PRECOND_MISALLOC    ... allocation of auxiliary arrays failed
+   - qqqERR_PRECOND_ZERO_DIAG   ... zero diagonal element in U matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_PRECOND_SMALL_DIAG  ... diagonal element in U matrix too small,
+                                    error.getMatrixRow() indicates the row 
+   - qqqERR_BICGS_MISALLOC      ... allocation of auxiliary arrays failed
+   - qqqERR_BICGS_NO_CONVERG    ... no convergence in maxit iterations
+   - qqqERR_GMRES_MISALLOC      ... allocation of auxiliary arrays failed
+   - qqqERR_GMRES_NO_CONVERG    ... no convergence in maxit iterations
+   - qqqERR_GMRES_M_ZERO        ... bad m parameter for GMRES(m)
+   - qqqERR_DETSORT_MISALLOC    ... allocation of auxiliary arrays failed
+   - qqqERR_SOLVE_USERLIMIT     ... user defined limit for space or time
+                                    would be exceeded on solving
+   - qqqERR_SOLVE_MISALLOC      ... allocation of auxiliary arrays failed
+   - qqqERR_SOLVE_BADFLAGS      ... flags in the parameters structure are
+                                    inconsistent
+   - qqqERR_SOLVE_BADPERM       ... bad permutation vector in sorting the
+                                    equations
+
+   Effort:    see bogoflops
+   BogoFlops: keeps within the user-defined limits specified in parms,
+              except for the preconditioner in case of iterative solving,
+	      which might take more time if the estimation was bad or if
+	      it is called the first time; this is quite unlikely
+   Space:     keeps within the user-defined limits specified in parms
+   */
+template <class Number>
+bool
+qqqSolveLinearSystem(
+  MCSR                         &A,     /* [I]  system matrix                */
+  Number const * const * const  b,     /* [I]  right-hand-side vector       */
+  Number       * const * const  x,     /* [O]  solution vector of A * x = b */
+  SolPar                       &parms, /* [IO] solver parameters            */
+  Error                        &error  /* [O]  error information, in case
+                                               the return value is false.   */
+  )
+{
+    Index const n = qqqMax(A.dimension(),1);
+    Number **compareX = 0;
+
+    Index actualBytes = 0;	/* The current number of bytes allocated   */
+    Index actualNumbs = 0;	/* The current number of numbers allocated */
+    bool returnValue  = false;	/* The final return value of this function */
+
+    Error internalError;	/* To catch subroutine errors before they
+				   affect the error variable that is returned
+				   by this function */
+    Error resetError;		/* An auxiliary structure to reset
+				   internalError */
+
+    printSolveStatus("solve: qqqSolveLinearSystem entered.\n");
+
+    /* ************************************* */
+    /* * Preset the statistical parameters * */
+    /* ************************************* */
+
+    parms.preShare      = 0;
+    parms.preItUsed     = 0;
+    parms.solIterations = 0;
+    parms.solItCum      = 0;
+    parms.iterativeUsed = false;
+    parms.directUsed    = false;
+    parms.fillUsed      = -1;
+    parms.tolUsed       = 1;
+    parms.bogoUsedOnce  = 0;
+    parms.byteUsed      = 0;
+    parms.numbUsed      = 0;
+    parms.disconnected  = false;
+    parms.destroyed     = false;
+
+    parms.setParmsErrorNum( 0); // parms.errornum    =  0;
+    parms.setParmsErrorRow(-1); // parms.row         = -1;
+    parms.setParmsErrorCol(-1); // parms.column      = -1;
+
+
+    /* Dimension zero: nothing to solve */
+    /* ================================ */
+
+    if (A.dimension() < 1) return true;
+
+    /* Assembling, Scaling, Sorting and Transforming done. [SW] */
+
+    if (!parms.direct && !parms.iterative && !parms.external)
+    {
+	parms.setParmsErrorNum(1); // parms.errornum = 1;
+	parms.setErrorString("neither direct nor iterative nor external solver chosen");
+	parms.setMessageString("no solver chosen, no solving done");
+	error = qqqERR_SOLVE_BADFLAGS;
+	return false;
+    }
+
+    /* Calculate the reference solution */
+    /* ================================ */
+
+    if (parms.compare)
+    {
+        printSolveStatus("solve: compare feature activated.");
+
+	SolPar compareParameters;
+
+	compareParameters.direct    = true;
+	compareParameters.iterative = false;
+	compareX = new Number * [parms.nrhs];
+        if (compareX)
+        {
+           for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+              if ((compareX[ii] = new Number[n]) == 0)
+              {
+                 for (qqqIndex jj = ii; jj >= 0; --jj)
+                    delete[] compareX[jj];
+                 delete[] compareX;
+                 compareX = 0;
+                 break;
+              }
+        }
+        
+        if (compareX)
+        {
+           LUMatrix LU;
+
+           /* Preset the statistical parameters */
+           /* ================================= */
+
+           compareParameters.preShare      = 0;
+           compareParameters.preItUsed     = 0;
+           compareParameters.solIterations = 0;
+           compareParameters.solItCum      = 0;
+           compareParameters.iterativeUsed = false;
+           compareParameters.directUsed    = false;
+           compareParameters.fillUsed      = -1;
+           compareParameters.tolUsed       = 1;
+           compareParameters.bogoUsedOnce  = 0;
+           compareParameters.byteUsed      = 0;
+           compareParameters.numbUsed      = 0;
+           compareParameters.disconnected  = false;
+           compareParameters.destroyed     = false;
+           compareParameters.setParmsErrorNum( 0); // compareParameters.errornum    =  0;
+           compareParameters.setParmsErrorRow(-1); // compareParameters.row         = -1;
+           compareParameters.setParmsErrorCol(-1); // compareParameters.column      = -1;
+
+           if (!qqqSolveLinearSystemDirect(n, actualBytes, actualNumbs, LU,
+                                           A, b, compareX, compareParameters, internalError))
+           {
+              for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+                 delete[] compareX[ii];
+              delete[] compareX;
+              compareX = 0;
+           }
+           actualBytes = 0;
+           actualNumbs = 0;
+        }
+    }
+
+    /* Now solve the real system */
+    /* ========================= */
+
+#if QQQ_SOLVE_STATUS_OUTPUT
+    printf("solve: parameters external=%s, iterative=%s, direct=%s\n", 
+	   parms.external  ? "true" : "false",
+	   parms.iterative ? "true" : "false",
+	   parms.direct    ? "true" : "false");
+#endif // QQQ_SOLVE_STATUS_OUTPUT
+
+    if (parms.external)
+    {
+#if QQQ_EXTERNAL_SOLVERS
+       printSolveStatus("solve: call qqqSolveLinearSystemExternal...");
+       returnValue = qqqSolveLinearSystemExternal(n, actualBytes, actualNumbs, A, b, x, parms, internalError);
+#else
+       error = qqqERR_EXT_NOT_ACTIVATED;
+       parms.setErrorString("External Solvers are not activated.");
+       return false;
+#endif // QQQ_EXTERNAL_SOLVERS
+    }
+    else
+    {
+       if (parms.iterative)
+       {
+	  //printf("\033[01;36m!!! Due to migration to MRHS there is no correct treatment of BOGOs at the moment.\n"
+	  //       "!!! Solver statistics will also be incorrect !!!\033[0m\n");
+       
+	  ILUMatrix K;
+	  internalError = resetError;
+
+	  printSolveStatus("solve: call qqqSolveLinearSystemIterative...\n");
+
+	  returnValue = qqqSolveLinearSystemIterative(n, actualBytes, actualNumbs, K,
+						      A, b, x, parms, internalError);
+
+	  printSolveStatusBool("Iterative solving returned", returnValue);
+       }
+
+       if (!returnValue && parms.direct)
+       {
+	  LUMatrix LU;
+	  internalError = resetError;
+	  parms.setParmsErrorNum( 0);
+	  parms.setParmsErrorRow(-1);
+	  parms.setParmsErrorCol(-1);
+
+	  printSolveStatus("solve: call qqqSolveLinearSystemDirect...\n");
+	  returnValue = qqqSolveLinearSystemDirect(n, actualBytes, actualNumbs, LU,
+						   A, b, x, parms, internalError);
+	  printSolveStatusBool("Direct solving returned", returnValue);
+       }
+    }
+
+    if (!returnValue)
+       error = internalError;
+
+    if (returnValue && compareX)
+    {
+	double norm = 0;
+
+        for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+        {
+           double tmp_norm = qqqMax(qqqAbsMax(n, compareX[ii]), qqqAbsMax(n, x[ii]));
+           if (tmp_norm > norm)
+              norm = tmp_norm;
+        }
+        for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+           qqqAddLinear(compareX[ii], n, Number(-1.0), x[ii]);
+        for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+           if (qqqAbsMax(n, compareX[ii]) > parms.compareNorm)
+              parms.compareNorm = qqqAbsMax(n, compareX[ii]);
+
+        /* CHECK_THIS [CS]: Has to be adapted to MRHS */
+        if (parms.nrhs > 1)
+           printf("\033[01;36m" "More than one RHS-vector specified, returning maximum Norm of RHS-vectors as parms.compareNorm" "\033[0m\n");
+
+	if (norm != 0) parms.compareNorm /= norm;
+    }
+
+    if (compareX)
+    {
+        for (qqqIndex ii = 0; ii < parms.nrhs; ++ii)
+           delete[] compareX[ii];
+        delete[] compareX;
+    }
+
+#if CREATE_MESSAGE_STRINGS
+    /* Create the message string */
+    /* ========================= */
+
+    if (returnValue)
+    {
+	char m[100];
+	char m1[10];
+	
+	if (parms.compare)
+	    sprintf(m1,"%7.1e",parms.compareNorm);
+	else
+	    strcpy(m1,"-");
+	sprintf(m,
+		"%7.2e %7.2e %7.2e %7.2e %1ld %3ld %7.1e %2ld %3ld %7.1e %s",
+		parms.bogoUsedCum,
+		parms.bogoUsedOnce,
+		qqqIndexToReal(parms.numbUsed),
+		qqqIndexToReal(parms.byteUsed),
+		
+		parms.iterativeUsed ? 
+		qqqIndexToLong(parms.preItUsed) : long(0),
+		parms.iterativeUsed ?
+		qqqIndexToLong(parms.fillUsed) : long(0),
+		parms.iterativeUsed ?
+		parms.tolUsed : double(0),
+		parms.iterativeUsed ?
+		qqqIndexToLong(qqqTruncate(parms.preShare * 100)) : long(0),
+		
+		parms.iterativeUsed ? 
+		qqqIndexToLong(parms.solIterations) : long(0),
+		parms.solAccuracy,
+		m1);
+	char *d = parms.messageString;
+	for (const char *s = m; *s; s++)
+	    if (*s != '+') *d++ = *s;
+	*d = '\0';
+    }
+#endif // CREATE_MESSAGE_STRINGS
+
+    return returnValue;
+}
+
+#undef SOLVER_GMRES
+
+#undef MCSR
+#undef LUMatrix
+#undef ILUMatrix
+#undef Real
+#undef Index
+#undef SolPar
+#undef Error
+#undef BogoFlops
+ 
+#endif // __numerics_solve_tt__included__

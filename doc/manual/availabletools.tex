@@ -1,0 +1,60 @@
+
+\section{Available Tools} 
+
+As already mentioned, ViennaMesh meshing tools are provided via C++-functors.
+At the moment, we focus on unstructured mesh generation, adaptation, and 
+classification methods based on simplicial mesh elements.
+
+The following table provides an overview of the currently available tools.
+
+
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Generation} & \textsc{Incremental Delaunay} & \textsc{Advancing Front} & \textsc{Raw} \\  
+\hline
+\textsc{2D}        &        1 & 0 & 0 \\
+\textsc{32D}       &        0 & 0 & 1 \\
+\textsc{3D}        &        1 & 1 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{There is one two-dimensional mesh generator available (Triangle) and 
+one hull mesh generator (CervPT). Note that CervPT is not based on a specific 
+meshing algorithm, as it simply triangulates a given Polygon without any 
+quality constraints. For three-dimensional volume meshing 
+two meshing kernels are available, based on different meshing algorithms (TetGen, Netgen).}
+\end{table} 
+
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Adaptation} & \textsc{Orientation} & \textsc{Quality Improvement} & \textsc{Cell Normals} \\  
+\hline
+\textsc{2D}         &        0 &        0 &        0 \\
+\textsc{32D}        &        1 &        1 &        1 \\
+\textsc{3D}         &        0 &        0 &        0 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{At this stage of development the primary focus is on hull meshes. Therefore, 
+the mesh adaptation tools are only available for these types of meshes.}
+\end{table} 
+
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Classification} & \textsc{Cell Aspect Ratio}\\  
+\hline
+\textsc{2D}         &        0 \\
+\textsc{32D}        &        0 \\
+\textsc{3D}         &        1 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{A mesh classification tool is available which analyzes the quality of 
+each mesh element of a simplicial volume mesh.}
+\end{table} 

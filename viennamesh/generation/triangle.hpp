@@ -221,7 +221,7 @@ public:
       //
    #ifdef MESH_KERNEL_DEBUG
       std::cout << std::endl;   
-      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing constraintss" << std::endl;
+      std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing constraints" << std::endl;
    #endif
       size_t si = 0;
 
@@ -230,6 +230,7 @@ public:
    #ifdef MESH_KERNEL_DEBUG      
       size_t cell_cnt = 0;
    #endif
+
       for(vmesh_segment_iterator seg_iter = data.segment_begin();
          seg_iter != data.segment_end(); seg_iter++)
       {
@@ -238,8 +239,10 @@ public:
          {
             vmesh_cell_type vmesh_cell = *cit;
             boost_cell_type cell;
+            
             for(size_t i = 0; i < vmesh_cell.size(); i++)  
                cell[i] = vmesh_cell[i];
+            
             std::sort(cell.begin(), cell.end());
 
             if(!cell_uniquer[cell])
@@ -392,10 +395,8 @@ public:
       {
          HullSegmentType & seg = hull_domain->segment(si); 
          HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
-         
          for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {  
-
             // make sure a cell hasn't been already added ..
             // therefore we copy the original cell, and sort it ascendingly
             // due to the ascending order, we can compare it with other cells

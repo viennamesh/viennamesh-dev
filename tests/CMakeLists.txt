@@ -47,7 +47,7 @@ SET(ENABLE_TESTNONWORKINGINPUT OFF)
 # *** USE INTERNAL VIENNASTAR PROJECTS ***
 #
 # ------------------------------------------------------------------------------
-SET(ENABLE_INTERNALVIENNASTAR OFF)
+SET(ENABLE_INTERNALVIENNASTAR ON)
 
 # ------------------------------------------------------------------------------
 #
@@ -125,7 +125,6 @@ INCLUDE_DIRECTORIES("../external/vgmodeler-2.0/")
 INCLUDE_DIRECTORIES("../external/vgmodeler-2.0/vgmodeler/hull_adaption/gsse/gsse01")
 INCLUDE_DIRECTORIES("../external/vgmodeler-2.0/vgmodeler/hull_adaption/gsse/gsse01/external/mauch")
 INCLUDE_DIRECTORIES("../external/cervpt-1.0/")
-
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen")
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen/nglib")
 INCLUDE_DIRECTORIES("../external/netgen-4.9.13/netgen/libsrc/include")
@@ -298,5 +297,6 @@ ENDIF(ENABLE_TESTNONWORKINGINPUT)
 #
 ADD_TEST(meta_sel       meta_sel)
 ADD_TEST(tetgen_test    tetgen_test ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/cyl_mask_etched_flux.bnd)
+ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
 
 

@@ -1,0 +1,130 @@
+[/ Copyright Kevin Sopp 2008.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section Performance]
+
+[section Tips]
+
+* A statement like
+``x = a + b;``
+involves the creation of a temporary `mp_int` inside `operator +` because it is
+not able to write the result directly into `x` which may already have enough
+memory allocated to hold the result. Instead rewrite it into
+``
+x = a;
+x += b;
+``
+This trick proves to be useful only for simple operations like addition and
+subtraction.
+* In operations involving built in integral types, try to use unsigned types,
+preferrably unsigned types that are as large or smaller than
+mp_int<>::digit_type.
+* Use hexadecimal digits for input and output. Conversion from/to power of two
+bases uses a O(n) algorithm which is not possible for base 10.
+
+[endsect][/Tips]
+
+
+
+
+[section Measurements]
+
+A benchmark program is supplied with Boost.Mp_math under libs\/mp_math\/tools\/benchmark.
+This benchmark compares some primitive operations of different multi precision
+integer libraries. It creates detailed result files and uses
+[@http://www.gnuplot.info/ gnuplot] to create graphs.
+
+Example invocations:
+[pre
+'''benchmark''' // runs all benches
+'''benchmark --help'''
+'''benchmark --ops="add subtract multiply" --libs="boost.mp_math libtommath"'''
+]
+
+
+[section AMD Athlon XP 2000+]
+
+[pre
+'''Operating System: Arch Linux (i686), Kernel 2.6.26, glibc 2.8'''
+'''Compiler: gcc-4.3.2'''
+]
+Libraries being compared:
+
+* Boost.Mp_math-1_37
+  * switches used: -ftemplate-depth-128 -O3 -finline-functions -march=i686 -mtune=generic -std=c++0x
+* libtommath-0.41
+  * switches used: -ftemplate-depth-128 -O3 -finline-functions -march=i686 -mtune=generic
+* gmp-4.2.2 (precompiled distribution package, uses generic i386 asm and Intel
+  P6 (Pentium Pro) asm where available)
+  * switches used: -march=i686 -mtune=generic -O2
+
+[h3 Input vectors]
+Operand size is measured in number of bits.
+I chose to vary the operand size for the benchmarks a little to see how well the
+operation handles inputs of differing sizes. Benchmarks that use only one
+operand use operand 1.
+[$benchmark_imgs/k7/input_vecs.png]
+
+While input operand 1 grows linearly, input operand 2's size is
+determined by a modified sine function.
+
+
+[h3 Construct from decimal string]
+[$benchmark_imgs/k7/ctor_dec.png]
+
+
+[h3 Construct from hex string]
+[$benchmark_imgs/k7/ctor_hex.png]
+
+
+[h3 Conversion to decimal string]
+[$benchmark_imgs/k7/to_dec.png]
+
+
+[h3 Conversion to hex string]
+[$benchmark_imgs/k7/to_hex.png]
+
+
+[h3 Add]
+[$benchmark_imgs/k7/add.png]
+
+
+[h3 Subtract]
+[$benchmark_imgs/k7/subtract.png]
+
+
+[h3 Multiply]
+[$benchmark_imgs/k7/multiply.png]
+
+
+[h3 Divide]
+[$benchmark_imgs/k7/divide.png]
+
+
+[h3 Modulo]
+[$benchmark_imgs/k7/modulo.png]
+
+
+[h3 Square]
+[$benchmark_imgs/k7/square.png]
+
+
+[h3 Modular Power]
+The operation looks like this: `dest = (op1 ^ op1) % op2`.
+This graph uses a logarithmic scale.
+[$benchmark_imgs/k7/modpow.png]
+
+
+[endsect][/AMD K7 Thunderbird 800Mhz]
+
+
+
+[endsect][/Measurements]
+
+
+
+
+
+[endsect][/Performance]
