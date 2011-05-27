@@ -3,11 +3,6 @@
 CORES=`grep -c ^processor /proc/cpuinfo`
 echo "cores: " $CORES
 
-# build the docs
-cd doc
-./build.sh
-cd ..
-
 # build the library and the tests
 mkdir -p build
 cd build/
