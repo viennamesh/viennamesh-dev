@@ -311,7 +311,7 @@ ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 # miscellaneous
 #
 ADD_TEST(meta_sel       meta_sel)
-ADD_TEST(tetgen_test    tetgen_test ../../../ViennaMeshCollection/companies/Fraunhofer/2008/originals/cyl_mask_etched_flux.bnd)
+ADD_TEST(tetgen_test    tetgen_test ../../input/after_line_tri.bnd)      
 ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
 
 
