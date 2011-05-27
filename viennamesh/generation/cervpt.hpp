@@ -68,6 +68,11 @@ private:
    static const int DIMT = domain_configuration_type::cell_tag::topology_level;
    // -------------------------------------------------------------------------------------   
 public:
+   typedef boost::fusion::result_of::make_map<
+      viennamesh::tag::dim_geom, viennamesh::tag::dim_topo, viennamesh::tag::cell_type, 
+      viennamesh::tag::three,    viennamesh::tag::two,    viennamesh::tag::simplex   
+   >::type                                         properties_map_type;
+
    typedef viennamesh::tag::mesh_kernel            datastructure_type; 
    typedef domain_ptr_type                         result_type;
    // -------------------------------------------------------------------------------------   

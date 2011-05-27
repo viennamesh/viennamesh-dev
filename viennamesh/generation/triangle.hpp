@@ -105,6 +105,11 @@ private:
    typedef boost::array< numeric_type , DIMG >        point_type;
    
 public:   
+   typedef boost::fusion::result_of::make_map<
+      viennamesh::tag::dim_geom, viennamesh::tag::dim_topo, viennamesh::tag::cell_type, viennamesh::tag::algorithm,            viennamesh::tag::criteria,       
+      viennamesh::tag::two,    viennamesh::tag::two,    viennamesh::tag::simplex,   viennamesh::tag::incremental_delaunay, viennamesh::tag::conforming_delaunay
+   >::type                                         properties_map_type;
+
    typedef viennamesh::tag::mesh_kernel            datastructure_type; // type is used for viennamesh::traits   
    typedef domain_ptr_type                         result_type;   
    // -------------------------------------------------------------------------------------
