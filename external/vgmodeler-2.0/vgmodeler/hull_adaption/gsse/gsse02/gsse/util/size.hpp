@@ -41,8 +41,29 @@ struct size_impl
    static const size_t value = Sequence::value;
 };
 
+// -----------------------------------
+template<typename T1, long T2>
+struct size_impl <boost::array<T1, T2> >
+{ 
+   static const size_t value = T2;
+};
+
 template<typename T1, unsigned long T2>
 struct size_impl <boost::array<T1, T2> >
+{ 
+   static const size_t value = T2;
+};
+
+#ifndef __x86_64__ // [JW] we need this only on 32 bit archs
+template<typename T1, std::size_t T2>
+struct size_impl <boost::array<T1, T2> >
+{ 
+   static const size_t value = T2;
+};
+#endif
+// -----------------------------------
+template<typename T1, long T2>
+struct size_impl <gsse::array<T1, T2> >
 { 
    static const size_t value = T2;
 };
@@ -53,12 +74,34 @@ struct size_impl <gsse::array<T1, T2> >
    static const size_t value = T2;
 };
 
+#ifndef __x86_64__ // [JW] we need this only on 32 bit archs
+template<typename T1, std::size_t T2>
+struct size_impl <gsse::array<T1, T2> >
+{ 
+   static const size_t value = T2;
+};
+#endif
+// -----------------------------------
 template<typename T1, long T2>
 struct size_impl <gsse::metric_object<T1, T2> >
 { 
    static const size_t value = T2;
 };
 
+template<typename T1, unsigned long T2>
+struct size_impl <gsse::metric_object<T1, T2> >
+{ 
+   static const size_t value = T2;
+};
+
+#ifndef __x86_64__ // [JW] we need this only on 32 bit archs
+template<typename T1, std::size_t T2>
+struct size_impl <gsse::metric_object<T1, T2> >
+{ 
+   static const size_t value = T2;
+};
+#endif
+// -----------------------------------
 template<int T1, typename T2 >
 struct size_impl <ads::FixedArray<T1, T2> >
 { 

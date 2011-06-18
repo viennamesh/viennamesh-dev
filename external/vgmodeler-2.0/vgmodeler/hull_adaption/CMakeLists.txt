@@ -99,10 +99,10 @@ SET_TARGET_PROPERTIES(vgmodeler_base
 # if gsse01 and gsse02 is used together in the global INCLUDE_DIRECTORIES path
 #
 ADD_LIBRARY(vgmodeler_stltopo STATIC stlgeom/stltopology.cpp)
-SET_TARGET_PROPERTIES(vgmodeler_stltopo PROPERTIES COMPILE_FLAGS "-fPIC -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
+SET_TARGET_PROPERTIES(vgmodeler_stltopo PROPERTIES COMPILE_FLAGS "-DNDEBUG -fPIC -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
 
 ADD_LIBRARY(vgmodeler_meshstl STATIC stlgeom/meshstlsurface.cpp)
-SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-fPIC -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/")
+SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-DNDEBUG -fPIC -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/")
 
 #set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version")
 #set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version -Wl,-Bsymbolic")
