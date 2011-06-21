@@ -7,4 +7,4 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    ADD_DEFINITIONS(-DTRILIBRARY -DLINUX -I/usr/X11R6/include -L/usr/X11R6/lib)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-ADD_LIBRARY(triangle SHARED triangle/triangle.c)
+ADD_LIBRARY(triangle STATIC triangle/triangle.c)

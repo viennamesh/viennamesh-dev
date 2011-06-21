@@ -11,7 +11,7 @@ SET(ENABLE_INTERNALVIENNASTAR ON)
 
 # ------------------------------------------------------------------------------
 #
-# *** SET COMPILER FLAGS ***
+# *** SET BUILD FLAGS ***
 #
 # ------------------------------------------------------------------------------
 IF(CMAKE_COMPILER_IS_GNUCXX)
@@ -39,7 +39,8 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 # set modules directory
 #
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 # check for the Boost libraries
 #

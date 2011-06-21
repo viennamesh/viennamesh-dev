@@ -117,7 +117,7 @@ SET(NGLIB ${CMAKE_CURRENT_SOURCE_DIR}/netgen/nglib/nglib.cpp)
 # BUILD NGLIB
 #    note: it consists of sources from libsrc/ and from nglib/ as well as TCL includes 
 #
-ADD_LIBRARY(netgen SHARED ${LIBSRC_INT} ${LIBSRC_GEOM} ${LIBSRC_CSG} ${LIBSRC_STL} 
+ADD_LIBRARY(netgen STATIC ${LIBSRC_INT} ${LIBSRC_GEOM} ${LIBSRC_CSG} ${LIBSRC_STL} 
    ${LIBSRC_OCC} ${LIBSRC_MESHING} ${LIBSRC_GPRIM} ${LIBSRC_LINALG} ${LIBSRC_GENERAL} 
     ${NGLIB}) #${LIBSRC_VISUALIZATION})
 # ------------------------------------------------------------------------------
