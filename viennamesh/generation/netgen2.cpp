@@ -11,13 +11,32 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_WRAPPER_HPP
-#define VIENNAMESH_WRAPPER_HPP
-
-#include "wrapper/viennagrid.hpp"
-#include "wrapper/gtsio.hpp"
-#include "wrapper/bnd.hpp"
-#include "wrapper/hin.hpp"
 
 
-#endif
+// *** system includes
+#include <vector>
+#include <map>
+#include <cmath>
+
+// *** vienna includes
+#include "viennautils/dumptype.hpp"
+#include "viennagrid/domain.hpp"
+
+#include "netgen2.hpp"
+
+namespace nglib {
+#include "nglib.h"
+}
+
+
+
+namespace viennamesh {
+
+void mesh_kernel<viennamesh::tag::netgen2>::operator()()
+{
+}
+
+} // end namespace viennamesh
+
+
+

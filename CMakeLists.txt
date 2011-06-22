@@ -1,6 +1,16 @@
+# ------------------------------------------------------------------------------
+#
+# *** PROJECT DETAILS***
+#
+# ------------------------------------------------------------------------------
 PROJECT(ViennaMesh)
+SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )
+SET( ${PROJECT_NAME}_MINOR_VERSION 2 )
+SET( ${PROJECT_NAME}_PATCH_LEVEL   2 )
+
 
 cmake_minimum_required(VERSION 2.6)
+
 
 # ------------------------------------------------------------------------------
 #
@@ -146,8 +156,13 @@ ENDIF(ENABLE_GTSIO)
 #
 # ------------------------------------------------------------------------------
 
+ADD_LIBRARY(viennamesh viennamesh/generation/netgen2.cpp)
+
 #list all source files here
 ADD_EXECUTABLE(vmesh src/vmesh.cpp)
+ADD_EXECUTABLE(dev src/dev.cpp)
+ADD_EXECUTABLE(external src/external.cpp)
+
 
 # ------------------------------------------------------------------------------
 #
@@ -162,4 +177,5 @@ ELSE(ENABLE_GTSIO)
    TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS})   
 ENDIF(ENABLE_GTSIO)
 
+TARGET_LINK_LIBRARIES(dev netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS} viennamesh)   
 
