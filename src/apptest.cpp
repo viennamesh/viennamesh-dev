@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "viennamesh/generation/netgen2.hpp"
+#include "viennamesh/generation/netgen.hpp"
 
 
 

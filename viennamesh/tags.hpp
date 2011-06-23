@@ -24,7 +24,6 @@ struct none      {};
 struct triangle  {};
 struct tetgen    {};
 struct netgen    {};
-struct netgen2    {};
 struct vgmodeler {};
 struct cervpt    {};
 
