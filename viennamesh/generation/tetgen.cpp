@@ -59,31 +59,18 @@ mesh_kernel<viennamesh::tag::tetgen>::~mesh_kernel()
 mesh_kernel<viennamesh::tag::tetgen>::result_type 
 mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data) // default meshing
 {
-   return (*this)(data, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
-}   
-
-template<typename ParametersMapT>
-mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data, ParametersMapT const& paras )
-{
-   // redirect to reference implementation 
-   ParametersMapT paras_new(paras);
-   return (*this)(data, paras_new);
-}
-
-template<typename ParametersMapT>
-mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data, ParametersMapT & paras )
-{
    typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> DatastructureT;
    this->init();      
 
-   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef typename DatastructureT::cell_type         vmesh_cell_type;
-   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;   
+   options = "zpD";  // conforming delaunay
+   // options = "zp"; // constrained delaunay
+   // options = "z"; // convex
 
-   this->setOptions(paras);
 
+
+   typedef DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef DatastructureT::cell_type         vmesh_cell_type;
+   typedef DatastructureT::cell_iterator     vmesh_cell_iterator;   
 
    size_t segment_size = data.segment_size();
 #ifdef MESH_KERNEL_DEBUG
@@ -103,7 +90,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
          seg_iter != data.segment_end(); seg_iter++)
       {
          point_type pnt;
-         typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
+         DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
          this->find_point_in_segment(data, segment, pnt, seg_cnt);
          
          region_points.push_back(pnt);
@@ -113,7 +100,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
       #endif
          seg_cnt++;
       }
-      for(typename region_points_type::iterator iter = region_points.begin();
+      for(region_points_type::iterator iter = region_points.begin();
           iter != region_points.end(); iter++)
       {
          this->addRegion(*iter);
@@ -134,7 +121,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing geometry" << std::endl;
 #endif
-   typedef typename DatastructureT::geometry_iterator geometry_iterator;
+   typedef DatastructureT::geometry_iterator geometry_iterator;
    for(geometry_iterator iter = data.geometry_begin();
        iter != data.geometry_end(); iter++)
    {
@@ -217,39 +204,23 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
 mesh_kernel<viennamesh::tag::tetgen>::result_type 
 mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain) 
 {
-   return (*this)(hull_domain, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
-}   
-
-
-template<typename ParametersMapT>
-mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain, 
-                       ParametersMapT const& paras )
-{
-   ParametersMapT paras_new(paras);
-   return (*this)(hull_domain, paras_new);
-}
-
-template<typename ParametersMapT>
-mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain,
-                       ParametersMapT & paras)
-{
    this->init();         
-   this->setOptions(paras);
+   options = "zpD";  // conforming delaunay
+   // options = "zp"; // constrained delaunay
+   // options = "z"; // convex
 
-   typedef typename viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
-   typedef typename HullDomain::config_type                                HullDomainConfiguration;      
-   typedef typename HullDomain::segment_type                               HullSegmentType;      
-   typedef typename HullDomainConfiguration::cell_tag                      HullCellTag;      
-   typedef typename viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
-   typedef typename viennagrid::result_of::ncell_container<HullDomain, 0>::type                                      HullPointContainer;            
-   typedef typename viennagrid::result_of::iterator<HullPointContainer>::type                                        HullPointIterator;            
-   typedef typename viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-   typedef typename viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
-   typedef typename viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
-   typedef typename viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
-   typedef typename viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;               
+   typedef viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
+   typedef HullDomain::config_type                                HullDomainConfiguration;      
+   typedef HullDomain::segment_type                               HullSegmentType;      
+   typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
+   typedef viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
+   typedef viennagrid::result_of::ncell_container<HullDomain, 0>::type                                      HullPointContainer;            
+   typedef viennagrid::result_of::iterator<HullPointContainer>::type                                        HullPointIterator;            
+   typedef viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
+   typedef viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+   typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
+   typedef viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
+   typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;               
 
    std::size_t segment_size = hull_domain->segment_size();   
 #ifdef MESH_KERNEL_DEBUG
@@ -275,7 +246,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
       #endif
 
       }
-      for(typename region_points_type::iterator iter = region_points.begin();
+      for(region_points_type::iterator iter = region_points.begin();
           iter != region_points.end(); iter++)
       {  
          this->addRegion(*iter);
@@ -438,16 +409,6 @@ void mesh_kernel<viennamesh::tag::tetgen>::do_meshing(domain_ptr_type domain)
 }   
 
 
-// --------------------------------------------------------------------------
-template<typename ParametersMapT>
-void mesh_kernel<viennamesh::tag::tetgen>::setOptions(ParametersMapT & paras,
-   typename boost::enable_if< typename boost::fusion::result_of::has_key<ParametersMapT, viennamesh::tag::criteria>::type >::type* dummy = 0) 
-{
-   setOptions_impl(boost::fusion::at_key<viennamesh::tag::criteria>(paras));
-}
-void mesh_kernel<viennamesh::tag::tetgen>::setOptions_impl(viennamesh::tag::convex const&)               { options = "z";    }   
-void mesh_kernel<viennamesh::tag::tetgen>::setOptions_impl(viennamesh::tag::constrained_delaunay const&) { options = "zp";  }
-void mesh_kernel<viennamesh::tag::tetgen>::setOptions_impl(viennamesh::tag::conforming_delaunay const&)  { options = "zpD"; }
 // --------------------------------------------------------------------------
 
 template<typename PointT>

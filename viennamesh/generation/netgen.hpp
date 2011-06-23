@@ -17,7 +17,9 @@
 // *** vienna includes
 #include "viennamesh/generation/base.hpp"
 #include "viennamesh/tags.hpp"
+#include "viennamesh/wrapper.hpp"
 #include "viennagrid/domain.hpp"
+#include "viennautils/io/bnd.hpp"
 
 // *** boost includes
 #include <boost/fusion/include/has_key.hpp>
@@ -69,25 +71,9 @@ public:
    mesh_kernel();
   ~mesh_kernel();
    // --------------------------------------------------------------------------     
-   template <typename DatastructureT>
-   result_type operator()(DatastructureT& data); 
-
-   template<typename DatastructureT, typename ParametersMapT>
-   result_type operator()(DatastructureT& data, ParametersMapT const& paras );
-
-   template<typename DatastructureT, typename ParametersMapT>
-   result_type operator()(DatastructureT& data, ParametersMapT & paras);
+   result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data); 
    // --------------------------------------------------------------------------     
    result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain); 
-
-   template<typename ParametersMapT>
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain, 
-                          ParametersMapT const& paras );
-
-   template<typename ParametersMapT>
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain,
-                          ParametersMapT & paras);
-
    // --------------------------------------------------------------------------     
    
 private:   

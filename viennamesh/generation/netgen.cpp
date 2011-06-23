@@ -48,26 +48,11 @@ mesh_kernel<viennamesh::tag::netgen>::~mesh_kernel()
    #endif
 }
 // --------------------------------------------------------------------------
-template <typename DatastructureT>
 mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data) // default meshing
+mesh_kernel<viennamesh::tag::netgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data)
 {
-   return (*this)(data, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
-}   
+   typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> DatastructureT;
 
-template<typename DatastructureT, typename ParametersMapT>
-mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data, ParametersMapT const& paras )
-{
-   // redirect to reference implementation 
-   ParametersMapT paras_new(paras);
-   return (*this)(data, paras_new);
-}
-
-template<typename DatastructureT, typename ParametersMapT>
-mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data, ParametersMapT & paras )
-{
    std::size_t segment_size = data.segment_size();
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
@@ -83,11 +68,11 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data, Parameter
    // *** Extract the geometry and topology data of the wrapped datastructure
    //     and transfer it to the mesh datastructure
    //
-   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef typename DatastructureT::geometry_iterator vmesh_geometry_iterator;   
-   typedef typename DatastructureT::cell_type         vmesh_cell_type;
-   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
-   typedef typename DatastructureT::point_type        vmesh_point_type;         
+   typedef DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef DatastructureT::geometry_iterator vmesh_geometry_iterator;   
+   typedef DatastructureT::cell_type         vmesh_cell_type;
+   typedef DatastructureT::cell_iterator     vmesh_cell_iterator;      
+   typedef DatastructureT::point_type        vmesh_point_type;         
    
    for(vmesh_segment_iterator seg_iter = data.segment_begin();
       seg_iter != data.segment_end(); seg_iter++)
@@ -185,35 +170,17 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data, Parameter
 mesh_kernel<viennamesh::tag::netgen>::result_type 
 mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain) 
 {
-   return (*this)(hull_domain, boost::fusion::make_map<tag::criteria>(tag::constrained_delaunay()));
-}   
+   typedef viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
+   typedef HullDomain::config_type                                HullDomainConfiguration;      
+   typedef HullDomain::segment_type                               HullSegmentType;      
+   typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
 
-
-template<typename ParametersMapT>
-mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain, 
-                       ParametersMapT const& paras )
-{
-   ParametersMapT paras_new(paras);
-   return (*this)(hull_domain, paras_new);
-}
-
-template<typename ParametersMapT>
-mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain,
-                       ParametersMapT & paras)
-{
-   typedef typename viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
-   typedef typename HullDomain::config_type                                HullDomainConfiguration;      
-   typedef typename HullDomain::segment_type                               HullSegmentType;      
-   typedef typename HullDomainConfiguration::cell_tag                      HullCellTag;      
-
-   typedef typename viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
-   typedef typename viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-   typedef typename viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
-   typedef typename viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
-   typedef typename viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
-   typedef typename viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;         
+   typedef viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
+   typedef viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
+   typedef viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+   typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
+   typedef viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
+   typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;         
 
    std::size_t segment_size = hull_domain->segment_size();
 #ifdef MESH_KERNEL_DEBUG

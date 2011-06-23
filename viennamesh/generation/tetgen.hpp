@@ -73,35 +73,13 @@ public:
   ~mesh_kernel();
    // --------------------------------------------------------------------------     
    result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data); 
-   template<typename ParametersMapT>
-   result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data, 
-                          ParametersMapT const& paras );
-
-   template<typename ParametersMapT>
-   result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data,
-                          ParametersMapT & paras);
    // --------------------------------------------------------------------------     
    result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain); 
-
-   template<typename ParametersMapT>
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain, 
-                          ParametersMapT const& paras );
-
-   template<typename ParametersMapT>
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain,
-                          ParametersMapT & paras);
    // --------------------------------------------------------------------------     
    
 private:   
    // --------------------------------------------------------------------------     
    void do_meshing(domain_ptr_type domain);
-   // --------------------------------------------------------------------------     
-   template<typename ParametersMapT>
-   void setOptions(ParametersMapT & paras,
-      typename boost::enable_if< typename boost::fusion::result_of::has_key<ParametersMapT, viennamesh::tag::criteria>::type >::type* dummy);
-   void setOptions_impl(viennamesh::tag::convex const&); 
-   void setOptions_impl(viennamesh::tag::constrained_delaunay const&);
-   void setOptions_impl(viennamesh::tag::conforming_delaunay const&);
    // --------------------------------------------------------------------------     
    template<typename PointT>
    void find_point_in_segment(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >       hull_domain,
