@@ -36,7 +36,6 @@ namespace viennamesh {
 template<>
 struct mesh_kernel <viennamesh::tag::tetgen>
 {
-public:
    // --------------------------------------------------------------------------      
    typedef double          numeric_type;  
    typedef std::size_t     integer_type;
@@ -61,7 +60,6 @@ public:
    typedef boost::array<numeric_type, DIMG>                          point_type;
    // --------------------------------------------------------------------------
 
-public:
    typedef boost::fusion::result_of::make_map<
       viennamesh::tag::dim_geom, viennamesh::tag::dim_topo, viennamesh::tag::cell_type, viennamesh::tag::algorithm,       viennamesh::tag::criteria,       
       viennamesh::tag::three,    viennamesh::tag::three,    viennamesh::tag::simplex,   viennamesh::tag::incremental_delaunay, viennamesh::tag::conforming_delaunay
@@ -133,8 +131,6 @@ private:
                   segment_index;   
    // --------------------------------------------------------------------------     
 };
-
-//#include "tetgen.tpp"
 
 } // end namespace viennamesh
 
