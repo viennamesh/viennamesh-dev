@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/simplex.dir/src/simplex.cpp.o  -o simplex -rdynamic 
