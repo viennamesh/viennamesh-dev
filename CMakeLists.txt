@@ -156,7 +156,7 @@ ENDIF(ENABLE_GTSIO)
 #
 # ------------------------------------------------------------------------------
 
-ADD_LIBRARY(viennamesh viennamesh/generation/netgen.cpp viennamesh/generation/tetgen.cpp viennamesh/generation/triangle.cpp)
+ADD_LIBRARY(viennamesh viennamesh/generation/netgen.cpp viennamesh/generation/tetgen.cpp viennamesh/generation/triangle.cpp viennamesh/generation/cervpt.cpp)
 
 #list all source files here
 #ADD_EXECUTABLE(vmesh src/vmesh.cpp)
@@ -177,6 +177,6 @@ ADD_EXECUTABLE(apptest src/apptest.cpp)
 #   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS})   
 #ENDIF(ENABLE_GTSIO)
 
-TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle)   
-TARGET_LINK_LIBRARIES(dev ${VGMODHULL_LIBS} ${CERVPT_LIBS} viennamesh)   
+TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${CERVPT_LIBS})   
+TARGET_LINK_LIBRARIES(dev ${VGMODHULL_LIBS} viennamesh)   
 
