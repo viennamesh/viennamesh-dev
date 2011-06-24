@@ -17,6 +17,14 @@
 #include "viennamesh/adaptation/orienter.hpp"
 #include "viennamesh/algorithms.hpp"
 
+// *** vienna includes
+#include "viennamesh/data.hpp"
+#include "viennadata/api.hpp"
+#include "viennagrid/algorithm/cross_prod.hpp"
+
+// *** boost includes 
+#include <boost/array.hpp>
+
 // *** cgal includes
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
 #include "CGAL/Ray_3.h"

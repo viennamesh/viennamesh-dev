@@ -17,15 +17,12 @@
 
 // *** vienna includes
 #include "viennamesh/adaptation/base.hpp"
-#include "viennamesh/data.hpp"
 #include "viennamesh/tags.hpp"
 #include "viennagrid/domain.hpp"
 #include "viennagrid/config/simplex.hpp"
-#include "viennagrid/algorithm/cross_prod.hpp"
-#include "viennadata/api.hpp"
+
 
 // *** boost includes
-#include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
 
 //#define MESH_ADAPTOR_DEBUG

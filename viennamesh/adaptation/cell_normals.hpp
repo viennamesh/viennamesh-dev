@@ -16,11 +16,16 @@
 #define VIENNAMESH_ADAPTORS_CELLNORMALS_HPP
 
 
-// *** vienna includes
+// *** local includes
 #include "viennamesh/adaptation/base.hpp"
-#include "viennagrid/domain.hpp"
+#include "viennamesh/data.hpp"
 
-#define MESH_ADAPTOR_DEBUG_FULL
+// *** vienna includes
+#include "viennagrid/domain.hpp"
+#include "viennagrid/algorithm/cell_normals.hpp"
+#include "viennadata/api.hpp"
+
+//#define MESH_ADAPTOR_DEBUG_FULL
 
 namespace viennamesh {
 
