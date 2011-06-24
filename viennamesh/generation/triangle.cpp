@@ -23,7 +23,8 @@
 #include "viennagrid/domain.hpp"
 
 // *** local includes
-#include "triangle.hpp"
+#include "viennamesh/generation/triangle.hpp"
+#include "viennamesh/algorithms.hpp"
 
 // *** boost includes
 
@@ -480,7 +481,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
                    temp_mesher.out->pointlist[(temp_mesher.out->trianglelist[2]*DIMG+1)]);
 
 
-      temp_mesher.barycenter(pnt1, pnt2, pnt3, pnt);
+      pnt = viennamesh::barycenter(pnt1, pnt2, pnt3);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
@@ -554,7 +555,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(Datastructure
                      temp_mesher.out->pointlist[(temp_mesher.out->trianglelist[2]*DIMG+1)]}};
 
 
-   temp_mesher.barycenter(pnt1, pnt2, pnt3, pnt);
+   pnt = viennamesh::barycenter(pnt1, pnt2, pnt3);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
@@ -653,13 +654,6 @@ void mesh_kernel<viennamesh::tag::triangle>::transfer_to_domain(domain_ptr_type 
       }
       std::cout << std::endl;
    #endif   
-}
-// --------------------------------------------------------------------------
-template<typename PointT>
-void mesh_kernel<viennamesh::tag::triangle>::barycenter(PointT const& p1, PointT const& p2, PointT const& p3, PointT & result)
-{
-      result[0] = (p1[0] + p2[0] + p3[0])/3.;
-      result[1] = (p1[1] + p2[1] + p3[1])/3.;
 }
 // --------------------------------------------------------------------------
 template<typename PointT>

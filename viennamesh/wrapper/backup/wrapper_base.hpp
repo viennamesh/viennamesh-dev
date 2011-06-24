@@ -17,8 +17,6 @@
 //#include <iterator>
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "boost/any.hpp"
-
 namespace viennamesh {
 
 // -------------------------------------------------------------------------------------------   
@@ -125,3 +123,5 @@ struct iterator_base : public std::iterator<std::forward_iterator_tag, T >
 } // end namespace viennamesh
 
 #endif
+
+

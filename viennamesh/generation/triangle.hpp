@@ -95,9 +95,6 @@ private:
    void transfer_to_domain(domain_ptr_type domain, triangulateio *mesh);
    // --------------------------------------------------------------------------     
    template<typename PointT>
-   void barycenter(PointT const& p1, PointT const& p2, PointT const& p3, PointT & result);
-   // --------------------------------------------------------------------------     
-   template<typename PointT>
    void addPoint(PointT const& pnt);
    template<typename PointT>
    void addPoint(PointT      & pnt);

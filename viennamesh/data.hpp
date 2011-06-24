@@ -14,7 +14,12 @@
 #ifndef VIENNAMESH_DATA_HPP
 #define VIENNAMESH_DATA_HPP
 
+// *** system includes
 #include <map>
+
+// *** vienna includes
+#include "viennadata/api.hpp"
+
 
 namespace viennamesh {
 

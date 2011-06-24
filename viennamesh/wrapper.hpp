@@ -14,10 +14,11 @@
 #ifndef VIENNAMESH_WRAPPER_HPP
 #define VIENNAMESH_WRAPPER_HPP
 
-#include "wrapper/viennagrid.hpp"
-#include "wrapper/gtsio.hpp"
+//#include "wrapper/viennagrid.hpp"
+//#include "wrapper/gtsio.hpp"
+//#include "wrapper/hin.hpp"
 #include "wrapper/bnd.hpp"
-#include "wrapper/hin.hpp"
+
 
 
 #endif

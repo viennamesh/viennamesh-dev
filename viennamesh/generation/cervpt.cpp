@@ -35,7 +35,18 @@ mesh_kernel<viennamesh::tag::cervpt>::~mesh_kernel()
 
 mesh_kernel<viennamesh::tag::cervpt>::result_type 
 mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data)
+//mesh_kernel<viennamesh::tag::cervpt>::operator()(boost::any const& type_erased_data)
 {
+//   viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> data = 
+//      boost::any_cast<viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> >(type_erased_data);
+
+///*
+
+//   
+
+//*/
+
+
    cervpt::poly2tri  p2tri;
 
    typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>  DatastructureT;

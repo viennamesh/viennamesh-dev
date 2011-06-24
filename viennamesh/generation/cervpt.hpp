@@ -20,12 +20,14 @@
 #include "viennamesh/wrapper.hpp"
 #include "viennagrid/domain.hpp"
 #include "viennautils/io/bnd.hpp"
+#include "viennautils/io/hin.hpp"
 
 // *** boost includes
 #include <boost/fusion/include/has_key.hpp>
 #include <boost/fusion/include/make_map.hpp>
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
+#include "boost/any.hpp"
 
 // forward declaration
 namespace cervpt
@@ -65,7 +67,8 @@ struct mesh_kernel <viennamesh::tag::cervpt>
    mesh_kernel();
   ~mesh_kernel();
    // --------------------------------------------------------------------------     
-   result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data); 
+   result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
+   //result_type operator()(boost::any const& type_erased_data);
    // --------------------------------------------------------------------------     
    
 private:   

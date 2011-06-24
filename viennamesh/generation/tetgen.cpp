@@ -24,7 +24,8 @@
 #include "viennagrid/domain.hpp"
 
 // *** local includes
-#include "tetgen.hpp"
+#include "viennamesh/generation/tetgen.hpp"
+#include "viennamesh/algorithms.hpp"
 
 // *** boost includes
 #include <boost/fusion/include/has_key.hpp>
@@ -492,7 +493,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_p
                 temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+1)],
                 temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+2)]);
 
-   temp_mesher.barycenter(pnt1, pnt2, pnt3, pnt4, pnt);
+   pnt = viennamesh::barycenter(pnt1, pnt2, pnt3, pnt4);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
@@ -576,7 +577,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(DatastructureT&
                        temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+1)],
                        temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+2)]}};
 
-   temp_mesher.barycenter(pnt1, pnt2, pnt3, pnt4, pnt);
+   pnt = viennamesh::barycenter(pnt1, pnt2, pnt3, pnt4);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
@@ -677,14 +678,6 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
    }
    std::cout << std::endl;
 #endif   
-}
-// --------------------------------------------------------------------------
-template<typename PointT>
-void mesh_kernel<viennamesh::tag::tetgen>::barycenter(PointT const& p1, PointT const& p2, PointT const& p3, PointT const& p4, PointT & result)
-{
-   result[0] = (p1[0] + p2[0] + p3[0] + p4[0])/4.;
-   result[1] = (p1[1] + p2[1] + p3[1] + p4[1])/4.;
-   result[2] = (p1[2] + p2[2] + p3[2] + p4[2])/4.;      
 }
 // --------------------------------------------------------------------------
 template<typename PointT>

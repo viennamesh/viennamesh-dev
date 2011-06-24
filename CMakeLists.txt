@@ -25,21 +25,25 @@ SET(ENABLE_INTERNALVIENNASTAR OFF)
 #
 # ------------------------------------------------------------------------------
 IF(CMAKE_COMPILER_IS_GNUCXX)
+   # build all with the -fPIC flag
+   #set(CMAKE_CXX_FLAGS "-fPIC")
+
    # Optimize Release Build Type with -O2 instead of -O3
    # and switched of compiler warnings (-w)
    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -w")  
    # Strip release binaries   
    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-# add specific debug flags
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
-   SET(CMAKE_VERBOSE_MAKEFILE ON)
-   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_ADAPTOR_DEBUG)
-#   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
-#   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DIODEBUG)   
-#   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -DIODEBUG)   
-ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
+   # add specific debug flags
+   IF(CMAKE_BUILD_TYPE MATCHES Debug)
+      SET(CMAKE_VERBOSE_MAKEFILE ON)
+      ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_ADAPTOR_DEBUG)
+   #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL)
+   #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DIODEBUG)   
+   #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -DIODEBUG)   
+   ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
+
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # ------------------------------------------------------------------------------
 #
@@ -57,7 +61,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Mo
 set(BOOST_MIN_VERSION 1.42.0)
 set(BOOST_LIBS thread)
 #set(Boost_USE_STATIC_LIBS TRUE)
-set(Boost_USE_MULTITHREADED TRUE)
+#set(Boost_USE_MULTITHREADED TRUE)
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS ${BOOST_LIBS} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -156,12 +160,17 @@ ENDIF(ENABLE_GTSIO)
 #
 # ------------------------------------------------------------------------------
 
-ADD_LIBRARY(viennamesh viennamesh/generation/netgen.cpp viennamesh/generation/tetgen.cpp viennamesh/generation/triangle.cpp viennamesh/generation/cervpt.cpp)
+ADD_LIBRARY(viennamesh STATIC viennamesh/generation/netgen.cpp 
+                       viennamesh/generation/tetgen.cpp 
+                       viennamesh/generation/triangle.cpp 
+                       viennamesh/generation/cervpt.cpp
+                       viennamesh/adaptation/orienter.cpp
+                       viennamesh/adaptation/hull_quality.cpp)
 
 #list all source files here
 #ADD_EXECUTABLE(vmesh src/vmesh.cpp)
 ADD_EXECUTABLE(dev src/dev.cpp)
-ADD_EXECUTABLE(apptest src/apptest.cpp)
+#ADD_EXECUTABLE(apptest src/apptest.cpp)
 
 
 # ------------------------------------------------------------------------------
@@ -172,11 +181,11 @@ ADD_EXECUTABLE(apptest src/apptest.cpp)
 
 #link specific libraries to specific executables  ${VGMODHULL_LIBS} netgen
 #IF(ENABLE_GTSIO)
-#   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS} ${GTSIO_LIBS})
+#   TARGET_LINK_LIBRARIES(vmesh viennamesh ${GTSIO_LIBS})
 #ELSE(ENABLE_GTSIO)
-#   TARGET_LINK_LIBRARIES(vmesh netgen ${VGMODHULL_LIBS} tetgen triangle ${CERVPT_LIBS})   
+#   TARGET_LINK_LIBRARIES(vmesh viennamesh)   
 #ENDIF(ENABLE_GTSIO)
 
-TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${CERVPT_LIBS})   
-TARGET_LINK_LIBRARIES(dev ${VGMODHULL_LIBS} viennamesh)   
+TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
+TARGET_LINK_LIBRARIES(dev viennamesh)   
 

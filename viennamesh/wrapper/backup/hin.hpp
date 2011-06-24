@@ -11,8 +11,8 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_WRAPPER_BND_HPP
-#define VIENNAMESH_WRAPPER_BND_HPP
+#ifndef VIENNAMESH_WRAPPER_HIN_HPP
+#define VIENNAMESH_WRAPPER_HIN_HPP
 
 #include "viennamesh/wrapper/wrapper_base.hpp"
 #include "viennamesh/tags.hpp"
@@ -21,17 +21,17 @@
 namespace viennamesh {
 
 namespace tag {
-struct bnd {};
+struct hin {};
 } // end namespace tag   
 
 template<typename ArrayT>
-struct bnd_point_wrapper
+struct hin_point_wrapper
 {
    // -------------------------------------------------------------------------------------------
-   typedef bnd_point_wrapper<ArrayT>            self_type;
+   typedef hin_point_wrapper<ArrayT>            self_type;
    typedef typename ArrayT::value_type          result_type;
    // -------------------------------------------------------------------------------------------   
-   bnd_point_wrapper(ArrayT& array) : array_(array) {}
+   hin_point_wrapper(ArrayT& array) : array_(array) {}
    // -------------------------------------------------------------------------------------------   
    result_type& operator[](size_t i) const
    { 
@@ -67,18 +67,18 @@ struct bnd_point_wrapper
 };
 
 template<typename DomainT>
-struct bnd_cell_complex_wrapper
+struct hin_cell_complex_wrapper
 {
    typedef typename DomainT::polygon_type                           cell_type;
    
-   bnd_cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
+   hin_cell_complex_wrapper(DomainT& domain, size_t segment_id) : domain_(domain), segment_id_(segment_id) {}
    
-   struct cell_iterator : viennamesh::iterator_base< bnd_cell_complex_wrapper<DomainT> > 
+   struct cell_iterator : viennamesh::iterator_base< hin_cell_complex_wrapper<DomainT> > 
    {
-      typedef  viennamesh::iterator_base< bnd_cell_complex_wrapper<DomainT> > iterator_base_type;
+      typedef  viennamesh::iterator_base< hin_cell_complex_wrapper<DomainT> > iterator_base_type;
 
-      cell_iterator(bnd_cell_complex_wrapper<DomainT>& obj)                : iterator_base_type (obj)         {};
-      cell_iterator(bnd_cell_complex_wrapper<DomainT>& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
+      cell_iterator(hin_cell_complex_wrapper<DomainT>& obj)                : iterator_base_type (obj)         {};
+      cell_iterator(hin_cell_complex_wrapper<DomainT>& obj, size_t newpos) : iterator_base_type (obj, newpos) {};      
 
       cell_type 
       operator*() const
@@ -112,20 +112,20 @@ private:
 };
 
 template<typename Datastructure>
-struct wrapper <viennamesh::tag::bnd, Datastructure>
+struct wrapper <viennamesh::tag::hin, Datastructure>
 {   
    // -------------------------------------------------------------------------------------------
    // extract meta information from datastructure
    //
-   typedef typename Datastructure::point_type      bnd_point_type;
+   typedef typename Datastructure::point_type      hin_point_type;
 
    // -------------------------------------------------------------------------------------------   
    // provide wrappers for the datastructures
    //
-   typedef typename viennamesh::bnd_point_wrapper<bnd_point_type>                      point_type;
-   typedef typename viennamesh::bnd_cell_complex_wrapper<Datastructure>                cell_complex_wrapper_type;
-   typedef typename viennamesh::bnd_cell_complex_wrapper<Datastructure>::cell_iterator cell_iterator;
-   typedef typename viennamesh::bnd_cell_complex_wrapper<Datastructure>::cell_type     cell_type;   
+   typedef typename viennamesh::hin_point_wrapper<hin_point_type>                      point_type;
+   typedef typename viennamesh::hin_cell_complex_wrapper<Datastructure>                cell_complex_wrapper_type;
+   typedef typename viennamesh::hin_cell_complex_wrapper<Datastructure>::cell_iterator cell_iterator;
+   typedef typename viennamesh::hin_cell_complex_wrapper<Datastructure>::cell_type     cell_type;   
    // -------------------------------------------------------------------------------------------   
    
    // -------------------------------------------------------------------------------------------   
@@ -134,16 +134,10 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    
    inline Datastructure& domain() { return domain_; }
    
-   boost::any operator()()
-   {
-      boost::any type_erased  = *this;
-      return type_erased;
-   }
-
    // -------------------------------------------------------------------------------------------
-   struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::bnd, Datastructure > >
+   struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::hin, Datastructure > >
    {
-      typedef viennamesh::wrapper< viennamesh::tag::bnd, Datastructure >     wrapper_type;
+      typedef viennamesh::wrapper< viennamesh::tag::hin, Datastructure >     wrapper_type;
       typedef viennamesh::iterator_base< wrapper_type >                      iterator_base_type;
       
       geometry_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};
@@ -167,9 +161,9 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    // -------------------------------------------------------------------------------------------
 
    // -------------------------------------------------------------------------------------------
-   struct segment_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::bnd, Datastructure > >
+   struct segment_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::hin, Datastructure > >
    {
-      typedef viennamesh::wrapper< viennamesh::tag::bnd, Datastructure >         wrapper_type;
+      typedef viennamesh::wrapper< viennamesh::tag::hin, Datastructure >         wrapper_type;
       typedef viennamesh::iterator_base< wrapper_type >                          iterator_base_type;
       
       segment_iterator(wrapper_type& obj)                : iterator_base_type (obj)         {};

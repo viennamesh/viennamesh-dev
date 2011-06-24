@@ -134,12 +134,6 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    
    inline Datastructure& domain() { return domain_; }
    
-   boost::any operator()()
-   {
-      boost::any type_erased  = *this;
-      return type_erased;
-   }
-
    // -------------------------------------------------------------------------------------------
    struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::bnd, Datastructure > >
    {
