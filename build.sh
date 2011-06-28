@@ -11,4 +11,5 @@ cmake -D CMAKE_BUILD_TYPE=Release\
       -D CGAL_LIB_DIR=$CGALLIB\
       ../
 make -j$CORES
+make install
 cd ..

@@ -122,7 +122,15 @@ ADD_LIBRARY(netgen STATIC ${LIBSRC_INT} ${LIBSRC_GEOM} ${LIBSRC_CSG} ${LIBSRC_ST
     ${NGLIB}) #${LIBSRC_VISUALIZATION})
 # ------------------------------------------------------------------------------
 
-
+# ------------------------------------------------------------------------------
+#
+# *** INSTALL ***
+#
+# ------------------------------------------------------------------------------
+INSTALL(TARGETS netgen
+  RUNTIME DESTINATION ${VIENNAMESH_BIN_PATH}
+  LIBRARY DESTINATION ${VIENNAMESH_LIB_PATH}
+  ARCHIVE DESTINATION ${VIENNAMESH_LIB_PATH})
 
 
 

@@ -113,7 +113,15 @@ SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_
 #SET_TARGET_PROPERTIES(vgmodeler_hull PROPERTIES LINK_FLAGS "-shared -Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version")
 # ------------------------------------------------------------------------------
 
-
+# ------------------------------------------------------------------------------
+#
+# *** INSTALL ***
+#
+# ------------------------------------------------------------------------------
+INSTALL(TARGETS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl
+  RUNTIME DESTINATION ${VIENNAMESH_BIN_PATH}
+  LIBRARY DESTINATION ${VIENNAMESH_LIB_PATH}
+  ARCHIVE DESTINATION ${VIENNAMESH_LIB_PATH})
 
 
 

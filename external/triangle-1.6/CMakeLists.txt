@@ -8,3 +8,13 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 ADD_LIBRARY(triangle STATIC triangle/triangle.c)
+
+# ------------------------------------------------------------------------------
+#
+# *** INSTALL ***
+#
+# ------------------------------------------------------------------------------
+INSTALL(TARGETS triangle
+  RUNTIME DESTINATION ${VIENNAMESH_BIN_PATH}
+  LIBRARY DESTINATION ${VIENNAMESH_LIB_PATH}
+  ARCHIVE DESTINATION ${VIENNAMESH_LIB_PATH})

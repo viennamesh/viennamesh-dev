@@ -11,6 +11,13 @@ SET( ${PROJECT_NAME}_PATCH_LEVEL   3 )
 
 cmake_minimum_required(VERSION 2.6)
 
+# ------------------------------------------------------------------------------
+#
+# *** INSTALL PATHS ***
+#
+# ------------------------------------------------------------------------------
+set(VIENNAMESH_BIN_PATH "${CMAKE_CURRENT_INSTALL_DIR}/bin")
+set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_INSTALL_DIR}/lib")
 
 # ------------------------------------------------------------------------------
 #
@@ -186,7 +193,15 @@ ENDIF(ENABLE_GTSIO)
 ADD_EXECUTABLE(vmesh src/vmesh.cpp)
 TARGET_LINK_LIBRARIES(vmesh viennamesh)      
 
-
+# ------------------------------------------------------------------------------
+#
+# *** INSTALL ***
+#
+# ------------------------------------------------------------------------------
+INSTALL(TARGETS viennamesh vmesh 
+  RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
+  LIBRARY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
+  ARCHIVE DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib)
 
 
 
