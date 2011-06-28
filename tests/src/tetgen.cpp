@@ -11,18 +11,13 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
+// *** system includes
 #include <iostream>
 
-#include "viennautils/io/bnd.hpp"
-#include "viennautils/io/hin.hpp"
-#include "viennautils/file.hpp"
-
-#include "viennagrid/domain.hpp"
-
-#include "viennamesh/wrapper/hin.hpp"
-#include "viennamesh/wrapper/bnd.hpp"
-#include "viennamesh/generation/cervpt.hpp"
-#include "viennamesh/generation/tetgen.hpp"
+// *** viennamesh includes
+#include "viennamesh/common.hpp"
+#include "viennamesh/wrapper.hpp"
+#include "viennamesh/generation.hpp"
 
 template<typename WrappedDataT>
 int meshing(WrappedDataT& wrapped_data)

@@ -11,25 +11,21 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
+// *** system includes
 #include <iostream>
 
-#include "viennautils/file.hpp"
-
-#include "viennagrid/domain.hpp"
-#include "viennagrid/config/simplex.hpp"
-#include "viennagrid/io/sgf_reader.hpp"
-#include "viennagrid/io/vtk_writer.hpp"
-
-#include "viennamesh/wrapper/viennagrid.hpp"
-#include "viennamesh/generation/triangle.hpp"
+// *** viennamesh includes
+#include "viennamesh/common.hpp"
+#include "viennamesh/wrapper.hpp"
+#include "viennamesh/generation.hpp"
 
 template<typename WrappedDataT>
 int meshing(WrappedDataT& wrapped_data)
 {
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        mesh_generator_type;
+   typedef typename viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        mesh_generator_type;
    mesh_generator_type  mesher;
 
-   typedef mesh_generator_type::result_type       result_type;   
+   typedef typename mesh_generator_type::result_type       result_type;   
 
    result_type result = mesher(wrapped_data);
 

@@ -18,7 +18,8 @@ ENDIF(BUILD_TESTING)
 # ------------------------------------------------------------------------------
 SET(ENABLE_TEST_SPECIAL_MESHES OFF)
 SET(ENABLE_TEST_ALL_SPECIAL_MESHES OFF)
-SET(ENABLE_INTERNALVIENNASTAR ON)
+SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
+SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
 
 # ------------------------------------------------------------------------------
 #
@@ -44,6 +45,13 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -DIODEBUG)   
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
+IF(VIENNAMESH_USE_MPI)
+   find_package(MPI REQUIRED)
+   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+   set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+   include_directories(MPI_INCLUDE_PATH)
+ENDIF(VIENNAMESH_USE_MPI)
+
 # ------------------------------------------------------------------------------
 #
 # *** CHECK FOR DEPENDENCIES ***
@@ -57,9 +65,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules
 # check for the Boost libraries
 #
 set(BOOST_MIN_VERSION 1.42.0)
-set(BOOST_LIBS thread)
+IF(VIENNAMESH_USE_MPI)
+   set(BOOST_LIBS thread mpi serialization)
+ELSE()
+   set(BOOST_LIBS thread)
+ENDIF(VIENNAMESH_USE_MPI)
 #set(Boost_USE_STATIC_LIBS TRUE)
-set(Boost_USE_MULTITHREADED TRUE)
+#set(Boost_USE_MULTITHREADED TRUE)
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS ${BOOST_LIBS} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -146,6 +158,24 @@ ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
 #
+# *** SETUP VIENNAMESH LIBRARY ***
+#
+# ------------------------------------------------------------------------------
+ADD_LIBRARY(viennamesh STATIC ../viennamesh/generation/netgen.cpp 
+                              ../viennamesh/generation/tetgen.cpp 
+                              ../viennamesh/generation/triangle.cpp 
+                              ../viennamesh/generation/cervpt.cpp
+                              ../viennamesh/adaptation/orienter.cpp
+                              ../viennamesh/adaptation/hull_quality.cpp)
+
+IF(ENABLE_GTSIO)
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
+ELSE(ENABLE_GTSIO)
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${GTSIO_LIBS})   
+ENDIF(ENABLE_GTSIO)
+
+# ------------------------------------------------------------------------------
+#
 # *** SETUP APPLICATIONS ***
 #
 # ------------------------------------------------------------------------------
@@ -163,14 +193,14 @@ ADD_EXECUTABLE(triangle_test  src/triangle.cpp)
 # *** LINK APPLICATIONS AGAINST SPECIFIC LIBRARIES ***
 #
 # ------------------------------------------------------------------------------
-TARGET_LINK_LIBRARIES(generate_hull    ${CERVPT_LIBS} )
-TARGET_LINK_LIBRARIES(orient_hull      ${CERVPT_LIBS} )
-TARGET_LINK_LIBRARIES(adapt_hull       ${CERVPT_LIBS} ${VGMODHULL_LIBS})
-TARGET_LINK_LIBRARIES(vol_hull         netgen ${CERVPT_LIBS})
-TARGET_LINK_LIBRARIES(vol_adapt_hull   netgen ${CERVPT_LIBS} ${VGMODHULL_LIBS})
-TARGET_LINK_LIBRARIES(meta_sel         ${CERVPT_LIBS} tetgen netgen)
-TARGET_LINK_LIBRARIES(tetgen_test      ${CERVPT_LIBS} tetgen)
-TARGET_LINK_LIBRARIES(triangle_test    triangle ${GTSIO_LIBS})
+TARGET_LINK_LIBRARIES(generate_hull    viennamesh)
+TARGET_LINK_LIBRARIES(orient_hull      viennamesh)
+TARGET_LINK_LIBRARIES(adapt_hull       viennamesh)
+TARGET_LINK_LIBRARIES(vol_hull         viennamesh)
+TARGET_LINK_LIBRARIES(vol_adapt_hull   viennamesh)
+TARGET_LINK_LIBRARIES(meta_sel         viennamesh)
+TARGET_LINK_LIBRARIES(tetgen_test      viennamesh)
+TARGET_LINK_LIBRARIES(triangle_test    viennamesh)
 
 # ------------------------------------------------------------------------------
 #

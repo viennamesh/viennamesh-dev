@@ -41,7 +41,7 @@ struct mesh_kernel <viennamesh::tag::triangle>
    typedef double    numeric_type;  
    typedef int       integer_type;
 
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef viennagrid::domain<viennagrid::config::triangular_2d>     domain_type;
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
    typedef domain_configuration_type::cell_tag                       cell_tag;

@@ -21,6 +21,7 @@
 // *** vienna includes
 #include "viennautils/dumptype.hpp"
 #include "viennagrid/domain.hpp"
+#include "viennamesh/wrapper.hpp"
 
 // *** local includes
 #include "viennamesh/generation/triangle.hpp"
@@ -864,10 +865,16 @@ void mesh_kernel<viennamesh::tag::triangle>::freeMem()
 // explicit declarations for the template functions
 // 
 template mesh_kernel<viennamesh::tag::triangle>::result_type 
-mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
+mesh_kernel<viennamesh::tag::triangle>::operator()(
+   viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
 
 template mesh_kernel<viennamesh::tag::triangle>::result_type 
-mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+mesh_kernel<viennamesh::tag::triangle>::operator()(
+   viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+
+template mesh_kernel<viennamesh::tag::triangle>::result_type 
+mesh_kernel<viennamesh::tag::triangle>::operator()(
+   viennamesh::wrapper<viennamesh::tag::viennagrid, viennagrid::domain<viennagrid::config::line_2d> >& data);
 // -----------------------------------------------------------------------------
 
 } // end namespace viennamesh

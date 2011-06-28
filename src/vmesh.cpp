@@ -28,6 +28,21 @@
 template<typename WrappedDatastructureT>
 void process(WrappedDatastructureT& data)
 {
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        triangle_mesh_generator_type;
+   triangle_mesh_generator_type     triangle_mesher;      
+
+
+
+
+
+
+
+
+
+
+
+
+
    // prepare a hull mesher
    //   generates a 2-simplex unstructured mesh embedded in a three-dimensional
    //   geometrical space

@@ -21,6 +21,7 @@
 
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/fusion/include/make_map.hpp>
 #include <boost/fusion/include/fold.hpp>
 #include <boost/fusion/include/find.hpp>

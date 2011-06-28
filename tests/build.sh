@@ -1,6 +1,4 @@
 
-CURRENT=$PWD
-
 # extract number of cores on the system
 CORES=`grep -c ^processor /proc/cpuinfo`
 echo "cores: " $CORES
