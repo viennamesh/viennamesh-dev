@@ -17,6 +17,7 @@
 #include "viennamesh/wrapper/wrapper_base.hpp"
 #include "viennamesh/tags.hpp"
 #include "viennautils/value_type.hpp"
+#include "viennautils/io/hin.hpp"
 
 namespace viennamesh {
 

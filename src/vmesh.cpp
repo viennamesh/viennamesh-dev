@@ -11,41 +11,16 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
+// *** system includes
 #include <iostream>
-#include <vector>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-
-#include "viennautils/config.hpp"
-#include "viennautils/convert.hpp"
-#include "viennautils/contio.hpp"
-#include "viennautils/file.hpp"
-#include "viennautils/io/bnd.hpp"
-#include "viennautils/io/hin.hpp"
-#ifdef VIENNAMESH_HAVE_GTSIO
-#include "viennautils/io/gts.hpp"
-#endif
-
-#include "viennagrid/domain.hpp"
-#include "viennagrid/io/vtk_writer.hpp"
-#include "viennagrid/io/vtk_reader.hpp"
-#include "viennagrid/io/gau_reader.hpp"
-#include "viennagrid/algorithm/cell_normals.hpp"
-
-#include "viennamesh/generation/cervpt.hpp"
-#include "viennamesh/generation/netgen.hpp"
-#include "viennamesh/generation/tetgen.hpp"
-#include "viennamesh/adaptation/orienter.hpp"
-#include "viennamesh/adaptation/cell_normals.hpp"
-#include "viennamesh/adaptation/hull_quality.hpp"
-#include "viennamesh/classification/vgmodeler.hpp"
+// *** viennamesh includes
+#include "viennamesh/common.hpp"
 #include "viennamesh/wrapper.hpp"
+#include "viennamesh/generation.hpp"
+#include "viennamesh/adaptation.hpp"
+#include "viennamesh/classification.hpp"
 
-#include <boost/any.hpp> // removeme
-#include <boost/type_traits/remove_pointer.hpp>
-
-//#define DUMP_HULL_MESH
 
 //
 // mesh the data provided by the wrapped datastructure
@@ -193,7 +168,7 @@ int main(int argc, char *argv[])
 
       // the reader datastructure is wrapped to offer a specific interface
       //
-      typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::hin_reader>      hin_wrapper_type;
+      typedef viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>      hin_wrapper_type;
       hin_wrapper_type                    wrapped_data(my_hin_reader);         
 
       // mesh this data

@@ -28,7 +28,7 @@ namespace detail{
 //
 template<int DimG>
 struct barycenter_topodim_2 {};
-
+ 
 template<>
 struct barycenter_topodim_2 <2>
 {
@@ -36,8 +36,9 @@ struct barycenter_topodim_2 <2>
    inline static boost::array<T,D> 
    eval(boost::array<T,D> const& p1, boost::array<T,D> const& p2, boost::array<T,D> const& p3)
    {
-      return boost::array<T,D> {{(p1[0] + p2[0] + p3[0])/3.,
+      boost::array<T,D> temp = {{(p1[0] + p2[0] + p3[0])/3.,
                                  (p1[1] + p2[1] + p3[1])/3.}};      
+      return temp;
    }
 
    template<typename VectorT>
@@ -56,9 +57,10 @@ struct barycenter_topodim_2 <3>
    inline static boost::array<T,D> 
    eval(boost::array<T,D> const& p1, boost::array<T,D> const& p2, boost::array<T,D> const& p3)
    {
-      return boost::array<T,D> {{(p1[0] + p2[0] + p3[0])/3.,
+      boost::array<T,D> temp = {{(p1[0] + p2[0] + p3[0])/3.,
                                  (p1[1] + p2[1] + p3[1])/3.,
                                  (p1[2] + p2[2] + p3[2])/3.}};      
+      return temp;
    }
 
    template<typename VectorT>
@@ -113,9 +115,10 @@ barycenter(boost::array<T,D> const& p1, boost::array<T,D> const& p2, boost::arra
    // when 4 points are provided, a tetrahedron is described
    // which can only be embedded in a three dimensional geometry space.
    // hence, no need for a dispatch based on the geom dimension
-   return boost::array<T,D> {{(p1[0] + p2[0] + p3[0] + p4[0])/4.,
+   boost::array<T,D> temp = {{(p1[0] + p2[0] + p3[0] + p4[0])/4.,
                               (p1[1] + p2[1] + p3[1] + p4[1])/4.,
                               (p1[2] + p2[2] + p3[2] + p4[2])/4.}};
+   return temp;
 }
 
 } // end namespace viennamesh

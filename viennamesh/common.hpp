@@ -11,14 +11,17 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
-#ifndef VIENNAMESH_WRAPPER_HPP
-#define VIENNAMESH_WRAPPER_HPP
+#ifndef VIENNAMESH_COMMON_HPP
+#define VIENNAMESH_COMMON_HPP
 
-//#include "wrapper/viennagrid.hpp"
-//#include "wrapper/gtsio.hpp"
-#include "wrapper/hin.hpp"
-#include "wrapper/bnd.hpp"
+#include "viennautils/file.hpp"
+#include "viennautils/config.hpp"
+#include "viennautils/convert.hpp"
+#include "viennautils/contio.hpp"
 
+#include "viennagrid/domain.hpp"
+#include "viennagrid/io/vtk_writer.hpp"
+#include "viennagrid/io/vtk_reader.hpp"
 
 
 #endif

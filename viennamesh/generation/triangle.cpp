@@ -57,19 +57,19 @@ mesh_kernel<viennamesh::tag::triangle>::~mesh_kernel()
    #endif
 }
 // --------------------------------------------------------------------------
+template<typename DatastructureT>
 mesh_kernel<viennamesh::tag::triangle>::result_type 
-mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data) // default meshing
+mesh_kernel<viennamesh::tag::triangle>::operator()(DatastructureT& data)
 { 
-   typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> DatastructureT;
    this->init();      
 
    options = "zpD";  // conforming delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 
-   typedef DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef DatastructureT::cell_type         vmesh_cell_type;
-   typedef DatastructureT::cell_iterator     vmesh_cell_iterator;   
+   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef typename DatastructureT::cell_type         vmesh_cell_type;
+   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;   
 
       std::size_t segment_size = data.segment_size();
       //size_t segment_size = data.domain().segment_container()->size();
@@ -89,7 +89,7 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennames
          for(vmesh_segment_iterator seg_iter = data.segment_begin();
             seg_iter != data.segment_end(); seg_iter++)
          {         
-            DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
+            typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
             this->find_point_in_segment(data, segment, pnt);
             region_points.push_back(pnt);
          #ifdef MESH_KERNEL_DEBUG
@@ -117,7 +117,7 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennames
       std::cout << std::endl;
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing geometry" << std::endl;
    #endif
-      typedef DatastructureT::geometry_iterator geometry_iterator;
+      typedef typename DatastructureT::geometry_iterator geometry_iterator;
       std::size_t pnt_cnt = 0;
       for(geometry_iterator iter = data.geometry_begin();
           iter != data.geometry_end(); iter++)
@@ -859,6 +859,15 @@ void mesh_kernel<viennamesh::tag::triangle>::freeMem()
    delete out;
 }
 
+// -----------------------------------------------------------------------------
+// 
+// explicit declarations for the template functions
+// 
+template mesh_kernel<viennamesh::tag::triangle>::result_type 
+mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
 
+template mesh_kernel<viennamesh::tag::triangle>::result_type 
+mesh_kernel<viennamesh::tag::triangle>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+// -----------------------------------------------------------------------------
 
 } // end namespace viennamesh

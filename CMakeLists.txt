@@ -6,7 +6,7 @@
 PROJECT(ViennaMesh)
 SET( ${PROJECT_NAME}_MAJOR_VERSION 0 )
 SET( ${PROJECT_NAME}_MINOR_VERSION 2 )
-SET( ${PROJECT_NAME}_PATCH_LEVEL   2 )
+SET( ${PROJECT_NAME}_PATCH_LEVEL   3 )
 
 
 cmake_minimum_required(VERSION 2.6)
@@ -17,17 +17,15 @@ cmake_minimum_required(VERSION 2.6)
 # *** SET FLAGS ***
 #
 # ------------------------------------------------------------------------------
-SET(ENABLE_INTERNALVIENNASTAR OFF)
+SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
+SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
 
 # ------------------------------------------------------------------------------
 #
-# *** SET BUILD FLAGS ***
+# *** SET COMPILER/LINKER FLAGS ***
 #
 # ------------------------------------------------------------------------------
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   # build all with the -fPIC flag
-   #set(CMAKE_CXX_FLAGS "-fPIC")
-
    # Optimize Release Build Type with -O2 instead of -O3
    # and switched of compiler warnings (-w)
    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -w")  
@@ -42,8 +40,15 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DIODEBUG)   
    #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -DIODEBUG)   
    ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
-
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+IF(VIENNAMESH_USE_MPI)
+   find_package(MPI REQUIRED)
+   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+   set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+   include_directories(MPI_INCLUDE_PATH)
+ENDIF(VIENNAMESH_USE_MPI)
+
 
 # ------------------------------------------------------------------------------
 #
@@ -53,15 +58,16 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 # set modules directory
 #
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 # check for the Boost libraries
 #
 set(BOOST_MIN_VERSION 1.42.0)
-set(BOOST_LIBS thread)
-#set(Boost_USE_STATIC_LIBS TRUE)
-#set(Boost_USE_MULTITHREADED TRUE)
+IF(VIENNAMESH_USE_MPI)
+   set(BOOST_LIBS thread mpi serialization)
+ELSE()
+   set(BOOST_LIBS thread)
+ENDIF(VIENNAMESH_USE_MPI)
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS ${BOOST_LIBS} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -95,19 +101,19 @@ ENDIF(ENABLE_GTSIO)
 # *** PROCESS RELATED CMAKE PROJECTS ***
 #
 # ------------------------------------------------------------------------------
-IF(ENABLE_INTERNALVIENNASTAR)
+IF(VIENNAMESH_USE_INTERNAL)
    message(STATUS "Using Internal ViennaStar Projects")
    INCLUDE_DIRECTORIES("external/ViennaGrid/")
    INCLUDE_DIRECTORIES("external/ViennaData/")
    INCLUDE_DIRECTORIES("external/ViennaUtils/")
    INCLUDE_DIRECTORIES("external/ViennaUtils/external/")
-ELSE(ENABLE_INTERNALVIENNASTAR)
+ELSE(VIENNAMESH_USE_INTERNAL)
    message(STATUS "Using External ViennaStar Projects")
    INCLUDE_DIRECTORIES("../ViennaGrid/")
    INCLUDE_DIRECTORIES("../ViennaData/")
    INCLUDE_DIRECTORIES("../ViennaUtils/")
    INCLUDE_DIRECTORIES("../ViennaUtils/external/")
-ENDIF(ENABLE_INTERNALVIENNASTAR)
+ENDIF(VIENNAMESH_USE_INTERNAL)
 
 
 # build external libraries
@@ -117,11 +123,11 @@ ENDIF(ENABLE_INTERNALVIENNASTAR)
 ADD_SUBDIRECTORY(external)
 
 # build ViennaUtils:pugixml support
-IF(ENABLE_INTERNALVIENNASTAR)
+IF(VIENNAMESH_USE_INTERNAL)
 ADD_SUBDIRECTORY(external/ViennaUtils/external/pugixml/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/pugixml/")
-ELSE(ENABLE_INTERNALVIENNASTAR)
+ELSE(VIENNAMESH_USE_INTERNAL)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/external/pugixml/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/pugixml/")
-ENDIF(ENABLE_INTERNALVIENNASTAR)
+ENDIF(VIENNAMESH_USE_INTERNAL)
 
 INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")
@@ -156,10 +162,9 @@ ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
 #
-# *** SETUP APPLICATIONS ***
+# *** SETUP VIENNAMESH LIBRARY ***
 #
 # ------------------------------------------------------------------------------
-
 ADD_LIBRARY(viennamesh STATIC viennamesh/generation/netgen.cpp 
                        viennamesh/generation/tetgen.cpp 
                        viennamesh/generation/triangle.cpp 
@@ -167,25 +172,23 @@ ADD_LIBRARY(viennamesh STATIC viennamesh/generation/netgen.cpp
                        viennamesh/adaptation/orienter.cpp
                        viennamesh/adaptation/hull_quality.cpp)
 
-#list all source files here
-#ADD_EXECUTABLE(vmesh src/vmesh.cpp)
-ADD_EXECUTABLE(dev src/dev.cpp)
-#ADD_EXECUTABLE(apptest src/apptest.cpp)
-
+IF(ENABLE_GTSIO)
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
+ELSE(ENABLE_GTSIO)
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${GTSIO_LIBS})   
+ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
 #
-# *** LINK APPLICATIONS AGAINST SPECIFIC LIBRARIES ***
+# *** SETUP APPLICATIONS ***
 #
 # ------------------------------------------------------------------------------
+ADD_EXECUTABLE(vmesh src/vmesh.cpp)
+TARGET_LINK_LIBRARIES(vmesh viennamesh)      
 
-#link specific libraries to specific executables  ${VGMODHULL_LIBS} netgen
-#IF(ENABLE_GTSIO)
-#   TARGET_LINK_LIBRARIES(vmesh viennamesh ${GTSIO_LIBS})
-#ELSE(ENABLE_GTSIO)
-#   TARGET_LINK_LIBRARIES(vmesh viennamesh)   
-#ENDIF(ENABLE_GTSIO)
 
-TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
-TARGET_LINK_LIBRARIES(dev viennamesh)   
+
+
+
+
 

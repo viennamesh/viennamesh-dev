@@ -11,6 +11,10 @@
    license:    see file LICENSE in the base directory
 ============================================================================= */
 
+// *** vienna includes
+#include "viennamesh/wrapper.hpp"
+
+// *** local includes
 #include "cervpt.hpp"
 
 // *** cervpt includes
@@ -33,27 +37,15 @@ mesh_kernel<viennamesh::tag::cervpt>::~mesh_kernel()
    #endif
 }
 
+template<typename DatastructureT>
 mesh_kernel<viennamesh::tag::cervpt>::result_type 
-mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data)
-//mesh_kernel<viennamesh::tag::cervpt>::operator()(boost::any const& type_erased_data)
+mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
 {
-//   viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> data = 
-//      boost::any_cast<viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> >(type_erased_data);
-
-///*
-
-//   
-
-//*/
-
-
    cervpt::poly2tri  p2tri;
 
-   typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>  DatastructureT;
-
-   typedef DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef DatastructureT::cell_type         vmesh_cell_type;
-   typedef DatastructureT::cell_iterator     vmesh_cell_iterator;      
+   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef typename DatastructureT::cell_type         vmesh_cell_type;
+   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
 
    mesh_kernel_id = "cervpt";      
 
@@ -68,7 +60,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh:
    std::cout << std::endl;
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing geometry" << std::endl;
    #endif
-   typedef DatastructureT::geometry_iterator geometry_iterator;
+   typedef typename DatastructureT::geometry_iterator geometry_iterator;
    for(geometry_iterator iter = data.geometry_begin();
      iter != data.geometry_end(); iter++)
    {
@@ -99,7 +91,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh:
    #endif                              
 
    std::size_t pi = 0;
-   typedef DatastructureT::geometry_iterator geometry_iterator;
+   typedef typename DatastructureT::geometry_iterator geometry_iterator;
    for(geometry_iterator iter = data.geometry_begin();
      iter != data.geometry_end(); iter++)
    {
@@ -214,6 +206,17 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh:
        
    return domain;
 }
+
+// -----------------------------------------------------------------------------
+// 
+// explicit declarations for the template functions
+// 
+template mesh_kernel<viennamesh::tag::cervpt>::result_type 
+mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
+
+template mesh_kernel<viennamesh::tag::cervpt>::result_type 
+mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+// -----------------------------------------------------------------------------
 
 } // end namespace viennamesh
 

@@ -17,12 +17,15 @@
 #include "viennamesh/wrapper/wrapper_base.hpp"
 #include "viennamesh/tags.hpp"
 #include "viennautils/value_type.hpp"
+#include "viennautils/io/bnd.hpp"
 
 namespace viennamesh {
+
 
 namespace tag {
 struct bnd {};
 } // end namespace tag   
+
 
 template<typename ArrayT>
 struct bnd_point_wrapper
@@ -112,7 +115,7 @@ private:
 };
 
 template<typename Datastructure>
-struct wrapper <viennamesh::tag::bnd, Datastructure>
+struct wrapper <viennamesh::tag::bnd, Datastructure> 
 {   
    // -------------------------------------------------------------------------------------------
    // extract meta information from datastructure
@@ -130,16 +133,6 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    
    // -------------------------------------------------------------------------------------------   
    wrapper(Datastructure& domain) : domain_(domain) {}
-   // -------------------------------------------------------------------------------------------   
-   
-   inline Datastructure& domain() { return domain_; }
-   
-   boost::any operator()()
-   {
-      boost::any type_erased  = *this;
-      return type_erased;
-   }
-
    // -------------------------------------------------------------------------------------------
    struct geometry_iterator : viennamesh::iterator_base< viennamesh::wrapper< viennamesh::tag::bnd, Datastructure > >
    {
@@ -152,7 +145,7 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
       point_type
       operator*() const
       {
-         return point_type( (*this).obj().domain().point( (*this).pos() ) );
+         return point_type( (*this).obj().domain_.point( (*this).pos() ) );
       }            
 
    };   
@@ -162,7 +155,7 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    }  
    geometry_iterator geometry_end()
    {
-      return geometry_iterator(*this, domain().geometry_size());
+      return geometry_iterator(*this, domain_.geometry_size());
    }   
    // -------------------------------------------------------------------------------------------
 
@@ -179,7 +172,7 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
       cell_complex_wrapper_type
       operator*() const
       {  
-         return cell_complex_wrapper_type((*this).obj().domain(), (*this).pos());
+         return cell_complex_wrapper_type((*this).obj().domain_, (*this).pos());
       }            
    };   
    segment_iterator segment_begin()
@@ -188,9 +181,9 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    }  
    segment_iterator segment_end()
    {
-      return segment_iterator(*this, domain().segment_size());
+      return segment_iterator(*this, domain_.segment_size());
    }      
-   std::size_t segment_size()  { return domain().segment_size(); }
+   std::size_t segment_size()  { return domain_.segment_size(); }
    // -------------------------------------------------------------------------------------------   
 
 
@@ -198,6 +191,8 @@ struct wrapper <viennamesh::tag::bnd, Datastructure>
    Datastructure & domain_;
    // -------------------------------------------------------------------------------------------
 };
+   
+
    
 } // end namespace viennamesh
 

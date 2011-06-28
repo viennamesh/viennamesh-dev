@@ -73,7 +73,8 @@ struct mesh_kernel <viennamesh::tag::triangle>
    mesh_kernel();
   ~mesh_kernel();
    // --------------------------------------------------------------------------     
-   result_type operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data); 
+   template<typename DatastructureT>
+   result_type operator()(DatastructureT& data);
    // --------------------------------------------------------------------------     
    result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::line_2d> > hull_domain); 
    // --------------------------------------------------------------------------     

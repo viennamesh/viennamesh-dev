@@ -57,10 +57,10 @@ mesh_kernel<viennamesh::tag::tetgen>::~mesh_kernel()
    #endif
 }
 // --------------------------------------------------------------------------
+template<typename DatastructureT>
 mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data) // default meshing
+mesh_kernel<viennamesh::tag::tetgen>::operator()(DatastructureT& data)
 {
-   typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> DatastructureT;
    this->init();      
 
    options = "zpD";  // conforming delaunay
@@ -69,9 +69,9 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
 
 
 
-   typedef DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef DatastructureT::cell_type         vmesh_cell_type;
-   typedef DatastructureT::cell_iterator     vmesh_cell_iterator;   
+   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef typename DatastructureT::cell_type         vmesh_cell_type;
+   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;   
 
    size_t segment_size = data.segment_size();
 #ifdef MESH_KERNEL_DEBUG
@@ -91,7 +91,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
          seg_iter != data.segment_end(); seg_iter++)
       {
          point_type pnt;
-         DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
+         typename DatastructureT::cell_complex_wrapper_type segment = *seg_iter;
          this->find_point_in_segment(data, segment, pnt, seg_cnt);
          
          region_points.push_back(pnt);
@@ -122,7 +122,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh:
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing geometry" << std::endl;
 #endif
-   typedef DatastructureT::geometry_iterator geometry_iterator;
+   typedef typename DatastructureT::geometry_iterator geometry_iterator;
    for(geometry_iterator iter = data.geometry_begin();
        iter != data.geometry_end(); iter++)
    {
@@ -867,6 +867,17 @@ void mesh_kernel<viennamesh::tag::tetgen>::freeMem()
    delete in;
    delete out;
 }
+
+// -----------------------------------------------------------------------------
+// 
+// explicit declarations for the template functions
+// 
+template mesh_kernel<viennamesh::tag::tetgen>::result_type 
+mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
+
+template mesh_kernel<viennamesh::tag::tetgen>::result_type 
+mesh_kernel<viennamesh::tag::tetgen>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+// -----------------------------------------------------------------------------
 
 } // end namespace viennamesh
 

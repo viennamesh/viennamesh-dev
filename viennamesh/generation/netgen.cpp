@@ -48,11 +48,10 @@ mesh_kernel<viennamesh::tag::netgen>::~mesh_kernel()
    #endif
 }
 // --------------------------------------------------------------------------
+template<typename DatastructureT>
 mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data)
+mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data)
 {
-   typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader> DatastructureT;
-
    std::size_t segment_size = data.segment_size();
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
@@ -68,11 +67,11 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(viennamesh::wrapper<viennamesh:
    // *** Extract the geometry and topology data of the wrapped datastructure
    //     and transfer it to the mesh datastructure
    //
-   typedef DatastructureT::segment_iterator  vmesh_segment_iterator;
-   typedef DatastructureT::geometry_iterator vmesh_geometry_iterator;   
-   typedef DatastructureT::cell_type         vmesh_cell_type;
-   typedef DatastructureT::cell_iterator     vmesh_cell_iterator;      
-   typedef DatastructureT::point_type        vmesh_point_type;         
+   typedef typename DatastructureT::segment_iterator  vmesh_segment_iterator;
+   typedef typename DatastructureT::geometry_iterator vmesh_geometry_iterator;   
+   typedef typename DatastructureT::cell_type         vmesh_cell_type;
+   typedef typename DatastructureT::cell_iterator     vmesh_cell_iterator;      
+   typedef typename DatastructureT::point_type        vmesh_point_type;         
    
    for(vmesh_segment_iterator seg_iter = data.segment_begin();
       seg_iter != data.segment_end(); seg_iter++)
@@ -489,7 +488,16 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
 
    mesh_container.clear(); // cleanup ..   
 }
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 
+// explicit declarations for the template functions
+// 
+template mesh_kernel<viennamesh::tag::netgen>::result_type 
+mesh_kernel<viennamesh::tag::netgen>::operator()(viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>& data);
+
+template mesh_kernel<viennamesh::tag::netgen>::result_type 
+mesh_kernel<viennamesh::tag::netgen>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+// -----------------------------------------------------------------------------
 
 } // end namespace viennamesh
 

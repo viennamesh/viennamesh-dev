@@ -17,11 +17,10 @@
 //#include <iterator>
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "boost/any.hpp"
-
 namespace viennamesh {
 
 // -------------------------------------------------------------------------------------------   
+
 template<typename DatastructureTag, typename Datastructure>
 struct wrapper
 {
