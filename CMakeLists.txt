@@ -16,8 +16,9 @@ cmake_minimum_required(VERSION 2.6)
 # *** INSTALL PATHS ***
 #
 # ------------------------------------------------------------------------------
-set(VIENNAMESH_BIN_PATH "${CMAKE_CURRENT_INSTALL_DIR}/bin")
-set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_INSTALL_DIR}/lib")
+#message(STATUS "installpath: ${CMAKE_INSTALL_PREFIX}")
+set(VIENNAMESH_BIN_PATH "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 # ------------------------------------------------------------------------------
 #
