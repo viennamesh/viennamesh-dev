@@ -1,0 +1,24 @@
+   
+
+include(FindPackageHandleStandardArgs)
+find_package(PkgConfig)
+
+
+# INCLUDE PART
+FIND_PATH(VIENNADATA_INCLUDE_DIR viennadata/api.hpp ${VIENNADATA_INC_DIR})
+# ... include base directory and external directory ..
+set(VIENNADATA_INCLUDE_DIRS ${VIENNADATA_INCLUDE_DIR})
+find_package_handle_standard_args(VIENNADATA_INC DEFAULT_MSG VIENNADATA_INCLUDE_DIR)
+MARK_AS_ADVANCED(VIENNADATA_INCLUDE_DIR)
+IF( NOT VIENNADATA_INC_FOUND )
+   IF( VIENNADATA_FIND_REQUIRED ) 
+      message(FATAL_ERROR "ViennaData Include directory has not been found")
+   ENDIF( VIENNADATA_FIND_REQUIRED )
+ENDIF( NOT VIENNADATA_INC_FOUND )
+
+
+# GENERAL PART
+IF(VIENNADATA_INC_FOUND)
+   SET(ENABLE_VIENNADATA ON)
+ENDIF(VIENNADATA_INC_FOUND)
+

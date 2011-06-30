@@ -57,6 +57,45 @@ IF(VIENNAMESH_USE_MPI)
    include_directories(MPI_INCLUDE_PATH)
 ENDIF(VIENNAMESH_USE_MPI)
 
+# ------------------------------------------------------------------------------
+#
+# *** SET VIENNASTAR PATHS ***
+#
+# ------------------------------------------------------------------------------
+IF(VIENNAMESH_USE_INTERNAL)
+   message(STATUS "Using Internal ViennaStar Projects")
+   IF(NOT DEFINED VIENNAGRID_INC_DIR)
+      SET(VIENNAGRID_INC_DIR "external/ViennaGrid/")
+   ENDIF(NOT DEFINED VIENNAGRID_INC_DIR)
+
+   IF(NOT DEFINED VIENNADATA_INC_DIR)
+      SET(VIENNADATA_INC_DIR "external/ViennaData/")
+   ENDIF(NOT DEFINED VIENNADATA_INC_DIR)
+
+   IF(NOT DEFINED VIENNAUTILS_INC_DIR)
+      SET(VIENNAUTILS_INC_DIR "external/ViennaUtils/")
+   ENDIF(NOT DEFINED VIENNAUTILS_INC_DIR)
+   IF(NOT DEFINED VIENNAUTILS_LIB_DIR)   
+      SET(VIENNAUTILS_LIB_DIR "external/ViennaUtils/build/lib")         
+   ENDIF(NOT DEFINED VIENNAUTILS_LIB_DIR)   
+ELSE(VIENNAMESH_USE_INTERNAL)
+   message(STATUS "Using External ViennaStar Projects")
+   IF(NOT DEFINED VIENNAGRID_INC_DIR)
+      SET(VIENNAGRID_INC_DIR "../ViennaGrid/")
+   ENDIF(NOT DEFINED VIENNAGRID_INC_DIR)
+
+   IF(NOT DEFINED VIENNADATA_INC_DIR)
+      SET(VIENNADATA_INC_DIR "../ViennaData/")
+   ENDIF(NOT DEFINED VIENNADATA_INC_DIR)
+
+   IF(NOT DEFINED VIENNAUTILS_INC_DIR)   
+      SET(VIENNAUTILS_INC_DIR "../ViennaUtils/")
+   ENDIF(NOT DEFINED VIENNAUTILS_INC_DIR)
+   IF(NOT DEFINED VIENNAUTILS_LIB_DIR)      
+      SET(VIENNAUTILS_LIB_DIR "../ViennaUtils/build/lib")        
+   ENDIF(NOT DEFINED VIENNAUTILS_LIB_DIR)       
+ENDIF(VIENNAMESH_USE_INTERNAL)
+
 
 # ------------------------------------------------------------------------------
 #
@@ -104,38 +143,31 @@ IF(ENABLE_GTSIO)
    find_package(ZLIB REQUIRED)
 ENDIF(ENABLE_GTSIO)
 
+# check for the ViennaUtils
+#
+find_package(VIENNAUTILS REQUIRED)
+include_directories(${VIENNAUTILS_INCLUDE_DIRS})
+
+# check for the ViennaGrid
+#
+find_package(VIENNAGRID REQUIRED)
+include_directories(${VIENNAGRID_INCLUDE_DIRS})
+
+# check for the ViennaData
+#
+find_package(VIENNADATA REQUIRED)
+include_directories(${VIENNADATA_INCLUDE_DIRS})
+
 # ------------------------------------------------------------------------------
 #
 # *** PROCESS RELATED CMAKE PROJECTS ***
 #
 # ------------------------------------------------------------------------------
-IF(VIENNAMESH_USE_INTERNAL)
-   message(STATUS "Using Internal ViennaStar Projects")
-   INCLUDE_DIRECTORIES("external/ViennaGrid/")
-   INCLUDE_DIRECTORIES("external/ViennaData/")
-   INCLUDE_DIRECTORIES("external/ViennaUtils/")
-   INCLUDE_DIRECTORIES("external/ViennaUtils/external/")
-ELSE(VIENNAMESH_USE_INTERNAL)
-   message(STATUS "Using External ViennaStar Projects")
-   INCLUDE_DIRECTORIES("../ViennaGrid/")
-   INCLUDE_DIRECTORIES("../ViennaData/")
-   INCLUDE_DIRECTORIES("../ViennaUtils/")
-   INCLUDE_DIRECTORIES("../ViennaUtils/external/")
-ENDIF(VIENNAMESH_USE_INTERNAL)
-
-
 # build external libraries
 #   those have to be build bevore the collected include 
 #   hierarchy of viennamesh is established here
 #   otherwise the netgen and vgmodeler libraries won't compile
 ADD_SUBDIRECTORY(external)
-
-# build ViennaUtils:pugixml support
-IF(VIENNAMESH_USE_INTERNAL)
-ADD_SUBDIRECTORY(external/ViennaUtils/external/pugixml/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/pugixml/")
-ELSE(VIENNAMESH_USE_INTERNAL)
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/../ViennaUtils/external/pugixml/ "${CMAKE_CURRENT_BINARY_DIR}/ViennaUtils/external/pugixml/")
-ENDIF(VIENNAMESH_USE_INTERNAL)
 
 INCLUDE_DIRECTORIES(".")
 INCLUDE_DIRECTORIES("external/triangle-1.6/")
