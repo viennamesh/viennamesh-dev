@@ -13,6 +13,15 @@ ENDIF(BUILD_TESTING)
 
 # ------------------------------------------------------------------------------
 #
+# *** INSTALL PATHS ***
+#
+# ------------------------------------------------------------------------------
+#message(STATUS "installpath: ${CMAKE_INSTALL_PREFIX}")
+set(VIENNAMESH_BIN_PATH "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
+
+# ------------------------------------------------------------------------------
+#
 # *** SET FLAGS ***
 #
 # ------------------------------------------------------------------------------
@@ -51,6 +60,45 @@ IF(VIENNAMESH_USE_MPI)
    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
    include_directories(MPI_INCLUDE_PATH)
 ENDIF(VIENNAMESH_USE_MPI)
+
+# ------------------------------------------------------------------------------
+#
+# *** SET VIENNASTAR PATHS ***
+#
+# ------------------------------------------------------------------------------
+IF(VIENNAMESH_USE_INTERNAL)
+   message(STATUS "Using Internal ViennaStar Projects")
+   IF(NOT DEFINED VIENNAGRID_INC_DIR)
+      SET(VIENNAGRID_INC_DIR "../external/ViennaGrid/")
+   ENDIF(NOT DEFINED VIENNAGRID_INC_DIR)
+
+   IF(NOT DEFINED VIENNADATA_INC_DIR)
+      SET(VIENNADATA_INC_DIR "../external/ViennaData/")
+   ENDIF(NOT DEFINED VIENNADATA_INC_DIR)
+
+   IF(NOT DEFINED VIENNAUTILS_INC_DIR)
+      SET(VIENNAUTILS_INC_DIR "../external/ViennaUtils/")
+   ENDIF(NOT DEFINED VIENNAUTILS_INC_DIR)
+   IF(NOT DEFINED VIENNAUTILS_LIB_DIR)   
+      SET(VIENNAUTILS_LIB_DIR "../external/ViennaUtils/build/lib")         
+   ENDIF(NOT DEFINED VIENNAUTILS_LIB_DIR)   
+ELSE(VIENNAMESH_USE_INTERNAL)
+   message(STATUS "Using External ViennaStar Projects")
+   IF(NOT DEFINED VIENNAGRID_INC_DIR)
+      SET(VIENNAGRID_INC_DIR "../../ViennaGrid/")
+   ENDIF(NOT DEFINED VIENNAGRID_INC_DIR)
+
+   IF(NOT DEFINED VIENNADATA_INC_DIR)
+      SET(VIENNADATA_INC_DIR "../../ViennaData/")
+   ENDIF(NOT DEFINED VIENNADATA_INC_DIR)
+
+   IF(NOT DEFINED VIENNAUTILS_INC_DIR)   
+      SET(VIENNAUTILS_INC_DIR "../../ViennaUtils/")
+   ENDIF(NOT DEFINED VIENNAUTILS_INC_DIR)
+   IF(NOT DEFINED VIENNAUTILS_LIB_DIR)      
+      SET(VIENNAUTILS_LIB_DIR "../../ViennaUtils/build/lib")        
+   ENDIF(NOT DEFINED VIENNAUTILS_LIB_DIR)       
+ENDIF(VIENNAMESH_USE_INTERNAL)
 
 # ------------------------------------------------------------------------------
 #
@@ -101,25 +149,26 @@ IF(ENABLE_GTSIO)
    find_package(ZLIB REQUIRED)
 ENDIF(ENABLE_GTSIO)
 
+# check for the ViennaUtils
+#
+find_package(VIENNAUTILS REQUIRED)
+include_directories(${VIENNAUTILS_INCLUDE_DIRS})
+
+# check for the ViennaGrid
+#
+find_package(VIENNAGRID REQUIRED)
+include_directories(${VIENNAGRID_INCLUDE_DIRS})
+
+# check for the ViennaData
+#
+find_package(VIENNADATA REQUIRED)
+include_directories(${VIENNADATA_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------
 #
 # *** PROCESS RELATED CMAKE PROJECTS ***
 #
 # ------------------------------------------------------------------------------
-IF(ENABLE_INTERNALVIENNASTAR)
-   message(STATUS "Using Internal ViennaStar Projects")
-   INCLUDE_DIRECTORIES("../external/ViennaGrid/")
-   INCLUDE_DIRECTORIES("../external/ViennaData/")
-   INCLUDE_DIRECTORIES("../external/ViennaUtils/")
-   INCLUDE_DIRECTORIES("../external/ViennaUtils/external/")
-ELSE(ENABLE_INTERNALVIENNASTAR)
-   message(STATUS "Using External ViennaStar Projects")
-   INCLUDE_DIRECTORIES("../../ViennaGrid/")
-   INCLUDE_DIRECTORIES("../../ViennaData/")
-   INCLUDE_DIRECTORIES("../../ViennaUtils/")
-   INCLUDE_DIRECTORIES("../../ViennaUtils/external/")
-ENDIF(ENABLE_INTERNALVIENNASTAR)
 
 # build external libraries
 ADD_SUBDIRECTORY(../external "${CMAKE_CURRENT_BINARY_DIR}/external")

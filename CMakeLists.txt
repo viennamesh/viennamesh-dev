@@ -38,7 +38,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    # and switched of compiler warnings (-w)
    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -w")  
    # Strip release binaries   
-   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
+   #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
 
    # add specific debug flags
    IF(CMAKE_BUILD_TYPE MATCHES Debug)
