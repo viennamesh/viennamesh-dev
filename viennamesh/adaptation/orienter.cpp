@@ -15,10 +15,10 @@
 
 // *** local includes
 #include "viennamesh/adaptation/orienter.hpp"
-#include "viennamesh/algorithms.hpp"
+#include "viennamesh/data.hpp"
 
 // *** vienna includes
-#include "viennamesh/data.hpp"
+#include "viennautils/geometry/barycenter.hpp"
 #include "viennadata/api.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"
 
@@ -133,7 +133,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
 
       // compute the cells barycenter
       //         
-      PointType bc = viennamesh::barycenter(cell_points[0], cell_points[1], cell_points[2]);
+      PointType bc = viennautils::barycenter(cell_points[0], cell_points[1], cell_points[2]);
       
       // compute the cell normal
       //

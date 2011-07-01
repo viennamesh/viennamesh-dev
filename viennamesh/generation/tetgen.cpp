@@ -21,11 +21,11 @@
 
 // *** vienna includes
 #include "viennautils/dumptype.hpp"
+#include "viennautils/geometry/barycenter.hpp"
 #include "viennagrid/domain.hpp"
 
 // *** local includes
 #include "viennamesh/generation/tetgen.hpp"
-#include "viennamesh/algorithms.hpp"
 
 // *** boost includes
 #include <boost/fusion/include/has_key.hpp>
@@ -493,7 +493,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_p
                 temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+1)],
                 temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+2)]);
 
-   pnt = viennamesh::barycenter(pnt1, pnt2, pnt3, pnt4);
+   pnt = viennautils::barycenter(pnt1, pnt2, pnt3, pnt4);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
@@ -577,7 +577,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(DatastructureT&
                        temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+1)],
                        temp_mesher.out->pointlist[(temp_mesher.out->tetrahedronlist[3]*DIMG+2)]}};
 
-   pnt = viennamesh::barycenter(pnt1, pnt2, pnt3, pnt4);
+   pnt = viennautils::barycenter(pnt1, pnt2, pnt3, pnt4);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..

@@ -22,10 +22,10 @@
 #include "viennautils/dumptype.hpp"
 #include "viennagrid/domain.hpp"
 #include "viennamesh/wrapper.hpp"
+#include "viennautils/geometry/barycenter.hpp"
 
 // *** local includes
 #include "viennamesh/generation/triangle.hpp"
-#include "viennamesh/algorithms.hpp"
 
 // *** boost includes
 
@@ -482,7 +482,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
                    temp_mesher.out->pointlist[(temp_mesher.out->trianglelist[2]*DIMG+1)]);
 
 
-      pnt = viennamesh::barycenter(pnt1, pnt2, pnt3);
+      pnt = viennautils::barycenter(pnt1, pnt2, pnt3);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
@@ -556,7 +556,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(Datastructure
                      temp_mesher.out->pointlist[(temp_mesher.out->trianglelist[2]*DIMG+1)]}};
 
 
-   pnt = viennamesh::barycenter(pnt1, pnt2, pnt3);
+   pnt = viennautils::barycenter(pnt1, pnt2, pnt3);
 
 //   #ifdef MESH_KERNEL_DEBUG_FULL
 //      // export the current segment to a vtk file, to investigate it ..
