@@ -103,14 +103,6 @@ SET_TARGET_PROPERTIES(vgmodeler_stltopo PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_
 
 ADD_LIBRARY(vgmodeler_meshstl STATIC stlgeom/meshstlsurface.cpp)
 SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/")
-
-#set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version")
-#set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version -Wl,-Bsymbolic")
-#set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-Bsymbolic")
-
-#ADD_LIBRARY(vgmodeler_hull SHARED vgmodeler.cpp)
-#TARGET_LINK_LIBRARIES(vgmodeler_hull vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-#SET_TARGET_PROPERTIES(vgmodeler_hull PROPERTIES LINK_FLAGS "-shared -Wl,--version-script=/home/weinbub/git/ViennaMesh/external/vgmodeler-2.0/vgmodeler/hull_adaption/vgmodeler.version")
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------

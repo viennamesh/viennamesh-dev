@@ -64,7 +64,7 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(DatastructureT& data)
 { 
    this->init();      
 
-   options = "zpD";  // conforming delaunay
+   options = "zpDq";  // conforming, quality delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 
@@ -201,7 +201,7 @@ mesh_kernel<viennamesh::tag::triangle>::result_type
 mesh_kernel<viennamesh::tag::triangle>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::line_2d> > hull_domain) 
 {
    this->init();         
-   options = "zpD";  // conforming delaunay
+   options = "zpDq";  // conforming, quality delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 
