@@ -28,6 +28,7 @@
 #include "viennamesh/generation/tetgen.hpp"
 
 // *** boost includes
+#include <boost/make_shared.hpp>
 #include <boost/fusion/include/has_key.hpp>
 #include <boost/fusion/include/at_key.hpp>
 
@@ -200,6 +201,12 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(DatastructureT& data)
    
    return domain;
 
+}
+// --------------------------------------------------------------------------
+mesh_kernel<viennamesh::tag::tetgen>::result_type 
+mesh_kernel<viennamesh::tag::tetgen>::operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain) 
+{
+   return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::triangular_3d> >(hull_domain));
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::tetgen>::result_type 

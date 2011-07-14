@@ -74,6 +74,7 @@ public:
    template<typename DatastructureT>
    result_type operator()(DatastructureT& data);
    // --------------------------------------------------------------------------     
+   result_type operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain); 
    result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain); 
    // --------------------------------------------------------------------------     
    

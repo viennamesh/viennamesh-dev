@@ -76,6 +76,7 @@ struct mesh_kernel <viennamesh::tag::triangle>
    template<typename DatastructureT>
    result_type operator()(DatastructureT& data);
    // --------------------------------------------------------------------------     
+   result_type operator()(viennagrid::domain<viennagrid::config::line_2d>& hull_domain);    
    result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::line_2d> > hull_domain); 
    // --------------------------------------------------------------------------     
    

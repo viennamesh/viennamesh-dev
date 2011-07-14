@@ -236,6 +236,7 @@ ADD_EXECUTABLE(vol_adapt_hull src/generate_volume_of_adapt_hull.cpp)
 ADD_EXECUTABLE(meta_sel       src/meta_selector.cpp)
 ADD_EXECUTABLE(tetgen_test    src/tetgen.cpp)
 ADD_EXECUTABLE(triangle_test  src/triangle.cpp)
+ADD_EXECUTABLE(direct_domain  src/direct_domain_input.cpp)
 
 # ------------------------------------------------------------------------------
 #
@@ -250,6 +251,7 @@ TARGET_LINK_LIBRARIES(vol_adapt_hull   viennamesh)
 TARGET_LINK_LIBRARIES(meta_sel         viennamesh)
 TARGET_LINK_LIBRARIES(tetgen_test      viennamesh)
 TARGET_LINK_LIBRARIES(triangle_test    viennamesh)
+TARGET_LINK_LIBRARIES(direct_domain    viennamesh)
 
 # ------------------------------------------------------------------------------
 #
@@ -392,5 +394,5 @@ ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 ADD_TEST(meta_sel       meta_sel)
 ADD_TEST(tetgen_test    tetgen_test ../../input/after_line_tri.bnd)      
 ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
-
+ADD_TEST(direct_domain  direct_domain ../../input/after_line_tri.bnd)      
 

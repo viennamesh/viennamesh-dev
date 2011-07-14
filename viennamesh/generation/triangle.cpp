@@ -28,7 +28,7 @@
 #include "viennamesh/generation/triangle.hpp"
 
 // *** boost includes
-
+#include <boost/make_shared.hpp>
 
 // *** Triangle includes
 // note: macros need to be set before including triangle.h ..
@@ -195,6 +195,12 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(DatastructureT& data)
       this->clear();   
       
       return domain;   
+}
+// --------------------------------------------------------------------------
+mesh_kernel<viennamesh::tag::triangle>::result_type 
+mesh_kernel<viennamesh::tag::triangle>::operator()(viennagrid::domain<viennagrid::config::line_2d>& hull_domain) 
+{
+   return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::line_2d> >(hull_domain));
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::triangle>::result_type 

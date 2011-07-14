@@ -476,6 +476,13 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
 //      this->dump_histogram(histogram, "  ", std::cout);
    }
    // -------------------------------------------------------------------------------------    
+    
+   // -------------------------------------------------------------------------------------    
+   boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
+   operator()(viennagrid::domain<viennagrid::config::tetrahedral_3d>& domain ) // ONLY A 3D SIMPLEX VERSION IMPLMEENTED ..
+   {   
+      return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::tetrahedral_3d> >(domain));   
+   }   
    
    // -------------------------------------------------------------------------------------    
    boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >

@@ -20,20 +20,20 @@
 #include "viennamesh/generation.hpp"
 #include "viennamesh/adaptation.hpp"
 #include "viennamesh/classification.hpp"
-
+#include "viennamesh/io.hpp"
 
 //
-// mesh the data provided by the wrapped datastructure
+// generate high-quality 3d meshes
 //
 template<typename WrappedDatastructureT>
-void process(WrappedDatastructureT& data)
+void process_3d(WrappedDatastructureT& data, std::string const& outputfile)
 {
    // prepare a hull mesher
    //   generates a 2-simplex unstructured mesh embedded in a three-dimensional
    //   geometrical space
    //
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        cervpt_hull_mesh_generator_type;
-   cervpt_hull_mesh_generator_type     hull_mesher;      
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::cervpt>::type        hull_mesh_generator_type;
+   hull_mesh_generator_type     hull_mesher;      
 
    // prepare a orientation adaptor
    //   this mesh adaptation tool orients the hull mesh elements in counter-clockwise 
@@ -57,43 +57,11 @@ void process(WrappedDatastructureT& data)
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
    hull_quality_adaptor_type           hull_quality;                  
 
-   // derive the result type of the hull mesh
-   //
-   typedef cervpt_hull_mesh_generator_type::result_type       hull_result_type;
-
-   // execute the functor chain: 
-   //   1. generate a hull mesh of the input geometry (the inner most functor)
-   //   2. impose the cell orientation
-   //   3. compute the cell normals of the oriented hull mesh
-   // store this non-quality adapted hull mesh result for later comparisons
-   //
-   hull_result_type hull_mesh = cell_normals(orienter(hull_mesher(data)));
-   
-   // additionally to the hull meshing, improve the quality of the mesh
-   // and store the result in a different result, for comparison 
-   //
-   hull_result_type adapted_hull_mesh = hull_quality(hull_mesh);
-
-   // optionally, one can dump the oriented hull mesh with the computed cell normals
-   // the cell normals can be verified when utilizing paraview:
-   //   apply modules: cell-center and glyph
-#ifdef DUMP_HULL_MESH
-         typedef hull_result_type::value_type                                                      hull_domain_type;
-         typedef hull_domain_type::config_type                                                     hull_domain_configuration_type;
-         typedef viennagrid::result_of::ncell_type<hull_domain_configuration_type, hull_domain_configuration_type::cell_tag::topology_level>::type     hull_cell_type;
-         viennagrid::io::vtk_writer<hull_domain_type>  my_hull_vtk_writer;
-         my_hull_vtk_writer.add_cell_data_normal(
-            viennagrid::io::io_data_accessor_segment_based<
-               hull_cell_type, viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
-            >(viennagrid::seg_cell_normal_tag()), "cell_normals");
-         my_hull_vtk_writer.writeDomain(*hull_mesh, "hull_mesh.vtu");
-#endif
-
    // prepare a volume mesh generator
    //
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
-   netgen_volume_mesh_generator_type       volume_mesher;      
-   
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        volume_mesh_generator_type;
+   volume_mesh_generator_type       volume_mesher;      
+
    // and a mesh classification tool
    //   this tool investigates the quality of the mesh and provides us therefore 
    //   with feedback how 'good' a mesh is
@@ -101,40 +69,54 @@ void process(WrappedDatastructureT& data)
    typedef viennamesh::result_of::mesh_classifier<viennamesh::tag::vgmodeler>::type    mesh_classifier_type;
    mesh_classifier_type mesh_classifier;
 
-   // setup the volume mesh result type
+   typedef volume_mesh_generator_type::result_type domainsp_type;
+
+   // execute the functor chain: 
+   //   1. generate a hull mesh of the input geometry (the inner most functor)
+   //   2. impose consistent ccw cell orientation
+   //   3. compute the cell normals of the oriented hull mesh
+   //   4. improve the quality of the hull mesh
+   //   5. do the volume meshing
+   //   6. investigate mesh quality
    //
-   typedef netgen_volume_mesh_generator_type::result_type       volume_result_type;
-   
-   // execute the volume meshing functor chain and investigate the mesh quality
-   // based on the non-quality improved hull mesh
+
+   domainsp_type domainsp = mesh_classifier(volume_mesher(hull_quality(cell_normals(orienter(hull_mesher(data))))));
+
+   // write paraview/vtk output
    //
-   volume_result_type volume_mesh = mesh_classifier(volume_mesher(hull_mesh));
-   
-   // do the same with the quality improved hull mesh
+   viennamesh::io::domainwriter(domainsp, outputfile);
+}
+
+//
+// generate 2d meshes
+//
+template<typename WrappedDatastructureT>
+void process_2d(WrappedDatastructureT& data, std::string const& outputfile)
+{
+   typedef typename viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        mesh_generator_type;
+   mesh_generator_type  mesher;
+
+   typedef typename mesh_generator_type::result_type       result_type;   
+
+   result_type result = mesher(data);
+
+   // write paraview/vtk output
    //
-   volume_result_type adapted_volume_mesh = mesh_classifier(volume_mesher(adapted_hull_mesh));
-   
-   typedef volume_result_type::value_type                                               volume_domain_type;         
-   
-   // write both volume meshes to vtk files to be investigated by paraview
-   //
-   viennagrid::io::vtk_writer<volume_domain_type>  my_volume_vtk_writer;         
-   my_volume_vtk_writer.writeDomain(*volume_mesh, "volume_mesh.vtu");
-   my_volume_vtk_writer.writeDomain(*adapted_volume_mesh, "adapted_volume_mesh.vtu");         
+   viennamesh::io::domainwriter(result, outputfile);
 }
 
 int main(int argc, char *argv[])
 {
-   if(argc != 2)
+   if(argc != 3)
    {
-      std::cerr << "## Parameter Error - usage: " << argv[0] << " inputfile.{hin,bnd}" << std::endl;
+      std::cerr << "## Parameter Error - usage: " << argv[0] << " inputfile.{hin,bnd} outputfile" << std::endl;
       std::cerr << "## shutting down .." << std::endl;
       return -1;
    }
    
   
    std::string inputfile(argv[1]);
-
+   std::string outputfile(argv[2]);
    std::cout << "## " << argv[0] << " processing file: " << inputfile << std::endl;
    
    std::string input_extension  = viennautils::file_extension(inputfile);
@@ -156,7 +138,11 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process(wrapped_data);
+      if(my_bnd_reader.dim_geom() == 3)
+         process_3d(wrapped_data, outputfile);
+      else if(my_bnd_reader.dim_geom() == 2)
+         process_2d(wrapped_data, outputfile);      
+
    }
    else
    if(input_extension == "hin")
@@ -173,8 +159,43 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process(wrapped_data);
+      process_3d(wrapped_data, outputfile);
    }
+   else
+   if(input_extension == "gau32")
+   {
+      typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+      domain_type domain;
+      
+      viennagrid::io::importGAU(domain, inputfile);
+
+      // the reader datastructure is wrapped to offer a specific interface
+      //
+      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      viennagrid_wrapper_type;
+      viennagrid_wrapper_type                    wrapped_data(domain);         
+
+      // mesh this data
+      //
+      process_3d(wrapped_data, outputfile);
+   }   
+   else
+   if(input_extension == "sgf") 
+   {
+      typedef viennagrid::domain<viennagrid::config::line_2d>     domain_type;
+      domain_type domain;
+      
+      viennagrid::io::sgf_reader my_sgf_reader;
+      my_sgf_reader(domain, inputfile);   
+
+      // the reader datastructure is wrapped to offer a specific interface
+      //
+      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      viennagrid_wrapper_type;
+      viennagrid_wrapper_type                    wrapped_data(domain);         
+
+      // mesh this data
+      //
+      process_2d(wrapped_data, outputfile);
+   }      
    else
    {
       std::cerr << "## input file format not supported: " << input_extension << std::endl;

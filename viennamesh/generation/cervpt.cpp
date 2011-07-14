@@ -19,7 +19,7 @@
 
 // *** cervpt includes
 #include "cervpt/poly2tri.hpp" 
-
+ 
 namespace viennamesh {
 
 mesh_kernel<viennamesh::tag::cervpt>::mesh_kernel()
@@ -216,6 +216,9 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh:
 
 template mesh_kernel<viennamesh::tag::cervpt>::result_type 
 mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
+
+template mesh_kernel<viennamesh::tag::cervpt>::result_type 
+mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::viennagrid, viennagrid::domain<viennagrid::config::triangular_3d> >& data);
 // -----------------------------------------------------------------------------
 
 } // end namespace viennamesh

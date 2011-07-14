@@ -699,7 +699,9 @@ struct poly2tri
    void add_constraint(ConstraintT const& constraint)
    {
       poly_type   poly(constraint.size());
-      std::copy(constraint.begin(), constraint.end(), poly.begin());
+      //std::copy(constraint.begin(), constraint.end(), poly.begin());
+      for(std::size_t i = 0; i < poly.size(); i++)
+         poly[i] = constraint[i];
       polys.push_back(poly);
    }
    

@@ -23,6 +23,7 @@
 #include "viennagrid/algorithm/cross_prod.hpp"
 
 // *** boost includes 
+#include <boost/make_shared.hpp>
 #include <boost/array.hpp>
 
 // *** cgal includes
@@ -56,6 +57,13 @@ mesh_adaptor<viennamesh::tag::orienter>::~mesh_adaptor()
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - shutting down" << std::endl;
    #endif
+}
+// --------------------------------------------------------------------------
+mesh_adaptor<viennamesh::tag::orienter>::result_type 
+mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type domain)
+{
+   // forwarding to main implementation
+   return (*this)(boost::make_shared<domain_type>(domain));
 }
 // --------------------------------------------------------------------------
 mesh_adaptor<viennamesh::tag::orienter>::result_type 

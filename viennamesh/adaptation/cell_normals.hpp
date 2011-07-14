@@ -25,6 +25,9 @@
 #include "viennagrid/algorithm/cell_normals.hpp"
 #include "viennadata/api.hpp"
 
+// *** boost includes
+#include <boost/make_shared.hpp>
+
 //#define MESH_ADAPTOR_DEBUG_FULL
 
 namespace viennamesh {
@@ -42,6 +45,14 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - initiating .." << std::endl;
    #endif         
+   }
+   // -------------------------------------------------------------------------------------
+
+   // -------------------------------------------------------------------------------------
+   result_type operator()(domain_type domain)
+   {
+      // forwarding to main implementation
+      return (*this)(boost::make_shared<domain_type>(domain));   
    }
    // -------------------------------------------------------------------------------------
 

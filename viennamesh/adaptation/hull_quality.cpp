@@ -21,7 +21,8 @@
 #include "viennagrid/algorithm/cell_normals.hpp"
 
 // *** boost includes
-#include "boost/array.hpp"
+#include <boost/make_shared.hpp>
+#include <boost/array.hpp>
 
 // *** vgmodeler includes
 #include "vgmodeler/hull_adaption/vgmodeler.hpp"
@@ -45,6 +46,13 @@ mesh_adaptor<viennamesh::tag::hull_quality>::~mesh_adaptor()
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - shutting down" << std::endl;
    #endif
+}
+// --------------------------------------------------------------------------
+mesh_adaptor<viennamesh::tag::hull_quality>::result_type 
+mesh_adaptor<viennamesh::tag::hull_quality>::operator()(domain_type domain)
+{
+   // forwarding to main implementation
+   return (*this)(boost::make_shared<domain_type>(domain));
 }
 // --------------------------------------------------------------------------
 mesh_adaptor<viennamesh::tag::hull_quality>::result_type 

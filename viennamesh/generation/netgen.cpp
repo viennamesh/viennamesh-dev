@@ -22,7 +22,11 @@
 #include "viennautils/dumptype.hpp"
 #include "viennagrid/domain.hpp"
 
+// *** local includes
 #include "netgen.hpp"
+
+// *** boost includes 
+#include <boost/make_shared.hpp>
 
 namespace nglib {
 #include "nglib.h"
@@ -164,6 +168,12 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data)
 
    return domain;
 
+}
+// --------------------------------------------------------------------------
+mesh_kernel<viennamesh::tag::netgen>::result_type 
+mesh_kernel<viennamesh::tag::netgen>::operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain) 
+{
+   return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::triangular_3d> >(hull_domain));
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::netgen>::result_type 
