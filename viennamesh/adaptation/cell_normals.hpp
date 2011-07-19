@@ -28,7 +28,7 @@
 // *** boost includes
 #include <boost/make_shared.hpp>
 
-//#define MESH_ADAPTOR_DEBUG_FULL
+#define MESH_ADAPTOR_DEBUG_FULL
 
 namespace viennamesh {
 
@@ -49,7 +49,7 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
    // -------------------------------------------------------------------------------------
 
    // -------------------------------------------------------------------------------------
-   result_type operator()(domain_type domain)
+   result_type operator()(domain_type& domain)
    {
       // forwarding to main implementation
       return (*this)(boost::make_shared<domain_type>(domain));   
@@ -67,6 +67,10 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
       std::cout << "   computing the cell normals" << std::endl;
    #endif            
       viennagrid::assign_cell_normals(*domain);
+
+      // NOTE the following correction should not be necc anymore, 
+      // as the viennagrid cell normals algorithm stores the normals specific 
+      // to the segments - therefore nothing has to be corrected!
 
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "   correcting interface cell normals" << std::endl;
@@ -102,21 +106,10 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
             #ifdef MESH_ADAPTOR_DEBUG_FULL
                std::cout << "      segment: " << si << " cell: " << cit->getID() << ": correcting .. " << std::endl;
             #endif            
-//               std::cout << "         pre: " <<                viennadata::access<
-//                  viennagrid::seg_cell_normal_tag,         // key-type
-//                  viennagrid::seg_cell_normal_data::type   // data-type
-//               >()(*cit)[si] << std::endl;
-            
                viennadata::access<
                   viennagrid::seg_cell_normal_tag,         // key-type
                   viennagrid::seg_cell_normal_data::type   // data-type
                >()(*cit)[si] *= -1;
-
-//               std::cout << "         post: " <<                viennadata::access<
-//                  viennagrid::seg_cell_normal_tag,         // key-type
-//                  viennagrid::seg_cell_normal_data::type   // data-type
-//               >()(*cit)[si] << std::endl;
-
             }
          }
       }

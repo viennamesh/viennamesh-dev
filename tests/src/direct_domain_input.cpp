@@ -19,6 +19,7 @@
 #include "viennamesh/wrapper.hpp"
 #include "viennamesh/generation.hpp"
 #include "viennamesh/adaptation.hpp"
+#include "viennamesh/io.hpp"
 
 template<typename DomainT>
 int meshing(DomainT& domain)
@@ -26,13 +27,14 @@ int meshing(DomainT& domain)
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
    orienter_adaptor_type                  orienter;
    
-   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
-   hull_quality_adaptor_type              hull_quality;                  
+   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cell_normals_adaptor_type;
+   cell_normals_adaptor_type           cell_normals;               
+   
+   typedef orienter_adaptor_type::result_type  domain_result_type;
 
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        netgen_volume_mesh_generator_type;
-   netgen_volume_mesh_generator_type      volume_mesher;      
+   domain_result_type domainres = cell_normals(orienter(domain));
 
-   volume_mesher(hull_quality(orienter(domain)));
+   viennamesh::io::domainwriter(domainres, "output"); 
 
    return 0;
 }

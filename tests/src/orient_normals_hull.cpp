@@ -30,12 +30,12 @@ int meshing(WrappedDataT& wrapped_data)
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type        orienter_adaptor_type;
    orienter_adaptor_type               orienter;
    
-   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
-   hull_quality_adaptor_type           hull_quality;                  
+   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cell_normals_adaptor_type;
+   cell_normals_adaptor_type           cell_normals;            
+   
+   typedef cervpt_hull_mesh_generator_type::result_type  domain_result_type;
 
-   typedef hull_quality_adaptor_type::result_type  domain_result_type;
-
-   domain_result_type domainres = hull_quality(orienter(hull_mesher(wrapped_data)));
+   domain_result_type domainres = cell_normals(orienter(hull_mesher(wrapped_data)));
 
    viennamesh::io::domainwriter(domainres, "output"); 
 
@@ -75,7 +75,6 @@ int process_file(std::string filename)
       std::cerr << "Error: Fileformat not supported of input file: " << filename << std::endl;
       return -1;
    }
-   return 0;
 }
 
 int main(int argc, char *argv[])

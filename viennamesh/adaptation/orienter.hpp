@@ -77,7 +77,7 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    mesh_adaptor();
   ~mesh_adaptor();
    // --------------------------------------------------------------------------     
-   result_type operator()(domain_type domain);
+   result_type operator()(domain_type& domain);
    result_type operator()(input_type  domain);
    // --------------------------------------------------------------------------     
 private:

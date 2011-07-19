@@ -19,6 +19,7 @@
 #include "viennautils/convert.hpp"
 #include "viennautils/contio.hpp"
 #include "viennautils/dumptype.hpp"
+#include "viennautils/io.hpp"
 
 #include "viennagrid/domain.hpp"
 #include "viennagrid/io/vtk_writer.hpp"

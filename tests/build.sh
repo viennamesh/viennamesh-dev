@@ -5,7 +5,7 @@ echo "cores: " $CORES
 
 mkdir -p build/
 cd build/
-cmake -D CMAKE_BUILD_TYPE=Release\
+cmake -D CMAKE_BUILD_TYPE=Debug\
       -D CGAL_INC_DIR=$CGALINC\
       -D CGAL_LIB_DIR=$CGALLIB\
       ../
