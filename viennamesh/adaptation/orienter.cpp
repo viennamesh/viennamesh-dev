@@ -593,7 +593,7 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter_recursive(SegmentT& 
 
    for (EdgeOnCellIterator eocit = edges.begin(); eocit != edges.end(); ++eocit)
    {
-      CellOnEdgeContainer cells = viennagrid::ncells<CellTag::topology_level>(*eocit, segment);
+	   CellOnEdgeContainer cells = viennagrid::ncells<CellTag::topology_level>(*eocit, segment);
       for (CellOnEdgeIterator coeit = cells.begin(); coeit != cells.end(); ++coeit)
       {         
          if(viennadata::access<viennamesh::data::orient, int>()(*coeit) == 0)

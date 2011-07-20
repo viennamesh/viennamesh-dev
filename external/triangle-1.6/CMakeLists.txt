@@ -5,7 +5,11 @@ INCLUDE_DIRECTORIES("triangle/")
 
 # we experienced problems when we imposed higher optimizations than -O1
 IF(CMAKE_COMPILER_IS_GNUCXX)
-   ADD_DEFINITIONS(-O1 -DTRILIBRARY -DLINUX)# -I/usr/X11R6/include -L/usr/X11R6/lib)
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    ADD_DEFINITIONS(-O1 -DTRILIBRARY)
+  ELSEIF() 
+    ADD_DEFINITIONS(-O1 -DTRILIBRARY -DLINUX)
+  ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")   
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 ADD_LIBRARY(triangle STATIC triangle/triangle.c)

@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.6)
 #if you don't want the full compiler output, remove the following line
 #SET(CMAKE_VERBOSE_MAKEFILE ON)
 
+#set(CMAKE_CXX_FLAGS_RELEASE "-arch i386")  
+
 # set the include paths
 INCLUDE_DIRECTORIES("netgen/")
 INCLUDE_DIRECTORIES("netgen/nglib/")
