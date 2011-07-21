@@ -1,0 +1,821 @@
+/* ***********************************************************************
+   $Id: numerics_lu.tt,v 1.15 2004/07/31 11:17:55 mmntuser Exp $
+
+   Filename: numerics_lu.tt
+
+   Description:  Direct solver (LU factorization and solving) (templates)
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF  16 May 1996  created
+   CF  16 May 1996  factorization function started and done
+   CF  17 May 1996  inverse matrix multiplication function started and done
+   CF  25 May 1996  LU matrix class designed (in other file)
+   CF   2 Jul 1996  some cleanups and methodology
+   CF   2 Jul 1996  incorporated things from other file
+   SW   6 Feb 2002  qqq prefixed function names
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_lu_tt__included__
+#define   __numerics_lu_tt__included__
+
+#include <assert.h>
+
+/* 
+   The following code provides:
+
+   Class
+   qqqLUMatrix<Number>            ... LU matrix structure for direct solver
+   
+   Member functions
+   free()                         ... destroy all data
+
+   Functions
+   factorizeLU(A,K,...)           ... factorize A = L * U into K
+   invPrd(y,K,x)                  ... calculate y = K^-1 * x
+*/
+
+
+
+/* class qqqLUMatrix<Number>
+   =========================
+
+   This class provides a LU matrix structure for the direct solver.
+
+   The matrix structure consists of two matrices, L and U, each of which
+   is a triangular matrix (L a lower and U an upper triangular
+   structure).  The fill pattern can be described as a 'Manhattan'
+   structure. The L matrix consists of rows, each of which is filled
+   from a certain starting column up to the diagonal. Likewise, U
+   consists of columns each filled from a certain starting row up to the
+   diagonal. Diagonals of L are unity (not stored), and diagonals of U
+   are stored inverted in a separate array.
+
+   For a more precise description of the Manhattan format, see the
+   description of the function template 'factorizeLU'.
+ */
+#define LUMatrixPure qqqLUMatrix
+#define LUMatrix     LUMatrixPure<Number>
+#define MCSR         qqqMCSR<Number>
+#define Real         double
+#define Index        qqqIndex
+#define BogoFlops    qqqBogoFlops
+#define Error        qqqError
+
+template <class Number>
+class LUMatrixPure;
+
+template <class Number> class qqqMCSR;
+
+template <class Number>
+bool qqqFactorizeLU(MCSR const &, LUMatrix&, Index const,
+                    Index&, BogoFlops const, BogoFlops&, Error&);
+
+template <class Number>
+void qqqInvPrd (Number * const,LUMatrix const &,Number const * const);
+
+template <class Number>
+class LUMatrixPure
+{
+    /* Matrix data */
+    /* =========== */
+
+private:
+    Index  n;			/* Dimension of the matrix */
+    Number *valL;		/* Off diagonal entries of L matrix */
+    Number *valU;		/* Off diagonal entries of U matrix */
+    Number *valD;		/* Inverted diagonal entries of U matrix */
+    Index  *idxL;		/* Row start indices of L matrix */
+    Index  *idxU;		/* Column start indices of U matrix */
+
+public:
+
+    /* Access functions */
+    /* ================ */
+
+    /* Administration */
+    inline      LUMatrixPure();
+    inline      ~LUMatrixPure();
+    inline void free();
+    
+    /* Matrix manipulation */
+    friend bool qqqFactorizeLU<Number>(MCSR const &,   LUMatrix&, Index const, Index&, BogoFlops const, BogoFlops&, Error&);
+    friend void qqqInvPrd     <Number>(Number * const, LUMatrix const &, Number const * const);
+    friend class qqqMCSR<Number>;
+
+// #ifdef __ICC 
+//    template <class Number>
+//    friend bool qqqFactorizeLU(MCSR const &, LUMatrix&,Index const,Index&,BogoFlops const,BogoFlops&, Error&);
+//    template <class Number>
+//    friend void qqqInvPrd(Number * const, LUMatrix const &, Number const * const);
+// #else
+// #ifdef __DECCXX
+//    friend bool qqqFactorizeLU(MCSR const &, LUMatrix&, Index const, Index&, BogoFlops const, BogoFlops&, Error&);
+//    friend void qqqInvPrd(Number * const, LUMatrix const &, Number const * const);
+// #else
+// #ifdef __xlC__
+//    friend bool qqqFactorizeLU<Number>(MCSR const &, LUMatrix&, Index const, Index&, BogoFlops const, BogoFlops&, Error&);
+//    friend void qqqInvPrd<Number>(Number * const, LUMatrix const &, Number const * const);
+// #else
+//    /* This is the common/standard version (I think according to Stroustrup) */
+//    friend bool qqqFactorizeLU<>(MCSR const &,LUMatrix&,Index const,Index&,BogoFlops const,BogoFlops&,Error&);
+//    friend void qqqInvPrd<>(Number * const,LUMatrix const &,Number const * const);
+// #endif // __xlC__
+// #endif // __DECCXX
+// #endif // __ICC   
+};
+
+
+/* qqqLUMatrix()
+
+   Constructor function. Creates an empty matrix.
+   */
+template<class Number>
+inline
+LUMatrix::LUMatrixPure()
+{
+    n    = 0;
+    valL = 0;
+    valU = 0;
+    valD = 0;
+    idxL = 0;
+    idxU = 0;
+}
+
+
+/* free()
+
+   Free everything allocated in the matrix structure.
+   */
+template<class Number>
+inline void
+LUMatrix::free()
+{
+    n = 0;
+    if (valL) delete[] valL; valL = 0;
+    if (valU) delete[] valU; valU = 0;
+    if (valD) delete[] valD; valD = 0;
+    if (idxL) delete[] idxL; idxL = 0;
+    if (idxU) delete[] idxU; idxU = 0;
+}
+
+
+/* ~qqqLUMatrix()
+
+   Destructor function. Frees everything allocated and deletes matrix.
+   */
+template<class Number>
+inline
+LUMatrix::~LUMatrixPure()
+{
+    free();
+}
+#undef LUMatrixPure
+#undef LUMatrix
+#undef MCSR
+#undef Real
+#undef Index
+#undef BogoFlops
+#undef Error
+/* End of class qqqLUMatrix<Number> */
+
+
+
+/* factorizeLU()
+   
+   Factorize the input matrix A (in MCSR format) into a product of a
+   lower triangular matrix L and an upper triangular matrix U.
+
+   Completeness:
+   The factorization is done completely, i.e. no elements are dropped.
+   The resulting L and U matrix can be used for directly solving the
+   linear system (without an iteration process).
+
+   Sorting:
+   The LU factorization depends on the bandwidth of the matrix A, both
+   in space and time consumption. It is therefore necessary to apply
+   an ordering method (like Cuthill/McKee or such) to the matrix before
+   the factorization.
+
+   Output matrix structure:
+   The result of the factorization process is an L and an U matrix.
+   Both matrices show an occupation pattern that can be described as
+   'Manhattan' structure. The L matrix consists of rows, each of them
+   filled from a certain starting column up to the diagonal. The U matrix
+   shows columns each filled from a starting row up to the diagonal.
+   The storage format chosen represents this structure. For the L matrix,
+   slices are formed (one for each row), and stored one after another
+   in an array. For the U matrix, slices are formed for each column,
+   and then stored the same way. For both matrices, only off-diagonals
+   are stored in these slices. The diagonal entries of L are unity, and
+   the diagonals of U are stored inverted in a separate array.
+   These are the arrays in the structure K:
+   idxL[i] ... index of first value of slice of row i in valL.
+   idxL[0] ... 0 (slice for row 0 starts at zero offset).
+   idxL[n] ... index of virtual n-th slice.
+   idxU[i] ... index of first value of slice of col i in valU.
+   idxU[0] ... 0 (slice for row 0 starts at zero offset).
+   idxU[n] ... index of virtual n-th slice.
+   valL    ... slices of rows of L.
+   valU    ... slices of columns of U.
+   valD    ... inverted diagonal elements of U.
+   All slices end immediately before the diagonal, thus the element
+   L[i,j] can be found at valL[idxL[i+1]-i+j], and U[i,j] will be at
+   valU[idxU[j+1]-j+i], for e.g. valL[idxL[i+1]] would be the fictitious
+   place of the diagonal element of row i in L.
+
+   Space requirements:
+   The factorization may require a considerable amount of space. A limit
+   for the space used for the L and U matrices can be specified in the
+   maxspace parameter. This is then the maximum number of entries in
+   both matrices together. If maxspace is set to zero, unlimited space
+   may be used by the factorization (but still, there is the risk that
+   it cannot be allocated). If maxspace is set to -1, the function
+   returns successfully immediately after determining the space required
+   in the factorization, without performing any more operations.
+   Determining the space requirements itself takes O(nonzeros(A)) time
+   and O(dimension(A)) space for the index arrays.
+   If the function is successful, the allocated space is returned in the
+   structure of the matrix K.
+
+   Time requirements:
+   The factorization may require a considerable amount of time. A limit
+   for the time used for the factorization can be specified in the
+   maxflops parameter. This is then the maximum number of multiplications
+   and divisions of entries of type Number that may be performed during
+   factorization. If maxflops is set to zero, unlimited time may be used
+   by the factorization. If maxflops is set to -1, the function
+   returns successfully after the space and the number of BogoFlops
+   have been determined, without performing any more operations.
+   Determining the time requirements itself takes O(space) time and
+   O(dimension(A)) space for the index arrays.
+
+   Preconditions:
+   Some prerequisites are not checked in the function in order not to
+   increase execution time. Nevertheless they must be fulfilled. These
+   are (n is the dimension of A):
+   .) A.idx[0] must be n+1.
+   .) The elements of A.idx[0..n] must be in ascending order.
+   .) The elements of A.idx[n+1..A.idx[n]-1] must be in the range [0..n-1].
+   .) Duplicate column entries in the same row of A are explicitely allowed.
+   .) Column entries within a row of A need not be sorted.
+   .) The matrix A need not be symmetric.
+   .) The arrays for L, U, and D in structure K must not be allocated.
+
+   Errors:
+   If the factorization is successful, the function returns true and
+   the error parameter is not changed. Otherwise, the error parameter
+   will be set to one of the following values and meanings:
+   - qqqERR_DIRECT_NOT_MCSR     ... matrix is not MCSR but MCSC format
+   - qqqERR_DIRECT_MISALLOC     ... allocation of auxiliary arrays failed
+   - qqqERR_DIRECT_HUGE         ... space requirements exceed index range
+   - qqqERR_DIRECT_MAXSPACE     ... space requirements exceed limit
+   - qqqERR_DIRECT_MAXFLOPS     ... time requirements exceed limit
+   - qqqERR_DIRECT_ZERO_DIAG    ... zero diagonal element in U matrix,
+                                    error.getMatrixRow() indicates the row
+   - qqqERR_DIRECT_SMALL_DIAG   ... diagonal element in U matrix too small,
+                                    error.getMatrixRow() indicates the row 
+
+   Effort: O(nonzeros(A)) for determining space requirements,
+           O(space)       for determining time requirements,
+           O(time)        for factorizing.
+   BogoFlops: returned in flops.
+   Space: 2 * dimension(A) * sizeof(Index)  for determining space 
+                                            or time requirements,
+          2 * dimension(A) * sizeof(Index)
+            + space * sizeof(Number)        for factorizing.
+   */
+#define MCSR      qqqMCSR<Number>
+#define LUMatrix  qqqLUMatrix<Number>
+#define Real      double
+#define Index     qqqIndex
+#define BogoFlops qqqBogoFlops
+#define Error     qqqError
+template <class Number>
+bool				/* Factorization was successful. */
+qqqFactorizeLU(
+    MCSR      const &A,		/* Input matrix to be factorized. */
+    LUMatrix        &K,		/* Output factorized matrix. L and U in
+				   one matrix structure. */
+    Index     const maxspace,	/* Input maximum space, in Number sizes,
+				   that may be used for both L and U 
+				   together. 0 means unlimited space,
+				   -1 means return after determining
+				   the required space. */
+    Index           &space,	/* Output the space required for both
+				   L and U, in Number sizes. */
+    BogoFlops const maxflops,	/* Input maximum number of floating-point
+				   multiplications/divisions to be used. 
+				   0 means unlimited operations, -1 means
+				   return after determining the required
+				   number of operations. */
+    BogoFlops       &flops,	/* Output estimate of floating-point
+				   operations performed in the
+				   function.  This is rather an
+				   estimate for the number of
+				   multiplications. */
+    Error           &error	/* Output error information, in case
+				   the return value is false. */
+    )
+{
+    FunctionLog functionLog("factorizeLU");
+
+#if 0
+    printf("numerics_lu.tt (294): evidence message, maxspace=%ld (size=%d).\n", 
+	   qqqIndexToLong(maxspace), sizeof(Number));
+#endif
+
+    Index  const         n   = A.dimension();
+    Number const * const aval= A.getval();
+    Index  const * const aidx= A.getidx();
+
+    Real flop = 0;		/* Number of multiplications and
+				   divisions of Number's used. */
+
+    /* MCSR check */
+    if (!A.isrowized()) {
+	error = qqqERR_DIRECT_NOT_MCSR;
+	space = 0;
+	flops = flop; //.value();	/* missing */
+	return false;
+    }
+
+    /* Index arrays */
+    Index * const
+	idxL  = new Index[qqqMax(n+1,1)];	/* Contains the beginning 
+						   of each row of L in valL */
+    Index * const
+	idxU  = new Index[qqqMax(n+1,1)];	/* Contains the beginning 
+						   of each column of U in valU */
+
+
+    /* Allocation check */
+    if (!idxL || !idxU)
+    {
+	error = qqqERR_DIRECT_MISALLOC;
+	space = 0;
+	flops = flop; //.value();	/* missing */
+	if (idxU) delete[] idxU;
+	if (idxL) delete[] idxL;
+	return false;
+    }
+
+    // printf("skeleton...\n");
+
+    /* For each column, find the minimum row that has an entry for it */
+    for (Index row = n - 1; row >= 0; row--)
+    {
+	idxU[row+1] = row;
+	Index const j1 = aidx[row    ];
+	Index const j2 = aidx[row + 1];
+	Index colmin = row;
+	for (Index jj = j1; jj < j2; jj++)
+	{
+	    Index const col = aidx[jj];
+	    idxU[col+1] = row;
+	    colmin = qqqMin(colmin,col);
+	}
+	idxL[row+1] = colmin;
+    }
+
+    /* Now cumulate the lengths of the slices in idxL and idxU */
+    idxU[0] = 0;
+    idxL[0] = 0;
+    /* missing Index const spcmax = Index::SGNMAX() - n; */
+    Index const spcmax = LONG_MAX - n;
+    for (Index jj = 1; jj <= n; jj++)
+    {
+	idxU[jj] = (jj - 1 - idxU[jj]) + idxU[jj-1];
+	idxL[jj] = (jj - 1 - idxL[jj]) + idxL[jj-1];
+	if (idxU[jj] > spcmax ||
+	    idxL[jj] > spcmax)
+	{
+	    error = qqqERR_DIRECT_HUGE;
+	    space = 0;
+	    flops = flop; //.value(); /* missing */
+	    delete[] idxU;
+	    delete[] idxL;
+	    return false;
+	}
+    }
+
+    /* Space check */
+    space = idxL[n] + idxU[n];
+    // printf("space=%ld, maxspace=%ld\n", qqqIndexToLong(space), qqqIndexToLong(maxspace));
+    if (maxspace != 0 && space > maxspace) 
+    {
+	if (maxspace != -1)
+	    error = qqqERR_DIRECT_MAXSPACE;
+	flops = flop; //.value();	/* missing */
+	delete[] idxU;
+	delete[] idxL;
+	/* I like that more */
+	if (maxspace != -1)
+	    return false;
+	else
+	    return true;
+    }
+
+
+    /* Time check */
+    if (maxflops != 0) 
+    {
+	/* This is a skeleton of the full elimination, with the
+	   innermost loop removed. It takes O(nonzeros(L) + nonzeros(U))
+	   = O(space) time to perform this check and find out the number
+	   of flops used. (For each member in L or U, one addition to 
+	   flop is made.) */
+	flop = 0;
+	for (Index dgn = 0; dgn < n; dgn++)
+	{
+	    Index const dgnp1 = dgn + 1;
+	    Index const dgnoffL = idxL[dgnp1] - dgn;
+	    Index const dgnoffU = idxU[dgnp1] - dgn;
+	    
+	    {
+		/* Row offset and first nonzero column */
+		Index  const rowoff = dgnoffL;
+		Index  const col1   = idxL[dgn] - rowoff;
+		
+		for (Index col = col1; col < dgn; col++)
+		{
+		    Index  const coloff = idxU[col+1] - col;
+		    Index  const row1   = idxU[col] - coloff;
+		    
+		    if (col > row1)
+			flop += col - qqqMax(row1,col1);
+		    flop += 1;
+		} /* End of loop: col=col1..dgn-1 */
+	    }
+	    {
+		/* Column offset and first nonzero row */
+		Index  const coloff = dgnoffU;
+		Index  const row1   = idxU[dgn] - coloff;
+		
+		for (Index row = row1; row < dgn; row++)
+		{
+		    Index  const rowoff = idxL[row+1] - row;
+		    Index  const col1   = idxL[row] - rowoff;
+		    
+		    if (row > col1)
+			flop += row - qqqMax(row1,col1);
+		} /* End of loop: row=row1..dgn-1 */
+	    }
+	    {
+		Index const rowoff = dgnoffL;
+		Index const col1   = idxL[dgn] - rowoff;
+		Index const coloff = dgnoffU;
+		Index const row1   = idxU[dgn] - coloff;
+		
+		flop += dgn - qqqMax(col1,row1);
+		flop += 1;
+	    }
+	}
+	/* End of skeleton */
+
+	if (flop > maxflops)
+	{
+	    if (maxflops != -1)
+		error = qqqERR_DIRECT_MAXFLOPS;
+	    flops = flop; //.value(); /* missing */
+	    delete[] idxU;
+	    delete[] idxL;
+	    /* I like that more */
+	    if (maxflops != -1)
+		return false;
+	    else
+		return true;
+	}
+    }
+
+    // printf("allocate L, number of Numbers = %ld\n", qqqIndexToLong(qqqMax(idxL[n],1)));
+    /* Value arrays */
+    /* L matrix values/elimination coefficients*/
+    Number * const valL = new Number[qqqMax(idxL[n],1)];
+    // printf("allocate U, number of Numbers = %ld\n", qqqIndexToLong(qqqMax(idxU[n],1)));
+    /* U matrix values without diagonals */
+    Number * const valU = new Number[qqqMax(idxU[n],1)];
+    // printf("allocate Udiag, number of Numbers = %ld\n", qqqIndexToLong(qqqMax(n,1)));
+    /* U matrix inverted diagonals */
+    Number * const valD = new Number[qqqMax(n,1)];
+
+    /* Allocation check */
+    if (!valL || !valU || !valD) 
+    {
+       // printf("allocation error!\n");
+       error = qqqERR_DIRECT_MISALLOC;
+       flops = flop; //.value();	/* missing */
+       if (valD) delete[] valD;
+       if (valU) delete[] valU;
+       if (valL) delete[] valL;
+       delete[] idxU;
+       delete[] idxL;
+       return false;
+    }
+
+    // printf("factorize...\n");
+
+    /* Factorize */
+    /* ========= */
+
+    /* A preset of valD is not necessary, but 
+       the other two may have holes that will 
+       not be filled with entries from A */
+    for (Index jj = 0; jj < idxL[n]; jj++) valL[jj] = 0;
+    for (Index jj = 0; jj < idxU[n]; jj++) valU[jj] = 0;
+
+    flop = 0;
+    for (Index dgn = 0; dgn < n; dgn++)
+    {
+      // if (dgn == 1112)
+      // assert(0);
+
+	Index const dgnp1 = dgn + 1;
+	Index const dgnoffL = idxL[dgnp1] - dgn;
+	Index const dgnoffU = idxU[dgnp1] - dgn;
+
+	/* Preset with the entries of A */
+	{
+	    Index const j1 = aidx[dgn  ];
+	    Index const j2 = aidx[dgnp1];
+
+	    valD[dgn] = aval[dgn];
+	    for (Index jj = j1; jj < j2; jj++) 
+	    {
+		Index  const col = aidx[jj];
+		Number const s   = aval[jj];
+		if      (col < dgn) { /* L entry */
+		    Index const pos = dgnoffL + col;
+		    valL[pos] += s;
+		}
+		else if (col == dgn)  /* U diagonal entry */
+		    valD[col] += s;
+		else {		      /* U entry */
+		    Index const coloff = idxU[col+1] - col;
+		    Index const pos = coloff + dgn;
+		    valU[pos] += s;
+		}
+	    }
+	}
+
+	// printf("row elimination [%ld]\n", qqqIndexToLong(dgn));
+
+	/* Row elimination */
+	/* =============== */
+	{
+	    /* Row offset and first nonzero column */
+	    Index  const rowoff = dgnoffL;
+	    Index  const col1   = idxL[dgn] - rowoff;
+
+	    // if (dgn > 1004)
+	    // {
+	    //  printf("dgn=%ld: col1=%ld\n", qqqIndexToLong(dgn), qqqIndexToLong(col1));
+	    // }
+
+	    for (Index col = col1; col < dgn; col++)
+	    {
+	      // printf("   col=%ld\n", qqqIndexToLong(col));
+		/* To the entry col in valL, some contributions 
+		   have to be added. These are caused by the entries
+		   lefthand of col. Each of them is the factor for adding
+		   a certain row above, and the U matrix entries for these
+		   rows have to be added, multiplied by the factors. */
+		/* Column offset and first nonzero row */
+		Index  const coloff = idxU[col+1] - col;
+		Index  const row1   = idxU[col] - coloff;
+
+		Index  const k1 = qqqMax(col1,row1);
+		Index  const k2 = col;
+		Number const * const rowp = &valL[rowoff];
+		Number const * const colp = &valU[coloff];
+
+		Number x = valL[rowoff + col];
+		for (Index kk = k1; kk < k2; kk++)
+		    x -= rowp[kk] * colp[kk];
+		flop += qqqMax(k2-k1,0);
+
+	    /* Now all entries before col have been eliminated, 
+	       and the contributions added to entry col. 
+	       Finally, determine the elimination factor for entry col, 
+	       with which to eliminate the row with index col.
+	       Note that valD[i] contains the inverted diagonal of row i. */
+		x *= valD[col];
+		valL[rowoff + col] = x;
+		flop += 1;
+	    } /* End of loop: col=col1..dgn-1 */
+	} /* End of row elimination */
+
+	// printf("col elimination [%ld]\n", qqqIndexToLong(dgn));
+
+	/* Column elimination */
+	/* ================== */
+	{
+	    /* Column offset and first nonzero row */
+	    Index  const coloff = dgnoffU;
+	    Index  const row1   = idxU[dgn] - coloff;
+
+	    for (Index row = row1; row < dgn; row++)
+	    {
+	      // printf("   row=%ld\n", qqqIndexToLong(row));
+		/* To the entry row in valU, some contributions 
+		   have to be added. These are caused by the entries
+		   above row. Each of them is an entry of a certain row above, 
+		   and the L matrix entries for these rows are the factors
+		   by which these entries have to be multiplied and added. */
+		/* Row offset and first nonzero column */
+		Index  const rowoff = idxL[row+1] - row;
+		Index  const col1   = idxL[row] - rowoff;
+
+		Index  const k1 = qqqMax(row1,col1);
+		Index  const k2 = row;
+		Number const * const colp = &valU[coloff];
+		Number const * const rowp = &valL[rowoff];
+
+		Number x = valU[coloff + row];
+		for (Index kk = k1; kk < k2; kk++)
+		    x -= colp[kk] * rowp[kk];
+		flop += qqqMax(k2-k1,0);
+
+	    /* Now all entries above row have been eliminated, 
+	       and the contributions added to entry row. 
+	       Finally, store the entry row in valU. */
+		valU[coloff + row] = x;
+	    } /* End of loop: row=row1..dgn-1 */
+	} /* End of column elimination */
+
+	// printf("diagonal [%ld]\n", qqqIndexToLong(dgn));
+
+	/* Calculate the diagonal */
+	/* ====================== */
+	{
+	    /* To the diagonal entry in valD, some contributions have
+	       to be added. These are caused by the entries lefthand of
+	       and above the diagonal element. The products of these
+	       entries have to be added, to perform the elimination
+	       of the rows above the current by the factors stored
+	       lefthand of the diagonal. */
+	    Index const rowoff = dgnoffL;
+	    Index const col1   = idxL[dgn] - rowoff; /* First col in row dgn */
+	    Index const coloff = dgnoffU;
+	    Index const row1   = idxU[dgn] - coloff; /* First row in col dgn */
+		
+	    Index const k1 = qqqMax(col1,row1);
+	    Index const k2 = dgn;
+	    Number const * const rowp = &valL[rowoff];
+	    Number const * const colp = &valU[coloff];
+
+	    Number x = valD[dgn];
+	    for (Index kk = k1; kk < k2; kk++) 
+		x -= rowp[kk] * colp[kk];
+	    flop += k2 - k1;
+	    if (qqqAbs(x) <= DBL_MIN)
+	    {
+		if (x == 0)
+		    error = qqqERR_DIRECT_ZERO_DIAG;
+		else
+		    error = qqqERR_DIRECT_SMALL_DIAG;
+		error.setMatrixRow(dgn);
+		flops = flop; //.value(); /* missing */
+		delete[] valD;
+		delete[] valU;
+		delete[] valL;
+		delete[] idxU;
+		delete[] idxL;
+		return false;
+	    }
+	    x = 1 / x;
+	    valD[dgn] = x;
+	    flop += 1;
+	} /* End of calculate the diagonal */
+    } /* End of main loop: dgn = 0..n-1 */
+
+    /* Put L and U into K and return */
+    K.free();
+    K.n    = n;
+    K.idxL = idxL;
+    K.idxU = idxU;
+    K.valL = valL;
+    K.valU = valU;
+    K.valD = valD;
+    flops = flop; //.value();	/* missing */
+    return true;
+}
+#undef MCSR
+#undef LUMatrix
+#undef Real
+#undef Index
+#undef BogoFlops
+#undef Error
+
+
+/* invprd()
+
+   Calculate the product of the inverse matrix K with the vector x.
+
+   The matrix K must be in LU-MCSR format. The inversion of L and U
+   alone is a forward-backward substitution operation.
+
+   Effort: nonzeros(K).
+   BogoFlops: nonzeros(K).
+   */
+#define LUMatrix  qqqLUMatrix<Number>
+#define Index     qqqIndex
+template<class Number>
+void
+qqqInvPrd(
+    Number          * const r,	/* Output result of K^-1 * x.
+				   May be the same vector as x.
+				   Length dimension of K. */
+    LUMatrix  const         &K, /* Input factorized matrix. L and U in
+				   one matrix structure. */
+    Number    const * const x	/* Input vector. Length dimension of K. */
+    )
+{
+    Index  const n = K.n;
+    Number const * const valL  = K.valL;
+    Index  const * const idxL  = K.idxL;
+    Number const * const valU  = K.valU;
+    Index  const * const idxU  = K.idxU;
+    Number const * const valD  = K.valD;
+
+    //printf("------------------------------------------------------\n");
+
+    Number *factArray = 0;
+
+    /* Forward solve: computes r = L^-1 * x */
+    for (Index row = 0; row < n; row++)
+    {
+	Index const rowoff = idxL[row + 1] - row;
+	Index const col1 = idxL[row] - rowoff;
+	Number const * const rowp = &valL[rowoff];
+	Number const * const colp = r;
+
+	Number y = x[row];
+	//printf("fwd[%4ld]:\n", qqqIndexToLong(row));
+	//printf("   y = % 35.28g\n", qqqGetReal(y));
+
+	// factArray = new Number[row-col1];	
+	if (factArray != 0)
+	{
+	   Index nrElem = 0;
+	   for (Index jj = col1; jj < row; jj++)
+	   {
+	      factArray[nrElem] = rowp[jj] * colp[jj];
+	      if (factArray[nrElem] == 0) continue;
+	      nrElem++;
+	   }
+
+	   for (Index j = nrElem-1; j > 0; j--)
+	   {
+	      for (Index k = 0; k < j; k++)
+		 if (qqqAbs(factArray[k]) > qqqAbs(factArray[j]))
+		 {
+		    Number factH = factArray[j];		  
+		    factArray[j] = factArray[k];		 
+		    factArray[k] = factH;  
+		 }
+	      y -= factArray[j];
+	   }
+	   
+	   if (nrElem > 0)
+	      y -= factArray[0];
+
+	   delete[] factArray;
+	}
+	else
+	   for (Index jj = col1; jj < row; jj++) 
+	   {
+	      Number fact = rowp[jj] * colp[jj];
+	      y -= fact;	   
+	   }
+	r[row] = y;	
+    }
+    // printf("------------------------------------------------------\n");
+    
+    /* Backward solve: computes r = U^-1 * r = U^-1 * L^-1 * x */
+    for (Index col = n - 1; col >= 0; col--)
+    {
+	Index const coloff = idxU[col + 1] - col;
+	Index const row1 = idxU[col] - coloff;
+	Number const * const colp = &valU[coloff];
+	Number       * const rowp = r;
+
+	Number const y = r[col] * valD[col];	
+	r[col] = y;
+	for (Index jj = row1; jj < col; jj++) 
+	{
+	   Number fact = y * colp[jj];
+	   rowp[jj] -= fact;	   
+	}	
+    }    
+}
+#undef LUMatrix 
+#undef Index
+
+#endif // __numerics_lu_tt__included__

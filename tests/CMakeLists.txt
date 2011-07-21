@@ -27,7 +27,7 @@ set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
 # ------------------------------------------------------------------------------
 SET(ENABLE_TEST_SPECIAL_MESHES OFF)
 SET(ENABLE_TEST_ALL_SPECIAL_MESHES OFF)
-SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
+SET(VIENNAMESH_USE_INTERNAL ON CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
 SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
 
 # ------------------------------------------------------------------------------

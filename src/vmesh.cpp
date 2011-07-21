@@ -79,7 +79,6 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile)
    //   5. do the volume meshing
    //   6. investigate mesh quality
    //
-
    domainsp_type domainsp = mesh_classifier(volume_mesher(hull_quality(cell_normals(orienter(hull_mesher(data))))));
 
    // write paraview/vtk output

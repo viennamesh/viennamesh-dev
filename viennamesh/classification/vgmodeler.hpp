@@ -558,11 +558,11 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
 //   #ifdef MESH_CLASSIFIER_DEBUG
 //      std::cout << "## MeshClassifier::"+id+" - writing latex code" << std::endl;
 //   #endif               
-//      // transform histogram data into latex code, and dump it to screen
-//      // note: use a file stream to print to a file ..
-//      std::ofstream  histo_stream("histogram.txt"); 
-//      viennamesh::writeLatex<3>::eval(histogram, histo_stream );
-//      histo_stream.close();
+      // transform histogram data into latex code, and dump it to screen
+      // note: use a file stream to print to a file ..
+      std::ofstream  histo_stream("histogram.txt"); 
+      viennamesh::writeLatex<3>::eval(histogram, histo_stream );
+      histo_stream.close();
 //      
 //   #ifdef MESH_CLASSIFIER_DEBUG
 //      std::cout << "## MeshClassifier::"+id+" - writing latex code" << std::endl;

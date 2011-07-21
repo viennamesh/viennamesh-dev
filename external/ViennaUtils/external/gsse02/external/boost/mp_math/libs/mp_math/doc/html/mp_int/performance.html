@@ -1,0 +1,229 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Performance</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.74.0">
+<link rel="home" href="../index.html" title="Chapter 1. mp_int">
+<link rel="up" href="../index.html" title="Chapter 1. mp_int">
+<link rel="prev" href="tutorial.html" title="Tutorial">
+<link rel="next" href="implementation_notes.html" title="Implementation notes">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="tutorial.html"><img src="../../../../../doc/html/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/html/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/html/images/home.png" alt="Home"></a><a accesskey="n" href="implementation_notes.html"><img src="../../../../../doc/html/images/next.png" alt="Next"></a>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mp_int.performance"></a><a class="link" href="performance.html" title="Performance">Performance</a>
+</h2></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="performance.html#mp_int.performance.tips">Tips</a></span></dt>
+<dt><span class="section"><a href="performance.html#mp_int.performance.measurements">Measurements</a></span></dt>
+</dl></div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.performance.tips"></a><a class="link" href="performance.html#mp_int.performance.tips" title="Tips">Tips</a>
+</h3></div></div></div>
+<div class="itemizedlist"><ul type="disc">
+<li>
+          A statement like 
+<pre class="programlisting"><span class="identifier">x</span> <span class="special">=</span> <span class="identifier">a</span> <span class="special">+</span> <span class="identifier">b</span><span class="special">;</span></pre>
+          involves the creation of a temporary <code class="computeroutput"><span class="identifier">mp_int</span></code>
+          inside <code class="computeroutput"><span class="keyword">operator</span> <span class="special">+</span></code>
+          because it is not able to write the result directly into <code class="computeroutput"><span class="identifier">x</span></code> which may already have enough memory
+          allocated to hold the result. Instead rewrite it into 
+<pre class="programlisting"><span class="identifier">x</span> <span class="special">=</span> <span class="identifier">a</span><span class="special">;</span>
+<span class="identifier">x</span> <span class="special">+=</span> <span class="identifier">b</span><span class="special">;</span>
+</pre>
+          This trick proves to be useful only for simple operations like addition
+          and subtraction.
+        </li>
+<li>
+          In operations involving built in integral types, try to use unsigned types,
+          preferrably unsigned types that are as large or smaller than mp_int&lt;&gt;::digit_type.
+        </li>
+<li>
+          Use hexadecimal digits for input and output. Conversion from/to power of
+          two bases uses a O(n) algorithm which is not possible for base 10.
+        </li>
+</ul></div>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.performance.measurements"></a><a class="link" href="performance.html#mp_int.performance.measurements" title="Measurements">Measurements</a>
+</h3></div></div></div>
+<div class="toc"><dl><dt><span class="section"><a href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_">AMD
+        Athlon XP 2000+</a></span></dt></dl></div>
+<p>
+        A benchmark program is supplied with Boost.Mp_math under libs/mp_math/tools/benchmark.
+        This benchmark compares some primitive operations of different multi precision
+        integer libraries. It creates detailed result files and uses <a href="http://www.gnuplot.info/" target="_top">gnuplot</a>
+        to create graphs.
+      </p>
+<p>
+        Example invocations:
+      </p>
+<pre class="programlisting">benchmark // runs all benches
+benchmark --help
+benchmark --ops="add subtract multiply" --libs="boost.mp_math libtommath"
+</pre>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_"></a><a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_" title="AMD Athlon XP 2000+">AMD
+        Athlon XP 2000+</a>
+</h4></div></div></div>
+<pre class="programlisting">Operating System: Arch Linux (i686), Kernel 2.6.26, glibc 2.8
+Compiler: gcc-4.3.2
+</pre>
+<p>
+          Libraries being compared:
+        </p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+            Boost.Mp_math-1_37
+            <div class="itemizedlist"><ul type="circle"><li>
+                switches used: -ftemplate-depth-128 -O3 -finline-functions -march=i686
+                -mtune=generic -std=c++0x
+              </li></ul></div>
+</li>
+<li>
+            libtommath-0.41
+            <div class="itemizedlist"><ul type="circle"><li>
+                switches used: -ftemplate-depth-128 -O3 -finline-functions -march=i686
+                -mtune=generic
+              </li></ul></div>
+</li>
+<li>
+            gmp-4.2.2 (precompiled distribution package, uses generic i386 asm and
+            Intel P6 (Pentium Pro) asm where available)
+            <div class="itemizedlist"><ul type="circle"><li>
+                switches used: -march=i686 -mtune=generic -O2
+              </li></ul></div>
+</li>
+</ul></div>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.input_vectors"></a><h4>
+<a name="id3166730"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.input_vectors">Input
+          vectors</a>
+        </h4>
+<p>
+          Operand size is measured in number of bits. I chose to vary the operand
+          size for the benchmarks a little to see how well the operation handles
+          inputs of differing sizes. Benchmarks that use only one operand use operand
+          1. <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/input_vecs.png" alt="input_vecs"></span>
+        </p>
+<p>
+          While input operand 1 grows linearly, input operand 2's size is determined
+          by a modified sine function.
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.construct_from_decimal_string"></a><h4>
+<a name="id3166778"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.construct_from_decimal_string">Construct
+          from decimal string</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/ctor_dec.png" alt="ctor_dec"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.construct_from_hex_string"></a><h4>
+<a name="id3166818"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.construct_from_hex_string">Construct
+          from hex string</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/ctor_hex.png" alt="ctor_hex"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.conversion_to_decimal_string"></a><h4>
+<a name="id3166858"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.conversion_to_decimal_string">Conversion
+          to decimal string</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/to_dec.png" alt="to_dec"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.conversion_to_hex_string"></a><h4>
+<a name="id3166897"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.conversion_to_hex_string">Conversion
+          to hex string</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/to_hex.png" alt="to_hex"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.add"></a><h4>
+<a name="id3166935"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.add">Add</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/add.png" alt="add"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.subtract"></a><h4>
+<a name="id3166971"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.subtract">Subtract</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/subtract.png" alt="subtract"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.multiply"></a><h4>
+<a name="id3167008"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.multiply">Multiply</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/multiply.png" alt="multiply"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.divide"></a><h4>
+<a name="id3167045"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.divide">Divide</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/divide.png" alt="divide"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.modulo"></a><h4>
+<a name="id3167081"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.modulo">Modulo</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/modulo.png" alt="modulo"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.square"></a><h4>
+<a name="id3167118"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.square">Square</a>
+        </h4>
+<p>
+          <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/square.png" alt="square"></span>
+        </p>
+<a name="mp_int.performance.measurements.amd_athlon_xp_2000_.modular_power"></a><h4>
+<a name="id3167154"></a>
+          <a class="link" href="performance.html#mp_int.performance.measurements.amd_athlon_xp_2000_.modular_power">Modular
+          Power</a>
+        </h4>
+<p>
+          The operation looks like this: <code class="computeroutput"><span class="identifier">dest</span>
+          <span class="special">=</span> <span class="special">(</span><span class="identifier">op1</span> <span class="special">^</span> <span class="identifier">op1</span><span class="special">)</span> <span class="special">%</span> <span class="identifier">op2</span></code>.
+          This graph uses a logarithmic scale. <span class="inlinemediaobject"><img src="../benchmark_imgs/k7/modpow.png" alt="modpow"></span>
+        </p>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2008 - 2009 Kevin Sopp<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="tutorial.html"><img src="../../../../../doc/html/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/html/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/html/images/home.png" alt="Home"></a><a accesskey="n" href="implementation_notes.html"><img src="../../../../../doc/html/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

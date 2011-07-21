@@ -1,0 +1,56 @@
+
+
+
+Public interface functions for ViennaData:
+------------------------------------------------
+
+Design guide:
+* Stay close to existing "common practise" w.r.t. naming, esp. std::map
+* First template argument is KeyType or 'all' (if applicable)
+* Second template argument is ValueType or 'all' (if applicable)
+* First function argument in first parenthesis is key (empty parenthesis denote all keys)
+* First function argument in second parenthesis is source object
+* Second function argument in second parenthesis is destination object
+
+
+The following labels are used in the following:
+* 'obj' is an arbitrary object of arbitrary type
+* 'obj_src' is an arbitrary object of arbitrary type (source)
+* 'obj_dest' is an arbitrary object of arbitrary type (destination)
+* 'key_type' is the type of the key
+* 'value_type' is the type of the data
+* 'key' is a key of type key_type
+* 'value' is a data object of type value_type
+
+
+/******** Data storage and access: ****************/
+// retrieve data:
+value = access<key_type, value_type>(key)(obj);
+
+// store data:
+access<key_type, value_type>(key)(obj) = value;
+
+/******** Data copy and transfer *****************/
+move<key_type, value_type>(key)(obj_src, obj_dest); // transfer a (key, data) pair from 'obj_src' to 'obj_dest'
+move<key_type, value_type>()(obj_src, obj_dest);    // transfer all data of type value_type with a key of type key_type from 'obj_src' to 'obj_dest'
+move<key_type, all       >()(obj_src, obj_dest);    // transfer all data associated with a key of type key_type from 'obj_src' to 'obj_dest'
+move<all,      value_type>()(obj_src, obj_dest);    // transfer all data of type value_type from 'obj_src' to 'obj_dest'
+move<all,      all       >()(obj_src, obj_dest);    // transfer all data from 'obj_src' to 'obj_dest'
+
+copy<key_type, value_type>(key)(obj_src, obj_dest); // copy a (key, data) pair from 'obj_src' to 'obj_dest'
+copy<key_type, value_type>()(obj_src, obj_dest);    // copy all data of type value_type with a key of type key_type from 'obj_src' to 'obj_dest'
+copy<key_type, all       >()(obj_src, obj_dest);    // copy all data associated with a key of type key_type from 'obj_src' to 'obj_dest'
+copy<all,      value_type>()(obj_src, obj_dest);    // copy all data of type value_type from 'obj_src' to 'obj_dest'
+copy<all,      all       >()(obj_src, obj_dest);    // copy all data from 'obj_src' to 'obj_dest'
+
+/******** Erase data ***************/
+erase<key_type, value_type>(key)(obj); // delete a (key, data) pair associated with 'obj'
+erase<key_type, value_type>()(obj);    // delete all data of type value_type with a key of type key_type associated with 'obj'
+erase<key_type, all       >()(obj);    // delete all data associated with a key of type key_type associated with 'obj'
+erase<all,      value_type>()(obj);    // delete all data of type value_type associated with 'obj'
+erase<all,      all       >()(obj);    // delete all data associated with 'obj'
+
+/******** Misc **************/
+reserve<key_type, value_type>(num)(obj);     //reserve memory for 'num' different objects of the same type as 'obj'
+find<key_type, value_type>(key)(obj);        //check whether data with a particular key is associated with 'obj'
+

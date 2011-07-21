@@ -10,8 +10,9 @@ several libraries to be available:
    \item CGAL~\cite{cgal}
 \end{itemize}
 
-Typically \texttt{CMake}, \texttt{CGAL}, and \texttt{GMP} are provided by 
-the distributions, for example, Ubuntu. However, CGAL maybe has to be installed manually.
+Typically, all of those libraries are provided by 
+the distributions, for example, Ubuntu. 
+%However, CGAL maybe has to be installed manually.
 
 An exemplary build script is provided within the root folder of ViennaMesh. 
 \begin{exaipd}
@@ -29,7 +30,8 @@ the appropriate \texttt{CMake} configuration parameter.
 \end{Verbatim}
 \end{exaipd}
 
-The \texttt{CGAL} include and library paths have to be provided via the 
+If \texttt{CGAL} is not available in the usual system paths, the include and 
+library paths have to be provided via the 
 respective \texttt{CMake} configuration parameters.
 \begin{exaipd}
 \begin{Verbatim}
@@ -38,15 +40,24 @@ respective \texttt{CMake} configuration parameters.
 \end{Verbatim}
 \end{exaipd}
 
-Note that the build script expects the parameters \texttt{CGALINC} and 
-\texttt{CGALLIB} to be provided by the environment. 
-Certainly these paths can be entered statically within the build script.
+%Note that the build script expects the parameters \texttt{CGALINC} and 
+%\texttt{CGALLIB} to be provided by the environment. 
+%Certainly these paths can be entered statically within the build script.
 
-After the build process is finished, an application executable is available 
-within the build folder. 
+After the build process is finished, the main mesh generation application 
+executable is available within the binary folder. 
 \begin{exaipd}
 \begin{Verbatim}
-build/vmesh
+build/bin/vmesh
+\end{Verbatim}
+\end{exaipd}
+
+A ViennaMesh application, like \texttt{vmesh}, relies on a set of libraries 
+which are generated during the build process of ViennaMesh. These libraries
+can be found in the library folder:
+\begin{exaipd}
+\begin{Verbatim}
+build/lib
 \end{Verbatim}
 \end{exaipd}
 
@@ -54,4 +65,12 @@ This executable is capable of producing volume meshes of high quality of
 \texttt{bnd} and \texttt{hin} input files. 
 
 \TIP{Example input files can be found in the input/ folder.}
+
+A test environment is provided to test the functionality of ViennaMesh. 
+A script is available which executes the tests.
+\begin{exaipd}
+\begin{Verbatim}
+tests/run_regression.sh
+\end{Verbatim}
+\end{exaipd}
 

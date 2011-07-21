@@ -25,7 +25,7 @@ set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
 # *** SET FLAGS ***
 #
 # ------------------------------------------------------------------------------
-SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
+SET(VIENNAMESH_USE_INTERNAL ON CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
 SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
 
 # ------------------------------------------------------------------------------
@@ -213,9 +213,9 @@ ADD_LIBRARY(viennamesh STATIC viennamesh/generation/netgen.cpp
                        viennamesh/adaptation/hull_quality.cpp)
 
 IF(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
-ELSE(ENABLE_GTSIO)
    TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${GTSIO_LIBS})   
+ELSE(ENABLE_GTSIO)
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
 ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------

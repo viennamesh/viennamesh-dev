@@ -1,0 +1,678 @@
+/* ***********************************************************************
+   $Id: numerics_vector.tt,v 1.8 2003/12/01 12:14:11 wagner Exp $
+
+   Filename: numerics_vector.tt
+
+   Description:  Mathematical operations with vectors (templates)
+
+   Authors:  CF  Claus Fischer     Margaretenguertel 18/1/20
+                                   A-1050 Wien, Austria
+				   Phone: +43-1-5448823
+				   Fax:   +43-1-5448823
+
+             SW  Stephan Wagner    Institute for Microelectronics, TU Vienna
+
+   Who When         What
+   -----------------------------------------------------------------------
+   CF   4 May 1996  created
+   CF   4 May 1996  vector product functions
+   CF   4 May 1996  vector norm functions
+   CF   1 Jul 1996  some cleanups and methodology
+   CF  28 Dec 1996  permutation functions
+   SW  06 Feb 2002  qqq prefixed function names
+   SW  29 Mar 2002  qqqAddLinear() function added
+   SW  02 Apr 2002  some templates replaced by overloaded functions
+   SW  27 Aug 2002  vector input/output functions
+
+   ***********************************************************************   */
+
+#ifndef   __numerics_vector_tt__included__
+#define   __numerics_vector_tt__included__
+
+
+
+/* 
+   The following code provides:
+
+   Functions
+   qqqDotPrd(n,x,y)                  ... sum of y[i]   * x[i], dimension n
+   qqqDotPrdCjg(n,x,y)               ... sum of y[i]^c * x[i], dimension n
+   qqqDotPrdMem(n,x,y)               ... real part of dotprdcjg, dimension n
+   qqqDotSqr(n,x)                    ... sum of x[i]   * x[i], dimension n
+   qqqDotSqrCjg(n,x)                 ... sum of x[i]^c * x[i], dimension n
+   qqqAbs(n,x)                       ... sum of x[i]^c * x[i], dimension n
+   qqqAbsmax(n,x)                    ... max of abs(x[i]), dimension n
+   qqqInitializeVector(x,n,x0)       ... set all x[i] to x0, dimension n
+   qqqCopy(x,n,y)                    ... set all x[i] to y[i], dimension n
+   qqqCjg(x,n,y)                     ... set all x[i] to y[i]^c, dimension n
+   qqqLinear2(x,n,f1,x1,f2,x2)       ... set x to f1 * x1 + f2 * x2, dimension n
+   qqqAddLinear2(x,n,f1,x1,f2,x2)    ... set x to x + f1 * x1 + f2 * x2, dim. n
+   qqqLinear3(x,n,f1,x1,f2,x2,f3,x3) ... set x to f1 * x1 + f2 * x2 + f3 * x3, ...
+   qqqPermute(x,n,y,p)               ... set x to P * y, p row index in P's col
+   qqqInvertPermutation(q,len,p)     ... set Q to P^-1, q,p row indices in Q,P
+
+   Note:
+   1) Conjugates
+      For complex vectors, the notation ^c means conjugated. For real 
+      vectors, the function is equivalent to the not conjugated function.
+*/
+
+
+
+/* dotprd()
+
+   Compute simple dot product (without conjugation) of two vectors.
+
+   Effort: len. 
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Number				        /* sum of all x[i] * y[i] */
+qqqDotPrd(Index  const         len,	/* Input length of vectors */
+	  Number const * const x,	/* Input first  vector */
+	  Number const * const y	/* Input second vector */
+	  )
+{
+    Number dot = 0;
+    for (Index ii = 0; ii < len; ii++) dot += x[ii] * y[ii];
+    return dot;
+}
+#undef Index
+#undef Real
+
+/* ------------------------------------------------------------------------ */
+#if 0
+/* dotprdcjg()
+
+   Compute product of transposed/conjugated vector x  and vector y.
+
+   Effort: len.
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Number				/* sum of all cjg(x[i]) * y[i] */
+qqqDotPrdCjg(Index  const         len,	/* Input length of vectors */
+	     Number const * const x,	/* Input first  vector */
+	     Number const * const y	/* Input second vector */
+	     )
+{
+    Number dot = 0;
+    for (Index ii = 0; ii < len; ii++) dot += qqqPrdCjg(x[ii],y[ii]);
+    return dot;
+}
+#undef Index
+#undef Real
+
+#else
+double
+qqqDotPrdCjg(qqqIndex  const    len,	/* Input length of vectors */
+	     double const * const x,	/* Input first  vector */
+	     double const * const y	/* Input second vector */
+	     );
+qqqComplex
+qqqDotPrdCjg(qqqIndex  const        len, /* Input length of vectors */
+	     qqqComplex const * const x, /* Input first  vector */
+	     qqqComplex const * const y	 /* Input second vector */
+	     );
+#endif
+/* ------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------ */
+#if 0
+/* dotprdmem()
+
+   Compute real part of product of transposed/conjugated vector x  
+   and vector y.
+
+   This is the effect of summing up the member-wise products of all
+   vector elements, where the member-wise product is defined as sum
+   of products of real parts and products of imaginary parts.
+
+   Effort: len. 
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Real				/* sum of all real(cjg(x[i]) * y[i]) */
+qqqDotPrdMem(
+	     Index  const         len,	/* Input length of vectors */
+	     Number const * const x,	/* Input first  vector */
+	     Number const * const y	/* Input second vector */
+	     )
+{
+    Real dot = 0;
+    for (Index ii = 0; ii < len; ii++) dot += qqqPrdMem(x[ii],y[ii]);
+    return dot;
+}
+#undef Index
+#undef Real
+
+#else
+double	     /* sum of all real(cjg(x[i]) * y[i]) */
+qqqDotPrdMem(
+	     qqqIndex const         len,	/* Input length of vectors */
+	     double   const * const x,	/* Input first  vector */
+	     double   const * const y	/* Input second vector */
+	     );
+
+double       /* sum of all real(cjg(x[i]) * y[i]) */
+qqqDotPrdMem(
+	     qqqIndex   const         len,  /* Input length of vectors */
+	     qqqComplex const * const x,    /* Input first  vector */
+	     qqqComplex const * const y	    /* Input second vector */
+	     );
+#endif
+/* ------------------------------------------------------------------------ */
+
+/* dotsqr()
+
+   Compute simple dot product (without conjugation) of vector x 
+   with itself.
+
+   Effort: len.
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Number		   		        /* sum of all sqr(x[i]) */
+qqqDotSqr(Index  const         len,	/* Input length of vector */
+	  Number const * const x	/* Input vector */
+	  )
+{
+    Number dot = 0;
+    for (Index ii = 0; ii < len; ii++) dot += qqqSqr(x[ii]);
+    return dot;
+}
+#undef Index
+#undef Real
+
+/* ------------------------------------------------------------------------ */
+#if 0 // [SW]
+/* dotsqrcjg()
+
+   Compute product of transposed/conjugated vector x with itself.
+
+   Effort: len.
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Real				        /* sum of all sqrabs(x[i]) */
+qqqDotSqrCjg(Index const len,	        /* Input length of vector */
+	     Number const * const x	/* Input vector */
+	     )
+{
+    Real dot = 0;    
+    // for (Index ii = 0; ii < len; ii++) dot += qqqSqrAbs(x[ii]);
+    for (Index ii = 0; ii < len; ii++) dot += x[ii] * x[ii];
+    return dot;
+}
+#undef Index
+#undef Real
+
+#else
+double
+qqqDotSqrCjg(qqqIndex const,double const * const);
+double
+qqqDotSqrCjg(qqqIndex const,qqqComplex const * const);
+#endif
+/* ------------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------------ */
+#if 0
+/* qqqAbs()
+
+   Compute square root of product of transposed/conjugated vector x 
+   with itself.
+
+   Effort: len.
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Real				        /* sqrt of sum of all sqrabs(x[i]) */
+qqqAbs(Index  const         len,	/* Input length of vector */
+       Number const * const x	        /* Input vector */
+       )
+{
+    Real dot = 0;
+    for (Index ii = 0; ii < len; ii++) dot += qqqSqrAbs(x[ii]);
+    return qqqSqrt(dot);
+}
+#undef Index
+#undef Real
+
+#else
+double			                /* sqrt of sum of all sqrabs(x[i]) */
+qqqAbs(qqqIndex const         len,	/* Input length of vector */
+       double   const * const x	        /* Input vector */
+       );
+
+double				        /* sqrt of sum of all sqrabs(x[i]) */
+qqqAbs(qqqIndex   const         len,	/* Input length of vector */
+       qqqComplex const * const x	/* Input vector */
+       );
+#endif
+/* ------------------------------------------------------------------------ */
+
+/* qqqAbsMax()
+
+   Compute the largest absolute value of an element of x.
+
+   Effort: len.
+   BogoFlops: len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+Real				        /* largest abs(x[i]) */
+qqqAbsMax(Index  const         len,	/* Input length of vector */
+	  Number const * const x	/* Input vector */
+	  )
+{
+    Real dot = 0;
+    for (Index ii = 0; ii < len; ii++) 
+    {
+	Real const s = qqqSqrAbs(x[ii]);
+	if (s > dot) dot = s;
+    }
+    return qqqSqrt(dot);
+}
+#undef Index
+#undef Real
+
+
+/* qqqInitializeVector()
+
+   Initialize all elements of a vector to the same number.
+
+   Effort: len.
+   BogoFlops: 0. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqInitializeVector(
+    Number       * const x,	/* Output vector */
+    Index  const         len,	/* Input length of vector */
+    Number const         x0	/* Input initial value */
+    )
+{
+    for (Index ii = 0; ii < len; ii++) x[ii] = x0;
+}
+#undef Index
+#undef Real
+
+
+/* copy()
+
+   Copy a vector to another vector.
+
+   Effort: len. 
+   BogoFlops: 0. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqCopy(
+    Number       * const x,	/* Output vector */
+    Index  const         len,	/* Input length of vectors */
+    Number const * const y	/* Input source vector */
+    )
+{
+    for (Index ii = 0; ii < len; ii++) x[ii] = y[ii];
+}
+#undef Index
+#undef Real
+
+/* cjg()
+
+   Copy the conjugate of vector y into vector x.
+
+   Effort: len.
+   BogoFlops: 0. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqCjg(
+    Number       * const x,	/* Output vector */
+    Index  const         len,	/* Input length of vectors */
+    Number const * const y	/* Input source vector */
+    )
+{
+    for (Index ii = 0; ii < len; ii++) x[ii] = qqqCjg(y[ii]);
+}
+#undef Index
+#undef Real
+
+/* qqqAddLinear() [SW]
+
+*/
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqAddLinear(
+    Number       * const x,	/* Output vector */
+    Index  const         len,	/* Input length of vectors */
+    Number const         f1,	/* Input factor for first vector */
+    Number const * const x1	/* Input first vector */
+    )
+{     
+   for (Index ii = 0; ii < len; ii++) 
+      x[ii] += f1 * x1[ii];
+}
+#undef Index
+#undef Real
+
+/* qqqLinear2()
+
+   Calculate a linear combination of two vectors.
+
+   Effort: len. 
+   BogoFlops: 2 * len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqLinear2(
+    Number       * const x,	/* Output vector */
+    Index  const         len,	/* Input length of vectors */
+    Number const         f1,	/* Input factor for first vector */
+    Number const * const x1,	/* Input first vector */
+    Number const         f2,	/* Input factor for second vector */
+    Number const * const x2	/* Input second vector */
+    )
+{
+   
+   /* for (i = n; i--;) *r++     =        *x++  + fy * *y++; */
+   if (f1 == (Number) 1)
+      for (Index ii = 0; ii < len; ii++) 
+	 x[ii] = x1[ii] + f2 * x2[ii];
+   else
+      for (Index ii = 0; ii < len; ii++) 
+	 x[ii] = f1 * x1[ii] + f2 * x2[ii];
+}
+#undef Index
+#undef Real
+
+
+/* addlinear2()
+
+   Add to a vector a linear combination of two vectors.
+
+   Effort: len.
+   BogoFlops: 2 * len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqAddLinear2(
+    Number       * const x,	/* Input/Output vector to which is added */
+    Index  const         len,	/* Input length of vectors */
+    Number const         f1,	/* Input factor for first vector */
+    Number const * const x1,	/* Input first vector */
+    Number const         f2,	/* Input factor for second vector */
+    Number const * const x2	/* Input second vector */
+    )
+{
+    for (Index ii = 0; ii < len; ii++) 
+	x[ii] += f1 * x1[ii] + f2 * x2[ii];
+}
+#undef Index
+#undef Real
+
+
+/* linear3()
+
+   Calculate a linear combination of three vectors.
+
+   Effort: len.
+   BogoFlops: 3 * len. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqLinear3(
+    Number       * const x,	/* Output vector */
+    Index  const         len,	/* Input length of vectors */
+    Number const         f1,	/* Input factor for first vector */
+    Number const * const x1,	/* Input first vector */
+    Number const         f2,	/* Input factor for second vector */
+    Number const * const x2,	/* Input second vector */
+    Number const         f3,	/* Input factor for third vector */
+    Number const * const x3	/* Input third vector */
+    )
+{
+   /* for (i = n; i--;) *r++ =  *x++  + fy * *y++  + fz * *z++; */
+
+   if (f1 == (Number) 1)   
+      for (Index ii = 0; ii < len; ii++) 
+	 x[ii] = x1[ii] + f2 * x2[ii] + f3 * x3[ii];
+   else
+      for (Index ii = 0; ii < len; ii++) 
+	 x[ii] = f1 * x1[ii] + f2 * x2[ii] + f3 * x3[ii];
+}
+#undef Index
+#undef Real
+
+
+/* permute()
+
+   Calculate a permutation of a vector. The permutation vector p gives the
+   row indices of the 1-entries in the columns of P. The function calculates
+   x = P * y.
+
+   Effort: len.
+   BogoFlops: 0. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+void
+qqqPermute(
+    Number       * const x,	/* Output vector. Must not be y */
+    Index  const         len,	/* Input length of vectors */
+    Number const * const y,	/* Input source vector */
+    Index  const * const p	/* Input permutation vector */
+    )
+{
+    for (Index ii = 0; ii < len; ii++) 
+	x[p[ii]] = y[ii];
+}
+#undef Index
+#undef Real
+
+/* qqqInvertPermutation()
+
+   Invert a permutation vector. Create from the permutation vector p
+   representing the matrix P a new vector q representing Q = P^-1.
+   The vector p contains the row indices of the 1-entries in the columns
+   of P, and q likewise for Q.
+
+   Effort: len. 
+   BogoFlops: 0. */
+#define Index qqqIndex
+#define Real  double
+template<class Number>
+bool				/* permutation was invertible */
+qqqInvertPermutation(
+    Number       * const q,	/* Output inverted permutation vector */
+    Index  const         len,	/* Input  length of vectors */
+    Number const * const p	/* Input  original permutation vector */
+    )
+{
+    for (qqqIndex ii = 0; ii < len; ii++) 
+	if (p[ii] < 0 || p[ii] >= len)
+	    return false;
+    for (qqqIndex ii = 0; ii < len; ii++) q[ii   ] = -1;
+    for (qqqIndex ii = 0; ii < len; ii++) q[p[ii]] = ii;
+    for (qqqIndex ii = 0; ii < len; ii++)
+	if (q[ii] == -1)
+	    return false;
+    return true;
+}
+#undef Index
+#undef Real
+
+
+/* qqqWriteVector()
+   
+   Forward declarations (see numerics_vector.cc)
+
+*/
+
+bool qqqWriteVector(double   const * const vector,
+	       qqqIndex const         dimension,
+	       char     const * const filename);
+bool qqqWriteVector(qqqComplex const * const vector,
+	       qqqIndex   const         dimension,
+	       char       const * const filename);
+bool qqqWriteVector(int      const * const vector,
+	       qqqIndex const         dimension,
+	       char     const * const filename);
+
+/* qqqReadVector(...)
+
+   reads a vector file written by qqqWriteVector(...)
+
+   If called with dimension zero, the header is read and the dimension is
+   returned. This information can be used to allocate the required vector
+   structure. If dimension is not zero, it will be used for a dimension check.
+
+   return values:
+     -1 ... file not found
+     -2 ... header mismatch
+     -3 ... dimension mismatch
+     -4 ... end of file error
+     -5 ... type mismatch (double instead of qqqComplex or v.v.)
+     < dimension  ... file format error, row number is returned
+     =  readDim   ... success or pure dimension information if dimension is 0
+*/
+
+#define VECSEP  "========================="
+#define CVECSEP "====================================================="
+/*               0123456789A123456789B123456789C123456789D123456789E1234567 */
+#define VECSTRLENGTH 60
+
+inline void qqqAssignValue(double &vector, double readDouble, double /* imagValue */)
+{
+  vector = readDouble;
+}
+
+inline void qqqAssignValue(qqqComplex &vector, double readDouble, double imagValue)
+{
+  vector = qqqComplex(readDouble, imagValue);
+}
+
+template<class Number>
+qqqIndex
+qqqReadVector(Number         *       vector,
+	      qqqIndex const         dimension,
+	      char     const * const filename)
+{
+   FILE *vecdat = fopen(filename, "r");
+   bool readDouble = true;
+
+   //   printf("%x\n", vecdat);
+ 
+   if (vecdat == NULL)
+      return(-1);
+
+   int  retval = -1;
+   char rsLEN[VECSTRLENGTH];
+   long readDim = -2;
+   // rsLEN[0] = '\0';
+
+   // printf("Filename: \"%s\"\n", filename);
+   // long testlong;
+
+   do
+   {
+      /* file header check and retrieving dimension */
+      if ((retval = fscanf(vecdat, "%36s", rsLEN)) != 1)
+	 break;
+      else if (strcmp(rsLEN, "QQQ-assembled") != 0)
+      {
+	 if (strcmp(rsLEN, "EAS-assembled") == 0)
+	    printf("Reading EAS assembled vector...\n");
+	 else
+	    break;
+      }
+
+      if (((retval = fscanf(vecdat, "%s", rsLEN)) != 1) || 
+	  (strcmp(rsLEN, "Vector") != 0))
+	 break;
+      if (((retval = fscanf(vecdat, "%s %ld", rsLEN, &readDim)) != 2) || 
+	  (strcmp(rsLEN, "dimension:") != 0))
+	 break;
+      if ((retval = fscanf(vecdat, "%s", rsLEN)) == 1)
+      {
+        if (strcmp(rsLEN, VECSEP) == 0)
+          readDouble = true;
+        else if (strcmp(rsLEN, CVECSEP) == 0)
+          readDouble = false;
+        else break;
+      }
+      else break;
+
+      /* Verify data type compatibility */
+      Number testVal;
+      bool const isDouble  = (sizeof(testVal) == sizeof(double));
+      bool const isComplex = (sizeof(testVal) == sizeof(qqqComplex));
+      if ((readDouble && !isDouble) || (!readDouble && !isComplex))
+      {
+	 retval = -5;
+	 break;
+      }
+
+      /* Either mismatch or user must allocate memory */
+      if ((dimension != readDim) || (dimension == 0))
+      {
+        // printf("dimension = %ld, readDim = %ld\n", dimension, readDim);
+         if (dimension == 0)
+	    retval = readDim;
+         else
+           /* Give error information */
+	    retval = -3;
+	 break;
+      }
+
+      /* Reading ... */
+      qqqIndex ccirow;
+      double   doubleVal, imagVal = 0.0;
+      for (ccirow = 0; ccirow < dimension; ccirow++)
+      {
+          if (readDouble)
+            {
+              if ((retval = fscanf(vecdat, "%lf", &doubleVal)) != 1)
+                break;
+              else
+                qqqAssignValue(vector[ccirow], doubleVal, imagVal);
+            }
+          else
+            {
+              if ((retval = fscanf(vecdat, "%lf %lf", &doubleVal, &imagVal)) != 2)
+                break;
+              else 
+                qqqAssignValue(vector[ccirow], doubleVal, imagVal);
+            }
+        }
+
+
+      /* Checking ... */
+      if ((fscanf(vecdat, "%s", rsLEN) == 1) && 
+	  (((strcmp(rsLEN, VECSEP) == 0)  &&  readDouble) ||
+	   ((strcmp(rsLEN, CVECSEP) == 0) && !readDouble)))
+	 retval = dimension;
+      else   
+	 retval = -4;
+
+   } while(0);
+
+   fclose(vecdat);
+   return(retval);
+}
+
+#endif // __numerics_vector_tt__included__

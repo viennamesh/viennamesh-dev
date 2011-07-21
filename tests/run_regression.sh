@@ -3,9 +3,26 @@
 INPUT=$1
 BUILDFOLDER=build
 
-# extract number of cores on the system
-CORES=`grep -c ^processor /proc/cpuinfo`
-echo "building with " $CORES "cores " 
+# get the operating system string
+OS=`uname`
+
+# print detected operating system
+echo "operating system: '"$OS"'"
+
+# default value for building jobs
+CORES=1
+
+# OS specific available number of cores extraction
+if   [ "$OS" == "Darwin" ]; then
+   CORES=`sysctl -n hw.ncpu`
+elif [ "$OS" == "Linux" ]; then
+   CORES=`grep -c ^processor /proc/cpuinfo`
+else 
+   echo "no available CPU core extraction available"
+fi
+
+# print actual number of cores
+echo "number of cores: " $CORES
 
 ./clean.sh
 if [ "$INPUT" != "" ]; then
@@ -19,7 +36,7 @@ if [ "$INPUT" != "" ]; then
    elif [ "$INPUT" == "submit" ] ; then
       mkdir -p $BUILDFOLDER
       cd $BUILDFOLDER
-      cmake -D CMAKE_BUILD_TYPE=Release -D CGAL_INC_DIR=$CGALINC -D CGAL_LIB_DIR=$CGALLIB ../
+      cmake ../
       # build and submit results to online cdash service
       make Nightly ARGS=-j$CORES
       echo ""
@@ -42,7 +59,7 @@ if [ "$INPUT" != "" ]; then
 else
    mkdir -p $BUILDFOLDER
    cd $BUILDFOLDER
-   cmake -D CMAKE_BUILD_TYPE=Release -D CGAL_INC_DIR=$CGALINC -D CGAL_LIB_DIR=$CGALLIB ../
+   cmake ../
    # plain build without submit
    make -j$CORES
    make test ARGS=-j$CORES
