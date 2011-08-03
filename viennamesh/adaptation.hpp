@@ -17,5 +17,7 @@
 #include "viennamesh/adaptation/cell_normals.hpp"
 #include "viennamesh/adaptation/hull_quality.hpp"
 #include "viennamesh/adaptation/orienter.hpp"
+#include "viennamesh/adaptation/topology_check.hpp"
+#include "viennamesh/adaptation/geometry_check.hpp"
 
 #endif

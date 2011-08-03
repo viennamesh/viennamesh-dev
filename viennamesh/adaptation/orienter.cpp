@@ -504,6 +504,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
    #endif             
 
 
+
       // initiate an orientation quantity on all cells
       //
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
@@ -521,6 +522,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
       std::size_t corrected_cells = 0;
       std::size_t recursion_depth = 0;
 
+      std::cout << "entering recursion .. " << std::endl;
       cell_orienter_recursive(seg, seed_cell, corrected_cells, recursion_depth);
 
       std::size_t consistant = 0;
@@ -583,8 +585,10 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
 template<typename SegmentT, typename CellT>
 bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter_recursive(SegmentT& segment, CellT& cell, std::size_t& corrected_cells, std::size_t& recursion_depth)
 {
-   //std::cout << "cell recursion for cell: " << cell.getID() << std::endl;
-
+   std::cout << "cell recursion: " << std::endl;
+   std::cout << "   run:  " << recursion_depth << std::endl;
+   std::cout << "   cell: " << cell.getID() << std::endl;
+   
    // investigate how many neighbour cells have been dealt with so far ..
    //
    long number_of_not_oriented_cells = 0;
@@ -600,11 +604,12 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter_recursive(SegmentT& 
             number_of_not_oriented_cells++;
       }
    }                  
+
    // stop condition for recursion
    //
    if (number_of_not_oriented_cells == 0)
    {
-      //std::cout << "  stopping recursion " << std::endl;
+      std::cout << "  stopping recursion " << std::endl;
       return true;      
    }
 
@@ -695,6 +700,8 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter_recursive(SegmentT& 
       for (CellOnEdgeIterator coeit = cells.begin(); coeit != cells.end(); ++coeit)
       {         
          if( coeit->getID() == cell.getID() )   continue;
+         
+         recursion_depth++;
          cell_orienter_recursive(segment, *coeit, corrected_cells, recursion_depth);            
       }
    }                  

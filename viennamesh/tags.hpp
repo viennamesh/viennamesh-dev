@@ -50,8 +50,11 @@ struct consistancy          {};
 struct orienter             {};
 struct cell_normals         {};
 struct hull_quality         {};
+struct geom_check           {};
+struct topo_check           {};
 }
    
 } // end namespace viennamesh
 
 #endif
+

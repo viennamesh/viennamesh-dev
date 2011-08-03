@@ -26,5 +26,6 @@
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/sgf_reader.hpp"
 #include "viennagrid/io/gau_reader.hpp"
+#include "viennagrid/io/inp_reader.hpp"
 
 #endif
