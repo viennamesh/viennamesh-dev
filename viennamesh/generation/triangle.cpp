@@ -784,8 +784,6 @@ void mesh_kernel<viennamesh::tag::triangle>::init()
 {
    in  = init_kernel(in);
    out = init_kernel(out);
-
-   options = "";
    pointlist_index      = 0;
    segmentlist_index    = 0;
    regionlist_index     = 0;
