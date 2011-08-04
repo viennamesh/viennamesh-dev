@@ -71,7 +71,7 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
 
    // prepare a volume mesh generator
    //
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        volume_mesh_generator_type;
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type        volume_mesh_generator_type;
    volume_mesh_generator_type       volume_mesher;      
 
    // and a mesh classification tool
@@ -117,12 +117,8 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    //   6. investigate mesh quality
    std::cout << "   volume classifying .. " << std::endl;   
    mesh_classifier(volume);
-
-   // note: one can concetanate it directly too, as depicted in the following
-   //domainsp_type domainsp = mesh_classifier(volume_mesher(hull_quality(cell_normals(orienter(hull_mesher(data))))));
-
    // write paraview/vtk output
-   std::cout << "   volume writing .. " << std::endl;   
+   std::cout << "   writing domain .. " << std::endl;   
    viennamesh::io::domainwriter(volume, outputfile);
 }
 

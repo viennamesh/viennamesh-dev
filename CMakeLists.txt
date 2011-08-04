@@ -234,17 +234,30 @@ ENDIF(ENABLE_GTSIO)
 # *** SETUP APPLICATIONS ***
 #
 # ------------------------------------------------------------------------------
-ADD_EXECUTABLE(vmeshgener src/generator.cpp)
-ADD_EXECUTABLE(vmeshcheck src/checker.cpp)
-TARGET_LINK_LIBRARIES(vmeshgener viennamesh)
-TARGET_LINK_LIBRARIES(vmeshcheck viennamesh)            
+ADD_EXECUTABLE(vmesh_hull           src/hull.cpp)
+ADD_EXECUTABLE(vmesh_adapthull      src/hull_adapt.cpp)
+ADD_EXECUTABLE(vmesh_checkhull      src/hull_checker.cpp)
+ADD_EXECUTABLE(vmesh_adaptvolng     src/vol_adapt_netgen.cpp)
+ADD_EXECUTABLE(vmesh_adaptvoltet    src/vol_adapt_tetgen.cpp)
+ADD_EXECUTABLE(vmesh_volng          src/vol_netgen.cpp)
+ADD_EXECUTABLE(vmesh_voltet         src/vol_tetgen.cpp)
+
+TARGET_LINK_LIBRARIES(vmesh_hull          viennamesh)
+TARGET_LINK_LIBRARIES(vmesh_adapthull     viennamesh)
+TARGET_LINK_LIBRARIES(vmesh_checkhull     viennamesh)
+TARGET_LINK_LIBRARIES(vmesh_adaptvolng    viennamesh)
+TARGET_LINK_LIBRARIES(vmesh_adaptvoltet   viennamesh)
+TARGET_LINK_LIBRARIES(vmesh_volng         viennamesh)
+TARGET_LINK_LIBRARIES(vmesh_voltet        viennamesh)
+
 
 # ------------------------------------------------------------------------------
 #
 # *** INSTALL ***
 #
 # ------------------------------------------------------------------------------
-INSTALL(TARGETS viennamesh vmeshgener vmeshcheck 
+INSTALL(TARGETS viennamesh vmesh_hull vmesh_adapthull vmesh_checkhull 
+  vmesh_adaptvolng vmesh_adaptvoltet vmesh_volng vmesh_voltet
   RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
   LIBRARY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
   ARCHIVE DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib)
