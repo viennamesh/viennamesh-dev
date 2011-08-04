@@ -40,6 +40,8 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    # Strip release binaries   
    #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
 
+   ADD_DEFINITIONS(-DMESH_STATISTICS)
+
    # add specific debug flags
    IF(CMAKE_BUILD_TYPE MATCHES Debug)
       SET(CMAKE_VERBOSE_MAKEFILE ON)
@@ -225,15 +227,17 @@ ENDIF(ENABLE_GTSIO)
 # *** SETUP APPLICATIONS ***
 #
 # ------------------------------------------------------------------------------
-ADD_EXECUTABLE(vmesh src/vmesh.cpp)
-TARGET_LINK_LIBRARIES(vmesh viennamesh)      
+ADD_EXECUTABLE(vmeshgener src/generator.cpp)
+ADD_EXECUTABLE(vmeshcheck src/checker.cpp)
+TARGET_LINK_LIBRARIES(vmeshgener viennamesh)
+TARGET_LINK_LIBRARIES(vmeshcheck viennamesh)            
 
 # ------------------------------------------------------------------------------
 #
 # *** INSTALL ***
 #
 # ------------------------------------------------------------------------------
-INSTALL(TARGETS viennamesh vmesh 
+INSTALL(TARGETS viennamesh vmeshgener vmeshcheck 
   RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
   LIBRARY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
   ARCHIVE DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib)

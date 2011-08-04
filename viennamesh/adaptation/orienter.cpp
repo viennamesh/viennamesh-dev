@@ -522,7 +522,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
       std::size_t corrected_cells = 0;
       std::size_t recursion_depth = 0;
 
-      std::cout << "entering recursion .. " << std::endl;
+      //std::cout << "entering recursion .. " << std::endl;
       cell_orienter_recursive(seg, seed_cell, corrected_cells, recursion_depth);
 
       std::size_t consistant = 0;
@@ -585,9 +585,9 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
 template<typename SegmentT, typename CellT>
 bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter_recursive(SegmentT& segment, CellT& cell, std::size_t& corrected_cells, std::size_t& recursion_depth)
 {
-   std::cout << "cell recursion: " << std::endl;
-   std::cout << "   run:  " << recursion_depth << std::endl;
-   std::cout << "   cell: " << cell.getID() << std::endl;
+//   std::cout << "cell recursion: " << std::endl;
+//   std::cout << "   run:  " << recursion_depth << std::endl;
+//   std::cout << "   cell: " << cell.getID() << std::endl;
    
    // investigate how many neighbour cells have been dealt with so far ..
    //
@@ -609,7 +609,7 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter_recursive(SegmentT& 
    //
    if (number_of_not_oriented_cells == 0)
    {
-      std::cout << "  stopping recursion " << std::endl;
+      //std::cout << "  stopping recursion " << std::endl;
       return true;      
    }
 

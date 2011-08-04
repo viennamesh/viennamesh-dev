@@ -46,6 +46,7 @@ namespace viennamesh {
 mesh_kernel<viennamesh::tag::tetgen>::mesh_kernel()
 {
    mesh_kernel_id = "Tetgen";      
+   options = "zpDq";
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
 #endif
@@ -64,7 +65,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(DatastructureT& data)
 {
    this->init();      
 
-   options = "zpD";  // conforming delaunay
+   //options = "zpDq";  // conforming delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 
@@ -213,7 +214,7 @@ mesh_kernel<viennamesh::tag::tetgen>::result_type
 mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain) 
 {
    this->init();         
-   options = "zpD";  // conforming delaunay
+   //options = "zpDq";  // conforming delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 

@@ -46,6 +46,7 @@ namespace viennamesh {
 mesh_kernel<viennamesh::tag::triangle>::mesh_kernel()
 {
    mesh_kernel_id = "Triangle";      
+   options = "zpDq";
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - initiating" << std::endl;
 #endif
@@ -64,7 +65,7 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(DatastructureT& data)
 { 
    this->init();      
 
-   options = "zpDq";  // conforming, quality delaunay
+   //options = "zpDq";  // conforming, quality delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 
@@ -207,7 +208,7 @@ mesh_kernel<viennamesh::tag::triangle>::result_type
 mesh_kernel<viennamesh::tag::triangle>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::line_2d> > hull_domain) 
 {
    this->init();         
-   options = "zpDq";  // conforming, quality delaunay
+   //options = "zpDq";  // conforming, quality delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 

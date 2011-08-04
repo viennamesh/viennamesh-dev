@@ -133,9 +133,13 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
       }      
    }
    
-#ifdef MESH_ADAPTOR_DEBUG
+#ifdef MESH_ADAPTOR_DEBUG || MESH_STATISTICS
    std::cout << "   intersections: " << intersections << std::endl;
 #endif          
+   
+#ifdef MESH_ADAPTOR_DEBUG
+   std::cout << "## MeshAdaptor::"+id+" - utilizing TetGen intersection test .." << std::endl;
+#endif    
    
    return domain;
 }
