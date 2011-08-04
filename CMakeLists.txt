@@ -27,6 +27,7 @@ set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
 # ------------------------------------------------------------------------------
 SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
 SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
+SET(VIENNAMESH_USE_MT ON CACHE BOOL "Build ViennaMesh with Multi-Threading support")
 
 # ------------------------------------------------------------------------------
 #
@@ -51,6 +52,10 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    #   ADD_DEFINITIONS(-Wall -DMESH_KERNEL_DEBUG -DMESH_KERNEL_DEBUG_FULL -DIODEBUG)   
    ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+IF(VIENNAMESH_USE_MT)
+   ADD_DEFINITIONS(-DVIENNAMESH_USE_MT)
+ENDIF(VIENNAMESH_USE_MT)
 
 IF(VIENNAMESH_USE_MPI)
    find_package(MPI REQUIRED)
@@ -159,6 +164,8 @@ include_directories(${VIENNAGRID_INCLUDE_DIRS})
 #
 find_package(VIENNADATA REQUIRED)
 include_directories(${VIENNADATA_INCLUDE_DIRS})
+
+include_directories(external/threadpool-0.2.5/threadpool)
 
 # ------------------------------------------------------------------------------
 #
