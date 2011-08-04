@@ -26,7 +26,7 @@
 // generate high-quality 3d meshes
 //
 template<typename WrappedDatastructureT>
-void process_3d(WrappedDatastructureT& data, std::string const& outputfile)
+void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int checks = 0)
 {
    // prepare a hull mesher
    //   generates a 2-simplex unstructured mesh embedded in a three-dimensional
@@ -71,7 +71,7 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile)
 
    // prepare a volume mesh generator
    //
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type        volume_mesh_generator_type;
+   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        volume_mesh_generator_type;
    volume_mesh_generator_type       volume_mesher;      
 
    // and a mesh classification tool
@@ -97,19 +97,22 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile)
    std::cout << "   hull normals .. " << std::endl;   
    hull_domainsp_type   normals  = cell_normals(oriented);
 
-//   std::cout << "   hull checking topology .. " << std::endl;
-//   topo_checker(normals);
+   if(checks == 1)
+   {
+      std::cout << "   hull checking topology .. " << std::endl;
+      topo_checker(normals);
 
-//   std::cout << "   hull checking geometry .. " << std::endl;   
-//   geom_checker(normals);
+      std::cout << "   hull checking geometry .. " << std::endl;   
+      geom_checker(normals);
+   }
 
-//   //   4. improve the quality of the hull mesh
-//   std::cout << "   hull quality .. " << std::endl;   
-//   hull_domainsp_type   quality  = hull_quality(normals);
+   //   4. improve the quality of the hull mesh
+   std::cout << "   hull quality .. " << std::endl;   
+   hull_domainsp_type   quality  = hull_quality(normals);
 
    //   5. do the volume meshing
    std::cout << "   volume meshing .. " << std::endl;   
-   vol_domainsp_type    volume   = volume_mesher(hullmesh);
+   vol_domainsp_type    volume   = volume_mesher(quality);
 
    //   6. investigate mesh quality
    std::cout << "   volume classifying .. " << std::endl;   
@@ -143,9 +146,9 @@ void process_2d(WrappedDatastructureT& data, std::string const& outputfile)
 
 int main(int argc, char *argv[])
 {
-   if(argc != 3)
+   if(argc != 4)
    {
-      std::cerr << "## Parameter Error - usage: " << argv[0] << " inputfile.{hin,bnd,gau32,inp,sgf} outputfile" << std::endl;
+      std::cerr << "## Parameter Error - usage: " << argv[0] << " inputfile.{hin,bnd,gau32,inp,sgf} outputfile checks[0|1]" << std::endl;
       std::cerr << "## shutting down .." << std::endl;
       return -1;
    }
@@ -153,6 +156,7 @@ int main(int argc, char *argv[])
   
    std::string inputfile(argv[1]);
    std::string outputfile(argv[2]);
+   int checks(atoi(argv[3]));
    std::cout << "## " << argv[0] << " processing file: " << inputfile << std::endl;
    
    std::string input_extension  = viennautils::file_extension(inputfile);
@@ -175,7 +179,7 @@ int main(int argc, char *argv[])
       // mesh this data
       //
       if(my_bnd_reader.dim_geom() == 3)
-         process_3d(wrapped_data, outputfile);
+         process_3d(wrapped_data, outputfile, checks);
       else if(my_bnd_reader.dim_geom() == 2)
          process_2d(wrapped_data, outputfile);      
 
@@ -195,7 +199,7 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile);
+      process_3d(wrapped_data, outputfile, checks);
    }
    else
    if(input_extension == "gau32")
@@ -212,7 +216,7 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile);
+      process_3d(wrapped_data, outputfile, checks);
    }   
    else
    if(input_extension == "inp")
@@ -231,7 +235,7 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile);
+      process_3d(wrapped_data, outputfile, checks);
    }   
    else
    if(input_extension == "sgf") 
