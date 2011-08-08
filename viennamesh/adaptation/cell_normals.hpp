@@ -68,10 +68,6 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
    #endif            
       viennagrid::assign_cell_normals(*domain);
 
-      // NOTE the following correction should not be necc anymore, 
-      // as the viennagrid cell normals algorithm stores the normals specific 
-      // to the segments - therefore nothing has to be corrected!
-
    #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "   correcting interface cell normals" << std::endl;
    #endif            

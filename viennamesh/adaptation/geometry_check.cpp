@@ -227,7 +227,7 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    if(*intersp > 0)
    {
       viennautils::msg::error("## MeshAdaptor::"+id+"mesh contains geometry erros - shutting down ..");
-      throw "mesh contains geometry errors";
+      //throw "mesh contains geometry errors";
    }
    
    return domain;

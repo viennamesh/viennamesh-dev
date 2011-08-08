@@ -25,6 +25,7 @@ namespace viennamesh {
 
 namespace data {
 struct orient        {};
+struct seed          {};
 struct seg_orient    {};
 
 struct seg_orient_map
@@ -49,6 +50,11 @@ namespace viennadata
     {
       typedef type_key_dispatch_tag    tag;
     };
+    template <>
+    struct key_dispatch<viennamesh::data::seed>
+    {
+      typedef type_key_dispatch_tag    tag;
+    };    
     template <>
     struct key_dispatch<viennamesh::data::seg_orient>
     {

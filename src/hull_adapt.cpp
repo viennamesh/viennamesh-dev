@@ -76,6 +76,15 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    std::cout << "   hull meshing .. " << std::endl;
    hull_domainsp_type   hullmesh = hull_mesher(data);
    
+   if(checks == 1)
+   {
+      std::cout << "   hull checking topology .. " << std::endl;
+      topo_checker(hullmesh);
+
+      std::cout << "   hull checking geometry .. " << std::endl;   
+      geom_checker(hullmesh);
+   }   
+   
    //   2. impose consistent ccw cell orientation
    std::cout << "   hull orienting .. " << std::endl;   
    hull_domainsp_type   oriented = orienter(hullmesh);
@@ -83,15 +92,6 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    //   3. compute the cell normals of the oriented hull mesh
    std::cout << "   hull normals .. " << std::endl;   
    hull_domainsp_type   normals  = cell_normals(oriented);
-
-   if(checks == 1)
-   {
-      std::cout << "   hull checking topology .. " << std::endl;
-      topo_checker(normals);
-
-      std::cout << "   hull checking geometry .. " << std::endl;   
-      geom_checker(normals);
-   }
 
    //   4. improve the quality of the hull mesh
    std::cout << "   hull quality .. " << std::endl;   

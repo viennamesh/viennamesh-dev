@@ -72,9 +72,12 @@ mesh_adaptor<viennamesh::tag::topo_check>::operator()(boost::shared_ptr< viennag
 #ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - looking for duplicates n-cells .." << std::endl;
 #endif       
-   std::size_t duplicate_vertices = viennagrid::duplicates<0>::eval(*domain);
-   std::size_t duplicate_edges    = viennagrid::duplicates<1>::eval(*domain);
-   std::size_t duplicate_cells    = viennagrid::duplicates<2>::eval(*domain);
+   std::size_t duplicate_vertices; 
+   std::size_t duplicate_edges;    
+   std::size_t duplicate_cells;    
+   duplicate_vertices = viennagrid::duplicates<0>::eval(*domain);
+   duplicate_edges    = viennagrid::duplicates<1>::eval(*domain);
+   duplicate_cells    = viennagrid::duplicates<2>::eval(*domain);   
 #if MESH_ADAPTOR_DEBUG || MESH_STATISTICS
    std::cout << "   duplicate vertices: " << duplicate_vertices << std::endl;
    std::cout << "   duplicate edges:    " << duplicate_edges << std::endl;
@@ -89,7 +92,7 @@ mesh_adaptor<viennamesh::tag::topo_check>::operator()(boost::shared_ptr< viennag
    if(errors > 0)
    {
       viennautils::msg::error("## MeshAdaptor::"+id+"mesh contains topological erros - shutting down ..");
-      throw "mesh contains topological errors";
+      //throw "mesh contains topological errors";
    }
 
 

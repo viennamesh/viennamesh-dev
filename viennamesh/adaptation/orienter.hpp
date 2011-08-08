@@ -82,8 +82,10 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    // --------------------------------------------------------------------------     
 private:
    // --------------------------------------------------------------------------     
-   template<typename SegmentT, typename CellT>
-   bool cell_orienter_recursive(SegmentT& segment, CellT& cell, std::size_t& corrected_cells, std::size_t& recursion_depth);
+   //template<typename SegmentT, typename CellT>
+   //bool cell_orienter_recursive(SegmentT& segment, CellT& cell, std::size_t& corrected_cells, std::size_t& recursion_depth);
+   template<typename SegmentT>
+   bool cell_orienter(SegmentT& segment, std::size_t& corrected_cells);
 
    template<typename CellT>
    bool is_consistant_orientation(CellT & c1, CellT & c2);
