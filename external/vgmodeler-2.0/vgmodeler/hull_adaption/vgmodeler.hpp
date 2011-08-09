@@ -44,13 +44,15 @@ struct hull_adaptor
    {
       vgmnetgen::Ng_Init();
 
-      std::string filename = "hinge.msz";
+      std::string filename = "";
       cfilename = (char *)malloc( filename.length() * sizeof(char) );
       std::strcpy(cfilename,filename.c_str());
-      mp.maxh              = 100000;
-      mp.fineness          = 0.5;
-      mp.secondorder       = 2;
-      mp.meshsize_filename = cfilename;
+      
+      mp.maxh              = 100000;       // Maximum global mesh size allowed. 
+      mp.fineness          = 0.5;          // Mesh density: 0...1 (0 => coarse; 1 => fine). 
+      mp.secondorder       = 2;            // Generate second-order surface and volume elements. 
+      mp.meshsize_filename = cfilename;    // Optional external mesh size file. 
+      mp.quad_dominated    = 0;            // Creates a Quad-dominated mesh. 
 
       geom = vgmnetgen::Ng_STL_NewGeometry();
       mesh = vgmnetgen::Ng_NewMesh();
@@ -62,6 +64,44 @@ struct hull_adaptor
       vgmnetgen::Ng_Exit();
    }
 
+//   // add hull element to data structure - only triangle geometry informaiton 
+//   // available --> compute the normal vector
+//   // 
+//   template<typename TriangleT>
+//   void add_hull_element(TriangleT const& tri)
+//   {
+//      double p1[3];
+//      double p2[3];
+//      double p3[3];
+//      double n[3];   
+
+//      p1[0] = tri[0][0];
+//      p1[1] = tri[0][1];
+//      p1[2] = tri[0][2];            
+
+//      p2[0] = tri[1][0];
+//      p2[1] = tri[1][1];
+//      p2[2] = tri[1][2];            
+
+//      p3[0] = tri[2][0];
+//      p3[1] = tri[2][1];
+//      p3[2] = tri[2][2];            
+
+//      n[0] = tri_normal[0];
+//      n[1] = tri_normal[1];
+//      n[2] = tri_normal[2];
+
+////      std::cout << "adding triangle:" << std::endl;
+////      std::cout << "  p1: " << p1[0] << " " << p1[1] << " " << p1[2] << std::endl;
+////      std::cout << "  p2: " << p2[0] << " " << p2[1] << " " << p2[2] << std::endl;
+////      std::cout << "  p3: " << p3[0] << " " << p3[1] << " " << p3[2] << std::endl;
+////      std::cout << "  n:  " << n[0] << " " << n[1] << " " << n[2] << std::endl;
+
+//      vgmnetgen::Ng_STL_AddTriangle(geom, p1, p2, p3, n);
+//   }
+
+   // add hull element to data structure - the normal vector information is available
+   // 
    template<typename TriangleT, typename VectorT>
    void add_hull_element(TriangleT const& tri, VectorT const& tri_normal)
    {

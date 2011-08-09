@@ -94,7 +94,6 @@ mesh_adaptor<viennamesh::tag::hull_quality>::operator()(input_type domain)
             viennadata::access<
                viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type
             >()(*cit)[si]); 
-         
       }
    }
    

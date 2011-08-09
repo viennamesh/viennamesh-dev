@@ -203,8 +203,6 @@ int main(int argc, char *argv[])
       
       viennagrid::io::importINP(domain, inputfile, true);
 
-      viennamesh::io::domainwriter(domain, "hullinp");
-
       // the reader datastructure is wrapped to offer a specific interface
       //
       typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      viennagrid_wrapper_type;
