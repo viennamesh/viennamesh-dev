@@ -1463,15 +1463,14 @@ void STLGeometry :: RestrictHChartDistOneChart(int chartnum, ARRAY<int>& acttrig
 #endif
 }
 
-
+////# define DEBUGALL
 //void * STLMeshingDummy (void *)
 int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain,
-			    int perfstepsstart, int perfstepsend, char* optstring)
+			    int perfstepsstart, int perfstepsend)
 {
 #ifdef DEBUGALL
    std::cout << ".. perfstepsstart: " << perfstepsstart << std::endl;
    std::cout << ".. perfstepsend: " << perfstepsend << std::endl;
-   std::cout << ".. optstring: " << optstring << std::endl;
    std::cout << ".. here 0 " << std::endl;
 #endif
 
@@ -1486,317 +1485,112 @@ int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<v
   //int trialcntouter = 0;
 
   if (perfstepsstart <= MESHCONST_MESHEDGES)
-    {      
+  {
 #ifdef DEBUGALL
-      std::cout << ".. ENTER prefstepsstart <= MESHCONST_MESHEDGES" << std::endl;
+    std::cout << ".. ENTER prefstepsstart <= MESHCONST_MESHEDGES" << std::endl;
 #endif
 
-      mesh = new Mesh();
-      mesh -> SetGlobalH (mparam.maxh);
-      mesh -> SetLocalH (stlgeometry->GetBoundingBox().PMin() - Vec3d(10, 10, 10),
-			 stlgeometry->GetBoundingBox().PMax() + Vec3d(10, 10, 10),
-			 mparam.grading);
-      mesh -> LoadLocalMeshSize (mparam.meshsizefilename);
-      
-      success = 0;
-  
-      //mesh->DeleteMesh();
- 
-      STLMeshing (*stlgeometry, *mesh);
+    //std::cout << "maxh: " << mparam.maxh << std::endl;
+    //std::cout << "grading: " << mparam.grading << std::endl;
 
-      stlgeometry->edgesfound = 1;
-      stlgeometry->surfacemeshed = 0;
-      stlgeometry->surfaceoptimized = 0;
-      stlgeometry->volumemeshed = 0;
+    mesh = new Mesh();
+    mesh -> SetGlobalH (mparam.maxh);
+    mesh -> SetLocalH  (stlgeometry->GetBoundingBox().PMin() - Vec3d(10, 10, 10),
+                        stlgeometry->GetBoundingBox().PMax() + Vec3d(10, 10, 10),
+                        mparam.grading);
+    mesh -> LoadLocalMeshSize (mparam.meshsizefilename);
+
+    success = 0;
+
+    //mesh->DeleteMesh();
+
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    STLMeshing (*stlgeometry, *mesh);  // at stlgeom.cpp
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    stlgeometry->edgesfound = 1;
+    stlgeometry->surfacemeshed = 0;
+    stlgeometry->surfaceoptimized = 0;
+    stlgeometry->volumemeshed = 0;
 
 #ifdef DEBUGALL
-      std::cout << ".. EXIT prefstepsstart <= MESHCONST_MESHEDGES" << std::endl;
+    std::cout << ".. EXIT prefstepsstart <= MESHCONST_MESHEDGES" << std::endl;
 #endif
-    }
+  }
 
-  if (multithread.terminate)
-    return 0;
+  if (multithread.terminate) return 0;
 
 
   if (perfstepsstart <= MESHCONST_MESHSURFACE && 
-      perfstepsend >= MESHCONST_MESHSURFACE)
+      perfstepsend   >= MESHCONST_MESHSURFACE)
+  {
+#ifdef DEBUGALL
+    std::cout << ".. ENTER prefstepsstart <= MESHCONST_MESHSURFACE" << std::endl;
+#endif
+
+    if (!stlgeometry->edgesfound) 
     {
-#ifdef DEBUGALL
-      std::cout << ".. ENTER prefstepsstart <= MESHCONST_MESHSURFACE" << std::endl;
-#endif
+  #ifdef DEBUGALL
+      PrintUserError("You have to do 'analyse geometry' first!!!");
+  #endif
+      return 0; 
+    }
+    if (stlgeometry->surfacemeshed || stlgeometry->surfacemeshed) 
+    {
+  #ifdef DEBUGALL
+      PrintUserError("Already meshed. Please start again with 'Analyse Geometry'!!!"); 
+  #endif
+      return 0; 
+    }
 
-      if (!stlgeometry->edgesfound) 
-	{
-#ifdef DEBUGALL
-	  PrintUserError("You have to do 'analyse geometry' first!!!");
-#endif
-	  return 0; 
-	}
-      if (stlgeometry->surfacemeshed || stlgeometry->surfacemeshed) 
-	{
-#ifdef DEBUGALL
-	  PrintUserError("Already meshed. Please start again with 'Analyse Geometry'!!!"); 
-#endif
-	  return 0; 
-	}
+    success = 0;
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    int retval = STLSurfaceMeshing (*stlgeometry, *mesh, domain); // at meststlsurface.cpp
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
-      success = 0;
-      // --------------------------------------------------------------------
-      // --------------------------------------------------------------------
-      // --------------------------------------------------------------------
-      int retval = STLSurfaceMeshing (*stlgeometry, *mesh, domain);
-      // --------------------------------------------------------------------
-      // --------------------------------------------------------------------
-      // --------------------------------------------------------------------
-
-
-      if (retval == MESHING3_OK)
-	{
-//	  PrintMessage(3,"Success !!!!");
-	  stlgeometry->surfacemeshed = 1;
-	  stlgeometry->surfaceoptimized = 0;
-	  stlgeometry->volumemeshed = 0;
-	  success = 1;
-	} 
-      else if (retval == MESHING3_OUTERSTEPSEXCEEDED)
-	{
-#ifdef DEBUGALL
-	  PrintError("Give up because of too many trials. Meshing aborted!");
-#endif
-	}
-      else if (retval == MESHING3_TERMINATE)
-	{
-#ifdef DEBUGALL
-	  PrintWarning("Meshing Stopped by user!");
-#endif
-	}
-      else
-	{
-#ifdef DEBUGALL
-	  PrintError("Surface meshing not successful. Meshing aborted!");
-#endif
-	}
+    if (retval == MESHING3_OK)
+    {
+      stlgeometry->surfacemeshed = 1;
+      stlgeometry->surfaceoptimized = 0;
+      stlgeometry->volumemeshed = 0;
+      success = 1;
+    } 
+    else if (retval == MESHING3_OUTERSTEPSEXCEEDED)
+    {
+  #ifdef DEBUGALL
+      PrintError("Give up because of too many trials. Meshing aborted!");
+  #endif
+    }
+    else if (retval == MESHING3_TERMINATE)
+    {
+  #ifdef DEBUGALL
+      PrintWarning("Meshing Stopped by user!");
+  #endif
+    }
+    else
+    {
+  #ifdef DEBUGALL
+      PrintError("Surface meshing not successful. Meshing aborted!");
+  #endif
+    }
       
-#ifdef STAT_STREAM
-      (*statout) << mesh->GetNSeg() << " & " << endl
-		 << mesh->GetNSE() << " & " << endl
-		 << GetTime() << " & ";
-#endif
-#ifdef DEBUGALL
-      std::cout << ".. EXIT prefstepsstart <= MESHCONST_MESHSURFACE" << std::endl;
-#endif
-    }
-
-  if (multithread.terminate)
-    return 0;
-
-  if (success)
-    {
-      if (perfstepsstart <= MESHCONST_OPTSURFACE && 
-	  perfstepsend >= MESHCONST_OPTSURFACE)
-	{
-	  if (!stlgeometry->edgesfound) 
-	    {
-#ifdef DEBUGALL
-	      PrintUserError("You have to do 'meshing->analyse geometry' first!!!"); 
-#endif
-	      return 0; 
-	    }
-	  if (!stlgeometry->surfacemeshed) 
-	    {
-#ifdef DEBUGALL
-	      PrintUserError("You have to do 'meshing->mesh surface' first!!!"); 
-#endif
-	      return 0; 
-	    }
-	  if (stlgeometry->volumemeshed) 
-	    {
-#ifdef DEBUGALL
-	      PrintWarning("Surface optimization with meshed volume is dangerous!!!"); 
-#endif
-	    }
-
-	  if (!optstring || strlen(optstring) == 0)
-	    {
-	      mparam.optimize2d = "smcm";
-	    }
-	  else
-	    {
-	      mparam.optimize2d = optstring;
-	    }
-
-	  STLSurfaceOptimization (*stlgeometry, *mesh, mparam);
-
-    // #######################################################################
-    // [TODO][FS] DO NOT START VOLUME MESHING !!!
-    // #######################################################################
-
-    return 0;
-
-    // #######################################################################
-    // #######################################################################
-    // #######################################################################
-	  
-	  if (stlparam.recalc_h_opt)
-	    {
-	      mesh -> SetLocalH (stlgeometry->GetBoundingBox().PMin() - Vec3d(10, 10, 10),
-				 stlgeometry->GetBoundingBox().PMax() + Vec3d(10, 10, 10),
-				 mparam.grading);
- 	      mesh -> LoadLocalMeshSize (mparam.meshsizefilename);	      
-	      mesh -> CalcLocalHFromSurfaceCurvature (stlparam.resthsurfmeshcurvfac);
-	      mparam.optimize2d = "cmsmSm";
-	      STLSurfaceOptimization (*stlgeometry, *mesh, mparam);
-#ifdef STAT_STREAM
-	      (*statout) << GetTime() << " & ";
-#endif
-
-#ifdef OPENGL
-	      extern void Render();
-	      Render();
-#endif	      
-	    }
-	  stlgeometry->surfaceoptimized = 1;
-	}
-
-      // [FS] convert the surface mesh to the volume mesh input format
-      //
-#ifdef DEBUGALL
-      mesh->Save("fs_surface_after_optimization.vol");
-#endif
-
-      if (multithread.terminate)
-	return 0;
-
-      if (perfstepsstart <= MESHCONST_MESHVOLUME && 
-	  perfstepsend >= MESHCONST_MESHVOLUME)
-	{
-	  if (stlgeometry->volumemeshed) 
-	    {
-#ifdef DEBUGALL
-	      PrintUserError("Volume already meshed!"); return 0;
-#endif
-	    }
-
-	  if (!stlgeometry->edgesfound) 
-	    {
-#ifdef DEBUGALL
-	      PrintUserError("You have to do 'meshing->analyse geometry' first!!!"); 
-#endif
-	      return 0; 
-	    }
-	  if (!stlgeometry->surfacemeshed) 
-	    {
-#ifdef DEBUGALL
-	      PrintUserError("You have to do 'meshing->mesh surface' first!!!"); 
-#endif
-	      return 0; 
-	    }
-	  if (!stlgeometry->surfaceoptimized) 
-	    {
-	      PrintWarning("You should do 'meshing->optimize surface' first!!!"); 
-	    }
-
-#ifdef DEBUGALL
-	  PrintMessage(5,"Check Overlapping boundary: ");
-#endif
-
-	  mesh->FindOpenElements();
-	  mesh->CheckOverlappingBoundary();
-	  PrintMessage(5,"");
-
-
-	  if (stlparam.recalc_h_opt)
-	    {
-	      mesh -> SetLocalH (stlgeometry->GetBoundingBox().PMin() - Vec3d(10, 10, 10),
-				 stlgeometry->GetBoundingBox().PMax() + Vec3d(10, 10, 10),
-				 mparam.grading);	  
-	      mesh -> LoadLocalMeshSize (mparam.meshsizefilename);
-	      mesh -> CalcLocalH ();
-	    }
-	  
-#ifdef DEBUGALL	  
-	  PrintMessage(5,"Volume meshing");
-#endif
-
-	  int retval = MeshVolume (mparam, *mesh);
-	  if (retval == MESHING3_OK)
-	    {
-	      RemoveIllegalElements(*mesh);
-	      stlgeometry->volumemeshed = 1;
-	    } 
-	  else if (retval == MESHING3_OUTERSTEPSEXCEEDED)
-	    {
-//	      PrintError("Give up because of too many trials. Meshing aborted!");
-	      return 0;
-	    }
-	  else if (retval == MESHING3_TERMINATE)
-	    {
-//	      PrintWarning("Meshing Stopped by user!");
-	    }
-	  else
-	    {
-//	      PrintError("Volume meshing not successful. Meshing aborted!");
-	      return 0;
-	    }
-
-#ifdef STAT_STREAM
-	  (*statout) << GetTime() << " & " << endl;
-#endif
-	  MeshQuality3d (*mesh);
-	}
-
-      if (multithread.terminate)
-	return 0;
-
-      if (perfstepsstart <= MESHCONST_OPTVOLUME && 
-	  perfstepsend >= MESHCONST_OPTVOLUME)
-	{
-	  if (!stlgeometry->edgesfound) 
-	    {
-	      PrintUserError("You have to do 'meshing->analyse geometry' first!!!"); 
-	      return 0; 
-	    }
-	  if (!stlgeometry->surfacemeshed) 
-	    {
-	      PrintUserError("You have to do 'meshing->mesh surface' first!!!"); 
-	      return 0; 
-	    }
-	  if (!stlgeometry->volumemeshed) 
-	    {
-	      PrintUserError("You have to do 'meshing->mesh volume' first!!!"); 
-	      return 0; 
-	    }
-
-	  if (!optstring || strlen(optstring) == 0)
-	    {
-	      mparam.optimize3d = "cmdmstm";
-	    }
-	  else
-	    {
-	      mparam.optimize3d = optstring;
-	    }
-
-
-	  OptimizeVolume (mparam, *mesh);
-	  
-#ifdef STAT_STREAM
-	  (*statout) << GetTime() << " & " << endl;
-	  (*statout) << mesh->GetNE() << " & " << endl
-		     << mesh->GetNP() << " " << '\\' << '\\' << " \\" << "hline" << endl;
-#endif
-
-#ifdef OPENGL
-	  extern void Render();
-	  Render();
-#endif	      
-
-	}
-    }
-  
-
+  #ifdef STAT_STREAM
+    (*statout) << mesh->GetNSeg() << " & " << endl << mesh->GetNSE() << " & " << endl << GetTime() << " & ";
+  #endif
+  #ifdef DEBUGALL
+    std::cout << ".. EXIT prefstepsstart <= MESHCONST_MESHSURFACE" << std::endl;
+  #endif
+  }
   return 0;
 }
 
-
-
 }
+
+

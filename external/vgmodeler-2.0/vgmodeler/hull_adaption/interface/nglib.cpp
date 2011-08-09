@@ -410,7 +410,7 @@ Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::domain<vie
 
   if (readedges.Size() != 0)
     {
-      int i;
+      //int i;
       /*
       for (i = 1; i <= readedges.Size(); i+=2)
 	{
@@ -504,7 +504,12 @@ Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
    STLGeometry* stlgeometry = (STLGeometry*)geom;
    Mesh* me = (Mesh*)mesh;
    
-   STLMeshingDummy(stlgeometry, me, domain, 1, 6, "");
+   // [JW] transfer the parameters ..
+   mparam.maxh             = mp->maxh;
+   mparam.grading          = mp->grading;
+   mparam.meshsizefilename = mp->meshsize_filename;
+   
+   STLMeshingDummy(stlgeometry, me, domain, 1, 6);
 
 #ifdef DEBUGALL
    std::cout << "EXIT Ng_FS_SurfaceMesh" << std::endl;
@@ -609,6 +614,7 @@ Ng_Meshing_Parameters :: Ng_Meshing_Parameters()
 {
   maxh = 1000;
   fineness = 0.5;
+  grading  = 0.3;
   secondorder = 0;
   meshsize_filename = 0;
   quad_dominated = 0;

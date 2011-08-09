@@ -53,6 +53,7 @@ class Ng_Meshing_Parameters
 
   double maxh;
   double fineness;   // 0 .. coarse, 1 .. fine
+  double grading;
   int secondorder;
   char * meshsize_filename;
   int quad_dominated;

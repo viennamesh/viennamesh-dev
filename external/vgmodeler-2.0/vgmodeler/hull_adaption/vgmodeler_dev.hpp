@@ -29,10 +29,15 @@
 // the nglib.h
 #include "gsse/domain.hpp"   
 
+
+#include "general/myadt.hpp"   
+#include "gprim/gprim.hpp"
 namespace vgmnetgen {
 #include "interface/nglib.h"
-}
+//#include "stlgeom/stltopology.hpp"
 
+}
+#include "stlgeom/stlgeom.hpp"
 
 
 namespace vgmodeler {
@@ -87,13 +92,11 @@ struct hull_adaptor
       cfilename = (char *)malloc( filename.length() * sizeof(char) );
       std::strcpy(cfilename,filename.c_str());
       
-      // Maximum global mesh size allowed. 
-      //   note: no elements are larger than this value
-      mp.maxh      = 1000000;           
-      mp.grading   = 0.3;
-      // Optional external mesh size file. 
-      //
-      mp.meshsize_filename = cfilename;   
+      mp.maxh              = 100000;       // Maximum global mesh size allowed. 
+      mp.fineness          = 0.5;          // Mesh density: 0...1 (0 => coarse; 1 => fine). 
+      mp.secondorder       = 0;            // Generate second-order surface and volume elements. 
+      mp.meshsize_filename = cfilename;    // Optional external mesh size file. 
+      mp.quad_dominated    = 0;            // Creates a Quad-dominated mesh. 
 
       geom = vgmnetgen::Ng_STL_NewGeometry();
       mesh = vgmnetgen::Ng_NewMesh();
@@ -183,13 +186,56 @@ struct hull_adaptor
 //      std::cout << "  n:  " << n[0] << " " << n[1] << " " << n[2] << std::endl;
 
 
-      vgmnetgen::Ng_STL_AddTriangle(geom, p1, p2, p3, n);
+      // old
+      //
+      //vgmnetgen::Ng_STL_AddTriangle(geom, p1, p2, p3, n);
+      
+      
+      
+      
+      vgmnetgen::Point<3> pts[3];
+      vgmnetgen::Vec<3> normal;
 
+      for(int i = 0; i < 3; i++)
+      {
+         pts[0](i) = tri[0][i];
+         pts[1](i) = tri[1][i];
+         pts[2](i) = tri[2][i];                  
+         normal(i) = n[i];
+      }
+      readtrigs.Append (vgmnetgen::STLReadTriangle (pts, normal));
+
+      
    }
 
    
    void process(domain_type& domain, domain_type& new_domain)
    {
+      vgmnetgen::STLGeometry * geomtemp = new vgmnetgen::STLGeometry();
+      geomtemp->InitSTLGeometry(readtrigs);
+      
+     vgmnetgen::Point3d p;
+     vgmnetgen::Vec3d normal;
+     double p1[3];
+     double p2[3];
+     double p3[3];
+     double n[3];      
+      
+      for (long i = 1; i <= geomtemp->GetNT(); i++)
+      {
+         const vgmnetgen::STLTriangle& t = geomtemp->GetTriangle(i);
+         p = geomtemp->GetPoint(t.PNum(1));
+         p1[0] = p.X(); p1[1] = p.Y(); p1[2] = p.Z(); 
+         p = geomtemp->GetPoint(t.PNum(2));
+         p2[0] = p.X(); p2[1] = p.Y(); p2[2] = p.Z(); 
+         p = geomtemp->GetPoint(t.PNum(3));
+         p3[0] = p.X(); p3[1] = p.Y(); p3[2] = p.Z();
+         normal = t.Normal();
+         n[0] = normal.X(); n[1] = normal.Y(); n[2] = normal.Z();
+
+         vgmnetgen::Ng_STL_AddTriangle(geom, p1, p2, p3, n);
+      }      
+      
       if(vgmnetgen::Ng_STL_InitSTLGeometry(geom, domain) != 0)
       {
          std::cerr << "vgmodeler::hull-adaptor: input mesh initialization failed" << std::endl;
@@ -204,6 +250,7 @@ struct hull_adaptor
    vgmnetgen::Ng_Mesh                * mesh;   
    vgmnetgen::Ng_STL_Geometry        * geom;
    vgmnetgen::Ng_Meshing_Parameters    mp;
+   vgmnetgen::ARRAY<vgmnetgen::STLReadTriangle>              readtrigs;
 };
 
 }

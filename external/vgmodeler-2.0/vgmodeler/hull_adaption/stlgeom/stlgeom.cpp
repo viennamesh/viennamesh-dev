@@ -35,7 +35,6 @@ void STLMeshing (STLGeometry & geom,
   std::cout << "[FS] .. in STLMeshing.." << std::endl;
   std::cout << "[FS] .. number of points in geometry: " << geom.GetNP() << std::endl;
 #endif
-
   geom.Clear();
   geom.BuildEdges();
   geom.MakeAtlas(mesh);
@@ -44,7 +43,6 @@ void STLMeshing (STLGeometry & geom,
   // [FS][INFO] maybe this function can be commented - no need to compute a stltop edge 2 times
   //
   geom.AddFaceEdges();
-
   geom.LinkEdges();
 
 #ifdef DEBUGALL

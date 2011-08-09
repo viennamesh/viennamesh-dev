@@ -2488,9 +2488,10 @@ MeshingParameters :: MeshingParameters ()
   safety = 5;
   relinnersafety = 3;
   uselocalh = 1;
-  grading = 0.3;
+  grading = 0.5;    
   delaunay = 1;
-  maxh = 1e10;
+  //maxh = 1e10;
+  maxh = 1e1;
   minh = 0;
   meshsizefilename = NULL;
   startinsurface = 0;

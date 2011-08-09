@@ -21,11 +21,13 @@
 */
 
 
-#include <gprim.hpp>
-#include <meshing.hpp>
 
 #include <vector>
 #include <map>
+
+#include "../include/gprim.hpp"
+#include "../include/meshing.hpp"
+
 
 namespace vgmnetgen
 {
@@ -469,7 +471,7 @@ namespace vgmnetgen
 
 
   extern int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain,
-			      int perfstepsstart, int perfstepsend, char* optstring);
+			      int perfstepsstart, int perfstepsend);
 
 
 }

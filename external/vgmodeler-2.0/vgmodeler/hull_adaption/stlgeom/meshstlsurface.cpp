@@ -3138,6 +3138,8 @@ int STLSurfaceMeshing (STLGeometry & geom,
 {
   int i, j;
 
+  mparam.Print(std::cout);
+
 #ifdef DEBUGALL
   PrintFnStart("Do Surface Meshing");
   std::cout << "[FS] .. in STLSurfaceMeshing .." << std::endl;
@@ -3195,318 +3197,280 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
 #ifdef DEBUGALL
   for (i = 1; i <= mesh.GetNSeg(); i++)
+  {
+    const Segment & seg = mesh.LineSegment (i);
+
+    std::cout << ".. linesegment " << i << " :: " << seg << std::endl;
+
+    if (seg.geominfo[0].trignum <= 0 || seg.geominfo[1].trignum <= 0)
     {
-      const Segment & seg = mesh.LineSegment (i);
-
-      std::cout << ".. linesegment " << i << " :: " << seg << std::endl;
-
-      if (seg.geominfo[0].trignum <= 0 || seg.geominfo[1].trignum <= 0)
-	{
-	  std::cout << "Problem with segment " << i << ": " << seg << endl;
-	}
+      std::cout << "Problem with segment " << i << ": " << seg << endl;
     }
+  }
 #endif
 
   do
+  {
+    outercnt--;
+    if (outercnt <= 0)          return MESHING3_OUTERSTEPSEXCEEDED;
+    if (multithread.terminate)  return MESHING3_TERMINATE;
+
+    mesh.FindOpenSegments();
+    nopen = mesh.GetNOpenSegments();
+
+    if (nopen)
     {
-      outercnt--;
-      if (outercnt <= 0)
-	  return MESHING3_OUTERSTEPSEXCEEDED;
+      int trialcnt = 0;
+      while (nopen && trialcnt <= 5)
+      {
+        // [FS] .. test
+        //
+      #ifdef DEBUGALL
+        std::string blabla;
+        std::cout << "============================================================================================================" << std::endl;
+        std::cout << ".. wait for input in STLSurfaceMeshing .. ==================================================================" << std::endl;
+      #endif
+        if (multithread.terminate)  return MESHING3_TERMINATE;
+        trialcnt++;
+        // -----------------------------------------------
+        // -----------------------------------------------        
+        STLSurfaceMeshing1 (geom, mesh, trialcnt);
+        // -----------------------------------------------
+        // -----------------------------------------------        
+      #ifdef DEBUGALL
+        mesh.Save("fs_surface_mesh.vol");  
+        geom.Save("fs_geometry.stl");
+      #endif              
 
-      if (multithread.terminate)
-	{
-	  return MESHING3_TERMINATE;
-	}
+        mesh.FindOpenSegments();
+        nopen = mesh.GetNOpenSegments();
 
-      mesh.FindOpenSegments();
-      nopen = mesh.GetNOpenSegments();
+      #ifdef DEBUGALL
+        std::cout << ".. nopen after meshing run: " << nopen << std::endl;
+      #endif
+
+        if (nopen)
+        {
+          geom.ClearMarkedSegs();
+          for (i = 1; i <= nopen; i++)
+          {
+            const Segment & seg = mesh.GetOpenSegment (i);
+          #ifdef DEBUGALL
+            std::cout << "..open segment: " << seg << std::endl;
+          #endif
+            geom.AddMarkedSeg(mesh.Point(seg.p1),mesh.Point(seg.p2));
+          }
+
+          geom.InitMarkedTrigs();
+          for (i = 1; i <= nopen; i++)
+          {
+            const Segment & seg = mesh.GetOpenSegment (i);
+            geom.SetMarkedTrig(seg.geominfo[0].trignum,1);
+            geom.SetMarkedTrig(seg.geominfo[1].trignum,1);
+          }
+
+          MeshOptimizeSTLSurface optmesh(geom);
+          optmesh.SetFaceIndex (0);
+          optmesh.SetImproveEdges (0);
+          optmesh.SetMetricWeight (0);
+          
+          mesh.CalcSurfacesOfNode();
+          optmesh.EdgeSwapping (mesh, 0);
+          mesh.CalcSurfacesOfNode();
+          optmesh.ImproveMesh (mesh);
+        }
+
+        // mesh.Compress();
+        // mesh.FindOpenSegments();
+        // nopen = mesh.GetNOpenSegments();
+
+        if (trialcnt <= 5 && nopen)
+        {
+          mesh.RemoveOneLayerSurfaceElements();
+
+          if (trialcnt >= 4)
+          {
+            mesh.FindOpenSegments();
+            mesh.RemoveOneLayerSurfaceElements();
+            mesh.FindOpenSegments ();		  
+            nopen = mesh.GetNOpenSegments();
+          }
+        }
+      #ifdef DEBUGALL
+        std::cout << ".. end of while .. " << std::endl;
+      #endif                            
+      }
+
+      if (multithread.terminate)  return MESHING3_TERMINATE;
 
       if (nopen)
-	{
-	  int trialcnt = 0;
-	  while (nopen && trialcnt <= 5)
-	    {
-
-	      // [FS] .. test
-	      //
-#ifdef DEBUGALL
-	      std::string blabla;
-	      std::cout << "============================================================================================================" << std::endl;
-	      std::cout << ".. wait for input in STLSurfaceMeshing .. ==================================================================" << std::endl;
-#endif
-//   	      cin >> blabla;	      
-
-	      if (multithread.terminate)
-		{
-		  return MESHING3_TERMINATE;
-		}
-	      trialcnt++;
-	      STLSurfaceMeshing1 (geom, mesh, trialcnt);
-
-#ifdef DEBUGALL
-	      mesh.Save("fs_surface_mesh.vol");  
-              geom.Save("fs_geometry.stl");
-#endif              
-
-	      mesh.FindOpenSegments();
-	      nopen = mesh.GetNOpenSegments();
-//  	      nopen = 0;
-
-#ifdef DEBUGALL
-	      std::cout << ".. nopen after meshing run: " << nopen << std::endl;
-#endif
-
-	      if (nopen)
-		{
-		  geom.ClearMarkedSegs();
-		  for (i = 1; i <= nopen; i++)
-		    {
-		      const Segment & seg = mesh.GetOpenSegment (i);
-
-#ifdef DEBUGALL
-		      std::cout << "..open segment: " << seg << std::endl;
-#endif
-
-		      geom.AddMarkedSeg(mesh.Point(seg.p1),mesh.Point(seg.p2));
-		    }
-
-		  geom.InitMarkedTrigs();
-		  for (i = 1; i <= nopen; i++)
-		    {
-		      const Segment & seg = mesh.GetOpenSegment (i);
-		      geom.SetMarkedTrig(seg.geominfo[0].trignum,1);
-		      geom.SetMarkedTrig(seg.geominfo[1].trignum,1);
-		    }
-
-		  MeshOptimizeSTLSurface optmesh(geom);
-		  optmesh.SetFaceIndex (0);
-		  optmesh.SetImproveEdges (0);
-		  optmesh.SetMetricWeight (0);
-		  
-		  mesh.CalcSurfacesOfNode();
-		  optmesh.EdgeSwapping (mesh, 0);
-		  mesh.CalcSurfacesOfNode();
-		  optmesh.ImproveMesh (mesh);
-		}
-
-// 	      mesh.Compress();
-// 	      mesh.FindOpenSegments();
-// 	      nopen = mesh.GetNOpenSegments();
-
-	      if (trialcnt <= 5 && nopen)
-		{
-		  mesh.RemoveOneLayerSurfaceElements();
-
-		  if (trialcnt >= 4)
-		    {
-		      mesh.FindOpenSegments();
-		      mesh.RemoveOneLayerSurfaceElements();
-
-		      mesh.FindOpenSegments ();		  
-		      nopen = mesh.GetNOpenSegments();
-		    }
-		}
-
-#ifdef DEBUGALL
-              std::cout << ".. end of while .. " << std::endl;
-#endif                            
-	    }
-
-
-	  if (multithread.terminate)
-	    return MESHING3_TERMINATE;
-
-	  if (nopen)
-	    {
-	      
+      {
 //	      PrintMessage(3,"Meshing failed, trying to refine");
+        mesh.FindOpenSegments ();
+        nopen = mesh.GetNOpenSegments();
+        mesh.FindOpenSegments ();
+        mesh.RemoveOneLayerSurfaceElements();
+        mesh.FindOpenSegments ();
+        mesh.RemoveOneLayerSurfaceElements();
 
-	      mesh.FindOpenSegments ();
-	      nopen = mesh.GetNOpenSegments();
-			  
-	      mesh.FindOpenSegments ();
-	      mesh.RemoveOneLayerSurfaceElements();
-	      mesh.FindOpenSegments ();
-	      mesh.RemoveOneLayerSurfaceElements();
+        // Open edge-segments will be refined !
+        INDEX_2_HASHTABLE<int> openseght (nopen+1);
+        for (i = 1; i <= mesh.GetNOpenSegments(); i++)
+        {
+          const Segment & seg = mesh.GetOpenSegment (i);
+          INDEX_2 i2(seg.p1, seg.p2);
+          i2.Sort();
+          openseght.Set (i2, 1);
+        }
 
-	      // Open edge-segments will be refined !
-	      INDEX_2_HASHTABLE<int> openseght (nopen+1);
-	      for (i = 1; i <= mesh.GetNOpenSegments(); i++)
-		{
-		  const Segment & seg = mesh.GetOpenSegment (i);
-		  INDEX_2 i2(seg.p1, seg.p2);
-		  i2.Sort();
-		  openseght.Set (i2, 1);
-		}
+        mesh.FindOpenSegments ();
+        mesh.RemoveOneLayerSurfaceElements();
+        mesh.FindOpenSegments ();
+        mesh.RemoveOneLayerSurfaceElements();
 
-	      
-	      mesh.FindOpenSegments ();
-	      mesh.RemoveOneLayerSurfaceElements();
-	      mesh.FindOpenSegments ();
-	      mesh.RemoveOneLayerSurfaceElements();
-	      
+        INDEX_2_HASHTABLE<int> newpht(100);
 
-	      INDEX_2_HASHTABLE<int> newpht(100);
+        int nsegold = mesh.GetNSeg();
+        for (i = 1; i <= nsegold; i++)
+        {
+          Segment seg = mesh.LineSegment(i);
+          INDEX_2 i2(seg.p1, seg.p2);
+          i2.Sort();
+          if (openseght.Used (i2))
+          {
+            // segment will be split
+            // PrintMessage(7,"Split segment ", int(seg.p1), "-", int(seg.p2));
+            Segment nseg1, nseg2;
+            EdgePointGeomInfo newgi;
+            
+            const EdgePointGeomInfo & gi1 = seg.epgeominfo[0];
+            const EdgePointGeomInfo & gi2 = seg.epgeominfo[1];
+            
+            newgi.dist = 0.5 * (gi1.dist + gi2.dist);
+            newgi.edgenr = gi1.edgenr;
 
-	      int nsegold = mesh.GetNSeg();
-	      for (i = 1; i <= nsegold; i++)
-		{
-		  Segment seg = mesh.LineSegment(i);
-		  INDEX_2 i2(seg.p1, seg.p2);
-		  i2.Sort();
-		  if (openseght.Used (i2))
-		    {
-		      // segment will be split
-//		      PrintMessage(7,"Split segment ", int(seg.p1), "-", int(seg.p2));
-	      
-		      Segment nseg1, nseg2;
-		      EdgePointGeomInfo newgi;
-		      
-		      const EdgePointGeomInfo & gi1 = seg.epgeominfo[0];
-		      const EdgePointGeomInfo & gi2 = seg.epgeominfo[1];
-		      
-		      newgi.dist = 0.5 * (gi1.dist + gi2.dist);
-		      newgi.edgenr = gi1.edgenr;
+            int hi;
+            
+            Point3d newp;
+            int newpi;
 
-		      int hi;
-		      
-		      Point3d newp;
-		      int newpi;
-		      
-		      if (!newpht.Used (i2))
-			{
-			  newp = geom.GetLine (gi1.edgenr)->
-			    GetPointInDist (geom.GetPoints(), newgi.dist, hi);
-			  newpi = mesh.AddPoint (newp);
-			  newpht.Set (i2, newpi);
-			}
-		      else
-			{
-			  newpi = newpht.Get (i2);
-			  newp = mesh.Point (newpi);
-			}
+            if (!newpht.Used (i2))
+            {
+              newp = geom.GetLine (gi1.edgenr)->
+              GetPointInDist (geom.GetPoints(), newgi.dist, hi);
+              newpi = mesh.AddPoint (newp);
+              newpht.Set (i2, newpi);
+            }
+            else
+            {
+              newpi = newpht.Get (i2);
+              newp = mesh.Point (newpi);
+            }
 
-		      nseg1 = seg;
-		      nseg2 = seg;
-		      nseg1.p2 = newpi;
-		      nseg1.epgeominfo[1] = newgi;
-		      
-		      nseg2.p1 = newpi;
-		      nseg2.epgeominfo[0] = newgi;
-		      
-		      mesh.LineSegment(i) = nseg1;
-		      mesh.AddSegment (nseg2);
-		      
-		      mesh.RestrictLocalH (Center (mesh.Point(nseg1.p1),
-						   mesh.Point(nseg1.p2)),
-					   Dist (mesh.Point(nseg1.p1),
-						 mesh.Point(nseg1.p2)));
-		      mesh.RestrictLocalH (Center (mesh.Point(nseg2.p1),
-						   mesh.Point(nseg2.p2)),
-					   Dist (mesh.Point(nseg2.p1),
-						 mesh.Point(nseg2.p2)));
-		    }
-		}
-
-	    }
-
-	  nopen = -1;
-	}
-    
-      else
-
-	{
-#ifdef DEBUGALL
-	  std::cout << "mesh is closed, verifying ..." << std::endl;
-#endif
-
-	  // [INFO] no open elements, check wrong elements (intersecting..)
-	  //
-//	  PrintMessage(5,"check overlapping");
-	  // 	  mesh.FindOpenElements(); // would leed to locked points
-	  if(mesh.CheckOverlappingBoundary())
-	    {
-	      return MESHING3_BADSURFACEMESH;
-	    }
-
-
-	  geom.InitMarkedTrigs();
-
-	  for (i = 1; i <= mesh.GetNSE(); i++)
-	    if (mesh.SurfaceElement(i).BadElement())
-	      {
-		int trig = mesh.SurfaceElement(i).PNum(1);
-		geom.SetMarkedTrig(trig,1);
-//		PrintMessage(7, "overlapping element, will be removed");
-	      }
-	  
-	  
-
-	  ARRAY<Point3d> refpts;
-	  ARRAY<double> refh;
-
-	  // was commented:
-
-	  for (i = 1; i <= mesh.GetNSE(); i++)
-	    if (mesh.SurfaceElement(i).BadElement())
-	      {
-		for (j = 1; j <= 3; j++)
-		  {
-		    refpts.Append (mesh.Point (mesh.SurfaceElement(i).PNum(j)));
-		    refh.Append (mesh.GetH (refpts.Last()) / 2);
-		  }
-		mesh.DeleteSurfaceElement(i);
-	      }
-	  	  
-	  // [FS] .. commenting out this part creates a surface mesh - this surface mesh is currently
-	  //         not consistent because the connecting layer is not meshed right
-	  // delete wrong oriented element
-	  for (i = 1; i <= mesh.GetNSE(); i++)
-	    {
-	      const Element2d & el = mesh.SurfaceElement(i);
-	      if (!el.PNum(1))
-		continue;
-
-	      Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)), 
-				      mesh.Point(el.PNum(2))),
-			       Vec3d (mesh.Point(el.PNum(1)), 
-				      mesh.Point(el.PNum(3))));
-	      Vec3d ng = geom.GetTriangle(el.GeomInfoPi(1).trignum).Normal();
-	      if (n * ng < 0)
-		{
-		  refpts.Append (mesh.Point (mesh.SurfaceElement(i).PNum(1)));
-		  refh.Append (mesh.GetH (refpts.Last()) / 2);
-		  mesh.DeleteSurfaceElement(i);
-		}
-	    }
-	  // end comments
-
-	  for (i = 1; i <= refpts.Size(); i++)
-	    mesh.RestrictLocalH (refpts.Get(i), refh.Get(i));
-
-	  mesh.RemoveOneLayerSurfaceElements();
-
-	  mesh.Compress();
-	  
-	  mesh.FindOpenSegments ();
-	  nopen = mesh.GetNOpenSegments();
-
-	  /*
-	  if (!nopen)
-	    {
-	      // mesh is still ok
-
-	      void STLSurfaceOptimization (STLGeometry & geom,
-					   class Mesh & mesh,
-					   MeshingParameters & mparam)
-	      
-	    }
-	  */
-	} 
-#ifdef DEBUGALL      
-      std::cout << "..end while: nopen : " << nopen << std::endl;
-#endif
+            nseg1 = seg;
+            nseg2 = seg;
+            nseg1.p2 = newpi;
+            nseg1.epgeominfo[1] = newgi;
+            
+            nseg2.p1 = newpi;
+            nseg2.epgeominfo[0] = newgi;
+            
+            mesh.LineSegment(i) = nseg1;
+            mesh.AddSegment (nseg2);
+            
+            mesh.RestrictLocalH (
+              Center(mesh.Point(nseg1.p1),mesh.Point(nseg1.p2)),
+              Dist (mesh.Point(nseg1.p1), mesh.Point(nseg1.p2))
+            );
+            mesh.RestrictLocalH (
+              Center(mesh.Point(nseg2.p1),mesh.Point(nseg2.p2)),
+              Dist (mesh.Point(nseg2.p1), mesh.Point(nseg2.p2)));
+          }
+        }
+      }
+      nopen = -1;
     }
+    else
+    {
+  #ifdef DEBUGALL
+      std::cout << "mesh is closed, verifying ..." << std::endl;
+  #endif
+
+      // [INFO] no open elements, check wrong elements (intersecting..)
+      //
+      // PrintMessage(5,"check overlapping");
+      // 	  mesh.FindOpenElements(); // would leed to locked points
+      if(mesh.CheckOverlappingBoundary())
+      {
+        return MESHING3_BADSURFACEMESH;
+      }
+
+      geom.InitMarkedTrigs();
+
+      for (i = 1; i <= mesh.GetNSE(); i++)
+        if (mesh.SurfaceElement(i).BadElement())
+        {
+          int trig = mesh.SurfaceElement(i).PNum(1);
+          geom.SetMarkedTrig(trig,1);
+          // PrintMessage(7, "overlapping element, will be removed");
+        }
+
+      ARRAY<Point3d> refpts;
+      ARRAY<double> refh;
+
+      // was commented:
+
+      for (i = 1; i <= mesh.GetNSE(); i++)
+        if (mesh.SurfaceElement(i).BadElement())
+        {
+          for (j = 1; j <= 3; j++)
+          {
+            refpts.Append (mesh.Point (mesh.SurfaceElement(i).PNum(j)));
+            refh.Append (mesh.GetH (refpts.Last()) / 2);
+          }
+          mesh.DeleteSurfaceElement(i);
+        }
+
+      // [FS] .. commenting out this part creates a surface mesh - this surface mesh is currently
+      //         not consistent because the connecting layer is not meshed right
+      // delete wrong oriented element
+      for (i = 1; i <= mesh.GetNSE(); i++)
+      {
+        const Element2d & el = mesh.SurfaceElement(i);
+        if (!el.PNum(1))  continue;
+
+        Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)), 
+        mesh.Point(el.PNum(2))),
+        Vec3d (mesh.Point(el.PNum(1)), 
+        mesh.Point(el.PNum(3))));
+        Vec3d ng = geom.GetTriangle(el.GeomInfoPi(1).trignum).Normal();
+        if (n * ng < 0)
+        {
+          refpts.Append (mesh.Point (mesh.SurfaceElement(i).PNum(1)));
+          refh.Append (mesh.GetH (refpts.Last()) / 2);
+          mesh.DeleteSurfaceElement(i);
+        }
+      }
+      // end comments
+
+      for (i = 1; i <= refpts.Size(); i++)
+        mesh.RestrictLocalH (refpts.Get(i), refh.Get(i));
+
+      mesh.RemoveOneLayerSurfaceElements();
+      mesh.Compress();
+      mesh.FindOpenSegments ();
+      nopen = mesh.GetNOpenSegments();
+
+//      if (!nopen)
+//      {
+//        // mesh is still ok
+//        void STLSurfaceOptimization (STLGeometry & geom, class Mesh & mesh, MeshingParameters & mparam)
+//      }
+    } 
+  #ifdef DEBUGALL      
+    std::cout << "..end while: nopen : " << nopen << std::endl;
+  #endif
+  }
   while (nopen);
   
 #ifdef DEBUGALL
@@ -3916,7 +3880,7 @@ void STLSurfaceOptimization (STLGeometry & geom,
 	switch (mparam.optimize2d[j-1])
 	  {
 	  case 's': 
-	    {
+	    { 
 	      optmesh.EdgeSwapping (mesh, 0);
 	      break;
 	    }

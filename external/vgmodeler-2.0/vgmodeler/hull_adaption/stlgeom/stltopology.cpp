@@ -2765,7 +2765,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 
       // [INTEL] working examples
-       domain.read_file("simplebox.gau32");
+       //domain.read_file("simplebox.gau32");
 //       domain.read_file("diffuseball.gau32_oriented.gau32");
 //       domain.read_file("diffusecyl.gau32_oriented.gau32");
 //       domain.read_file("report300.gau32");

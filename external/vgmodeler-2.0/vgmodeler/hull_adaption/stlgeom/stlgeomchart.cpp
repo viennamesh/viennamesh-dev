@@ -137,17 +137,19 @@ void STLGeometry :: MakeAtlas(Mesh & mesh)
   int lastunmarked = 1;
   int prelastunmarked;
 
-#ifdef DEBUGALL
-  PrintMessage(5,"one dot per 5000 triangles: ");
-#endif
+//#ifdef DEBUGALL
+//  PrintMessage(5,"one dot per 5000 triangles: ");
+//#endif
 
   while(markedtrigcnt < GetNT() && found)
     {      
-      if (multithread.terminate)
-	{PopStatus();return;}
+      if (multithread.terminate)  {PopStatus();return;}
 
       if (workedarea / atlasarea*100. >= nextshow) 
-      	{PrintDot(); nextshow+=showinc;}
+      {
+        //PrintDot(); // [JW] deactivated the 'dot' print ..
+        nextshow+=showinc;
+      }
 
       SetThreadPercent(100.0 * workedarea / atlasarea);
 
