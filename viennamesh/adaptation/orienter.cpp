@@ -43,6 +43,8 @@ if it's an odd number, the normal vector points inwards.
 
 */
 
+#define MESH_ADAPTOR_DEBUG
+
 namespace viennamesh {
 
 // --------------------------------------------------------------------------
@@ -233,9 +235,15 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
          vertices[1] = &(domain.vertex(temp_cell[1]));
          vertices[2] = &(domain.vertex(temp_cell[0]));
 
-         seed_cell.setVertices(vertices);
-         seed_cell.fill(domain);
-         
+         for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
+         {
+            if(cit->getID() == seed_cell.getID())
+            {
+               cit->setVertices(vertices);
+               cit->fill(domain);         
+            }
+         }
+
          norm_vector_corrections++;
       }
    #ifdef MESH_ADAPTOR_DEBUG
@@ -244,13 +252,24 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
       }
    #endif             
 
-
-      // initiate an orientation quantity on all cells
+      // initiate orientation quantities on all cells
       //
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
-        if (!viennadata::find<viennamesh::data::orient, int>()(*cit))
-          viennadata::access<viennamesh::data::orient, int>()(*cit) = 0; 
+         if(cit->getID() == seed_cell.getID())
+         {
+           if (!viennadata::find<viennamesh::data::orient, int>()(*cit))
+             viennadata::access<viennamesh::data::orient, int>()(*cit) = 1; 
+
+           viennadata::access<viennamesh::data::seed, int>()(*cit) = 1; 
+         }
+         else
+         {
+           if (!viennadata::find<viennamesh::data::orient, int>()(*cit))
+             viennadata::access<viennamesh::data::orient, int>()(*cit) = 0; 
+
+           viennadata::access<viennamesh::data::seed, int>()(*cit) = 0; 
+         }
       }
       // the first cell is already oriented
       //

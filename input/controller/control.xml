@@ -7,7 +7,7 @@
                <!-- note: global maximum mesh size -->
                <key>maxsize</key>
                <!-- range: >0.0 -->
-               <val>30</val>
+               <val>50</val>
             </para>
             <para>
                <!-- note: global minimum mesh size -->
@@ -25,7 +25,7 @@
                <!-- note: fineness transition -->
                <key>grading</key>
                <!-- range: 0.0-1.0 -->
-               <val>0.3</val>
+               <val>1.0</val>
             </para>            
          </paras>
       </adaptor>
