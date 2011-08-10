@@ -51,13 +51,40 @@ class Ng_Meshing_Parameters
 {
  public:
 
+  /// maximal mesh size
   double maxh;
-  double fineness;   // 0 .. coarse, 1 .. fine
+  /// minimal mesh size  
+  double minh;
+  /// grading for local h  
   double grading;
-  int secondorder;
+  /// file for meshsize  
   char * meshsize_filename;
+  /**
+     2d optimization strategy:
+     // s .. swap, opt 6 lines/node
+     // S .. swap, optimal elements
+     // m .. move nodes
+     // p .. plot, no pause
+     // P .. plot, pause
+     // c .. combine
+  **/
+  char * optimize2d;
+  /// number of 2d optimization steps
+  int optsteps2d;  
+  /// use local h ?
+  int uselocalh;
+  /// use delaunay meshing  
+  int delaunay;
+  /// check overlapping surfaces (debug)
+  int checkoverlap;
+  /// safty factor for curvatures (elemetns per radius)
+  double curvaturesafety;  // [JW] sadly, this parameter has no effect
+  /// use parallel threads
+  int parthread;
+  /// limit for max element angle (150-180)
+  double badellimit;
+  /// quad-dominated surface meshing
   int quad_dominated;
-
   Ng_Meshing_Parameters();
 };
 

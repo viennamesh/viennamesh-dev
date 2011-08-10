@@ -155,10 +155,7 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      if(my_bnd_reader.dim_geom() == 3)
-         process_3d(wrapped_data, outputfile, checks);
-      else if(my_bnd_reader.dim_geom() == 2)
-         process_2d(wrapped_data, outputfile);      
+      process_3d(wrapped_data, outputfile, checks);
 
    }
    else
@@ -176,7 +173,14 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile, checks);
+      if(my_hin_reader.dim_geom() == 3)
+         process_3d(wrapped_data, outputfile, checks);
+      else
+      {
+         std::cerr << "## only 3d BND meshes supported .. " << std::endl;
+         exit(-1);
+      }
+
    }
    else
    if(input_extension == "gau32")
@@ -212,24 +216,6 @@ int main(int argc, char *argv[])
       //
       process_3d(wrapped_data, outputfile, checks);
    }   
-   else
-   if(input_extension == "sgf") 
-   {
-      typedef viennagrid::domain<viennagrid::config::line_2d>     domain_type;
-      domain_type domain;
-      
-      viennagrid::io::sgf_reader my_sgf_reader;
-      my_sgf_reader(domain, inputfile);   
-
-      // the reader datastructure is wrapped to offer a specific interface
-      //
-      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      viennagrid_wrapper_type;
-      viennagrid_wrapper_type                    wrapped_data(domain);         
-
-      // mesh this data
-      //
-      process_2d(wrapped_data, outputfile);
-   }      
    else
    {
       std::cerr << "## input file format not supported: " << input_extension << std::endl;

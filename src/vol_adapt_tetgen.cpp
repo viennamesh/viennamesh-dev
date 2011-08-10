@@ -21,12 +21,13 @@
 #include "viennamesh/adaptation.hpp"
 #include "viennamesh/classification.hpp"
 #include "viennamesh/io.hpp"
+#include "viennamesh/config.hpp"
 
 //
 // generate high-quality 3d meshes
 //
 template<typename WrappedDatastructureT>
-void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int checks = 0)
+void process_3d(WrappedDatastructureT& data, std::string const& outputfile, viennamesh::config::set const& paraset, int checks = 0)
 {
    // prepare a hull mesher
    //   generates a 2-simplex unstructured mesh embedded in a three-dimensional
@@ -108,6 +109,7 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
 
    //   4. improve the quality of the hull mesh
    std::cout << "   hull quality .. " << std::endl;   
+   viennamesh::config::assign(paraset, hull_quality);   
    hull_domainsp_type   quality  = hull_quality(normals);
 
    //   5. do the volume meshing
@@ -122,40 +124,31 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    viennamesh::io::domainwriter(volume, outputfile);
 }
 
-//
-// generate 2d meshes
-//
-template<typename WrappedDatastructureT>
-void process_2d(WrappedDatastructureT& data, std::string const& outputfile)
-{
-   typedef typename viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        mesh_generator_type;
-   mesh_generator_type  mesher;
-
-   typedef typename mesh_generator_type::result_type       result_type;   
-
-   result_type result = mesher(data);
-
-   // write paraview/vtk output
-   //
-   viennamesh::io::domainwriter(result, outputfile);
-}
-
 int main(int argc, char *argv[])
 {
-   if(argc != 4)
+   if(argc != 5)
    {
-      std::cerr << "## Parameter Error - usage: " << argv[0] << " inputfile.{hin,bnd,gau32,inp,sgf} outputfile checks[0|1]" << std::endl;
+      std::cerr << "## Parameter Error - usage: " << argv[0] << " inputfile.{hin,bnd,gau32,inp,sgf} controlfile.xml outputname checks[0|1]" << std::endl;
       std::cerr << "## shutting down .." << std::endl;
       return -1;
    }
    
   
    std::string inputfile(argv[1]);
-   std::string outputfile(argv[2]);
-   int checks(atoi(argv[3]));
+   std::string controlfile(argv[2]);
+   std::string outputfile(argv[3]);
+   int checks(atoi(argv[4]));
    std::cout << "## " << argv[0] << " processing file: " << inputfile << std::endl;
    
    std::string input_extension  = viennautils::file_extension(inputfile);
+
+   if(viennautils::file_extension(controlfile) != "xml")
+   {
+      std::cerr << "## control file must be a xml file - shutting down .." << std::endl;
+      exit(-1);
+   }
+   viennamesh::config::set    paraset;
+   viennamesh::config::load(paraset, controlfile);
 
    //
    // process different file types
@@ -175,9 +168,13 @@ int main(int argc, char *argv[])
       // mesh this data
       //
       if(my_bnd_reader.dim_geom() == 3)
-         process_3d(wrapped_data, outputfile, checks);
-      else if(my_bnd_reader.dim_geom() == 2)
-         process_2d(wrapped_data, outputfile);      
+         process_3d(wrapped_data, outputfile, paraset, checks);
+      else
+      {
+         std::cerr << "## only 3d BND meshes supported .. " << std::endl;
+         exit(-1);
+      }
+
 
    }
    else
@@ -195,7 +192,7 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile, checks);
+      process_3d(wrapped_data, outputfile, paraset, checks);
    }
    else
    if(input_extension == "gau32")
@@ -212,7 +209,7 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile, checks);
+      process_3d(wrapped_data, outputfile, paraset, checks);
    }   
    else
    if(input_extension == "inp")
@@ -231,26 +228,8 @@ int main(int argc, char *argv[])
 
       // mesh this data
       //
-      process_3d(wrapped_data, outputfile, checks);
+      process_3d(wrapped_data, outputfile, paraset, checks);
    }   
-   else
-   if(input_extension == "sgf") 
-   {
-      typedef viennagrid::domain<viennagrid::config::line_2d>     domain_type;
-      domain_type domain;
-      
-      viennagrid::io::sgf_reader my_sgf_reader;
-      my_sgf_reader(domain, inputfile);   
-
-      // the reader datastructure is wrapped to offer a specific interface
-      //
-      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      viennagrid_wrapper_type;
-      viennagrid_wrapper_type                    wrapped_data(domain);         
-
-      // mesh this data
-      //
-      process_2d(wrapped_data, outputfile);
-   }      
    else
    {
       std::cerr << "## input file format not supported: " << input_extension << std::endl;

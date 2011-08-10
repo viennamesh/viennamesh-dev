@@ -3138,7 +3138,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 {
   int i, j;
 
-  mparam.Print(std::cout);
+  //mparam.Print(std::cout);
 
 #ifdef DEBUGALL
   PrintFnStart("Do Surface Meshing");

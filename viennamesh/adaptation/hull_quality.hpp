@@ -17,11 +17,18 @@
 // *** vienna includes
 #include "viennamesh/adaptation/base.hpp"
 #include "viennamesh/tags.hpp"
+#include "viennamesh/config.hpp"
 #include "viennagrid/domain.hpp"
 #include "viennagrid/config/simplex.hpp"
 
 // *** boost includes
 #include <boost/shared_ptr.hpp>
+
+// forward declaration
+//
+namespace vgmodeler {
+struct hull_adaptor;
+}
 
 namespace viennamesh {
 
@@ -56,11 +63,22 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
    mesh_adaptor();
   ~mesh_adaptor();
    // --------------------------------------------------------------------------     
+   void   set_maxsize(double size);
+   double get_maxsize();   
+   void   set_minsize(double size);
+   double get_minsize();   
+   void   set_grading(double grading);
+   double get_grading();   
+   void   set_maxangle(double size);
+   double get_maxangle();      
+   void assign(viennamesh::config::set const& paraset);
+   // --------------------------------------------------------------------------        
    result_type operator()(domain_type& domain);   
    result_type operator()(input_type domain);
    // --------------------------------------------------------------------------     
 private:
    // --------------------------------------------------------------------------         
+   vgmodeler::hull_adaptor*      vghull;    
    std::string id;
    // --------------------------------------------------------------------------     
 };

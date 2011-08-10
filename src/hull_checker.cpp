@@ -94,8 +94,12 @@ int main(int argc, char *argv[])
       //
       if(my_bnd_reader.dim_geom() == 3)
          process_3d(wrapped_data);
-      else 
-         std::cerr << "dimension not supported" << std::endl;
+      else
+      {
+         std::cerr << "## only 3d BND meshes supported .. " << std::endl;
+         exit(-1);
+      }
+
 
    }
    else

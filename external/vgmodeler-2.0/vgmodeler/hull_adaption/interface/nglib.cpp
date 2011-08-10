@@ -506,8 +506,18 @@ Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
    
    // [JW] transfer the parameters ..
    mparam.maxh             = mp->maxh;
+   mparam.minh             = mp->minh;   
    mparam.grading          = mp->grading;
    mparam.meshsizefilename = mp->meshsize_filename;
+   mparam.optimize2d       = mp->optimize2d;
+   mparam.optsteps2d       = mp->optsteps2d;
+   mparam.uselocalh        = mp->uselocalh;
+   mparam.delaunay         = mp->delaunay;
+   mparam.checkoverlap     = mp->checkoverlap;
+   mparam.curvaturesafety  = mp->curvaturesafety;
+   mparam.parthread        = mp->parthread;
+   mparam.badellimit       = mp->badellimit;
+   mparam.quad             = mp->quad_dominated;
    
    STLMeshingDummy(stlgeometry, me, domain, 1, 6);
 
@@ -612,12 +622,19 @@ void Ng_STL_AddEdge (Ng_STL_Geometry * geom,
 
 Ng_Meshing_Parameters :: Ng_Meshing_Parameters()
 {
-  maxh = 1000;
-  fineness = 0.5;
-  grading  = 0.3;
-  secondorder = 0;
-  meshsize_filename = 0;
-  quad_dominated = 0;
+  maxh               = 1000;
+  minh               = 0;
+  grading            = 0.3;
+  meshsize_filename  = 0;
+  optimize2d         = "smsmsmSmSmSm";
+  optsteps2d         = 3;
+  uselocalh          = 1;
+  delaunay           = 1;
+  checkoverlap       = 0;
+  curvaturesafety    = 2; // [JW] sadly, this parameter has no effect
+  parthread          = 0;
+  badellimit         = 175;
+  quad_dominated     = 0;
 }
 
 

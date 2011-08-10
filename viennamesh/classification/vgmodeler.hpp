@@ -22,7 +22,7 @@
 #include "viennamesh/classification/base.hpp"
 #include "viennamesh/classification/histogram_latex.hpp"
 
-#define MESH_CLASSIFIER_DEBUG
+//#define MESH_CLASSIFIER_DEBUG
 
 namespace vgmodeler {
 

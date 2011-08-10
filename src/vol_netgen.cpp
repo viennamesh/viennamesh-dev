@@ -111,24 +111,6 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    viennamesh::io::domainwriter(volume, outputfile);
 }
 
-//
-// generate 2d meshes
-//
-template<typename WrappedDatastructureT>
-void process_2d(WrappedDatastructureT& data, std::string const& outputfile)
-{
-   typedef typename viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        mesh_generator_type;
-   mesh_generator_type  mesher;
-
-   typedef typename mesh_generator_type::result_type       result_type;   
-
-   result_type result = mesher(data);
-
-   // write paraview/vtk output
-   //
-   viennamesh::io::domainwriter(result, outputfile);
-}
-
 int main(int argc, char *argv[])
 {
    if(argc != 4)
@@ -165,8 +147,12 @@ int main(int argc, char *argv[])
       //
       if(my_bnd_reader.dim_geom() == 3)
          process_3d(wrapped_data, outputfile, checks);
-      else if(my_bnd_reader.dim_geom() == 2)
-         process_2d(wrapped_data, outputfile);      
+      else
+      {
+         std::cerr << "## only 3d BND meshes supported .. " << std::endl;
+         exit(-1);
+      }
+
 
    }
    else
@@ -222,24 +208,6 @@ int main(int argc, char *argv[])
       //
       process_3d(wrapped_data, outputfile, checks);
    }   
-   else
-   if(input_extension == "sgf") 
-   {
-      typedef viennagrid::domain<viennagrid::config::line_2d>     domain_type;
-      domain_type domain;
-      
-      viennagrid::io::sgf_reader my_sgf_reader;
-      my_sgf_reader(domain, inputfile);   
-
-      // the reader datastructure is wrapped to offer a specific interface
-      //
-      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      viennagrid_wrapper_type;
-      viennagrid_wrapper_type                    wrapped_data(domain);         
-
-      // mesh this data
-      //
-      process_2d(wrapped_data, outputfile);
-   }      
    else
    {
       std::cerr << "## input file format not supported: " << input_extension << std::endl;

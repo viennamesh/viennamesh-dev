@@ -224,9 +224,9 @@ ADD_LIBRARY(viennamesh STATIC viennamesh/generation/netgen.cpp
                        viennamesh/adaptation/geometry_check.cpp)
 
 IF(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${GTSIO_LIBS})   
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${VIENNAUTILS_LIBRARIES} ${GTSIO_LIBS})   
 ELSE(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${VIENNAUTILS_LIBRARIES})   
 ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
@@ -241,6 +241,7 @@ ADD_EXECUTABLE(vmesh_adaptvolng     src/vol_adapt_netgen.cpp)
 ADD_EXECUTABLE(vmesh_adaptvoltet    src/vol_adapt_tetgen.cpp)
 ADD_EXECUTABLE(vmesh_volng          src/vol_netgen.cpp)
 ADD_EXECUTABLE(vmesh_voltet         src/vol_tetgen.cpp)
+ADD_EXECUTABLE(vmesh_areatri        src/area_triangle.cpp)
 
 TARGET_LINK_LIBRARIES(vmesh_hull          viennamesh)
 TARGET_LINK_LIBRARIES(vmesh_adapthull     viennamesh)
@@ -249,7 +250,7 @@ TARGET_LINK_LIBRARIES(vmesh_adaptvolng    viennamesh)
 TARGET_LINK_LIBRARIES(vmesh_adaptvoltet   viennamesh)
 TARGET_LINK_LIBRARIES(vmesh_volng         viennamesh)
 TARGET_LINK_LIBRARIES(vmesh_voltet        viennamesh)
-
+TARGET_LINK_LIBRARIES(vmesh_areatri       viennamesh)
 
 # ------------------------------------------------------------------------------
 #
@@ -257,7 +258,7 @@ TARGET_LINK_LIBRARIES(vmesh_voltet        viennamesh)
 #
 # ------------------------------------------------------------------------------
 INSTALL(TARGETS viennamesh vmesh_hull vmesh_adapthull vmesh_checkhull 
-  vmesh_adaptvolng vmesh_adaptvoltet vmesh_volng vmesh_voltet
+  vmesh_adaptvolng vmesh_adaptvoltet vmesh_volng vmesh_voltet vmesh_areatri
   RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin
   LIBRARY DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib
   ARCHIVE DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/lib)

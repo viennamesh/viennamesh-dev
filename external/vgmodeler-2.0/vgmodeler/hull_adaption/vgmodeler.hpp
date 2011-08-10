@@ -90,6 +90,7 @@ struct hull_adaptor
       // Maximum global mesh size allowed. 
       //   note: no elements are larger than this value
       mp.maxh      = 1000000;           
+      mp.minh      = 0.0;
       mp.grading   = 0.3;
       // Optional external mesh size file. 
       //
@@ -105,6 +106,19 @@ struct hull_adaptor
       vgmnetgen::Ng_Exit();
    }
 
+   double& maxsize()          { return mp.maxh; }
+   double& minsize()          { return mp.minh; }
+   double& grading()          { return mp.grading; }   
+   char*&  meshsizefilename() { return mp.meshsize_filename; }
+   char*&  optimize()         { return mp.optimize2d; }
+   int&    optsteps()         { return mp.optsteps2d; }
+   int&    uselocalh()        { return mp.uselocalh; }
+   int&    delaunay()         { return mp.delaunay; }
+   int&    checkoverlap()     { return mp.checkoverlap; }
+   double& curvaturesafety()  { return mp.curvaturesafety; }
+   int&    threads()          { return mp.parthread; }
+   double& maxangle()         { return mp.badellimit; }
+      
    // add hull element to data structure - only triangle geometry informaiton 
    // available --> compute the normal vector
    // 
