@@ -690,9 +690,9 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
 // --------------------------------------------------------------------------
 template<typename PointT>
 void mesh_kernel<viennamesh::tag::tetgen>::addPoint(PointT const& pnt)
-{  std::cout << "adding point: " << pnt[0] << " " << pnt[1] << std::endl;
+{  //std::cout << "adding point: " << pnt[0] << " " << pnt[1] << std::endl;
    this->extendPoints();
-   std::cout << "back" << std::endl;
+   //std::cout << "back" << std::endl;
    this->in->pointlist[pointlist_index] = pnt[0];
    this->pointlist_index++;
    this->in->pointlist[pointlist_index] = pnt[1];

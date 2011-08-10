@@ -27,7 +27,7 @@ set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
 # ------------------------------------------------------------------------------
 SET(ENABLE_TEST_SPECIAL_MESHES OFF)
 SET(ENABLE_TEST_ALL_SPECIAL_MESHES OFF)
-SET(VIENNAMESH_USE_INTERNAL ON CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
+SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
 SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
 
 # ------------------------------------------------------------------------------
@@ -218,9 +218,9 @@ ADD_LIBRARY(viennamesh STATIC ../viennamesh/generation/netgen.cpp
                               ../viennamesh/adaptation/hull_quality.cpp)
 
 IF(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS})   
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${VIENNAUTILS_LIBRARIES} ${GTSIO_LIBS})   
 ELSE(ENABLE_GTSIO)
-   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${GTSIO_LIBS})   
+   TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${VIENNAUTILS_LIBRARIES})   
 ENDIF(ENABLE_GTSIO)
 
 # ------------------------------------------------------------------------------
@@ -284,7 +284,7 @@ IF(ENABLE_TEST_SPECIAL_MESHES)
       ADD_TEST(generate_hull17 generate_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
    ENDIF(ENABLE_TEST_ALL_SPECIAL_MESHES)
 ELSE(ENABLE_TEST_SPECIAL_MESHES)   
-   ADD_TEST(generate_hull generate_hull ../../input/after_line_tri.bnd)
+   ADD_TEST(generate_hull generate_hull ../../input/meshes/after_line_tri.bnd)
 ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 
 # hull orientation process chain 
@@ -310,7 +310,7 @@ IF(ENABLE_TEST_SPECIAL_MESHES)
       ADD_TEST(orient_hull17 orient_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
    ENDIF(ENABLE_TEST_ALL_SPECIAL_MESHES)
 ELSE(ENABLE_TEST_SPECIAL_MESHES)      
-   ADD_TEST(orient_hull orient_hull ../../input/after_line_tri.bnd)
+   ADD_TEST(orient_hull orient_hull ../../input/meshes/after_line_tri.bnd)
 ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 
 # hull orientation normals process chain 
@@ -336,7 +336,7 @@ IF(ENABLE_TEST_SPECIAL_MESHES)
       ADD_TEST(normals_hull17 normals_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
    ENDIF(ENABLE_TEST_ALL_SPECIAL_MESHES)
 ELSE(ENABLE_TEST_SPECIAL_MESHES)      
-   ADD_TEST(normals_hull normals_hull ../../input/after_line_tri.bnd)
+   ADD_TEST(normals_hull normals_hull ../../input/meshes/after_line_tri.bnd)
 ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 
 # hull adaption process chain 
@@ -362,7 +362,7 @@ IF(ENABLE_TEST_SPECIAL_MESHES)
       ADD_TEST(adapt_hull17 adapt_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
    ENDIF(ENABLE_TEST_ALL_SPECIAL_MESHES)
 ELSE(ENABLE_TEST_SPECIAL_MESHES)         
-   ADD_TEST(adapt_hull adapt_hull ../../input/after_line_tri.bnd)
+   ADD_TEST(adapt_hull adapt_hull ../../input/meshes/after_line_tri.bnd)
 ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 
 # volume mesh of non-adapted hull process chain
@@ -388,7 +388,7 @@ IF(ENABLE_TEST_SPECIAL_MESHES)
       ADD_TEST(vol_hull17 vol_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
    ENDIF(ENABLE_TEST_ALL_SPECIAL_MESHES)
 ELSE(ENABLE_TEST_SPECIAL_MESHES)         
-   ADD_TEST(vol_hull vol_hull ../../input/after_line_tri.bnd)   
+   ADD_TEST(vol_hull vol_hull ../../input/meshes/after_line_tri.bnd)   
 ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 
 # volume mesh of adapted hull process chain
@@ -414,13 +414,13 @@ IF(ENABLE_TEST_SPECIAL_MESHES)
       ADD_TEST(vol_adapt_hull17 vol_adapt_hull ../../../ViennaMeshCollection/bnd_examples/EEPROM_FOX_full.bnd)
    ENDIF(ENABLE_TEST_ALL_SPECIAL_MESHES)
 ELSE(ENABLE_TEST_SPECIAL_MESHES)         
-   ADD_TEST(vol_adapt_hull vol_adapt_hull ../../input/after_line_tri.bnd)      
+   ADD_TEST(vol_adapt_hull vol_adapt_hull ../../input/meshes/after_line_tri.bnd)      
 ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 
 # miscellaneous
 #
 ADD_TEST(meta_sel       meta_sel)
-ADD_TEST(tetgen_test    tetgen_test ../../input/after_line_tri.bnd)      
-ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
-ADD_TEST(direct_domain  direct_domain ../../input/after_line_tri.bnd)      
+ADD_TEST(tetgen_test    tetgen_test ../../input/meshes/after_line_tri.bnd)      
+#ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
+#ADD_TEST(direct_domain  direct_domain ../../input/meshes/after_line_tri.bnd)      
 

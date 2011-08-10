@@ -30,8 +30,8 @@ int meshing(WrappedDataT& wrapped_data)
 
    typedef volume_mesh_generator_type::result_type       volume_result_type;   
    
-   std::cout << "testing TetGen directly on wrapped input data .. " << std::endl;
-   volume_result_type result1 = volume_mesher(wrapped_data);
+   //std::cout << "testing TetGen directly on wrapped input data .. " << std::endl;
+   //volume_result_type result1 = volume_mesher(wrapped_data);
 
    std::cout << "testing TetGen on pre-processed domain .. " << std::endl;   
    volume_result_type result2 = volume_mesher(hull_mesher(wrapped_data));
