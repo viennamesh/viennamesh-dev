@@ -87,15 +87,57 @@ struct hull_adaptor
       cfilename = (char *)malloc( filename.length() * sizeof(char) );
       std::strcpy(cfilename,filename.c_str());
       
-      // Maximum global mesh size allowed. 
-      //   note: no elements are larger than this value
-      mp.maxh      = 1000000;           
-      mp.minh      = 0.0;
-      mp.grading   = 0.3;
+      // --------------------------------------------
+      // important parameters
+      // 
+      /// maximal mesh size
+      mp.maxh                 = 1000000;           
+      /// minimal mesh size  
+      mp.minh                 = 0.0;
+      /// grading for local h  
+      mp.grading              = 0.3;
+      /// file for meshsize  
+      mp.meshsize_filename    = 0;
+      /**
+        2d optimization strategy:
+        // s .. swap, opt 6 lines/node
+        // S .. swap, optimal elements
+        // m .. move nodes
+        // p .. plot, no pause
+        // P .. plot, pause
+        // c .. combine
+      **/      
+      //mp.optimize2d           = "smsmsmSmSmSm";
+      mp.optimize2d           = "cmsmsmsmSmSmSm";
+      /// number of 2d optimization steps
+      mp.optsteps2d           = 3;
+      /// use delaunay meshing  
+      mp.delaunay             = 1;
+      /// limit for max element angle (150-180)
+      mp.badellimit           = 175;
+      /// enable special surface curvature handling
+      mp.resthsurfcurvenable  = 1;
+      /// factor for surface curvature partitioning
+      mp.resthsurfcurvfac     = 5;
+      // --------------------------------------------
+      // unimportant parameters
+      // 
+      /// use local h ?
+      mp.uselocalh            = 1;
+      /// check overlapping surfaces (debug)
+      mp.checkoverlap         = 1;
+      /// safty factor for curvatures (elemetns per radius)
+      // [JW] I think this parameter is only for CSG stuff
+      //      hence, of no use to us ..
+      mp.curvaturesafety      = 2; 
+      /// quad-dominated surface meshing
+      mp.quad_dominated       = 0;      
+      /// use parallel threads
+      mp.parthread            = 0;
       // Optional external mesh size file. 
       //
       mp.meshsize_filename = cfilename;   
-
+      // --------------------------------------------      
       geom = vgmnetgen::Ng_STL_NewGeometry();
       mesh = vgmnetgen::Ng_NewMesh();
    }
@@ -118,6 +160,7 @@ struct hull_adaptor
    double& curvaturesafety()  { return mp.curvaturesafety; }
    int&    threads()          { return mp.parthread; }
    double& maxangle()         { return mp.badellimit; }
+   double& curvfac()          { return mp.resthsurfcurvfac; }   
       
    // add hull element to data structure - only triangle geometry informaiton 
    // available --> compute the normal vector

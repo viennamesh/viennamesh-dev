@@ -156,6 +156,38 @@ struct adaptor_grading
       return viennautils::convert<result_type>()(query_result);
    }
 };
+
+struct adaptor_curvfac
+{
+   typedef double result_type;
+   
+   static bool 
+   available(viennamesh::config::set  const& paraset, 
+             std::string              const& modulekey)
+   {
+      std::string query_result = paraset.query
+      ("/control/adaptors/adaptor[key=\""+modulekey+"\"]/paras/para[key=\"curvfac\"]/val/text()");
+
+      if(query_result == "") return false;
+      else                   return true;
+   }   
+   
+   static result_type
+   eval(viennamesh::config::set  const& paraset, 
+        std::string              const& modulekey)
+   {
+      std::string query_result = paraset.query
+      ("/control/adaptors/adaptor[key=\""+modulekey+"\"]/paras/para[key=\"curvfac\"]/val/text()");
+
+      if(query_result == "") {
+         viennautils::msg::error("ViennaMesh::Adaptor::Query::CurvatureFactor - not successful ..");
+         throw;
+      }
+      
+      return viennautils::convert<result_type>()(query_result);
+   }
+};
+
 } // end namespace query
 // -----------------------------------------------------------------------------
 } // end namespace config

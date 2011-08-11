@@ -511,8 +511,9 @@ void STLTriangle :: GetNeighbourPoints(const STLTriangle& t, int& p1, int& p2) c
 
 int STLTriangle :: GetNeighbourPointsAndOpposite(const STLTriangle& t, int& p1, int& p2, int& po) const
 {
+#ifdef DEBUGALL   
   std::cout << "[FS] .. in GetNeighbourPointsAndOpposite " << std::endl;
-
+#endif
   int i, j;
   for(i = 1; i <= 3; i++)
     {
@@ -523,9 +524,9 @@ int STLTriangle :: GetNeighbourPointsAndOpposite(const STLTriangle& t, int& p1, 
 	    {p1 = PNumMod(j); p2 = PNumMod(j+1); po = PNumMod(j+2); return 1;}
 	}
     }
-
+#ifdef DEBUGALL   
   std::cout << "[FS] .. leaving GetNeighbourPointsAndOpposite " << std::endl;
-
+#endif
   return 0;
 }
 
@@ -1433,7 +1434,7 @@ STLParameters ::   STLParameters()
   resthedgeangleenable = 0;
   resthsurfmeshcurvfac = 1;
   resthsurfmeshcurvenable = 0;
-  recalc_h_opt = 1;
+  recalc_h_opt = 1;  
 }
 
 void STLParameters :: Print (ostream & ost) const

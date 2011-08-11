@@ -44,7 +44,7 @@ void STLGeometry :: MakeAtlas(Mesh & mesh)
 
   //speedup for make atlas
   if (GetNT() > 50000)
-    {
+    { 
       mesh.SetGlobalH(0.05*Dist (boundingbox.PMin(), boundingbox.PMax()));
     }
 

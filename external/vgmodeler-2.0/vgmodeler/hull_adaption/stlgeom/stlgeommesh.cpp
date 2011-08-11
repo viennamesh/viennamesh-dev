@@ -943,7 +943,7 @@ void STLGeometry :: RestrictLocalH(class Mesh & mesh, double gh)
 	    }
 	}
 
-      std::cout << "done\nmin local h=" << mincalch << "\nmax local h=" << maxcalch << std::endl;
+      //std::cout << "done\nmin local h=" << mincalch << "\nmax local h=" << maxcalch << std::endl;
       PopStatus();
     }
 
@@ -1468,6 +1468,7 @@ void STLGeometry :: RestrictHChartDistOneChart(int chartnum, ARRAY<int>& acttrig
 int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain,
 			    int perfstepsstart, int perfstepsend)
 {
+
 #ifdef DEBUGALL
    std::cout << ".. perfstepsstart: " << perfstepsstart << std::endl;
    std::cout << ".. perfstepsend: " << perfstepsend << std::endl;
@@ -1498,6 +1499,7 @@ int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<v
     mesh -> SetLocalH  (stlgeometry->GetBoundingBox().PMin() - Vec3d(10, 10, 10),
                         stlgeometry->GetBoundingBox().PMax() + Vec3d(10, 10, 10),
                         mparam.grading);
+    
     mesh -> LoadLocalMeshSize (mparam.meshsizefilename);
 
     success = 0;

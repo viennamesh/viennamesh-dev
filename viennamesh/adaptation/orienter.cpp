@@ -43,7 +43,7 @@ if it's an odd number, the normal vector points inwards.
 
 */
 
-#define MESH_ADAPTOR_DEBUG
+//#define MESH_ADAPTOR_DEBUG
 
 namespace viennamesh {
 

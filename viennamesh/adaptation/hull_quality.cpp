@@ -90,6 +90,15 @@ double mesh_adaptor<viennamesh::tag::hull_quality>::get_grading()
    return vghull->grading();
 }
 // --------------------------------------------------------------------------
+void mesh_adaptor<viennamesh::tag::hull_quality>::set_curvfac(double fac)
+{
+   vghull->curvfac() = fac;
+}
+double mesh_adaptor<viennamesh::tag::hull_quality>::get_curvfac()
+{
+   return vghull->curvfac();
+}
+// --------------------------------------------------------------------------
 void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set const& paraset)
 {
    typedef viennamesh::config::query::adaptor_maxsize       adaptor_maxsize_query_type;
@@ -116,7 +125,7 @@ void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set
          viennautils::msg::warning("## MeshAdaptor::"+id+" min-size out of range - using default value ");
          viennautils::msg::warning("   valid range:   >= 0.0");                  
          viennautils::msg::warning("   default value: 0");          
-         this->set_maxsize(0);
+         this->set_minsize(0);
       }      
    }   
    
@@ -130,7 +139,7 @@ void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set
          viennautils::msg::warning("## MeshAdaptor::"+id+" max-angle out of range - using default value ");
          viennautils::msg::warning("   valid range:   150.0 <= x <= 180.0");                  
          viennautils::msg::warning("   default value: 175");          
-         this->set_maxsize(175);
+         this->set_maxangle(175);
       }            
    }   
    
@@ -144,9 +153,23 @@ void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set
          viennautils::msg::warning("## MeshAdaptor::"+id+" grading out of range - using default value ");
          viennautils::msg::warning("   valid range:   0.0 < x <= 1.0");              
          viennautils::msg::warning("   default value: 0.3");          
-         this->set_maxsize(0.3);
+         this->set_grading(0.3);
       }                  
    }
+   
+   typedef viennamesh::config::query::adaptor_curvfac    adaptor_curvfac_query_type;
+   if(adaptor_curvfac_query_type::available(paraset, id))
+   {   
+      adaptor_curvfac_query_type::result_type curvfac = adaptor_curvfac_query_type::eval(paraset, id);
+      if(curvfac >= 0) this->set_curvfac(curvfac);
+      else
+      {
+         viennautils::msg::warning("## MeshAdaptor::"+id+" curvature-factor out of range - using default value ");
+         viennautils::msg::warning("   valid range:   >=0");              
+         viennautils::msg::warning("   default value: 3");          
+         this->set_curvfac(3);
+      }                  
+   }   
 }
 // --------------------------------------------------------------------------
 mesh_adaptor<viennamesh::tag::hull_quality>::result_type 

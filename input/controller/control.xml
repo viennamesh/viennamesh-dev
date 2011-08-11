@@ -5,27 +5,38 @@
          <paras>
             <para>
                <!-- note: global maximum mesh size -->
+               <!-- desc: the largest allowed mesh element size -->               
                <key>maxsize</key>
                <!-- range: >0.0 -->
-               <val>50</val>
+               <val>1.0E10</val>
             </para>
             <para>
                <!-- note: global minimum mesh size -->
+               <!-- desc: the smalles allowed mesh element size -->                              
                <key>minsize</key>
                <!-- range: >0.0 -->
                <val>0.0</val>
             </para>
             <para>
+               <!-- note: surface curvature partitioning factor -->
+               <!-- desc: factor for curvature accuracy -->                              
+               <key>curvfac</key>
+               <!-- range: >0.0 -->
+               <val>40</val>
+            </para>            
+            <para>
                <!-- note: global maximum angle  -->
+               <!-- desc: the largest allowed angle in a mesh element -->                              
                <key>maxangle</key>
                <!-- range: 150-180 -->
                <val>175</val>
             </para>            
             <para>
                <!-- note: fineness transition -->
+               <!-- desc: control transition between elements of different sizes -->                              
                <key>grading</key>
                <!-- range: 0.0-1.0 -->
-               <val>1.0</val>
+               <val>0.5</val>
             </para>            
          </paras>
       </adaptor>

@@ -50,7 +50,6 @@ enum Ng_Surface_Element_Type { NG_TRIG = 1, NG_QUAD = 2,
 class Ng_Meshing_Parameters 
 {
  public:
-
   /// maximal mesh size
   double maxh;
   /// minimal mesh size  
@@ -85,6 +84,16 @@ class Ng_Meshing_Parameters
   double badellimit;
   /// quad-dominated surface meshing
   int quad_dominated;
+  
+  // [JW] note:
+  // the following parameters will be transferred to the STL parameters
+
+  /// enable surface curvature handling
+  int resthsurfcurvenable;
+  /// factor for surface curvature partitioning
+  double resthsurfcurvfac; 
+
+  
   Ng_Meshing_Parameters();
 };
 
