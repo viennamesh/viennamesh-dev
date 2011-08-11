@@ -421,6 +421,6 @@ ENDIF(ENABLE_TEST_SPECIAL_MESHES)
 #
 ADD_TEST(meta_sel       meta_sel)
 ADD_TEST(tetgen_test    tetgen_test ../../input/meshes/after_line_tri.bnd)      
+ADD_TEST(direct_domain  direct_domain ../../input/meshes/after_line_tri.bnd)      
 #ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
-#ADD_TEST(direct_domain  direct_domain ../../input/meshes/after_line_tri.bnd)      
 

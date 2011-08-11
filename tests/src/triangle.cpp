@@ -42,16 +42,13 @@ int process_file(std::string filename)
 
    std::string input_extension  = viennautils::file_extension(filename);
 
-   if(input_extension == "sgf")
+   if(input_extension == "bnd")
    {
-      typedef viennagrid::domain<viennagrid::config::line_2d>     domain_type;
-      domain_type domain;
-   
-      viennagrid::io::sgf_reader my_sgf_reader;
-      my_sgf_reader(domain, filename);   
+      viennautils::io::bnd_reader my_bnd_reader;
+      my_bnd_reader(filename); 
 
-      typedef viennamesh::wrapper<viennamesh::tag::viennagrid, domain_type>      wrapper_type;
-      wrapper_type                    wrapped_data(domain);      
+      typedef viennamesh::wrapper<viennamesh::tag::bnd, viennautils::io::bnd_reader>      wrapper_type;
+      wrapper_type                    wrapped_data(my_bnd_reader);      
 
       meshing(wrapped_data); 
    }
