@@ -214,7 +214,7 @@ ENDIF(ENABLE_GTSIO)
 # *** SETUP VIENNAMESH LIBRARY ***
 #
 # ------------------------------------------------------------------------------
-ADD_LIBRARY(viennamesh STATIC viennamesh/generation/netgen.cpp 
+ADD_LIBRARY(viennamesh viennamesh/generation/netgen.cpp 
                        viennamesh/generation/tetgen.cpp 
                        viennamesh/generation/triangle.cpp 
                        viennamesh/generation/cervpt.cpp

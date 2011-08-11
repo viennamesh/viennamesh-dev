@@ -40,6 +40,14 @@ respective \texttt{CMake} configuration parameters.
 \end{Verbatim}
 \end{exaipd}
 
+By default, the ViennaMesh libraries are built statically. If you want to 
+build dynamic libraries, add the following CMAKE parameter:
+\begin{exaipd}
+\begin{Verbatim}
+-DBUILD_SHARED_LIBS=ON
+\end{Verbatim}
+\end{exaipd}
+
 %Note that the build script expects the parameters \texttt{CGALINC} and 
 %\texttt{CGALLIB} to be provided by the environment. 
 %Certainly these paths can be entered statically within the build script.

@@ -11,7 +11,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")   
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-ADD_LIBRARY(triangle STATIC triangle/triangle.c)
+ADD_LIBRARY(triangle triangle/triangle.c)
 
 # ------------------------------------------------------------------------------
 #

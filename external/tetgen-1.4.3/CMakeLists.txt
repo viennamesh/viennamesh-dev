@@ -7,7 +7,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    ADD_DEFINITIONS(-DTETLIBRARY -DNDEBUG)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-ADD_LIBRARY(tetgen STATIC tetgen/tetgen.cxx tetgen/predicates.cxx)
+ADD_LIBRARY(tetgen tetgen/tetgen.cxx tetgen/predicates.cxx)
 
 # ------------------------------------------------------------------------------
 #

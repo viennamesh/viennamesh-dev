@@ -91,17 +91,17 @@ ENDFOREACH(SRC)
 # ------------------------------------------------------------------------------
 # BUILD VGMODELERLIB
 #
-ADD_LIBRARY(vgmodeler_base STATIC ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG})
+ADD_LIBRARY(vgmodeler_base ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG})
 SET_TARGET_PROPERTIES(vgmodeler_base 
    PROPERTIES COMPILE_FLAGS "-DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -ftemplate-depth-99 -finline-limit=10000 -Wdisabled-optimization -funroll-loops -Wno-write-strings -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
 
 # note: we have to use specific include paths for these sources, as they won't compile
 # if gsse01 and gsse02 is used together in the global INCLUDE_DIRECTORIES path
 #
-ADD_LIBRARY(vgmodeler_stltopo STATIC stlgeom/stltopology.cpp)
+ADD_LIBRARY(vgmodeler_stltopo stlgeom/stltopology.cpp)
 SET_TARGET_PROPERTIES(vgmodeler_stltopo PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
 
-ADD_LIBRARY(vgmodeler_meshstl STATIC stlgeom/meshstlsurface.cpp)
+ADD_LIBRARY(vgmodeler_meshstl stlgeom/meshstlsurface.cpp)
 SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/")
 # ------------------------------------------------------------------------------
 
