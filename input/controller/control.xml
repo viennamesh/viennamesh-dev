@@ -22,7 +22,7 @@
                <!-- desc: factor for curvature accuracy -->                              
                <key>curvfac</key>
                <!-- range: >0.0 -->
-               <val>30</val>
+               <val>0</val>
             </para>            
             <para>
                <!-- note: global maximum angle  -->
@@ -36,7 +36,7 @@
                <!-- desc: control transition between elements of different sizes -->                              
                <key>grading</key>
                <!-- range: 0.0-1.0 -->
-               <val>0.5</val>
+               <val>0.3</val>
             </para>            
          </paras>
       </adaptor>

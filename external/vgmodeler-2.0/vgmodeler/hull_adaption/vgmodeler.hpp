@@ -116,7 +116,7 @@ struct hull_adaptor
       /// limit for max element angle (150-180)
       mp.badellimit           = 175;
       /// enable special surface curvature handling
-      mp.resthsurfcurvenable  = 1;
+      mp.resthsurfcurvenable  = 0;
       /// factor for surface curvature partitioning
       mp.resthsurfcurvfac     = 5;
       // --------------------------------------------
@@ -163,6 +163,7 @@ struct hull_adaptor
    int&    threads()          { return mp.parthread; }
    double& maxangle()         { return mp.badellimit; }
    double& curvfac()          { return mp.resthsurfcurvfac; }   
+   int&    curvenable()       { return mp.resthsurfcurvenable; }      
       
    // add hull element to data structure - only triangle geometry informaiton 
    // available --> compute the normal vector

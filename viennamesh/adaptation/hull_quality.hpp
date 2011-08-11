@@ -73,6 +73,8 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
    double get_maxangle();      
    void   set_curvfac(double fac);
    double get_curvfac();      
+   void   set_curvenable(int fac);
+   int    get_curvenable();         
    void assign(viennamesh::config::set const& paraset);
    // --------------------------------------------------------------------------        
    result_type operator()(domain_type& domain);   

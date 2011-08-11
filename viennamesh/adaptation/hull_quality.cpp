@@ -99,6 +99,15 @@ double mesh_adaptor<viennamesh::tag::hull_quality>::get_curvfac()
    return vghull->curvfac();
 }
 // --------------------------------------------------------------------------
+void mesh_adaptor<viennamesh::tag::hull_quality>::set_curvenable(int flag)
+{
+   vghull->curvenable() = flag;
+}
+int mesh_adaptor<viennamesh::tag::hull_quality>::get_curvenable()
+{
+   return vghull->curvenable();
+}
+// --------------------------------------------------------------------------
 void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set const& paraset)
 {
    typedef viennamesh::config::query::adaptor_maxsize       adaptor_maxsize_query_type;
@@ -161,7 +170,15 @@ void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set
    if(adaptor_curvfac_query_type::available(paraset, id))
    {   
       adaptor_curvfac_query_type::result_type curvfac = adaptor_curvfac_query_type::eval(paraset, id);
-      if(curvfac >= 0) this->set_curvfac(curvfac);
+      if(curvfac > 0)
+      {
+         this->set_curvenable(1);
+         this->set_curvfac(curvfac);
+      }
+      else if(curvfac == 0)
+      {
+         this->set_curvenable(0);
+      }      
       else
       {
          viennautils::msg::warning("## MeshAdaptor::"+id+" curvature-factor out of range - using default value ");
