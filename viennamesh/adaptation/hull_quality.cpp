@@ -176,7 +176,10 @@ void mesh_adaptor<viennamesh::tag::hull_quality>::assign(viennamesh::config::set
          this->set_curvfac(curvfac);
       }
       else if(curvfac == 0)
-      {
+      {  // deactivate the whole procedure if the factor is zero
+         // this is important, as the whole procedure may not work for all meshes
+         // (segfaults) .. therefore the user has the possibility to switch it off in 
+         // the input control xml file
          this->set_curvenable(0);
       }      
       else

@@ -7,36 +7,38 @@
                <!-- note: global maximum mesh size -->
                <!-- desc: the largest allowed mesh element size -->               
                <key>maxsize</key>
-               <!-- range: >0.0 -->
+               <!-- range: maxsize > 0.0 -->
                <val>1.0E10</val>
             </para>
             <para>
                <!-- note: global minimum mesh size -->
                <!-- desc: the smalles allowed mesh element size -->                              
                <key>minsize</key>
-               <!-- range: >0.0 -->
+               <!-- range: minsize >= 0.0 -->
                <val>0.0</val>
             </para>
             <para>
                <!-- note: surface curvature partitioning factor -->
-               <!-- desc: factor for curvature accuracy -->                              
+               <!-- desc: the larger the factor, the more accurate 
+                    is the curvature  -->                              
                <key>curvfac</key>
-               <!-- range: >0.0 -->
-               <val>0</val>
+               <!-- range: curvfac >= 0.0 -->
+               <val>3</val>
             </para>            
             <para>
                <!-- note: global maximum angle  -->
                <!-- desc: the largest allowed angle in a mesh element -->                              
                <key>maxangle</key>
-               <!-- range: 150-180 -->
+               <!-- range: 150 <= maxangle <= 180 -->
                <val>175</val>
             </para>            
             <para>
-               <!-- note: fineness transition -->
-               <!-- desc: control transition between elements of different sizes -->                              
+               <!-- note: rate of growth of size between elements -->
+               <!-- desc: the larger the factor, the quicker the transition 
+                    between smaller and larger elements -->                              
                <key>grading</key>
-               <!-- range: 0.0-1.0 -->
-               <val>0.3</val>
+               <!-- range: 0.0 < grading <= 1.0 -->
+               <val>0.5</val>
             </para>            
          </paras>
       </adaptor>
