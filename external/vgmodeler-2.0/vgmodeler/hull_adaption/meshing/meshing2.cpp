@@ -518,7 +518,7 @@ namespace vgmnetgen
 	    if (illegalpoint[gpi1] || illegalpoint[gpi2])
             {
 	      found = 0;
-              std::cout << ".. first found: " << std::endl;
+              //std::cout << ".. first found: " << std::endl;
             }
 	  }
 
