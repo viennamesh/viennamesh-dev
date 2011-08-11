@@ -22,7 +22,7 @@
                <!-- desc: factor for curvature accuracy -->                              
                <key>curvfac</key>
                <!-- range: >0.0 -->
-               <val>40</val>
+               <val>30</val>
             </para>            
             <para>
                <!-- note: global maximum angle  -->

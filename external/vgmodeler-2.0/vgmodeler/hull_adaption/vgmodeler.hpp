@@ -133,6 +133,8 @@ struct hull_adaptor
       /// quad-dominated surface meshing
       mp.quad_dominated       = 0;      
       /// use parallel threads
+      // [JW] I don't think this is used in the netgen part which 
+      // we utilize
       mp.parthread            = 0;
       // Optional external mesh size file. 
       //

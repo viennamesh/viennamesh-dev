@@ -103,24 +103,6 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    viennamesh::io::domainwriter(normals, outputfile);
 }
 
-//
-// generate 2d meshes
-//
-template<typename WrappedDatastructureT>
-void process_2d(WrappedDatastructureT& data, std::string const& outputfile)
-{
-   typedef typename viennamesh::result_of::mesh_generator<viennamesh::tag::triangle>::type        mesh_generator_type;
-   mesh_generator_type  mesher;
-
-   typedef typename mesh_generator_type::result_type       result_type;   
-
-   result_type result = mesher(data);
-
-   // write paraview/vtk output
-   //
-   viennamesh::io::domainwriter(result, outputfile);
-}
-
 int main(int argc, char *argv[])
 {
    if(argc != 4)
