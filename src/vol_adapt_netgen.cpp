@@ -23,12 +23,16 @@
 #include "viennamesh/io.hpp"
 #include "viennamesh/config.hpp"
 
+#include "viennautils/timer.hpp"
+
 //
 // generate high-quality 3d meshes
 //
 template<typename WrappedDatastructureT>
 void process_3d(WrappedDatastructureT& data, std::string const& outputfile, viennamesh::config::set const& paraset, int checks = 0)
 {
+   viennautils::Timer timer;
+
    // prepare a hull mesher
    //   generates a 2-simplex unstructured mesh embedded in a three-dimensional
    //   geometrical space
@@ -61,7 +65,7 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    // 
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cell_normals_adaptor_type;
    cell_normals_adaptor_type           cell_normals;         
-   
+
    // prepare a hull mesh adaptation tool which significantly improves the 
    // quality of the hull mesh. highly degenerate elements are removed, 
    // which results in a hull mesh with well formed elements. 
@@ -87,37 +91,51 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
 
    // execute the functor chain: 
    //   1. generate a hull mesh of the input geometry (the inner most functor)
-   std::cout << "   hull meshing .. " << std::endl;
+   std::cout << "   hull meshing .. ";
+   timer.start();   
    hull_domainsp_type   hullmesh = hull_mesher(data);
+   std::cout << "      exec-time: " << timer.get() << " s" << std::endl;            
    
    if(checks == 1)
    {
-      std::cout << "   hull checking topology .. " << std::endl;
+      timer.start();      
+      std::cout << "   hull checking topology .. ";
       topo_checker(hullmesh);
+      std::cout << "      exec-time: " << timer.get() << " s" << std::endl;                  
 
-      std::cout << "   hull checking geometry .. " << std::endl;   
+      std::cout << "   hull checking geometry .. ";   
+      timer.start();      
       geom_checker(hullmesh);
+      std::cout << "      exec-time: " << timer.get() << " s" << std::endl;                
    }   
    
    //   2. impose consistent ccw cell orientation
-   std::cout << "   hull orienting .. " << std::endl;   
+   std::cout << "   hull orienting .. ";   
+   timer.start();         
    hull_domainsp_type   oriented = orienter(hullmesh);
+   std::cout << "      exec-time: " << timer.get() << " s" << std::endl;                   
 
    //   3. compute the cell normals of the oriented hull mesh
-   std::cout << "   hull normals .. " << std::endl;   
+   std::cout << "   hull normals .. ";   
+   timer.start();          
    hull_domainsp_type   normals  = cell_normals(oriented);
+   std::cout << "      exec-time: " << timer.get() << " s" << std::endl;                      
 
    //   4. improve the quality of the hull mesh
-   std::cout << "   hull quality .. " << std::endl;   
    viennamesh::config::assign(paraset, hull_quality);
+   std::cout << "   hull quality .. ";   
+   timer.start();          
    hull_domainsp_type   quality  = hull_quality(normals);
+   std::cout << "      exec-time: " << timer.get() << " s" << std::endl;                   
 
    //   5. do the volume meshing
-   std::cout << "   volume meshing .. " << std::endl;   
+   std::cout << "   volume meshing .. ";   
+   timer.start();
    vol_domainsp_type    volume   = volume_mesher(quality);
+   std::cout << "      exec-time: " << timer.get() << " s" << std::endl;         
 
    //   6. investigate mesh quality
-   std::cout << "   volume classifying .. " << std::endl;   
+   std::cout << "   volume classifying .. " << std::endl;
    mesh_classifier(volume);
 
    // write paraview/vtk output
@@ -214,10 +232,8 @@ int main(int argc, char *argv[])
    {
       typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
       domain_type domain;
-      
-      viennagrid::io::importINP(domain, inputfile, true);
 
-      viennamesh::io::domainwriter(domain, "hullinp");
+      viennagrid::io::importINP(domain, inputfile, true);
 
       // the reader datastructure is wrapped to offer a specific interface
       //

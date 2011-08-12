@@ -107,8 +107,10 @@ struct hull_adaptor
         // P .. plot, pause
         // c .. combine
       **/      
-      //mp.optimize2d           = "smsmsmSmSmSm";
-      mp.optimize2d           = "cmsmsmsmSmSmSm";
+      //std::string optstr = "smsmsmSmSmSm";
+      std::string optstr = "cmsmsmsmSmSmSm";
+      mp.optimize2d           = new char[optstr.length()];
+      std::strcpy(mp.optimize2d, optstr.c_str());
       /// number of 2d optimization steps
       mp.optsteps2d           = 3;
       /// use delaunay meshing  

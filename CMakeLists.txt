@@ -31,6 +31,16 @@ SET(VIENNAMESH_USE_MT ON CACHE BOOL "Build ViennaMesh with Multi-Threading suppo
 
 # ------------------------------------------------------------------------------
 #
+# *** SET DEFAULT BUILD TYPE ***
+#
+# ------------------------------------------------------------------------------
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+# ------------------------------------------------------------------------------
+#
 # *** SET COMPILER/LINKER FLAGS ***
 #
 # ------------------------------------------------------------------------------
