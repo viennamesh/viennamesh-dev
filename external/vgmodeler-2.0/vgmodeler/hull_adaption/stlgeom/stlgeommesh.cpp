@@ -880,7 +880,8 @@ void STLGeometry :: RestrictLocalH(class Mesh & mesh, double gh)
       for (i = 1; i <= GetNT(); i++)
 	{
 	  SetThreadPercent((double)i/(double)GetNT()*100.);
-	  if (i%20000==19999) {PrintMessage(7, (double)i/(double)GetNT()*100. , "%");}
+	  // [JW] deactivated the following output ..
+	  //if (i%20000==19999) {PrintMessage(7, (double)i/(double)GetNT()*100. , "%");}
 
 	  if (multithread.terminate)
 	    {PopStatus(); return;}

@@ -231,7 +231,8 @@ ADD_LIBRARY(viennamesh viennamesh/generation/netgen.cpp
                        viennamesh/adaptation/orienter.cpp
                        viennamesh/adaptation/hull_quality.cpp
                        viennamesh/adaptation/topology_check.cpp
-                       viennamesh/adaptation/geometry_check.cpp)
+                       viennamesh/adaptation/geometry_check.cpp
+                       viennamesh/adaptation/interface_sewer.cpp)
 
 IF(ENABLE_GTSIO)
    TARGET_LINK_LIBRARIES(viennamesh netgen tetgen triangle ${Boost_LIBRARIES} ${CERVPT_LIBS} ${VGMODHULL_LIBS} ${VIENNAUTILS_LIBRARIES} ${GTSIO_LIBS})   

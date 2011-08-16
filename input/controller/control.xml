@@ -23,7 +23,7 @@
                     is the curvature  -->                              
                <key>curvfac</key>
                <!-- range: curvfac >= 0.0 -->
-               <val>3</val>
+               <val>1</val>
             </para>            
             <para>
                <!-- note: global maximum angle  -->

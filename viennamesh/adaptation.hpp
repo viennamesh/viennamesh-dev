@@ -19,5 +19,6 @@
 #include "viennamesh/adaptation/orienter.hpp"
 #include "viennamesh/adaptation/topology_check.hpp"
 #include "viennamesh/adaptation/geometry_check.hpp"
+#include "viennamesh/adaptation/interface_sewer.hpp"
 
 #endif

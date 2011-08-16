@@ -573,7 +573,6 @@ namespace vgmnetgen
    }
 
 
-
 void STLFindEdges (STLGeometry & geom,
                    class Mesh & mesh, 
                    std::map<int, std::map<int,int> >& material_chart_mapping)
@@ -603,7 +602,7 @@ void STLFindEdges (STLGeometry & geom,
   //
 //   h = 0.5; 
   geom.RestrictLocalH(mesh, h);
-  
+
 #ifdef DEBUGALL
   PushStatusF("Mesh Lines");
 #endif
@@ -3268,7 +3267,6 @@ int STLSurfaceMeshing (STLGeometry & geom,
             geom.SetMarkedTrig(seg.geominfo[0].trignum,1);
             geom.SetMarkedTrig(seg.geominfo[1].trignum,1);
           }
-
           MeshOptimizeSTLSurface optmesh(geom);
           optmesh.SetFaceIndex (0);
           optmesh.SetImproveEdges (0);

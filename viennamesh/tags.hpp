@@ -13,6 +13,9 @@
 #ifndef VIENNAMESH_TAGS_HPP
 #define VIENNAMESH_TAGS_HPP
 
+// *** vienna includes
+
+
 namespace viennamesh {
    
 namespace tag {
@@ -52,9 +55,14 @@ struct cell_normals         {};
 struct hull_quality         {};
 struct geom_check           {};
 struct topo_check           {};
+struct int_sewer            {};
+
+
 }
    
 } // end namespace viennamesh
+
+
 
 #endif
 

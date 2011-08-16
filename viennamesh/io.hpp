@@ -17,6 +17,7 @@
 // *** local includes
 // *** vienna includes
 #include "viennagrid/io/vtk_writer.hpp"
+#include "viennadata/api.hpp"
 // *** boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -32,7 +33,7 @@ domainwriter(DomainT& domain, std::string const& filename)
    viennagrid::io::vtk_writer<DomainT>  vtk;         
    
    vtk.template add_cell_data_normal<viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type>(viennagrid::seg_cell_normal_tag(), "cell_normals");
-
+   
    vtk.writeDomain(domain, filename);
 }
 
@@ -47,6 +48,8 @@ domainwriter(boost::shared_ptr<DomainT>& domainsp, std::string const& filename)
 
 
 } // end namespace io
+
+
 
 
 } // end namespace viennamesh
