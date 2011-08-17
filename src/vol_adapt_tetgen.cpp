@@ -75,6 +75,12 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    typedef viennamesh::result_of::mesh_generator<viennamesh::tag::tetgen>::type        volume_mesh_generator_type;
    volume_mesh_generator_type       volume_mesher;      
 
+   // make sure the cells at the interfaces are based on the same incident vertices 
+   // on both sides of the interface
+   //
+   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::int_sewer>::type       int_sewer_type;
+   int_sewer_type                 int_sewer;                     
+
    // and a mesh classification tool
    //   this tool investigates the quality of the mesh and provides us therefore 
    //   with feedback how 'good' a mesh is
@@ -116,12 +122,17 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    std::cout << "   volume meshing .. " << std::endl;   
    vol_domainsp_type    volume   = volume_mesher(quality);
 
+   //   6. sew the interface cells
+   std::cout << "   interface sewing .. " << std::endl;
+   vol_domainsp_type sewed = int_sewer(volume);
+
    //   6. investigate mesh quality
    std::cout << "   volume classifying .. " << std::endl;   
-   mesh_classifier(volume);
+   mesh_classifier(sewed);
+   
    // write paraview/vtk output
    std::cout << "   writing domain .. " << std::endl;   
-   viennamesh::io::domainwriter(volume, outputfile);
+   viennamesh::io::domainwriter(sewed, outputfile);
 }
 
 int main(int argc, char *argv[])

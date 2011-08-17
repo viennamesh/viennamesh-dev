@@ -74,13 +74,16 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
    hull_quality_adaptor_type           hull_quality;                  
 
-   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::int_sewer>::type       hull_int_sewer_type;
-   hull_int_sewer_type                 hull_int_sewer;                     
-
    // prepare a volume mesh generator
    //
    typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        volume_mesh_generator_type;
    volume_mesh_generator_type       volume_mesher;      
+
+   // make sure the cells at the interfaces are based on the same incident vertices 
+   // on both sides of the interface
+   //
+   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::int_sewer>::type       int_sewer_type;
+   int_sewer_type                 int_sewer;                     
 
    // and a mesh classification tool
    //   this tool investigates the quality of the mesh and provides us therefore 
@@ -131,23 +134,25 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    hull_domainsp_type   quality  = hull_quality(normals);
    std::cout << "      exec-time: " << timer.get() << " s" << std::endl;                   
 
-   //   5. sew the interface cells
-   std::cout << "   hull interface sewing .. " << std::endl;
-   hull_domainsp_type sewed = hull_int_sewer(quality);
-
    //   5. do the volume meshing
    std::cout << "   volume meshing .. ";   
    timer.start();
-   vol_domainsp_type    volume   = volume_mesher(sewed);
+   vol_domainsp_type    volume   = volume_mesher(quality);
    std::cout << "      exec-time: " << timer.get() << " s" << std::endl;         
 
-   //   6. investigate mesh quality
+   //   6. sew the interface cells
+   std::cout << "   interface sewing .. " << std::endl;
+   timer.start();   
+   vol_domainsp_type sewed = int_sewer(volume);
+   std::cout << "      exec-time: " << timer.get() << " s" << std::endl;         
+
+   //   7. investigate mesh quality
    std::cout << "   volume classifying .. " << std::endl;
-   mesh_classifier(volume);
+   mesh_classifier(sewed);
 
    // write paraview/vtk output
    std::cout << "   writing domain .. " << std::endl;   
-   viennamesh::io::domainwriter(volume, outputfile);
+   viennamesh::io::domainwriter(sewed, outputfile);
 }
 
 int main(int argc, char *argv[])

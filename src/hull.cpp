@@ -61,20 +61,13 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type    cell_normals_adaptor_type;
    cell_normals_adaptor_type           cell_normals;         
    
-   // prepare a volume mesh generator
+   // make sure the cells at the interfaces are based on the same incident vertices 
+   // on both sides of the interface
    //
-   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type        volume_mesh_generator_type;
-   volume_mesh_generator_type       volume_mesher;      
-
-   // and a mesh classification tool
-   //   this tool investigates the quality of the mesh and provides us therefore 
-   //   with feedback how 'good' a mesh is
-   //
-   typedef viennamesh::result_of::mesh_classifier<viennamesh::tag::vgmodeler>::type    mesh_classifier_type;
-   mesh_classifier_type mesh_classifier;
+   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::int_sewer>::type       int_sewer_type;
+   int_sewer_type                 int_sewer;                     
 
    typedef hull_mesh_generator_type::result_type      hull_domainsp_type;
-   typedef volume_mesh_generator_type::result_type    vol_domainsp_type;
 
    // execute the functor chain: 
    //   1. generate a hull mesh of the input geometry (the inner most functor)
@@ -98,9 +91,13 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, int 
    std::cout << "   hull normals .. " << std::endl;   
    hull_domainsp_type   normals  = cell_normals(oriented);
 
+   //   5. sew the interface cells
+   std::cout << "   interface sewing .. " << std::endl;
+   hull_domainsp_type sewed = int_sewer(normals);
+
    // write paraview/vtk output
    std::cout << "   writing domain .. " << std::endl;   
-   viennamesh::io::domainwriter(normals, outputfile);
+   viennamesh::io::domainwriter(sewed, outputfile);
 }
 
 int main(int argc, char *argv[])

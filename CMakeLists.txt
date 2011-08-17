@@ -51,7 +51,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
    # Strip release binaries   
    #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")    
 
-   ADD_DEFINITIONS(-DMESH_STATISTICS)
+   #ADD_DEFINITIONS(-DMESH_STATISTICS)
 
    # add specific debug flags
    IF(CMAKE_BUILD_TYPE MATCHES Debug)

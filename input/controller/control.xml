@@ -23,7 +23,7 @@
                     is the curvature  -->                              
                <key>curvfac</key>
                <!-- range: curvfac >= 0.0 -->
-               <val>1</val>
+               <val>0</val>
             </para>            
             <para>
                <!-- note: global maximum angle  -->
@@ -38,7 +38,7 @@
                     between smaller and larger elements -->                              
                <key>grading</key>
                <!-- range: 0.0 < grading <= 1.0 -->
-               <val>0.5</val>
+               <val>0.3</val>
             </para>            
          </paras>
       </adaptor>

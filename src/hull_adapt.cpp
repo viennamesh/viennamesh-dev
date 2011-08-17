@@ -70,9 +70,12 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::hull_quality>::type    hull_quality_adaptor_type;
    hull_quality_adaptor_type           hull_quality;                     
    
-   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::int_sewer>::type       hull_int_sewer_type;
-   hull_int_sewer_type                 hull_int_sewer;                     
-   
+   // make sure the cells at the interfaces are based on the same incident vertices 
+   // on both sides of the interface
+   //
+   typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::int_sewer>::type       int_sewer_type;
+   int_sewer_type                 int_sewer;                     
+  
    typedef hull_mesh_generator_type::result_type      hull_domainsp_type;
 
    // execute the functor chain: 
@@ -103,8 +106,8 @@ void process_3d(WrappedDatastructureT& data, std::string const& outputfile, vien
    hull_domainsp_type   quality  = hull_quality(normals);
 
    //   5. sew the interface cells
-   std::cout << "   hull interface sewing .. " << std::endl;
-   hull_domainsp_type sewed = hull_int_sewer(quality);
+   std::cout << "   interface sewing .. " << std::endl;
+   hull_domainsp_type sewed = int_sewer(quality);
 
    // write paraview/vtk output
    std::cout << "   writing domain .. " << std::endl;   

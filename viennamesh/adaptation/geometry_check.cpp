@@ -36,14 +36,14 @@ namespace viennamesh {
 mesh_adaptor<viennamesh::tag::geom_check>::mesh_adaptor()
 {
    id = "GeomCheck";      
-#ifdef MESH_KERNEL_DEBUG
+#ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - initiating" << std::endl;
 #endif
 }
 // --------------------------------------------------------------------------
 mesh_adaptor<viennamesh::tag::geom_check>::~mesh_adaptor()
 {
-   #ifdef MESH_KERNEL_DEBUG
+   #ifdef MESH_ADAPTOR_DEBUG
       std::cout << "## MeshAdaptor::"+id+" - shutting down" << std::endl;
    #endif
 }

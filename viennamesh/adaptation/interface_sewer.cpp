@@ -6,8 +6,6 @@
                              -----------------
 
    authors:    Josef Weinbub                         weinbub@iue.tuwien.ac.at
-               Franz Stimpfl
-
 
    license:    see file LICENSE in the base directory
 ============================================================================= */
@@ -26,61 +24,104 @@ namespace viennamesh {
 mesh_adaptor<viennamesh::tag::int_sewer>::mesh_adaptor()
 {
    id = "InterfaceSewer";      
-#ifdef MESH_KERNEL_DEBUG
+#ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - initiating" << std::endl;
 #endif
 }
 // --------------------------------------------------------------------------
 mesh_adaptor<viennamesh::tag::int_sewer>::~mesh_adaptor()
 {
-   #ifdef MESH_KERNEL_DEBUG
-      std::cout << "## MeshAdaptor::"+id+" - shutting down" << std::endl;
-   #endif
+#ifdef MESH_ADAPTOR_DEBUG
+   std::cout << "## MeshAdaptor::"+id+" - shutting down" << std::endl;
+#endif
 }
 // --------------------------------------------------------------------------
-boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::triangular_3d> & domain)
+template<typename DomainT>
+boost::shared_ptr< DomainT >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(DomainT& domain)
 {
    // forwarding to main implementation
-   return (*this)(boost::make_shared<viennagrid::domain<viennagrid::config::triangular_3d> >(domain));
+   return (*this)(boost::make_shared<DomainT>(domain));
 }
 // --------------------------------------------------------------------------
-boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain)
+template<typename DomainT>
+boost::shared_ptr< DomainT >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> domain)
 {
 #ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - starting up .." << std::endl;
 #endif            
 
-   input_type sewed_domain(new domain_type);         
+   typedef typename DomainT::config_type                                                                       DomainConfiguration;   
+   typedef typename DomainConfiguration::cell_tag                                                              CellTag;   
+   typedef typename DomainT::segment_type                                                                      SegmentType;
+   typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
+   typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, 0>::type                            VertexType;   
+   typedef typename viennagrid::result_of::ncell_container<DomainT, 0>::type                                   GeometryContainer;      
+   typedef typename viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;       
+   typedef typename viennagrid::result_of::ncell_container<SegmentType, 0>::type                               VertexContainer;      
+   typedef typename viennagrid::result_of::iterator<VertexContainer>::type                                     VertexIterator;         
+   typedef typename viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef typename viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
+   typedef typename viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef typename viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
+   typedef typename viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
 
-   typedef boost::array<double, CELLSIZE> tempcell_type;
+   static const int CELLSIZE = viennagrid::traits::subcell_desc<CellTag, 0>::num_elements;
+   static const int DIMG     = DomainConfiguration::dimension_tag::value;
+
+
+   boost::shared_ptr<DomainT> sewed_domain(new DomainT);         
+
+   typedef boost::array<double, DIMG>     temppnt_type;
 
    std::map<std::size_t, std::size_t>     index_map;
-   std::map<tempcell_type, bool>          uniquer;
-   std::map<tempcell_type, std::size_t>   point_index;   
+   std::map<temppnt_type, bool>           uniquer;
+   std::map<temppnt_type, std::size_t>    point_index;   
    
-   GeometryContainer geometry = viennagrid::ncells<0>(*domain);
-   for(GeometryIterator git = geometry.begin(); git != geometry.end(); git++)
+#ifdef MESH_ADAPTOR_DEBUG
+   std::cout << "## MeshAdaptor::"+id+" - transferring geometry .." << std::endl;
+#endif            
+
+   
+#ifdef MESH_ADAPTOR_DEBUG 
+   std::size_t colocal_points = 0;
+#endif
+//   GeometryContainer geometry = viennagrid::ncells<0>(*domain);
+//   for(GeometryIterator git = geometry.begin(); git != geometry.end(); git++)
+
+   for (std::size_t si = 0; si < domain->segment_size(); ++si)
    {
-      tempcell_type tempcell;
-      for(std::size_t i = 0; i < CELLSIZE; i++)
-         tempcell[i] = git->getPoint()[i];
-      
-      if( !uniquer[tempcell] )
+      SegmentType & seg = domain->segment(si);
+      VertexContainer vertices = viennagrid::ncells<0>(seg);
+      for(VertexIterator vit = vertices.begin(); vit != vertices.end(); vit++)
       {
-         VertexType vertex;
-         vertex.getPoint()       = git->getPoint();
-         index_map[git->getID()] = sewed_domain->add(vertex)->getID();
-         point_index[tempcell]   = index_map[git->getID()];
-         uniquer[tempcell]       = true;
+         temppnt_type temppnt;
+         for(std::size_t i = 0; i < DIMG; i++)
+            temppnt[i] = vit->getPoint()[i];
+         
+         if( !uniquer[temppnt] )
+         {
+            VertexType vertex;
+            vertex.getPoint()       = vit->getPoint();
+            index_map[vit->getID()] = sewed_domain->add(vertex)->getID();
+            point_index[temppnt]   = index_map[vit->getID()];
+            uniquer[temppnt]       = true;
+         }
+         else
+         {
+         #ifdef MESH_ADAPTOR_DEBUG 
+            colocal_points++;
+         #endif      
+            index_map[vit->getID()]    = point_index[temppnt];
+         }
+         
       }
-      else
-      {
-         index_map[git->getID()]    = point_index[tempcell];
-      }
-      
    }
+
+#ifdef MESH_ADAPTOR_DEBUG
+   std::cout << "## MeshAdaptor::"+id+" - transferring topology .." << std::endl;
+#endif            
 
    sewed_domain->create_segments(domain->segment_size());
 
@@ -109,22 +150,32 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagr
       }
    }
 
+#ifdef MESH_ADAPTOR_DEBUG 
+   std::cout << "## MeshAdaptor::"+id+" - colocal points removed: " << colocal_points << std::endl;
+#endif      
+
    return sewed_domain;
 
 }
-// --------------------------------------------------------------------------
-bool mesh_adaptor<viennamesh::tag::int_sewer>::colocal(PointType const& pnt1, PointType const& pnt2)
-{
-   bool colocal = true;
-   for(std::size_t i = 0; i < pnt1.size(); i++)
-   {
-      if( !(fabs(pnt1[i]-pnt2[i]) < std::numeric_limits<PointType::value_type>::epsilon()) )
-         colocal = false;
-   }
-   return colocal;
-}
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 
+// explicit declarations for the template functions
+// 
+template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_2d> >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::triangular_2d>& domain);
+template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_2d> >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_2d> > domain);
 
+template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::triangular_3d>& domain);
+template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain);
+
+template boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::tetrahedral_3d>& domain);
+template boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> > domain);
+// -----------------------------------------------------------------------------
 
 } // end namespace viennamesh
 
