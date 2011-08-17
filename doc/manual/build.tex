@@ -30,13 +30,23 @@ the appropriate \texttt{CMake} configuration parameter.
 \end{Verbatim}
 \end{exaipd}
 
+If \texttt{Boost} is not available in the usual system paths, the include and 
+library paths have to be provided via the 
+respective \texttt{CMake} configuration parameters.
+\begin{exaipd}
+\begin{Verbatim}
+-D BOOST_INCLUDEDIR=/path/to/boost/include/
+-D BOOST_LIBRARYDIR=/path/to/boost/lib/
+\end{Verbatim}
+\end{exaipd}
+
 If \texttt{CGAL} is not available in the usual system paths, the include and 
 library paths have to be provided via the 
 respective \texttt{CMake} configuration parameters.
 \begin{exaipd}
 \begin{Verbatim}
--D CGAL_INC_DIR=$CGALINC
--D CGAL_LIB_DIR=$CGALLIB
+-D CGAL_INC_DIR=/path/to/cgal/include/
+-D CGAL_LIB_DIR=/path/to/cgal/lib/
 \end{Verbatim}
 \end{exaipd}
 
