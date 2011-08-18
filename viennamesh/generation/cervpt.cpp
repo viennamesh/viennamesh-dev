@@ -104,7 +104,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
     vertex.getPoint()[0] = (*iter)[0];
     vertex.getPoint()[1] = (*iter)[1];         
     vertex.getPoint()[2] = (*iter)[2];         
-    vertex.setID(pi++);
+    vertex.id(pi++);
     domain->add(vertex);
    }   
 
@@ -166,7 +166,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
        for(triangle_iter_type triiter = polyiter->second.begin();
            triiter != polyiter->second.end(); triiter++)
        {
-           vertex_type *vertices[viennagrid::traits::subcell_desc<cell_tag, 0>::num_elements];        
+           vertex_type *vertices[viennagrid::topology::subcell_desc<cell_tag, 0>::num_elements];        
            
            for(std::size_t ci = 0; ci < triiter->size(); ci++)
            {

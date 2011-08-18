@@ -186,9 +186,9 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
 
    typedef viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
    typedef viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-   typedef viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+   typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
    typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
-   typedef viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
+   typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
    typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;         
 
    std::size_t segment_size = hull_domain->segment_size();
@@ -234,7 +234,7 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            std::size_t vertex_index = vocit->getID();
+            std::size_t vertex_index = vocit->id();
             
             if(!vertex_uniquer[vertex_index])
             {
@@ -402,7 +402,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
             vertex.getPoint()[0] = point[0];
             vertex.getPoint()[1] = point[1];         
             vertex.getPoint()[2] = point[2];                                 
-            vertex.setID(point_cnt);
+            vertex.id(point_cnt);
       
             // we cannot directly push the vertices on the viennagrid domain, 
             // as we have to know, how many in total we have. 
@@ -443,7 +443,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
 
 //            cell_type cell;
 //            cell.setVertices(vertices);
-//            cell.setID(global_cell_size);            
+//            cell.id(global_cell_size);            
 
 //            std::cout << "  extracting cell: "; cell.print();
 
@@ -491,7 +491,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
          
          cell_type cell;
          cell.setVertices(vertices);
-         cell.setID(cell_id++);          
+         cell.id(cell_id++);          
          domain->segment(sit->first).add(cell);            
       }
    }       

@@ -60,13 +60,13 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, 0>::type                            VertexType;
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, 1>::type                            EdgeType;   
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;
-   typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
-   typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;      
-   typedef viennagrid::result_of::ncell_container<CellType, 1>::type                                  EdgeOnCellContainer;
+   typedef viennagrid::result_of::ncell_range<CellType, 1>::type                                  EdgeOnCellContainer;
    typedef viennagrid::result_of::iterator<EdgeOnCellContainer>::type                                 EdgeOnCellIterator;      
-   typedef viennagrid::result_of::ncell_container<EdgeType, CellTag::topology_level>::type            CellOnEdgeContainer;
+   typedef viennagrid::result_of::ncell_range<EdgeType, CellTag::topology_level>::type            CellOnEdgeContainer;
    typedef viennagrid::result_of::iterator<CellOnEdgeContainer>::type                                 CellOnEdgeIterator;   
    
    static const int DIMG = DomainConfiguration::dimension_tag::value;

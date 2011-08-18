@@ -67,9 +67,9 @@ struct check_intersections
    typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
    typedef typename viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
 
-   typedef typename viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef typename viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef typename viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
-   typedef typename viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef typename viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef typename viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;      
 
    static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
@@ -117,7 +117,7 @@ struct check_intersections
       // for each cell under test, traverse all other cells and test for intersection
       for (CellIterator cit2 = cells.begin(); cit2 != cells.end(); ++cit2)
       {
-         if(cit2->getID() == cell.getID()) continue; // skip the reference cell
+         if(cit2->id() == cell.id()) continue; // skip the reference cell
          
          int vi2 = 0;
          VertexOnCellContainer vertices_for_cell2 = viennagrid::ncells<0>(*cit2);
@@ -153,9 +153,9 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    typedef domain_type::config_type                                        DomainConfiguration;
    typedef DomainConfiguration::cell_tag                                   CellTag;
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
-   typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
-   typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;      
    typedef viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
 

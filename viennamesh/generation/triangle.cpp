@@ -217,12 +217,12 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(boost::shared_ptr< viennagrid
       typedef HullDomain::segment_type                               HullSegmentType;      
       typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
       typedef viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
-      typedef viennagrid::result_of::ncell_container<HullDomain, 0>::type                                      HullPointContainer;            
+      typedef viennagrid::result_of::ncell_range<HullDomain, 0>::type                                      HullPointContainer;            
       typedef viennagrid::result_of::iterator<HullPointContainer>::type                                        HullPointIterator;            
       typedef viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-      typedef viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+      typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
       typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
-      typedef viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
+      typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
       typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;                     
       
       std::size_t segment_size = hull_domain->segment_size();   
@@ -312,7 +312,7 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(boost::shared_ptr< viennagrid
                 vocit != vertices_for_cell.end();
                 ++vocit)
             {
-               cell_copy.push_back(vocit->getID());
+               cell_copy.push_back(vocit->id());
             }
             
             // we will keep a copy of the cell which stores the original
@@ -426,9 +426,9 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
    
       typedef viennagrid::result_of::point_type<HullDomainConfiguration>::type                                 HullPointType;   
       typedef viennagrid::result_of::ncell_type<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;         
-      typedef viennagrid::result_of::ncell_container<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+      typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
       typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;            
-      typedef viennagrid::result_of::ncell_container<HullCellType, 0>::type                                    HullVertexOnCellContainer;
+      typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
       typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;            
 
       self_type   temp_mesher;
@@ -447,7 +447,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            std::size_t vindex = vocit->getID();
+            std::size_t vindex = vocit->id();
             if(!pnt_uniquer[ vindex ])
             {  
                temp_mesher.addPoint( vocit->getPoint() ); 
@@ -462,7 +462,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            std::size_t vindex = vocit->getID();
+            std::size_t vindex = vocit->id();
             mapped_cell.push_back(index_map[ vindex ]);
          }
          //std::cout << "adding cell: " << mapped_cell << std::endl;
@@ -597,7 +597,7 @@ void mesh_kernel<viennamesh::tag::triangle>::transfer_to_domain(domain_ptr_type 
          vertex_type    vertex;
          vertex.getPoint()[0] = mesh->pointlist[index];
          vertex.getPoint()[1] = mesh->pointlist[index+1];
-         vertex.setID(point_cnt++);
+         vertex.id(point_cnt++);
          domain->add(vertex);
       }      
       
@@ -638,10 +638,10 @@ void mesh_kernel<viennamesh::tag::triangle>::transfer_to_domain(domain_ptr_type 
          }
 
       #ifdef MESH_KERNEL_DEBUG_FULL
-         std::cout << "tet: " << tet_index << " : " << vertices[0]->getID() << " " 
-                                                    << vertices[1]->getID() << " " 
-                                                    << vertices[2]->getID() << " " 
-                                                    << vertices[3]->getID() << " " 
+         std::cout << "tet: " << tet_index << " : " << vertices[0]->id() << " " 
+                                                    << vertices[1]->id() << " " 
+                                                    << vertices[2]->id() << " " 
+                                                    << vertices[3]->id() << " " 
                                                     << "segid: " << mesh->triangleattributelist[tet_index] 
                                                     << std::endl;
       #endif

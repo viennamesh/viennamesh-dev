@@ -525,11 +525,11 @@ void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::trian
 
    typedef domain_type::segment_type                                                                  SegmentType;
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
-   typedef viennagrid::result_of::ncell_container<domain_type, 0>::type                               GeometryContainer;      
+   typedef viennagrid::result_of::ncell_range<domain_type, 0>::type                               GeometryContainer;      
    typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
-   typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
-   typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
    typedef viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
 
@@ -602,7 +602,7 @@ void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::trian
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            cell[vi++] = vocit->getID();
+            cell[vi++] = vocit->id();
          }
          (*gsse_segit).add_cell_2(cell_2_vertex_mapping(cell[0], cell[1], cell[2]));
          domain.add_vertex(cell[0], gsse_segit);

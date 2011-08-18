@@ -3538,7 +3538,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
       vertex.getPoint()[0] = point[0];
       vertex.getPoint()[1] = point[1];
       vertex.getPoint()[2] = point[2];            
-      vertex.setID(i);
+      vertex.id(i);
       domain.add(vertex);      
    }
    
@@ -3562,7 +3562,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
          
       for( size_t ci = 0; ci < gsse::size( cell_cont ); ci++ )
       {
-         VertexType *vertices[viennagrid::traits::subcell_desc<CellTag, 0>::num_elements];        
+         VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];        
          vertices[0] = &(domain.vertex( cell_cont[ci][0] ));               
          vertices[1] = &(domain.vertex( cell_cont[ci][1] ));
          vertices[2] = &(domain.vertex( cell_cont[ci][2] ));         

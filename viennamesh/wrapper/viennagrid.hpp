@@ -80,7 +80,7 @@ struct viennagrid_cell_wrapper
    typedef viennagrid_cell_wrapper<VgridCellT>         self_type;
    typedef size_t                                      result_type;
    // -------------------------------------------------------------------------------------------   
-   typedef typename viennagrid::result_of::ncell_container<VgridCellT, 0>::type              vertex_on_cell_container_type;
+   typedef typename viennagrid::result_of::ncell_range<VgridCellT, 0>::type              vertex_on_cell_container_type;
    typedef typename viennagrid::result_of::iterator<vertex_on_cell_container_type>::type     vertex_on_cell_iterator_type;   
    
    viennagrid_cell_wrapper(VgridCellT& vgrid_cell) : vgrid_cell_(vgrid_cell) 
@@ -92,14 +92,14 @@ struct viennagrid_cell_wrapper
    { 
       vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
       std::advance(vocit,i);
-      return (vocit)->getID();
+      return (vocit)->id();
    }      
  
    result_type operator[](size_t i) 
    { 
       vertex_on_cell_iterator_type vocit = vertex_on_cell_cont_.begin();
       std::advance(vocit,i);
-      return (vocit)->getID();
+      return (vocit)->id();
    }     
    // -------------------------------------------------------------------------------------------   
    result_type size() const
@@ -130,7 +130,7 @@ struct viennagrid_cell_wrapper
       for(vertex_on_cell_iterator_type vocit = val.begin();
           vocit != val.end(); vocit++)
       {
-         ostr << vocit->getID() << " ";
+         ostr << vocit->id() << " ";
       }     
       return ostr;
     }      
@@ -240,7 +240,7 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    static const int DIMT = vgrid_cell_type::topology_level;
    static const int DIMG = domain_config_type::dimension_tag::value;  
    typedef typename viennagrid::result_of::point_type<domain_config_type>::type                    vgrid_point_type;      
-   typedef typename viennagrid::result_of::ncell_container<Datastructure, 0>::type                 vgrid_vertex_container_type;
+   typedef typename viennagrid::result_of::ncell_range<Datastructure, 0>::type                 vgrid_vertex_container_type;
    typedef typename viennagrid::result_of::iterator<vgrid_vertex_container_type>::type             vgrid_vertex_container_iterator_type;
 
    // -------------------------------------------------------------------------------------------   

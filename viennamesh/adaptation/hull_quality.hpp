@@ -48,11 +48,11 @@ struct mesh_adaptor <viennamesh::tag::hull_quality>
 
    typedef domain_type::segment_type                                                                  SegmentType;
    typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
-   typedef viennagrid::result_of::ncell_container<domain_type, 0>::type                               GeometryContainer;      
+   typedef viennagrid::result_of::ncell_range<domain_type, 0>::type                               GeometryContainer;      
    typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
-   typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
-   typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
    typedef viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
 

@@ -497,9 +497,9 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
       typedef domain_type::segment_type                                                                  SegmentType;      
       typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;      
       typedef viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;      
-      typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;            
+      typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;            
       typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
-      typedef viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+      typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
       typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;            
       static const int DIMG = DomainConfiguration::dimension_tag::value;
       static const int DIMT = DomainConfiguration::cell_tag::topology_level;   

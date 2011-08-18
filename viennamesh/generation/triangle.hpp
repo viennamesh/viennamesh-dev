@@ -48,8 +48,8 @@ struct mesh_kernel <viennamesh::tag::triangle>
    
    typedef viennagrid::result_of::ncell_type<domain_configuration_type, 0>::type                            vertex_type;   
    typedef viennagrid::result_of::ncell_type<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
-   typedef viennagrid::result_of::ncell_container<domain_type, cell_tag::topology_level>::type              cell_container;
-   typedef viennagrid::result_of::ncell_container<cell_type, 0>::type                                       vertex_on_cell_container_type;
+   typedef viennagrid::result_of::ncell_range<domain_type, cell_tag::topology_level>::type              cell_container;
+   typedef viennagrid::result_of::ncell_range<cell_type, 0>::type                                       vertex_on_cell_container_type;
    typedef viennagrid::result_of::iterator<vertex_on_cell_container_type>::type                             vertex_on_cell_iterator_type;
 
 

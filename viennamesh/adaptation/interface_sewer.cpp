@@ -57,17 +57,17 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
    typedef typename DomainT::segment_type                                                                      SegmentType;
    typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
    typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, 0>::type                            VertexType;   
-   typedef typename viennagrid::result_of::ncell_container<DomainT, 0>::type                                   GeometryContainer;      
+   typedef typename viennagrid::result_of::ncell_range<DomainT, 0>::type                                   GeometryContainer;      
    typedef typename viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;       
-   typedef typename viennagrid::result_of::ncell_container<SegmentType, 0>::type                               VertexContainer;      
+   typedef typename viennagrid::result_of::ncell_range<SegmentType, 0>::type                               VertexContainer;      
    typedef typename viennagrid::result_of::iterator<VertexContainer>::type                                     VertexIterator;         
-   typedef typename viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef typename viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
    typedef typename viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
-   typedef typename viennagrid::result_of::ncell_container<CellType, 0>::type                                  VertexOnCellContainer;
+   typedef typename viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef typename viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
    typedef typename viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
 
-   static const int CELLSIZE = viennagrid::traits::subcell_desc<CellTag, 0>::num_elements;
+   static const int CELLSIZE = viennagrid::topology::subcell_desc<CellTag, 0>::num_elements;
    static const int DIMG     = DomainConfiguration::dimension_tag::value;
 
 
@@ -104,8 +104,8 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
          {
             VertexType vertex;
             vertex.getPoint()       = vit->getPoint();
-            index_map[vit->getID()] = sewed_domain->add(vertex)->getID();
-            point_index[temppnt]   = index_map[vit->getID()];
+            index_map[vit->id()] = sewed_domain->add(vertex)->id();
+            point_index[temppnt]   = index_map[vit->id()];
             uniquer[temppnt]       = true;
          }
          else
@@ -113,7 +113,7 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
          #ifdef MESH_ADAPTOR_DEBUG 
             colocal_points++;
          #endif      
-            index_map[vit->getID()]    = point_index[temppnt];
+            index_map[vit->id()]    = point_index[temppnt];
          }
          
       }
@@ -138,7 +138,7 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            tempcell[vi++] = vocit->getID();
+            tempcell[vi++] = vocit->id();
          }
          
          VertexType *vertices[CELLSIZE];  

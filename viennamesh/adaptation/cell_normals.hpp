@@ -77,7 +77,7 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
 
       typedef domain_type::segment_type                                                                  SegmentType; 
       typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;
-      typedef viennagrid::result_of::ncell_container<SegmentType, CellTag::topology_level>::type         CellContainer;          
+      typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;          
       typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;               
 
       // if there is only one segment, we are finished, 
@@ -100,7 +100,7 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
             if(viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*cit)[si] == -1)
             {
             #ifdef MESH_ADAPTOR_DEBUG_FULL
-               std::cout << "      segment: " << si << " cell: " << cit->getID() << ": correcting .. " << std::endl;
+               std::cout << "      segment: " << si << " cell: " << cit->id() << ": correcting .. " << std::endl;
             #endif            
                viennadata::access<
                   viennagrid::seg_cell_normal_tag,         // key-type

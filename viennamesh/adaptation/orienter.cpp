@@ -117,7 +117,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
                 vocit != vertices_for_cell.end();
                 ++vocit)
             {
-               std::cout << vocit->getID() << " ";
+               std::cout << vocit->id() << " ";
             }            
             std::cout << std::endl;
          #endif
@@ -178,7 +178,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
          // it does not make sense to test the intersection with the seed cell
          // as it surely does, and which is ofc expected.
          //
-         if(cell.getID() == seed_cell.getID()) continue;
+         if(cell.id() == seed_cell.id()) continue;
          
          // get the cell points
          // note: as this is only done for one cell, we can use a vector here ..
@@ -216,7 +216,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
       #ifdef MESH_ADAPTOR_DEBUG
          std::cout << "  seed cell normal vector points inwards - correcting .." << std::endl;
       #endif             
-         VertexType *vertices[viennagrid::traits::subcell_desc<CellTag, 0>::num_elements];  
+         VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];  
 
          boost::array<index_type, CELLSIZE>    temp_cell;
          vi = 0;
@@ -225,7 +225,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            temp_cell[vi++] = vocit->getID();
+            temp_cell[vi++] = vocit->id();
          }            
 
          // return the orientation by using reversed indices 
@@ -237,7 +237,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
 
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
-            if(cit->getID() == seed_cell.getID())
+            if(cit->id() == seed_cell.id())
             {
                cit->setVertices(vertices);
                cit->fill(domain);         
@@ -256,7 +256,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
       //
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
-         if(cit->getID() == seed_cell.getID())
+         if(cit->id() == seed_cell.id())
          {
            if (!viennadata::find<viennamesh::data::orient, int>()(*cit))
              viennadata::access<viennamesh::data::orient, int>()(*cit) = 1; 
@@ -395,7 +395,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
                 vocit != vertices_for_cell.end();
                 ++vocit)
             {
-               std::cout << vocit->getID() << " ";
+               std::cout << vocit->id() << " ";
             }            
             std::cout << std::endl;
          #endif
@@ -456,7 +456,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
          // it does not make sense to test the intersection with the seed cell
          // as it surely does, and which is ofc expected.
          //
-         if(cell.getID() == seed_cell.getID()) continue;
+         if(cell.id() == seed_cell.id()) continue;
          
          // get the cell points
          // note: as this is only done for one cell, we can use a vector here ..
@@ -494,7 +494,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
       #ifdef MESH_ADAPTOR_DEBUG
          std::cout << "  seed cell normal vector points inwards - correcting .." << std::endl;
       #endif             
-         VertexType *vertices[viennagrid::traits::subcell_desc<CellTag, 0>::num_elements];  
+         VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];  
 
          boost::array<index_type, CELLSIZE>    temp_cell;
          vi = 0;
@@ -503,7 +503,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            temp_cell[vi++] = vocit->getID();
+            temp_cell[vi++] = vocit->id();
          }            
 
          // return the orientation by using reversed indices 
@@ -515,7 +515,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
          
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
-            if(cit->getID() == seed_cell.getID())
+            if(cit->id() == seed_cell.id())
             {
                cit->setVertices(vertices);
                cit->fill(*domain);         
@@ -534,7 +534,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
       //
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
-         if(cit->getID() == seed_cell.getID())
+         if(cit->id() == seed_cell.id())
          {
            if (!viennadata::find<viennamesh::data::orient, int>()(*cit))
              viennadata::access<viennamesh::data::orient, int>()(*cit) = 1; 
@@ -670,10 +670,10 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter(SegmentT& segment, s
                             vocit != vertices_for_cell.end();
                             ++vocit)
                         {
-                           temp_cell[vi++] = vocit->getID();
+                           temp_cell[vi++] = vocit->id();
                         }                        
                      
-                        VertexType *vertices[viennagrid::traits::subcell_desc<CellTag, 0>::num_elements];  
+                        VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];  
                         
                         // a simple swap in the indices corrects the orientation
                         //
@@ -733,7 +733,7 @@ bool mesh_adaptor<viennamesh::tag::orienter>::is_consistant_orientation(CellT & 
        vocit != vertices_c1.end();
        ++vocit)
    {
-      bc1[k++] = vocit->getID();
+      bc1[k++] = vocit->id();
    }               
    k = 0;
    VertexOnCellContainer vertices_c2 = viennagrid::ncells<0>(c2);
@@ -741,7 +741,7 @@ bool mesh_adaptor<viennamesh::tag::orienter>::is_consistant_orientation(CellT & 
        vocit != vertices_c2.end();
        ++vocit)
    {
-      bc2[k++] = vocit->getID();
+      bc2[k++] = vocit->id();
    }               
 
    // checks, if two out of n points are oriented consistently
