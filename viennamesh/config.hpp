@@ -24,11 +24,13 @@ namespace config {
 // -----------------------------------------------------------------------------
 struct set : viennautils::config<viennautils::tag::xml>::type {};
 // -----------------------------------------------------------------------------
-static void load(viennamesh::config::set& s, std::string const& filename)
+// [JW][NOTE] inlining this free function to avoid external linkage
+inline void load(viennamesh::config::set& s, std::string const& filename)
 {
    s.read(filename);
 }
 // -----------------------------------------------------------------------------
+// [JW][NOTE] no inlining necc as it's a template function
 template<typename ViennaMeshObjT>
 void assign(viennamesh::config::set const& paraset, ViennaMeshObjT& obj)
 {
