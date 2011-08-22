@@ -3514,9 +3514,9 @@ int STLSurfaceMeshing (STLGeometry & geom,
   //
    typedef viennagrid::domain<viennagrid::config::triangular_3d>                 DomainType;
    typedef DomainType::config_type                                               DomainConfiguration;  
-   typedef viennagrid::result_of::ncell_type<DomainConfiguration, 0>::type       VertexType;   
+   typedef viennagrid::result_of::ncell<DomainConfiguration, 0>::type       VertexType;   
    typedef DomainConfiguration::cell_tag                                         CellTag;  
-   typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type     CellType;   
+   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type     CellType;   
   
    using namespace gsse::access_specifier;   
    typedef gsse::result_of::at_dim<FullSpace, AC>::type                 SpaceTopologySegmentsT;  

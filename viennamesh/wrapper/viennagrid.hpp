@@ -167,7 +167,7 @@ private:
    typedef typename DomainT::config_type                                                  domain_config_type;
    static const int DIMT = domain_config_type::cell_tag::topology_level;
    typedef viennagrid::segment_t<domain_config_type>                                      vgrid_segment_type;
-   typedef typename viennagrid::result_of::ncell_type<domain_config_type, DIMT>::type     vgrid_cell_type;         
+   typedef typename viennagrid::result_of::ncell<domain_config_type, DIMT>::type     vgrid_cell_type;         
    
 public:   
    typedef viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>                           cell_type;
@@ -239,7 +239,7 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    typedef typename domain_config_type::cell_tag            vgrid_cell_type;   
    static const int DIMT = vgrid_cell_type::topology_level;
    static const int DIMG = domain_config_type::dimension_tag::value;  
-   typedef typename viennagrid::result_of::point_type<domain_config_type>::type                    vgrid_point_type;      
+   typedef typename viennagrid::result_of::point<domain_config_type>::type                    vgrid_point_type;      
    typedef typename viennagrid::result_of::ncell_range<Datastructure, 0>::type                 vgrid_vertex_container_type;
    typedef typename viennagrid::result_of::iterator<vgrid_vertex_container_type>::type             vgrid_vertex_container_iterator_type;
 

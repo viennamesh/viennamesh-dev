@@ -76,7 +76,7 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
       typedef DomainConfiguration::numeric_type       NumericType;
 
       typedef domain_type::segment_type                                                                  SegmentType; 
-      typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;
+      typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;
       typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;          
       typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;               
 

@@ -495,8 +495,8 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
       typedef DomainConfiguration::dimension_tag           DimensionTag;
       typedef DomainConfiguration::cell_tag                CellTag;   
       typedef domain_type::segment_type                                                                  SegmentType;      
-      typedef viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;      
-      typedef viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;      
+      typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;      
+      typedef viennagrid::result_of::point<DomainConfiguration>::type                               PointType;      
       typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;            
       typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
       typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;

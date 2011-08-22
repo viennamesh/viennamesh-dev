@@ -55,8 +55,8 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
    typedef typename DomainT::config_type                                                                       DomainConfiguration;   
    typedef typename DomainConfiguration::cell_tag                                                              CellTag;   
    typedef typename DomainT::segment_type                                                                      SegmentType;
-   typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, CellTag::topology_level>::type      CellType;   
-   typedef typename viennagrid::result_of::ncell_type<DomainConfiguration, 0>::type                            VertexType;   
+   typedef typename viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;   
+   typedef typename viennagrid::result_of::ncell<DomainConfiguration, 0>::type                            VertexType;   
    typedef typename viennagrid::result_of::ncell_range<DomainT, 0>::type                                   GeometryContainer;      
    typedef typename viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;       
    typedef typename viennagrid::result_of::ncell_range<SegmentType, 0>::type                               VertexContainer;      
@@ -65,7 +65,7 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
    typedef typename viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
    typedef typename viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef typename viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
-   typedef typename viennagrid::result_of::point_type<DomainConfiguration>::type                               PointType;   
+   typedef typename viennagrid::result_of::point<DomainConfiguration>::type                               PointType;   
 
    static const int CELLSIZE = viennagrid::topology::subcell_desc<CellTag, 0>::num_elements;
    static const int DIMG     = DomainConfiguration::dimension_tag::value;

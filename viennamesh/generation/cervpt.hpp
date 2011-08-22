@@ -40,8 +40,8 @@ struct mesh_kernel <viennamesh::tag::cervpt>
    typedef domain_configuration_type::numeric_type                   numeric_type;
    typedef domain_configuration_type::cell_tag                       cell_tag;
    
-   typedef viennagrid::result_of::ncell_type<domain_configuration_type, 0>::type                            vertex_type;   
-   typedef viennagrid::result_of::ncell_type<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
+   typedef viennagrid::result_of::ncell<domain_configuration_type, 0>::type                            vertex_type;   
+   typedef viennagrid::result_of::ncell<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
 
    static const int DIMG = domain_configuration_type::dimension_tag::value;
    static const int DIMT = domain_configuration_type::cell_tag::topology_level;
