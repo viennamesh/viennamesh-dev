@@ -191,7 +191,7 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
    typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
    typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;         
 
-   std::size_t segment_size = hull_domain->segment_size();
+   std::size_t segment_size = hull_domain->segments().size();
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - detected segments: " << segment_size << std::endl;
@@ -206,7 +206,7 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
    // *** Extract the geometry and topology data of the ViennaGrid domain
    //     and transfer it to the mesh datastructure
    //
-   for (std::size_t si = 0; si < hull_domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < hull_domain->segments().size(); ++si)
    {
       //std::cout << "extracting segment: " << si << std::endl;
    
@@ -220,7 +220,7 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
       //
       mesh_pointer_type meshpnt = mesh_pointer_type(nglib::Ng_NewMesh());      
    
-      HullSegmentType & seg = hull_domain->segment(si);      
+      HullSegmentType & seg = hull_domain->segments()[si];      
       HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
       
       for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
@@ -463,7 +463,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
    }
 
    //std::cout << "mesh cnt: " << mesh_cnt << std::endl;
-   domain->create_segments(mesh_cnt);             
+   domain->segments().resize(mesh_cnt);             
     
    // now that all segments and cells have been read, and due to that 
    // we are aware of how many cells in total there are, 
@@ -492,7 +492,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
          cell_type cell;
          cell.setVertices(vertices);
          cell.id(cell_id++);          
-         domain->segment(sit->first).add(cell);            
+         domain->segments()[sit->first].add(cell);            
       }
    }       
 

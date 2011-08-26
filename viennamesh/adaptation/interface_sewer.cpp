@@ -90,9 +90,9 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
 //   GeometryContainer geometry = viennagrid::ncells<0>(*domain);
 //   for(GeometryIterator git = geometry.begin(); git != geometry.end(); git++)
 
-   for (std::size_t si = 0; si < domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
-      SegmentType & seg = domain->segment(si);
+      SegmentType & seg = domain->segments()[si];
       VertexContainer vertices = viennagrid::ncells<0>(seg);
       for(VertexIterator vit = vertices.begin(); vit != vertices.end(); vit++)
       {
@@ -123,11 +123,11 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
    std::cout << "## MeshAdaptor::"+id+" - transferring topology .." << std::endl;
 #endif            
 
-   sewed_domain->create_segments(domain->segment_size());
+   sewed_domain->segments().resize(domain->segments().size());
 
-   for (std::size_t si = 0; si < domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
-      SegmentType & seg = domain->segment(si);
+      SegmentType & seg = domain->segments()[si];
       CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
@@ -146,7 +146,7 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
             vertices[ci] = &(sewed_domain->vertex(index_map[tempcell[ci]]));
          CellType cell;
          cell.setVertices(vertices);
-         sewed_domain->segment(si).add(cell);
+         sewed_domain->segments()[si].add(cell);
       }
    }
 

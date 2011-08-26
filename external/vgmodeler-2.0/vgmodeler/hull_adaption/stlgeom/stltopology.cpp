@@ -581,11 +581,11 @@ void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::trian
    }
    
    std::size_t cell_counter = 0;
-   for (std::size_t si = 0; si < vgriddomain.segment_size(); ++si)
+   for (std::size_t si = 0; si < vgriddomain.segments().size(); ++si)
    {
       // transfer segment
       //
-      SegmentType & seg = vgriddomain.segment(si);
+      SegmentType & seg = vgriddomain.segments()[si];
       segment_iterator gsse_segit = domain.add_segment();
       (*gsse_segit).set_cell_index_offset(cell_counter);
       cell_counter += seg.size<CellTag::topology_level>();

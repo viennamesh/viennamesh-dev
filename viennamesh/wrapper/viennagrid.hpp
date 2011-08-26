@@ -194,7 +194,7 @@ public:
       cell_type 
       operator*() const
       {
-         vgrid_segment_type const & segment = (*this).obj().domain().segment((*this).obj().segment_id());
+         vgrid_segment_type const & segment = (*this).obj().domain().segments()[(*this).obj().segment_id()];
          vgrid_cell_type cell = segment.cells( (*this).pos() );
          //std::cout << "cellcomplexwrapper: " << viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell) << std::endl;
          return viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell);
@@ -215,7 +215,7 @@ public:
    }        
    cell_iterator cell_end()
    {
-      vgrid_segment_type const & segment = (*this).domain().segment((*this).segment_id());
+      vgrid_segment_type const & segment = (*this).domain().segments()[(*this).segment_id()];
       return cell_iterator(*this, segment.template size<DIMT>());  
    }        
    
@@ -326,9 +326,9 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    }  
    segment_iterator segment_end()
    {
-      return segment_iterator(*this, domain().segment_container()->size());
+      return segment_iterator(*this, domain().segments().size());
    }      
-   std::size_t segment_size()  { return domain().segment_container()->size(); }
+   std::size_t segment_size()  { return domain().segments().size(); }
    // -------------------------------------------------------------------------------------------   
 
 

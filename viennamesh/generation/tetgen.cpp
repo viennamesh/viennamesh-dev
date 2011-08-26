@@ -231,7 +231,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
    typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
    typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;               
 
-   std::size_t segment_size = hull_domain->segment_size();   
+   std::size_t segment_size = hull_domain->segments().size();   
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - processing segments" << std::endl;
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - detected segments: " << segment_size << std::endl;
@@ -243,9 +243,9 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
    #ifdef MESH_KERNEL_DEBUG
       std::cout << "## MeshKernel::"+mesh_kernel_id+" - dealing with multi-segment input" << std::endl;
    #endif      
-      for (std::size_t si = 0; si < hull_domain->segment_size(); ++si)
+      for (std::size_t si = 0; si < hull_domain->segments().size(); ++si)
       {
-         HullSegmentType & seg = hull_domain->segment(si); 
+         HullSegmentType & seg = hull_domain->segments()[si]; 
          HullPointType pnt;
          this->find_point_in_segment(hull_domain, seg, pnt, si);
          region_points.push_back(pnt);
@@ -302,9 +302,9 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
 #ifdef MESH_KERNEL_DEBUG_FULL
    size_t cell_cnt = 0;
 #endif
-   for (std::size_t si = 0; si < hull_domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < hull_domain->segments().size(); ++si)
    {
-      HullSegmentType & seg = hull_domain->segment(si); 
+      HullSegmentType & seg = hull_domain->segments()[si]; 
       HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
       
       for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
@@ -637,7 +637,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
    // called, therefore we have to set it manually to one
    if(segment_index == 0) segment_index = 1; 
    
-   domain->create_segments(segment_index);
+   domain->segments().resize(segment_index);
    domain->reserve_cells(mesh->numberoftetrahedra);
    
    for(long tet_index = 0; tet_index < mesh->numberoftetrahedra; ++tet_index)
@@ -675,7 +675,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
    #endif
       cell_type cell;
       cell.setVertices(vertices);
-      domain->segment(seg_id).add(cell);
+      domain->segments()[seg_id].add(cell);
    }
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracted segments: ";

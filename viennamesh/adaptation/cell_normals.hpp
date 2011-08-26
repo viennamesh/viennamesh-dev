@@ -83,13 +83,13 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
       // if there is only one segment, we are finished, 
       // as only interface cells between two or more segments have to be checked 
       //
-      if(domain->segment_size() == 1) return domain;
+      if(domain->segments().size() == 1) return domain;
 
       // traverse the segments
       //
-      for (std::size_t si = 0; si < domain->segment_size(); ++si)
+      for (std::size_t si = 0; si < domain->segments().size(); ++si)
       {
-         SegmentType & seg = domain->segment(si);
+         SegmentType & seg = domain->segments()[si];
 
          // traverse the cells of this segment
          //

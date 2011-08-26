@@ -32,7 +32,10 @@ domainwriter(DomainT& domain, std::string const& filename)
 {
    viennagrid::io::vtk_writer<DomainT>  vtk;         
    
-   vtk.template add_cell_data_normal<viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type>(viennagrid::seg_cell_normal_tag(), "cell_normals");
+   viennagrid::io::add_normal_data_on_cells_per_segment<viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type>(vtk, viennagrid::seg_cell_normal_tag(), "cell_normals");
+   
+   // [KR]: Old call prior to ViennaGrid vtk_writer interface adjustments
+   //vtk.template add_cell_data_normal<viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type>(viennagrid::seg_cell_normal_tag(), "cell_normals");
    
    vtk.writeDomain(domain, filename);
 }

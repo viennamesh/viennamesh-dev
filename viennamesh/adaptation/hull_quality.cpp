@@ -212,9 +212,9 @@ mesh_adaptor<viennamesh::tag::hull_quality>::operator()(input_type domain)
    
    //vgmodeler::hull_adaptor vghull;
 
-   for (std::size_t si = 0; si < domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
-      SegmentType & seg = domain->segment(si);
+      SegmentType & seg = domain->segments()[si];
       CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
 
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)

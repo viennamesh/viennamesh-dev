@@ -178,9 +178,9 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    std::size_t intersections = 0;
    std::size_t iterations = 0;
 
-   for (std::size_t si = 0; si < domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
-      SegmentType & seg = domain->segment(si);
+      SegmentType & seg = domain->segments()[si];
       CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
@@ -198,9 +198,9 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    boost::threadpool::pool tp(cores);
 #endif
 
-   for (std::size_t si = 0; si < domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
-      SegmentType & seg = domain->segment(si);
+      SegmentType & seg = domain->segments()[si];
       CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
 
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)

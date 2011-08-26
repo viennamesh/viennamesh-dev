@@ -84,13 +84,13 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
 
    // traverse the segments ..
    //
-   for (std::size_t si = 0; si < domain.segment_size(); ++si)
+   for (std::size_t si = 0; si < domain.segments().size(); ++si)
    {
   
 #ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
 #endif       
-      SegmentType & seg = domain.segment(si);
+      SegmentType & seg = domain.segments()[si];
       CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
 
    #ifdef MESH_ADAPTOR_DEBUG         
@@ -363,12 +363,12 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
 
    // traverse the segments ..
    //
-   for (std::size_t si = 0; si < domain->segment_size(); ++si)
+   for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
 #ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
 #endif       
-      SegmentType & seg = domain->segment(si);
+      SegmentType & seg = domain->segments()[si];
       CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
 
    #ifdef MESH_ADAPTOR_DEBUG         

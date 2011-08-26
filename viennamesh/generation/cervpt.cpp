@@ -108,7 +108,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
     domain->add(vertex);
    }   
 
-   domain->create_segments(std::distance(data.segment_begin(),data.segment_end()));      
+   domain->segments().resize(std::distance(data.segment_begin(),data.segment_end()));      
 
    typedef std::vector<cell_type>                   cell_cont_type;
    typedef std::map<std::size_t, cell_cont_type >   segment_cell_map_type;
@@ -200,7 +200,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
     for(cell_cont_type::iterator cit = sit->second.begin();
         cit != sit->second.end(); cit++)
     {
-       domain->segment(sit->first).add(*cit);            
+       domain->segments()[sit->first].add(*cit);            
     }
    }
        

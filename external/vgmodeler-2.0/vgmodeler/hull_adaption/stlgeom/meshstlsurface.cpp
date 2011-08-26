@@ -3542,7 +3542,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
       domain.add(vertex);      
    }
    
-   domain.create_segments( gsse::size(segments_topology) );
+   domain.segments().resize( gsse::size(segments_topology) );
 
    std::size_t global_cell_count = 0;
    for (long si = 0; si < gsse::size(segments_topology); ++si)
@@ -3568,7 +3568,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
          vertices[2] = &(domain.vertex( cell_cont[ci][2] ));         
          CellType cell;
          cell.setVertices(vertices);         
-         domain.segment(si).add(cell); 
+         domain.segments()[si].add(cell); 
       }
    }   
 
