@@ -3528,7 +3528,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
    SpaceTopologySegmentsT& segments_topology = gsse::at_dim<AC>(fullspace);
    FBPosT&                 geometry          = gsse::at_dim<AP>(fullspace);
 
-   domain.reserve_vertices(gsse::size( geometry ));
+   //domain.reserve_vertices(gsse::size( geometry ));  //[KR] Not needed any longer
 
    for (long i =0 ; i < gsse::size( geometry ); ++i)
    {
@@ -3553,7 +3553,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
       global_cell_count += gsse::size(cell_cont);
    }
 
-   domain.reserve_cells(global_cell_count);
+   //domain.reserve_cells(global_cell_count);    //[KR] Not needed any longer
 
    for (long si = 0; si < gsse::size(segments_topology); ++si)
    {
@@ -3563,9 +3563,9 @@ int STLSurfaceMeshing (STLGeometry & geom,
       for( size_t ci = 0; ci < gsse::size( cell_cont ); ci++ )
       {
          VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];        
-         vertices[0] = &(domain.vertex( cell_cont[ci][0] ));               
-         vertices[1] = &(domain.vertex( cell_cont[ci][1] ));
-         vertices[2] = &(domain.vertex( cell_cont[ci][2] ));         
+         vertices[0] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][0] ]);               
+         vertices[1] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][1] ]);
+         vertices[2] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][2] ]);         
          CellType cell;
          cell.setVertices(vertices);         
          domain.segments()[si].add(cell); 

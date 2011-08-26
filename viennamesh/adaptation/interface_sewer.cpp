@@ -143,7 +143,7 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
          
          VertexType *vertices[CELLSIZE];  
          for(std::size_t ci = 0; ci < CELLSIZE; ci++)
-            vertices[ci] = &(sewed_domain->vertex(index_map[tempcell[ci]]));
+            vertices[ci] = &(viennagrid::ncells<0>(*sewed_domain)[ index_map[tempcell[ci]] ]);
          CellType cell;
          cell.setVertices(vertices);
          sewed_domain->segments()[si].add(cell);

@@ -231,9 +231,9 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
          // return the orientation by using reversed indices 
          // of the original cell
          //
-         vertices[0] = &(domain.vertex(temp_cell[2]));
-         vertices[1] = &(domain.vertex(temp_cell[1]));
-         vertices[2] = &(domain.vertex(temp_cell[0]));
+         vertices[0] = &(viennagrid::ncells<0>(domain)[temp_cell[2]]);
+         vertices[1] = &(viennagrid::ncells<0>(domain)[temp_cell[1]]);
+         vertices[2] = &(viennagrid::ncells<0>(domain)[temp_cell[0]]);
 
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
@@ -509,9 +509,9 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
          // return the orientation by using reversed indices 
          // of the original cell
          //
-         vertices[0] = &(domain->vertex(temp_cell[2]));
-         vertices[1] = &(domain->vertex(temp_cell[1]));
-         vertices[2] = &(domain->vertex(temp_cell[0]));
+         vertices[0] = &(viennagrid::ncells<0>(*domain)[ temp_cell[2] ]);
+         vertices[1] = &(viennagrid::ncells<0>(*domain)[ temp_cell[1] ]);
+         vertices[2] = &(viennagrid::ncells<0>(*domain)[ temp_cell[0] ]);
          
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
@@ -677,9 +677,9 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter(SegmentT& segment, s
                         
                         // a simple swap in the indices corrects the orientation
                         //
-                        vertices[0] = &(segment.get_domain().vertex(temp_cell[2]));               
-                        vertices[1] = &(segment.get_domain().vertex(temp_cell[1]));
-                        vertices[2] = &(segment.get_domain().vertex(temp_cell[0]));
+                        vertices[0] = &(viennagrid::ncells<0>(segment.get_domain())[ temp_cell[2] ]);               
+                        vertices[1] = &(viennagrid::ncells<0>(segment.get_domain())[ temp_cell[1] ]);
+                        vertices[2] = &(viennagrid::ncells<0>(segment.get_domain())[ temp_cell[0] ]);
                         coeit->setVertices(vertices);
                         coeit->fill(segment.get_domain());               
                         

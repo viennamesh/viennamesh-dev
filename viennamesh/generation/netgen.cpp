@@ -455,7 +455,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
       mesh_cnt++;
     }            
     
-   domain->reserve_vertices(vertex_container.size());       
+   //domain->reserve_vertices(vertex_container.size());       //[KR] not needed any longer
    for(vertex_container_type::iterator iter = vertex_container.begin();
        iter != vertex_container.end(); iter++)
    {
@@ -469,7 +469,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
    // we are aware of how many cells in total there are, 
    // we can actually create the cells within the domain
    //std::cout << "global cell size: " << global_cell_size << std::endl;
-   domain->reserve_cells(global_cell_size);
+   //domain->reserve_cells(global_cell_size);        //[KR] not needed any longer
 
    std::size_t cell_id = 0;
    for(segment_cell_map_type::iterator sit = segment_cell_map.begin();
@@ -486,7 +486,8 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
 
          for(int ci = 0; ci < CELL_SIZE; ci++)
          {
-            vertices[ci] = &(domain->vertex( (*cit)[ci] ));
+            vertices[ci] = &(viennagrid::ncells<0>(*domain)[(*cit)[ci]]);
+            //vertices[ci] = &(domain->vertex( (*cit)[ci] ));
          }            
          
          cell_type cell;

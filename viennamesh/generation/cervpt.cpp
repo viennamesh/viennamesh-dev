@@ -78,7 +78,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
    #endif
    size_t si = 0;
 
-   domain->reserve_vertices(std::distance(data.geometry_begin(), data.geometry_end()));
+   //domain->reserve_vertices(std::distance(data.geometry_begin(), data.geometry_end())); //[KR] not needed any longer
 
    //
    // loading geometry data
@@ -170,7 +170,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
            
            for(std::size_t ci = 0; ci < triiter->size(); ci++)
            {
-             vertices[ci] = &(domain->vertex((*triiter)[ci]));
+             vertices[ci] = &(viennagrid::ncells<0>(*domain)[ (*triiter)[ci] ]);
            }
 
           cell_type cell;
@@ -192,7 +192,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
    // we are aware of how many cells in total there are, 
    // we can actually create the cells within the domain
    //std::cout << "global cell size: " << global_cell_size << std::endl;
-   domain->reserve_cells(global_cell_size);
+   //domain->reserve_cells(global_cell_size);    //[KR] not needed any longer
 
    for(segment_cell_map_type::iterator sit = segment_cell_map.begin();
      sit != segment_cell_map.end(); sit++)

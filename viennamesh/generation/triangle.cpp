@@ -582,7 +582,7 @@ void mesh_kernel<viennamesh::tag::triangle>::transfer_to_domain(domain_ptr_type 
       //
       // extracting geometry data
       //
-      domain->reserve_vertices(mesh->numberofpoints);             
+      //domain->reserve_vertices(mesh->numberofpoints);             //[KR] not needed any longer
 
       std::size_t point_cnt = 0;
       for(long pnt_index = 0; pnt_index < mesh->numberofpoints; ++pnt_index)
@@ -615,7 +615,7 @@ void mesh_kernel<viennamesh::tag::triangle>::transfer_to_domain(domain_ptr_type 
       if(segment_index == 0) segment_index = 1; 
       
       domain->segments().resize(segment_index);
-      domain->reserve_cells(mesh->numberoftriangles);
+      //domain->reserve_cells(mesh->numberoftriangles);      //[KR] not needed any longer
       
       for(long tri_index = 0; tri_index < mesh->numberoftriangles; ++tri_index)
       {
@@ -623,9 +623,9 @@ void mesh_kernel<viennamesh::tag::triangle>::transfer_to_domain(domain_ptr_type 
 
          vertex_type *vertices[CELL_SIZE];
 
-         vertices[0] = &(domain->vertex( mesh->trianglelist[index] ));
-         vertices[1] = &(domain->vertex( mesh->trianglelist[index+1] ));
-         vertices[2] = &(domain->vertex( mesh->trianglelist[index+2] ));
+         vertices[0] = &(viennagrid::ncells<0>(*domain)[ mesh->trianglelist[index] ]);
+         vertices[1] = &(viennagrid::ncells<0>(*domain)[ mesh->trianglelist[index+1] ]);
+         vertices[2] = &(viennagrid::ncells<0>(*domain)[ mesh->trianglelist[index+2] ]);
 
          // only access triangle attributes if there are any
          // otherwise we get ourselves a segfault

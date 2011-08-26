@@ -195,7 +195,7 @@ public:
       operator*() const
       {
          vgrid_segment_type const & segment = (*this).obj().domain().segments()[(*this).obj().segment_id()];
-         vgrid_cell_type cell = segment.cells( (*this).pos() );
+         vgrid_cell_type cell = viennagrid::ncells<DIMT>(segment)[ (*this).pos() ];
          //std::cout << "cellcomplexwrapper: " << viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell) << std::endl;
          return viennamesh::viennagrid_cell_wrapper<vgrid_cell_type>(cell);
       }                   
@@ -281,7 +281,7 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
       point_type
       operator*() const
       {
-         return point_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
+         return point_type( viennagrid::ncells<0>((*this).obj().domain())[ (*this).pos() ] .getPoint() );
       }            
 
    };   

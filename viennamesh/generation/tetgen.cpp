@@ -604,7 +604,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
    //
    // extracting geometry data
    //
-   domain->reserve_vertices(mesh->numberofpoints);             
+   //domain->reserve_vertices(mesh->numberofpoints);             //[KR] not needed any longer
 
    std::size_t point_cnt = 0;
    for(long pnt_index = 0; pnt_index < mesh->numberofpoints; ++pnt_index)
@@ -638,7 +638,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
    if(segment_index == 0) segment_index = 1; 
    
    domain->segments().resize(segment_index);
-   domain->reserve_cells(mesh->numberoftetrahedra);
+   //domain->reserve_cells(mesh->numberoftetrahedra);       //[KR] not needed any longer
    
    for(long tet_index = 0; tet_index < mesh->numberoftetrahedra; ++tet_index)
    {
@@ -646,10 +646,10 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
 
       vertex_type *vertices[CELLSIZE];
 
-      vertices[0] = &(domain->vertex( mesh->tetrahedronlist[index] ));
-      vertices[1] = &(domain->vertex( mesh->tetrahedronlist[index+1] ));
-      vertices[2] = &(domain->vertex( mesh->tetrahedronlist[index+2] ));
-      vertices[3] = &(domain->vertex( mesh->tetrahedronlist[index+3] ));                           
+      vertices[0] = &(viennagrid::ncells<0>(*domain)[ mesh->tetrahedronlist[index] ]);
+      vertices[1] = &(viennagrid::ncells<0>(*domain)[ mesh->tetrahedronlist[index+1] ]);
+      vertices[2] = &(viennagrid::ncells<0>(*domain)[ mesh->tetrahedronlist[index+2] ]);
+      vertices[3] = &(viennagrid::ncells<0>(*domain)[ mesh->tetrahedronlist[index+3] ]);                           
 
       // only access triangle attributes if there are any
       // otherwise we get ourselves a segfault
