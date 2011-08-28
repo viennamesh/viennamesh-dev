@@ -42,15 +42,15 @@ mesh_adaptor<viennamesh::tag::topo_check>::~mesh_adaptor()
    #endif
 }
 // --------------------------------------------------------------------------
-boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::topo_check>::operator()(viennagrid::domain<viennagrid::config::triangular_3d> & domain)
+boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >
+mesh_adaptor<viennamesh::tag::topo_check>::operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain)
 {
    // forwarding to main implementation
-   return (*this)(boost::make_shared<viennagrid::domain<viennagrid::config::triangular_3d> >(domain));
+   return (*this)(boost::make_shared<viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >(domain));
 }
 // --------------------------------------------------------------------------
-boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::topo_check>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain)
+boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >
+mesh_adaptor<viennamesh::tag::topo_check>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > domain)
 {
 #ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - starting up .." << std::endl;

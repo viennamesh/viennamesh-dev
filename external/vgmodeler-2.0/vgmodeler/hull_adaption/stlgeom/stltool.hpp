@@ -260,7 +260,7 @@ void STLMeshing (STLGeometry & geom,
 int STLSurfaceMeshing (STLGeometry & geom,
 			class Mesh & mesh);
 int STLSurfaceMeshing (STLGeometry & geom,
-			class Mesh & mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain);
+			class Mesh & mesh, viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
 
 void STLSurfaceOptimization (STLGeometry & geom,
 			     class Mesh & mesh,

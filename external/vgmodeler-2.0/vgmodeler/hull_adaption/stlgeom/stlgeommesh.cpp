@@ -1466,7 +1466,7 @@ void STLGeometry :: RestrictHChartDistOneChart(int chartnum, ARRAY<int>& acttrig
 
 ////# define DEBUGALL
 //void * STLMeshingDummy (void *)
-int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain,
+int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain,
 			    int perfstepsstart, int perfstepsend)
 {
 

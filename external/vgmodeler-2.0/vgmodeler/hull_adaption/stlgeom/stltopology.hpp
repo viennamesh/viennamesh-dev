@@ -342,7 +342,7 @@ public:
   
   virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
   virtual void InitSTLGeometry (const char * filename);
-  virtual void InitSTLGeometry (viennagrid::domain<viennagrid::config::triangular_3d>& domain);
+  virtual void InitSTLGeometry (viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
   
   virtual void TopologyChanged() {}; //do some things, if topology changed!
 

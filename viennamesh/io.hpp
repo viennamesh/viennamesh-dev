@@ -37,7 +37,7 @@ domainwriter(DomainT& domain, std::string const& filename)
    // [KR]: Old call prior to ViennaGrid vtk_writer interface adjustments
    //vtk.template add_cell_data_normal<viennagrid::seg_cell_normal_tag, viennagrid::seg_cell_normal_data::type>(viennagrid::seg_cell_normal_tag(), "cell_normals");
    
-   vtk.writeDomain(domain, filename);
+   vtk(domain, filename);
 }
 
 

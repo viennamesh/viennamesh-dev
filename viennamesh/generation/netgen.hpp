@@ -36,7 +36,7 @@ public:
    // --------------------------------------------------------------------------      
    typedef int       integer_type;
 
-   typedef viennagrid::domain<viennagrid::config::tetrahedral_3d>    domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type    domain_type;
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
    typedef domain_configuration_type::numeric_type                   numeric_type;
@@ -74,8 +74,8 @@ public:
    template<typename DatastructureT>
    result_type operator()(DatastructureT& data);
    // --------------------------------------------------------------------------     
-   result_type operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain); 
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain); 
+   result_type operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & hull_domain); 
+   result_type operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > hull_domain); 
    // --------------------------------------------------------------------------     
    
 private:   

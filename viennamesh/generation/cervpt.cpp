@@ -101,11 +101,11 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
    //         coords[2] = (*iter)[2];
 
     vertex_type    vertex;         
-    vertex.getPoint()[0] = (*iter)[0];
-    vertex.getPoint()[1] = (*iter)[1];         
-    vertex.getPoint()[2] = (*iter)[2];         
+    vertex.point()[0] = (*iter)[0];
+    vertex.point()[1] = (*iter)[1];         
+    vertex.point()[2] = (*iter)[2];         
     vertex.id(pi++);
-    domain->add(vertex);
+    domain->push_back(vertex);
    }   
 
    domain->segments().resize(std::distance(data.segment_begin(),data.segment_end()));      
@@ -174,7 +174,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
            }
 
           cell_type cell;
-          cell.setVertices(vertices);
+          cell.vertices(vertices);
           segment_cell_map[si].push_back(cell);
           global_cell_size++;
        }
@@ -200,7 +200,7 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
     for(cell_cont_type::iterator cit = sit->second.begin();
         cit != sit->second.end(); cit++)
     {
-       domain->segments()[sit->first].add(*cit);            
+       domain->segments()[sit->first].push_back(*cit);            
     }
    }
        
@@ -218,7 +218,7 @@ template mesh_kernel<viennamesh::tag::cervpt>::result_type
 mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::hin, viennautils::io::hin_reader>& data);
 
 template mesh_kernel<viennamesh::tag::cervpt>::result_type 
-mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::viennagrid, viennagrid::domain<viennagrid::config::triangular_3d> >& data);
+mesh_kernel<viennamesh::tag::cervpt>::operator()(viennamesh::wrapper<viennamesh::tag::viennagrid, viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >& data);
 // -----------------------------------------------------------------------------
 
 } // end namespace viennamesh

@@ -226,7 +226,7 @@ mesh_adaptor<viennamesh::tag::hull_quality>::operator()(input_type domain)
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            triangle[vi++] = vocit->getPoint();
+            triangle[vi++] = vocit->point();
          }
          
          if(viennadata::access<viennamesh::data::seg_orient, viennamesh::data::seg_orient_map::type>()(*cit)[si] == -1)

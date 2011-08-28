@@ -45,7 +45,7 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    typedef double          numeric_type;
    typedef std::size_t     index_type;
 
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
    typedef boost::shared_ptr< domain_type >                          input_type;
    typedef input_type                                                result_type;
 

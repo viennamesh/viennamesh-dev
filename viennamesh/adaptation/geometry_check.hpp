@@ -29,7 +29,7 @@ template <>
 struct mesh_adaptor <viennamesh::tag::geom_check>
 {
 
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
    typedef boost::shared_ptr< domain_type >                          input_type;
    typedef input_type                                                result_type;
 
@@ -37,11 +37,11 @@ struct mesh_adaptor <viennamesh::tag::geom_check>
    mesh_adaptor();
   ~mesh_adaptor();
    // --------------------------------------------------------------------------     
-   boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > 
-   operator()(viennagrid::domain<viennagrid::config::triangular_3d> & domain);
+   boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > 
+   operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
 
-   boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > 
-   operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain);
+   boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > 
+   operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > domain);
    // --------------------------------------------------------------------------     
 private:
    // --------------------------------------------------------------------------         

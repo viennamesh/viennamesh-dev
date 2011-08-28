@@ -98,13 +98,13 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
       {
          temppnt_type temppnt;
          for(std::size_t i = 0; i < DIMG; i++)
-            temppnt[i] = vit->getPoint()[i];
+            temppnt[i] = vit->point()[i];
          
          if( !uniquer[temppnt] )
          {
             VertexType vertex;
-            vertex.getPoint()       = vit->getPoint();
-            index_map[vit->id()] = sewed_domain->add(vertex)->id();
+            vertex.point()       = vit->point();
+            index_map[vit->id()] = sewed_domain->push_back(vertex)->id();
             point_index[temppnt]   = index_map[vit->id()];
             uniquer[temppnt]       = true;
          }
@@ -145,8 +145,8 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
          for(std::size_t ci = 0; ci < CELLSIZE; ci++)
             vertices[ci] = &(viennagrid::ncells<0>(*sewed_domain)[ index_map[tempcell[ci]] ]);
          CellType cell;
-         cell.setVertices(vertices);
-         sewed_domain->segments()[si].add(cell);
+         cell.vertices(vertices);
+         sewed_domain->segments()[si].push_back(cell);
       }
    }
 
@@ -161,20 +161,20 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
 // 
 // explicit declarations for the template functions
 // 
-template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_2d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::triangular_2d>& domain);
-template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_2d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_2d> > domain);
+template boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_2d>::type >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::result_of::domain<viennagrid::config::triangular_2d>::type & domain);
+template boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_2d>::type >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_2d>::type > domain);
 
-template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::triangular_3d>& domain);
-template boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain);
+template boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
+template boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > domain);
 
-template boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::domain<viennagrid::config::tetrahedral_3d>& domain);
-template boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
-mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> > domain);
+template boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type & domain);
+template boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type >
+mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type > domain);
 // -----------------------------------------------------------------------------
 
 } // end namespace viennamesh

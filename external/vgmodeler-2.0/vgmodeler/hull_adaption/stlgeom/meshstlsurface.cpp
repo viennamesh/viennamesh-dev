@@ -3133,7 +3133,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //      the mesh result is written into this domain
 //
 int STLSurfaceMeshing (STLGeometry & geom,
-		       class Mesh & mesh, viennagrid::domain<viennagrid::config::triangular_3d>& domain)
+		       class Mesh & mesh, viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain)
 {
   int i, j;
 
@@ -3512,8 +3512,8 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
   // [JW] here we transfer the data from the gsse domain to the viennagrid domain
   //
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>                 DomainType;
-   typedef DomainType::config_type                                               DomainConfiguration;  
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type   DomainType;
+   typedef DomainType::config_type                                                  DomainConfiguration;  
    typedef viennagrid::result_of::ncell<DomainConfiguration, 0>::type       VertexType;   
    typedef DomainConfiguration::cell_tag                                         CellTag;  
    typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type     CellType;   
@@ -3535,11 +3535,11 @@ int STLSurfaceMeshing (STLGeometry & geom,
       CoordPosT point = gsse::at(i)(geometry);
       
       VertexType vertex;
-      vertex.getPoint()[0] = point[0];
-      vertex.getPoint()[1] = point[1];
-      vertex.getPoint()[2] = point[2];            
+      vertex.point()[0] = point[0];
+      vertex.point()[1] = point[1];
+      vertex.point()[2] = point[2];            
       vertex.id(i);
-      domain.add(vertex);      
+      domain.push_back(vertex);      
    }
    
    domain.segments().resize( gsse::size(segments_topology) );
@@ -3567,8 +3567,8 @@ int STLSurfaceMeshing (STLGeometry & geom,
          vertices[1] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][1] ]);
          vertices[2] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][2] ]);         
          CellType cell;
-         cell.setVertices(vertices);         
-         domain.segments()[si].add(cell); 
+         cell.vertices(vertices);         
+         domain.segments()[si].push_back(cell); 
       }
    }   
 

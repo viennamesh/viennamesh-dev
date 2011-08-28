@@ -48,11 +48,11 @@ mesh_adaptor<viennamesh::tag::geom_check>::~mesh_adaptor()
    #endif
 }
 // --------------------------------------------------------------------------
-boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::geom_check>::operator()(viennagrid::domain<viennagrid::config::triangular_3d> & domain)
+boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >
+mesh_adaptor<viennamesh::tag::geom_check>::operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain)
 {
    // forwarding to main implementation
-   return (*this)(boost::make_shared<viennagrid::domain<viennagrid::config::triangular_3d> >(domain));
+   return (*this)(boost::make_shared<viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >(domain));
 }
 
 // --------------------------------------------------------------------------
@@ -105,7 +105,7 @@ struct check_intersections
           vocit != vertices_for_cell.end();
           ++vocit)
       {
-         cell_points[vi++] = vocit->getPoint();
+         cell_points[vi++] = vocit->point();
       }                  
       // transfer to cgal triangle object
       cgal_triangle_type ref_triangle(
@@ -125,7 +125,7 @@ struct check_intersections
              vocit2 != vertices_for_cell2.end();
              ++vocit2)
          {
-            cell_points2[vi2++] = vocit2->getPoint();
+            cell_points2[vi2++] = vocit2->point();
          }                  
          cgal_triangle_type triangle(
             cgal_point_type(cell_points2[0][0], cell_points2[0][1], cell_points2[0][2]),
@@ -141,14 +141,14 @@ struct check_intersections
 };
 
 // --------------------------------------------------------------------------
-boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >
-mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain)
+boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >
+mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > domain)
 {
 #ifdef MESH_ADAPTOR_DEBUG
    std::cout << "## MeshAdaptor::"+id+" - starting up .." << std::endl;
 #endif            
 
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>           domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type           domain_type;
    typedef domain_type::segment_type                                       SegmentType;
    typedef domain_type::config_type                                        DomainConfiguration;
    typedef DomainConfiguration::cell_tag                                   CellTag;
@@ -205,7 +205,7 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
 
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
-         typedef boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >  domainsp_type;
+         typedef boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >  domainsp_type;
       #ifdef VIENNAMESH_USE_MT
          boost::shared_ptr< check_intersections<domainsp_type> >  job(new check_intersections<domainsp_type>(domain, seg, *cit, intersp, pdisp));
          boost::threadpool::schedule(tp, boost::bind(&check_intersections<domainsp_type>::run, job));

@@ -205,20 +205,20 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(DatastructureT& data)
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain) 
+mesh_kernel<viennamesh::tag::tetgen>::operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & hull_domain) 
 {
-   return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::triangular_3d> >(hull_domain));
+   return (*this)(boost::make_shared< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >(hull_domain));
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::tetgen>::result_type 
-mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain) 
+mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > hull_domain) 
 {
    this->init();         
    //options = "zpDq";  // conforming delaunay
    // options = "zp"; // constrained delaunay
    // options = "z"; // convex
 
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type  HullDomain;
    typedef HullDomain::config_type                                HullDomainConfiguration;      
    typedef HullDomain::segment_type                               HullSegmentType;      
    typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
@@ -284,9 +284,9 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
   {
    #ifdef MESH_KERNEL_DEBUG_FULL
        std::cout << "## MeshKernel::"+mesh_kernel_id+" - adding point " << 
-          point_cnt++ << " : " << vit->getPoint() << std::endl;
+          point_cnt++ << " : " << vit->point() << std::endl;
    #endif   
-      this->addPoint(vit->getPoint());
+      this->addPoint(vit->point());
   }
 
    // traverse and add the topology information
@@ -421,11 +421,11 @@ void mesh_kernel<viennamesh::tag::tetgen>::do_meshing(domain_ptr_type domain)
 // --------------------------------------------------------------------------
 
 template<typename PointT>
-void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >       hull_domain,
-                           typename viennagrid::domain<viennagrid::config::triangular_3d>::segment_type&    seg, 
+void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >       hull_domain,
+                           typename viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type::segment_type&    seg, 
                            PointT& pnt, std::size_t segid = 0)
 {
-   typedef typename viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
+   typedef typename viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type  HullDomain;
    typedef typename HullDomain::config_type                                HullDomainConfiguration;      
    typedef typename HullDomain::segment_type                               HullSegmentType;         
    typedef typename HullDomainConfiguration::cell_tag                      HullCellTag;            
@@ -456,7 +456,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_p
          std::size_t vindex = vocit->id();
          if(!pnt_uniquer[ vindex ])
          {  
-            temp_mesher.addPoint( vocit->getPoint() ); 
+            temp_mesher.addPoint( vocit->point() ); 
             
             pnt_uniquer[vindex] = true;
             index_map[vindex]   = point_cnt;
@@ -617,11 +617,11 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
 //         pnt[2] = mesh->pointlist[index+2];         
 
       vertex_type    vertex;
-      vertex.getPoint()[0] = mesh->pointlist[index];
-      vertex.getPoint()[1] = mesh->pointlist[index+1];
-      vertex.getPoint()[2] = mesh->pointlist[index+2];                  
+      vertex.point()[0] = mesh->pointlist[index];
+      vertex.point()[1] = mesh->pointlist[index+1];
+      vertex.point()[2] = mesh->pointlist[index+2];                  
       vertex.id(point_cnt++);
-      domain->add(vertex);
+      domain->push_back(vertex);
    }      
    
    std::size_t seg_id = 0;
@@ -674,8 +674,8 @@ void mesh_kernel<viennamesh::tag::tetgen>::transfer_to_domain(domain_ptr_type do
       seg_check[seg_id] = true;
    #endif
       cell_type cell;
-      cell.setVertices(vertices);
-      domain->segments()[seg_id].add(cell);
+      cell.vertices(vertices);
+      domain->segments()[seg_id].push_back(cell);
    }
 #ifdef MESH_KERNEL_DEBUG
    std::cout << "## MeshKernel::"+mesh_kernel_id+" - extracted segments: ";

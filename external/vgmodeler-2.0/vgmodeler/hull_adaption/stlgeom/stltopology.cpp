@@ -513,9 +513,9 @@ STLGeometry *  STLTopology ::Load (const char* filename)
   return geom;  
 }
 
-void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::triangular_3d>& vgriddomain)
+void STLTopology :: InitSTLGeometry(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & vgriddomain)
 {
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
 
    typedef domain_type::config_type                     DomainConfiguration;
 
@@ -572,7 +572,7 @@ void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::trian
 
    for (GeometryIterator pit = geometry.begin(); pit != geometry.end(); ++pit)
    {
-      PointType point = pit->getPoint();
+      PointType point = pit->point();
       point_t gssepoint;
       gssepoint[0] = point[0];
       gssepoint[1] = point[1];
@@ -588,7 +588,7 @@ void STLTopology :: InitSTLGeometry(viennagrid::domain<viennagrid::config::trian
       SegmentType & seg = vgriddomain.segments()[si];
       segment_iterator gsse_segit = domain.add_segment();
       (*gsse_segit).set_cell_index_offset(cell_counter);
-      cell_counter += seg.size<CellTag::topology_level>();
+      cell_counter += viennagrid::ncells<CellTag::topology_level>(seg).size();
       
       // transfer topology
       //

@@ -478,17 +478,17 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
    // -------------------------------------------------------------------------------------    
     
    // -------------------------------------------------------------------------------------    
-   boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
-   operator()(viennagrid::domain<viennagrid::config::tetrahedral_3d>& domain ) // ONLY A 3D SIMPLEX VERSION IMPLMEENTED ..
+   boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type >
+   operator()(viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type & domain ) // ONLY A 3D SIMPLEX VERSION IMPLMEENTED ..
    {   
-      return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::tetrahedral_3d> >(domain));   
+      return (*this)(boost::make_shared< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type >(domain));   
    }   
    
    // -------------------------------------------------------------------------------------    
-   boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> >
-   operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::tetrahedral_3d> > domain ) // ONLY A 3D SIMPLEX VERSION IMPLMEENTED ..
+   boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type >
+   operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type > domain ) // ONLY A 3D SIMPLEX VERSION IMPLMEENTED ..
    {   
-      typedef viennagrid::domain<viennagrid::config::tetrahedral_3d>    domain_type;
+      typedef viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type    domain_type;
       typedef domain_type::config_type                     DomainConfiguration;
 
       typedef DomainConfiguration::numeric_type            numeric_type;
@@ -539,8 +539,8 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
             {
                for(int dim = 0; dim < DIMG; dim++)
                {
-                  //std::cout << "classi debug: " << (vocit->getPoint())[dim] << std::endl;
-                  simplex_point_array[(vi*DIMG)+dim] = (vocit->getPoint())[dim];
+                  //std::cout << "classi debug: " << (vocit->point())[dim] << std::endl;
+                  simplex_point_array[(vi*DIMG)+dim] = (vocit->point())[dim];
                }
                vi++;
             }                     

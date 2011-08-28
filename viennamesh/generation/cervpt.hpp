@@ -34,7 +34,7 @@ struct mesh_kernel <viennamesh::tag::cervpt>
    // -------------------------------------------------------------------------------------
    typedef long       integer_type;
    // -------------------------------------------------------------------------------------   
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
    typedef domain_configuration_type::numeric_type                   numeric_type;

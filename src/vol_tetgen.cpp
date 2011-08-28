@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
    else
    if(input_extension == "gau32")
    {
-      typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+      typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
       domain_type domain;
       
       viennagrid::io::importGAU(domain, inputfile);
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
    else
    if(input_extension == "inp")
    {
-      typedef viennagrid::domain<viennagrid::config::triangular_3d>     domain_type;
+      typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
       domain_type domain;
       
       viennagrid::io::importINP(domain, inputfile, true);

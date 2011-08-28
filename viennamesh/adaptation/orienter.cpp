@@ -134,7 +134,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
           vocit != vertices_for_cell.end();
           ++vocit)
       {
-         cell_points[vi++] = vocit->getPoint();
+         cell_points[vi++] = vocit->point();
       }
 
       // compute the cells barycenter
@@ -189,7 +189,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            cell_points[vi++] = vocit->getPoint();
+            cell_points[vi++] = vocit->point();
          }            
          cgal_triangle_type triangle(
             cgal_point_type(cell_points[0][0], cell_points[0][1], cell_points[0][2]),
@@ -239,7 +239,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
          {
             if(cit->id() == seed_cell.id())
             {
-               cit->setVertices(vertices);
+               cit->vertices(vertices);
                cit->fill(domain);         
             }
          }
@@ -412,7 +412,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
           vocit != vertices_for_cell.end();
           ++vocit)
       {
-         cell_points[vi++] = vocit->getPoint();
+         cell_points[vi++] = vocit->point();
       }
 
       // compute the cells barycenter
@@ -467,7 +467,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
              vocit != vertices_for_cell.end();
              ++vocit)
          {
-            cell_points[vi++] = vocit->getPoint();
+            cell_points[vi++] = vocit->point();
          }            
          cgal_triangle_type triangle(
             cgal_point_type(cell_points[0][0], cell_points[0][1], cell_points[0][2]),
@@ -517,7 +517,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
          {
             if(cit->id() == seed_cell.id())
             {
-               cit->setVertices(vertices);
+               cit->vertices(vertices);
                cit->fill(*domain);         
             }
          }
@@ -677,11 +677,11 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter(SegmentT& segment, s
                         
                         // a simple swap in the indices corrects the orientation
                         //
-                        vertices[0] = &(viennagrid::ncells<0>(segment.get_domain())[ temp_cell[2] ]);               
-                        vertices[1] = &(viennagrid::ncells<0>(segment.get_domain())[ temp_cell[1] ]);
-                        vertices[2] = &(viennagrid::ncells<0>(segment.get_domain())[ temp_cell[0] ]);
-                        coeit->setVertices(vertices);
-                        coeit->fill(segment.get_domain());               
+                        vertices[0] = &(viennagrid::ncells<0>(segment.domain())[ temp_cell[2] ]);               
+                        vertices[1] = &(viennagrid::ncells<0>(segment.domain())[ temp_cell[1] ]);
+                        vertices[2] = &(viennagrid::ncells<0>(segment.domain())[ temp_cell[0] ]);
+                        coeit->vertices(vertices);
+                        coeit->fill(segment.domain());               
                         
                         // check again to verify ..
                         //

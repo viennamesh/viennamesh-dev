@@ -40,7 +40,7 @@ struct mesh_kernel <viennamesh::tag::tetgen>
    typedef double          numeric_type;  
    typedef std::size_t     integer_type;
 
-   typedef viennagrid::domain<viennagrid::config::tetrahedral_3d>    domain_type;
+   typedef viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type    domain_type;
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
    typedef domain_configuration_type::cell_tag                       cell_tag;
@@ -73,8 +73,8 @@ struct mesh_kernel <viennamesh::tag::tetgen>
    template<typename DatastructureT>
    result_type operator()(DatastructureT& data);
    // --------------------------------------------------------------------------     
-   result_type operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain);    
-   result_type operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain); 
+   result_type operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & hull_domain);    
+   result_type operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > hull_domain); 
    // --------------------------------------------------------------------------     
    
 private:   
@@ -82,8 +82,8 @@ private:
    void do_meshing(domain_ptr_type domain);
    // --------------------------------------------------------------------------     
    template<typename PointT>
-   void find_point_in_segment(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> >       hull_domain,
-                              typename viennagrid::domain<viennagrid::config::triangular_3d>::segment_type&    seg, 
+   void find_point_in_segment(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >       hull_domain,
+                              typename viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type::segment_type&    seg, 
                               PointT& pnt, std::size_t segid);
 
    template<typename DatastructureT>

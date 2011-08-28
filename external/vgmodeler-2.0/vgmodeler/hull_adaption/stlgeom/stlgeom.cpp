@@ -2025,7 +2025,7 @@ double STLGeometry :: GetGeomAngle(int t1, int t2)
 }
 
 
-void STLGeometry :: InitSTLGeometry(viennagrid::domain<viennagrid::config::triangular_3d>& domain)
+void STLGeometry :: InitSTLGeometry(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain)
 {
 //  std::cout << "Init STL Geometry: readtrias size: " << readtrias.Size() << std::endl;
 

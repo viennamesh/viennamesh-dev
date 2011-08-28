@@ -216,7 +216,7 @@ public:
    cell_iterator cell_end()
    {
       vgrid_segment_type const & segment = (*this).domain().segments()[(*this).segment_id()];
-      return cell_iterator(*this, segment.template size<DIMT>());  
+      return cell_iterator(*this, viennagrid::ncells<DIMT>(segment).size());  
    }        
    
    inline DomainT& domain()      { return domain_;     }   
@@ -276,12 +276,12 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
 /*      point_type
       dereference() const
       {
-         return point_type( (*this).obj().domain().vertex( (*this).pos() ) .getPoint() );
+         return point_type( (*this).obj().domain().vertex( (*this).pos() ) .point() );
       }      */
       point_type
       operator*() const
       {
-         return point_type( viennagrid::ncells<0>((*this).obj().domain())[ (*this).pos() ] .getPoint() );
+         return point_type( viennagrid::ncells<0>((*this).obj().domain())[ (*this).pos() ] .point() );
       }            
 
    };   
@@ -291,7 +291,8 @@ struct wrapper <viennamesh::tag::viennagrid, Datastructure>
    }  
    geometry_iterator geometry_end()
    {
-      return geometry_iterator(*this, domain().template size<0>());
+      //return geometry_iterator(*this, domain().template size<0>());
+      return geometry_iterator(*this, viennagrid::ncells<0>(domain()).size());
    }   
    // -------------------------------------------------------------------------------------------
 

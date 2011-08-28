@@ -230,7 +230,7 @@ enum Ng_Result { NG_OK = 0,
   // after adding triangles (and edges) initialize
 //  Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom);
 
-Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::domain<viennagrid::config::triangular_3d>& domain);
+Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
 Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, const char * filename);
 
 
@@ -248,7 +248,7 @@ Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, const char * filename)
 Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
                             Ng_Mesh* mesh,
                             Ng_Meshing_Parameters * mp, 
-                            viennagrid::domain<viennagrid::config::triangular_3d>& domain);
+                            viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
 
 // #ifdef __cplusplus
 //  }

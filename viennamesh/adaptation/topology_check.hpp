@@ -32,11 +32,11 @@ struct mesh_adaptor <viennamesh::tag::topo_check>
    mesh_adaptor();
   ~mesh_adaptor();
    // --------------------------------------------------------------------------     
-   boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > 
-   operator()(viennagrid::domain<viennagrid::config::triangular_3d> & domain);
+   boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > 
+   operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & domain);
 
-   boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > 
-   operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > domain);
+   boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > 
+   operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > domain);
    // --------------------------------------------------------------------------     
 private:
    // --------------------------------------------------------------------------         

@@ -171,15 +171,15 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(DatastructureT& data)
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(viennagrid::domain<viennagrid::config::triangular_3d>& hull_domain) 
+mesh_kernel<viennamesh::tag::netgen>::operator()(viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type & hull_domain) 
 {
-   return (*this)(boost::make_shared< viennagrid::domain<viennagrid::config::triangular_3d> >(hull_domain));
+   return (*this)(boost::make_shared< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type >(hull_domain));
 }
 // --------------------------------------------------------------------------
 mesh_kernel<viennamesh::tag::netgen>::result_type 
-mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::domain<viennagrid::config::triangular_3d> > hull_domain) 
+mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type > hull_domain) 
 {
-   typedef viennagrid::domain<viennagrid::config::triangular_3d>  HullDomain;
+   typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type  HullDomain;
    typedef HullDomain::config_type                                HullDomainConfiguration;      
    typedef HullDomain::segment_type                               HullSegmentType;      
    typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
@@ -239,7 +239,7 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
             if(!vertex_uniquer[vertex_index])
             {
                // retrieve the geometry information
-               HullPointType point = vocit->getPoint();
+               HullPointType point = vocit->point();
 
                numeric_type netgen_point[DIMG];               
                // set very small values to zero to increase
@@ -399,9 +399,9 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
             mesh_domain_mapping[i]       = point_cnt;
 
             vertex_type    vertex;
-            vertex.getPoint()[0] = point[0];
-            vertex.getPoint()[1] = point[1];         
-            vertex.getPoint()[2] = point[2];                                 
+            vertex.point()[0] = point[0];
+            vertex.point()[1] = point[1];         
+            vertex.point()[2] = point[2];                                 
             vertex.id(point_cnt);
       
             // we cannot directly push the vertices on the viennagrid domain, 
@@ -442,7 +442,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
          }
 
 //            cell_type cell;
-//            cell.setVertices(vertices);
+//            cell.vertices(vertices);
 //            cell.id(global_cell_size);            
 
 //            std::cout << "  extracting cell: "; cell.print();
@@ -459,7 +459,7 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
    for(vertex_container_type::iterator iter = vertex_container.begin();
        iter != vertex_container.end(); iter++)
    {
-      domain->add(*iter);
+      domain->push_back(*iter);
    }
 
    //std::cout << "mesh cnt: " << mesh_cnt << std::endl;
@@ -491,9 +491,9 @@ void mesh_kernel<viennamesh::tag::netgen>::do_meshing(result_type  domain)
          }            
          
          cell_type cell;
-         cell.setVertices(vertices);
+         cell.vertices(vertices);
          cell.id(cell_id++);          
-         domain->segments()[sit->first].add(cell);            
+         domain->segments()[sit->first].push_back(cell);            
       }
    }       
 
