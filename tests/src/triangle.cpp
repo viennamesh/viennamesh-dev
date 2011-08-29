@@ -29,8 +29,10 @@ int meshing(WrappedDataT& wrapped_data)
 
    result_type result = mesher(wrapped_data);
 
-   viennagrid::io::vtk_writer<typename result_type::value_type>  vtk_writer;         
-   vtk_writer.writeDomain(*result, "mesh.vtu");
+//   viennagrid::io::vtk_writer<typename result_type::value_type>  vtk_writer;         
+//   vtk_writer.writeDomain(*result, "mesh.vtu");
+   
+   viennagrid::io::export_vtk(*result, "mesh.vtu");
 
    return 0;
 }
