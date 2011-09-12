@@ -43,11 +43,11 @@ public:
    typedef domain_configuration_type::cell_tag                       cell_tag;
    
    typedef viennagrid::result_of::ncell<domain_configuration_type, 0>::type                            vertex_type;   
-   typedef viennagrid::result_of::ncell<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
+   typedef viennagrid::result_of::ncell<domain_configuration_type, cell_tag::dim>::type     cell_type;   
 
-   static const int DIMG = domain_configuration_type::dimension_tag::value;
-   static const int DIMT = domain_configuration_type::cell_tag::topology_level;
-   static const int CELL_SIZE = DIMT+1;            // this holds only for simplices
+   static const int DIMG = domain_configuration_type::coordinate_system_tag::dim;
+   static const int DIMT = domain_configuration_type::cell_tag::dim;
+   static const int CELL_SIZE = viennagrid::topology::bndcells<cell_tag, 0>::num;           
  
    // [JW] nglib::Ng_mesh is a void* .. oh joy ...
    // this header should be free of netgen specifics, so that it can be 

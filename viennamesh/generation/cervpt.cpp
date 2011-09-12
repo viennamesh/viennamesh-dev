@@ -166,7 +166,8 @@ mesh_kernel<viennamesh::tag::cervpt>::operator()(DatastructureT& data)
        for(triangle_iter_type triiter = polyiter->second.begin();
            triiter != polyiter->second.end(); triiter++)
        {
-           vertex_type *vertices[viennagrid::topology::subcell_desc<cell_tag, 0>::num_elements];        
+           
+           vertex_type *vertices[viennagrid::topology::bndcells<cell_tag, 0>::num];        
            
            for(std::size_t ci = 0; ci < triiter->size(); ci++)
            {

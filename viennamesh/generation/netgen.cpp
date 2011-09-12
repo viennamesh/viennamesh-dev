@@ -185,8 +185,8 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
    typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
 
    typedef viennagrid::result_of::point<HullDomainConfiguration>::type                                 HullPointType;   
-   typedef viennagrid::result_of::ncell<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-   typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+   typedef viennagrid::result_of::ncell<HullDomainConfiguration, HullCellTag::dim>::type    HullCellType;      
+   typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::dim>::type       HullCellContainer;      
    typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
    typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
    typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;         
@@ -221,7 +221,7 @@ mesh_kernel<viennamesh::tag::netgen>::operator()(boost::shared_ptr< viennagrid::
       mesh_pointer_type meshpnt = mesh_pointer_type(nglib::Ng_NewMesh());      
    
       HullSegmentType & seg = hull_domain->segments()[si];      
-      HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
+      HullCellContainer cells = viennagrid::ncells<HullCellTag::dim>(seg);      
       
       for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {

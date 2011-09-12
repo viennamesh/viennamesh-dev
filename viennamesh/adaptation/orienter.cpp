@@ -91,7 +91,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
    std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
 #endif       
       SegmentType & seg = domain.segments()[si];
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<CellTag::dim>(seg);
 
    #ifdef MESH_ADAPTOR_DEBUG         
       std::cout << "  looking for seed cell: " << std::endl;         
@@ -216,7 +216,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(domain_type& domain)
       #ifdef MESH_ADAPTOR_DEBUG
          std::cout << "  seed cell normal vector points inwards - correcting .." << std::endl;
       #endif             
-         VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];  
+         VertexType *vertices[CELLSIZE];  
 
          boost::array<index_type, CELLSIZE>    temp_cell;
          vi = 0;
@@ -369,7 +369,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
    std::cout << "## MeshAdaptor::"+id+" - processing segment: " << si << std::endl;
 #endif       
       SegmentType & seg = domain->segments()[si];
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<CellTag::dim>(seg);
 
    #ifdef MESH_ADAPTOR_DEBUG         
       std::cout << "  looking for seed cell: " << std::endl;         
@@ -494,7 +494,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
       #ifdef MESH_ADAPTOR_DEBUG
          std::cout << "  seed cell normal vector points inwards - correcting .." << std::endl;
       #endif             
-         VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];  
+         VertexType *vertices[CELLSIZE];  
 
          boost::array<index_type, CELLSIZE>    temp_cell;
          vi = 0;
@@ -611,7 +611,7 @@ mesh_adaptor<viennamesh::tag::orienter>::operator()(input_type domain)
 template<typename SegmentT>
 bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter(SegmentT& segment, std::size_t& corrected_cells)
 {
-   CellContainer cells = viennagrid::ncells<CellTag::topology_level>(segment);
+   CellContainer cells = viennagrid::ncells<CellTag::dim>(segment);
 
    // -1 becaue one cell is already tagged as oriented - the seed cell
    //
@@ -636,7 +636,7 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter(SegmentT& segment, s
             EdgeOnCellContainer edges = viennagrid::ncells<1>(*cit);
             for (EdgeOnCellIterator eocit = edges.begin(); eocit != edges.end(); ++eocit)
             {
-               CellOnEdgeContainer cells = viennagrid::ncells<CellTag::topology_level>(*eocit, segment);
+               CellOnEdgeContainer cells = viennagrid::ncells<CellTag::dim>(*eocit, segment);
                for (CellOnEdgeIterator coeit = cells.begin(); coeit != cells.end(); ++coeit)
                {
                   // if the current cell is not oriented ..
@@ -673,7 +673,7 @@ bool mesh_adaptor<viennamesh::tag::orienter>::cell_orienter(SegmentT& segment, s
                            temp_cell[vi++] = vocit->id();
                         }                        
                      
-                        VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];  
+                        VertexType *vertices[CELLSIZE];  
                         
                         // a simple swap in the indices corrects the orientation
                         //

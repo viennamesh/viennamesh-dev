@@ -55,21 +55,22 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
    typedef typename DomainT::config_type                                                                       DomainConfiguration;   
    typedef typename DomainConfiguration::cell_tag                                                              CellTag;   
    typedef typename DomainT::segment_type                                                                      SegmentType;
-   typedef typename viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;   
+   
+   static const int DIMG = DomainConfiguration::coordinate_system_tag::dim;   
+   static const int DIMT = DomainConfiguration::cell_tag::dim;   
+   static const int CELLSIZE = viennagrid::topology::bndcells<CellTag, 0>::num;          
+   
+   typedef typename viennagrid::result_of::ncell<DomainConfiguration, DIMT>::type      CellType;   
    typedef typename viennagrid::result_of::ncell<DomainConfiguration, 0>::type                            VertexType;   
    typedef typename viennagrid::result_of::ncell_range<DomainT, 0>::type                                   GeometryContainer;      
    typedef typename viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;       
    typedef typename viennagrid::result_of::ncell_range<SegmentType, 0>::type                               VertexContainer;      
    typedef typename viennagrid::result_of::iterator<VertexContainer>::type                                     VertexIterator;         
-   typedef typename viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef typename viennagrid::result_of::ncell_range<SegmentType, DIMT>::type         CellContainer;      
    typedef typename viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
    typedef typename viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef typename viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
    typedef typename viennagrid::result_of::point<DomainConfiguration>::type                               PointType;   
-
-   static const int CELLSIZE = viennagrid::topology::subcell_desc<CellTag, 0>::num_elements;
-   static const int DIMG     = DomainConfiguration::dimension_tag::value;
-
 
    boost::shared_ptr<DomainT> sewed_domain(new DomainT);         
 
@@ -128,7 +129,7 @@ mesh_adaptor<viennamesh::tag::int_sewer>::operator()(boost::shared_ptr<DomainT> 
    for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
       SegmentType & seg = domain->segments()[si];
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<DIMT>(seg);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
          boost::array<std::size_t, CELLSIZE> tempcell;

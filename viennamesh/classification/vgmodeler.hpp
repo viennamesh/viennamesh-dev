@@ -492,19 +492,20 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
       typedef domain_type::config_type                     DomainConfiguration;
 
       typedef DomainConfiguration::numeric_type            numeric_type;
-      typedef DomainConfiguration::dimension_tag           DimensionTag;
       typedef DomainConfiguration::cell_tag                CellTag;   
       typedef domain_type::segment_type                                                                  SegmentType;      
-      typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;      
+
+      static const int DIMG = DomainConfiguration::coordinate_system_tag::dim;
+      static const int DIMT = DomainConfiguration::cell_tag::dim;   
+      static const int CELLSIZE = viennagrid::topology::bndcells<CellTag, 0>::num;       
+
+      typedef viennagrid::result_of::ncell<DomainConfiguration, DIMT>::type      CellType;      
       typedef viennagrid::result_of::point<DomainConfiguration>::type                               PointType;      
-      typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;            
+      typedef viennagrid::result_of::ncell_range<SegmentType, DIMT>::type         CellContainer;            
       typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
       typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
       typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;            
-      static const int DIMG = DomainConfiguration::dimension_tag::value;
-      static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
-      static const int CELLSIZE = DIMT+1;         
-   
+      
       typedef vgmodeler::SimplexClassification<numeric_type>                        simplex_classification_type;
       typedef simplex_classification_type::angle_container_type            angles_type;
       typedef angles_type::iterator                                        angle_iterator_type;   
@@ -525,7 +526,7 @@ struct mesh_classifier <viennamesh::tag::vgmodeler>
       for (std::size_t si = 0; si < domain->segments().size(); ++si)
       {
          SegmentType & seg = domain->segments()[si];
-         CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);      
+         CellContainer cells = viennagrid::ncells<DIMT>(seg);      
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {
             static const int SIMPLEX_POINT_SIZE = DIMG*CELLSIZE;

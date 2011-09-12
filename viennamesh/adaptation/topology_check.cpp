@@ -14,10 +14,10 @@
 
 // *** local includes
 #include "viennamesh/adaptation/topology_check.hpp"
+#include "external/viennagrid_extensions/topology_tests.hpp"
 // *** vienna includes
 #include "viennautils/messages.hpp"
 #include "viennautils/contio.hpp"
-#include "viennagrid/algorithm/topology_tests.hpp"
 // *** boost includes
 #include <boost/make_shared.hpp>
 #include <boost/array.hpp>

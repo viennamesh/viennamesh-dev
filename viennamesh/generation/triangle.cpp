@@ -19,12 +19,16 @@
 #include <cstring>
 
 // *** vienna includes
-#include "viennautils/dumptype.hpp"
 #include "viennagrid/domain.hpp"
-#include "viennamesh/wrapper.hpp"
+#include "viennagrid/forwards.h"
+#include "viennagrid/element.hpp"
+#include "viennagrid/config/simplex.hpp"
+#include "viennagrid/config/others.hpp"
 #include "viennautils/geometry/barycenter.hpp"
+#include "viennautils/dumptype.hpp"
 
 // *** local includes
+#include "viennamesh/wrapper.hpp"
 #include "viennamesh/generation/triangle.hpp"
 
 // *** boost includes
@@ -216,14 +220,17 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(boost::shared_ptr< viennagrid
       typedef HullDomain::config_type                                HullDomainConfiguration;      
       typedef HullDomain::segment_type                               HullSegmentType;      
       typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
-      typedef viennagrid::result_of::point<HullDomainConfiguration>::type                                 HullPointType;   
-      typedef viennagrid::result_of::ncell_range<HullDomain, 0>::type                                      HullPointContainer;            
-      typedef viennagrid::result_of::iterator<HullPointContainer>::type                                        HullPointIterator;            
-      typedef viennagrid::result_of::ncell<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-      typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
-      typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
-      typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
-      typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;                     
+      
+      static const int HULLDIMT = HullCellTag::dim;         
+      
+      typedef viennagrid::result_of::point<HullDomainConfiguration>::type                                   HullPointType;   
+      typedef viennagrid::result_of::ncell_range<HullDomain, 0>::type                                       HullPointContainer;            
+      typedef viennagrid::result_of::iterator<HullPointContainer>::type                                     HullPointIterator;            
+      typedef viennagrid::result_of::ncell<HullDomainConfiguration, HULLDIMT>::type                         HullCellType;      
+      typedef viennagrid::result_of::ncell_range<HullSegmentType, HULLDIMT>::type                           HullCellContainer;      
+      typedef viennagrid::result_of::iterator<HullCellContainer>::type                                      HullCellIterator;         
+      typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                     HullVertexOnCellContainer;
+      typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                              HullVertexOnCellIterator;                     
       
       std::size_t segment_size = hull_domain->segments().size();   
    #ifdef MESH_KERNEL_DEBUG
@@ -299,7 +306,7 @@ mesh_kernel<viennamesh::tag::triangle>::operator()(boost::shared_ptr< viennagrid
       for (std::size_t si = 0; si < hull_domain->segments().size(); ++si)
       {
          HullSegmentType & seg = hull_domain->segments()[si]; 
-         HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
+         HullCellContainer cells = viennagrid::ncells<HULLDIMT>(seg);      
          for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {  
             // make sure a cell hasn't been already added ..
@@ -424,9 +431,11 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
       typedef HullDomain::segment_type                               HullSegmentType;         
       typedef HullDomainConfiguration::cell_tag                      HullCellTag;            
    
+      static const int HULLDIMT = HullCellTag::dim;            
+   
       typedef viennagrid::result_of::point<HullDomainConfiguration>::type                                 HullPointType;   
-      typedef viennagrid::result_of::ncell<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;         
-      typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+      typedef viennagrid::result_of::ncell<HullDomainConfiguration, HULLDIMT>::type    HullCellType;         
+      typedef viennagrid::result_of::ncell_range<HullSegmentType, HULLDIMT>::type       HullCellContainer;      
       typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;            
       typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
       typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;            
@@ -438,7 +447,7 @@ void mesh_kernel<viennamesh::tag::triangle>::find_point_in_segment(boost::shared
       std::map<std::size_t, std::size_t> index_map;
       std::size_t point_cnt = 0;      
       
-      HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
+      HullCellContainer cells = viennagrid::ncells<HULLDIMT>(seg);      
       
       for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {      

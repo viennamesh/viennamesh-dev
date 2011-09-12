@@ -64,16 +64,16 @@ struct check_intersections
    typedef typename domain_type::segment_type                                                                  SegmentType;   
    typedef typename domain_type::config_type                                                                   DomainConfiguration;
    typedef typename DomainConfiguration::cell_tag                                                              CellTag;   
-   typedef typename viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;   
-   typedef typename viennagrid::result_of::point<DomainConfiguration>::type                               PointType;   
 
-   typedef typename viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   static const int DIMT = DomainConfiguration::cell_tag::dim;   
+   static const int CELLSIZE = viennagrid::topology::bndcells<CellTag, 0>::num;       
+
+   typedef typename viennagrid::result_of::ncell<DomainConfiguration, DIMT>::type      CellType;   
+   typedef typename viennagrid::result_of::point<DomainConfiguration>::type                               PointType;   
+   typedef typename viennagrid::result_of::ncell_range<SegmentType, DIMT>::type         CellContainer;      
    typedef typename viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
    typedef typename viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef typename viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;      
-
-   static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
-   static const int CELLSIZE = DIMT+1;      
 
    typedef CGAL::Exact_predicates_inexact_constructions_kernel    K;
    typedef CGAL::Ray_3<K>                                         cgal_ray_type;
@@ -96,7 +96,7 @@ struct check_intersections
    {
       boost::array<PointType,CELLSIZE>     cell_points, cell_points2;      
    
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<DIMT>(seg);
    
       // extract the cell
       int vi = 0;
@@ -152,16 +152,16 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    typedef domain_type::segment_type                                       SegmentType;
    typedef domain_type::config_type                                        DomainConfiguration;
    typedef DomainConfiguration::cell_tag                                   CellTag;
-   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;   
-   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   
+   static const int DIMT = DomainConfiguration::cell_tag::dim;   
+   static const int CELLSIZE = viennagrid::topology::bndcells<CellTag, 0>::num;       
+   
+   typedef viennagrid::result_of::ncell<DomainConfiguration, DIMT>::type      CellType;   
+   typedef viennagrid::result_of::ncell_range<SegmentType, DIMT>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
    typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;      
    typedef viennagrid::result_of::point<DomainConfiguration>::type                               PointType;   
-
-   
-   static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
-   static const int CELLSIZE = DIMT+1;      
 
    typedef CGAL::Exact_predicates_inexact_constructions_kernel    K;
    typedef CGAL::Ray_3<K>                                         cgal_ray_type;
@@ -181,7 +181,7 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
       SegmentType & seg = domain->segments()[si];
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<DIMT>(seg);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
          iterations++;
@@ -201,7 +201,7 @@ mesh_adaptor<viennamesh::tag::geom_check>::operator()(boost::shared_ptr< viennag
    for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
       SegmentType & seg = domain->segments()[si];
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<DIMT>(seg);
 
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {

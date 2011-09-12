@@ -165,7 +165,7 @@ struct viennagrid_cell_complex_wrapper
 {
 private:
    typedef typename DomainT::config_type                                                  domain_config_type;
-   static const int DIMT = domain_config_type::cell_tag::topology_level;
+   static const int DIMT = domain_config_type::cell_tag::dim;
    typedef viennagrid::segment_t<domain_config_type>                                      vgrid_segment_type;
    typedef typename viennagrid::result_of::ncell<domain_config_type, DIMT>::type     vgrid_cell_type;         
    

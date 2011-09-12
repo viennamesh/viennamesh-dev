@@ -3516,7 +3516,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
    typedef DomainType::config_type                                                  DomainConfiguration;  
    typedef viennagrid::result_of::ncell<DomainConfiguration, 0>::type       VertexType;   
    typedef DomainConfiguration::cell_tag                                         CellTag;  
-   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type     CellType;   
+   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::dim>::type     CellType;   
   
    using namespace gsse::access_specifier;   
    typedef gsse::result_of::at_dim<FullSpace, AC>::type                 SpaceTopologySegmentsT;  
@@ -3562,7 +3562,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
          
       for( size_t ci = 0; ci < gsse::size( cell_cont ); ci++ )
       {
-         VertexType *vertices[viennagrid::topology::subcell_desc<CellTag, 0>::num_elements];        
+         VertexType *vertices[viennagrid::topology::bndcells<CellTag, 0>::num];        
          vertices[0] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][0] ]);               
          vertices[1] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][1] ]);
          vertices[2] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][2] ]);         

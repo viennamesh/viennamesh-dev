@@ -222,11 +222,14 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
    typedef HullDomain::config_type                                HullDomainConfiguration;      
    typedef HullDomain::segment_type                               HullSegmentType;      
    typedef HullDomainConfiguration::cell_tag                      HullCellTag;      
+   
+   static const int HULLDIMT = HullDomainConfiguration::cell_tag::dim;      
+   
    typedef viennagrid::result_of::point<HullDomainConfiguration>::type                                 HullPointType;   
    typedef viennagrid::result_of::ncell_range<HullDomain, 0>::type                                      HullPointContainer;            
    typedef viennagrid::result_of::iterator<HullPointContainer>::type                                        HullPointIterator;            
-   typedef viennagrid::result_of::ncell<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;      
-   typedef viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+   typedef viennagrid::result_of::ncell<HullDomainConfiguration, HULLDIMT>::type    HullCellType;      
+   typedef viennagrid::result_of::ncell_range<HullSegmentType, HULLDIMT>::type       HullCellContainer;      
    typedef viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;         
    typedef viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
    typedef viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;               
@@ -305,7 +308,7 @@ mesh_kernel<viennamesh::tag::tetgen>::operator()(boost::shared_ptr< viennagrid::
    for (std::size_t si = 0; si < hull_domain->segments().size(); ++si)
    {
       HullSegmentType & seg = hull_domain->segments()[si]; 
-      HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
+      HullCellContainer cells = viennagrid::ncells<HULLDIMT>(seg);      
       
       for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {  
@@ -430,9 +433,11 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_p
    typedef typename HullDomain::segment_type                               HullSegmentType;         
    typedef typename HullDomainConfiguration::cell_tag                      HullCellTag;            
 
+   static const int HULLDIMT = HullDomainConfiguration::cell_tag::dim;      
+
    typedef typename viennagrid::result_of::point<HullDomainConfiguration>::type                                 HullPointType;   
-   typedef typename viennagrid::result_of::ncell<HullDomainConfiguration, HullCellTag::topology_level>::type    HullCellType;         
-   typedef typename viennagrid::result_of::ncell_range<HullSegmentType, HullCellTag::topology_level>::type       HullCellContainer;      
+   typedef typename viennagrid::result_of::ncell<HullDomainConfiguration, HULLDIMT>::type    HullCellType;         
+   typedef typename viennagrid::result_of::ncell_range<HullSegmentType, HULLDIMT>::type       HullCellContainer;      
    typedef typename viennagrid::result_of::iterator<HullCellContainer>::type                                         HullCellIterator;            
    typedef typename viennagrid::result_of::ncell_range<HullCellType, 0>::type                                    HullVertexOnCellContainer;
    typedef typename viennagrid::result_of::iterator<HullVertexOnCellContainer>::type                                 HullVertexOnCellIterator;            
@@ -444,7 +449,7 @@ void mesh_kernel<viennamesh::tag::tetgen>::find_point_in_segment(boost::shared_p
    std::map<std::size_t, std::size_t> index_map;
    std::size_t point_cnt = 0;      
    
-   HullCellContainer cells = viennagrid::ncells<HullCellTag::topology_level>(seg);      
+   HullCellContainer cells = viennagrid::ncells<HULLDIMT>(seg);      
    
    for (HullCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
    {      

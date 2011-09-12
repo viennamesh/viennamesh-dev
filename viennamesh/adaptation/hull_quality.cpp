@@ -13,13 +13,12 @@
 ============================================================================= */
 
 // *** local includes
-#include "viennamesh/adaptation/hull_quality.hpp"
-
-// *** vienna includes
 #include "viennamesh/data.hpp"
 #include "viennamesh/keys.hpp"
+#include "viennamesh/adaptation/hull_quality.hpp"
+#include "external/viennagrid_extensions/cell_normals.hpp"
+// *** vienna includes
 #include "viennadata/api.hpp"
-#include "viennagrid/algorithm/cell_normals.hpp"
 
 // *** boost includes
 #include <boost/make_shared.hpp>
@@ -215,7 +214,7 @@ mesh_adaptor<viennamesh::tag::hull_quality>::operator()(input_type domain)
    for (std::size_t si = 0; si < domain->segments().size(); ++si)
    {
       SegmentType & seg = domain->segments()[si];
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<DIMT>(seg);
 
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {

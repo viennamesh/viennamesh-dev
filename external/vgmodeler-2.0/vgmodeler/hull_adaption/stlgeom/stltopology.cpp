@@ -520,20 +520,19 @@ void STLTopology :: InitSTLGeometry(viennagrid::result_of::domain<viennagrid::co
    typedef domain_type::config_type                     DomainConfiguration;
 
    typedef DomainConfiguration::numeric_type            CoordType;
-   typedef DomainConfiguration::dimension_tag           DimensionTag;
    typedef DomainConfiguration::cell_tag                CellTag;
 
    typedef domain_type::segment_type                                                                  SegmentType;
-   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;   
+   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::dim>::type      CellType;   
    typedef viennagrid::result_of::ncell_range<domain_type, 0>::type                               GeometryContainer;      
    typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
-   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::dim>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
    typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
    typedef viennagrid::result_of::point<DomainConfiguration>::type                               PointType;   
 
-   static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
+   static const int DIMT = DomainConfiguration::cell_tag::dim;   
    static const int CELLSIZE = DIMT+1;      
 
   int i, j, k;
@@ -588,11 +587,11 @@ void STLTopology :: InitSTLGeometry(viennagrid::result_of::domain<viennagrid::co
       SegmentType & seg = vgriddomain.segments()[si];
       segment_iterator gsse_segit = domain.add_segment();
       (*gsse_segit).set_cell_index_offset(cell_counter);
-      cell_counter += viennagrid::ncells<CellTag::topology_level>(seg).size();
+      cell_counter += viennagrid::ncells<CellTag::dim>(seg).size();
       
       // transfer topology
       //
-      CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+      CellContainer cells = viennagrid::ncells<CellTag::dim>(seg);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
          boost::array<std::size_t,CELLSIZE>     cell;

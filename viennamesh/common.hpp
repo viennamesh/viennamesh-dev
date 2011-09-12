@@ -24,7 +24,8 @@
 #include "viennagrid/domain.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/io/vtk_reader.hpp"
-#include "viennagrid/io/gau_reader.hpp"
-#include "viennagrid/io/inp_reader.hpp"
+
+#include "external/viennagrid_extensions/gau_reader.hpp"
+#include "external/viennagrid_extensions/inp_reader.hpp"
 
 #endif

@@ -19,10 +19,10 @@
 // *** local includes
 #include "viennamesh/adaptation/base.hpp"
 #include "viennamesh/data.hpp"
+#include "external/viennagrid_extensions/cell_normals.hpp"
 
 // *** vienna includes
 #include "viennagrid/domain.hpp"
-#include "viennagrid/algorithm/cell_normals.hpp"
 #include "viennadata/api.hpp"
 
 // *** boost includes
@@ -76,8 +76,8 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
       typedef DomainConfiguration::numeric_type       NumericType;
 
       typedef domain_type::segment_type                                                                  SegmentType; 
-      typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;
-      typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;          
+      typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::dim>::type      CellType;
+      typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::dim>::type         CellContainer;          
       typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;               
 
       // if there is only one segment, we are finished, 
@@ -93,7 +93,7 @@ struct mesh_adaptor <viennamesh::tag::cell_normals>
 
          // traverse the cells of this segment
          //
-         CellContainer cells = viennagrid::ncells<CellTag::topology_level>(seg);
+         CellContainer cells = viennagrid::ncells<CellTag::dim>(seg);
          
          for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
          {

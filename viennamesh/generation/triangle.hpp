@@ -45,18 +45,18 @@ struct mesh_kernel <viennamesh::tag::triangle>
    typedef boost::shared_ptr<domain_type>                            domain_ptr_type;
    typedef domain_type::config_type                                  domain_configuration_type;
    typedef domain_configuration_type::cell_tag                       cell_tag;
+
+   static const int DIMG = domain_configuration_type::coordinate_system_tag::dim;
+   static const int DIMT = cell_tag::dim;   
+   static const int CELL_SIZE = viennagrid::topology::bndcells<cell_tag, 0>::num;           
    
    typedef viennagrid::result_of::ncell<domain_configuration_type, 0>::type                            vertex_type;   
-   typedef viennagrid::result_of::ncell<domain_configuration_type, cell_tag::topology_level>::type     cell_type;   
-   typedef viennagrid::result_of::ncell_range<domain_type, cell_tag::topology_level>::type              cell_container;
+   typedef viennagrid::result_of::ncell<domain_configuration_type, DIMT>::type     cell_type;   
+   typedef viennagrid::result_of::ncell_range<domain_type, DIMT>::type              cell_container;
    typedef viennagrid::result_of::ncell_range<cell_type, 0>::type                                       vertex_on_cell_container_type;
    typedef viennagrid::result_of::iterator<vertex_on_cell_container_type>::type                             vertex_on_cell_iterator_type;
 
 
-   static const int DIMG = 2;
-   static const int DIMT = 2;
-   static const int CELL_SIZE = DIMT+1;            // this holds only for simplices
-   
    typedef viennamesh::mesh_kernel<viennamesh::tag::triangle>          self_type;   
    
    typedef boost::array< numeric_type , DIMG >        point_type;

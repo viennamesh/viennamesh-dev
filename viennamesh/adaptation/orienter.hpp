@@ -52,26 +52,26 @@ struct mesh_adaptor <viennamesh::tag::orienter>
    typedef domain_type::config_type                     DomainConfiguration;
 
    typedef DomainConfiguration::numeric_type            CoordType;
-   typedef DomainConfiguration::dimension_tag           DimensionTag;
    typedef DomainConfiguration::cell_tag                CellTag;
+
+   static const int DIMT = CellTag::dim;
+   static const int CELLSIZE = viennagrid::topology::bndcells<CellTag, 0>::num;         
 
    typedef domain_type::segment_type                                                                  SegmentType;
    typedef viennagrid::result_of::point<DomainConfiguration>::type                               PointType;
    typedef viennagrid::result_of::ncell<DomainConfiguration, 0>::type                            VertexType;
    typedef viennagrid::result_of::ncell<DomainConfiguration, 1>::type                            EdgeType;   
-   typedef viennagrid::result_of::ncell<DomainConfiguration, CellTag::topology_level>::type      CellType;
-   typedef viennagrid::result_of::ncell_range<SegmentType, CellTag::topology_level>::type         CellContainer;      
+   typedef viennagrid::result_of::ncell<DomainConfiguration, DIMT>::type      CellType;
+   typedef viennagrid::result_of::ncell_range<SegmentType, DIMT>::type         CellContainer;      
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;      
    typedef viennagrid::result_of::ncell_range<CellType, 0>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;      
    typedef viennagrid::result_of::ncell_range<CellType, 1>::type                                  EdgeOnCellContainer;
    typedef viennagrid::result_of::iterator<EdgeOnCellContainer>::type                                 EdgeOnCellIterator;      
-   typedef viennagrid::result_of::ncell_range<EdgeType, CellTag::topology_level>::type            CellOnEdgeContainer;
+   typedef viennagrid::result_of::ncell_range<EdgeType, DIMT>::type            CellOnEdgeContainer;
    typedef viennagrid::result_of::iterator<CellOnEdgeContainer>::type                                 CellOnEdgeIterator;   
    
-   static const int DIMG = DomainConfiguration::dimension_tag::value;
-   static const int DIMT = DomainConfiguration::cell_tag::topology_level;   
-   static const int CELLSIZE = DIMT+1;      
+
 
    // --------------------------------------------------------------------------         
    mesh_adaptor();
