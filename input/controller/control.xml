@@ -8,7 +8,7 @@
                <!-- desc: the largest allowed mesh element size -->               
                <key>maxsize</key>
                <!-- range: maxsize > 0.0 -->
-               <val>1.0E10</val>
+               <val>0.05</val>
             </para>
             <para>
                <!-- note: global minimum mesh size -->

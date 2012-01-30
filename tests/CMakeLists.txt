@@ -28,7 +28,7 @@ set(VIENNAMESH_LIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/lib")
 SET(ENABLE_TEST_SPECIAL_MESHES OFF)
 SET(ENABLE_TEST_ALL_SPECIAL_MESHES OFF)
 SET(VIENNAMESH_USE_INTERNAL OFF CACHE BOOL "Build ViennaMesh with internal ViennaStar projects")
-SET(VIENNAMESH_USE_MPI OFF CACHE BOOL "Build ViennaMesh with MPI support")
+SET(VIENNAMESH_USE_MPI ON CACHE BOOL "Build ViennaMesh with MPI support")
 
 # ------------------------------------------------------------------------------
 #
@@ -238,7 +238,9 @@ ADD_EXECUTABLE(meta_sel       src/meta_selector.cpp)
 ADD_EXECUTABLE(tetgen_test    src/tetgen.cpp)
 ADD_EXECUTABLE(triangle_test  src/triangle.cpp)
 ADD_EXECUTABLE(direct_domain  src/direct_domain_input.cpp)
-
+IF(VIENNAMESH_USE_MPI)
+   ADD_EXECUTABLE(mpi            src/mpi.cpp)
+ENDIF(VIENNAMESH_USE_MPI)
 # ------------------------------------------------------------------------------
 #
 # *** LINK APPLICATIONS AGAINST SPECIFIC LIBRARIES ***
@@ -254,7 +256,9 @@ TARGET_LINK_LIBRARIES(meta_sel         viennamesh)
 TARGET_LINK_LIBRARIES(tetgen_test      viennamesh)
 TARGET_LINK_LIBRARIES(triangle_test    viennamesh)
 TARGET_LINK_LIBRARIES(direct_domain    viennamesh)
-
+IF(VIENNAMESH_USE_MPI)
+   TARGET_LINK_LIBRARIES(mpi              viennamesh)
+ENDIF(VIENNAMESH_USE_MPI)
 # ------------------------------------------------------------------------------
 #
 # *** RUN TESTS ***
@@ -423,4 +427,12 @@ ADD_TEST(meta_sel       meta_sel)
 ADD_TEST(tetgen_test    tetgen_test ../../input/meshes/after_line_tri.bnd)      
 ADD_TEST(direct_domain  direct_domain ../../input/meshes/after_line_tri.bnd)      
 #ADD_TEST(triangle_test  triangle_test ../../input/square_geom.sgf)
+
+IF(VIENNAMESH_USE_MPI)
+  message(${MPI_EXEC} ${MPI_EXEC_PRE_NUMPROCS_FLAGS} ${MPI_EXEC_NUMPROCS_FLAG} 4 ${MPI_EXEC_POST_NUMPROCS_FLAGS})
+  ADD_TEST(mpi mpirun -np 4 mpi  ../../input/meshes/homogenous_cubes_7_segments.bnd)      
+ENDIF(VIENNAMESH_USE_MPI)
+
+
+
 

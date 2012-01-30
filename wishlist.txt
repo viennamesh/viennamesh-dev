@@ -1,0 +1,22 @@
+
+
+
+
+
+viennagrid<...> domain;
+
+
+domain.read(inputfile);
+
+
+hullgen = new cervpt
+volgen  = new netgen
+
+volgen(hullgen(domain))
+
+
+
+
+
+
+

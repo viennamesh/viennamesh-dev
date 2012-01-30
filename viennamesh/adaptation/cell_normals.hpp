@@ -24,6 +24,8 @@
 // *** vienna includes
 #include "viennagrid/domain.hpp"
 #include "viennadata/api.hpp"
+#include "viennagrid/config/simplex.hpp"
+
 
 // *** boost includes
 #include <boost/make_shared.hpp>
