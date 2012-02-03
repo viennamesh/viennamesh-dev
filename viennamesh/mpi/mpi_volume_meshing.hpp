@@ -280,7 +280,7 @@ void processInformation(MPI_Packet<double> MPI_info, std::vector<double> & GeoCo
 }
 
 
-void root_tasks(mpi::communicator& comm, 
+void root_tasks(mpi::communicator& world, 
                   viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type&   domain, 
                   viennagrid::result_of::domain<viennagrid::config::tetrahedral_3d>::type&  domainres)
 {
@@ -311,6 +311,8 @@ void root_tasks(mpi::communicator& comm,
 	typedef viennagrid::result_of::point<config_type>::type										                                    PointType;	
 
   ////////////////////// Volume mesh //////////////////////
+  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type                                        orienter_adaptor_type;  
+  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type                                    cell_normals_adaptor_type;
   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type                                        volume_mesh_generator_type;
   
   typedef viennagrid::config::tetrahedral_3d                                                                          volume_config_type;
@@ -346,8 +348,8 @@ void root_tasks(mpi::communicator& comm,
   
   // Prepare first packet to broadcast the total number of segments among nodes
   int segmentInd = domain.segments().size();
-  mpi::broadcast(comm, segmentInd, 0);  
-  std::cout << "[" << comm.rank() << "] Number of segments: " << domain.segments().size() << std::endl;
+  //mpi::broadcast(world, segmentInd, 0);  
+  std::cout << "[" << world.rank() << "] Number of segments: " << domain.segments().size() << std::endl;
 
   // ENHANCEMENT: Segment reordering -- Bigger ones first
   // -------------
@@ -356,25 +358,25 @@ void root_tasks(mpi::communicator& comm,
 
   // Send a segment to each available node (when there are enough segments for it)
   std::size_t si=0;
-  for(std::size_t destNode=1; si < domain.segments().size() && si < comm.size()-1; si++, destNode++)
+  for(std::size_t destNode=1; si < domain.segments().size() && si < world.size()-1; si++, destNode++)
   {
-      std::cout << "[" << comm.rank() << "] sending segment: " << si << " to process: " << destNode << std::endl;
-      segmentSend(comm, destNode, domain, sortedSegs[si]);
+      std::cout << "[" << world.rank() << "] sending segment: " << si << " to process: " << destNode << std::endl;
+      segmentSend(world, destNode, domain, sortedSegs[si]);
   }
     
-  mpi::request reqs[comm.size()-1];        // Stores state of a communication  
-  MPI_Packet<double> msj[comm.size()-1];   // Stores information received asynchronusly from a communication
+  mpi::request reqs[world.size()-1];        // Stores state of a communication  
+  MPI_Packet<double> msj[world.size()-1];   // Stores information received asynchronusly from a communication
   
-  std::cout << "[" << comm.rank() << "] waiting for responses ... " << std::endl;
+  std::cout << "[" << world.rank() << "] waiting for responses ... " << std::endl;
   // Asynchronous wait for 'job done' confirmation from nodes
   // But, firstly, check if we have already sent every segment (number of segments >= worker nodes)
-  if (domain.segments().size() >= comm.size()-1)
+  if (domain.segments().size() >= world.size()-1)
   { // Not every segment has been sent. Wait for confirmation from every worker node.
-    for (int i=0; i<comm.size()-1; i++) reqs[i] = comm.irecv(i+1, 0, msj[i]);
+    for (int i=0; i<world.size()-1; i++) reqs[i] = world.irecv(i+1, 0, msj[i]);
   }
   else
   { // Every segment has been sent. Wait for confirmation from first $number_of_segments worker nodes.
-    for (int i=0; i<domain.segments().size(); i++) reqs[i] = comm.irecv(i+1, 0, msj[i]);
+    for (int i=0; i<domain.segments().size(); i++) reqs[i] = world.irecv(i+1, 0, msj[i]);
   }
 
   // Container with data to be sent or received over the network
@@ -388,26 +390,26 @@ void root_tasks(mpi::communicator& comm,
   {      
     // Wait until receive, at least, one confirmation
     // The node who sent the confirmation will be stored in info.source()
-    mpi::status info = mpi::wait_any(reqs, reqs+comm.size()-1).first;
+    mpi::status info = mpi::wait_any(reqs, reqs+world.size()-1).first;
     
-    std::cout << "[" << comm.rank() << "] sending segment: " << si << " to process: " << info.source() << std::endl;    
+    std::cout << "[" << world.rank() << "] sending segment: " << si << " to process: " << info.source() << std::endl;    
     // Send another segment to the available node (info.source()) and wait for its confirmation.
-    segmentSend(comm, info.source(), domain, sortedSegs[si]);         
-    reqs[info.source()-1] = comm.irecv(info.source(), 0, msj[info.source()-1]);
+    segmentSend(world, info.source(), domain, sortedSegs[si]);         
+    reqs[info.source()-1] = world.irecv(info.source(), 0, msj[info.source()-1]);
     
     processInformation(msj[info.source()-1], GeoContainer, TopoContainer[(int) msj[info.source()-1][0]]);    
   }
   
   // Every segment has been sent. Receiving last confirmations
-  for (int i=0; i < comm.size()-1 && i < domain.segments().size(); i++) { 
+  for (int i=0; i < world.size()-1 && i < domain.segments().size(); i++) { 
   
-    std::pair<mpi::status, mpi::request*> pair = mpi::wait_any(reqs, reqs+comm.size()-1-i);
+    std::pair<mpi::status, mpi::request*> pair = mpi::wait_any(reqs, reqs+world.size()-1-i);
     int ind = pair.second - reqs;
     int source = pair.first.source();
     
     
     // Remove received request and reordering reqs array
-    for (; ind < comm.size()-2-i; ind++) {
+    for (; ind < world.size()-2-i; ind++) {
       reqs[ind] = reqs[ind+1];
     }
     
@@ -418,16 +420,16 @@ void root_tasks(mpi::communicator& comm,
   // Terminate communications with every worker node
   MPI_info.clear();
   MPI_info.setCMD(CMD_FINISH);  
-  for (size_t i=0; i<comm.size()-1; i++) comm.isend(i+1, 0, MPI_info);
+  for (size_t i=0; i<world.size()-1; i++) world.isend(i+1, 0, MPI_info);
   
   std::ofstream hfile("results_distribut_collect_volume_mesh.txt", std::ios::out | std::fstream::app);
-  hfile << comm.size() << " " << timer.get() << std::endl;
+  hfile << world.size() << " " << timer.get() << std::endl;
   hfile.close();
   
   std::ofstream vfile("results_multisegment_domain_setup.txt", std::ios::out | std::fstream::app);
   timer.start();
   
-  std::cout << "[" << comm.rank() << "] Volume mesh information received from nodes. Building multi-segment domain..." << std::endl;
+  std::cout << "[" << world.rank() << "] Volume mesh information received from nodes. Building multi-segment domain..." << std::endl;
   
   //////////////////
   ////////////////// Building volume domain stage //////////////////
@@ -533,12 +535,12 @@ void root_tasks(mpi::communicator& comm,
     
   }
   
-  vfile << comm.size() << " " << timer.get() << std::endl;
+  vfile << world.size() << " " << timer.get() << std::endl;
   vfile.close();  
 }
 
 
-void worker_tasks(mpi::communicator& comm)
+void worker_tasks(mpi::communicator& world)
 {
   ////////////////////// Hull mesh //////////////////////
   typedef viennagrid::config::triangular_3d                                                                           config_type;
@@ -562,6 +564,8 @@ void worker_tasks(mpi::communicator& comm)
 	typedef viennagrid::result_of::point<config_type>::type										                                    PointType;	
 
   ////////////////////// Volume mesh //////////////////////
+  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type                                        orienter_adaptor_type;  
+  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type                                    cell_normals_adaptor_type;
   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type                                        volume_mesh_generator_type;
   
   typedef viennagrid::config::tetrahedral_3d                                                                          volume_config_type;
@@ -598,16 +602,19 @@ void worker_tasks(mpi::communicator& comm)
   int segmentInd;
   
   // Wait for initial message with total amount of segments
-  mpi::broadcast(comm, segmentInd, 0);
-  domain_type domainArray[segmentInd];
+  //mpi::broadcast(world, segmentInd, 0);
+
+///  domain_type domainArray[segmentInd];
   
   // Receive segment info
   MPI_info.clear();
-  comm.recv(0, 0, MPI_info);
+  world.recv(0, 0, MPI_info);
   
   // Looping while segments are received
   while (MPI_info.cmd != CMD_FINISH)
   { 	// An iteration per segment
+
+    domain_type domain;
   
     //////////////////
     ////////////////// Communication stage //////////////////
@@ -620,9 +627,10 @@ void worker_tasks(mpi::communicator& comm)
     std::map<size_t, size_t> verticesIndexes;	      // vertex ID --> domain ID
     
     //domainArray[segmentInd].create_segments(1); 
-    domainArray[segmentInd].segments().resize(1);
+    //domainArray[segmentInd].segments().resize(1);
+    domain.segments().resize(1);
   #ifdef VMPI_DEBUG
-    std::cout << "\t[" << comm.rank() << "] Segment " << segmentInd << " received." << std::endl;
+    std::cout << "\t[" << world.rank() << "] Segment " << segmentInd << " received." << std::endl;
   #endif
    
     assert(MPI_info[1] == CMD_GEO && "Fourth element of MPI_info is not CMD_GEO");
@@ -637,12 +645,14 @@ void worker_tasks(mpi::communicator& comm)
       
       // Adding vertex to the domain and storing the ID
       //verticesIndexes[MPI_info[index]] = domainArray[segmentInd].add(v)->id();
-      domainArray[segmentInd].push_back( p );
+      //domainArray[segmentInd].push_back( p );
+      domain.push_back( p );
       verticesIndexes[MPI_info[index]] = id++;
     }
     
     // Topological information
-    segment_type & seg = domainArray[segmentInd].segments()[0];      
+    ///segment_type & seg = domainArray[segmentInd].segments()[0];      
+    segment_type & seg = domain.segments()[0];      
     int size = cell_tag::dim+1;
     for (++index; index < MPI_info.container.size(); index += size) {        
       VertexType *cell_vertices[size];          
@@ -651,7 +661,8 @@ void worker_tasks(mpi::communicator& comm)
       // We add every vertex 
       for (int i=0; i < size; i++) {
         // Add vertex to the vertices vector
-        cell_vertices[i] = &( viennagrid::ncells<0>(domainArray[segmentInd])[verticesIndexes[MPI_info[index+i]]] );
+        ///cell_vertices[i] = &( viennagrid::ncells<0>(domainArray[segmentInd])[verticesIndexes[MPI_info[index+i]]] );
+        cell_vertices[i] = &( viennagrid::ncells<0>(domain)[verticesIndexes[MPI_info[index+i]]] );
         //vertices[i] = &(domainArray[segmentInd].vertex( verticesIndexes[MPI_info[index+i]] ));
       }
       
@@ -666,23 +677,30 @@ void worker_tasks(mpi::communicator& comm)
     ////////////////// Generating a volume mesh from the hull mesh
     
     //// Functors    
+    // Orientation adaptor - orients the hull mesh elements in counter-clockwise orientation
+    orienter_adaptor_type               orienter;
+    
+    // Cell normalization adaptor
+    cell_normals_adaptor_type           cell_normals;               
+    
     // Volume mesh generator
     volume_mesh_generator_type          volume_mesher;
     
     // Generate volume mesh applying functors
     //volume_mesh_generator_type::result_type domainres = volume_mesher(cell_normals(orienter(domainArray[segmentInd])));
-    volume_mesh_generator_type::result_type domainres = volume_mesher(domainArray[segmentInd]);
+    ///volume_mesh_generator_type::result_type domainres = volume_mesher(domainArray[segmentInd]);
+    volume_mesh_generator_type::result_type domainres = volume_mesher(domain);
 
   #ifdef VMPI_DEBUG
-    std::cout << "\t[" << comm.rank() << "] finished - sending result .." << std::endl;
+    std::cout << "\t[" << world.rank() << "] finished - sending result .." << std::endl;
   #endif
   
     // Send single-segment volume domain result back to the root process
-    volume_segmentSend(comm, 0, *domainres, segmentInd);
+    volume_segmentSend(world, 0, *domainres, segmentInd);
     
     // Receive next packet
     MPI_info.clear();
-    comm.recv(0, 0, MPI_info);
+    world.recv(0, 0, MPI_info);
     
   }
 }
