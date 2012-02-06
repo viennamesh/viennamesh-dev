@@ -41,7 +41,16 @@
 #define CMD_FINISH      -5    // Communication finished
 #define CMD_INVALID     -10   // Invalid CMD
 
-
+/*
+////////////////////
+//
+// TO DO:
+// * - revisit segment merger in root: make it faster(possible?!) 
+// * - make optional geometry unification at segment merger
+// * - Merge segmentSend and volume_segmentSend (only difference: config_type)
+//
+////////////////////
+*/
 
 #define VMPI_DEBUG
 
@@ -152,6 +161,7 @@ void segmentSend(mpi::communicator &comm,
   // [JW] added number of cells output to verify that the segment with the largest 
   // number of cells is processed first
 #ifdef VMPI_DEBUG
+  std::cout << "[0] sending segment: " << si << " - vertices: " << viennagrid::ncells<0>(seg).size() << std::endl;
   std::cout << "[0] sending segment: " << si << " - cells: " << viennagrid::ncells<cell_tag::dim>(seg).size() << std::endl;
 #endif
 
@@ -311,8 +321,6 @@ void root_tasks(mpi::communicator& world,
 	typedef viennagrid::result_of::point<config_type>::type										                                    PointType;	
 
   ////////////////////// Volume mesh //////////////////////
-  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type                                        orienter_adaptor_type;  
-  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type                                    cell_normals_adaptor_type;
   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type                                        volume_mesh_generator_type;
   
   typedef viennagrid::config::tetrahedral_3d                                                                          volume_config_type;
@@ -401,15 +409,16 @@ void root_tasks(mpi::communicator& world,
   }
   
   // Every segment has been sent. Receiving last confirmations
+  int upperLimit = world.size() > domain.segments().size() ? domain.segments().size() : world.size()-1;  
   for (int i=0; i < world.size()-1 && i < domain.segments().size(); i++) { 
   
-    std::pair<mpi::status, mpi::request*> pair = mpi::wait_any(reqs, reqs+world.size()-1-i);
+    std::pair<mpi::status, mpi::request*> pair = mpi::wait_any(reqs, reqs+upperLimit-i);
     int ind = pair.second - reqs;
     int source = pair.first.source();
     
     
     // Remove received request and reordering reqs array
-    for (; ind < world.size()-2-i; ind++) {
+    for (; ind < upperLimit-1-i; ind++) {
       reqs[ind] = reqs[ind+1];
     }
     
@@ -492,6 +501,10 @@ void root_tasks(mpi::communicator& world,
     domainres.add(v);
   }*/
 
+  // clear geocontainer to release some memory ..
+  GeoContainer.clear();
+
+
   ////////////////// Build topological information //////////////////
   
   // Traverse topological information
@@ -564,8 +577,6 @@ void worker_tasks(mpi::communicator& world)
 	typedef viennagrid::result_of::point<config_type>::type										                                    PointType;	
 
   ////////////////////// Volume mesh //////////////////////
-  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::orienter>::type                                        orienter_adaptor_type;  
-  typedef viennamesh::result_of::mesh_adaptor<viennamesh::tag::cell_normals>::type                                    cell_normals_adaptor_type;
   typedef viennamesh::result_of::mesh_generator<viennamesh::tag::netgen>::type                                        volume_mesh_generator_type;
   
   typedef viennagrid::config::tetrahedral_3d                                                                          volume_config_type;
@@ -677,12 +688,6 @@ void worker_tasks(mpi::communicator& world)
     ////////////////// Generating a volume mesh from the hull mesh
     
     //// Functors    
-    // Orientation adaptor - orients the hull mesh elements in counter-clockwise orientation
-    orienter_adaptor_type               orienter;
-    
-    // Cell normalization adaptor
-    cell_normals_adaptor_type           cell_normals;               
-    
     // Volume mesh generator
     volume_mesh_generator_type          volume_mesher;
     
@@ -703,6 +708,11 @@ void worker_tasks(mpi::communicator& world)
     world.recv(0, 0, MPI_info);
     
   }
+  
+#ifdef VMPI_DEBUG
+  std::cout << "\t[" << world.rank() << "] shutting down .." << std::endl;
+#endif  
+  
 }
 
 } // end namespace detail
