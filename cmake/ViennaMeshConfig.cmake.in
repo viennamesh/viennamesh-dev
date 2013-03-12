@@ -1,0 +1,20 @@
+#- CMake configuration file for ViennaMesh
+# Sets the following variables if ViennaMesh was found:
+#  VIENNAMESH_FOUND         : TRUE if found
+#  VIENNAMESH_INCLUDE_DIRS  : Include-directories to be used
+#  VIENNAMESH_LIBRARIES     : Libraries to link against
+
+# Compute paths
+get_filename_component(VIENNAMESH_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+if(EXISTS "${VIENNAMESH_CMAKE_DIR}/CMakeCache.txt")
+   # in build tree
+   get_filename_component(VIENNAMESH_INSTALL_PREFIX "${VIENNAMESH_CMAKE_DIR}" PATH)
+   set(VIENNAMESH_INCLUDE_DIR "${_VIENNAMESH_PREFIX}")
+else()
+   set(VIENNAMESH_INSTALL_PREFIX "${VIENNAMESH_CMAKE_DIR}/@CONF_REL_INSTALL_PREFIX@")
+   set(VIENNAMESH_INCLUDE_DIR "${VIENNAMESH_CMAKE_DIR}/@CONF_REL_INCLUDE_DIR@")
+endif()
+
+# Set up variables
+set(VIENNAMESH_INCLUDE_DIRS ${VIENNAMESH_INCLUDE_DIR})
+set(VIENNAMESH_LIBRARIES "")
