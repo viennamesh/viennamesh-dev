@@ -3,6 +3,10 @@
 
 #include "viennamesh/domain/cgal_delaunay_tetrahedron.hpp"
 #include "viennamesh/base/algorithm.hpp"
+#include "viennamesh/base/settings.hpp"
+
+#include "viennamesh/utils/utils.hpp"
+
 #include <boost/concept_check.hpp>
 
 
@@ -15,33 +19,17 @@ namespace viennamesh
     
     struct cgal_delaunay_tetrahedron_settings
     {
-        cgal_delaunay_tetrahedron_settings() {}
+        typedef FieldParameter<double, viennagrid::config::point_type_3d> field_parameter_type;
+        typedef ScalarParameter<double> scalar_parameter_type;
         
-        double cell_radius_edge_ratio;
-        double cell_size;
-    };
-    
+        cgal_delaunay_tetrahedron_settings() : cell_size(0), facet_angle(0), cell_radius_edge_ratio(0) {}
+        
+        field_parameter_type cell_size;
+        
+        scalar_parameter_type facet_angle;
+        scalar_parameter_type cell_radius_edge_ratio;
 
-    struct parameter_cell_radius_edge_ratio {};
-    struct parameter_cell_size {};
-    
-    template<>
-    struct settings_parameter<cgal_delaunay_tetrahedron_settings, parameter_cell_radius_edge_ratio>
-    {
-        typedef double type;
-        
-        static type get( cgal_delaunay_tetrahedron_settings const & settings) { return settings.cell_radius_edge_ratio; }
     };
-    
-    template<>
-    struct settings_parameter<cgal_delaunay_tetrahedron_settings, parameter_cell_size>
-    {
-        typedef double type;
-        
-        static type get( cgal_delaunay_tetrahedron_settings const & settings) { return settings.cell_size; }
-    };
-    
-    
     
     
     
@@ -73,19 +61,109 @@ namespace viennamesh
     }
     
     
-    template<typename FT_, typename Point, typename Index_>
-    struct test_meshsize
+    template<typename FT_, typename Point, typename Index_, typename field_functor_ptr_type>
+    struct cgal_sizing_field
     {
+    public:
         typedef FT_ FT;
         typedef Point Point_3;
         typedef Index_ Index;
         
-        template<typename point_type, typename index_type>
-        double operator() ( point_type p, int dimension, index_type index ) const
+        typedef typename utils::element_type<field_functor_ptr_type>::type field_functor_type;
+        
+        cgal_sizing_field( field_functor_ptr_type field_) : field(field_) {}
+        
+        FT operator() ( Point_3 const & p, int dimension, Index const & index ) const
         {
-            return p.x();
+            assert(field != 0);
+            return field->look_up( typename field_functor_type::point_type( p.x(), p.y(), p.z() ) );
         }
+        
+    private:
+        field_functor_ptr_type field;
     };
+    
+    
+    
+    
+
+    template<typename mesh_cirteria>
+    struct get_triangulation;
+    
+    template<typename Tr>
+    struct get_triangulation< CGAL::Mesh_criteria_3<Tr> >
+    {
+        typedef Tr type;
+    };
+    
+    
+    
+    
+    template<typename cgal_mesh_criteria_type, typename index_type, typename settings_type>
+    cgal_mesh_criteria_type * get_cirteria( settings_type settings )
+    {
+        if ( settings.cell_size.is_ignored() )
+        {
+            std::cout << "  radius-cell-ratio " << settings.cell_radius_edge_ratio() << std::endl;
+            std::cout << "  facet angle " << settings.facet_angle() << std::endl;
+            
+            return new cgal_mesh_criteria_type(
+                CGAL::parameters::edge_size = std::numeric_limits<double>::max(),
+                CGAL::parameters::cell_radius_edge_ratio = settings.cell_radius_edge_ratio(),
+                CGAL::parameters::facet_angle = settings.facet_angle(),
+                CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK
+            );
+        }
+        
+        if ( settings.cell_size.is_scalar() )
+        {
+            return new cgal_mesh_criteria_type(
+                CGAL::parameters::edge_size = settings.cell_size(),
+                CGAL::parameters::cell_radius_edge_ratio = settings.cell_radius_edge_ratio(),
+                CGAL::parameters::facet_angle = settings.facet_angle(),
+                CGAL::parameters::facet_size = settings.cell_size(),
+                CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK,
+                CGAL::parameters::cell_size = settings.cell_size()
+            );
+        }
+        
+        
+        typedef typename settings_type::field_parameter_type::field_functor_ptr_type field_functor_ptr_type;
+        
+        typedef typename get_triangulation<cgal_mesh_criteria_type>::type::Triangulation_3 Triangulation;
+        typedef typename cgal_mesh_criteria_type::Edge_criteria::FT FT;
+        typedef typename Triangulation::Point Point;
+        
+        typedef typename cgal_mesh_criteria_type::Edge_criteria::Point_3 EdgePoint;
+ 
+        typedef index_type Index;
+        
+        cgal_sizing_field<
+            FT,
+            Point,
+            Index,
+            field_functor_ptr_type
+            > cell_and_facet_sizing_field( settings.cell_size.get_field() );
+        
+        cgal_sizing_field<
+            FT,
+            EdgePoint,
+            Index,
+            field_functor_ptr_type
+            > edge_sizing_field( settings.cell_size.get_field() );
+            
+        return new cgal_mesh_criteria_type(
+            CGAL::parameters::edge_size = edge_sizing_field,
+            CGAL::parameters::cell_radius_edge_ratio = settings.cell_radius_edge_ratio(),
+            CGAL::parameters::facet_angle = settings.facet_angle(),
+            CGAL::parameters::facet_size = cell_and_facet_sizing_field,
+            CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK,
+            CGAL::parameters::cell_size = cell_and_facet_sizing_field
+        );
+
+    }
+    
+    
     
     
     
@@ -94,42 +172,21 @@ namespace viennamesh
     {
         
         template<typename native_input_domain_type, typename native_output_domain_type, typename settings_type>
-        static bool run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
+        static bool run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type settings )
         {
-            typedef CGAL::Mesh_criteria_3<typename native_output_domain_type::Tr> Mesh_criteria;
-            
-            typename native_input_domain_type::feature_lines_type feature_lines(native_input_domain.feature_lines);
-            
-//             test_meshsize test;
-            
-            Mesh_criteria criteria(
-//                 CGAL::parameters::cell_radius_edge_ratio = get_settings_parameter<parameter_cell_radius_edge_ratio>(settings),
-//                 CGAL::parameters::cell_size = get_settings_parameter<parameter_cell_size>(settings),
-                CGAL::parameters::edge_size = 1.0,
-                CGAL::parameters::facet_angle = 25,
-//                 CGAL::parameters::facet_size = 0.05,
-//                 CGAL::parameters::facet_distance = 0.0005,
-                CGAL::parameters::cell_radius_edge_ratio = 3,
-                CGAL::parameters::cell_size = 1.0
-            );
-            
             typename native_output_domain_type::Mesh_domain mesh_domain( native_input_domain.polyhedron );
             
-//             mesh_domain.detect_features();
+            typename native_input_domain_type::feature_lines_type feature_lines(native_input_domain.feature_lines);
             mesh_domain.add_features( feature_lines.begin(), feature_lines.end() );
             
             
-            native_output_domain.tetdrahedron_triangulation = CGAL::make_mesh_3<typename native_output_domain_type::C3t3>(mesh_domain, criteria);
+            typedef CGAL::Mesh_criteria_3<typename native_output_domain_type::Tr> mesh_criteria_type;
+            mesh_criteria_type * criteria = get_cirteria<mesh_criteria_type, typename native_input_domain_type::Mesh_domain::Index>(settings);
+
             
+            native_output_domain.tetdrahedron_triangulation = CGAL::make_mesh_3<typename native_output_domain_type::C3t3>(mesh_domain, *criteria);
             
-//             Mesh_criteria new_criteria(
-//                 CGAL::parameters::cell_radius_edge_ratio = get_settings_parameter<parameter_cell_radius_edge_ratio>(settings),
-//                 CGAL::parameters::cell_size = get_settings_parameter<parameter_cell_size>(settings),
-//                                        CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH
-//             );
-// 
-//             
-//             CGAL::refine_mesh_3( native_output_domain.tetdrahedron_triangulation, mesh_domain, new_criteria );
+            delete criteria;
             
             return true;
         }
