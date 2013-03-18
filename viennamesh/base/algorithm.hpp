@@ -39,19 +39,6 @@ namespace viennamesh
         
         template<typename algorithm_tag>
         struct works_in_place;
-        
-        template<typename algorithm_tag>
-        struct settings;
-    }
-    
-
-    template<typename settings_type, typename parameter_tag>
-    struct settings_parameter {};
-    
-    template<typename parameter_tag, typename settings_type>
-    typename settings_parameter<settings_type, parameter_tag>::type get_settings_parameter( settings_type const & settings )
-    {
-        return settings_parameter<settings_type, parameter_tag>::get( settings );
     }
     
     
