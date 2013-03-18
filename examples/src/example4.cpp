@@ -1,10 +1,11 @@
 #include <iostream>
 
-#include "viennamesh/base/cgal.hpp"
-#include "viennamesh/convert/cgal.hpp"
+// #include "viennamesh/base/cgal.hpp"
+// #include "viennamesh/convert/cgal.hpp"
 // #include "viennamesh/generation/triangle.hpp"
 
 
+#include "viennagrid/domain/config.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"

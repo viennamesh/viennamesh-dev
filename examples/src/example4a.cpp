@@ -7,6 +7,21 @@
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/cross_prod.hpp"
+
+
+
+
+
+
+struct functor
+{
+    template<typename point_type>
+    double operator() (point_type const & p) const
+    {
+        return p[0] / 10.0 * 2.0 + 0.2;
+    }
+};
 
 
 
@@ -43,29 +58,29 @@ int main()
     viennagrid::create_triangle( hull_domain, vtx[0], vtx[1], vtx[2] );
     viennagrid::create_triangle( hull_domain, vtx[2], vtx[1], vtx[3] );
     
-    viennagrid::create_triangle( hull_domain, vtx[4], vtx[5], vtx[6] );
-    viennagrid::create_triangle( hull_domain, vtx[6], vtx[5], vtx[7] );
+    viennagrid::create_triangle( hull_domain, vtx[4], vtx[6], vtx[5] );
+    viennagrid::create_triangle( hull_domain, vtx[6], vtx[7], vtx[5] );
     
     viennagrid::create_triangle( hull_domain, vtx[0], vtx[2], vtx[4] );
-    viennagrid::create_triangle( hull_domain, vtx[2], vtx[4], vtx[6] );
+    viennagrid::create_triangle( hull_domain, vtx[2], vtx[6], vtx[4] );
     
-    viennagrid::create_triangle( hull_domain, vtx[1], vtx[3], vtx[5] );
+    viennagrid::create_triangle( hull_domain, vtx[1], vtx[5], vtx[3] );
     viennagrid::create_triangle( hull_domain, vtx[3], vtx[5], vtx[7] );
     
-    viennagrid::create_triangle( hull_domain, vtx[0], vtx[1], vtx[4] );
+    viennagrid::create_triangle( hull_domain, vtx[0], vtx[4], vtx[1] );
     viennagrid::create_triangle( hull_domain, vtx[1], vtx[4], vtx[5] );
     
     viennagrid::create_triangle( hull_domain, vtx[2], vtx[3], vtx[6] );
-    viennagrid::create_triangle( hull_domain, vtx[3], vtx[6], vtx[7] );
+    viennagrid::create_triangle( hull_domain, vtx[3], vtx[7], vtx[6] );
     
     
-    
+    functor f;
     
     
     viennamesh::result_of::settings<viennamesh::cgal_delaunay_tetrahedron_tag>::type settings;
     
-    settings.cell_radius_edge_ratio = 2.0;
-    settings.cell_size = 1.0;
+    settings.cell_size = f;
+    settings.cell_radius_edge_ratio = 1.5;
     
     
     viennagrid::config::tetrahedral_3d_domain tet_domain;
