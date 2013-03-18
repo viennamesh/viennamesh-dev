@@ -103,7 +103,7 @@ namespace viennamesh
                 point_type const & p1 = viennagrid::point( vgrid_domain, viennagrid::elements<viennagrid::vertex_tag>(tri)[1] );
                 point_type const & p2 = viennagrid::point( vgrid_domain, viennagrid::elements<viennagrid::vertex_tag>(tri)[2] );
                 
-                cgal_domain.polyhedron.make_triangle( Point( p0[0], p0[1], p0[2]), Point( p1[0], p1[1], p1[2]), Point( p2[0], p2[1], p2[2]) );
+                cgal_domain.polyhedron.make_triangle( Point(p0[0], p0[1], p0[2]), Point(p1[0], p1[1], p1[2]), Point(p2[0], p2[1], p2[2]) );
             }
             
             
@@ -122,8 +122,8 @@ namespace viennamesh
                 point_type const & p0 = viennagrid::point( vgrid_domain, viennagrid::elements<viennagrid::vertex_tag>(line)[0] );
                 point_type const & p1 = viennagrid::point( vgrid_domain, viennagrid::elements<viennagrid::vertex_tag>(line)[1] );
                 
-                cgal_domain.feature_lines[index][0] = Point( p0[0], p0[1], p0[2]);
-                cgal_domain.feature_lines[index][1] = Point( p1[0], p1[1], p1[2]);
+                cgal_domain.feature_lines[index][0] = Point(p0[0], p0[1], p0[2]);
+                cgal_domain.feature_lines[index][1] = Point(p1[0], p1[1], p1[2]);
             }
             
             return true;
