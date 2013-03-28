@@ -61,6 +61,8 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 # Subdirectories
 ################
 
+add_subdirectory( external/vgmodeler )
+
 if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif()
