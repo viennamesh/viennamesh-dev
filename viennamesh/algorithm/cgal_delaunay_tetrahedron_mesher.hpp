@@ -7,9 +7,6 @@
 
 #include "viennamesh/utils/utils.hpp"
 
-#include <boost/concept_check.hpp>
-
-
 namespace viennamesh
 {
     struct cgal_delaunay_tetrahedron_tag {};
@@ -104,9 +101,6 @@ namespace viennamesh
     {
         if ( settings.cell_size.is_ignored() )
         {
-            std::cout << "  radius-cell-ratio " << settings.cell_radius_edge_ratio() << std::endl;
-            std::cout << "  facet angle " << settings.facet_angle() << std::endl;
-            
             return new cgal_mesh_criteria_type(
                 CGAL::parameters::edge_size = std::numeric_limits<double>::max(),
                 CGAL::parameters::cell_radius_edge_ratio = settings.cell_radius_edge_ratio(),
@@ -172,7 +166,7 @@ namespace viennamesh
     {
         
         template<typename native_input_domain_type, typename native_output_domain_type, typename settings_type>
-        static bool run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type settings )
+        static bool run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
         {
             typename native_output_domain_type::Mesh_domain mesh_domain( native_input_domain.polyhedron );
             
