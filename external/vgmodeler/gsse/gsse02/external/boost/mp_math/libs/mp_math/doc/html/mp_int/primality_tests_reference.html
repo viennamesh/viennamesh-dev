@@ -1,0 +1,210 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Primality Tests reference</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.74.0">
+<link rel="home" href="../index.html" title="Chapter 1. mp_int">
+<link rel="up" href="../index.html" title="Chapter 1. mp_int">
+<link rel="prev" href="uniform_mp_int_bits_reference.html" title="uniform_mp_int_bits reference">
+<link rel="next" href="bibliography.html" title="Bibliography">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr>
+<td valign="top"><img alt="Boost C++ Libraries" width="277" height="86" src="../../../../../boost.png"></td>
+<td align="center"><a href="../../../../../index.html">Home</a></td>
+<td align="center"><a href="../../../../../libs/libraries.htm">Libraries</a></td>
+<td align="center"><a href="http://www.boost.org/users/people.html">People</a></td>
+<td align="center"><a href="http://www.boost.org/users/faq.html">FAQ</a></td>
+<td align="center"><a href="../../../../../more/index.htm">More</a></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="uniform_mp_int_bits_reference.html"><img src="../../../../../doc/html/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/html/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/html/images/home.png" alt="Home"></a><a accesskey="n" href="bibliography.html"><img src="../../../../../doc/html/images/next.png" alt="Next"></a>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mp_int.primality_tests_reference"></a><a class="link" href="primality_tests_reference.html" title="Primality Tests reference">Primality Tests reference</a>
+</h2></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_division_test">primality_division_test</a></span></dt>
+<dt><span class="section"><a href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_fermat_test">primality_fermat_test</a></span></dt>
+<dt><span class="section"><a href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_miller_rabin_test">primality_miller_rabin_test</a></span></dt>
+</dl></div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.primality_tests_reference.primality_division_test"></a><a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_division_test" title="primality_division_test">primality_division_test</a>
+</h3></div></div></div>
+<p>
+        This function object tests a candidate <code class="computeroutput"><span class="identifier">p</span></code>
+        by repeatedly dividing it by small primes (2, 3, 5, 7, 11...). This is a
+        test that should be used before other more complex tests because it quickly
+        sieves out composite numbers. For example, testing for 2, 5, 7 will eliminate
+        54% of all numbers, testing for all primes less than 100 eliminates 70%,
+        for all primes less than 256 it is 80%.
+      </p>
+<a name="mp_int.primality_tests_reference.primality_division_test.synopsis"></a><h5>
+<a name="id3209527"></a>
+        <a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_division_test.synopsis">Synopsis</a>
+      </h5>
+<pre class="programlisting"><span class="comment">// &lt;boost/mp_math/mp_int.hpp&gt;
+</span><span class="keyword">struct</span> <span class="identifier">primality_division_test</span>
+<span class="special">{</span>
+  <span class="keyword">typedef</span> <span class="keyword">bool</span> <span class="identifier">result_type</span><span class="special">;</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span><span class="identifier">T</span><span class="special">&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<a name="mp_int.primality_tests_reference.primality_division_test.members"></a><h4>
+<a name="id3209715"></a>
+        <a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_division_test.members">Members</a>
+      </h4>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span><span class="identifier">T</span><span class="special">&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="itemizedlist"><ul type="disc"><li>
+<span class="bold"><strong>Effects:</strong></span> Returns true if <code class="computeroutput"><span class="identifier">p</span></code> is probably prime. Returns false if
+          <code class="computeroutput"><span class="identifier">p</span></code> is definitely composite.
+        </li></ul></div>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.primality_tests_reference.primality_fermat_test"></a><a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_fermat_test" title="primality_fermat_test">primality_fermat_test</a>
+</h3></div></div></div>
+<p>
+        This test is based on Fermat's little theorem which states that if an integer
+        <code class="computeroutput"><span class="identifier">p</span></code> is prime, then for all
+        integers <code class="computeroutput"><span class="identifier">a</span></code> where 0 &lt;
+        <code class="computeroutput"><span class="identifier">a</span></code> &lt; <code class="computeroutput"><span class="identifier">p</span></code>
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">a</span><span class="special">**(</span><span class="identifier">p</span><span class="special">-</span><span class="number">1</span><span class="special">)</span> <span class="special">=</span> <span class="number">1</span>
+        <span class="special">(</span><span class="identifier">mod</span>
+        <span class="identifier">p</span><span class="special">)</span></code>
+      </p>
+<p>
+        an alternative formulation is
+      </p>
+<p>
+        <code class="computeroutput"><span class="identifier">a</span><span class="special">**</span><span class="identifier">p</span> <span class="special">=</span> <span class="identifier">a</span>
+        <span class="special">(</span><span class="identifier">mod</span>
+        <span class="identifier">p</span><span class="special">)</span></code>
+      </p>
+<p>
+        For each round the test creates a random base <code class="computeroutput"><span class="identifier">a</span></code>
+        and checks if the condition holds. There is a class of pseudoprimes called
+        carmichael numbers which are less likely though not impossible with enough
+        rounds to be detected by this test.
+      </p>
+<a name="mp_int.primality_tests_reference.primality_fermat_test.synopsis"></a><h5>
+<a name="id3210095"></a>
+        <a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_fermat_test.synopsis">Synopsis</a>
+      </h5>
+<pre class="programlisting"><span class="comment">// &lt;boost/mp_math/mp_int.hpp&gt;
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Distribution</span> <span class="special">=</span> <span class="identifier">uniform_mp_int</span><span class="special">&lt;&gt;</span> <span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">primality_fermat_test</span>
+<span class="special">{</span>
+  <span class="keyword">typedef</span> <span class="identifier">Distribution</span> <span class="identifier">distribution_type</span><span class="special">;</span>
+  <span class="keyword">typedef</span> <span class="keyword">bool</span>         <span class="identifier">result_type</span><span class="special">;</span>
+
+  <span class="keyword">explicit</span> <span class="identifier">primality_fermat_test</span><span class="special">(</span><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">rounds</span><span class="special">);</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Engine</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">Engine</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span><span class="identifier">T</span><span class="special">&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<a name="mp_int.primality_tests_reference.primality_fermat_test.members"></a><h4>
+<a name="id3210420"></a>
+        <a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_fermat_test.members">Members</a>
+      </h4>
+<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">primality_fermat_test</span><span class="special">(</span><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">r</span><span class="special">);</span>
+</pre>
+<div class="itemizedlist"><ul type="disc"><li>
+<span class="bold"><strong>Effects:</strong></span> Constructs a <code class="computeroutput"><span class="identifier">primality_fermat_test</span></code>
+          object with the number of test rounds given by <code class="computeroutput"><span class="identifier">r</span></code>.
+        </li></ul></div>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Engine</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">Engine</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span><span class="identifier">T</span><span class="special">&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="itemizedlist"><ul type="disc"><li>
+<span class="bold"><strong>Effects:</strong></span> Returns true if <code class="computeroutput"><span class="identifier">p</span></code> is probably prime. Returns false if
+          <code class="computeroutput"><span class="identifier">p</span></code> is definitely composite.
+        </li></ul></div>
+</div>
+<div class="section" lang="en">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mp_int.primality_tests_reference.primality_miller_rabin_test"></a><a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_miller_rabin_test" title="primality_miller_rabin_test">primality_miller_rabin_test</a>
+</h3></div></div></div>
+<p>
+        This test is an improved version of the Fermat primality test that will also
+        detect carmichael numbers.
+      </p>
+<a name="mp_int.primality_tests_reference.primality_miller_rabin_test.synopsis"></a><h5>
+<a name="id3210730"></a>
+        <a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_miller_rabin_test.synopsis">Synopsis</a>
+      </h5>
+<pre class="programlisting"><span class="comment">// &lt;boost/mp_math/mp_int.hpp&gt;
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Distribution</span> <span class="special">=</span> <span class="identifier">uniform_mp_int</span><span class="special">&lt;&gt;</span> <span class="special">&gt;</span>
+<span class="keyword">struct</span> <span class="identifier">primality_miller_rabin_test</span>
+<span class="special">{</span>
+  <span class="keyword">typedef</span> <span class="identifier">Distribution</span> <span class="identifier">distribution_type</span><span class="special">;</span>
+  <span class="keyword">typedef</span> <span class="keyword">bool</span>         <span class="identifier">result_type</span><span class="special">;</span>
+
+  <span class="keyword">explicit</span> <span class="identifier">primality_miller_rabin_test</span><span class="special">(</span><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">r</span> <span class="special">=</span> <span class="number">0</span><span class="special">);</span>
+
+  <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Engine</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">T</span><span class="special">&gt;</span>
+  <span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">Engine</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span><span class="identifier">T</span><span class="special">&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+
+  <span class="keyword">static</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">recommended_number_of_rounds</span><span class="special">(</span><span class="keyword">unsigned</span> <span class="identifier">bits</span><span class="special">);</span>
+<span class="special">};</span>
+</pre>
+<a name="mp_int.primality_tests_reference.primality_miller_rabin_test.members"></a><h4>
+<a name="id3211106"></a>
+        <a class="link" href="primality_tests_reference.html#mp_int.primality_tests_reference.primality_miller_rabin_test.members">Members</a>
+      </h4>
+<pre class="programlisting"><span class="keyword">explicit</span> <span class="identifier">primality_miller_rabin_test</span><span class="special">(</span><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">r</span> <span class="special">=</span> <span class="number">0</span><span class="special">);</span>
+</pre>
+<div class="itemizedlist"><ul type="disc"><li>
+<span class="bold"><strong>Effects:</strong></span> Constructs a <code class="computeroutput"><span class="identifier">primality_miller_rabin_test</span></code>
+          object with the number of test rounds given by <code class="computeroutput"><span class="identifier">r</span></code>.
+          If <code class="computeroutput"><span class="identifier">r</span> <span class="special">==</span>
+          <span class="number">0</span></code> then each invocation of this function
+          object will use the recommended number of rounds.
+        </li></ul></div>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">Engine</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">A</span><span class="special">,</span> <span class="keyword">class</span> <span class="identifier">T</span><span class="special">&gt;</span>
+<span class="keyword">bool</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">Engine</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">,</span> <span class="keyword">const</span> <span class="identifier">mp_int</span><span class="special">&lt;</span><span class="identifier">A</span><span class="special">,</span><span class="identifier">T</span><span class="special">&gt;&amp;</span> <span class="identifier">p</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<span class="bold"><strong>Requires: </strong></span><code class="computeroutput"><span class="identifier">p</span></code>
+          is odd.
+        </li>
+<li>
+<span class="bold"><strong>Effects:</strong></span> Returns true if <code class="computeroutput"><span class="identifier">p</span></code> is probably prime. Returns false if
+          <code class="computeroutput"><span class="identifier">p</span></code> is definitely composite.
+        </li>
+</ul></div>
+<pre class="programlisting"><span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="identifier">recommended_number_of_rounds</span><span class="special">(</span><span class="keyword">unsigned</span> <span class="identifier">bits</span><span class="special">);</span>
+</pre>
+<div class="itemizedlist"><ul type="disc"><li>
+<span class="bold"><strong>Effects:</strong></span> Returns the recommended number
+          of rounds for a number of precision <code class="computeroutput"><span class="identifier">bits</span></code>
+          so that the probability of error is less than 2^-96.
+        </li></ul></div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright © 2008 - 2009 Kevin Sopp<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="uniform_mp_int_bits_reference.html"><img src="../../../../../doc/html/images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../../../../../doc/html/images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../../../../../doc/html/images/home.png" alt="Home"></a><a accesskey="n" href="bibliography.html"><img src="../../../../../doc/html/images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

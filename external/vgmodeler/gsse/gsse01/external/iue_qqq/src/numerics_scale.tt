@@ -1,0 +1,509 @@
+/* ***********************************************************************
+   $Id: numerics_scale.tt,v 1.2 2004/04/20 15:49:38 wagner Exp $
+
+   Filename: numerics_scale.tt
+
+   Description:  Scaling of the system matrix (templates file)
+
+   Authors:  SW  Stephan Wagner,   Institute for Microelectronics, TU Vienna
+
+   Who When         What
+   -------------------------------------------------------------------------
+   SW  25 Apr 2003  created based on former numerics_eqs.tt
+
+   ***********************************************************************   */
+
+#ifndef __numerics_scale_tt__included__
+#define __numerics_scale_tt__included__
+
+/* calcScalingVectors()
+
+   calculates the scaling vectors.
+   based on the algorithm in solsca.c: vnuODSScaleCSRNS()
+
+   vSc is returned inverted!
+*/
+
+template<class Number>
+bool
+calculateScalingVectors(
+   qqqMCSR<Number> const &A,              /* [I]   system matrix             */
+   Number                *vSc,            /* [O]   vector for column scaling */
+   Number                *vSr,            /* [O]   vector for row scaling    */
+   qqqSolverParameters   &parms,          /* [I/O] solver parameters         */
+   qqqError              &internalError   /* [O]   error information         */
+   )
+{
+   double   x = 0; 	        /* The row scaling factor of row i/
+				   a help variable */
+   Number   d;			/* The diagonal element of row i */
+   double   rowsum;		/* The sum of the absolute values of the
+				   off diagonals in row i of the matrix
+				   in the present scaling state. */
+   double   colsum;		/* The sum of the absolute values of the
+				   off diagonals in column i of the matrix
+				   in the present scaling state. */
+   double   change;		/* The change of the scaling factor
+				   of row i and the inverted change of
+				   the scaling factor of column i. */
+   bool     forward;		/* Whether the current relaxation iteration
+				   proceeds in forward or reverse order
+				   along the scaling vectors. */
+   double   changemax;		/* The maximum relative change of a
+				   scaling vector component in the
+				   current relaxation iteration. */
+   double   rowsummax;		/* The maximum row    sum of off diagonals */
+   double   colsummax;		/* The maximum column sum of off diagonals */
+   double   xmin;		/* The lower bound for the absolute scaling */
+   double   xmax;		/* The upper bound for the absolute scaling */
+   double   oldmaxsc;		/* The maximum scaling change factor from
+				   the initial vector to the new vector in
+				   the previous iteration. */
+   double   oldminsc;		/* The minimum scaling change factor from
+				   the initial vector to the new vector in
+				   the previous iteration. */
+   double   newmaxsc;		/* The maximum scaling change factor from
+				   the initial vector to the new vector in
+				   this iteration. */
+   double   newminsc;		/* The minimum scaling change factor from
+				   the initial vector to the new vector in
+				   this iteration. */
+   Number  *diag;		/* The diagonal elements */
+   double   dblmin;		/* A lower bound to real numbers which
+				   can be inverted. */
+   double   dblmax;		/* An upper bound to real numbers which
+				   can be inverted. */
+   double   dblmin2;		/* A lower bound to real numbers which
+				   can be squared and inverted. */
+   double   dblmax2;		/* An upper bound to real numbers which can
+				   be squared and inverted. */
+
+   /* Argument forwarding [SW] */
+   /* ======================== */
+   /* error code prepared: qqqERR_CALCVEC_BAD_ARGS */
+   /* names of the vnu-algorithm are used          */
+
+   qqqIndex const ScalDim = A.dimension();
+   qqqIndex const iscsid  = parms.scaSide;
+
+   qqqIndex const nscit   = parms.scaIterations;
+   double   const scdamp  = parms.scaDamp;
+   double   const scrat   = parms.scaRatio;
+   double         scvnor  = parms.scaScVNor;
+
+   /* Argument check */
+   /* ============== */
+
+   if (iscsid < 1 || iscsid > 5)
+   {
+      internalError = qqqERR_CALCVEC_BAD_SSIDE;      
+      return false;
+   }
+
+   /* No scaling required */
+   /* =================== */
+
+   if (nscit < 0)   
+     return true;
+   
+   Number *scvec = 0;
+   Number *scpre = 0;
+   
+   qqqIndex * const ia = A.getidx();
+   qqqIndex * const ja = ia;
+   Number   * const  a = A.getval();   
+
+   qqqMCSR<Number> B;
+   qqqError cerror;
+   qqqTransform(B, A, 0, true, true, true, false, cerror);
+   if (!cerror.noError())
+   {
+      internalError = qqqERR_CALCVEC_TRANSFORM;
+      return false;
+   }
+   qqqIndex * const ib = B.getidx();
+   qqqIndex * const jb = ib;
+   Number   * const  b = B.getval();   
+
+   if (vSr == 0)
+   {
+      internalError = qqqERR_CALCVEC_NO_SCVEC;
+      return false;
+   }
+   scvec = new Number[qqqMax(ScalDim, 1)];
+   if (scvec == 0)
+   {
+      internalError = qqqERR_CALCVEC_SV_MISALLOC;
+      return false;
+   }
+   for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++)
+   {
+      scvec[ccirow] = vSr[ccirow];
+      //vSr[i] = 1.0;
+   }
+
+   if ((iscsid == 4) || (iscsid == 5))
+   {
+      if (vSc == 0)
+      {
+	 delete[] scvec;
+         internalError = qqqERR_CALCVEC_NO_SCPRE;
+         return false;
+      }
+      scpre = new Number[qqqMax(ScalDim,1)];
+      if (scpre == 0)
+      {
+	 delete[] scvec;
+         internalError = qqqERR_CALCVEC_SP_MISALLOC;
+         return false;
+      }
+      for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++)      
+         scpre[ccirow] = vSc[ccirow];         
+   } 
+   else
+   {
+      if (vSc == 0)
+      {
+	 delete[] scvec;
+         internalError = qqqERR_CALCVEC_BAD_CONF;
+         return false;
+      }      
+   }
+
+   /* Limits */
+   /* ====== */
+
+   dblmin  = DBL_MIN * (1.0 + 20.0 * DBL_EPSILON);  
+   dblmin2 = qqqSqrt(dblmin);
+   dblmax  = 1.0 / dblmin;
+   dblmax2 = 1.0 / dblmin2;
+
+   /* Stage 1:  Scale the diagonal to unity. */
+   /* ====================================== */
+
+   /* Get the diagonal in diag */
+   /* ------------------------ */
+
+   /* Use scl to store the diagonal elements */
+   /* scl = left = rows = Sr */
+   diag = vSr; 
+
+   /* This is consistent with the determination of the diagonal element in
+      the relaxation iterations. */
+   for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+      diag[ccirow] = a[ccirow]; /* A is MCSR, for sure */
+
+   /* Check for zero diagonal */
+   for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+   {
+      if (qqqAbs(diag[ccirow]) < dblmin)
+      {
+	 if (diag[ccirow] == 0.0)
+	 {
+	    internalError = qqqERR_CALCVEC_DIAG_ZERO;
+	    parms.setErrorString("Scaling: Zero diagonal element found (row =", ccirow);
+	 }
+	 else
+	 {
+	    internalError = qqqERR_CALCVEC_DIAG_SMALL;
+	    parms.setErrorString("Scaling: Too small diagonal element found (row =");
+	 }
+	 internalError.setMatrixRow(ccirow);
+	 delete[] scvec;
+	 if (scpre) delete[] scpre;
+	 return false;
+      }
+   }
+
+   /* Check for zero preset scaling vector */
+   if (iscsid == 4 || iscsid == 5)
+   {
+      for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++)
+      {
+	 if (qqqAbs(diag[ccirow]) < dblmin2 || qqqAbs(diag[ccirow]) > dblmax2)
+	 {              
+	    delete[] scvec;
+	    if (scpre) delete[] scpre;
+	    internalError = qqqERR_CALCVEC_DIAG_RANGE;
+	    internalError.setMatrixRow(ccirow);
+	    parms.setErrorString("Scaling: Too small diagonal element (2nd) found (row =", ccirow);
+	    return false;
+	 }
+      }
+
+      for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++)
+      {
+	 if (qqqAbs(scpre[ccirow]) < dblmin2 || qqqAbs(scpre[ccirow]) > dblmax2)
+	 {              
+	    delete[] scvec;
+	    if (scpre) delete[] scpre;
+	    internalError = qqqERR_CALCVEC_SCPRE_RANGE;
+	    internalError.setMatrixRow(ccirow);
+	    parms.setErrorString("Scaling: Too small scpre element found (row =", ccirow);
+	    return false;
+	 }
+      }
+   }
+
+   /* Initialize the scaling vectors */
+   /* ------------------------------ */
+
+   /* Take care that diag is in the same place as scl */
+   /* scl = left = rows = Sr,    scr = right = cols = Sc */ 
+   switch(iscsid)
+   {
+   case 1:
+     for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+     {
+       /* scr[ccirow] */ vSc[ccirow] = 1.0;      
+       /* scl[ccirow] */ vSr[ccirow] = 1.0 / diag[ccirow];
+     }
+     break;
+   case 2:
+     for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+     {
+       /* scr[ccirow] */ vSc[ccirow] = 1.0 / qqqAbs(diag[ccirow]);
+       /* scl[ccirow] */ vSr[ccirow] = 1.0;
+     }
+     break;
+   case 3:
+     for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+     {
+       /* scr[ccirow] */ vSc[ccirow] = 1.0 / qqqSqrt(qqqAbs(diag[ccirow]));      
+       /* scl[ccirow] */ vSr[ccirow] = 1.0 / ( /* scr[ccirow] */ vSc[ccirow] * diag[ccirow]);
+     }
+     break;
+   case 4:
+      for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+      {
+	/* scr[ccirow] */ vSc[ccirow] = 1.0 / qqqAbs(scpre[ccirow] * diag[ccirow]);
+        /* scl[ccirow] */ vSr[ccirow] = scpre[ccirow];
+      }
+      break;
+   case 5:
+      for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+      {
+	/* scr[ccirow] */ vSc[ccirow] = 1.0 / qqqAbs(scpre[ccirow]);
+        /* scl[ccirow] */ vSr[ccirow] = 1.0 / ( /* scr[ccirow] */ vSc[ccirow] * diag[ccirow]);
+      }
+      break;
+   }
+
+   /* Stage 2:  Suppress the off-diagonals */
+   /* ==================================== */
+
+   /* Improve the scaling vectors */
+   /* --------------------------- */
+
+   newmaxsc = 1.0;
+   newminsc = 1.0;
+   for (qqqIndex it = 1; it <= nscit; it++)
+   {
+      forward   = it % 2;
+      changemax = 1.0;
+      colsummax = 0.0;
+      rowsummax = 0.0;
+      oldmaxsc = newmaxsc;
+      oldminsc = newminsc;
+
+      for (qqqIndex ii = 0; ii < ScalDim; ii++)
+      {
+	 /* Perform every other iteration in reverse order */
+	 qqqIndex i = forward ? ii : (ScalDim - 1 - ii);
+
+	 /* Evaluate row sum of absolute values of off diagonals */
+	 /* ---------------------------------------------------- */
+
+         /* scl = left = rows = Sr,    scr = right = cols = Sc */
+	 qqqIndex j1 = ia[i];
+	 qqqIndex j2 = ia[i+1];
+	 rowsum = 0.0;
+	 for (qqqIndex j = j1; j < j2; j++)
+	   if ((ja[j] != i) && (a[j] != 0))
+	    {
+	      // Number rowMultRes = a[j] * vSc[ja[j]];
+	      // double rowAbsRes = qqqAbs(rowMultRes);	     
+	      rowsum += qqqAbs(a[j] * /* scr */ vSc[ja[j]]);
+	    }
+	    else
+	       d = a[j];	/* See some lines further */
+	 rowsum *= qqqAbs( /* scl */ vSr[i]);
+	 if (rowsum > rowsummax) rowsummax = rowsum;	 
+
+	 /* Evaluate column sum of absolute values of off diagonals */
+	 /* ------------------------------------------------------- */
+
+	 j1 = ib[i];
+	 j2 = ib[i+1];	 
+
+	 colsum = 0.0;
+	 for (qqqIndex j = j1; j < j2; j++)
+	   if ((jb[j] != i) && (b[j] != 0))
+	   {	  
+	     // Number colMultRes = b[j] * vSr[jb[j]];
+	     // double colAbsRes = qqqAbs(colMultRes);	     	     
+	     colsum += qqqAbs(b[j] * /* scl */ vSr[jb[j]]);	       
+	   }
+	 colsum *= qqqAbs(/* scr */ vSc[i]);	
+	 if (colsum > colsummax) colsummax = colsum;
+
+	 /* The diagonal element */
+	 d = a[i];
+	 
+	 /* Determine the optimum change of scaling */
+	 if   (colsum == 0.0 && rowsum == 0.0) change = 1.0;
+	 else if (rowsum == 0)                 change = colsum / scdamp;
+	 else if (colsum == 0)                 change = scdamp / rowsum;
+	 else                                  change = qqqSqrt(colsum/rowsum);
+	 
+	 /* Limit the change of scaling */
+	 /* =========================== */
+
+	 /* The absolute scaling */
+	 switch(iscsid)		/* Make x the initial left scaling */
+	 {
+	 case 1:
+	    x = 1.0 / qqqAbs(d);
+	    break;
+	 case 2:
+	    x = 1.0;
+	    break;
+	 case 3:
+	    x = 1.0 / qqqSqrt(qqqAbs(d));
+	    break;
+	 case 4:
+	    x = qqqAbs(scpre[i]);
+	    break;
+	 case 5:
+	    x = qqqAbs(scpre[i] / d);
+	    break;
+	 }
+	 x = qqqAbs(change * /* scl */ vSr[i] / x);
+	 
+	 /* The limitation by scrat */
+	 if (scrat >= 1.0)
+	 {
+	    xmin = qqqMax(oldmaxsc,newmaxsc) / scrat;
+	    if (x < xmin)
+	    {
+	       change *= xmin / x;
+	       x       = xmin;
+	    }
+	    xmax = qqqMin(oldminsc,newminsc) * scrat;
+	    if (x > xmax)
+	    {
+	       change *= xmax / x;
+	       x       = xmax;
+	    }
+	 }
+
+	 /* The minimum and maximum absolute scaling */
+	 if (x < newminsc) newminsc = x;
+	 if (x > newmaxsc) newmaxsc = x;	
+
+	 /* Change the scaling of row and column */
+	 /* ------------------------------------ */
+
+         /* scl = left = rows = Sr,      scr = right = cols = Sc */
+	 if (change > 1.0)
+	 {
+	    if ((qqqAbs(/* scl */  vSr[i]) < dblmax / change) &&
+		(qqqAbs(/* scr */  vSc[i]) > dblmin * change))
+	    {
+	       /* scl */ vSr[i] *= change;
+	       /* scr */ vSc[i]  = 1.0 / (d * /* scl */ vSr[i]);	       
+	    }	    
+	 }
+	 else
+	 {
+	    if ((qqqAbs(/* scl */  vSr[i]) > dblmin / change) &&
+		(qqqAbs(/* scr */  vSc[i]) < dblmax * change))
+	    {
+	       /* scl */ vSr[i] *= change;
+	       /* scr */ vSc[i]  = 1.0 / (d * /* scl */ vSr[i]);	    	       
+	    }
+	 }
+
+	 /* The maximum change in this relaxation iteration */
+	 if (change       > changemax) changemax = change;
+	 if (1.0 / change > changemax) changemax = 1.0 / change;	   
+      }
+
+      changemax -= 1.0;
+
+      /* If we have already converged */
+      if (changemax < 1.0e-5) break;
+   }
+
+   /* Stage 3:  Normalize the scaling vectors */
+   /* ======================================= */
+
+   /* Invert the right scaling vector */
+   for (qqqIndex ccirow = ScalDim; ccirow--;) 
+     vSc[ccirow] = 1.0 / vSc[ccirow];  
+
+   x = 0.0;
+   if (scvnor >= 0.0)
+   {
+      if (scvec != 0)	 
+      {
+         double y;
+         for (qqqIndex ccirow = ScalDim; ccirow--;)
+         {
+            y = qqqAbs(scvec[ccirow] * vSc[ccirow]);
+            if (y > x) x = y;
+         }
+      }
+
+      if (x == 0.0)	
+         x = qqqAbsMax(ScalDim, vSc);
+   }
+   else
+   {
+      if (scvec != 0)	 
+      {
+         double y;
+         for (qqqIndex ccirow = ScalDim; ccirow--;)
+         {
+            y = qqqAbs(scvec[ccirow] * vSr[ccirow]);
+            if (y > x) x = y;
+         }
+      }
+
+      if (x == 0.0)	 
+         x = qqqAbsMax(ScalDim, vSr);
+   }
+
+   if (x == 0.0)
+   {
+      delete[] scvec;
+      if (scpre) delete[] scpre;
+      internalError = qqqERR_CALCVEC_ZERO_NORM;
+      return false;
+   }
+   if (scvnor == 0.0)
+   {
+      /* "Zero vector norm prescribed. Unity norm will be used instead."); */
+      scvnor = 1.0;
+   }
+
+   x = qqqAbs(scvnor/x);
+  
+   for (qqqIndex ccirow = 0; ccirow < ScalDim; ccirow++) 
+   {
+     /* scl */ vSr[ccirow] *= x;
+     /* scr */ vSc[ccirow] *= x;
+   }
+
+#if 0 // this must be done by qqqEQS_aux
+   for (qqqIndex ccirow = ScalDim; ccirow < n; ccirow++)   
+     vSr[ccirow] = vSc[ccirow] = 0.0; 
+#endif
+   
+   delete[] scvec;
+   if (scpre) delete[] scpre;
+
+   return true;
+}
+
+#endif // __numerics_scale_tt__included__
