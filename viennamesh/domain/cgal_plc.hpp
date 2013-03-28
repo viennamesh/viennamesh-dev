@@ -3,6 +3,8 @@
 
 #include "viennagrid/domain/config.hpp"
 #include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+
 #include "viennamesh/base/convert.hpp"
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -12,19 +14,19 @@
 #include <CGAL/Delaunay_mesh_size_criteria_2.h>
 
 
+
+
 namespace viennamesh
 {
     struct cgal_plc_2d_element
     {
         typedef CGAL::Exact_predicates_inexact_constructions_kernel     Kernel;
-        
         typedef CGAL::Triangulation_vertex_base_2<Kernel>               VertexBase;
-        typedef CGAL::Delaunay_mesh_face_base_2<Kernel>                 FaceBase;
-        typedef CGAL::Triangulation_data_structure_2<VertexBase, FaceBase> Triangulation_structure;
-        
-        typedef CGAL::Constrained_Delaunay_triangulation_2<Kernel, Triangulation_structure> CDT;
-        
-        typedef CGAL::Delaunay_mesh_size_criteria_2<CDT> Criteria;
+        typedef CGAL::Delaunay_mesh_face_base_2<Kernel>                      FaceBase;
+        typedef CGAL::Triangulation_data_structure_2<VertexBase, FaceBase>        Triangulation_structure;
+        typedef CGAL::Constrained_Delaunay_triangulation_2<Kernel, Triangulation_structure>  CDT;
+        typedef CGAL::Delaunay_mesh_size_criteria_2<CDT>            Criteria;
+        typedef CGAL::Delaunay_mesher_2<CDT, Criteria>              Mesher;
         
         typedef CDT::Vertex_handle Vertex_handle;
         typedef CDT::Point Point;
@@ -217,14 +219,12 @@ namespace viennamesh
     struct cgal_plc_3d_element
     {
         typedef CGAL::Exact_predicates_inexact_constructions_kernel     Kernel;
-        
         typedef CGAL::Triangulation_vertex_base_2<Kernel>               VertexBase;
-        typedef CGAL::Delaunay_mesh_face_base_2<Kernel>                 FaceBase;
-        typedef CGAL::Triangulation_data_structure_2<VertexBase, FaceBase> Triangulation_structure;
-        
-        typedef CGAL::Constrained_Delaunay_triangulation_2<Kernel, Triangulation_structure> CDT;
-        
-        typedef CGAL::Delaunay_mesh_size_criteria_2<CDT> Criteria;
+        typedef CGAL::Delaunay_mesh_face_base_2<Kernel>                      FaceBase;
+        typedef CGAL::Triangulation_data_structure_2<VertexBase, FaceBase>        Triangulation_structure;
+        typedef CGAL::Constrained_Delaunay_triangulation_2<Kernel, Triangulation_structure>  CDT;
+        typedef CGAL::Delaunay_mesh_size_criteria_2<CDT>            Criteria;
+        typedef CGAL::Delaunay_mesher_2<CDT, Criteria>              Mesher;
         
         typedef CDT::Vertex_handle Vertex_handle;
         typedef CDT::Point Point;
@@ -233,12 +233,13 @@ namespace viennamesh
         viennagrid::storage::static_array<viennagrid::config::point_type_3d, 2> projection_matrix;
         
         CDT cdt;
+        
         std::list<Point> cgal_list_of_holes;
     };
     
     struct cgal_plc_3d_domain
     {
-        typedef std::vector<cgal_plc_3d_element> cell_container;
+        typedef std::deque<cgal_plc_3d_element> cell_container;
         cell_container cells;
     };
     
@@ -295,7 +296,7 @@ namespace viennamesh
             
             cgal_domain_type::cell_container::iterator jt = cgal_domain.cells.begin();
             
-            for (plc_range_iterator it = plcs.begin(); it != plcs.end(); ++it)
+            for (plc_range_iterator it = plcs.begin(); it != plcs.end(); ++it, ++jt)
             {
                 output_element_type & cgal_element = *jt;
                 vgrid_element_type const & vgrid_element = *it;
@@ -319,6 +320,8 @@ namespace viennamesh
                 
                 viennagrid::geometry::projection_matrix( plc_points_3d.begin(), plc_points_3d.end(), 1e-6, cgal_element.center, cgal_element.projection_matrix.begin() );
                 
+//                 std::cout << cgal_element.projection_matrix[0] << " " << cgal_element.projection_matrix[1] << " " << cgal_element.center << std::endl;
+                
                 plc_points_2d.resize( plc_points_3d.size() );
                 viennagrid::geometry::project( plc_points_3d.begin(), plc_points_3d.end(), plc_points_2d.begin(), cgal_element.center, cgal_element.projection_matrix.begin(), cgal_element.projection_matrix.end() );
 
@@ -330,6 +333,7 @@ namespace viennamesh
                     vertex_const_hook_type const & vtx_hook = *it;
                     vertex_type const & vtx = viennagrid::dereference_hook(vgrid_domain, *it);
                     point_type_2d const & vgrid_point = plc_points_2d[ vertex_to_index_map[vtx_hook] ];
+//                     std::cout << "3D Point: " << plc_points_3d[ vertex_to_index_map[vtx_hook] ] << " projected onto " << vgrid_point << std::endl;
                     
                     cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
                     
@@ -357,7 +361,7 @@ namespace viennamesh
                 viennagrid::geometry::project( vgrid_list_of_holes.begin(), vgrid_list_of_holes.end(), vgrid_list_of_holes_2d.begin(), cgal_element.center, cgal_element.projection_matrix.begin(), cgal_element.projection_matrix.end() );
                 
                 for (std::vector<point_type_2d>::iterator it = vgrid_list_of_holes_2d.begin(); it != vgrid_list_of_holes_2d.end(); ++it)
-                    cgal_element.cgal_list_of_holes.push_back( cgal_element_type::Point( (*it)[0], (*it)[1] ) );  
+                    cgal_element.cgal_list_of_holes.push_back( cgal_element_type::Point( (*it)[0], (*it)[1] ) );
             } 
             
             return true;
@@ -365,6 +369,9 @@ namespace viennamesh
     };
     
     
+    
+    
+
     
     
     
@@ -399,14 +406,21 @@ namespace viennamesh
             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_hook_type;
             
             
-            std::map<cgal_element_type::Point, triangle_vertex_hook_type> points;
+            typedef std::deque< std::pair<triangle_point_type, triangle_vertex_hook_type> > points_container;
+            points_container points;
+            
+            
+//             vgrid_domain_type tmp_domain;
+            
             
             for (cgal_domain_type::cell_container::const_iterator it = cgal_domain.cells.begin(); it != cgal_domain.cells.end(); ++it)
             {
+//                 std::cout << "Converting back a PLC" << std::endl;
                 cgal_element_type const & cgal_element = *it;
                 
                 for(cgal_element_type::CDT::Finite_faces_iterator fit = cgal_element.cdt.finite_faces_begin(); fit != cgal_element.cdt.finite_faces_end(); ++fit) 
                 {
+//                     std::cout << " Triangle found!" << std::endl;
                     if(fit->is_in_domain())
                     {
                         typedef cgal_element_type::CDT::Triangle Triangle;
@@ -416,23 +430,31 @@ namespace viennamesh
                         
                         for (int i = 0; i < 3; ++i)
                         {
-                            std::map<cgal_element_type::Point, triangle_vertex_hook_type>::iterator pit = points.find( tri[i] );
+                            triangle_point_type point_3d = cgal_element.projection_matrix[0] * tri[i].x() + cgal_element.projection_matrix[1] * tri[i].y() + cgal_element.center;
+                            
+                            points_container::iterator pit = points.begin();
+                            for (; pit != points.end(); ++pit)
+                            {
+                                if ( viennagrid::norm_2( point_3d - pit->first ) < 1e-6 )
+                                {
+                                    vgrid_vtx[i] = pit->second;
+                                    break;
+                                }
+                            }
+                            
                             if (pit == points.end())
                             {
-                                triangle_point_type tmp = cgal_element.projection_matrix[0] * tri[i].x() + cgal_element.projection_matrix[1] * tri[i].y() + cgal_element.center;
-                                
-                                vgrid_vtx[i] = viennagrid::create_element<triangle_vertex_type>( vgrid_domain, tmp );
-                                points[ tri[i] ] = vgrid_vtx[i];
+                                vgrid_vtx[i] = viennagrid::create_element<triangle_vertex_type>( vgrid_domain, point_3d );
+                                points.push_back( std::make_pair( point_3d, vgrid_vtx[i] ) );
                             }
-                            else
-                                vgrid_vtx[i] = pit->second;
                         }
                         
                         viennagrid::create_element<triangle_triangle_type>( vgrid_domain, vgrid_vtx.begin(), vgrid_vtx.end() );
                     }
                 }
-                
             }
+            
+            
             
             return true;
         }
