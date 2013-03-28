@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "viennamesh/algorithm/cgal_plc_2d_mesher.hpp"
+#include "viennamesh/algorithm/cgal_plc_mesher.hpp"
 
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"

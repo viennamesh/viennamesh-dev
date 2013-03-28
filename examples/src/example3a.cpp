@@ -5,7 +5,7 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 
-#include "viennamesh/algorithm/cgal_plc_3d_mesher.hpp"
+#include "viennamesh/algorithm/cgal_plc_mesher.hpp"
 
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
