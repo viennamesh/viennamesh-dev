@@ -12,6 +12,7 @@
 #include "viennagrid/domain/config.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 // #include "viennagrid/config/simplex.hpp"
+#include "viennamesh/base/segments.hpp"
 
 #include "stlgeom.hpp"
 
@@ -3578,11 +3579,16 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //          cell.vertices(vertices);         
 //          domain.segments()[si].push_back(cell); 
          
-         viennagrid::create_triangle( domain,
+         
+         typedef viennagrid::result_of::element_hook<DomainType, viennagrid::triangle_tag>::type triangle_hook_type;
+         
+         triangle_hook_type triangle_hook = viennagrid::create_triangle( domain,
                                     viennagrid::elements<viennagrid::vertex_tag>(domain).hook_at( cell_cont[ci][0] ),
                                     viennagrid::elements<viennagrid::vertex_tag>(domain).hook_at( cell_cont[ci][1] ),
                                     viennagrid::elements<viennagrid::vertex_tag>(domain).hook_at( cell_cont[ci][2] )
                                     );
+         
+         viennamesh::add_face_to_segment( domain, viennagrid::dereference_hook(domain, triangle_hook), si, true );
       }
    }   
 
