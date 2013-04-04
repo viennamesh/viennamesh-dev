@@ -3,18 +3,18 @@
 
 #include "viennamesh/base/algorithm.hpp"
 #include "viennamesh/base/settings.hpp"
+#include "viennamesh/base/segments.hpp"
 
 #include "viennamesh/utils/utils.hpp"
 
+
 #include "vgmodeler/vgmodeler.hpp"
+#include "../../../ViennaGrid/viennagrid/algorithm/cross_prod.hpp"
 
 
 namespace viennamesh
 {
     struct vgmodeler_hull_adaption_tag {};
-    
-    
-    
     
     struct vgmodeler_hull_adaption_settings
     {
@@ -25,9 +25,7 @@ namespace viennamesh
         
         scalar_parameter_type cell_size;
     };
-    
-    
-    
+
     namespace result_of
     {
         template<>
@@ -70,6 +68,7 @@ namespace viennamesh
             
             adaptor.process( native_input_domain, native_output_domain );
 
+            viennamesh::segment_seed_points(native_output_domain) = viennamesh::segment_seed_points(native_input_domain);
             
             return true;
         }
