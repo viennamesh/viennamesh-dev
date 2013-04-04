@@ -62,8 +62,10 @@ namespace viennamesh
         template<typename native_domain_type, typename settings_type>
         static bool run( native_domain_type const & native_domain, settings_type const & settings )
         {
-            nglib::Ng_Meshing_Parameters mesh_parameters;   
-            nglib::Ng_Result result = nglib::Ng_GenerateVolumeMesh(native_domain.mesh, &mesh_parameters);
+            nglib::Ng_Meshing_Parameters mesh_parameters;
+            
+            for (typename native_domain_type::netgen_mesh_container_type::const_iterator it = native_domain.meshes.begin(); it != native_domain.meshes.end(); ++it)            
+                nglib::Ng_Result result = nglib::Ng_GenerateVolumeMesh(it->second, &mesh_parameters);
             
             return true;
         }
