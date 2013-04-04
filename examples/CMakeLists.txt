@@ -39,3 +39,8 @@ link_directories( ${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/nglib/.libs )
 add_executable(example6 src/example6.cpp)
 target_link_libraries(example6 ${CGAL_LIBS} nglib)
 target_link_libraries(example6 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+
+add_executable(example7 src/example7.cpp)
+target_link_libraries(example7 ${CGAL_LIBS} nglib)
+target_link_libraries(example7 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
