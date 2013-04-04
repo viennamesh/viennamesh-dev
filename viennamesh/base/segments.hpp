@@ -13,36 +13,98 @@
 #include "viennagrid/algorithm/geometry.hpp"
 
 namespace viennamesh
-{   
-    struct facet_visited_tag {};
+{
+namespace result_of {
+
+template<class domain_tag >
+struct domain;}
+   
+    struct face_visited_tag {};
 }
-VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::facet_visited_tag)
+VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::face_visited_tag)
 
 namespace viennamesh
 {
-    template<typename facet_element_type>
-    bool was_visited( facet_element_type const & facet )
+    template<typename face_element_type>
+    bool was_visited( face_element_type const & face )
     {
-        if (viennadata::find<facet_visited_tag, bool>()(facet))
-            return viennadata::access<facet_visited_tag, bool>()(facet);
+        if (viennadata::find<face_visited_tag, bool>()(face))
+            return viennadata::access<face_visited_tag, bool>()(face);
         else
             return false;
     }
 
-    template<typename facet_element_type>
-    bool set_visited( facet_element_type & facet )
+    template<typename face_element_type>
+    bool set_visited( face_element_type & face )
     {
-        viennadata::access<facet_visited_tag, bool>()(facet) = true;
+        viennadata::access<face_visited_tag, bool>()(face) = true;
     }
 
-    template<typename facet_element_type>
-    void clear_visited( facet_element_type & facet )
+    template<typename face_element_type>
+    void clear_visited( face_element_type & face )
     {
-        viennadata::erase<facet_visited_tag, bool>()(facet);
+        viennadata::erase<face_visited_tag, bool>()(face);
     }
 }
 
 
+namespace viennamesh
+{
+    typedef unsigned int segment_id_type;
+    typedef std::set<segment_id_type> segment_id_container_type;
+    
+    struct segments_tag {};
+    struct segment_seed_points_tag {};
+}
+
+VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::segment_seed_points_tag)
+VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::segments_tag)
+
+namespace viennamesh
+{
+    namespace result_of
+    {
+        template<typename domain_type>
+        struct seed_point_container
+        {
+            typedef typename std::deque< std::pair<segment_id_type, typename viennagrid::result_of::point_type<domain_type>::type> > type;
+        };
+    }
+    
+    template<typename domain_type>
+    segment_id_container_type const & segments( domain_type const & domain )
+    {
+        return viennadata::access<segments_tag, std::set<segment_id_type> >()(domain);
+    }
+    
+    template<typename domain_type>
+    void add_segment( domain_type const & domain, segment_id_type segment_id )
+    {
+        viennadata::access<segments_tag, segment_id_container_type>()(domain).insert(segment_id);
+    }
+    
+    
+    template<typename domain_type>
+    typename result_of::seed_point_container<domain_type>::type & segment_seed_points( domain_type & domain )
+    {
+        typedef typename result_of::seed_point_container<domain_type>::type seed_point_container_type;
+        return viennadata::access<segment_seed_points_tag, seed_point_container_type>()(domain);
+    }
+    
+    template<typename domain_type>
+    typename result_of::seed_point_container<domain_type>::type const & segment_seed_points( domain_type const & domain )
+    {
+        typedef typename result_of::seed_point_container<domain_type>::type seed_point_container_type;
+        return viennadata::access<segment_seed_points_tag, seed_point_container_type>()(domain);
+    }
+    
+    template<typename domain_type>
+    void add_segment_seed_point( domain_type & domain, segment_id_type segment_id, typename viennagrid::result_of::point_type<domain_type>::type const & seed_point)
+    {
+        segment_seed_points(domain).push_back( std::make_pair(segment_id, seed_point) );
+        add_segment(domain, segment_id);
+    }
+}
 
 
 
@@ -50,44 +112,43 @@ namespace viennamesh
 {
     // each element has map of segment indices and a corresponding faces outward flag
     //   if normal = cross( p1-p0, p2-p0 ) faces outward for this segment, this flag is true; false otherwise
-    typedef unsigned int facet_segment_id_type;
-    typedef std::map< facet_segment_id_type, bool > facet_segment_definition_type;
-    struct facet_segment_definition_tag {};
+    typedef std::map< segment_id_type, bool > face_segment_definition_type;
+    struct face_segment_definition_tag {};
 }
 
-VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::facet_segment_definition_tag)
+VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::face_segment_definition_tag)
 
 
 namespace viennamesh
 {
-    template<typename facet_element_type>
-    facet_segment_definition_type const & segments( facet_element_type const & facet )
+    template<typename face_element_type>
+    face_segment_definition_type const & face_segments( face_element_type const & face )
     {
-        return viennadata::access<facet_segment_definition_tag, facet_segment_definition_type>()(facet);
+        return viennadata::access<face_segment_definition_tag, face_segment_definition_type>()(face);
     }
 
-    template<typename facet_element_type>
-    facet_segment_definition_type & segments( facet_element_type & facet )
+    template<typename face_element_type>
+    face_segment_definition_type & face_segments( face_element_type & face )
     {
-        return viennadata::access<facet_segment_definition_tag, facet_segment_definition_type>()(facet);
+        return viennadata::access<face_segment_definition_tag, face_segment_definition_type>()(face);
     }
     
-    // return if the element is a facet of the segment
-    template<typename facet_element_type>
-    bool is_on_segment( facet_element_type const & facet, unsigned int segment_id )
+    // return if the element is a face of the segment
+    template<typename face_element_type>
+    bool is_face_on_segment( face_element_type const & face, segment_id_type segment_id )
     {
-        facet_segment_definition_type const & seg_def = segments(facet);
-        facet_segment_definition_type::const_iterator it = seg_def.find(segment_id);
+        face_segment_definition_type const & seg_def = face_segments(face);
+        face_segment_definition_type::const_iterator it = seg_def.find(segment_id);
 
         return (it != seg_def.end());
     }
     
-    // return if the element faces outward for this segment; if the element is not a facet of the segment, false is returned
-    template<typename facet_element_type>
-    bool faces_outward_on_segment( facet_element_type const & facet, unsigned int segment_id )
+    // return if the element faces outward for this segment; if the element is not a face of the segment, false is returned
+    template<typename face_element_type>
+    bool faces_outward_on_segment( face_element_type const & face, segment_id_type segment_id )
     {
-        facet_segment_definition_type const & seg_def = segments(facet);
-        facet_segment_definition_type::const_iterator it = seg_def.find(segment_id);
+        face_segment_definition_type const & seg_def = face_segments(face);
+        face_segment_definition_type::const_iterator it = seg_def.find(segment_id);
 
         if (it != seg_def.end())
             return false;
@@ -95,48 +156,52 @@ namespace viennamesh
             return it->second;
     }
 
-    // adds a facet element to a segment
-    template<typename facet_element_type>
-    bool add_facet_to_segment( facet_element_type & facet, unsigned int segment_id, bool faces_outward )
+    // adds a face element to a segment
+    template<typename domain_type, typename face_element_type>
+    bool add_face_to_segment( domain_type & domain, face_element_type & face, segment_id_type segment_id, bool faces_outward )
     {
-        facet_segment_definition_type & seg_def = segments(facet);
-        facet_segment_definition_type::iterator it = seg_def.find(segment_id);
+        add_segment(domain, segment_id);
+        face_segment_definition_type & seg_def = face_segments(face);
+        face_segment_definition_type::iterator it = seg_def.find(segment_id);
         if (it == seg_def.end())
             seg_def.insert( std::make_pair(segment_id, faces_outward) );
         else
-            return false;
+            return faces_outward == it->second;
         
         return true;
     }
-    
-    // generates a set with all segment which are used within a domain
-    template<typename domain_type>
-    std::set< facet_segment_id_type > used_facet_segments( domain_type const & domain )
+
+}
+
+namespace viennamesh
+{
+    struct unique_segment_tag {};
+}
+
+VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::unique_segment_tag)
+
+
+
+
+namespace viennamesh
+{
+    template<typename volume_element_type>
+    segment_id_type & segment( volume_element_type & volume )
     {
-        std::set< facet_segment_id_type > used_segments;
-        typedef typename viennagrid::result_of::element< domain_type, viennagrid::triangle_tag >::type triangle_type;
-        typedef typename viennagrid::result_of::const_element_range< domain_type, viennagrid::triangle_tag >::type triangle_range_type;
-        typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
-        
-        triangle_range_type triangles = viennagrid::elements< viennagrid::triangle_tag >( domain );
-        for (triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it)
-        {
-            viennamesh::facet_segment_definition_type const & segs = segments(*it);
-            for ( viennamesh::facet_segment_definition_type::const_iterator sit = segs.begin(); sit != segs.end(); ++sit )
-                used_segments.insert( sit->first );
-        }
-        
-        return used_segments;
+        return viennadata::access<unique_segment_tag, segment_id_type>()(volume);
     }
     
-    
-    
-    
-    
-    
-    
-    
-    
+    template<typename volume_element_type>
+    segment_id_type const & segment( volume_element_type const & volume )
+    {
+        return viennadata::access<unique_segment_tag, segment_id_type>()(volume);
+    }
+}
+
+
+
+namespace viennamesh
+{
     namespace utils
     {
         template<typename point_type>
@@ -260,7 +325,7 @@ namespace viennamesh
                 return;
             
             // add this triangle to the segment
-            viennamesh::add_facet_to_segment( triangle, segment_id, triangle_faces_outward );
+            viennamesh::add_face_to_segment( domain, triangle, segment_id, triangle_faces_outward );
             // ... and set the visited flag
             viennamesh::set_visited(triangle);
             
@@ -480,121 +545,129 @@ namespace viennamesh
         }
         
         
-    }
-    
-    
-    
-    
-    
-
-    
-    
-    // this function detects and marks a facet segment based on a seed point within it
-    //   is searches for all triangle which vector from its center towards the seed points does not intersect any other triangle
-    //   these triangles is for sure in the this segment
-    //   mark_facing_shortes_angle is called on those triangles to complete the segments
-    
-    template< typename domain_type, typename vector_type >
-    void detect_and_mark_facet_segment( domain_type & domain, vector_type seed_point, unsigned int segment_index )
-    {
-        typedef typename viennagrid::result_of::point_type<domain_type>::type point_type;
-        typedef typename viennagrid::result_of::coord_type<point_type>::type coord_type;
         
-        typedef typename viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type triangle_type;
-        typedef typename viennagrid::result_of::element_hook<domain_type, viennagrid::triangle_tag>::type triangle_hook_type;
-        typedef typename viennagrid::result_of::element_range<domain_type, viennagrid::triangle_tag>::type triangle_range_type;
-        typedef typename viennagrid::result_of::hook_iterator<triangle_range_type>::type triangle_range_hook_iterator;
-        typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
+        // this function detects and marks a face segment based on a seed point within it
+        //   is searches for all triangle which vector from its center towards the seed points does not intersect any other triangle
+        //   these triangles is for sure in the this segment
+        //   mark_facing_shortes_angle is called on those triangles to complete the segments
         
-        // iteratin over all triangles
-        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( domain );
-        for (triangle_range_hook_iterator it = triangles.hook_begin(); it != triangles.hook_end(); ++it)
+        template< typename domain_type, typename vector_type >
+        void detect_and_mark_face_segment( domain_type & domain, unsigned int segment_index, vector_type seed_point )
         {
-            triangle_type & triangle = viennagrid::dereference_hook( domain, *it );
+            typedef typename viennagrid::result_of::point_type<domain_type>::type point_type;
+            typedef typename viennagrid::result_of::coord_type<point_type>::type coord_type;
             
-            // has this triangle already been visited? -> skipping
-            if (viennamesh::was_visited(triangle))
-                continue;
+            typedef typename viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type triangle_type;
+            typedef typename viennagrid::result_of::element_hook<domain_type, viennagrid::triangle_tag>::type triangle_hook_type;
+            typedef typename viennagrid::result_of::element_range<domain_type, viennagrid::triangle_tag>::type triangle_range_type;
+            typedef typename viennagrid::result_of::hook_iterator<triangle_range_type>::type triangle_range_hook_iterator;
+            typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
             
-            point_type const & p0 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[0] );
-            point_type const & p1 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[1] );
-            point_type const & p2 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[2] );
-            
-//             std::cout << "Triangle: " << p0 << " / " << p1 << " / " << p2 << std::endl;
-            
-            // calculating the center of the triangle
-            point_type r = (p0+p1+p2)/3.0;
-            
-            // calculating the normale vector of the triangle
-            point_type n = viennagrid::cross_prod( p1-p0, p2-p0 );
-            // ... and normalizing it
-            n /= viennagrid::norm_2(n);
-            
-            // calculating the ray vector from the center of the triangle the the seed point
-            point_type d = seed_point - r;
-            
-//             std::cout << " Seed point: " << seed_point << std::endl;
-//             std::cout << " Triangle center: " << r << std::endl;
-//             std::cout << " vector to seed point: " << d << std::endl;
-            
-            // projecting the normalized ray vector onto the normal vector
-            coord_type p = viennagrid::inner_prod( d, n ) / viennagrid::norm_2(d);
-            
-            // if the projection if near zero (happens when the ray vector and the triangle are co-linear) -> skip this triangle
-            if ( std::abs(p) < 1e-6 )
+            // iteratin over all triangles
+            triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( domain );
+            for (triangle_range_hook_iterator it = triangles.hook_begin(); it != triangles.hook_end(); ++it)
             {
-                std::cout << " Line from triangle center to seed point is orthogonal to triangle normal -> skipping" << std::endl;
-                continue;
-            }
-            
-            // if the projection if negative, the triangle faces outward
-            bool faces_outward = p < 0;
-            
-            bool is_inside = false;
-            // iterating over all triangles and check for intersection
-            triangle_range_iterator jt = triangles.begin();
-            for (; jt != triangles.end(); ++jt)
-            {
-                if (it == jt) continue; // no self intersect test
+                triangle_type & triangle = viennagrid::dereference_hook( domain, *it );
                 
-                triangle_type const & to_test = *jt;
+                // has this triangle already been visited? -> skipping
+                if (viennamesh::was_visited(triangle))
+                    continue;
                 
-                point_type const & A = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[0] );
-                point_type const & B = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[1] );
-                point_type const & C = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[2] );
+                point_type const & p0 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[0] );
+                point_type const & p1 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[1] );
+                point_type const & p2 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[2] );
                 
-//                 std::cout << "  Triangle intersection test: " << A << " / " << B << " / " << C << std::endl;
+    //             std::cout << "Triangle: " << p0 << " / " << p1 << " / " << p2 << std::endl;
                 
-                if (utils::triangle_ray_intersect(r, d, A, B, C)) // TODO: scale by bounding box to ensure a ray outside the mesh
+                // calculating the center of the triangle
+                point_type r = (p0+p1+p2)/3.0;
+                
+                // calculating the normale vector of the triangle
+                point_type n = viennagrid::cross_prod( p1-p0, p2-p0 );
+                // ... and normalizing it
+                n /= viennagrid::norm_2(n);
+                
+                // calculating the ray vector from the center of the triangle the the seed point
+                point_type d = seed_point - r;
+                
+    //             std::cout << " Seed point: " << seed_point << std::endl;
+    //             std::cout << " Triangle center: " << r << std::endl;
+    //             std::cout << " vector to seed point: " << d << std::endl;
+                
+                // projecting the normalized ray vector onto the normal vector
+                coord_type p = viennagrid::inner_prod( d, n ) / viennagrid::norm_2(d);
+                
+                // if the projection if near zero (happens when the ray vector and the triangle are co-linear) -> skip this triangle
+                if ( std::abs(p) < 1e-6 )
                 {
-//                     std::cout << "    INTERSECTION!" << std::endl;
-                    break;
+    //                 std::cout << " Line from triangle center to seed point is orthogonal to triangle normal -> skipping" << std::endl;
+                    continue;
                 }
-                else
-                {
-//                     std::cout << "    no intersection" << std::endl;
-                }
-            }
-            
-            // if there was no intersection -> mark this triangle and all neighbour triangles recursively
-            if (jt == triangles.end())
-            {
-                if (!faces_outward) n = -n;
-                std::cout << " YAY! triangle has visible line to seed point " << seed_point << " " << n << std::endl;
                 
-//                 viennamesh::add_facet_to_segment(triangle, segment_index, faces_outward);
-                utils::mark_facing_shortes_angle( domain, segment_index, *it, faces_outward );
-//                 break;
+                // if the projection if negative, the triangle faces outward
+                bool faces_outward = p < 0;
+                
+                bool is_inside = false;
+                // iterating over all triangles and check for intersection
+                triangle_range_iterator jt = triangles.begin();
+                for (; jt != triangles.end(); ++jt)
+                {
+                    if (it == jt) continue; // no self intersect test
+                    
+                    triangle_type const & to_test = *jt;
+                    
+                    point_type const & A = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[0] );
+                    point_type const & B = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[1] );
+                    point_type const & C = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[2] );
+                    
+    //                 std::cout << "  Triangle intersection test: " << A << " / " << B << " / " << C << std::endl;
+                    
+                    if (utils::triangle_ray_intersect(r, d, A, B, C)) // TODO: scale by bounding box to ensure a ray outside the mesh
+                    {
+    //                     std::cout << "    INTERSECTION!" << std::endl;
+                        break;
+                    }
+                    else
+                    {
+    //                     std::cout << "    no intersection" << std::endl;
+                    }
+                }
+                
+                // if there was no intersection -> mark this triangle and all neighbour triangles recursively
+                if (jt == triangles.end())
+                {
+                    if (!faces_outward) n = -n;
+    //                 std::cout << " YAY! triangle has visible line to seed point " << seed_point << " " << n << std::endl;
+                    
+    //                 viennamesh::add_face_to_segment(triangle, segment_index, faces_outward);
+                    utils::mark_facing_shortes_angle( domain, segment_index, *it, faces_outward );
+    //                 break;
+                }
+            }        
+            
+            
+            for (triangle_range_hook_iterator it = triangles.hook_begin(); it != triangles.hook_end(); ++it)
+            {
+                viennamesh::clear_visited( viennagrid::dereference_hook( domain, *it ) );
             }
-        }        
-        
-        
-        for (triangle_range_hook_iterator it = triangles.hook_begin(); it != triangles.hook_end(); ++it)
-        {
-            viennamesh::clear_visited( viennagrid::dereference_hook( domain, *it ) );
         }
+        
+        
+    }
+    
+    
+    
+    template< typename domain_type >
+    void mark_face_segments( domain_type & domain )
+    {
+        typedef typename result_of::seed_point_container<domain_type>::type seed_point_container_type;
+        seed_point_container_type seed_points = segment_seed_points(domain);
+        
+        for (typename seed_point_container_type::iterator it = seed_points.begin(); it != seed_points.end(); ++it)
+            utils::detect_and_mark_face_segment(domain, it->first, it->second);
     }
 
+    
     
 }
 
