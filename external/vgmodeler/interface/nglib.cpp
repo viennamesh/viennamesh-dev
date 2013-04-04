@@ -279,7 +279,7 @@ Ng_Result Ng_GenerateMesh_2D (Ng_Geometry_2D * geom,
   Mesh * m;
   MeshFromSpline2D (*(SplineGeometry2d*)geom, m, mparam);
   
-  cout << m->GetNSE() << " elements, " << m->GetNP() << " points" << endl;
+//   cout << m->GetNSE() << " elements, " << m->GetNP() << " points" << endl;
   
   *mesh = (Ng_Mesh*)m;
   return NG_OK;
