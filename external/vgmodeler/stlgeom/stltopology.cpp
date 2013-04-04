@@ -597,13 +597,13 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
    std::size_t cell_counter = 0;
 //    for (std::size_t si = 0; si < vgriddomain.segments().size(); ++si)
    
-   std::set< viennamesh::facet_segment_id_type > used_segments = viennamesh::used_facet_segments( vgriddomain );
+   viennamesh::segment_id_container_type const & used_segments = viennamesh::segments( vgriddomain );
    
    
 //    for (std::size_t si = 0; si < num_segments; ++si)
-   for (std::set< viennamesh::facet_segment_id_type >::iterator it = used_segments.begin(); it != used_segments.end(); ++it)
+   for (viennamesh::segment_id_container_type::const_iterator it = used_segments.begin(); it != used_segments.end(); ++it)
    {
-       viennamesh::facet_segment_id_type current_segment_id = *it;
+       viennamesh::segment_id_type current_segment_id = *it;
       // transfer segment
       //
 //       SegmentType & seg = vgriddomain.segments()[si];
@@ -621,18 +621,18 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
           PointType const & p2 = viennagrid::point( vgriddomain, viennagrid::elements<viennagrid::vertex_tag>(*cit)[2] );
           
           
-          viennamesh::facet_segment_definition_type const & seg_def = viennamesh::segments( *cit );
+          viennamesh::face_segment_definition_type const & seg_def = viennamesh::face_segments( *cit );
           
-          viennamesh::facet_segment_definition_type::const_iterator sdit = seg_def.find( current_segment_id );
+          viennamesh::face_segment_definition_type::const_iterator sdit = seg_def.find( current_segment_id );
           if (sdit != seg_def.end())
             {
-                std::cout << "!!! Adding Triangle" << std::endl;
-                std::cout << "   " << p0 << std::endl;
-                std::cout << "   " << p1 << std::endl;
-                std::cout << "   " << p2 << std::endl;
-                std::cout << "      " << viennagrid::cross_prod(p1-p0,p2-p0) << std::endl;
-                std::cout << "      segment? " << sdit->first << std::endl;
-                std::cout << "      orient good? " << sdit->second << std::endl;
+//                 std::cout << "!!! Adding Triangle" << std::endl;
+//                 std::cout << "   " << p0 << std::endl;
+//                 std::cout << "   " << p1 << std::endl;
+//                 std::cout << "   " << p2 << std::endl;
+//                 std::cout << "      " << viennagrid::cross_prod(p1-p0,p2-p0) << std::endl;
+//                 std::cout << "      segment? " << sdit->first << std::endl;
+//                 std::cout << "      orient good? " << sdit->second << std::endl;
                 
                 boost::array<std::size_t,CELLSIZE>     cell;
                 std::size_t vi = 0;       
@@ -666,7 +666,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
        
    }
    
-   std::cout << "BLA" << std::endl;
+//    std::cout << "BLA" << std::endl;
    
    //domain.write_file("gsse_hull.gau32");
    
@@ -707,8 +707,10 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
 
                      non_manifold_edges.push_back(new_edge);
 
+#ifdef DEBUGFULL
                      std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
                                << " .. count: " << count <<  std::endl;
+#endif
                   }
                   else
                   {
@@ -722,7 +724,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
          }
       }
 
+#ifdef DEBUGFULL
       std::cout << ".. non manifold edges found: " << non_manifold_edges.size() << std::endl;
+#endif
 
 
       // [INFO] orient the input domain BUT exclude all triangles adjacent to the non-manifold edges
@@ -745,14 +749,18 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
          {
+#ifdef DEBUGALL
             std::cout << ".. seg: " << (*segit) << std::endl;
+#endif
             
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
             {  
                if(domain(*cit, "orientation")(0,0) == -2.0) // -2.0 triangle adjacent to non-manifold edge
                {
-                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;                  
+#ifdef DEBUGALL
+                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;
+#endif
 
                   int ci = 0;
                   boost::array<long,3>   cell_handle;
@@ -770,7 +778,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                      int count = 0;
                      cell_on_edge_iterator coeit2(*eocit);
                      for( ; coeit2.valid(); ++coeit2, ++count) ;
+#ifdef DEBUGALL
                      std::cout << "..count: " << count << std::endl;
+#endif
                      
                      if(count == 2)
                      {
@@ -894,8 +904,10 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                   //
                   if (count != 2 && used_edges[edge] != 1)
                   {
+#ifdef DEBUGALL
                      std::cout << "..base trig: " << (*cit) << std::endl;
                      std::cout << "..nm-edge: " << (*eocit).handle1() << "-" << (*eocit).handle2() << std::endl;
+#endif
 
                      long change_trig_handle = -1;
                      long first_trig_handle  = -1;
@@ -928,15 +940,19 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                         //
 //                        if(is_oriented_consistently)
                         {
+#ifdef DEBUGALL
                            std::cout << "..a match found" << std::endl;                           
+#endif
                                                    
                            point_t base_point;
                            long base_point_handle;
                            int pi;
                            int pc = 0;
 
-                           vertex_on_cell_iterator vocit(*coeit);                           
+                           vertex_on_cell_iterator vocit(*coeit);
+#ifdef DEBUGALL
                            std::cout << "cell vertices: ";
+#endif
                         
                            while (vocit.valid())
                            {
@@ -944,19 +960,25 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                               {
                                  base_point = domain.get_point(*vocit);
                                  base_point_handle = (*vocit).handle();
+#ifdef DEBUGALL
                                  std::cout << ".. base point: " << (*vocit).handle() ;
+#endif
                                  pi = pc;
                               }
 //                               std::cout << (*vocit) << " ";
                               vocit++;
                               pc++;
                            }
+#ifdef DEBUGALL
                            std::cout << std::endl;
+#endif
 
                            edge_on_cell_iterator eocit2(*cit);
                            for( ; eocit2.valid() && !trig_found ; ++eocit2)
                            {
+#ifdef DEBUGALL
                               std::cout << "..edge: " << (*eocit2).handle1() << " " << (*eocit2).handle2() << std::endl;
+#endif
 
                               int count2 = 0;
                               for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() ; ++coeit2, ++count2) ;
@@ -967,7 +989,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                               {
                                  for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() && !trig_found ; ++coeit2)
                                  {
+#ifdef DEBUGALL
                                     std::cout << ".. coeit2: " << (*coeit2) << std::endl;
+#endif
                                     
                                     vertex_on_cell_iterator vocit2(*coeit2);                           
                                     
@@ -975,7 +999,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                                     int found_trig = 0;
                                     while (vocit2.valid() && !trig_found)
                                     {
+#ifdef DEBUGALL
                                        std::cout << " " << (*vocit2).handle();
+#endif
                                        if((*vocit2).handle() == base_point_handle)
                                        {
                                           found_trig = 1;
@@ -986,7 +1012,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                                        }
                                        if(found_edge && found_trig)
                                        {
+#ifdef DEBUGALL
                                           std::cout << ".. connection to other trig found " << std::endl ;
+#endif
                                           used_edges[edge] = 1;                                          
                                           trig_found = 1;
 
@@ -996,10 +1024,14 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                                        }
                                        vocit2++;                                       
                                     }
+#ifdef DEBUGALL
                                     std::cout << std::endl;                               
+#endif
                                  }
                               }
+#ifdef DEBUGALL
                               std::cout << "..after count==2 " << std::endl;
+#endif
                            }
                         }                                                                     
                      }
@@ -1042,7 +1074,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
 
                                  domain.fast_point_insert(bary_point);
 
+#ifdef DEBUGALL
                                  std::cout << ".. added new point: " << domain.point_size()-1 << std::endl;
+#endif
 
                                  segment_iterator segit2 = domain.segment_begin();
                                  for( ; segit2 != domain.segment_end(); ++segit2)
@@ -1055,7 +1089,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                                           
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, first_trig_handle))
                                           {
+#ifdef DEBUGALL
                                              std::cout << ".. cell found .. " << (*cit2) << std::endl;
+#endif
                                              for(int ci=0; ci<3; ci++)
                                              {
                                                 if(edge[0] == (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci])
@@ -1067,7 +1103,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                                           //
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, second_trig_handle))
                                           {
+#ifdef DEBUGALL
                                              std::cout << ".. cell found .. " << (*cit2) << std::endl;
+#endif
                                              for(int ci=0; ci<3; ci++)
                                              {
                                                 if(edge[0] == (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci])
@@ -1079,7 +1117,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                                           //
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, change_trig_handle))
                                           {
+#ifdef DEBUGALL
                                              std::cout << ".. cell found .. " << (*cit2) << std::endl;
+#endif
                                              for(int ci=0; ci<3; ci++)
                                              {
                                                 if(edge[0] == (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci])
@@ -1531,7 +1571,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                 
                 
 //                 std::cout << "### MATERIAL Number : " << mat_num << std::endl;
-                std::cout << " ------------------------------------------------------------------------------------- " << std::endl;
+//                 std::cout << " ------------------------------------------------------------------------------------- " << std::endl;
             }
         }
     }
@@ -1792,8 +1832,10 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
                      non_manifold_edges.push_back(new_edge);
 
+#ifdef DEBUGFULL
                      std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
                                << " .. count: " << count <<  std::endl;
+#endif
                   }
                   else
                   {
@@ -4129,7 +4171,7 @@ void STLTopology :: FindNeighbourTrigs()
 
   status = STL_GOOD;
   statustext = "";
-  std::cout << topology_ok << " " << orientation_ok << std::endl;
+//   std::cout << topology_ok << " " << orientation_ok << std::endl;
   if (!topology_ok || !orientation_ok)
     {
       status = STL_ERROR;
