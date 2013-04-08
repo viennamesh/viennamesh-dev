@@ -536,7 +536,7 @@ int main()
     typedef viennagrid::result_of::element<viennagrid::config::plc_3d_domain, viennagrid::plc_tag>::type plc_type;
     typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::vertex_tag>::type vertex_hook_type;
     typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::line_tag>::type line_hook_type;
-    typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::polygon_tag>::type polygon_hook_type;
+//     typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::polygon_tag>::type polygon_hook_type;
     
     
     double cur_z = 0.0;
@@ -583,11 +583,11 @@ int main()
                 plc_lines.push_back( line_hook );
             }
             
-            polygon_hook_type poly_hook;
+//             polygon_hook_type poly_hook;
             vertex_hook_type vtx_hook;
             point_type_3d pt;
             
-            viennagrid::create_element<plc_type>( plc_domain, &poly_hook, &poly_hook, plc_lines.begin(), plc_lines.end(), &vtx_hook, &vtx_hook, &pt, &pt );
+            viennagrid::create_element<plc_type>( plc_domain, plc_lines.begin(), plc_lines.end(), &vtx_hook, &vtx_hook, &pt, &pt );
         }
     }
     
@@ -654,11 +654,11 @@ int main()
                 }
                 
                 
-                polygon_hook_type poly_hook;
+//                 polygon_hook_type poly_hook;
                 vertex_hook_type vtx_hook;
                 point_type_3d pt;
                 
-                viennagrid::create_element<plc_type>( plc_domain, &poly_hook, &poly_hook, plc_lines.begin(), plc_lines.end(), &vtx_hook, &vtx_hook, &pt, &pt );
+                viennagrid::create_element<plc_type>( plc_domain, plc_lines.begin(), plc_lines.end(), &vtx_hook, &vtx_hook, &pt, &pt );
                 
                 layer_type::line_container_type::iterator jt = it; ++jt;
                 for (; jt != tmp_lines.end();)

@@ -152,8 +152,8 @@ namespace viennamesh
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
+//             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
+//             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
@@ -350,8 +350,8 @@ namespace viennamesh
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
+//             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
+//             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
