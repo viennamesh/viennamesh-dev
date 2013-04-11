@@ -196,16 +196,20 @@ namespace viennamesh
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_type;
             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_hook_type;
             
-            typedef std::vector< std::pair<point_type, vertex_hook_type> > point_vertex_map_type;
-            point_vertex_map_type point_vertex_map;
+//             typedef std::vector< std::pair<point_type, vertex_hook_type> > point_vertex_map_type;
+//             point_vertex_map_type point_vertex_map;
             
             
             for (typename netgen_domain_type::netgen_mesh_container_type::const_iterator it = netgen_domain.meshes.begin(); it != netgen_domain.meshes.end(); ++it)
             {
+//                 vgrid_domain_type current_tmp;
+//                 std::map<int, vertex_hook_type> current_tmp_index_vertex_map;
+                
                 int num_points = nglib::Ng_GetNP(it->second);
                 int num_tets = nglib::Ng_GetNE(it->second);
                 
                 std::map<int, vertex_hook_type> index_vertex_map;
+                
                 
                 for (int i = 0; i < num_points; ++i)
                 {
@@ -214,21 +218,26 @@ namespace viennamesh
                     
                     point_type vgrid_point(netgen_point[0], netgen_point[1], netgen_point[2]);
                     
-                    int pit = 0;
-                    for (; pit != point_vertex_map.size(); ++pit)
-                    {
-                        if ( viennagrid::norm_2( vgrid_point - point_vertex_map[i].first ) < 1e-6 )
-                            break;
-                    }
+//                     int pit = 0;
+//                     for (; pit != point_vertex_map.size(); ++pit)
+//                     {
+//                         if ( viennagrid::norm_2( vgrid_point - point_vertex_map[i].first ) < 1e-6 )
+//                             break;
+//                     }
+//                     
+//                     if (pit == point_vertex_map.size())
+//                     {
+//                     vertex_hook_type vh = viennagrid::create_unique_vertex( vgrid_domain, vgrid_point );
+//                     point_vertex_map.push_back( std::make_pair(vgrid_point, vh) );
+//                     index_vertex_map.insert( std::make_pair(i+1, vh) );
                     
-                    if (pit == point_vertex_map.size())
-                    {
-                        vertex_hook_type vh = viennagrid::create_element<vertex_type>( vgrid_domain, vgrid_point );
-                        point_vertex_map.push_back( std::make_pair(vgrid_point, vh) );
-                        index_vertex_map.insert( std::make_pair(i+1, vh) );
-                    }
-                    else
-                        index_vertex_map.insert( std::make_pair(i+1, point_vertex_map[pit].second) );
+                    index_vertex_map[i+1] = viennagrid::create_unique_vertex( vgrid_domain, vgrid_point );
+                    
+                    
+//                     current_tmp_index_vertex_map[i+1] = viennagrid::create_unique_vertex( current_tmp, vgrid_point );
+//                     }
+//                     else
+//                         index_vertex_map.insert( std::make_pair(i+1, point_vertex_map[pit].second) );
                 }
                 
                 
@@ -246,7 +255,22 @@ namespace viennamesh
                     tetrahedron_hook_type tetrahedron_hook = viennagrid::create_element<tetrahedron_type>( vgrid_domain, vhs, vhs+4 );
                     
                     segment( viennagrid::dereference_hook(vgrid_domain, tetrahedron_hook) ) = it->first;
+                    
+                    
+//                     vhs[0] = current_tmp_index_vertex_map[netgen_tet[0]];
+//                     vhs[1] = current_tmp_index_vertex_map[netgen_tet[1]];
+//                     vhs[2] = current_tmp_index_vertex_map[netgen_tet[2]];
+//                     vhs[3] = current_tmp_index_vertex_map[netgen_tet[3]];
+//                     
+//                     viennagrid::create_element<tetrahedron_type>( current_tmp, vhs, vhs+4 );
                 }
+                
+//                 {
+//                     std::stringstream tmp;
+//                     tmp << "netgen_output_segment_" << it->first << std::endl;
+//                     viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::tetrahedron_tag> vtk_writer;
+//                     vtk_writer(current_tmp, tmp.str());
+//                 }
             }
 
             return true;
