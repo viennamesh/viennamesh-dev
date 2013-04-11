@@ -480,8 +480,8 @@ namespace viennamesh
             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_hook_type;
             
             
-            typedef std::deque< std::pair<triangle_point_type, triangle_vertex_hook_type> > points_container;
-            points_container points;
+//             typedef std::deque< std::pair<triangle_point_type, triangle_vertex_hook_type> > points_container;
+//             points_container points;
             
             
 //             vgrid_domain_type tmp_domain;
@@ -505,22 +505,7 @@ namespace viennamesh
                         for (int i = 0; i < 3; ++i)
                         {
                             triangle_point_type point_3d = cgal_element.projection_matrix[0] * tri[i].x() + cgal_element.projection_matrix[1] * tri[i].y() + cgal_element.center;
-                            
-                            points_container::iterator pit = points.begin();
-                            for (; pit != points.end(); ++pit)
-                            {
-                                if ( viennagrid::norm_2( point_3d - pit->first ) < 1e-6 )
-                                {
-                                    vgrid_vtx[i] = pit->second;
-                                    break;
-                                }
-                            }
-                            
-                            if (pit == points.end())
-                            {
-                                vgrid_vtx[i] = viennagrid::create_element<triangle_vertex_type>( vgrid_domain, point_3d );
-                                points.push_back( std::make_pair( point_3d, vgrid_vtx[i] ) );
-                            }
+                            vgrid_vtx[i] = viennagrid::create_unique_vertex( vgrid_domain, point_3d );                            
                         }
                         
                         viennagrid::create_element<triangle_triangle_type>( vgrid_domain, vgrid_vtx.begin(), vgrid_vtx.end() );
