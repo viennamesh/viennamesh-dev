@@ -227,7 +227,7 @@ namespace viennamesh
 
             double det = determinant( b, c, -d );
             
-        //     std::cout << "      det = " << det << std::endl;
+//             std::cout << "      det = " << det << std::endl;
             
             if ( std::abs(det) < 1e-6)
             {
@@ -274,17 +274,21 @@ namespace viennamesh
                 
                 double alpha = det - beta - gamma;
                 
-        //         std::cout << "      alpha = " << alpha << std::endl;
-        //         std::cout << "      beta = " << beta << std::endl;
-        //         std::cout << "      gamma = " << gamma << std::endl;
-        //         std::cout << "      lambda = " << lambda << std::endl;
+//                 std::cout << "      alpha = " << alpha << std::endl;
+//                 std::cout << "      beta = " << beta << std::endl;
+//                 std::cout << "      gamma = " << gamma << std::endl;
+//                 std::cout << "      lambda = " << lambda << std::endl;
                 
                 
-        //                         std::cout << "    Found intersection: " << alpha/det << " " << beta/det << " " << gamma/det << " " << lambda/det << std::endl;
-                if ( (alpha >= 0 ) && (beta >= 0) && (gamma >= 0) && (alpha <= det) && (beta <= det) && (gamma <= det) && (lambda >= 0) && (lambda <= det))
+//                                 std::cout << "    Found intersection: " << alpha/det << " " << beta/det << " " << gamma/det << " " << lambda/det << std::endl;
+                double offset = det * 1e-6;
+                double lower = 0 - offset;
+                double upper = det + offset;
+                                
+                if ( (alpha >= lower ) && (beta >= lower) && (gamma >= lower) && (alpha <= upper) && (beta <= upper) && (gamma <= upper) && (lambda >= lower) && (lambda <= upper))
                 {       
-        //             std::cout << "  Triangle: " << A << " / " << B << " / " << C << std::endl;
-        //             std::cout << "    Found intersection: " << alpha/det << " " << beta/det << " " << gamma/det << " " << lambda/det << std::endl;
+//                     std::cout << "  Triangle: " << A << " / " << B << " / " << C << std::endl;
+//                     std::cout << "    Found intersection: " << alpha/det << " " << beta/det << " " << gamma/det << " " << lambda/det << std::endl;
                     return true;
                 }
                 else
@@ -577,7 +581,8 @@ namespace viennamesh
                 point_type const & p1 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[1] );
                 point_type const & p2 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(triangle)[2] );
                 
-    //             std::cout << "Triangle: " << p0 << " / " << p1 << " / " << p2 << std::endl;
+//                 std::cout << std::endl << std::endl << std::endl;
+//                 std::cout << "Triangle: " << p0 << " / " << p1 << " / " << p2 << std::endl;
                 
                 // calculating the center of the triangle
                 point_type r = (p0+p1+p2)/3.0;
@@ -590,9 +595,9 @@ namespace viennamesh
                 // calculating the ray vector from the center of the triangle the the seed point
                 point_type d = seed_point - r;
                 
-    //             std::cout << " Seed point: " << seed_point << std::endl;
-    //             std::cout << " Triangle center: " << r << std::endl;
-    //             std::cout << " vector to seed point: " << d << std::endl;
+//                 std::cout << " Seed point: " << seed_point << std::endl;
+//                 std::cout << " Triangle center: " << r << std::endl;
+//                 std::cout << " vector to seed point: " << d << std::endl;
                 
                 // projecting the normalized ray vector onto the normal vector
                 coord_type p = viennagrid::inner_prod( d, n ) / viennagrid::norm_2(d);
@@ -620,16 +625,16 @@ namespace viennamesh
                     point_type const & B = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[1] );
                     point_type const & C = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(to_test)[2] );
                     
-    //                 std::cout << "  Triangle intersection test: " << A << " / " << B << " / " << C << std::endl;
+//                     std::cout << "  Triangle intersection test: " << A << " / " << B << " / " << C << std::endl;
                     
                     if (utils::triangle_ray_intersect(r, d, A, B, C)) // TODO: scale by bounding box to ensure a ray outside the mesh
                     {
-    //                     std::cout << "    INTERSECTION!" << std::endl;
+//                         std::cout << "    INTERSECTION!" << std::endl;
                         break;
                     }
                     else
                     {
-    //                     std::cout << "    no intersection" << std::endl;
+//                         std::cout << "    no intersection" << std::endl;
                     }
                 }
                 
@@ -637,7 +642,7 @@ namespace viennamesh
                 if (jt == triangles.end())
                 {
                     if (!faces_outward) n = -n;
-    //                 std::cout << " YAY! triangle has visible line to seed point " << seed_point << " " << n << std::endl;
+//                     std::cout << " YAY! triangle has visible line to seed point " << seed_point << " " << n << std::endl;
                     
     //                 viennamesh::add_face_to_segment(triangle, segment_index, faces_outward);
                     utils::mark_facing_shortes_angle( domain, segment_index, *it, faces_outward );
