@@ -30,6 +30,7 @@ file(RELATIVE_PATH CONF_REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}"
 ##############
 
 option(BUILD_EXAMPLES "Build example programs" ON)
+option(BUILD_TOOLS "Build tool programs" ON)
 
 option(ENABLE_PEDANTIC_FLAGS "Enable pedantic compiler flags" OFF)
 
