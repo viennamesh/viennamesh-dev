@@ -1,0 +1,88 @@
+desc {
+	crossing wires 3x3 under 45 deg.
+        test capacitance extraction with thermally variing permittivity
+     }
+lengthunit { 1.0 um }
+
+mask { MASKL1
+       rectangle { FX1  SIO2 { 0.0 0.0 } { 6.5 14.0 } }   
+}
+mask { MASKL2
+       rectangle { FX2  SIO2 { 0.0 0.0 } { 6.5 14.0 } }
+       rectangle { FX3  AL   { 2.0 0.0 } { 0.5 14.0 } }   
+       rectangle { FX4  AL   { 3.0 0.0 } { 0.5 14.0 } }
+       rectangle { FX5  AL   { 4.0 0.0 } { 0.5 14.0 } }
+}
+mask { MASKL3
+       rectangle { FX6  SIO2 { 0.0 0.0 } { 6.5 14.0 } }   
+}
+mask { MASKL4
+       rectangle { FX7  SIO2 { 0.0 0.0 } { 6.5 14.0 } }   
+       polygon   { FX8  AL   { 0.0 2.0 } { 0.0 0.0 } { 6.5 6.5 } { 6.5 7.2 } { 0.0 0.7 } }
+       polygon   { FX9  AL   { 0.0 3.4 } { 0.0 0.0 } { 6.5 6.5 } { 6.5 7.2 } { 0.0 0.7 } }
+       polygon   { FX10 AL   { 0.0 4.8 } { 0.0 0.0 } { 6.5 6.5 } { 6.5 7.2 } { 0.0 0.7 } }
+}   
+mask { MASKL5
+       rectangle { FX11 SIO2 { 0.0 0.0 } { 6.5 14.0 } }   
+}
+
+contact { C_GND cap  flatbottom { FX1 } } 
+
+contact { CONT1 cap  vol        { FX3  } }
+contact { CONT2 cap  vol        { FX4  } }
+contact { CONT3 cap  vol        { FX5  } } 
+
+contact { CONT4 cap  vol        { FX8  } }
+contact { CONT5 cap  vol        { FX9  } }
+contact { CONT6 cap  vol        { FX10 } }
+
+material { AL     Al     conductivity { 3 uOhmcm }
+	thermal_conductivity { 380 W/(K*m)} } 
+material { SIO2   SiO2   permittivity { 3.9 0.1 }
+	thermal_conductivity { 1.4 W/(K*m)} } 
+
+contact { C_THA therm 300 K flatbottom { FX1 } } 
+contact { C_THB therm 350 K flattop { FX11 } } 
+layerstructure { 
+     origin { 0.0 0.0 0.0   }
+     plane  { ------------  }
+     layer  { MASKL1 0.500  } 
+     plane  { ------------  } 
+     layer  { MASKL2 0.500  }
+     plane  { ------------  } 
+     layer  { MASKL3 0.500  } 
+     plane  { ------------  }
+     layer  { MASKL4 0.500  } 
+     plane  { ------------  }
+     layer  { MASKL5 3.000  } 
+     plane  { ------------  } 
+}
+
+/*selftest
+ *fem_prog stap -T -C
+ *temperature
+ * SiO2    300.00  350.00    0.0001
+ *   Al    306.50  315.48    0.05
+ *capacitance
+ * C_GND             CONT1   8.83532e-16   0.10
+ * C_GND             CONT2   6.89479e-16   0.10
+ * C_GND             CONT3   8.82414e-16   0.10
+ * C_GND             CONT4   8.89036e-17   0.10
+ * C_GND             CONT5    5.9024e-17   0.10
+ * C_GND             CONT6   8.88719e-17   0.10
+ * CONT1             CONT2   4.17279e-16   0.10
+ * CONT1             CONT3    1.6624e-17   0.10
+ * CONT1             CONT4    7.4985e-17   0.10
+ * CONT1             CONT5   5.37846e-17   0.10
+ * CONT1             CONT6   7.80751e-17   0.10
+ * CONT2             CONT3   4.17196e-16   0.10
+ * CONT2             CONT4   5.97155e-17   0.10
+ * CONT2             CONT5   4.32888e-17   0.10
+ * CONT2             CONT6   5.97177e-17   0.10
+ * CONT3             CONT4   7.80173e-17   0.15
+ * CONT3             CONT5   5.37508e-17   0.10
+ * CONT3             CONT6   7.49944e-17   0.10
+ * CONT4             CONT5   2.14512e-16   0.10
+ * CONT4             CONT6   1.64878e-17   0.10
+ * CONT5             CONT6   2.14504e-16   0.10
+ */
