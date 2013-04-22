@@ -3,8 +3,6 @@
 
 #include "viennamesh/base/convert.hpp"
 #include "viennamesh/utils/utils.hpp"
-#include <boost/shared_ptr.hpp>
-#include <boost/concept_check.hpp>
 
 namespace viennamesh
 {
