@@ -2,6 +2,11 @@
 #define FILE_STLTOPOLOGY
 
 
+
+#include "viennamesh/base/segments.hpp"
+namespace vgmnetgen {
+
+
 /**************************************************************************/
 /* File:   stltopology.hpp                                                */
 /* Author: Joachim Schoeberl                                              */
@@ -13,7 +18,6 @@
   The STLTopology contains topologic information as
   triangle->point, point->triangles, triangle->edge, 2-points->edge,...
 */
-
 
 class STLGeometry;
 
@@ -310,10 +314,14 @@ protected:
 
   Box<3> boundingbox;
   double pointtol;
+  
 
 public:
   enum STL_GEOM_STATUS { STL_GOOD, STL_WARNING, STL_ERROR };
 
+  // [FRUDO] for segment identification
+  std::map<long, viennamesh::segment_id_type> segment_id_map;
+  
   // [FS][MOD]
   //
   int material_size;
@@ -420,5 +428,6 @@ public:
   const Box<3> & GetBoundingBox () const { return boundingbox; }
 };
 
+}
 
 #endif

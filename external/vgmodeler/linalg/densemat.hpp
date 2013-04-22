@@ -12,7 +12,7 @@
 */
 
 
-#include <assert.h>
+// #include <assert.h>
 
 
 class DenseMatrix
@@ -66,7 +66,7 @@ public:
     if (prod.Size() != height)
       {
 	cerr << "Mult: wrong vector size " << endl;
-	assert (1);
+// 	assert (1);
 	// prod.SetSize (height);
       }
     

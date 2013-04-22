@@ -3588,7 +3588,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
                                     viennagrid::elements<viennagrid::vertex_tag>(domain).hook_at( cell_cont[ci][2] )
                                     );
          
-         viennamesh::add_face_to_segment( domain, viennagrid::dereference_hook(domain, triangle_hook), si, true );
+         viennamesh::add_face_to_segment( domain, viennagrid::dereference_hook(domain, triangle_hook), geom.segment_id_map[si], true );
       }
    }   
 

@@ -28,6 +28,7 @@
 #include "../include/gprim.hpp"
 #include "../include/meshing.hpp"
 
+#include "stltopology.hpp"
 
 namespace vgmnetgen
 {
@@ -35,7 +36,7 @@ namespace vgmnetgen
   extern int AddIfNotExists(ARRAY<int>& list, int x);
 
 
-#include "stltopology.hpp"
+
 #include "stltool.hpp"
 #include "stlline.hpp"
 

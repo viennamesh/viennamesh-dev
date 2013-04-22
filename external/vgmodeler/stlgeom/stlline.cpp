@@ -683,7 +683,7 @@ double GetH(const Point3d& p, double x)
 */
 STLLine* STLLine :: Mesh(const ARRAY<Point<3> >& ap, 
 			 ARRAY<Point3d>& mp, double ghi,
-			 class Mesh& mesh) const
+			 class Mesh& mesh)
 {
 #ifdef DEBUGALL
   std::cout << "..ENTER STLLine::Mesh " << std::endl;

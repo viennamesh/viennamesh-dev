@@ -197,14 +197,18 @@ public:
   // [FS][HACK] material info
   //
   int material; 
-  line_info_t segment_info[10];
+//   line_info_t segment_info[100];
+//   std::vector<line_info_t> segment_info;
+  std::map<unsigned int, line_info_t> segment_info;
   Vec<3> normal;
 
   // [FS] store the facenums - will be used to add SurfaceSegments during STLFindEdges
   //      for every facenum in this array, SurfaceSegment will be added and later on assigned
   //      to a facedescriptor
   //
-  int facenums[10];
+//   int facenums[100];
+  std::map<unsigned int, int> facenums;
+//   std::vector<int> facenums;
 
   STLLine(const STLGeometry * ageometry);
   void AddPoint(int i) {pts.Append(i);}
@@ -233,7 +237,7 @@ public:
   //return a meshed polyline
   STLLine* Mesh(const ARRAY<Point<3> >& ap, 
 		ARRAY<Point3d>& mp, double ghi,
-		class Mesh& mesh) const;
+		class Mesh& mesh);
 
   void DoSplit() {split = 1;}
   int ShouldSplit() const {return split;}

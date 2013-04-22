@@ -601,8 +601,10 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
    
    
 //    for (std::size_t si = 0; si < num_segments; ++si)
-   for (viennamesh::segment_id_container_type::const_iterator it = used_segments.begin(); it != used_segments.end(); ++it)
+   long gsse_domain_id = 0;
+   for (viennamesh::segment_id_container_type::const_iterator it = used_segments.begin(); it != used_segments.end(); ++it, ++gsse_domain_id)
    {
+       this->segment_id_map[gsse_domain_id] = *it;
        viennamesh::segment_id_type current_segment_id = *it;
       // transfer segment
       //
