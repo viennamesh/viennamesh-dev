@@ -14,11 +14,6 @@
 
 namespace viennamesh
 {
-namespace result_of {
-
-template<class domain_tag >
-struct domain;}
-   
     struct face_visited_tag {};
 }
 VIENNADATA_ENABLE_TYPE_BASED_KEY_DISPATCH(viennamesh::face_visited_tag)
@@ -78,9 +73,21 @@ namespace viennamesh
     }
     
     template<typename domain_type>
-    void add_segment( domain_type const & domain, segment_id_type segment_id )
+    void add_segment( domain_type & domain, segment_id_type segment_id )
     {
         viennadata::access<segments_tag, segment_id_container_type>()(domain).insert(segment_id);
+    }
+    
+    template<typename domain_type>
+    void clear_segments( domain_type & domain )
+    {
+        viennadata::access<segments_tag, segment_id_container_type>()(domain).clear();
+    }
+    
+    template<typename domain_type>
+    void remove_segment( domain_type & domain, segment_id_type segment_id )
+    {
+        viennadata::access<segments_tag, segment_id_container_type>()(domain).erase(segment_id);
     }
     
     
@@ -103,6 +110,13 @@ namespace viennamesh
     {
         segment_seed_points(domain).push_back( std::make_pair(segment_id, seed_point) );
         add_segment(domain, segment_id);
+    }
+    
+    template<typename in_domain_type, typename out_domain_type>
+    void copy_segment_information( in_domain_type const & domain_in, out_domain_type & domain_out )
+    {
+        viennadata::access<segments_tag, segment_id_container_type>()(domain_out) = segments(domain_in);
+        segment_seed_points(domain_out) = segment_seed_points(domain_in);
     }
 }
 
@@ -171,6 +185,158 @@ namespace viennamesh
         return true;
     }
 
+    
+    
+    
+    template<typename face_element_tag_or_type, typename domain_type>
+    bool check_face_segments( domain_type const & domain )
+    {
+        typedef typename viennagrid::result_of::const_element_range<domain_type, face_element_tag_or_type>::type face_range_type;
+        typedef typename viennagrid::result_of::iterator<face_range_type>::type face_range_iterator;
+        
+        face_range_type faces = viennagrid::elements<face_element_tag_or_type>( domain );
+        for (face_range_iterator it = faces.begin(); it != faces.end(); ++it)
+        {
+            face_segment_definition_type const & fs_def = face_segments(*it);
+            bool error = false;
+            
+            if (fs_def.size() == 0)
+            {
+                std::cout << "  ERROR: A face has no segment!" << std::endl;
+                error = true;
+            }
+            
+            if (fs_def.size() > 2)
+            {
+                std::cout << "  ERROR: A face is in 2 or more segments!" << std::endl;
+                error = true;
+            }
+            
+            if ( (fs_def.size() == 2) &&  ((fs_def.begin())->second == (++fs_def.begin())->second) )
+            {
+                std::cout << "  ERROR: A face is in 2 segments with same orientation" << std::endl;
+                error = true;
+            }
+            
+            if ( (fs_def.size() == 2) && ((fs_def.begin())->first == (++fs_def.begin())->first) )
+            {
+                std::cout << "  ERROR: A face is in 2 identical segments" << std::endl;
+                error = true;
+            }
+            
+            if (error)
+            {
+                std::cout << "TRIANGLE: " << viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] ) << " - " <<
+                            viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] ) << " - " <<
+                            viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] ) << std::endl;
+                
+            }
+            
+//             viennamesh::segment_id_type first = (segment_def.begin())->first;
+//             viennamesh::segment_id_type second = (++segment_def.begin())->first;
+            
+            
+//             for (typename face_segment_definition_type::const_iterator jt = fs_def.begin(); jt != fs_def.end(); ++jt)
+                
+        }
+    }
+    
+    
+
+    
+    template<typename face_element_tag_or_type, typename domain_type>
+    void generate_segment_ids( domain_type & domain )
+    {
+        clear_segments(domain);
+        
+        typedef typename viennagrid::result_of::element_range<domain_type, face_element_tag_or_type>::type face_range_type;
+        typedef typename viennagrid::result_of::iterator<face_range_type>::type face_range_iterator;
+        
+        face_range_type faces = viennagrid::elements<face_element_tag_or_type>( domain );
+        for (face_range_iterator it = faces.begin(); it != faces.end(); ++it)
+        {
+            face_segment_definition_type const & fs_def = face_segments(*it);
+            for (typename face_segment_definition_type::const_iterator jt = fs_def.begin(); jt != fs_def.end(); ++jt)
+                add_segment(domain, jt->first);
+        }
+    }
+    
+    
+    
+    
+    template<typename face_element_tag_or_type, typename domain_type>
+    void defragment_segment_ids( domain_type & domain )
+    {
+        segment_id_type segment_id = 0;
+        std::map<segment_id_type, segment_id_type> segment_id_map;
+        
+        typedef typename viennagrid::result_of::element_range<domain_type, face_element_tag_or_type>::type face_range_type;
+        typedef typename viennagrid::result_of::iterator<face_range_type>::type face_range_iterator;
+        
+        face_range_type faces = viennagrid::elements<face_element_tag_or_type>( domain );
+        for (face_range_iterator it = faces.begin(); it != faces.end(); ++it)
+        {
+            face_segment_definition_type fs_def = face_segments(*it);
+            face_segment_definition_type new_fs_def;
+            
+            for (typename face_segment_definition_type::const_iterator jt = fs_def.begin(); jt != fs_def.end(); ++jt)
+            {
+                segment_id_type current_segment_id;
+                std::map<segment_id_type, segment_id_type>::iterator kt = segment_id_map.find( jt->first );
+                if (kt != segment_id_map.end())
+                    current_segment_id = kt->second;
+                else
+                {
+                    current_segment_id = segment_id++;
+                    segment_id_map[jt->first] = current_segment_id;
+                }
+                
+                new_fs_def[current_segment_id] = jt->second;
+            }
+            
+            face_segments(*it) = new_fs_def;                
+        }
+        
+        clear_segments(domain);
+        for (std::map<segment_id_type, segment_id_type>::iterator it = segment_id_map.begin(); it != segment_id_map.end(); ++it)
+            add_segment(domain, it->second);
+    }
+    
+    
+    template<typename face_element_tag_or_type, typename domain_type>
+    void cleanup_face_segment_definition( domain_type & domain )
+    {
+        typedef typename viennagrid::result_of::element_range<domain_type, face_element_tag_or_type>::type face_range_type;
+        typedef typename viennagrid::result_of::iterator<face_range_type>::type face_range_iterator;
+        
+        face_range_type faces = viennagrid::elements<face_element_tag_or_type>( domain );
+        for (face_range_iterator it = faces.begin(); it != faces.end(); ++it)
+        {
+            face_segment_definition_type & fs_def = face_segments( *it );
+            
+            for (typename face_segment_definition_type::iterator jt = fs_def.begin(); jt != fs_def.end(); ++jt)
+            {
+                typename face_segment_definition_type::iterator kt = jt; ++kt;
+                for ( ; kt != fs_def.end(); )
+                {
+                    std::cout << "Found double! " << jt->first << " " << kt->first << std::endl;
+                    if ( jt->second == kt->second )
+                    {
+                        typename face_segment_definition_type::iterator tmp = kt; ++kt;
+                        fs_def.erase(tmp);
+                    }
+                    else
+                        ++kt;
+                }
+                
+            }
+            
+        }
+        
+//         generate_segments<face_element_tag_or_type>(domain);
+        defragment_segment_ids<face_element_tag_or_type>(domain);
+    }
+    
 }
 
 namespace viennamesh
