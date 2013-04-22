@@ -81,6 +81,12 @@ namespace viennagrid
         {
             typedef viennagrid::config::point_type_3d type;
         };
+        
+        template<>
+        struct point_type<const viennamesh::netgen_tetrahedron_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
     }
 }
 
