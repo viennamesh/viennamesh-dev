@@ -41,12 +41,30 @@ namespace viennamesh
         typedef std::vector<cgal_plc_2d_element> cell_container;
         cell_container cells;
     };
-    
-    
-    
-    
-    
-    
+}
+
+
+
+namespace viennagrid
+{
+    namespace result_of
+    {
+        template<>
+        struct point_type<viennamesh::cgal_plc_2d_domain>
+        {
+            typedef viennagrid::config::point_type_2d type;
+        };
+        
+        template<>
+        struct point_type<const viennamesh::cgal_plc_2d_domain>
+        {
+            typedef viennagrid::config::point_type_2d type;
+        };
+    }
+}
+
+namespace viennamesh
+{
     template<>
     struct convert_impl<viennagrid::config::line_2d_domain, cgal_plc_2d_domain>
     {
@@ -317,7 +335,31 @@ namespace viennamesh
         cell_container cells;
     };
     
-    
+}
+
+
+namespace viennagrid
+{
+    namespace result_of
+    {
+        template<>
+        struct point_type<viennamesh::cgal_plc_3d_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
+        
+        template<>
+        struct point_type<const viennamesh::cgal_plc_3d_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
+    }
+}
+
+
+
+namespace viennamesh
+{
     template<>
     struct convert_impl<viennagrid::config::plc_3d_domain, cgal_plc_3d_domain>
     {
