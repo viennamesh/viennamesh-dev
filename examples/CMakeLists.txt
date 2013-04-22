@@ -1,7 +1,7 @@
 # add_executable(example1 src/example1.cpp ../external/triangle/triangle.c)
 
 find_package(CGAL QUIET COMPONENTS Core )
-find_package(Boost COMPONENTS thread)
+find_package(Boost COMPONENTS thread program_options)
 
 set( CGAL_LIBS CGAL CGAL_Core ${Boost_LIBRARIES} gmp mpfr )
 
@@ -44,3 +44,11 @@ target_link_libraries(example6 vgmodeler_base vgmodeler_stltopo vgmodeler_meshst
 add_executable(example7 src/example7.cpp)
 target_link_libraries(example7 ${CGAL_LIBS} nglib)
 target_link_libraries(example7 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+add_executable(example7a src/example7a.cpp)
+target_link_libraries(example7a ${CGAL_LIBS} nglib)
+target_link_libraries(example7a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+add_executable(example7b src/example7b.cpp)
+target_link_libraries(example7b ${CGAL_LIBS} nglib)
+target_link_libraries(example7b vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
