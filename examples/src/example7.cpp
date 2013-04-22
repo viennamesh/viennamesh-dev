@@ -1,8 +1,5 @@
 #include <iostream>
 #include <string.h>
-#include <boost/concept_check.hpp>
-#include <CGAL/Point_2.h>
-#include <CGAL/Iso_cuboid_3.h>
 
 
 #include "viennagrid/domain/config.hpp"
@@ -326,6 +323,28 @@ struct layer
         return y;
     }
     
+    
+    bool intersect( point_type const & l0, point_type const & l1 ) const
+    {
+        line_container_type::iterator it = lines.begin();
+        for (; it != lines.end(); ++it)
+        {
+            point_type const & p0 = get_point(it->first);
+            point_type const & p1 = get_point(it->second);
+            
+            point_intersection_feedback<self_type> pifb(*this, it);
+            overlapping_lines_feedback<self_type> olfb(*this, it);
+            
+            if( viennagrid::geometry::line_line_intersect(l0, l1, viennagrid::geometry::interval::open_open_tag(),
+                                                          p0, p1, viennagrid::geometry::interval::open_open_tag(),
+                                                          1e-6) )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
     
     void add_line( point_type const & to_insert0, point_type const & to_insert1  )
     {                    
@@ -774,19 +793,93 @@ int main()
 //     }
     
     
-    std::vector< std::pair<layer_type, double> > layers(3);
-    
-    layers[2].first.add_rectangle( point_type_2d(1,1), point_type_2d(7, 8), 0 );
-    layers[2].first.add_rectangle( point_type_2d(3,3), point_type_2d(4, 4), 1 );
-    layers[2].first.add_rectangle( point_type_2d(5,3), point_type_2d(6, 4), 2 );
-    layers[2].second = 7.0;
-    
-    layers[1].first.add_rectangle( point_type_2d(0,0), point_type_2d(10, 10), 3 );
-    layers[1].first.add_circle( point_type_2d(9,9), 3.0, 16, 4 );
-    layers[1].second = 5.0;
+//     std::vector< std::pair<layer_type, double> > layers(3);
 //     
-    layers[0].first.add_rectangle( point_type_2d(-5,-5), point_type_2d(15, 15), 5 );
-    layers[0].second = 10.0;
+//     layers[2].first.add_rectangle( point_type_2d(1,1), point_type_2d(7, 8), 0 );
+//     layers[2].first.add_rectangle( point_type_2d(3,3), point_type_2d(4, 4), 1 );
+//     layers[2].first.add_rectangle( point_type_2d(5,3), point_type_2d(6, 4), 2 );
+//     layers[2].second = 7.0;
+//     
+//     layers[1].first.add_rectangle( point_type_2d(0,0), point_type_2d(10, 10), 3 );
+//     layers[1].first.add_circle( point_type_2d(9,9), 3.0, 16, 4 );
+//     layers[1].second = 5.0;
+//     
+//     layers[0].first.add_rectangle( point_type_2d(-5,-5), point_type_2d(15, 15), 5 );
+//     layers[0].second = 10.0;
+
+    
+    
+    unsigned int object_index = 0;
+    std::vector< std::pair<layer_type, double> > layers;
+    
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.second = 4.95;
+        layers.push_back(tmp);
+    }
+    
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.second = 5.0;
+        layers.push_back(tmp);
+    }
+
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++);
+        tmp.second = 0.5;
+        layers.push_back(tmp);
+    }
+
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(0.6,0), point_type_2d(1.2, 4.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(1.8,0), point_type_2d(2.4, 4.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(3.0,0), point_type_2d(3.6, 4.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(4.2,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.second = 0.5;
+        layers.push_back(tmp);
+    }
+
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(3.1,1.8), point_type_2d(3.5, 2.2), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(4.3,0.1), point_type_2d(4.7, 0.5), object_index++ );
+        tmp.second = 0.5;
+        layers.push_back(tmp);
+    }
+
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 0.8), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(0,1.6), point_type_2d(4.8, 2.4), object_index++ );
+        tmp.first.add_rectangle( point_type_2d(0,3.2), point_type_2d(4.8, 4.0), object_index++ );
+        tmp.second = 0.5;
+        layers.push_back(tmp);
+    }
+
+    {
+        std::pair<layer_type, double> tmp;
+        tmp.first.add_rectangle( point_type_2d(0,0), point_type_2d(4.8, 4.8), object_index++ );
+        tmp.second = 3.0;
+        layers.push_back(tmp);
+    }
+
+    
+
+    
+
+    
+
+    
+
+    
+
 
     
     
@@ -1029,9 +1122,16 @@ int main()
     
     
     
-    std::map<layer_type::element_id_type, point_type_3d> segment_seed_points;
+//     std::map<layer_type::element_id_type, point_type_3d> segment_seed_points;
+//     typedef std::vector< std::pair<layer_type::element_id_type, point_type_3d> > segment_seed_point_container_type;
+//     segment_seed_point_container_type segment_seed_points;
+
+    
     
     {
+        unsigned int tmp_index = 0;
+        std::map<unsigned int, layer_type::element_id_type> segment_index_map;
+        
         double cur_z = 0.0;
         unsigned int interface_index;
         for (std::vector< std::pair<layer_type, double> >::iterator lit = layers.begin(); lit != layers.end(); ++lit, ++interface_index)
@@ -1072,7 +1172,15 @@ int main()
                 
                 layer_type::element_id_type segment_id = current_laver.get_element_id( center );
                 
-                segment_seed_points[segment_id] = center_3d;
+//                 segment_seed_points[segment_id] = center_3d;
+                
+                
+                segment_index_map[tmp_index] = segment_id;
+                
+                viennamesh::add_segment_seed_point( triangle_domain_3d, segment_id, center_3d );
+//                 viennamesh::add_segment_seed_point( triangle_domain_3d, tmp_index, center_3d );
+                
+                tmp_index++;
             }
             
             
@@ -1080,13 +1188,16 @@ int main()
         }
         
         
-        for (std::map<layer_type::element_id_type, point_type_3d>::iterator it = segment_seed_points.begin(); it != segment_seed_points.end(); ++it)
-        {
-            std::cout << "Adding seed point: " << it->second << " to segment " << it->first << std::endl;
-            viennamesh::add_segment_seed_point( triangle_domain_3d, it->first, it->second );
-        }
+//         for (std::map<layer_type::element_id_type, point_type_3d>::iterator it = segment_seed_points.begin(); it != segment_seed_points.end(); ++it)
+//         {
+//             std::cout << "Adding seed point: " << it->second << " to segment " << it->first << std::endl;
+//             viennamesh::add_segment_seed_point( triangle_domain_3d, it->first, it->second );
+//         }
         
         viennamesh::mark_face_segments( triangle_domain_3d );
+        
+        
+//         viennamesh::cleanup_face_segment_definition<viennagrid::triangle_tag>( triangle_domain_3d );
         
 
         std::map<std::size_t, viennagrid::config::triangular_3d_domain> hull_segments;
@@ -1096,7 +1207,7 @@ int main()
         std::cout << "Number segments " << segments.size() << std::endl;
         for (viennamesh::segment_id_container_type::iterator it = segments.begin(); it != segments.end(); ++it)
         {
-            hull_segments.insert( std::make_pair(*it, viennagrid::config::triangular_3d_domain()) );
+//             hull_segments.insert( std::make_pair(*it, viennagrid::config::triangular_3d_domain()) );
             triangle_count[ *it ] = 0;
         }
         
@@ -1106,10 +1217,43 @@ int main()
         triangles_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( triangle_domain_3d );
         for (triangles_range_iterator it = triangles.begin(); it != triangles.end(); ++it)
         {
-            viennamesh::face_segment_definition_type face_segments = viennamesh::face_segments( *it );
+            viennamesh::face_segment_definition_type & face_segments = viennamesh::face_segments( *it );
             
             if ( face_segments.empty() )
-                std::cout << " !! ERROR !! a triangle is not marked for any segment" << std::endl;
+            {
+//                 std::cout << " !! ERROR !! a triangle is not marked for any segment" << std::endl;
+                std::cout << "   " << viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[0]) << std::endl;
+                std::cout << "   " << viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[1]) << std::endl;
+                std::cout << "   " << viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[2]) << std::endl;
+                
+                continue;
+            }
+            
+
+//                 std::cout << "   " << viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[0]) << std::endl;
+//                 std::cout << "   " << viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[1]) << std::endl;
+//                 std::cout << "   " << viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[2]) << std::endl;
+
+            
+//             for (viennamesh::face_segment_definition_type::iterator jt = face_segments.begin(); jt != face_segments.end(); ++jt)
+//             {
+//                 viennamesh::face_segment_definition_type::iterator kt = jt; ++kt;
+//                 
+//                 for ( ; kt != face_segments.end();)
+//                 {
+//                     if ( segment_index_map[jt->first] == segment_index_map[kt->first] )
+//                     {
+// //                         std::cout << "Found double segment element: " << jt->first << " " << kt->first << " seg_id=" << segment_index_map[jt->first] << std::endl;
+//                         viennamesh::face_segment_definition_type::iterator tmp = kt; ++kt;
+//                         face_segments.erase(tmp);
+//                         viennamesh::remove_segment(triangle_domain_3d, kt->first);
+//                         hull_segments.erase( kt->first );
+//                         triangle_count.erase( kt->first );
+//                     }
+//                     else
+//                         ++kt;
+//                 }
+//             }
             
             
             for (viennamesh::face_segment_definition_type::iterator jt = face_segments.begin(); jt != face_segments.end(); ++jt)
@@ -1123,7 +1267,7 @@ int main()
                 point_type_3d p2 = viennagrid::point(triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[2]);
                 
                 point_type_3d center = (p0+p1+p2)/3.0;
-                point_type_3d vec_to_seedpoint = segment_seed_points[jt->first] - center;
+//                 point_type_3d vec_to_seedpoint = segment_seed_points[jt->first] - center;
                 
                 point_type_3d normal = viennagrid::cross_prod( p1-p0, p2-p0 );
                 if ( jt->second ) normal = -normal;
@@ -1160,7 +1304,7 @@ int main()
     viennagrid::config::triangular_3d_domain hull_domain;
     viennamesh::result_of::settings<viennamesh::vgmodeler_hull_adaption_tag>::type vgm_settings;
     
-    vgm_settings.cell_size = 1.0;
+    vgm_settings.cell_size = 0.3;
     
     viennamesh::run_algo< viennamesh::vgmodeler_hull_adaption_tag >( triangle_domain_3d, hull_domain, vgm_settings );
     
@@ -1197,7 +1341,7 @@ int main()
                 point_type_3d p2 = viennagrid::point(hull_domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[2]);
                 
                 point_type_3d center = (p0+p1+p2)/3.0;
-                point_type_3d vec_to_seedpoint = segment_seed_points[jt->first] - center;
+//                 point_type_3d vec_to_seedpoint = segment_seed_points[jt->first] - center;
                 
                 point_type_3d normal = viennagrid::cross_prod( p1-p0, p2-p0 );
                 if ( jt->second ) normal = -normal;
@@ -1235,7 +1379,7 @@ int main()
     viennagrid::config::tetrahedral_3d_domain tetrahedron_domain;
     viennamesh::result_of::settings<viennamesh::netgen_tetrahedron_tag>::type netgen_settings;
     
-    netgen_settings.cell_size = 1.0;
+    netgen_settings.cell_size = 0.3;
     
     viennamesh::run_algo< viennamesh::netgen_tetrahedron_tag >( hull_domain, tetrahedron_domain, netgen_settings );
     
