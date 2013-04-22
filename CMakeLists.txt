@@ -67,6 +67,10 @@ if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif()
 
+if(BUILD_TOOLS)
+   add_subdirectory(tools)
+endif()
+
 if(BUILD_TESTING)
    INCLUDE(CTest)
    add_subdirectory(tests)
