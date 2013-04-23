@@ -32,7 +32,7 @@ namespace viennamesh
         };
         
         template<typename vector_type_, typename topologic_domain_type_, typename metainfo_collection_type_>
-        struct is_vienna_grid_geometric< viennagrid::geometric_domain_t<vector_type_,topologic_domain_type_, metainfo_collection_type_> >
+        struct is_vienna_grid_geometric< viennagrid::domain_t<vector_type_,topologic_domain_type_, metainfo_collection_type_> >
         {
             static const bool value = true;
         };
@@ -54,7 +54,7 @@ namespace viennamesh
         };
         
         template<typename vector_type_, typename topologic_domain_type_, typename metainfo_collection_type_>
-        struct geometric_dimension< viennagrid::geometric_domain_t<vector_type_,topologic_domain_type_, metainfo_collection_type_> >
+        struct geometric_dimension< viennagrid::domain_t<vector_type_,topologic_domain_type_, metainfo_collection_type_> >
         {
             static const unsigned int value = geometric_dimension<vector_type_>::value;
         };
@@ -77,7 +77,7 @@ namespace viennamesh
         };
         
         template<typename vector_type_, typename topologic_domain_type_, typename metainfo_collection_type_, typename tag>
-        struct has_element< viennagrid::geometric_domain_t<vector_type_,topologic_domain_type_, metainfo_collection_type_> >
+        struct has_element< viennagrid::domain_t<vector_type_,topologic_domain_type_, metainfo_collection_type_> >
         {
             static const bool value = !viennameta::_equal<
                     viennameta::typemap::result_of::find<typename topologic_domain_type_::container_collection_type::typemap, tag>,
