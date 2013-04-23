@@ -3580,7 +3580,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //          domain.segments()[si].push_back(cell); 
          
          
-         typedef viennagrid::result_of::element_handle<DomainType, viennagrid::triangle_tag>::type triangle_handle_type;
+         typedef viennagrid::result_of::handle<DomainType, viennagrid::triangle_tag>::type triangle_handle_type;
          
          triangle_handle_type triangle_handle = viennagrid::create_triangle( domain,
                                     viennagrid::elements<viennagrid::vertex_tag>(domain).handle_at( cell_cont[ci][0] ),

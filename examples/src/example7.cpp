@@ -503,7 +503,7 @@ struct layer
     
     void to_viennagrid_domain( viennagrid::config::line_2d_domain & vgrid_domain ) const
     {
-        typedef viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+        typedef viennagrid::result_of::handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
         
         std::map<index_type, vertex_handle_type> vertex_handle_map;
         
@@ -529,7 +529,7 @@ struct layer
 
 
 template<typename domain_type, typename point_type, typename coord_type>
-typename viennagrid::result_of::element_handle<domain_type, viennagrid::vertex_tag>::type get_create_vertex( domain_type & domain, point_type const & point, coord_type eps = 1e-6 )
+typename viennagrid::result_of::handle<domain_type, viennagrid::vertex_tag>::type get_create_vertex( domain_type & domain, point_type const & point, coord_type eps = 1e-6 )
 {
     typedef typename viennagrid::result_of::element_range<domain_type, viennagrid::vertex_tag>::type vertex_range_type;
     typedef typename viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
@@ -891,9 +891,9 @@ int main()
     typedef viennagrid::config::point_type_3d point_type_3d;
     
     typedef viennagrid::result_of::element<viennagrid::config::plc_3d_domain, viennagrid::plc_tag>::type plc_type;
-    typedef viennagrid::result_of::element_handle<viennagrid::config::plc_3d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
-    typedef viennagrid::result_of::element_handle<viennagrid::config::plc_3d_domain, viennagrid::line_tag>::type line_handle_type;
-//     typedef viennagrid::result_of::element_handle<viennagrid::config::plc_3d_domain, viennagrid::polygon_tag>::type polygon_handle_type;
+    typedef viennagrid::result_of::handle<viennagrid::config::plc_3d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+    typedef viennagrid::result_of::handle<viennagrid::config::plc_3d_domain, viennagrid::line_tag>::type line_handle_type;
+//     typedef viennagrid::result_of::handle<viennagrid::config::plc_3d_domain, viennagrid::polygon_tag>::type polygon_handle_type;
     
     
     std::vector<viennagrid::config::triangular_2d_domain> triangulated_interface_domains;
@@ -1097,7 +1097,7 @@ int main()
             triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>(triangle_domain);
             for (triangle_range_iterator triit = triangles.begin(); triit != triangles.end(); ++triit)
             {
-                typedef viennagrid::result_of::element_handle<viennagrid::config::triangular_3d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+                typedef viennagrid::result_of::handle<viennagrid::config::triangular_3d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
                 vertex_handle_type triangle_handles[3];
                 
                 for (unsigned int i = 0; i != 3; ++i)
@@ -1141,7 +1141,7 @@ int main()
             double middle = cur_z + height / 2.0;
             
             viennagrid::config::line_2d_domain line_domain_2d;
-            typedef typename viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+            typedef typename viennagrid::result_of::handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
             
             std::map<layer_type::index_type, vertex_handle_type> vertex_handle_map;
             

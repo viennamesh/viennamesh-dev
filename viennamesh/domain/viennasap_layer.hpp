@@ -494,7 +494,7 @@ namespace viennamesh
             
             void to_viennagrid_domain( viennagrid::config::line_2d_domain & vgrid_domain ) const
             {
-                typedef viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+                typedef viennagrid::result_of::handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
                 
                 std::map<index_type, vertex_handle_type> vertex_handle_map;
                 

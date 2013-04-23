@@ -56,9 +56,9 @@ namespace viennagrid
         
         typedef tetrahedron_tag CellTag;
         typedef typename result_of::element<GeometricDomainType, CellTag>::type CellType;
-        typedef typename result_of::element_handle<GeometricDomainType, CellTag>::type                           CellHookType;
+        typedef typename result_of::handle<GeometricDomainType, CellTag>::type                           CellHookType;
 
-        typedef typename result_of::element_handle<GeometricDomainType, vertex_tag>::type                           VertexHookType;
+        typedef typename result_of::handle<GeometricDomainType, vertex_tag>::type                           VertexHookType;
         
         
         std::ifstream reader(filename.c_str());

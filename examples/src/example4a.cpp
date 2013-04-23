@@ -33,7 +33,7 @@ int main()
     typedef viennagrid::result_of::point_type<hull_domain_type>::type point_type;
     
     typedef viennagrid::result_of::element<hull_domain_type, viennagrid::vertex_tag>::type hull_vertex_type;
-    typedef viennagrid::result_of::element_handle<hull_domain_type, viennagrid::vertex_tag>::type hull_vertex_handle_type;
+    typedef viennagrid::result_of::handle<hull_domain_type, viennagrid::vertex_tag>::type hull_vertex_handle_type;
     
     typedef viennagrid::result_of::element<hull_domain_type, viennagrid::triangle_tag>::type hull_triangle_type;
     

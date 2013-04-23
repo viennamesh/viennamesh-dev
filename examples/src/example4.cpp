@@ -190,16 +190,16 @@ int main()
     typedef viennagrid::result_of::point_type<tet_domain_type>::type tet_point_type;
      
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_type;
-    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_handle_type;
+    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_handle_type;
     
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::line_tag>::type tet_line_type;
-    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::line_tag>::type tet_line_handle_type;
+    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::line_tag>::type tet_line_handle_type;
     
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle_type;
-    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle__handle_type;
+    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle__handle_type;
 
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_type;
-    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_handle_type;
+    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_handle_type;
     
     
     std::map<Vertex_handle, tet_vertex_handle_type> points;

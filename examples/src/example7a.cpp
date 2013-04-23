@@ -18,7 +18,7 @@ template<typename domain_type, typename vertex_handle_map_type, typename stream_
 void write_flat_contact( domain_type & domain, vertex_handle_map_type & vertex_handle_map, stream_type & stream, interface_type const & interface)
 {
     typedef typename viennagrid::result_of::point_type< domain_type >::type point_type;
-    typedef typename viennagrid::result_of::element_handle< domain_type, viennagrid::vertex_tag >::type vertex_handle_type;
+    typedef typename viennagrid::result_of::handle< domain_type, viennagrid::vertex_tag >::type vertex_handle_type;
     
     typedef typename viennagrid::result_of::element_range< domain_type, viennagrid::triangle_tag >::type triangle_range_type;
     typedef typename viennagrid::result_of::iterator< triangle_range_type >::type triangle_range_iterator;
@@ -67,7 +67,7 @@ template<typename domain_type, typename vertex_handle_map_type, typename stream_
 void write_volume_contact( domain_type & domain, vertex_handle_map_type & vertex_handle_map, stream_type & stream, viennamesh::segment_id_type segment_id)
 {
     typedef typename viennagrid::result_of::point_type< domain_type >::type point_type;
-    typedef typename viennagrid::result_of::element_handle< domain_type, viennagrid::vertex_tag >::type vertex_handle_type;
+    typedef typename viennagrid::result_of::handle< domain_type, viennagrid::vertex_tag >::type vertex_handle_type;
     
     typedef typename viennagrid::result_of::element_range< domain_type, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
     typedef typename viennagrid::result_of::iterator< tetrahedron_range_type >::type tetrahedron_range_iterator;
@@ -293,7 +293,7 @@ int main()
     typedef viennagrid::result_of::element_range<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_range_type;
     typedef viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
     
-    typedef viennagrid::result_of::element_handle<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_handle_type;
+    typedef viennagrid::result_of::handle<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_handle_type;
     typedef viennagrid::result_of::element<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_type;
     
     {
@@ -478,7 +478,7 @@ int main()
             typedef viennagrid::result_of::iterator< tetrahedron_range_type >::type tetrahedron_range_iterator;
     
             
-            typedef viennagrid::result_of::element_handle< viennagrid::config::tetrahedral_3d_domain, viennagrid::vertex_tag >::type vertex_handle_type;
+            typedef viennagrid::result_of::handle< viennagrid::config::tetrahedral_3d_domain, viennagrid::vertex_tag >::type vertex_handle_type;
             
             std::map<vertex_handle_type, int> vertex_handle_map;
             

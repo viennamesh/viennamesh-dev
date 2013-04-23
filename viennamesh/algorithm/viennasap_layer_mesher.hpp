@@ -56,8 +56,8 @@ namespace viennamesh
             typedef typename native_input_domain_type::interface_type interface_type;
             
             typedef typename viennagrid::result_of::point_type<native_output_domain_type>::type point_type;
-            typedef typename viennagrid::result_of::element_handle<native_output_domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
-            typedef typename viennagrid::result_of::element_handle<native_output_domain_type, viennagrid::line_tag>::type line_handle_type;
+            typedef typename viennagrid::result_of::handle<native_output_domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
+            typedef typename viennagrid::result_of::handle<native_output_domain_type, viennagrid::line_tag>::type line_handle_type;
             typedef typename viennagrid::result_of::element<native_output_domain_type, viennagrid::plc_tag>::type plc_type;
             
             std::deque< layer_type > const & layers = native_input_domain.layers;
@@ -215,7 +215,7 @@ namespace viennamesh
 //             double middle = cur_z + height / 2.0;
             
             viennagrid::config::line_2d_domain line_domain_2d;
-            typedef typename viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+            typedef typename viennagrid::result_of::handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
             
             std::map<typename layer_type::index_type, vertex_handle_type> vertex_handle_map;
             

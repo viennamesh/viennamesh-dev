@@ -484,7 +484,7 @@ namespace viennamesh
             
             typedef typename viennagrid::result_of::element<domain_type, viennagrid::line_tag>::type line_type;
             typedef typename viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef typename viennagrid::result_of::element_handle<domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
+            typedef typename viennagrid::result_of::handle<domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
             
             typedef viennagrid::storage::static_array<vertex_handle_type, 3> handle_array;
             
@@ -728,7 +728,7 @@ namespace viennamesh
             typedef typename viennagrid::result_of::coord_type<point_type>::type coord_type;
             
             typedef typename viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef typename viennagrid::result_of::element_handle<domain_type, viennagrid::triangle_tag>::type triangle_handle_type;
+            typedef typename viennagrid::result_of::handle<domain_type, viennagrid::triangle_tag>::type triangle_handle_type;
             typedef typename viennagrid::result_of::element_range<domain_type, viennagrid::triangle_tag>::type triangle_range_type;
             typedef typename viennagrid::result_of::handle_iterator<triangle_range_type>::type triangle_range_handle_iterator;
             typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
