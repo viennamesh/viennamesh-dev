@@ -190,30 +190,30 @@ int main()
     typedef viennagrid::result_of::point_type<tet_domain_type>::type tet_point_type;
      
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_type;
-    typedef viennagrid::result_of::element_hook<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_hook_type;
+    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_handle_type;
     
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::line_tag>::type tet_line_type;
-    typedef viennagrid::result_of::element_hook<tet_domain_type, viennagrid::line_tag>::type tet_line_hook_type;
+    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::line_tag>::type tet_line_handle_type;
     
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle_type;
-    typedef viennagrid::result_of::element_hook<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle__hook_type;
+    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle__handle_type;
 
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_type;
-    typedef viennagrid::result_of::element_hook<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_hook_type;
+    typedef viennagrid::result_of::element_handle<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_handle_type;
     
     
-    std::map<Vertex_handle, tet_vertex_hook_type> points;
+    std::map<Vertex_handle, tet_vertex_handle_type> points;
     
     int mesh_faces_counter = 0;
     for (Cell_iterator it = c3t3.cells_in_complex_begin(); it != c3t3.cells_in_complex_end(); ++it)
     {
         Tr::Cell t = *it;
         
-        tet_vertex_hook_type vgrid_vtx[4];
+        tet_vertex_handle_type vgrid_vtx[4];
         
         for (int i = 0; i < 4; ++i)
         {
-            std::map<Vertex_handle, tet_vertex_hook_type>::iterator pit = points.find( t.vertex(i) );
+            std::map<Vertex_handle, tet_vertex_handle_type>::iterator pit = points.find( t.vertex(i) );
             if (pit == points.end())
             {
                 tet_point_type tmp;

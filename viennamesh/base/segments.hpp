@@ -476,19 +476,19 @@ namespace viennamesh
         //     calculate the oriented angle between the positive x-axis (=vector to the current triangle) and the projected vector to the neighbour triangle
         //   the neighbour triangle with the smallest angle is selected
 
-        template<typename triangle_hook_type, typename domain_type>
-        void mark_facing_shortes_angle( domain_type & domain, unsigned int segment_id, triangle_hook_type triangle_hook, bool triangle_faces_outward )
+        template<typename triangle_handle_type, typename domain_type>
+        void mark_facing_shortes_angle( domain_type & domain, unsigned int segment_id, triangle_handle_type triangle_handle, bool triangle_faces_outward )
         {
             typedef typename viennagrid::result_of::point_type<domain_type>::type point_type;
             typedef typename viennagrid::result_of::coord_type<point_type>::type coord_type;
             
             typedef typename viennagrid::result_of::element<domain_type, viennagrid::line_tag>::type line_type;
             typedef typename viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef typename viennagrid::result_of::element_hook<domain_type, viennagrid::vertex_tag>::type vertex_hook_type;
+            typedef typename viennagrid::result_of::element_handle<domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
             
-            typedef viennagrid::storage::static_array<vertex_hook_type, 3> hook_array;
+            typedef viennagrid::storage::static_array<vertex_handle_type, 3> handle_array;
             
-            triangle_type & triangle = viennagrid::dereference_hook(domain, triangle_hook);
+            triangle_type & triangle = viennagrid::dereference_handle(domain, triangle_handle);
             
             // if this triangle has already been visited -> nothing to do
             if (viennamesh::was_visited(triangle))
@@ -499,10 +499,10 @@ namespace viennamesh
             // ... and set the visited flag
             viennamesh::set_visited(triangle);
             
-            hook_array vtx;
-            vtx[0] = viennagrid::elements<viennagrid::vertex_tag>(triangle).hook_at(0);
-            vtx[1] = viennagrid::elements<viennagrid::vertex_tag>(triangle).hook_at(1);
-            vtx[2] = viennagrid::elements<viennagrid::vertex_tag>(triangle).hook_at(2);
+            handle_array vtx;
+            vtx[0] = viennagrid::elements<viennagrid::vertex_tag>(triangle).handle_at(0);
+            vtx[1] = viennagrid::elements<viennagrid::vertex_tag>(triangle).handle_at(1);
+            vtx[2] = viennagrid::elements<viennagrid::vertex_tag>(triangle).handle_at(2);
             
             
             viennagrid::storage::static_array<point_type,3> p;
@@ -531,17 +531,17 @@ namespace viennamesh
             
             
             typedef typename viennagrid::result_of::element_range<triangle_type, viennagrid::line_tag>::type lines_on_triangle_range_type;
-            typedef typename viennagrid::result_of::hook_iterator<lines_on_triangle_range_type>::type lines_on_triangle_range_iterator;
+            typedef typename viennagrid::result_of::handle_iterator<lines_on_triangle_range_type>::type lines_on_triangle_range_iterator;
             
             // iterating over all boundary lines
             lines_on_triangle_range_type lines = viennagrid::elements<viennagrid::line_tag>( triangle );
             for ( lines_on_triangle_range_iterator lit = lines.begin(); lit != lines.end(); ++lit )
             {
-                line_type & line = viennagrid::dereference_hook( domain, *lit );
+                line_type & line = viennagrid::dereference_handle( domain, *lit );
                 
-                viennagrid::storage::static_array<vertex_hook_type, 2> lvtx;
-                lvtx[0] = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(0);
-                lvtx[1] = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(1);
+                viennagrid::storage::static_array<vertex_handle_type, 2> lvtx;
+                lvtx[0] = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(0);
+                lvtx[1] = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(1);
                 
                 viennagrid::storage::static_array<point_type, 2> lp;
                 lp[0] = viennagrid::point( domain, lvtx[0] );
@@ -569,7 +569,7 @@ namespace viennamesh
                 
                 
                 typedef typename viennagrid::result_of::coboundary_range<domain_type, viennagrid::triangle_tag>::type neighbour_range_type;
-                typedef typename viennagrid::result_of::hook_iterator<neighbour_range_type>::type neighbour_hook_iterator;
+                typedef typename viennagrid::result_of::handle_iterator<neighbour_range_type>::type neighbour_handle_iterator;
                 
                 
                 neighbour_range_type neighbour_triangles = viennagrid::coboundary_elements<viennagrid::triangle_tag>(domain, *lit);
@@ -587,28 +587,28 @@ namespace viennamesh
                 
                 // smallest angle, triangle with smallest angle and facing outward flag of this triangle
                 coord_type smallest_angle = std::numeric_limits<coord_type>::max();
-                triangle_hook_type smallest_angle_triangle;
+                triangle_handle_type smallest_angle_triangle;
                 bool smallest_angle_triangle_faces_outward;
                 
                 // iterating over all coboundary triangles of the current line
-                for (neighbour_hook_iterator it = neighbour_triangles.hook_begin(); it != neighbour_triangles.hook_end(); ++it)
+                for (neighbour_handle_iterator it = neighbour_triangles.handle_begin(); it != neighbour_triangles.handle_end(); ++it)
                 {
-                    triangle_hook_type hook = *it;
-                    triangle_type & neighbour_triangle = viennagrid::dereference_hook(domain, hook);
+                    triangle_handle_type handle = *it;
+                    triangle_type & neighbour_triangle = viennagrid::dereference_handle(domain, handle);
                     
         //             std::cout << "  neighbour " << neighbour_triangle << std::endl;
                     
                     // is the coboundary triangle the current triangle -> skipping
-                    if (hook == triangle_hook)
+                    if (handle == triangle_handle)
                         continue;
                     
         //             if (viennamesh::was_visited(neighbour_triangle))
         //                 continue;
                     
-                    hook_array nvtx;
-                    nvtx[0] = viennagrid::elements<viennagrid::vertex_tag>(neighbour_triangle).hook_at(0);
-                    nvtx[1] = viennagrid::elements<viennagrid::vertex_tag>(neighbour_triangle).hook_at(1);
-                    nvtx[2] = viennagrid::elements<viennagrid::vertex_tag>(neighbour_triangle).hook_at(2);
+                    handle_array nvtx;
+                    nvtx[0] = viennagrid::elements<viennagrid::vertex_tag>(neighbour_triangle).handle_at(0);
+                    nvtx[1] = viennagrid::elements<viennagrid::vertex_tag>(neighbour_triangle).handle_at(1);
+                    nvtx[2] = viennagrid::elements<viennagrid::vertex_tag>(neighbour_triangle).handle_at(2);
                     
                     viennagrid::storage::static_array<point_type,3> np;
                     np[0] = viennagrid::point( domain, nvtx[0] );
@@ -655,10 +655,10 @@ namespace viennamesh
                     if (oriented_angle < smallest_angle)
                     {
                         smallest_angle = oriented_angle;
-                        smallest_angle_triangle = hook;
+                        smallest_angle_triangle = handle;
                         
-                        typename hook_array::iterator vtx_it;
-                        typename hook_array::iterator nvtx_it;
+                        typename handle_array::iterator vtx_it;
+                        typename handle_array::iterator nvtx_it;
                         
                         for (vtx_it = vtx.begin(); vtx_it != vtx.end(); ++vtx_it)
                         {
@@ -690,12 +690,12 @@ namespace viennamesh
                 // is a triangle found -> call mark_facing_shortes_angle recursively
                 if (smallest_angle != std::numeric_limits<coord_type>::max())
                 {
-//                     triangle_type & best = viennagrid::dereference_hook(domain, smallest_angle_triangle);
+//                     triangle_type & best = viennagrid::dereference_handle(domain, smallest_angle_triangle);
 //                     
-//                     hook_array nvtx;
-//                     nvtx[0] = viennagrid::elements<viennagrid::vertex_tag>(best).hook_at(0);
-//                     nvtx[1] = viennagrid::elements<viennagrid::vertex_tag>(best).hook_at(1);
-//                     nvtx[2] = viennagrid::elements<viennagrid::vertex_tag>(best).hook_at(2);
+//                     handle_array nvtx;
+//                     nvtx[0] = viennagrid::elements<viennagrid::vertex_tag>(best).handle_at(0);
+//                     nvtx[1] = viennagrid::elements<viennagrid::vertex_tag>(best).handle_at(1);
+//                     nvtx[2] = viennagrid::elements<viennagrid::vertex_tag>(best).handle_at(2);
 //                     
 //                     viennagrid::storage::static_array<point_type,3> np;
 //                     np[0] = viennagrid::point( domain, nvtx[0] );
@@ -728,16 +728,16 @@ namespace viennamesh
             typedef typename viennagrid::result_of::coord_type<point_type>::type coord_type;
             
             typedef typename viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef typename viennagrid::result_of::element_hook<domain_type, viennagrid::triangle_tag>::type triangle_hook_type;
+            typedef typename viennagrid::result_of::element_handle<domain_type, viennagrid::triangle_tag>::type triangle_handle_type;
             typedef typename viennagrid::result_of::element_range<domain_type, viennagrid::triangle_tag>::type triangle_range_type;
-            typedef typename viennagrid::result_of::hook_iterator<triangle_range_type>::type triangle_range_hook_iterator;
+            typedef typename viennagrid::result_of::handle_iterator<triangle_range_type>::type triangle_range_handle_iterator;
             typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
             
             // iteratin over all triangles
             triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( domain );
-            for (triangle_range_hook_iterator it = triangles.hook_begin(); it != triangles.hook_end(); ++it)
+            for (triangle_range_handle_iterator it = triangles.handle_begin(); it != triangles.handle_end(); ++it)
             {
-                triangle_type & triangle = viennagrid::dereference_hook( domain, *it );
+                triangle_type & triangle = viennagrid::dereference_handle( domain, *it );
                 
                 // has this triangle already been visited? -> skipping
                 if (viennamesh::was_visited(triangle))
@@ -817,9 +817,9 @@ namespace viennamesh
             }        
             
             
-            for (triangle_range_hook_iterator it = triangles.hook_begin(); it != triangles.hook_end(); ++it)
+            for (triangle_range_handle_iterator it = triangles.handle_begin(); it != triangles.handle_end(); ++it)
             {
-                viennamesh::clear_visited( viennagrid::dereference_hook( domain, *it ) );
+                viennamesh::clear_visited( viennagrid::dereference_handle( domain, *it ) );
             }
         }
         

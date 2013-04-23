@@ -33,7 +33,7 @@ int main()
     typedef viennagrid::result_of::point_type<hull_domain_type>::type point_type;
     
     typedef viennagrid::result_of::element<hull_domain_type, viennagrid::vertex_tag>::type hull_vertex_type;
-    typedef viennagrid::result_of::element_hook<hull_domain_type, viennagrid::vertex_tag>::type hull_vertex_hook_type;
+    typedef viennagrid::result_of::element_handle<hull_domain_type, viennagrid::vertex_tag>::type hull_vertex_handle_type;
     
     typedef viennagrid::result_of::element<hull_domain_type, viennagrid::triangle_tag>::type hull_triangle_type;
     
@@ -42,7 +42,7 @@ int main()
     
     
     double s = 10.0;
-    hull_vertex_hook_type vtx[8];
+    hull_vertex_handle_type vtx[8];
     
     vtx[0] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(0, 0, 0) );
     vtx[1] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(0, s, 0) );

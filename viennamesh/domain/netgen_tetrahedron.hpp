@@ -109,11 +109,11 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_hook_type;
+            typedef viennagrid::result_of::const_element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::hook_iterator<vertex_range_type>::type vertex_range_hook_iterator;
+            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
 
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_range_type;
             typedef viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
@@ -125,7 +125,7 @@ namespace viennamesh
             
             for (netgen_domain_type::netgen_mesh_container_type::const_iterator seg_it = netgen_domain.meshes.begin(); seg_it != netgen_domain.meshes.end(); ++seg_it)
             {
-                std::map<vertex_const_hook_type, int> vertex_index_map;
+                std::map<vertex_const_handle_type, int> vertex_index_map;
                 int index = 0;
                 
                 netgen_domain_type::netgen_mesh_type current_mesh = seg_it->second;
@@ -142,10 +142,10 @@ namespace viennamesh
                     int indices[3];
                     for (int i = 0; i < 3; ++i)
                     {
-                        std::map<vertex_const_hook_type, int>::iterator tmp = vertex_index_map.find(viennagrid::elements<viennagrid::vertex_tag>( triangle ).hook_at(i));
+                        std::map<vertex_const_handle_type, int>::iterator tmp = vertex_index_map.find(viennagrid::elements<viennagrid::vertex_tag>( triangle ).handle_at(i));
                         if (tmp == vertex_index_map.end())
                         {
-                            vertex_const_hook_type vh = viennagrid::elements<viennagrid::vertex_tag>( triangle ).hook_at(i);
+                            vertex_const_handle_type vh = viennagrid::elements<viennagrid::vertex_tag>( triangle ).handle_at(i);
                             point_type const & vgrid_point = viennagrid::point( vgrid_domain, vh );
                             
                             tmp = vertex_index_map.insert( std::make_pair(vh, index+1) ).first;     // increase by one because netgen start counting at 1
@@ -191,30 +191,30 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_handle_type;
             
-//             typedef std::vector< std::pair<point_type, vertex_hook_type> > point_vertex_map_type;
+//             typedef std::vector< std::pair<point_type, vertex_handle_type> > point_vertex_map_type;
 //             point_vertex_map_type point_vertex_map;
             
             
             for (typename netgen_domain_type::netgen_mesh_container_type::const_iterator it = netgen_domain.meshes.begin(); it != netgen_domain.meshes.end(); ++it)
             {
 //                 vgrid_domain_type current_tmp;
-//                 std::map<int, vertex_hook_type> current_tmp_index_vertex_map;
+//                 std::map<int, vertex_handle_type> current_tmp_index_vertex_map;
                 
                 int num_points = nglib::Ng_GetNP(it->second);
                 int num_tets = nglib::Ng_GetNE(it->second);
                 
-                std::map<int, vertex_hook_type> index_vertex_map;
+                std::map<int, vertex_handle_type> index_vertex_map;
                 
                 
                 for (int i = 0; i < num_points; ++i)
@@ -233,7 +233,7 @@ namespace viennamesh
 //                     
 //                     if (pit == point_vertex_map.size())
 //                     {
-//                     vertex_hook_type vh = viennagrid::create_unique_vertex( vgrid_domain, vgrid_point );
+//                     vertex_handle_type vh = viennagrid::create_unique_vertex( vgrid_domain, vgrid_point );
 //                     point_vertex_map.push_back( std::make_pair(vgrid_point, vh) );
 //                     index_vertex_map.insert( std::make_pair(i+1, vh) );
                     
@@ -252,15 +252,15 @@ namespace viennamesh
                     int netgen_tet[4];
                     nglib::Ng_GetVolumeElement(it->second, i+1, netgen_tet);
                     
-                    vertex_hook_type vhs[4];
+                    vertex_handle_type vhs[4];
                     vhs[0] = index_vertex_map[netgen_tet[0]];
                     vhs[1] = index_vertex_map[netgen_tet[1]];
                     vhs[2] = index_vertex_map[netgen_tet[2]];
                     vhs[3] = index_vertex_map[netgen_tet[3]];
                     
-                    tetrahedron_hook_type tetrahedron_hook = viennagrid::create_element<tetrahedron_type>( vgrid_domain, vhs, vhs+4 );
+                    tetrahedron_handle_type tetrahedron_handle = viennagrid::create_element<tetrahedron_type>( vgrid_domain, vhs, vhs+4 );
                     
-                    segment( viennagrid::dereference_hook(vgrid_domain, tetrahedron_hook) ) = it->first;
+                    segment( viennagrid::dereference_handle(vgrid_domain, tetrahedron_handle) ) = it->first;
                     
                     
 //                     vhs[0] = current_tmp_index_vertex_map[netgen_tet[0]];

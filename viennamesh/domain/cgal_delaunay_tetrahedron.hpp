@@ -75,13 +75,13 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_hook_type;
+            typedef viennagrid::result_of::const_element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_handle_type;
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_range_type;
@@ -150,34 +150,34 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::tetrahedron_tag>::type tetrahedron_handle_type;
             
             
             
             typedef cgal_domain_type::Tr::Vertex_handle Vertex_handle;
             typedef cgal_domain_type::C3t3::Cell_iterator  Cell_iterator;
             
-            std::map<Vertex_handle, vertex_hook_type> points;
+            std::map<Vertex_handle, vertex_handle_type> points;
             
             int mesh_faces_counter = 0;
             for (Cell_iterator it = cgal_domain.tetdrahedron_triangulation.cells_in_complex_begin(); it != cgal_domain.tetdrahedron_triangulation.cells_in_complex_end(); ++it)
             {
                 cgal_domain_type::Tr::Cell t = *it;
                 
-                vertex_hook_type vgrid_vtx[4];
+                vertex_handle_type vgrid_vtx[4];
                 
                 for (int i = 0; i < 4; ++i)
                 {
-                    std::map<Vertex_handle, vertex_hook_type>::iterator pit = points.find( t.vertex(i) );
+                    std::map<Vertex_handle, vertex_handle_type>::iterator pit = points.find( t.vertex(i) );
                     if (pit == points.end())
                     {
                         point_type tmp;

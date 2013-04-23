@@ -503,15 +503,15 @@ struct layer
     
     void to_viennagrid_domain( viennagrid::config::line_2d_domain & vgrid_domain ) const
     {
-        typedef viennagrid::result_of::element_hook<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_hook_type;
+        typedef viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
         
-        std::map<index_type, vertex_hook_type> vertex_hook_map;
+        std::map<index_type, vertex_handle_type> vertex_handle_map;
         
         for (unsigned int it = 0; it != points.size(); ++it)
-            vertex_hook_map[it] = viennagrid::create_vertex( vgrid_domain, get_point(it) );
+            vertex_handle_map[it] = viennagrid::create_vertex( vgrid_domain, get_point(it) );
         
         for (typename line_container_type::const_iterator it = lines.begin(); it != lines.end(); ++it)
-            viennagrid::create_line( vgrid_domain, vertex_hook_map[it->first], vertex_hook_map[it->second] );
+            viennagrid::create_line( vgrid_domain, vertex_handle_map[it->first], vertex_handle_map[it->second] );
     }
     
     
@@ -529,13 +529,13 @@ struct layer
 
 
 template<typename domain_type, typename point_type, typename coord_type>
-typename viennagrid::result_of::element_hook<domain_type, viennagrid::vertex_tag>::type get_create_vertex( domain_type & domain, point_type const & point, coord_type eps = 1e-6 )
+typename viennagrid::result_of::element_handle<domain_type, viennagrid::vertex_tag>::type get_create_vertex( domain_type & domain, point_type const & point, coord_type eps = 1e-6 )
 {
     typedef typename viennagrid::result_of::element_range<domain_type, viennagrid::vertex_tag>::type vertex_range_type;
-    typedef typename viennagrid::result_of::hook_iterator<vertex_range_type>::type vertex_range_hook_iterator;
+    typedef typename viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
     
     vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(domain);
-    for (vertex_range_hook_iterator it = vertices.hook_begin(); it != vertices.hook_end(); ++it)
+    for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
     {
         if (viennagrid::norm_2( point - viennagrid::point(domain, *it) ) < eps)
             return *it;
@@ -891,9 +891,9 @@ int main()
     typedef viennagrid::config::point_type_3d point_type_3d;
     
     typedef viennagrid::result_of::element<viennagrid::config::plc_3d_domain, viennagrid::plc_tag>::type plc_type;
-    typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::vertex_tag>::type vertex_hook_type;
-    typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::line_tag>::type line_hook_type;
-//     typedef viennagrid::result_of::element_hook<viennagrid::config::plc_3d_domain, viennagrid::polygon_tag>::type polygon_hook_type;
+    typedef viennagrid::result_of::element_handle<viennagrid::config::plc_3d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+    typedef viennagrid::result_of::element_handle<viennagrid::config::plc_3d_domain, viennagrid::line_tag>::type line_handle_type;
+//     typedef viennagrid::result_of::element_handle<viennagrid::config::plc_3d_domain, viennagrid::polygon_tag>::type polygon_handle_type;
     
     
     std::vector<viennagrid::config::triangular_2d_domain> triangulated_interface_domains;
@@ -938,8 +938,8 @@ int main()
     }
     
     
-    std::vector< std::map<layer_type::index_type, vertex_hook_type> > interface_vertex_hook_map( interfaces.size() );
-    std::vector< std::map<layer_type::line_type, line_hook_type> > interface_line_hook_map( interfaces.size() );
+    std::vector< std::map<layer_type::index_type, vertex_handle_type> > interface_vertex_handle_map( interfaces.size() );
+    std::vector< std::map<layer_type::line_type, line_handle_type> > interface_line_handle_map( interfaces.size() );
     
     
     // adding lines
@@ -967,19 +967,19 @@ int main()
 //             current_layer.check();
 //             current_layer.print_lines();
             
-            std::map<layer_type::index_type, vertex_hook_type> & vertex_hook_map = interface_vertex_hook_map[interface_index];
-            std::map<layer_type::line_type, line_hook_type> & line_hook_map = interface_line_hook_map[interface_index];
+            std::map<layer_type::index_type, vertex_handle_type> & vertex_handle_map = interface_vertex_handle_map[interface_index];
+            std::map<layer_type::line_type, line_handle_type> & line_handle_map = interface_line_handle_map[interface_index];
             
             for (layer_type::index_type pit = 0; pit != current_layer.points.size(); ++pit)
-                vertex_hook_map[pit] = viennagrid::create_vertex( plc_domain, point_type_3d( current_layer.points[pit][0], current_layer.points[pit][1], interface(current_layer.points[pit]) ) );
+                vertex_handle_map[pit] = viennagrid::create_vertex( plc_domain, point_type_3d( current_layer.points[pit][0], current_layer.points[pit][1], interface(current_layer.points[pit]) ) );
             
-            std::vector<line_hook_type> plc_lines;
+            std::vector<line_handle_type> plc_lines;
             
             for (layer_type::line_container_type::const_iterator lit = current_layer.lines.begin(); lit != current_layer.lines.end(); ++lit)
             {
-                line_hook_type line_hook = viennagrid::create_line( plc_domain, vertex_hook_map[lit->first], vertex_hook_map[lit->second] );
-                line_hook_map[*lit] = line_hook;
-                plc_lines.push_back( line_hook );
+                line_handle_type line_handle = viennagrid::create_line( plc_domain, vertex_handle_map[lit->first], vertex_handle_map[lit->second] );
+                line_handle_map[*lit] = line_handle;
+                plc_lines.push_back( line_handle );
             }
             
         }
@@ -1002,25 +1002,25 @@ int main()
 //             lower_interface.check();
 //             upper_interface.check();
             
-            std::map<layer_type::index_type, line_hook_type> z_line_hook_map;
+            std::map<layer_type::index_type, line_handle_type> z_line_handle_map;
             
-            std::map<layer_type::index_type, vertex_hook_type> & lower_vertex_hook_map = interface_vertex_hook_map[interface_index];
-            std::map<layer_type::line_type, line_hook_type> & lower_line_hook_map = interface_line_hook_map[interface_index];
+            std::map<layer_type::index_type, vertex_handle_type> & lower_vertex_handle_map = interface_vertex_handle_map[interface_index];
+            std::map<layer_type::line_type, line_handle_type> & lower_line_handle_map = interface_line_handle_map[interface_index];
 
-            std::map<layer_type::index_type, vertex_hook_type> & upper_vertex_hook_map = interface_vertex_hook_map[interface_index+1];
-            std::map<layer_type::line_type, line_hook_type> & upper_line_hook_map = interface_line_hook_map[interface_index+1];
+            std::map<layer_type::index_type, vertex_handle_type> & upper_vertex_handle_map = interface_vertex_handle_map[interface_index+1];
+            std::map<layer_type::line_type, line_handle_type> & upper_line_handle_map = interface_line_handle_map[interface_index+1];
 
             
             for (layer_type::index_type pit = 0; pit != current_layer.points.size(); ++pit)
-                z_line_hook_map[pit] = viennagrid::create_line( plc_domain,
-                                                                lower_vertex_hook_map[lower_interface.get_point(current_layer.get_point(pit))],
-                                                                upper_vertex_hook_map[upper_interface.get_point(current_layer.get_point(pit))] );
+                z_line_handle_map[pit] = viennagrid::create_line( plc_domain,
+                                                                lower_vertex_handle_map[lower_interface.get_point(current_layer.get_point(pit))],
+                                                                upper_vertex_handle_map[upper_interface.get_point(current_layer.get_point(pit))] );
             
             
             layer_type::line_container_type tmp_lines = current_layer.lines;
             for (layer_type::line_container_type::iterator it = tmp_lines.begin(); it != tmp_lines.end();)
             {
-                std::vector<line_hook_type> plc_lines;
+                std::vector<line_handle_type> plc_lines;
                 
                 layer_type::line_type const & line = *it;
                 
@@ -1031,29 +1031,29 @@ int main()
                 {
                     if (viennagrid::geometry::point_ray_intersect( lower_interface.get_point(jt->first), p0, p1, 1e-6 ) &&
                         viennagrid::geometry::point_ray_intersect( lower_interface.get_point(jt->second), p0, p1, 1e-6 ))
-                        plc_lines.push_back( lower_line_hook_map[*jt] );
+                        plc_lines.push_back( lower_line_handle_map[*jt] );
                 }
                 
                 for (layer_type::line_container_type::const_iterator jt = upper_interface.lines.begin() ; jt != upper_interface.lines.end(); ++jt)
                 {
                     if (viennagrid::geometry::point_ray_intersect( upper_interface.get_point(jt->first), p0, p1, 1e-6 ) &&
                         viennagrid::geometry::point_ray_intersect( upper_interface.get_point(jt->second), p0, p1, 1e-6 ))
-                        plc_lines.push_back( upper_line_hook_map[*jt] );
+                        plc_lines.push_back( upper_line_handle_map[*jt] );
                 }
                 
                 
                 for (layer_type::index_type jt = 0; jt != current_layer.points.size(); ++jt)
                 {
                     if (viennagrid::geometry::point_ray_intersect( current_layer.get_point(jt), current_layer.get_point(line.first), current_layer.get_point(line.second), 1e-6 ))
-                        plc_lines.push_back( z_line_hook_map[jt] );
+                        plc_lines.push_back( z_line_handle_map[jt] );
                 }
                 
                 
-//                 polygon_hook_type poly_hook;
-                vertex_hook_type vtx_hook;
+//                 polygon_handle_type poly_handle;
+                vertex_handle_type vtx_handle;
                 point_type_3d pt;
                 
-                viennagrid::create_element<plc_type>( plc_domain, plc_lines.begin(), plc_lines.end(), &vtx_hook, &vtx_hook, &pt, &pt );
+                viennagrid::create_element<plc_type>( plc_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
                 
                 layer_type::line_container_type::iterator jt = it; ++jt;
                 for (; jt != tmp_lines.end();)
@@ -1097,18 +1097,18 @@ int main()
             triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>(triangle_domain);
             for (triangle_range_iterator triit = triangles.begin(); triit != triangles.end(); ++triit)
             {
-                typedef viennagrid::result_of::element_hook<viennagrid::config::triangular_3d_domain, viennagrid::vertex_tag>::type vertex_hook_type;
-                vertex_hook_type triangle_hooks[3];
+                typedef viennagrid::result_of::element_handle<viennagrid::config::triangular_3d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+                vertex_handle_type triangle_handles[3];
                 
                 for (unsigned int i = 0; i != 3; ++i)
                 {
                     point_type_2d point_2d = viennagrid::point( triangle_domain, viennagrid::elements<viennagrid::vertex_tag>(*triit)[i] );
                     point_type_3d point_3d( point_2d[0], point_2d[1], interface(point_2d) );
                     
-                    triangle_hooks[i] = viennagrid::create_unique_vertex( triangle_domain_3d, point_3d );
+                    triangle_handles[i] = viennagrid::create_unique_vertex( triangle_domain_3d, point_3d );
                 }
                 
-                viennagrid::create_triangle( triangle_domain_3d, triangle_hooks[0], triangle_hooks[1], triangle_hooks[2] );
+                viennagrid::create_triangle( triangle_domain_3d, triangle_handles[0], triangle_handles[1], triangle_handles[2] );
             }
         }
     }
@@ -1141,15 +1141,15 @@ int main()
             double middle = cur_z + height / 2.0;
             
             viennagrid::config::line_2d_domain line_domain_2d;
-            typedef typename viennagrid::result_of::element_hook<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_hook_type;
+            typedef typename viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
             
-            std::map<layer_type::index_type, vertex_hook_type> vertex_hook_map;
+            std::map<layer_type::index_type, vertex_handle_type> vertex_handle_map;
             
             for (layer_type::index_type it = 0; it != current_laver.points.size(); ++it)
-                vertex_hook_map[it] = viennagrid::create_vertex( line_domain_2d, current_laver.points[it] );
+                vertex_handle_map[it] = viennagrid::create_vertex( line_domain_2d, current_laver.points[it] );
             
             for (layer_type::line_container_type::const_iterator it = current_laver.lines.begin(); it != current_laver.lines.end(); ++it)
-                viennagrid::create_line( line_domain_2d, vertex_hook_map[it->first], vertex_hook_map[it->second] );
+                viennagrid::create_line( line_domain_2d, vertex_handle_map[it->first], vertex_handle_map[it->second] );
             
             viennagrid::config::triangular_2d_domain triangular_domain_2d;
             viennamesh::result_of::settings<viennamesh::cgal_plc_2d_mesher_tag>::type settings;

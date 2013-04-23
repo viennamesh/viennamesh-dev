@@ -86,13 +86,13 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_hook_type;
+            typedef viennagrid::result_of::const_element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::hook_iterator<vertex_range_type>::type vertex_range_hook_iterator;
+            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -100,21 +100,21 @@ namespace viennamesh
 
             cgal_domain_type::cell_container::iterator jt = cgal_domain.cells.begin();
                 
-            std::map<vertex_const_hook_type, cgal_element_type::Vertex_handle> vertex_handle_map;
+            std::map<vertex_const_handle_type, cgal_element_type::Vertex_handle> vertex_handle_map;
             
             cgal_domain.cells.resize(1);
             cgal_element_type & cgal_element = cgal_domain.cells[0];
             
             vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_domain);
-            for (vertex_range_hook_iterator it = vertices.hook_begin(); it != vertices.hook_end(); ++it)
+            for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
             {
-                vertex_const_hook_type const & vtx_hook = *it;
-                vertex_type const & vtx = viennagrid::dereference_hook(vgrid_domain, *it);
+                vertex_const_handle_type const & vtx_handle = *it;
+                vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
                 point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx );
                 
                 cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
                 
-                vertex_handle_map[vtx_hook] = handle;
+                vertex_handle_map[vtx_handle] = handle;
             }
 
             
@@ -123,8 +123,8 @@ namespace viennamesh
             {
                 line_type const & line = *it;
                 
-                vertex_const_hook_type vgrid_v0 = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(0);
-                vertex_const_hook_type vgrid_v1 = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(1);
+                vertex_const_handle_type vgrid_v0 = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(0);
+                vertex_const_handle_type vgrid_v1 = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(1);
                 
                 cgal_element_type::Vertex_handle cgal_v0 = vertex_handle_map[vgrid_v0];
                 cgal_element_type::Vertex_handle cgal_v1 = vertex_handle_map[vgrid_v1];
@@ -157,7 +157,7 @@ namespace viennamesh
         static bool convert( vgrid_domain_type const & vgrid_domain, cgal_domain_type & cgal_domain )
         {
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::plc_tag>::type plc_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::plc_tag>::type plc_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::plc_tag>::type plc_handle_type;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::plc_tag>::type plc_range_type;
             typedef viennagrid::result_of::iterator<plc_range_type>::type plc_range_iterator;
@@ -165,17 +165,17 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_hook_type;
+            typedef viennagrid::result_of::const_element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
 //             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
-//             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
+//             typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_handle_type;
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::hook_iterator<vertex_range_type>::type vertex_range_hook_iterator;
+            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -193,18 +193,18 @@ namespace viennamesh
                 output_element_type & cgal_element = *jt;
                 vgrid_element_type const & vgrid_element = *it;
                 
-                std::map<vertex_const_hook_type, cgal_element_type::Vertex_handle> vertex_handle_map;
+                std::map<vertex_const_handle_type, cgal_element_type::Vertex_handle> vertex_handle_map;
                 
                 vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_element);
-                for (vertex_range_hook_iterator it = vertices.hook_begin(); it != vertices.hook_end(); ++it)
+                for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
                 {
-                    vertex_const_hook_type const & vtx_hook = *it;
-                    vertex_type const & vtx = viennagrid::dereference_hook(vgrid_domain, *it);
+                    vertex_const_handle_type const & vtx_handle = *it;
+                    vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
                     point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx );
                     
                     cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
                     
-                    vertex_handle_map[vtx_hook] = handle;
+                    vertex_handle_map[vtx_handle] = handle;
                 }
 
                 
@@ -213,8 +213,8 @@ namespace viennamesh
                 {
                     line_type const & line = *it;
                     
-                    vertex_const_hook_type vgrid_v0 = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(0);
-                    vertex_const_hook_type vgrid_v1 = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(1);
+                    vertex_const_handle_type vgrid_v0 = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(0);
+                    vertex_const_handle_type vgrid_v1 = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(1);
                     
                     cgal_element_type::Vertex_handle cgal_v0 = vertex_handle_map[vgrid_v0];
                     cgal_element_type::Vertex_handle cgal_v1 = vertex_handle_map[vgrid_v1];
@@ -258,16 +258,16 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type triangle_point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_handle_type;
             
             
-            std::map<cgal_element_type::Point, triangle_vertex_hook_type> points;
+            std::map<cgal_element_type::Point, triangle_vertex_handle_type> points;
             
             for (cgal_domain_type::cell_container::const_iterator it = cgal_domain.cells.begin(); it != cgal_domain.cells.end(); ++it)
             {
@@ -280,11 +280,11 @@ namespace viennamesh
                         typedef cgal_element_type::CDT::Triangle Triangle;
                         Triangle tri = cgal_element.cdt.triangle(fit);
                         
-                        viennagrid::storage::static_array<triangle_vertex_hook_type, 3> vgrid_vtx;
+                        viennagrid::storage::static_array<triangle_vertex_handle_type, 3> vgrid_vtx;
                         
                         for (int i = 0; i < 3; ++i)
                         {
-                            std::map<cgal_element_type::Point, triangle_vertex_hook_type>::iterator pit = points.find( tri[i] );
+                            std::map<cgal_element_type::Point, triangle_vertex_handle_type>::iterator pit = points.find( tri[i] );
                             if (pit == points.end())
                             {
                                 vgrid_vtx[i] = viennagrid::create_element<triangle_vertex_type>( vgrid_domain, triangle_point_type(tri[i].x(), tri[i].y()) );
@@ -379,7 +379,7 @@ namespace viennamesh
         static bool convert( vgrid_domain_type const & vgrid_domain, cgal_domain_type & cgal_domain )
         {
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::plc_tag>::type plc_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::plc_tag>::type plc_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::plc_tag>::type plc_handle_type;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::plc_tag>::type plc_range_type;
             typedef viennagrid::result_of::iterator<plc_range_type>::type plc_range_iterator;
@@ -387,17 +387,17 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_hook_type;
+            typedef viennagrid::result_of::const_element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
 //             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
-//             typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
+//             typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_handle_type;
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::hook_iterator<vertex_range_type>::type vertex_range_hook_iterator;
+            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -420,16 +420,16 @@ namespace viennamesh
                 std::vector<point_type> plc_points_3d;
                 std::vector<point_type_2d> plc_points_2d;
                 
-                std::map<vertex_const_hook_type, std::size_t> vertex_to_index_map;
+                std::map<vertex_const_handle_type, std::size_t> vertex_to_index_map;
                 
                 vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_element);
-                for (vertex_range_hook_iterator it = vertices.hook_begin(); it != vertices.hook_end(); ++it)
+                for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
                 {
-                    vertex_const_hook_type const & vtx_hook = *it;
-                    vertex_type const & vtx = viennagrid::dereference_hook(vgrid_domain, *it);
+                    vertex_const_handle_type const & vtx_handle = *it;
+                    vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
                     point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx);
                     
-                    vertex_to_index_map[vtx_hook] = plc_points_3d.size();
+                    vertex_to_index_map[vtx_handle] = plc_points_3d.size();
                     plc_points_3d.push_back(vgrid_point);
                 }
 
@@ -442,18 +442,18 @@ namespace viennamesh
                 viennagrid::geometry::project( plc_points_3d.begin(), plc_points_3d.end(), plc_points_2d.begin(), cgal_element.center, cgal_element.projection_matrix.begin(), cgal_element.projection_matrix.end() );
 
                 
-                std::map<vertex_const_hook_type, cgal_element_type::Vertex_handle> vertex_handle_map;
+                std::map<vertex_const_handle_type, cgal_element_type::Vertex_handle> vertex_handle_map;
                 
-                for (vertex_range_hook_iterator it = vertices.hook_begin(); it != vertices.hook_end(); ++it)
+                for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
                 {
-                    vertex_const_hook_type const & vtx_hook = *it;
-                    vertex_type const & vtx = viennagrid::dereference_hook(vgrid_domain, *it);
-                    point_type_2d const & vgrid_point = plc_points_2d[ vertex_to_index_map[vtx_hook] ];
-//                     std::cout << "3D Point: " << plc_points_3d[ vertex_to_index_map[vtx_hook] ] << " projected onto " << vgrid_point << std::endl;
+                    vertex_const_handle_type const & vtx_handle = *it;
+                    vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
+                    point_type_2d const & vgrid_point = plc_points_2d[ vertex_to_index_map[vtx_handle] ];
+//                     std::cout << "3D Point: " << plc_points_3d[ vertex_to_index_map[vtx_handle] ] << " projected onto " << vgrid_point << std::endl;
                     
                     cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
                     
-                    vertex_handle_map[vtx_hook] = handle;
+                    vertex_handle_map[vtx_handle] = handle;
                 }
 
                 
@@ -462,8 +462,8 @@ namespace viennamesh
                 {
                     line_type const & line = *it;
                     
-                    vertex_const_hook_type vgrid_v0 = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(0);
-                    vertex_const_hook_type vgrid_v1 = viennagrid::elements<viennagrid::vertex_tag>(line).hook_at(1);
+                    vertex_const_handle_type vgrid_v0 = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(0);
+                    vertex_const_handle_type vgrid_v1 = viennagrid::elements<viennagrid::vertex_tag>(line).handle_at(1);
                     
                     cgal_element_type::Vertex_handle cgal_v0 = vertex_handle_map[vgrid_v0];
                     cgal_element_type::Vertex_handle cgal_v1 = vertex_handle_map[vgrid_v1];
@@ -513,16 +513,16 @@ namespace viennamesh
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type triangle_point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_handle_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_type;
-            typedef viennagrid::result_of::element_hook<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_hook_type;
+            typedef viennagrid::result_of::element_handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_handle_type;
             
             
-//             typedef std::deque< std::pair<triangle_point_type, triangle_vertex_hook_type> > points_container;
+//             typedef std::deque< std::pair<triangle_point_type, triangle_vertex_handle_type> > points_container;
 //             points_container points;
             
             
@@ -542,7 +542,7 @@ namespace viennamesh
                         typedef cgal_element_type::CDT::Triangle Triangle;
                         Triangle tri = cgal_element.cdt.triangle(fit);
                         
-                        viennagrid::storage::static_array<triangle_vertex_hook_type, 3> vgrid_vtx;
+                        viennagrid::storage::static_array<triangle_vertex_handle_type, 3> vgrid_vtx;
                         
                         for (int i = 0; i < 3; ++i)
                         {

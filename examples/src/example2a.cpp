@@ -17,17 +17,17 @@ int main()
     typedef viennagrid::result_of::point_type<domain_type>::type point_type;
      
     typedef viennagrid::result_of::element<domain_type, viennagrid::vertex_tag>::type vertex_type;
-    typedef viennagrid::result_of::element_hook<domain_type, viennagrid::vertex_tag>::type vertex_hook_type;
+    typedef viennagrid::result_of::element_handle<domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
     
     typedef viennagrid::result_of::element<domain_type, viennagrid::line_tag>::type line_type;
-    typedef viennagrid::result_of::element_hook<domain_type, viennagrid::line_tag>::type line_hook_type;
+    typedef viennagrid::result_of::element_handle<domain_type, viennagrid::line_tag>::type line_handle_type;
     
     typedef viennagrid::result_of::element<domain_type, viennagrid::polygon_tag>::type polygon_type;
-    typedef viennagrid::result_of::element_hook<domain_type, viennagrid::polygon_tag>::type polygon_hook_type;
+    typedef viennagrid::result_of::element_handle<domain_type, viennagrid::polygon_tag>::type polygon_handle_type;
     
     
     
-    std::vector<vertex_hook_type> v;
+    std::vector<vertex_handle_type> v;
     
     v.push_back( viennagrid::create_element<vertex_type>( domain, point_type(0, 0) ) );
     v.push_back( viennagrid::create_element<vertex_type>( domain, point_type(10, 0) ) );
@@ -46,16 +46,16 @@ int main()
     v.push_back( viennagrid::create_element<vertex_type>( domain, point_type(15, 15) ) );
     
     
-    polygon_hook_type bounding_poly = viennagrid::create_element<polygon_type>( domain, v.begin(), v.begin() + 7 );
+    polygon_handle_type bounding_poly = viennagrid::create_element<polygon_type>( domain, v.begin(), v.begin() + 7 );
     
-    polygon_hook_type hole_poly = viennagrid::create_element<polygon_type>( domain, v.begin() + 7, v.begin() + 10 );
+    polygon_handle_type hole_poly = viennagrid::create_element<polygon_type>( domain, v.begin() + 7, v.begin() + 10 );
     
-    line_hook_type line = viennagrid::create_element<line_type>( domain, v.begin() + 9, v.begin() + 11 );
+    line_handle_type line = viennagrid::create_element<line_type>( domain, v.begin() + 9, v.begin() + 11 );
     
-    vertex_hook_type point = v[11];    
+    vertex_handle_type point = v[11];    
 
     typedef viennagrid::result_of::element<domain_type, viennagrid::plc_tag>::type plc_type;
-    typedef viennagrid::result_of::element_hook<domain_type, viennagrid::plc_tag>::type plc_hook_type;
+    typedef viennagrid::result_of::element_handle<domain_type, viennagrid::plc_tag>::type plc_handle_type;
     
     std::vector<point_type> hole_points;
     hole_points.push_back( point_type(10.5, 10.5) );

@@ -494,15 +494,15 @@ namespace viennamesh
             
             void to_viennagrid_domain( viennagrid::config::line_2d_domain & vgrid_domain ) const
             {
-                typedef viennagrid::result_of::element_hook<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_hook_type;
+                typedef viennagrid::result_of::element_handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
                 
-                std::map<index_type, vertex_hook_type> vertex_hook_map;
+                std::map<index_type, vertex_handle_type> vertex_handle_map;
                 
                 for (unsigned int it = 0; it != points.size(); ++it)
-                    vertex_hook_map[it] = viennagrid::create_vertex( vgrid_domain, get_point(it) );
+                    vertex_handle_map[it] = viennagrid::create_vertex( vgrid_domain, get_point(it) );
                 
                 for (typename line_container_type::const_iterator it = lines.begin(); it != lines.end(); ++it)
-                    viennagrid::create_line( vgrid_domain, vertex_hook_map[it->first], vertex_hook_map[it->second] );
+                    viennagrid::create_line( vgrid_domain, vertex_handle_map[it->first], vertex_handle_map[it->second] );
             }
             
             

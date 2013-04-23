@@ -56,9 +56,9 @@ namespace viennagrid
         
         typedef tetrahedron_tag CellTag;
         typedef typename result_of::element<GeometricDomainType, CellTag>::type CellType;
-        typedef typename result_of::element_hook<GeometricDomainType, CellTag>::type                           CellHookType;
+        typedef typename result_of::element_handle<GeometricDomainType, CellTag>::type                           CellHookType;
 
-        typedef typename result_of::element_hook<GeometricDomainType, vertex_tag>::type                           VertexHookType;
+        typedef typename result_of::element_handle<GeometricDomainType, vertex_tag>::type                           VertexHookType;
         
         
         std::ifstream reader(filename.c_str());
@@ -127,8 +127,8 @@ namespace viennagrid
 //             double det = viennamesh::utils::determinant(p1-p0, p2-p0, p3-p0);
 //             std::cout << "det=" << det << std::endl;
             
-            CellHookType tet_hook = viennagrid::create_tetrahedron( domain, vertex_map[node_ids[0]], vertex_map[node_ids[1]], vertex_map[node_ids[2]], vertex_map[node_ids[3]] );
-            viennamesh::segment( viennagrid::dereference_hook( domain, tet_hook ) ) = segment;
+            CellHookType tet_handle = viennagrid::create_tetrahedron( domain, vertex_map[node_ids[0]], vertex_map[node_ids[1]], vertex_map[node_ids[2]], vertex_map[node_ids[3]] );
+            viennamesh::segment( viennagrid::dereference_handle( domain, tet_handle ) ) = segment;
         }
         
         
@@ -144,7 +144,7 @@ namespace viennagrid
             
             current_element_string >> node_index >> value;
             
-            viennadata::access<std::string, double>(nodeattribute_name)(viennagrid::dereference_hook(domain, vertex_map[node_index])) = value;
+            viennadata::access<std::string, double>(nodeattribute_name)(viennagrid::dereference_handle(domain, vertex_map[node_index])) = value;
         }
         
 
