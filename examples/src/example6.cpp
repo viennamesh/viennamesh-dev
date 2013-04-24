@@ -47,22 +47,19 @@ int main()
     
     {
         viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_writer;
-        vtk_writer(triangulated_plc_domain, "meshed_plc_hull");
+        vtk_writer(triangulated_plc_domain, "meshed_plc_hull.vtu");
     }
 
     
     
     typedef typename viennagrid::result_of::point_type<viennagrid::config::triangular_3d_domain>::type point_type;
     
-    std::cout << "Num triangle after PLC meshing: " << viennagrid::elements<viennagrid::triangle_tag>( triangulated_plc_domain ).size() << std::endl;
+    std::cout << "Num triangles after PLC meshing: " << viennagrid::elements<viennagrid::triangle_tag>( triangulated_plc_domain ).size() << std::endl;
     
-    std::cout << std::endl << std::endl << std::endl;
-    viennamesh::detect_and_mark_facet_segment( triangulated_plc_domain, point_type(0.0, 0.0, 0.0), 0 );
-    std::cout << std::endl << std::endl << std::endl;
-    viennamesh::detect_and_mark_facet_segment( triangulated_plc_domain, point_type(0.0, 0.0, 20.0), 1 );
-    std::cout << std::endl << std::endl << std::endl;
+    viennamesh::add_segment_seed_point( triangulated_plc_domain, 0, point_type(0.0, 0.0, 0.0) );
+    viennamesh::add_segment_seed_point( triangulated_plc_domain, 1, point_type(0.0, 0.0, 20.0) );
     
-    
+    viennamesh::mark_face_segments( triangulated_plc_domain );
 
     
     viennagrid::config::triangular_3d_domain oriented_adapted_hull_domain;
@@ -75,7 +72,7 @@ int main()
     
     {        
         viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_writer;
-        vtk_writer(oriented_adapted_hull_domain, "netgen_adapt_hull");
+        vtk_writer(oriented_adapted_hull_domain, "netgen_adapt_hull.vtu");
     }
 
     
@@ -91,7 +88,7 @@ int main()
     
     {        
         viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_writer;
-        vtk_writer(tetrahedron_domain, "netgen_volume");
+        vtk_writer(tetrahedron_domain, "netgen_volume.vtu");
     }
 
     

@@ -33,14 +33,14 @@ int main()
     reader(plc_domain, "../../examples/data/cube.poly");
     
     
-    viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type plc_settings(0.3, 0.0);
+    viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type plc_settings;//(0.3, 0.0);
     
     viennagrid::config::triangular_3d_domain triangle_domain;
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_domain, triangle_domain, plc_settings );
     
     
     viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_hull_writer;
-    vtk_hull_writer(triangle_domain, "cube_hull");
+    vtk_hull_writer(triangle_domain, "cube_hull.vtu");
     
     viennamesh::result_of::settings<viennamesh::cgal_delaunay_tetrahedron_tag>::type deltet_settings;
     
@@ -55,5 +55,5 @@ int main()
 
 
     viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_volume_writer;
-    vtk_volume_writer(tet_domain, "cube_poly_meshed");    
+    vtk_volume_writer(tet_domain, "cube_poly_meshed.vtu");    
 }
