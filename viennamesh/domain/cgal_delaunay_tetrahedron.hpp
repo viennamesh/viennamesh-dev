@@ -56,9 +56,41 @@ namespace viennamesh
         
         C3t3 tetdrahedron_triangulation;;
     };
-    
-    
-    
+}
+
+namespace viennagrid
+{
+    namespace result_of
+    {
+        template<>
+        struct point_type<viennamesh::cgal_mesh_polyhedron_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
+        
+        template<>
+        struct point_type<const viennamesh::cgal_mesh_polyhedron_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
+        
+        template<>
+        struct point_type<viennamesh::cgal_delauney_tetdrahedron_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
+        
+        template<>
+        struct point_type<const viennamesh::cgal_delauney_tetdrahedron_domain>
+        {
+            typedef viennagrid::config::point_type_3d type;
+        };
+    }
+}
+
+
+namespace viennamesh
+{
     
     template<>
     struct convert_impl<viennagrid::config::triangular_3d_domain, cgal_mesh_polyhedron_domain>
