@@ -3,7 +3,7 @@
 #include "viennamesh/algorithm/cgal_delaunay_tetrahedron_mesher.hpp"
 
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
@@ -44,15 +44,15 @@ int main()
     double s = 10.0;
     hull_vertex_handle_type vtx[8];
     
-    vtx[0] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(0, 0, 0) );
-    vtx[1] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(0, s, 0) );
-    vtx[2] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(s, 0, 0) );
-    vtx[3] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(s, s, 0) );
+    vtx[0] = viennagrid::create_vertex( hull_domain, point_type(0, 0, 0) );
+    vtx[1] = viennagrid::create_vertex( hull_domain, point_type(0, s, 0) );
+    vtx[2] = viennagrid::create_vertex( hull_domain, point_type(s, 0, 0) );
+    vtx[3] = viennagrid::create_vertex( hull_domain, point_type(s, s, 0) );
     
-    vtx[4] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(0, 0, s) );
-    vtx[5] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(0, s, s) );
-    vtx[6] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(s, 0, s) );
-    vtx[7] = viennagrid::create_element<hull_vertex_type>( hull_domain, point_type(s, s, s) );
+    vtx[4] = viennagrid::create_vertex( hull_domain, point_type(0, 0, s) );
+    vtx[5] = viennagrid::create_vertex( hull_domain, point_type(0, s, s) );
+    vtx[6] = viennagrid::create_vertex( hull_domain, point_type(s, 0, s) );
+    vtx[7] = viennagrid::create_vertex( hull_domain, point_type(s, s, s) );
     
     
     viennagrid::create_triangle( hull_domain, vtx[0], vtx[1], vtx[2] );

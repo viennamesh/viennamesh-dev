@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_DOMAIN_CGAL_PLC_HPP
 #define VIENNAMESH_DOMAIN_CGAL_PLC_HPP
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 
@@ -287,7 +287,7 @@ namespace viennamesh
                             std::map<cgal_element_type::Point, triangle_vertex_handle_type>::iterator pit = points.find( tri[i] );
                             if (pit == points.end())
                             {
-                                vgrid_vtx[i] = viennagrid::create_element<triangle_vertex_type>( vgrid_domain, triangle_point_type(tri[i].x(), tri[i].y()) );
+                                vgrid_vtx[i] = viennagrid::create_vertex( vgrid_domain, triangle_point_type(tri[i].x(), tri[i].y()) );
                                 points[ tri[i] ] = vgrid_vtx[i];
                             }
                             else

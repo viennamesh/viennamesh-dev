@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"

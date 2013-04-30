@@ -10,7 +10,7 @@
   
 */
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 // #include "viennagrid/config/simplex.hpp"
 
 #include <mystdlib.h>

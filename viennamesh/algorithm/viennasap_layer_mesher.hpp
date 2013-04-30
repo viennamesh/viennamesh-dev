@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_VIENNASAP_LAYER_MESHER_HPP
 #define VIENNAMESH_ALGORITHM_VIENNASAP_LAYER_MESHER_HPP
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 
 #include "viennamesh/base/segments.hpp"
 #include "viennamesh/domain/viennasap_layer.hpp"
@@ -110,7 +110,7 @@ namespace viennamesh
                     vertex_handle_type vtx_handle;
                     point_type pt;
                     
-                    viennagrid::create_element<plc_type>( native_output_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
+                    viennagrid::create_plc( native_output_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
                 }
             }
             
@@ -179,7 +179,7 @@ namespace viennamesh
                 vertex_handle_type vtx_handle;
                 point_type pt;
                 
-                viennagrid::create_element<plc_type>( native_output_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
+                viennagrid::create_plc( native_output_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
                 
                 typename layer_type::line_container_type::iterator jt = it; ++jt;
                 for (; jt != tmp_lines.end();)

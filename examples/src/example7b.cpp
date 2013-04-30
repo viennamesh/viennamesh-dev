@@ -1,7 +1,6 @@
 #include <iostream>
-#include <boost/iterator/iterator_concepts.hpp>
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/algorithm/intersect.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 

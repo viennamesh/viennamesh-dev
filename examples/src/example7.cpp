@@ -2,7 +2,7 @@
 #include <string.h>
 
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/algorithm/intersect.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 
@@ -1053,7 +1053,7 @@ int main()
                 vertex_handle_type vtx_handle;
                 point_type_3d pt;
                 
-                viennagrid::create_element<plc_type>( plc_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
+                viennagrid::create_plc( plc_domain, plc_lines.begin(), plc_lines.end(), &vtx_handle, &vtx_handle, &pt, &pt );
                 
                 layer_type::line_container_type::iterator jt = it; ++jt;
                 for (; jt != tmp_lines.end();)

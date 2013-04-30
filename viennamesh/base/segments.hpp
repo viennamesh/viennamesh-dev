@@ -5,7 +5,7 @@
 #include <boost/shared_ptr.hpp>
 #include "viennadata/api.hpp"
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/coboundary_iteration.hpp"
 
 #include "viennagrid/algorithm/cross_prod.hpp"

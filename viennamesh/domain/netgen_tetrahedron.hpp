@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_DOMAIN_NETGEN_TETRAHEDRON_HPP
 #define VIENNAMESH_DOMAIN_NETGEN_TETRAHEDRON_HPP
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennamesh/base/convert.hpp"
 #include "viennamesh/base/segments.hpp"

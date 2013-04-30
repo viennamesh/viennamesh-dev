@@ -12,7 +12,7 @@
 
 
 #include "viennamesh/base/segments.hpp"
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"
 #include "viennadata/api.hpp"
 // #include "viennagrid/config/simplex.hpp"

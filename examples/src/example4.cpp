@@ -5,7 +5,7 @@
 // #include "viennamesh/generation/triangle.hpp"
 
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
@@ -229,7 +229,7 @@ int main()
 //                     tmp[2] /= hw;
 //                 }
                 
-                vgrid_vtx[i] = viennagrid::create_element<tet_vertex_type>( tet_domain, tmp );
+                vgrid_vtx[i] = viennagrid::create_vertex( tet_domain, tmp );
                 points[ t.vertex(i) ] = vgrid_vtx[i];
             }
             else

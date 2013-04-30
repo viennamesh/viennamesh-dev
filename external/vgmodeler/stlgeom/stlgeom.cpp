@@ -9,7 +9,7 @@
 // [JW] viennagrid has to be included prior to 
 // stlgeom, as the viennagrid domain has to be used within 
 // stltopology.hpp
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 // #include "viennagrid/config/simplex.hpp"
 
 

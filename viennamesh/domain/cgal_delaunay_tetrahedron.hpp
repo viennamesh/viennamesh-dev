@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_DOMAIN_CGAL_DELAUNAY_TETRAHEDRON_HPP
 #define VIENNAMESH_DOMAIN_CGAL_DELAUNAY_TETRAHEDRON_HPP
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 #include "viennamesh/base/convert.hpp"
 
@@ -217,7 +217,7 @@ namespace viennamesh
                         tmp[2] = t.vertex(i)->point().y();
                         tmp[1] = t.vertex(i)->point().z();
                         
-                        vgrid_vtx[i] = viennagrid::create_element<vertex_type>( vgrid_domain, tmp );
+                        vgrid_vtx[i] = viennagrid::create_vertex( vgrid_domain, tmp );
                         points[ t.vertex(i) ] = vgrid_vtx[i];
                     }
                     else

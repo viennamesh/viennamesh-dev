@@ -17,7 +17,7 @@
   
 */
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 
 /// Data type for NETGEN mesh
 typedef void * Ng_Mesh;
