@@ -1,24 +1,37 @@
 #ifndef VIENNAMESH_BASE_CONVERT_HPP
 #define VIENNAMESH_BASE_CONVERT_HPP
 
-#include "viennamesh/base/segments.hpp"
+#include "viennagrid/domain/segmentation.hpp"
 
 namespace viennamesh
 {
-    template<typename input_domain_type, typename output_domain_type>
+    
+//     struct dummy_segmentation {};
+    
+    template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type>
     struct convert_impl
     {
-        static bool convert( input_domain_type const & in, output_domain_type & out );
+        // Prototype for convert
+        // static bool convert( input_domain_type const & in, input_segmentation_type const & input_segmentation,
+        //                      output_domain_type & out, output_segmentation_type & output_segmentation );
     };
+    
+    
+    template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type>
+    bool convert( input_domain_type const & in, input_segmentation_type const & input_segmentation, output_domain_type & out, output_segmentation_type & output_segmentation )
+    {
+        bool status = convert_impl<input_domain_type, input_segmentation_type, output_domain_type, output_segmentation_type>::
+            convert(in, input_segmentation, out, output_segmentation);
+        
+        return status;
+    }
+    
     
     template<typename input_domain_type, typename output_domain_type>
     bool convert( input_domain_type const & in, output_domain_type & out )
     {
-        bool status = convert_impl<input_domain_type, output_domain_type>::convert(in, out);;
-        
-        copy_segment_information(in, out);
-        
-        return status;
+        viennagrid::dummy_segmentation<> dummy;
+        return convert( in, dummy, out, dummy );
     }
     
     template<typename domain_type>
@@ -29,6 +42,7 @@ namespace viennamesh
         
         return true;
     }
+    
 }
 
 #endif

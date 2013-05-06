@@ -13,12 +13,15 @@
 #include "viennagrid/domain/neighbour_iteration.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 
+#include "viennagrid/domain/segmentation.hpp"
+
+
 
 #include "viennamesh/algorithm/vgmodeler_hull_adaption.hpp"
 #include "viennamesh/algorithm/netgen_tetrahedron_mesher.hpp"
 
 
-
+#include "viennamesh/statistics/element_metrics.hpp"
 
 
 
@@ -90,8 +93,22 @@ int main()
                                                                 netgen_settings );
     
     
+
+
+    typedef viennagrid::result_of::element_range<viennagrid::config::tetrahedral_3d_domain, viennagrid::tetrahedron_tag>::type tetrahedron_range_type;
+    typedef viennagrid::result_of::iterator<tetrahedron_range_type>::type tetrahedron_range_iterator;
+
+    tetrahedron_range_type tetrahedrons = viennagrid::elements( tetrahedron_domain );
+    for (tetrahedron_range_iterator tetit = tetrahedrons.begin(); tetit != tetrahedrons.end(); ++tetit)
+    {
+        viennadata::access<std::string, double>("aspect_ratio")(*tetit) = viennamesh::aspect_ratio( tetrahedron_domain, *tetit );
+    }
+    
+    
+    
     {        
         viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_writer;
+        viennagrid::io::add_scalar_data_on_cells<std::string, double>(vtk_writer, "aspect_ratio", "aspect_ratio");
         vtk_writer(tetrahedron_domain, "netgen_volume.vtu");
     }
 

@@ -44,7 +44,7 @@ Matrix inline qr(const Matrix& A)
 
     for (size_type i = 0; i < mini; i++) {
 	irange r(i, imax); // Intervals [i, n-1]
-	dense_vector<value_type>     v(nrows-i), w(nrows-i);
+	dense_vector<value_type, vector::parameters<> >     v(nrows-i), w(nrows-i);
 
 	for (size_type j = 0; j < size(w); j++)
 	    w[j]= B[j+i][i];
@@ -79,8 +79,8 @@ Matrix inline qr(const Matrix& A)
 // QR-Factorization of matrix A
 // Return Q and R with A = Q*R   R upper triangle and Q othogonal
 template <typename Matrix>
-std::pair<typename mtl::dense2D<typename Collection<Matrix>::value_type>,
-	  typename mtl::dense2D<typename Collection<Matrix>::value_type> >
+std::pair<typename mtl::dense2D<typename Collection<Matrix>::value_type, parameters<> >,
+	  typename mtl::dense2D<typename Collection<Matrix>::value_type, parameters<> > >
 inline qr_factors(const Matrix& A)
 {
     using std::abs;
@@ -100,7 +100,7 @@ inline qr_factors(const Matrix& A)
 //         Q[i][i] = one;
     
     for(size_type i = 0; i < nrows-1; i++){
-        dense_vector<value_type>     z(nrows-i);
+        dense_vector<value_type, vector::parameters<> >     z(nrows-i);
 	// z[irange(1, nrows-i-1)]= B[irange(i+1, nrows-1)][i];
         for(size_type k = i+1; k < nrows-1; k++){
             z[k-i]= B[k][i];

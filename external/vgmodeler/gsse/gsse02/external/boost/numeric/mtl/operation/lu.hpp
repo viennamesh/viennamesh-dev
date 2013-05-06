@@ -103,7 +103,7 @@ Vector inline lu_apply(const Matrix& LU, const PermVector& P, const Vector& b)
 template <typename Matrix, typename Vector>
 Vector inline lu_solve(const Matrix& A, const Vector& b)
 {
-    dense_vector<std::size_t> P(num_rows(A));
+    dense_vector<std::size_t, vector::parameters<> > P(num_rows(A));
     Matrix                    LU(A);
 
     lu(LU, P);
@@ -124,7 +124,7 @@ Vector inline lu_adjoint_apply(const Matrix& LU, const PermVector& P, const Vect
 template <typename Matrix, typename Vector>
 Vector inline lu_adjoint_solve(const Matrix& A, const Vector& b)
 {
-    dense_vector<std::size_t> P(num_rows(A));
+    dense_vector<std::size_t, vector::parameters<> > P(num_rows(A));
     Matrix                    LU(A);
 
     lu(LU, P);

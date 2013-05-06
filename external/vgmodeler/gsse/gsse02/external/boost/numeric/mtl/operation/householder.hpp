@@ -25,7 +25,7 @@ namespace mtl { namespace vector {
 /** such that identity_matrix(size(v))-b*v*v' projects the vector y 
     to a positive multiple of the first unit vector. **/
 template <typename Vector>
-std::pair<typename mtl::dense_vector<typename Collection<Vector>::value_type>, typename Collection<Vector>::value_type>
+std::pair<typename mtl::dense_vector<typename Collection<Vector>::value_type, parameters<> >, typename Collection<Vector>::value_type>
 inline householder(Vector& y)
 {
     typedef typename  Collection<Vector>::value_type   value_type;

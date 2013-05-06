@@ -7,7 +7,6 @@
 #include "viennagrid/io/vtk_writer.hpp"
 
 #include "viennamesh/algorithm/cgal_plc_mesher.hpp"
-#include "viennamesh/base/segments.hpp"
 #include "viennamesh/algorithm/vgmodeler_hull_adaption.hpp"
 #include "viennamesh/algorithm/netgen_tetrahedron_mesher.hpp"
 
@@ -1132,6 +1131,9 @@ int main()
         unsigned int tmp_index = 0;
         std::map<unsigned int, layer_type::element_id_type> segment_index_map;
         
+        typedef viennagrid::config::point_type_3d point_type_3d;
+        std::vector< std::pair< int, point_type_3d > > seed_points;
+        
         double cur_z = 0.0;
         unsigned int interface_index;
         for (std::vector< std::pair<layer_type, double> >::iterator lit = layers.begin(); lit != layers.end(); ++lit, ++interface_index)
@@ -1177,7 +1179,9 @@ int main()
                 
                 segment_index_map[tmp_index] = segment_id;
                 
-                viennamesh::add_segment_seed_point( triangle_domain_3d, segment_id, center_3d );
+                seed_points.push_back( std::make_pair(segment_id, center_3d) );
+                
+//                 viennamesh::add_segment_seed_point( triangle_domain_3d, segment_id, center_3d );
 //                 viennamesh::add_segment_seed_point( triangle_domain_3d, tmp_index, center_3d );
                 
                 tmp_index++;
@@ -1194,7 +1198,9 @@ int main()
 //             viennamesh::add_segment_seed_point( triangle_domain_3d, it->first, it->second );
 //         }
         
-        viennamesh::mark_face_segments( triangle_domain_3d );
+        
+        viennagrid::config::triangular_3d_domain segmentation;
+        viennagrid::mark_face_segments( triangle_domain_3d, segmentation, seed_points.begin(), seed_points.end() );
         
         
 //         viennamesh::cleanup_face_segment_definition<viennagrid::triangle_tag>( triangle_domain_3d );

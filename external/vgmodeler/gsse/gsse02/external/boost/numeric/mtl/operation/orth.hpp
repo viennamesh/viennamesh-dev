@@ -51,7 +51,7 @@ namespace mtl { namespace vector {
 	template <typename VVector>
 	dense2D<typename mtl::Collection
 		   <typename mtl::Collection<VVector>::value_type
-		   >::value_type >
+		   >::value_type, parameters<> >
 	inline orthogonalize_factors(VVector& v, tag::vector)
 	{
 	    using ::mtl::two_norm; using math::zero; using mtl::size1D;
@@ -59,7 +59,7 @@ namespace mtl { namespace vector {
 	    typedef typename mtl::Collection<VVector>::value_type Vector;
 	    typedef typename mtl::Collection<Vector>::value_type  Scalar;
 
-	    dense2D<Scalar> tau(size1D(v), size1D(v));
+	    dense2D<Scalar, parameters<> > tau(size1D(v), size1D(v));
 	    tau= zero(Scalar());
 
 	    for (Size j= 0; j < size1D(v); ++j) {
@@ -124,7 +124,7 @@ inline void orth(Value& value, typename mtl::Collection<Value>::size_type i)
 template <typename Value>
 dense2D<typename mtl::Collection
 	<typename mtl::Collection<Value>::value_type
-	>::value_type >
+	>::value_type, parameters<> >
 inline orthogonalize_factors(Value& v)
 {
     return impl::orthogonalize_factors(v, typename traits::category<Value>::type());

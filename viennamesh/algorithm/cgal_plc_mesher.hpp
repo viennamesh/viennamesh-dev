@@ -10,8 +10,11 @@
 
 namespace viennamesh
 {
-    struct cgal_plc_2d_mesher_tag {};
-    struct cgal_plc_3d_mesher_tag {};
+    template<unsigned int geometric_dimension>
+    struct cgal_plc_mesher_tag {};
+    
+    typedef cgal_plc_mesher_tag<2> cgal_plc_2d_mesher_tag;
+    typedef cgal_plc_mesher_tag<3> cgal_plc_3d_mesher_tag;
     
     
     
@@ -39,56 +42,69 @@ namespace viennamesh
     
     namespace result_of
     {
-        template<>
-        struct works_in_place<cgal_plc_2d_mesher_tag>
+        template<unsigned int geometric_dimension>
+        struct works_in_place< cgal_plc_mesher_tag<geometric_dimension> >
         {
             static const bool value = true;
         };
         
         template<>
-        struct works_in_place<cgal_plc_3d_mesher_tag>
+        struct algorithm_info< cgal_plc_mesher_tag<2> >
         {
-            static const bool value = true;
+            static const std::string name() { return "CGAL PLC 2D to Triangle Mesh mesher"; }
+        };
+        
+        template<>
+        struct algorithm_info< cgal_plc_mesher_tag<3> >
+        {
+            static const std::string name() { return "CGAL PLC 3D to Triangle Mesh mesher"; }
         };
         
         
         
-        template<typename domain_type_or_tag>
-        struct best_matching_native_input<cgal_plc_2d_mesher_tag, domain_type_or_tag>
+        template<typename domain_type>
+        struct best_matching_native_input_domain<cgal_plc_2d_mesher_tag, domain_type>
         {
             typedef cgal_plc_2d_domain type;
         };
         
-        template<typename domain_type_or_tag>
-        struct best_matching_native_input<cgal_plc_3d_mesher_tag, domain_type_or_tag>
+        template<typename domain_type>
+        struct best_matching_native_input_domain<cgal_plc_3d_mesher_tag, domain_type>
+        {
+            typedef cgal_plc_3d_domain type;
+        };
+        
+
+        
+        template<typename domain_type>
+        struct best_matching_native_output_domain<cgal_plc_2d_mesher_tag, domain_type>
+        {
+            typedef cgal_plc_2d_domain type;
+        };
+        
+        template<typename domain_type>
+        struct best_matching_native_output_domain<cgal_plc_3d_mesher_tag, domain_type>
         {
             typedef cgal_plc_3d_domain type;
         };
         
         
 
-        template<typename domain_type_or_tag>
-        struct best_matching_native_output<cgal_plc_2d_mesher_tag, domain_type_or_tag>
+        template<unsigned int geometric_dimension, typename segmentation_type>
+        struct best_matching_native_input_segmentation<cgal_plc_mesher_tag<geometric_dimension>, segmentation_type>
         {
-            typedef cgal_plc_2d_domain type;
+            typedef viennagrid::dummy_segmentation<> type;
         };
         
-        template<typename domain_type_or_tag>
-        struct best_matching_native_output<cgal_plc_3d_mesher_tag, domain_type_or_tag>
+        template<unsigned int geometric_dimension, typename segmentation_type>
+        struct best_matching_native_output_segmentation<cgal_plc_mesher_tag<geometric_dimension>, segmentation_type>
         {
-            typedef cgal_plc_3d_domain type;
+            typedef viennagrid::dummy_segmentation<> type;
         };
         
         
-        
-        template<>
-        struct settings<cgal_plc_2d_mesher_tag>
-        {
-            typedef cgal_plc_settings type;
-        };
-        
-        template<>
-        struct settings<cgal_plc_3d_mesher_tag>
+        template<unsigned int geometric_dimension>
+        struct settings<cgal_plc_mesher_tag<geometric_dimension> >
         {
             typedef cgal_plc_settings type;
         };
@@ -98,10 +114,12 @@ namespace viennamesh
     template<>
     struct native_algorithm_impl<cgal_plc_2d_mesher_tag>
     {
+        typedef cgal_plc_2d_mesher_tag algorithm_tag;
         
         template<typename native_domain_type, typename settings_type>
-        static bool run( native_domain_type & native_domain, settings_type const & settings )
+        static algorithm_feedback run( native_domain_type & native_domain, settings_type const & settings )
         {
+            algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             typedef cgal_plc_2d_domain cgal_domain_type;
             
             for (cgal_domain_type::cell_container::iterator it = native_domain.cells.begin(); it != native_domain.cells.end(); ++it)
@@ -120,7 +138,8 @@ namespace viennamesh
 //                                             ));
             }
             
-            return true;
+            feedback.set_success();
+            return feedback;
         }
         
     };
@@ -128,10 +147,12 @@ namespace viennamesh
     template<>
     struct native_algorithm_impl<cgal_plc_3d_mesher_tag>
     {
+        typedef cgal_plc_3d_mesher_tag algorithm_tag;
         
         template<typename native_domain_type, typename settings_type>
-        static bool run( native_domain_type & native_domain, settings_type const & settings )
+        static algorithm_feedback run( native_domain_type & native_domain, settings_type const & settings )
         {
+            algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             typedef cgal_plc_3d_domain cgal_domain_type;
             
             for (cgal_domain_type::cell_container::iterator it = native_domain.cells.begin(); it != native_domain.cells.end(); ++it)
@@ -152,7 +173,8 @@ namespace viennamesh
 //                                             ));
             }
             
-            return true;
+            feedback.set_success();
+            return feedback;
         }
         
     };

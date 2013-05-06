@@ -93,16 +93,18 @@ namespace viennamesh
 {
     
     template<>
-    struct convert_impl<viennagrid::config::triangular_3d_domain, cgal_mesh_polyhedron_domain>
+    struct convert_impl<viennagrid::config::triangular_3d_domain, viennagrid::dummy_segmentation<>, cgal_mesh_polyhedron_domain, viennagrid::dummy_segmentation<> >
     {
         typedef viennagrid::config::triangular_3d_domain vgrid_domain_type;
         typedef cgal_mesh_polyhedron_domain cgal_domain_type;
         
         
         typedef vgrid_domain_type input_domain_type;
+        typedef viennagrid::dummy_segmentation<> input_segmentation_type;
         typedef cgal_domain_type output_domain_type;
+        typedef viennagrid::dummy_segmentation<> output_segmentation_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, cgal_domain_type & cgal_domain )
+        static bool convert( input_domain_type const & vgrid_domain, input_segmentation_type const &, output_domain_type & cgal_domain, output_segmentation_type & )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
@@ -167,17 +169,19 @@ namespace viennamesh
     
     
     template<>
-    struct convert_impl<cgal_delauney_tetdrahedron_domain, viennagrid::config::tetrahedral_3d_domain>
+    struct convert_impl<cgal_delauney_tetdrahedron_domain, viennagrid::dummy_segmentation<>, viennagrid::config::tetrahedral_3d_domain, viennagrid::dummy_segmentation<> >
     {              
         typedef cgal_delauney_tetdrahedron_domain cgal_domain_type;
         typedef viennagrid::config::tetrahedral_3d_domain vgrid_domain_type;
         
         
         typedef cgal_domain_type input_domain_type;
+        typedef viennagrid::dummy_segmentation<> input_segmentation_type;
         typedef vgrid_domain_type output_domain_type;
+        typedef viennagrid::dummy_segmentation<> output_segmentation_type;
 
         
-        static bool convert( cgal_domain_type const & cgal_domain, vgrid_domain_type & vgrid_domain )
+        static bool convert( input_domain_type const & cgal_domain, input_segmentation_type const &, output_domain_type & vgrid_domain, output_segmentation_type & )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             

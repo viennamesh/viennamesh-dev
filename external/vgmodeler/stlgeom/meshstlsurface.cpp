@@ -12,7 +12,7 @@
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 // #include "viennagrid/config/simplex.hpp"
-#include "viennamesh/base/segments.hpp"
+#include "viennagrid/domain/segmentation.hpp"
 
 #include "stlgeom.hpp"
 
@@ -3135,7 +3135,9 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //      the mesh result is written into this domain
 //
 int STLSurfaceMeshing (STLGeometry & geom,
-		       class Mesh & mesh, viennagrid::config::triangular_3d_domain & domain)
+		       class Mesh & mesh,
+               viennagrid::config::triangular_3d_domain & domain,
+               viennagrid::config::triangular_3d_segmentation & segmentation)
 {
   int i, j;
 
@@ -3588,7 +3590,16 @@ int STLSurfaceMeshing (STLGeometry & geom,
                                     viennagrid::elements<viennagrid::vertex_tag>(domain).handle_at( cell_cont[ci][2] )
                                     );
          
-         viennamesh::add_face_to_segment( domain, viennagrid::dereference_handle(domain, triangle_handle), geom.segment_id_map[si], true );
+         
+         typedef viennagrid::config::triangular_3d_segmentation segmentation_type;
+         typedef segmentation_type::element_segment_info_type element_segment_info_type;
+         typedef segmentation_type::segment_id_type segment_id_type;
+         
+//          element_segment_info const & seg_info = segmentation.segment_info( viennagrid::dereference_handle(domain, triangle_handle) );
+         
+         segmentation.set_segment_info( viennagrid::dereference_handle(domain, triangle_handle), element_segment_info_type( geom.segment_id_map[si], segment_id_type() ) );
+         
+//          viennamesh::add_face_to_segment( domain, viennagrid::dereference_handle(domain, triangle_handle), geom.segment_id_map[si], true );
       }
    }   
 

@@ -3,9 +3,8 @@
 
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/domain/segmentation.hpp"
 #include "viennamesh/base/convert.hpp"
-#include "viennamesh/base/segments.hpp"
-
 
 
 namespace nglib
@@ -37,9 +36,9 @@ namespace viennamesh
     
     
     
-   
     struct netgen_tetrahedron_domain
     {
+        typedef viennagrid::segment_id_t<> segment_id_type;
         typedef nglib::Ng_Mesh * netgen_mesh_type;
         typedef std::map<segment_id_type, netgen_mesh_type> netgen_mesh_container_type;
         
@@ -96,15 +95,18 @@ namespace viennamesh
     
     
     template<>
-    struct convert_impl<viennagrid::config::triangular_3d_domain, netgen_tetrahedron_domain>
+    struct convert_impl<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_segmentation, netgen_tetrahedron_domain, viennagrid::dummy_segmentation<> >
     {
         typedef viennagrid::config::triangular_3d_domain vgrid_domain_type;
         typedef netgen_tetrahedron_domain netgen_domain_type;
         
         typedef vgrid_domain_type input_domain_type;
+        typedef viennagrid::config::triangular_3d_segmentation input_segmentation_type;
         typedef netgen_domain_type output_domain_type;
+        typedef viennagrid::dummy_segmentation<> output_segmentation_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, netgen_domain_type & netgen_domain )
+        static bool convert( input_domain_type const & vgrid_domain, input_segmentation_type const & input_segmentation,
+                             output_domain_type & netgen_domain, output_segmentation_type & output_segmentation )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
@@ -119,7 +121,10 @@ namespace viennamesh
             typedef viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
 
             
-            segment_id_container_type const & used_segments = segments(vgrid_domain);
+            typedef input_segmentation_type::segment_ids_container_type segment_ids_container_type;
+            segment_ids_container_type const & used_segments = input_segmentation.segments();
+            
+//             segment_id_container_type const & used_segments = segments(vgrid_domain);
             
             netgen_domain.init(used_segments);
             
@@ -136,7 +141,10 @@ namespace viennamesh
                 {
                     triangle_type const & triangle = *it;
                     
-                    if ( !is_face_on_segment(triangle, seg_it->first) )
+                    input_segmentation_type::element_segment_info_type const & element_segment_info = input_segmentation.segment_info(triangle);
+                    
+                    if ( !element_segment_info.is_on_segment(seg_it->first) )
+//                     if ( !is_face_on_segment(triangle, seg_it->first) )
                         continue;
                     
                     int indices[3];
@@ -160,7 +168,8 @@ namespace viennamesh
                         indices[i] = tmp->second;
                     }
                     
-                    if ( faces_outward_on_segment(triangle, seg_it->first) )
+//                     if ( faces_outward_on_segment(triangle, seg_it->first) )
+                    if ( element_segment_info.faces_outward_on_segment(seg_it->first) )
                         std::swap( indices[1], indices[2] );
                     
                     nglib::Ng_AddSurfaceElement( current_mesh, nglib::NG_TRIG, indices );
@@ -176,17 +185,21 @@ namespace viennamesh
     
     
     template<>
-    struct convert_impl<netgen_tetrahedron_domain, viennagrid::config::tetrahedral_3d_domain>
+    struct convert_impl<netgen_tetrahedron_domain, viennagrid::dummy_segmentation<>, viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_segmentation>
     {              
+        
         typedef netgen_tetrahedron_domain netgen_domain_type;
         typedef viennagrid::config::tetrahedral_3d_domain vgrid_domain_type;
         
         
         typedef netgen_domain_type input_domain_type;
+        typedef viennagrid::dummy_segmentation<> input_segmentation_type;
         typedef vgrid_domain_type output_domain_type;
+        typedef viennagrid::config::tetrahedral_3d_segmentation output_segmentation_type;
 
         
-        static bool convert( netgen_domain_type const & netgen_domain, vgrid_domain_type & vgrid_domain )
+        static bool convert( input_domain_type const & netgen_domain, input_segmentation_type const & input_segmentation,
+                             output_domain_type & vgrid_domain, output_segmentation_type & output_segmentation )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
@@ -260,7 +273,9 @@ namespace viennamesh
                     
                     tetrahedron_handle_type tetrahedron_handle = viennagrid::create_element<tetrahedron_type>( vgrid_domain, vhs, vhs+4 );
                     
-                    segment( viennagrid::dereference_handle(vgrid_domain, tetrahedron_handle) ) = it->first;
+                    output_segmentation.set_segment_info( viennagrid::dereference_handle(vgrid_domain, tetrahedron_handle), output_segmentation_type::element_segment_info_type(it->first) );
+                    
+//                     segment( viennagrid::dereference_handle(vgrid_domain, tetrahedron_handle) ) = it->first;
                     
                     
 //                     vhs[0] = current_tmp_index_vertex_map[netgen_tet[0]];

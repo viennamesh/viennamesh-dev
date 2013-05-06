@@ -35,17 +35,37 @@ namespace viennamesh
             static const bool value = true;
         };
         
+        template<>
+        struct algorithm_info<netgen_tetrahedron_tag>
+        {
+            static const std::string name() { return "Netgen 5.0.0 Triangle Hull to Tetrahedron Mesher"; }
+        };
+        
         template<typename domain_type>
-        struct best_matching_native_input<netgen_tetrahedron_tag, domain_type>
+        struct best_matching_native_input_domain<netgen_tetrahedron_tag, domain_type>
         {
             typedef netgen_tetrahedron_domain type;
         };
 
         template<typename domain_type>
-        struct best_matching_native_output<netgen_tetrahedron_tag, domain_type>
+        struct best_matching_native_output_domain<netgen_tetrahedron_tag, domain_type>
         {
             typedef netgen_tetrahedron_domain type;
         };
+        
+        
+        template<typename domain_type>
+        struct best_matching_native_input_segmentation<netgen_tetrahedron_tag, domain_type>
+        {
+            typedef viennagrid::dummy_segmentation<> type;
+        };
+
+        template<typename domain_type>
+        struct best_matching_native_output_segmentation<netgen_tetrahedron_tag, domain_type>
+        {
+            typedef viennagrid::dummy_segmentation<> type;
+        };
+        
         
         template<>
         struct settings<netgen_tetrahedron_tag>
@@ -58,16 +78,21 @@ namespace viennamesh
     template<>
     struct native_algorithm_impl<netgen_tetrahedron_tag>
     {
+        typedef netgen_tetrahedron_tag algorithm_tag;
         
-        template<typename native_domain_type, typename settings_type>
-        static bool run( native_domain_type const & native_domain, settings_type const & settings )
+        template<typename native_domain_type, typename native_segmentation_type, typename settings_type>
+        static algorithm_feedback run( native_domain_type & native_domain,
+                         native_segmentation_type & native_segmentation,
+                         settings_type const & settings )
         {
+            algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             nglib::Ng_Meshing_Parameters mesh_parameters;
             
             for (typename native_domain_type::netgen_mesh_container_type::const_iterator it = native_domain.meshes.begin(); it != native_domain.meshes.end(); ++it)            
                 nglib::Ng_Result result = nglib::Ng_GenerateVolumeMesh(it->second, &mesh_parameters);
             
-            return true;
+            feedback.set_success();
+            return feedback;
         }
         
     };

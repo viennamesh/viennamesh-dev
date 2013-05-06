@@ -3,7 +3,7 @@
 
 
 
-#include "viennamesh/base/segments.hpp"
+#include "viennagrid/domain/segmentation.hpp"
 namespace vgmnetgen {
 
 
@@ -320,7 +320,7 @@ public:
   enum STL_GEOM_STATUS { STL_GOOD, STL_WARNING, STL_ERROR };
 
   // [FRUDO] for segment identification
-  std::map<long, viennamesh::segment_id_type> segment_id_map;
+  std::map<long, viennagrid::segment_id_t<> > segment_id_map;
   
   // [FS][MOD]
   //
@@ -350,7 +350,7 @@ public:
   
   virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
   virtual void InitSTLGeometry (const char * filename);
-  virtual void InitSTLGeometry (viennagrid::config::triangular_3d_domain const & domain);
+  virtual void InitSTLGeometry (viennagrid::config::triangular_3d_domain const & domain, viennagrid::config::triangular_3d_segmentation const & vgridsegmentation);
   
   virtual void TopologyChanged() {}; //do some things, if topology changed!
 

@@ -2028,11 +2028,11 @@ double STLGeometry :: GetGeomAngle(int t1, int t2)
 }
 
 
-void STLGeometry :: InitSTLGeometry(viennagrid::config::triangular_3d_domain const & domain)
+void STLGeometry :: InitSTLGeometry(viennagrid::config::triangular_3d_domain const & domain, viennagrid::config::triangular_3d_segmentation const & vgridsegmentation)
 {
 //  std::cout << "Init STL Geometry: readtrias size: " << readtrias.Size() << std::endl;
 
-  STLTopology::InitSTLGeometry(domain);
+  STLTopology::InitSTLGeometry(domain, vgridsegmentation);
 
   int i, j, k;
 

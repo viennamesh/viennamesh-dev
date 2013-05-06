@@ -38,16 +38,35 @@ namespace viennamesh
             static const bool value = false;
         };
         
+        template<>
+        struct algorithm_info< cgal_delaunay_tetrahedron_tag >
+        {
+            static const std::string name() { return "CGAL Triangle Hull to Tetrahedron Mesh mesher"; }
+        };
+        
+        
         template<typename domain_type>
-        struct best_matching_native_input<cgal_delaunay_tetrahedron_tag, domain_type>
+        struct best_matching_native_input_domain<cgal_delaunay_tetrahedron_tag, domain_type>
         {
             typedef cgal_mesh_polyhedron_domain type;
         };
 
         template<typename domain_type>
-        struct best_matching_native_output<cgal_delaunay_tetrahedron_tag, domain_type>
+        struct best_matching_native_output_domain<cgal_delaunay_tetrahedron_tag, domain_type>
         {
             typedef cgal_delauney_tetdrahedron_domain type;
+        };
+        
+        template<typename segmentation_type>
+        struct best_matching_native_input_segmentation<cgal_delaunay_tetrahedron_tag, segmentation_type>
+        {
+            typedef typedef viennagrid::dummy_segmentation<> type;
+        };
+
+        template<typename segmentation_type>
+        struct best_matching_native_output_segmentation<cgal_delaunay_tetrahedron_tag, segmentation_type>
+        {
+            typedef typedef viennagrid::dummy_segmentation<> type;
         };
         
         template<>
@@ -168,6 +187,7 @@ namespace viennamesh
         template<typename native_input_domain_type, typename native_output_domain_type, typename settings_type>
         static bool run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
         {
+            algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             typename native_output_domain_type::Mesh_domain mesh_domain( native_input_domain.polyhedron );
             
             typename native_input_domain_type::feature_lines_type feature_lines(native_input_domain.feature_lines);
@@ -182,7 +202,8 @@ namespace viennamesh
             
             delete criteria;
             
-            return true;
+            feedback.set_success();
+            return feedback;
         }
         
     };

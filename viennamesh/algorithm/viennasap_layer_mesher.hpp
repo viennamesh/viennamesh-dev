@@ -3,7 +3,6 @@
 
 #include "viennagrid/config/default_configs.hpp"
 
-#include "viennamesh/base/segments.hpp"
 #include "viennamesh/domain/viennasap_layer.hpp"
 #include "viennamesh/algorithm/cgal_plc_mesher.hpp"
 
@@ -23,13 +22,13 @@ namespace viennamesh
 
         
         template<typename domain_type_or_tag>
-        struct best_matching_native_input<viennasap_layer_mesher_tag, domain_type_or_tag>
+        struct best_matching_native_input_domain<viennasap_layer_mesher_tag, domain_type_or_tag>
         {
             typedef viennasap_layer_domain type;
         };
 
         template<typename domain_type_or_tag>
-        struct best_matching_native_output<viennasap_layer_mesher_tag, domain_type_or_tag>
+        struct best_matching_native_output_domain<viennasap_layer_mesher_tag, domain_type_or_tag>
         {
             typedef viennagrid::config::plc_3d_domain type;
         };

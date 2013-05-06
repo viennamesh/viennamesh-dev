@@ -396,7 +396,7 @@ Ng_STL_Geometry * Ng_STL_NewGeometry ()
 } 
 
 // after adding triangles (and edges) initialize
-Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::config::triangular_3d_domain const & domain)
+Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::config::triangular_3d_domain const & domain, viennagrid::config::triangular_3d_segmentation const & segmentation)
 {
   STLGeometry* geo = (STLGeometry*)geom;
 
@@ -404,7 +404,7 @@ Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::config::tr
 //  geo->InitSTLGeometry(readtrias);
 //  geo->InitSTLGeometry(filename);
 // [JW] added new specialization which gets a viennagrid::domain
-   geo->InitSTLGeometry(domain);
+   geo->InitSTLGeometry(domain, segmentation);
 
   readtrias.SetSize(0);
 
@@ -495,7 +495,8 @@ Ng_Result Ng_STL_MakeEdges (Ng_STL_Geometry * geom,
 Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
                             Ng_Mesh* mesh,
                             Ng_Meshing_Parameters * mp, 
-                            viennagrid::config::triangular_3d_domain & domain)
+                            viennagrid::config::triangular_3d_domain & domain,
+                            viennagrid::config::triangular_3d_segmentation & segmentation)
 {
 #ifdef DEBUGALL
    std::cout << "ENTER Ng_FS_SurfaceMesh" << std::endl;
@@ -528,7 +529,7 @@ Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
    // find the class: STLParameters @ stltool.cpp/hpp
    //stlparam.Print(std::cout);
    
-   STLMeshingDummy(stlgeometry, me, domain, 1, 6);
+   STLMeshingDummy(stlgeometry, me, domain, segmentation, 1, 6);
 
 #ifdef DEBUGALL
    std::cout << "EXIT Ng_FS_SurfaceMesh" << std::endl;

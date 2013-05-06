@@ -35,7 +35,7 @@ namespace mtl { namespace matrix {
 /// Eigenvalues of symmetric matrix A with implicit QR algorithm
 // Return Diagonalmatrix with eigenvalues as diag(A)
 template <typename Matrix>
-dense_vector<typename Collection<Matrix>::value_type>
+dense_vector<typename Collection<Matrix>::value_type, parameters<> >
 inline qr_sym_imp(const Matrix& A)
 {
     using std::abs; using mtl::signum;
@@ -102,7 +102,7 @@ inline qr_sym_imp(const Matrix& A)
 // Evaluation of eigenvalues with QR-Algorithm of matrix A
 // Return Diagonalmatrix with eigenvalues as diag(A)
 template <typename Matrix>
-dense_vector<typename Collection<Matrix>::value_type>
+dense_vector<typename Collection<Matrix>::value_type, parameters<> >
 inline qr_algo(const Matrix& A, typename Collection<Matrix>::size_type itMax)
 {
     typedef typename Collection<Matrix>::size_type    size_type;
@@ -121,7 +121,7 @@ inline qr_algo(const Matrix& A, typename Collection<Matrix>::size_type itMax)
 
 /// Calculation of eigenvalues of symmetric matrix A
 template <typename Matrix>
-dense_vector<typename Collection<Matrix>::value_type>
+dense_vector<typename Collection<Matrix>::value_type, parameters<> >
 inline eigenvalue_symmetric(const Matrix& A, 
 			    typename Collection<Matrix>::size_type itMax= 0)
 {

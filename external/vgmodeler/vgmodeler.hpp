@@ -78,6 +78,7 @@ norm_2_squared(VectorT const& v)
 struct hull_adaptor
 {
    typedef viennagrid::config::triangular_3d_domain   domain_type;
+   typedef viennagrid::config::triangular_3d_segmentation segmentation_type;
 
    hull_adaptor()
    {
@@ -252,15 +253,15 @@ struct hull_adaptor
 //    }
 
    
-   void process(domain_type const & domain, domain_type & new_domain)
+   void process(domain_type const & domain, segmentation_type const & segmentation, domain_type & new_domain, segmentation_type & new_segmentation)
    {
-      if(vgmnetgen::Ng_STL_InitSTLGeometry(geom, domain) != 0)
+      if(vgmnetgen::Ng_STL_InitSTLGeometry(geom, domain, segmentation) != 0)
       {
          std::cerr << "vgmodeler::hull-adaptor: input mesh initialization failed" << std::endl;
       }
       else
       {
-         vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp, new_domain);  
+         vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp, new_domain, new_segmentation);  
       }
    }
 

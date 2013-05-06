@@ -96,7 +96,7 @@ class multi_vector
     friend size_type num_cols(const self& A) { return A.num_cols(); }
   protected:
   
-    dense_vector<Vector>          data;
+    dense_vector<Vector, parameters<> >          data;
   
 };
 

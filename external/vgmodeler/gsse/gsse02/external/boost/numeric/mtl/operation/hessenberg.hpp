@@ -43,7 +43,7 @@ Matrix inline hessenberg_factors(const Matrix& A)
 
     for(size_type i= 0; i < ncols-2; i++){
 	// dense_vector<value_type>  v(B[irange(i+1, imax)][i]);
-        dense_vector<value_type>  v(nrows-i-1), w(nrows-i);
+        dense_vector<value_type, parameters<> >  v(nrows-i-1), w(nrows-i);
         for (size_type j = 0; j < size(v); j++)
             v[j]= B[j+i+1][i];
         beta= householder(v).second;
@@ -149,7 +149,7 @@ Matrix inline hessenberg_q(const Matrix& A)
 
     //Extract Q
     for(size_type i = 0; i < nrows-2; i++){
-        dense_vector<value_type>   v(nrows-i-1), w(nrows-i);
+        dense_vector<value_type, parameters<> >   v(nrows-i-1), w(nrows-i);
         v[0]= one;
         for(size_type k = 1; k < size(v); k++)
             v[k]= A[nrows-k][i];

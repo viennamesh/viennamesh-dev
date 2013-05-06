@@ -11,7 +11,7 @@
 #include "gsse/math/geometric_barycenter.hpp"
 
 
-#include "viennamesh/base/segments.hpp"
+#include "viennagrid/domain/segmentation.hpp"
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"
 #include "viennadata/api.hpp"
@@ -525,7 +525,7 @@ STLGeometry *  STLTopology ::Load (const char* filename)
 
 
 
-void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain const & vgriddomain )
+void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain const & vgriddomain, viennagrid::config::triangular_3d_segmentation const & vgridsegmentation )
 {
 //    typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
    typedef viennagrid::config::triangular_3d_domain domain_type;
@@ -597,15 +597,17 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
    std::size_t cell_counter = 0;
 //    for (std::size_t si = 0; si < vgriddomain.segments().size(); ++si)
    
-   viennamesh::segment_id_container_type const & used_segments = viennamesh::segments( vgriddomain );
+   typedef viennagrid::config::triangular_3d_segmentation::segment_ids_container_type segment_ids_container_type;
+   segment_ids_container_type const & used_segments = vgridsegmentation.segments();  
+//    viennamesh::segment_id_container_type const & used_segments = viennamesh::segments( vgriddomain );
    
    
 //    for (std::size_t si = 0; si < num_segments; ++si)
    long gsse_domain_id = 0;
-   for (viennamesh::segment_id_container_type::const_iterator it = used_segments.begin(); it != used_segments.end(); ++it, ++gsse_domain_id)
+   for (segment_ids_container_type::const_iterator it = used_segments.begin(); it != used_segments.end(); ++it, ++gsse_domain_id)
    {
        this->segment_id_map[gsse_domain_id] = *it;
-       viennamesh::segment_id_type current_segment_id = *it;
+       viennagrid::config::triangular_3d_segmentation::segment_id_type current_segment_id = *it;
       // transfer segment
       //
 //       SegmentType & seg = vgriddomain.segments()[si];
@@ -622,11 +624,15 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
           PointType const & p1 = viennagrid::point( vgriddomain, viennagrid::elements<viennagrid::vertex_tag>(*cit)[1] );
           PointType const & p2 = viennagrid::point( vgriddomain, viennagrid::elements<viennagrid::vertex_tag>(*cit)[2] );
           
+          typedef viennagrid::config::triangular_3d_segmentation::element_segment_info_type element_segment_info_type;
+          element_segment_info_type const & seg_def = vgridsegmentation.segment_info( *cit );
+//           viennamesh::face_segment_definition_type const & seg_def = viennamesh::face_segments( *cit );
           
-          viennamesh::face_segment_definition_type const & seg_def = viennamesh::face_segments( *cit );
+          if ((current_segment_id == seg_def.positive_orientation_segment_id) || (current_segment_id == seg_def.negative_orientation_segment_id))
+/*          
           
           viennamesh::face_segment_definition_type::const_iterator sdit = seg_def.find( current_segment_id );
-          if (sdit != seg_def.end())
+          if (sdit != seg_def.end())*/
             {
 //                 std::cout << "!!! Adding Triangle" << std::endl;
 //                 std::cout << "   " << p0 << std::endl;
@@ -647,7 +653,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
                     cell[vi++] = vocit->id().get();
                 }
                 
-                if (sdit->second)
+                if (current_segment_id == seg_def.positive_orientation_segment_id)
                 {
                     (*gsse_segit).add_cell_2(cell_2_vertex_mapping(cell[0], cell[1], cell[2]));
                     domain.add_vertex(cell[0], gsse_segit);

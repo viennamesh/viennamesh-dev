@@ -66,7 +66,7 @@ namespace viennagrid
 namespace viennamesh
 {
     template<>
-    struct convert_impl<viennagrid::config::line_2d_domain, cgal_plc_2d_domain>
+    struct convert_impl<viennagrid::config::line_2d_domain, viennagrid::dummy_segmentation<>, cgal_plc_2d_domain, viennagrid::dummy_segmentation<> >
     {
         typedef viennagrid::config::line_2d_domain vgrid_domain_type;
 //         typedef viennagrid::config::line_2d_cell vgrid_element_type;
@@ -81,7 +81,7 @@ namespace viennamesh
         typedef cgal_domain_type output_domain_type;
 //         typedef cgal_element_type output_element_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, cgal_domain_type & cgal_domain )
+        static bool convert( vgrid_domain_type const & vgrid_domain, viennagrid::dummy_segmentation<> const &, cgal_domain_type & cgal_domain, viennagrid::dummy_segmentation<> & )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
@@ -139,7 +139,7 @@ namespace viennamesh
     
     
     template<>
-    struct convert_impl<viennagrid::config::plc_2d_domain, cgal_plc_2d_domain>
+    struct convert_impl<viennagrid::config::plc_2d_domain, viennagrid::dummy_segmentation<>, cgal_plc_2d_domain, viennagrid::dummy_segmentation<> >
     {
         typedef viennagrid::config::plc_2d_domain vgrid_domain_type;
         typedef viennagrid::config::plc_2d_cell vgrid_element_type;
@@ -154,7 +154,7 @@ namespace viennamesh
         typedef cgal_domain_type output_domain_type;
         typedef cgal_element_type output_element_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, cgal_domain_type & cgal_domain )
+        static bool convert( vgrid_domain_type const & vgrid_domain, viennagrid::dummy_segmentation<> const &, cgal_domain_type & cgal_domain, viennagrid::dummy_segmentation<> & )
         {
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::plc_tag>::type plc_type;
             typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::plc_tag>::type plc_handle_type;
@@ -237,7 +237,7 @@ namespace viennamesh
     
     
     template<>
-    struct convert_impl<cgal_plc_2d_domain, viennagrid::config::triangular_2d_domain>
+    struct convert_impl<cgal_plc_2d_domain, viennagrid::dummy_segmentation<>, viennagrid::config::triangular_2d_domain, viennagrid::dummy_segmentation<> >
     {              
         typedef cgal_plc_2d_domain cgal_domain_type;
         typedef cgal_plc_2d_element cgal_element_type;
@@ -253,7 +253,7 @@ namespace viennamesh
         typedef vgrid_element_type output_element_type;
 
         
-        static bool convert( cgal_domain_type const & cgal_domain, vgrid_domain_type & vgrid_domain )
+        static bool convert( cgal_domain_type const & cgal_domain, viennagrid::dummy_segmentation<> const &, vgrid_domain_type & vgrid_domain, viennagrid::dummy_segmentation<> & )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type triangle_point_type;
             
@@ -361,7 +361,7 @@ namespace viennagrid
 namespace viennamesh
 {
     template<>
-    struct convert_impl<viennagrid::config::plc_3d_domain, cgal_plc_3d_domain>
+    struct convert_impl<viennagrid::config::plc_3d_domain, viennagrid::dummy_segmentation<>, cgal_plc_3d_domain, viennagrid::dummy_segmentation<> >
     {
         typedef viennagrid::config::plc_3d_domain vgrid_domain_type;
         typedef viennagrid::config::plc_3d_cell vgrid_element_type;
@@ -376,7 +376,7 @@ namespace viennamesh
         typedef cgal_domain_type output_domain_type;
         typedef cgal_element_type output_element_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, cgal_domain_type & cgal_domain )
+        static bool convert( vgrid_domain_type const & vgrid_domain, viennagrid::dummy_segmentation<> const &, cgal_domain_type & cgal_domain, viennagrid::dummy_segmentation<> & )
         {
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::plc_tag>::type plc_type;
             typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::plc_tag>::type plc_handle_type;
@@ -492,7 +492,7 @@ namespace viennamesh
     
     
     template<>
-    struct convert_impl<cgal_plc_3d_domain, viennagrid::config::triangular_3d_domain>
+    struct convert_impl<cgal_plc_3d_domain, viennagrid::dummy_segmentation<>, viennagrid::config::triangular_3d_domain, viennagrid::dummy_segmentation<> >
     {              
         typedef cgal_plc_3d_domain cgal_domain_type;
         typedef cgal_plc_3d_element cgal_element_type;
@@ -508,7 +508,7 @@ namespace viennamesh
         typedef vgrid_element_type output_element_type;
 
         
-        static bool convert( cgal_domain_type const & cgal_domain, vgrid_domain_type & vgrid_domain )
+        static bool convert( cgal_domain_type const & cgal_domain, viennagrid::dummy_segmentation<> const &, vgrid_domain_type & vgrid_domain, viennagrid::dummy_segmentation<> & )
         {
             typedef viennagrid::result_of::point_type<vgrid_domain_type>::type triangle_point_type;
             

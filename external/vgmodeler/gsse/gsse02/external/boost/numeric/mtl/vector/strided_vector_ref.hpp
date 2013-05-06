@@ -147,7 +147,7 @@ class strided_vector_ref
     }
 
     /// Swapping not efficient since elements have to be swapped for not owning the data
-    friend void swap(self& vector1, self& vector2)
+    void swap(self& vector1, self& vector2)
     {
 	vector1.check_dim(size(vector2));
 	for (size_type i= 0; i < size(vector1); ++i)

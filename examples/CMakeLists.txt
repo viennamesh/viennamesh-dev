@@ -52,3 +52,11 @@ target_link_libraries(example7a vgmodeler_base vgmodeler_stltopo vgmodeler_meshs
 add_executable(example7b src/example7b.cpp)
 target_link_libraries(example7b ${CGAL_LIBS} nglib)
 target_link_libraries(example7b vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+add_executable(example8 src/example8.cpp)
+target_link_libraries(example8 ${CGAL_LIBS} nglib)
+target_link_libraries(example8 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+add_executable(example8a src/example8a.cpp)
+target_link_libraries(example8a ${CGAL_LIBS} nglib)
+target_link_libraries(example8a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
