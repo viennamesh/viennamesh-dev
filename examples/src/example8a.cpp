@@ -27,6 +27,8 @@
 #include <boost/accumulators/statistics/moment.hpp>
 #include <boost/accumulators/statistics/density.hpp>
 
+#include "viennagrid/algorithm/angle.hpp"
+
 
 int main()
 {
@@ -109,6 +111,8 @@ int main()
     for (tetrahedron_range_iterator tetit = tetrahedrons.begin(); tetit != tetrahedrons.end(); ++tetit)
     {
         viennadata::access<std::string, double>("aspect_ratio")(*tetit) = viennamesh::aspect_ratio( tetrahedron_domain, *tetit );
+        viennadata::access<std::string, double>("min_angle")(*tetit) = viennamesh::min_angle( tetrahedron_domain, *tetit );
+        viennadata::access<std::string, double>("min_dihedral_angle")(*tetit) = viennamesh::min_dihedral_angle( tetrahedron_domain, *tetit );
     }
     
     
@@ -118,6 +122,8 @@ int main()
     {        
         viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_writer;
         viennagrid::io::add_scalar_data_on_cells<std::string, double>(vtk_writer, "aspect_ratio", "aspect_ratio");
+        viennagrid::io::add_scalar_data_on_cells<std::string, double>(vtk_writer, "min_angle", "min_angle");
+        viennagrid::io::add_scalar_data_on_cells<std::string, double>(vtk_writer, "min_dihedral_angle", "min_dihedral_angle");
         vtk_writer(tetrahedron_domain, "netgen_volume.vtu");
     }
 
@@ -127,9 +133,9 @@ int main()
     typedef boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::min, boost::accumulators::tag::max, boost::accumulators::tag::mean, boost::accumulators::tag::density> > acc;
     typedef boost::iterator_range<std::vector<std::pair<double, double> >::iterator > histogram_type;
     
-    acc myAccumulator( boost::accumulators::tag::density::num_bins = 4, boost::accumulators::tag::density::cache_size = 10);
+    acc myAccumulator( boost::accumulators::tag::density::num_bins = 4, boost::accumulators::tag::density::cache_size = 10 );
     for (tetrahedron_range_iterator tetit = tetrahedrons.begin(); tetit != tetrahedrons.end(); ++tetit)
-        myAccumulator( viennamesh::aspect_ratio( tetrahedron_domain, *tetit ) );
+        myAccumulator( viennamesh::min_dihedral_angle( tetrahedron_domain, *tetit ) );
 
     histogram_type hist = boost::accumulators::density(myAccumulator);
     
