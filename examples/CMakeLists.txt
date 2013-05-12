@@ -61,6 +61,10 @@ add_executable(example8a src/example8a.cpp)
 target_link_libraries(example8a ${CGAL_LIBS} nglib)
 target_link_libraries(example8a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
-add_executable(example9 src/example9.cpp)
+include_directories( ${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/libsrc/general )
+add_executable(example9 src/example9.cpp ../external/netgen-5.0.0/libsrc/general/ngexception.cpp)
 target_link_libraries(example9 ${CGAL_LIBS} nglib)
 target_link_libraries(example9 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+add_executable(example10 src/example10.cpp)
+

@@ -7,9 +7,7 @@
 
 #include "viennamesh/utils/utils.hpp"
 
-
 #include "vgmodeler/vgmodeler.hpp"
-#include "../../../ViennaGrid/viennagrid/algorithm/cross_prod.hpp"
 
 
 namespace viennamesh
@@ -89,8 +87,6 @@ namespace viennamesh
                 adaptor.maxsize() = settings.cell_size();
             
             adaptor.process( native_input_domain, input_segmentation, native_output_domain, output_segmentation );
-
-//             viennamesh::segment_seed_points(native_output_domain) = viennamesh::segment_seed_points(native_input_domain);
             
             feedback.set_success(); 
             return feedback;

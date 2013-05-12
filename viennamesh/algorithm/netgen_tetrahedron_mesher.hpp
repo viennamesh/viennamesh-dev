@@ -88,8 +88,25 @@ namespace viennamesh
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             nglib::Ng_Meshing_Parameters mesh_parameters;
             
-            for (typename native_domain_type::netgen_mesh_container_type::const_iterator it = native_domain.meshes.begin(); it != native_domain.meshes.end(); ++it)            
+            if ( !settings.cell_size.is_ignored() ) mesh_parameters.maxh = settings.cell_size();
+//             mesh_parameters.optvolmeshenable = 0;
+//             mesh_parameters.optsteps_3d = 1;
+//             
+//             double h = 10.0;
+            
+            int segment_index = 0;
+            for (typename native_domain_type::netgen_mesh_container_type::const_iterator it = native_domain.meshes.begin(); it != native_domain.meshes.end(); ++it, ++segment_index)
+            {
+//                 nglib::Ng_Meshing_Parameters mesh_parameters;
+//                 
+//                 if (segment_index == 0)
+//                 {
+//                     mesh_parameters.maxh = 2.0;
+//                     nglib::Ng_RestrictMeshSizeGlobal (it->second, 2.0);
+//                 }
+                
                 nglib::Ng_Result result = nglib::Ng_GenerateVolumeMesh(it->second, &mesh_parameters);
+            }
             
             feedback.set_success();
             return feedback;

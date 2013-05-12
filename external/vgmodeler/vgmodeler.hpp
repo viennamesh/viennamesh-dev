@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>   
+#include <boost/concept_check.hpp>
    
    
   
@@ -261,6 +262,20 @@ struct hull_adaptor
       }
       else
       {
+//          double min_point[3];
+//          min_point[0] = -70;
+//          min_point[1] = -20;
+//          min_point[2] = -20;
+//          double max_point[3];
+//          max_point[0] = 70;
+//          max_point[1] = 60;
+//          max_point[2] = 20;
+//          
+//          mp.uselocalh = 1;
+//          vgmnetgen::Ng_RestrictMeshSizeBox( mesh, min_point, max_point, 1.0 );
+//           
+//          vgmnetgen::Ng_STL_MakeEdges(geom, mesh, &mp);
+         
          vgmnetgen::Ng_FS_SurfaceMesh(geom, mesh, &mp, new_domain, new_segmentation);  
       }
    }

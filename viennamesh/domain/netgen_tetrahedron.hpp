@@ -47,10 +47,11 @@ namespace viennamesh
             static netgen_lib lib;
         }        
         
-        void init(std::set<segment_id_type> const & segments)
+        template<typename segment_id_container_type>
+        void init(segment_id_container_type const & segments)
         {
             deinit();
-            for (std::set<segment_id_type>::const_iterator it = segments.begin(); it != segments.end(); ++it)
+            for (typename segment_id_container_type::const_iterator it = segments.begin(); it != segments.end(); ++it)
                 meshes[*it] = nglib::Ng_NewMesh();
         }
         
@@ -94,34 +95,34 @@ namespace viennamesh
 {
     
     
-    template<>
-    struct convert_impl<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_segmentation, netgen_tetrahedron_domain, viennagrid::dummy_segmentation<> >
+    template<typename triangular_3d_domain_type, typename triangular_3d_segmentation_type>
+    struct convert_impl<triangular_3d_domain_type, triangular_3d_segmentation_type, netgen_tetrahedron_domain, viennagrid::dummy_segmentation<> >
     {
-        typedef viennagrid::config::triangular_3d_domain vgrid_domain_type;
+        typedef triangular_3d_domain_type vgrid_domain_type;
         typedef netgen_tetrahedron_domain netgen_domain_type;
         
         typedef vgrid_domain_type input_domain_type;
-        typedef viennagrid::config::triangular_3d_segmentation input_segmentation_type;
+        typedef triangular_3d_segmentation_type input_segmentation_type;
         typedef netgen_domain_type output_domain_type;
         typedef viennagrid::dummy_segmentation<> output_segmentation_type;
         
         static bool convert( input_domain_type const & vgrid_domain, input_segmentation_type const & input_segmentation,
                              output_domain_type & netgen_domain, output_segmentation_type & output_segmentation )
         {
-            typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
+            typedef typename viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
+            typedef typename viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
+            typedef typename viennagrid::result_of::const_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
+            typedef typename viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
             
-            typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
+            typedef typename viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
+            typedef typename viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
 
-            typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_range_type;
-            typedef viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
+            typedef typename viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_range_type;
+            typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
 
             
-            typedef input_segmentation_type::segment_ids_container_type segment_ids_container_type;
+            typedef typename input_segmentation_type::segment_ids_container_type segment_ids_container_type;
             segment_ids_container_type const & used_segments = input_segmentation.segments();
             
 //             segment_id_container_type const & used_segments = segments(vgrid_domain);
@@ -136,21 +137,25 @@ namespace viennamesh
                 netgen_domain_type::netgen_mesh_type current_mesh = seg_it->second;
                 
                 triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( vgrid_domain );
-//                 std::cout << " Num Triangles = " << triangles.size() << std::endl;
+                
+                unsigned int triangle_count = 0;
                 for (triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it)
                 {
                     triangle_type const & triangle = *it;
                     
-                    input_segmentation_type::element_segment_info_type const & element_segment_info = input_segmentation.segment_info(triangle);
+                    typename input_segmentation_type::element_segment_info_type const & element_segment_info = input_segmentation.segment_info(triangle);
                     
-                    if ( !element_segment_info.is_on_segment(seg_it->first) )
+//                     if ( !element_segment_info.is_on_segment(seg_it->first) )
 //                     if ( !is_face_on_segment(triangle, seg_it->first) )
+                    if (!viennagrid::in_segment( element_segment_info, seg_it->first ))
                         continue;
+                    
+                    ++triangle_count;
                     
                     int indices[3];
                     for (int i = 0; i < 3; ++i)
                     {
-                        std::map<vertex_const_handle_type, int>::iterator tmp = vertex_index_map.find(viennagrid::elements<viennagrid::vertex_tag>( triangle ).handle_at(i));
+                        typename std::map<vertex_const_handle_type, int>::iterator tmp = vertex_index_map.find(viennagrid::elements<viennagrid::vertex_tag>( triangle ).handle_at(i));
                         if (tmp == vertex_index_map.end())
                         {
                             vertex_const_handle_type vh = viennagrid::elements<viennagrid::vertex_tag>( triangle ).handle_at(i);
@@ -169,11 +174,14 @@ namespace viennamesh
                     }
                     
 //                     if ( faces_outward_on_segment(triangle, seg_it->first) )
-                    if ( element_segment_info.faces_outward_on_segment(seg_it->first) )
+//                     if ( element_segment_info.faces_outward_on_segment(seg_it->first) )
+                    if (!viennagrid::faces_outward_on_segment( element_segment_info, seg_it->first ))
                         std::swap( indices[1], indices[2] );
                     
                     nglib::Ng_AddSurfaceElement( current_mesh, nglib::NG_TRIG, indices );
                 }
+                
+//                 std::cout << " Num Triangles in segment " << (*seg_it).first << " = " << triangle_count << std::endl;
             }
     
             return true;

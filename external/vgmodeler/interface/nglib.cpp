@@ -165,6 +165,18 @@ Ng_GetVolumeElement (Ng_Mesh * mesh, int num, int * pi)
 }
 
 
+void Ng_RestrictMeshSizePoint (Ng_Mesh * mesh, double * p, double h)
+{
+    ((Mesh*)mesh) -> RestrictLocalH (Point3d (p[0], p[1], p[2]), h);
+}
+
+void Ng_RestrictMeshSizeBox (Ng_Mesh * mesh, double * pmin, double * pmax, double h)
+{
+      for (double x = pmin[0]; x < pmax[0]; x += h)
+         for (double y = pmin[1]; y < pmax[1]; y += h)
+            for (double z = pmin[2]; z < pmax[2]; z += h)
+               ((Mesh*)mesh) -> RestrictLocalH (Point3d (x, y, z), h);
+}
 
 // generates volume mesh from surface mesh
 Ng_Result Ng_GenerateVolumeMesh (Ng_Mesh * mesh, Ng_Meshing_Parameters * mp)
