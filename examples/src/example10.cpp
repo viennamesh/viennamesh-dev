@@ -233,7 +233,7 @@ int main()
     {
         viennagrid::io::vtk_reader<cell_type, domain_type> my_reader;
     //     my_reader(my_domain, my_segments, "../examples/data/netgen_volume.vtu_main.pvd");
-        my_reader(domain, segments, "../../build_release/examples/netgen_volume.vtu_main.pvd");
+        my_reader(domain, segments, "../../examples/data/half-trigate_main.pvd");
     }
     catch (...)
     {
