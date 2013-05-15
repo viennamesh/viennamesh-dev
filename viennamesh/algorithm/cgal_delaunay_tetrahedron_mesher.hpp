@@ -60,13 +60,13 @@ namespace viennamesh
         template<typename segmentation_type>
         struct best_matching_native_input_segmentation<cgal_delaunay_tetrahedron_tag, segmentation_type>
         {
-            typedef typedef viennagrid::dummy_segmentation<> type;
+            typedef viennagrid::dummy_segmentation<> type;
         };
 
         template<typename segmentation_type>
         struct best_matching_native_output_segmentation<cgal_delaunay_tetrahedron_tag, segmentation_type>
         {
-            typedef typedef viennagrid::dummy_segmentation<> type;
+            typedef viennagrid::dummy_segmentation<> type;
         };
         
         template<>
@@ -183,9 +183,10 @@ namespace viennamesh
     template<>
     struct native_algorithm_impl<cgal_delaunay_tetrahedron_tag>
     {
+        typedef cgal_delaunay_tetrahedron_tag algorithm_tag;
         
         template<typename native_input_domain_type, typename native_output_domain_type, typename settings_type>
-        static bool run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
+        static algorithm_feedback run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             typename native_output_domain_type::Mesh_domain mesh_domain( native_input_domain.polyhedron );

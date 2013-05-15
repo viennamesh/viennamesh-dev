@@ -22,9 +22,9 @@
 #include <fstream>
 #include "viennamesh/io/viennasap_common.hpp"
 #include "viennamesh/utils/string_tools.hpp"
-#include "viennamesh/base/segments.hpp"
+// #include "viennamesh/base/segments.hpp"
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/domain/element_creation.hpp"
 
 
@@ -128,7 +128,7 @@ namespace viennagrid
 //             std::cout << "det=" << det << std::endl;
             
             CellHookType tet_handle = viennagrid::create_tetrahedron( domain, vertex_map[node_ids[0]], vertex_map[node_ids[1]], vertex_map[node_ids[2]], vertex_map[node_ids[3]] );
-            viennamesh::segment( viennagrid::dereference_handle( domain, tet_handle ) ) = segment;
+//             viennamesh::segment( viennagrid::dereference_handle( domain, tet_handle ) ) = segment;
         }
         
         

@@ -30,39 +30,43 @@ add_executable(example5 src/example5.cpp)
 target_link_libraries(example5 ${CGAL_LIBS})
 
 
-
-
 include_directories( ${PROJECT_SOURCE_DIR}/external/vgmodeler/gsse/gsse01 )
 include_directories( ${PROJECT_SOURCE_DIR}/external/vgmodeler/gsse/gsse01/external/mauch )
-link_directories( ${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/nglib/.libs )
+
 
 add_executable(example6 src/example6.cpp)
+add_dependencies(example6 netgen)
 target_link_libraries(example6 ${CGAL_LIBS} nglib)
 target_link_libraries(example6 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
 
-add_executable(example7 src/example7.cpp)
-target_link_libraries(example7 ${CGAL_LIBS} nglib)
-target_link_libraries(example7 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-
-add_executable(example7a src/example7a.cpp)
-target_link_libraries(example7a ${CGAL_LIBS} nglib)
-target_link_libraries(example7a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
-
-add_executable(example7b src/example7b.cpp)
-target_link_libraries(example7b ${CGAL_LIBS} nglib)
-target_link_libraries(example7b vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+# add_executable(example7 src/example7.cpp)
+# add_dependencies(example7 netgen)
+# target_link_libraries(example7 ${CGAL_LIBS} nglib)
+# target_link_libraries(example7 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+# 
+# add_executable(example7a src/example7a.cpp)
+# add_dependencies(example7a netgen)
+# target_link_libraries(example7a ${CGAL_LIBS} nglib)
+# target_link_libraries(example7a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+# 
+# add_executable(example7b src/example7b.cpp)
+# add_dependencies(example7b netgen)
+# target_link_libraries(example7b ${CGAL_LIBS} nglib)
+# target_link_libraries(example7b vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
 add_executable(example8 src/example8.cpp)
+add_dependencies(example8 netgen)
 target_link_libraries(example8 ${CGAL_LIBS} nglib)
 target_link_libraries(example8 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
 add_executable(example8a src/example8a.cpp)
+add_dependencies(example8a netgen)
 target_link_libraries(example8a ${CGAL_LIBS} nglib)
 target_link_libraries(example8a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
-include_directories( ${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/libsrc/general )
-add_executable(example9 src/example9.cpp ../external/netgen-5.0.0/libsrc/general/ngexception.cpp)
+add_executable(example9 src/example9.cpp)
+add_dependencies(example9 netgen)
 target_link_libraries(example9 ${CGAL_LIBS} nglib)
 target_link_libraries(example9 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 

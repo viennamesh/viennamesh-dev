@@ -61,6 +61,16 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 # Subdirectories
 ################
 
+include(ExternalProject)
+ExternalProject_Add(netgen
+   URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
+   CONFIGURE_COMMAND <SOURCE_DIR>/configure
+    --prefix=<INSTALL_DIR> 
+   INSTALL_COMMAND ""
+   )
+link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/src/netgen-build/nglib/.libs )
+message( "${PROJECT_BINARY_DIR}/netgen-prefix/src/netgen-build/nglib" )
+
 add_subdirectory( external/vgmodeler )
 
 if(BUILD_EXAMPLES)

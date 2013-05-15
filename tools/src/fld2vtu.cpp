@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     {        
         viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_writer;
         viennagrid::io::add_scalar_data_on_vertices<std::string, double>(vtk_writer, fld_reader.nodeattribute_name, fld_reader.nodeattribute_name);
-        viennagrid::io::add_scalar_data_on_cells<viennamesh::unique_segment_tag, viennamesh::segment_id_type>(vtk_writer, "segment_id");
+//         viennagrid::io::add_scalar_data_on_cells<viennamesh::unique_segment_tag, viennamesh::segment_id_type>(vtk_writer, "segment_id");
         vtk_writer(domain, output_file);
     }
 
