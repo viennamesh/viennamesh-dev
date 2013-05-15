@@ -52,26 +52,28 @@ if(BUILD_MANUAL)
    find_package(LATEX REQUIRED)
 endif()
 
+find_package(Boost COMPONENTS thread program_options)
+
 # Compile options
 #################
 
 include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 
-
-# Subdirectories
+# external libraries
 ################
 
 include(ExternalProject)
 ExternalProject_Add(netgen
    URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
-   CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --prefix=<INSTALL_DIR> 
+   CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui
    INSTALL_COMMAND ""
    )
 link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/src/netgen-build/nglib/.libs )
-message( "${PROJECT_BINARY_DIR}/netgen-prefix/src/netgen-build/nglib" )
 
 add_subdirectory( external/vgmodeler )
+
+# Subdirectories
+################
 
 if(BUILD_EXAMPLES)
    add_subdirectory(examples)

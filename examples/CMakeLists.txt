@@ -1,7 +1,6 @@
 # add_executable(example1 src/example1.cpp ../external/triangle/triangle.c)
 
 find_package(CGAL QUIET COMPONENTS Core )
-find_package(Boost COMPONENTS thread program_options)
 
 set( CGAL_LIBS CGAL CGAL_Core ${Boost_LIBRARIES} gmp mpfr )
 
