@@ -7,17 +7,17 @@ namespace viennamesh
 {
     namespace metrics
     { 
-        template<typename DomainType, typename ElementType, typename NumericLimitsType>
-        typename viennagrid::result_of::coord_type<DomainType>::type min_dihedral_angle_impl(DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, viennagrid::tetrahedron_tag)
+        template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+        typename viennagrid::result_of::coord<PointAccessorT>::type min_dihedral_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::tetrahedron_tag)
         {
-            typedef typename viennagrid::result_of::coord_type<DomainType>::type            NumericType;
-            typedef typename viennagrid::result_of::point_type<DomainType>::type            PointType;
-            typedef typename viennagrid::result_of::const_vertex_range<ElementType>::type   VertexOnCellContainer;
+            typedef typename viennagrid::result_of::coord<PointAccessorT>::type            NumericType;
+            typedef typename viennagrid::result_of::point<PointAccessorT>::type            PointType;
+            typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
             
-            PointType const & p0 = viennagrid::point( domain, viennagrid::vertices(element)[0] );
-            PointType const & p1 = viennagrid::point( domain, viennagrid::vertices(element)[1] );
-            PointType const & p2 = viennagrid::point( domain, viennagrid::vertices(element)[2] );
-            PointType const & p3 = viennagrid::point( domain, viennagrid::vertices(element)[3] );
+            PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
+            PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );
+            PointType const & p2 = point_accessor( viennagrid::vertices(element)[2] );
+            PointType const & p3 = point_accessor( viennagrid::vertices(element)[3] );
             
             double da_01 = viennagrid::dihedral_angle( p0, p1, p2, p0, p1, p3 );
             double da_02 = viennagrid::dihedral_angle( p0, p2, p1, p0, p2, p3 );
@@ -33,28 +33,40 @@ namespace viennamesh
     
     struct min_dihedral_angle_tag {};
     
-    template<typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type min_dihedral_angle( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits )
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
     {
-        return metrics::min_dihedral_angle_impl(domain, element, numeric_limits, typename ElementType::tag());
+        return metrics::min_dihedral_angle_impl(point_accessor, element, numeric_limits, typename ElementT::tag());
     }
-    
-    template<typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type min_dihedral_angle( DomainType const & domain, ElementType const & element )
+
+    template<typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element )
     {
-        return min_dihedral_angle(domain, element, std::numeric_limits< typename viennagrid::result_of::coord_type<DomainType>::type >() );
+        return min_dihedral_angle(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<PointAccessorT>::type >() );
     }
-    
-    template<typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, min_dihedral_angle_tag)
+
+    template<typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type min_dihedral_angle(ElementT const & element)
     {
-        return min_dihedral_angle(domain, element, numeric_limits);       
+        return min_dihedral_angle( viennagrid::default_point_accessor(element), element);
     }
-    
-    template<typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, min_dihedral_angle_tag)
+
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, min_dihedral_angle_tag)
     {
-        return min_dihedral_angle(domain, element);       
+        return min_dihedral_angle(point_accessor, element, numeric_limits);
+    }
+
+    template<typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, min_dihedral_angle_tag)
+    {
+        return min_dihedral_angle(point_accessor, element);
+    }
+
+    template<typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type metric( ElementT const & element, min_dihedral_angle_tag)
+    {
+        return min_dihedral_angle(element);
     }
     
     

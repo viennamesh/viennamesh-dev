@@ -1170,7 +1170,7 @@ void write(Domain& domain, std::ostream& ostr = std::cout)
       [
          ostr << val(gsse::IO::sep) << val(gsse::IO::set_open) << val(gsse::IO::sep)
          ,
-         ref(cnt_cl)++ 
+         boost::ref(cnt_cl)++ 
          ,
          ostr << val(cnt_cl) << val(" \t")
          ,
@@ -1248,7 +1248,7 @@ void write(Domain& domain, std::ostream& ostr = std::cout)
          ostr << val(gsse::IO::sep) << val(gsse::IO::set_close) << val(gsse::IO::sep)
          ,
          ostr << val(gsse::IO::sep) << val(gsse::IO::set_open) << val(gsse::IO::sep),
-         ref(cnt_cl)++ 
+         boost::ref(cnt_cl)++ 
          ,
          ostr << val(cnt_cl) << val(" \t")
          ,

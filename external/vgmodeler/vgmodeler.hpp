@@ -78,8 +78,8 @@ norm_2_squared(VectorT const& v)
 
 struct hull_adaptor
 {
-   typedef viennagrid::config::triangular_3d_domain   domain_type;
-   typedef viennagrid::config::triangular_3d_segmentation segmentation_type;
+   typedef viennagrid::triangular_3d_domain   domain_type;
+   typedef viennagrid::triangular_hull_3d_segmentation segmentation_type;
 
    hull_adaptor()
    {

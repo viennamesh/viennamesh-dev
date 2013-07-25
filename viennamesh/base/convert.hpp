@@ -6,9 +6,9 @@
 namespace viennamesh
 {
     
-//     struct dummy_segmentation {};
+    struct NoSegmentation {};
     
-    template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type>
+    template<typename InputDomainT, typename InputSegmentationT, typename OutputDomainT, typename OutputSegmentationT>
     struct convert_impl
     {
         // Prototype for convert
@@ -17,21 +17,25 @@ namespace viennamesh
     };
     
     
-    template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type>
-    bool convert( input_domain_type const & in, input_segmentation_type const & input_segmentation, output_domain_type & out, output_segmentation_type & output_segmentation )
+    template<typename InputDomainT, typename InputSegmentationT, typename OutputDomainT, typename OutputSegmentationT>
+    bool convert( InputDomainT const & in, InputSegmentationT const & input_segmentation, OutputDomainT & out, OutputSegmentationT & output_segmentation )
     {
-        bool status = convert_impl<input_domain_type, input_segmentation_type, output_domain_type, output_segmentation_type>::
+        bool status = convert_impl<InputDomainT, InputSegmentationT, OutputDomainT, OutputSegmentationT>::
             convert(in, input_segmentation, out, output_segmentation);
         
         return status;
     }
     
     
-    template<typename input_domain_type, typename output_domain_type>
-    bool convert( input_domain_type const & in, output_domain_type & out )
+    template<typename InputDomainT, typename OutputDomainT>
+    bool convert( InputDomainT const & in, OutputDomainT & out )
     {
-        viennagrid::dummy_segmentation<> dummy;
-        return convert( in, dummy, out, dummy );
+      NoSegmentation source_segmentation;
+      NoSegmentation destination_segmentation;
+      
+      bool status = convert_impl<InputDomainT, NoSegmentation, OutputDomainT, NoSegmentation>::convert(in, source_segmentation, out, destination_segmentation);
+
+        return status;
     }
     
     template<typename domain_type>
@@ -39,7 +43,7 @@ namespace viennamesh
     {
         if (&in != &out)
             out = in;
-        
+
         return true;
     }
     

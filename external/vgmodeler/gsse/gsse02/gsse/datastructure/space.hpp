@@ -328,8 +328,8 @@ void print_space(Space& space)
       //
       gsse::traverse<gsse::AT_cl>()
       [
-	 std::cout << (ref(cnt_cl)) << val("\t  ")
-	 , ref(cnt_cl)++
+	 std::cout << (boost::ref(cnt_cl)) << val("\t  ")
+	 , boost::ref(cnt_cl)++
 	 ,
 	 gsse::traverse()
 	 [

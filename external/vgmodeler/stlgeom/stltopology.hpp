@@ -320,7 +320,8 @@ public:
   enum STL_GEOM_STATUS { STL_GOOD, STL_WARNING, STL_ERROR };
 
   // [FRUDO] for segment identification
-  std::map<long, viennagrid::segment_id_t<> > segment_id_map;
+//   typedef viennagrid::triangular_hull_3d_segment SegmentType;
+  std::map<long, int> segment_id_map;
   
   // [FS][MOD]
   //
@@ -350,7 +351,7 @@ public:
   
   virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
   virtual void InitSTLGeometry (const char * filename);
-  virtual void InitSTLGeometry (viennagrid::config::triangular_3d_domain const & domain, viennagrid::config::triangular_3d_segmentation const & vgridsegmentation);
+  virtual void InitSTLGeometry (viennagrid::triangular_3d_domain const & domain, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation);
   
   virtual void TopologyChanged() {}; //do some things, if topology changed!
 

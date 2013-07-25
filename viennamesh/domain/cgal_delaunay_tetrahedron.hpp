@@ -63,25 +63,25 @@ namespace viennagrid
     namespace result_of
     {
         template<>
-        struct point_type<viennamesh::cgal_mesh_polyhedron_domain>
+        struct point<viennamesh::cgal_mesh_polyhedron_domain>
         {
             typedef viennagrid::config::point_type_3d type;
         };
         
         template<>
-        struct point_type<const viennamesh::cgal_mesh_polyhedron_domain>
+        struct point<const viennamesh::cgal_mesh_polyhedron_domain>
         {
             typedef viennagrid::config::point_type_3d type;
         };
         
         template<>
-        struct point_type<viennamesh::cgal_delauney_tetdrahedron_domain>
+        struct point<viennamesh::cgal_delauney_tetdrahedron_domain>
         {
             typedef viennagrid::config::point_type_3d type;
         };
         
         template<>
-        struct point_type<const viennamesh::cgal_delauney_tetdrahedron_domain>
+        struct point<const viennamesh::cgal_delauney_tetdrahedron_domain>
         {
             typedef viennagrid::config::point_type_3d type;
         };
@@ -92,21 +92,21 @@ namespace viennagrid
 namespace viennamesh
 {
     
-    template<>
-    struct convert_impl<viennagrid::config::triangular_3d_domain, viennagrid::dummy_segmentation<>, cgal_mesh_polyhedron_domain, viennagrid::dummy_segmentation<> >
+    template<typename InputSegmentationT, typename OutputSegmentationT>
+    struct convert_impl<viennagrid::triangular_3d_domain, InputSegmentationT, cgal_mesh_polyhedron_domain, OutputSegmentationT >
     {
-        typedef viennagrid::config::triangular_3d_domain vgrid_domain_type;
+        typedef viennagrid::triangular_3d_domain vgrid_domain_type;
         typedef cgal_mesh_polyhedron_domain cgal_domain_type;
         
         
         typedef vgrid_domain_type input_domain_type;
-        typedef viennagrid::dummy_segmentation<> input_segmentation_type;
+        typedef InputSegmentationT input_segmentation_type;
         typedef cgal_domain_type output_domain_type;
-        typedef viennagrid::dummy_segmentation<> output_segmentation_type;
+        typedef OutputSegmentationT output_segmentation_type;
         
         static bool convert( input_domain_type const & vgrid_domain, input_segmentation_type const &, output_domain_type & cgal_domain, output_segmentation_type & )
         {
-            typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
+            typedef viennagrid::result_of::point<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
             typedef viennagrid::result_of::const_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
@@ -168,22 +168,22 @@ namespace viennamesh
     
     
     
-    template<>
-    struct convert_impl<cgal_delauney_tetdrahedron_domain, viennagrid::dummy_segmentation<>, viennagrid::config::tetrahedral_3d_domain, viennagrid::dummy_segmentation<> >
+    template<typename InputSegmentationT, typename OutputSegmentationT>
+    struct convert_impl<cgal_delauney_tetdrahedron_domain, InputSegmentationT, viennagrid::tetrahedral_3d_domain, OutputSegmentationT >
     {              
         typedef cgal_delauney_tetdrahedron_domain cgal_domain_type;
-        typedef viennagrid::config::tetrahedral_3d_domain vgrid_domain_type;
+        typedef viennagrid::tetrahedral_3d_domain vgrid_domain_type;
         
         
         typedef cgal_domain_type input_domain_type;
-        typedef viennagrid::dummy_segmentation<> input_segmentation_type;
+        typedef InputSegmentationT input_segmentation_type;
         typedef vgrid_domain_type output_domain_type;
-        typedef viennagrid::dummy_segmentation<> output_segmentation_type;
+        typedef OutputSegmentationT output_segmentation_type;
 
         
         static bool convert( input_domain_type const & cgal_domain, input_segmentation_type const &, output_domain_type & vgrid_domain, output_segmentation_type & )
         {
-            typedef viennagrid::result_of::point_type<vgrid_domain_type>::type point_type;
+            typedef viennagrid::result_of::point<vgrid_domain_type>::type point_type;
             
             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
             typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
@@ -221,14 +221,14 @@ namespace viennamesh
                         tmp[2] = t.vertex(i)->point().y();
                         tmp[1] = t.vertex(i)->point().z();
                         
-                        vgrid_vtx[i] = viennagrid::create_vertex( vgrid_domain, tmp );
+                        vgrid_vtx[i] = viennagrid::make_vertex( vgrid_domain, tmp );
                         points[ t.vertex(i) ] = vgrid_vtx[i];
                     }
                     else
                         vgrid_vtx[i] = pit->second;
                 }
                 
-                viennagrid::create_element<tetrahedron_type>( vgrid_domain, vgrid_vtx, vgrid_vtx+4 );
+                viennagrid::make_element<tetrahedron_type>( vgrid_domain, vgrid_vtx, vgrid_vtx+4 );
             }
             
             return true;

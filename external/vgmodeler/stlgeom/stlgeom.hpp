@@ -329,7 +329,7 @@ namespace vgmnetgen
     ///ReadTriangle->STLTriangle, initialise some important variables, always after load!!!
     virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
     virtual void InitSTLGeometry (const char * filename);
-    virtual void InitSTLGeometry (viennagrid::config::triangular_3d_domain const & domain, viennagrid::config::triangular_3d_segmentation const & vgridsegmentation);     
+    virtual void InitSTLGeometry (viennagrid::triangular_3d_domain const & domain, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation);
 
     virtual void TopologyChanged(); //do some things, if topology changed!
     int CheckGeometryOverlapping();
@@ -472,8 +472,8 @@ namespace vgmnetgen
 
 
   extern int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh,
-                    viennagrid::config::triangular_3d_domain & domain,
-                    viennagrid::config::triangular_3d_segmentation & segmentation,
+                    viennagrid::triangular_3d_domain & domain,
+                    viennagrid::triangular_hull_3d_segmentation & segmentation,
 			      int perfstepsstart, int perfstepsend);
 
 

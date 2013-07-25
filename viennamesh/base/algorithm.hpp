@@ -26,7 +26,7 @@ namespace viennamesh
         template<typename algorithm_tag, typename domain_type>
         struct is_native_input_domain
         {
-            static const bool value = viennameta::EQUAL<
+            static const bool value = viennagrid::meta::EQUAL<
                     domain_type,
                     typename best_matching_native_input_domain<algorithm_tag, domain_type>::type
                 >::value;
@@ -35,7 +35,7 @@ namespace viennamesh
         template<typename algorithm_tag, typename segmentation_type>
         struct is_native_input_segmentation
         {
-            static const bool value = viennameta::EQUAL<
+            static const bool value = viennagrid::meta::EQUAL<
                     segmentation_type,
                     typename best_matching_native_input_segmentation<algorithm_tag, segmentation_type>::type
                 >::value;
@@ -53,7 +53,7 @@ namespace viennamesh
         template<typename algorithm_tag, typename domain_type>
         struct is_native_output_domain
         {
-            static const bool value = viennameta::EQUAL<
+            static const bool value = viennagrid::meta::EQUAL<
                     domain_type,
                     typename best_matching_native_output_domain<algorithm_tag, domain_type>::type
                 >::value;
@@ -62,7 +62,7 @@ namespace viennamesh
         template<typename algorithm_tag, typename segmentation_type>
         struct is_native_output_segmentation
         {
-            static const bool value = viennameta::EQUAL<
+            static const bool value = viennagrid::meta::EQUAL<
                     segmentation_type,
                     typename best_matching_native_output_segmentation<algorithm_tag, segmentation_type>::type
                 >::value;

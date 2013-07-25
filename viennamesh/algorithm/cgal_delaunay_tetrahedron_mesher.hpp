@@ -60,13 +60,13 @@ namespace viennamesh
         template<typename segmentation_type>
         struct best_matching_native_input_segmentation<cgal_delaunay_tetrahedron_tag, segmentation_type>
         {
-            typedef viennagrid::dummy_segmentation<> type;
+            typedef NoSegmentation type;
         };
 
         template<typename segmentation_type>
         struct best_matching_native_output_segmentation<cgal_delaunay_tetrahedron_tag, segmentation_type>
         {
-            typedef viennagrid::dummy_segmentation<> type;
+            typedef NoSegmentation type;
         };
         
         template<>

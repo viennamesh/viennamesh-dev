@@ -9,18 +9,18 @@ namespace viennamesh
     namespace metrics
     {
         
-        template<typename DomainType, typename ElementType, typename NumericLimitsType>
-        typename viennagrid::result_of::coord_type<DomainType>::type aspect_ratio_impl(DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, viennagrid::triangle_tag)
+        template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+        typename viennagrid::result_of::coord<PointAccessorT>::type aspect_ratio_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::triangle_tag)
         {
-            typedef typename viennagrid::result_of::coord_type<DomainType>::type            NumericType;
-            typedef typename viennagrid::result_of::point_type<DomainType>::type            PointType;
-            typedef typename viennagrid::result_of::const_vertex_range<ElementType>::type   VertexOnCellContainer;
+            typedef typename viennagrid::result_of::coord<PointAccessorT>::type            NumericType;
+            typedef typename viennagrid::result_of::point<PointAccessorT>::type            PointType;
+            typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type     VertexOnCellContainer;
             
-            PointType const & p0 = viennagrid::point( domain, viennagrid::vertices(element)[0] );
-            PointType const & p1 = viennagrid::point( domain, viennagrid::vertices(element)[1] );
-            PointType const & p2 = viennagrid::point( domain, viennagrid::vertices(element)[2] );
+            PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
+            PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );
+            PointType const & p2 = point_accessor( viennagrid::vertices(element)[2] );
                         
-            NumericType area = viennagrid::volume(domain, element);
+            NumericType area = viennagrid::volume(point_accessor, element);
             if (std::abs(area) < numeric_limits.epsilon()) return numeric_limits.max(); // TODO relativ zum umfang hoch 2
             
             PointType tmp = p1-p0;
@@ -37,17 +37,17 @@ namespace viennamesh
         }
         
         
-        template<typename DomainType, typename ElementType, typename NumericLimitsType>
-        typename viennagrid::result_of::coord_type<DomainType>::type aspect_ratio_impl(DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, viennagrid::tetrahedron_tag)
+        template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+        typename viennagrid::result_of::coord<PointAccessorT>::type aspect_ratio_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::tetrahedron_tag)
         {
-            typedef typename viennagrid::result_of::coord_type<DomainType>::type            NumericType;
-            typedef typename viennagrid::result_of::point_type<DomainType>::type            PointType;
-            typedef typename viennagrid::result_of::const_vertex_range<ElementType>::type   VertexOnCellContainer;
+            typedef typename viennagrid::result_of::coord<PointAccessorT>::type            NumericType;
+            typedef typename viennagrid::result_of::point<PointAccessorT>::type            PointType;
+            typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
             
-            PointType const & p0 = viennagrid::point( domain, viennagrid::vertices(element)[0] );
-            PointType const & p1 = viennagrid::point( domain, viennagrid::vertices(element)[1] );
-            PointType const & p2 = viennagrid::point( domain, viennagrid::vertices(element)[2] );
-            PointType const & p3 = viennagrid::point( domain, viennagrid::vertices(element)[3] );
+            PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
+            PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );
+            PointType const & p2 = point_accessor( viennagrid::vertices(element)[2] );
+            PointType const & p3 = point_accessor( viennagrid::vertices(element)[3] );
             
             PointType l0 = p1-p0;
             PointType l1 = p2-p1;
@@ -56,8 +56,8 @@ namespace viennamesh
             PointType l4 = p3-p1;
             PointType l5 = p3-p2;
             
-            NumericType volume = viennagrid::volume(domain, element);
-            NumericType area = viennagrid::surface(domain, element);
+            NumericType volume = viennagrid::volume(point_accessor, element);
+            NumericType area = viennagrid::surface(point_accessor, element);
             NumericType rad_inscribed = 3 * volume / area;
             
             NumericType rad_circum = viennagrid::norm_2(
@@ -73,28 +73,40 @@ namespace viennamesh
     
     struct aspect_ratio_tag {};
     
-    template<typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type aspect_ratio( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits )
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type aspect_ratio( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
     {
-        return metrics::aspect_ratio_impl(domain, element, numeric_limits, typename ElementType::tag());
+        return metrics::aspect_ratio_impl(point_accessor, element, numeric_limits, typename ElementT::tag());
     }
     
-    template<typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type aspect_ratio( DomainType const & domain, ElementType const & element )
+    template<typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type aspect_ratio( PointAccessorT const point_accessor, ElementT const & element )
     {
-        return aspect_ratio(domain, element, std::numeric_limits< typename viennagrid::result_of::coord_type<DomainType>::type >() );
+        return aspect_ratio(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<PointAccessorT>::type >() );
+    }
+
+    template<typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type aspect_ratio(ElementT const & element)
+    {
+        return aspect_ratio( viennagrid::default_point_accessor(element), element);
     }
     
-    template<typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, aspect_ratio_tag)
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, aspect_ratio_tag)
     {
-        return aspect_ratio(domain, element, numeric_limits);       
+        return aspect_ratio(point_accessor, element, numeric_limits);       
     }
     
-    template<typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, aspect_ratio_tag)
+    template<typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, aspect_ratio_tag)
     {
-        return aspect_ratio(domain, element);       
+        return aspect_ratio(point_accessor, element);       
+    }
+
+    template<typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type metric( ElementT const & element, aspect_ratio_tag)
+    {
+        return aspect_ratio(element);
     }
     
     

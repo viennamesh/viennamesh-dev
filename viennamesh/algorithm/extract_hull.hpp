@@ -9,47 +9,64 @@
 
 namespace viennamesh
 {
-    template<typename volume_domain_type, typename volume_segment_container_type, typename hull_domain_type, typename hull_segment_container_type>
-    void extract_hull( volume_domain_type const & volume_domain, volume_segment_container_type const & volume_segments,
-                    hull_domain_type & hull_domain, hull_segment_container_type & hull_segments )
+    template<typename HullTypeOrTagT, typename VolumeDomainT, typename VolumeSegmentationT, typename HullDomainT, typename HullSegmentationT>
+    void extract_hull( VolumeDomainT const & volume_domain,
+                       VolumeSegmentationT const & volume_segmentation,
+                       HullDomainT & hull_domain,
+                       HullSegmentationT & hull_segmentation )
     {
-        typedef typename volume_segment_container_type::value_type volume_segment_type;
-        typedef typename viennagrid::result_of::domain_view<volume_domain_type>::type volume_view_type;
-        typedef typename viennagrid::result_of::point_type<volume_domain_type>::type volume_point_type;
-        typedef typename viennagrid::result_of::cell_type<volume_domain_type>::type volume_cell_type;
+        typedef typename viennagrid::result_of::segment<VolumeSegmentationT>::type    VolumeSegmentType;
+        typedef typename viennagrid::result_of::point<VolumeDomainT>::type            VolumePointType;
         
-        typedef typename hull_segment_container_type::value_type hull_segment_type;
+        typedef typename viennagrid::result_of::segment<HullSegmentationT>::type      HullSegmentType;
 
-        hull_segments.resize( volume_segments.size() );
-        
-        for (int seg = 0; seg < volume_segments.size(); ++seg)
+        for (typename VolumeSegmentationT::const_iterator sit = volume_segmentation.begin(); sit != volume_segmentation.end(); ++sit)
         {
-            volume_view_type const & volume_segment = volume_segments[seg];
-
-            hull_segment_type & hull_segment = hull_segments[seg];
-            hull_segment = viennagrid::create_view<hull_segment_type>( hull_domain );
+            VolumeSegmentType const & volume_segment = *sit;
+            HullSegmentType & hull_segment = hull_segmentation( volume_segment.id() );
             
-            typedef typename viennagrid::result_of::const_triangle_range<volume_view_type>::type triangle_range_type;
-            typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
-            typedef typename viennagrid::result_of::triangle<volume_view_type>::type triangle_type;
+            typedef typename viennagrid::result_of::const_element_range<VolumeSegmentType, HullTypeOrTagT>::type    HullRangeType;
+            typedef typename viennagrid::result_of::iterator<HullRangeType>::type                                   HullRangeIterator;
             
-            triangle_range_type triangles = viennagrid::elements( volume_segment );
-            for (triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it)
+            typedef typename viennagrid::result_of::element<VolumeSegmentType, HullTypeOrTagT>::type    VolumeHullElement;
+            typedef typename viennagrid::result_of::element<HullSegmentType, HullTypeOrTagT>::type      HullHullElement;
+            
+            HullRangeType hull_elements = viennagrid::elements( volume_segment );
+            for (HullRangeIterator hit = hull_elements.begin(); hit != hull_elements.end(); ++hit)
             {
-                triangle_type const & triangle = *it;
+                VolumeHullElement const & hull_element = *hit;
                 
-                if ( viennagrid::is_boundary<volume_cell_type>( triangle, volume_segment ) )
+                if ( viennagrid::is_boundary( volume_segment, hull_element ) )
                 {
-                    viennagrid::create_triangle(
-                        hull_segment,
-                        viennagrid::create_unique_vertex( hull_domain, viennagrid::point(volume_segment, viennagrid::vertices(triangle)[0]) ),
-                        viennagrid::create_unique_vertex( hull_domain, viennagrid::point(volume_segment, viennagrid::vertices(triangle)[1]) ),
-                        viennagrid::create_unique_vertex( hull_domain, viennagrid::point(volume_segment, viennagrid::vertices(triangle)[2]) )
-                    );
+                  typedef typename viennagrid::result_of::vertex_handle<HullSegmentType>::type HullVertexHandleType;
+
+                  std::vector<HullVertexHandleType> vertices;
+                  vertices.resize( viennagrid::vertices(hull_element).size() );
+
+                  for (int i = 0; i < viennagrid::vertices(hull_element).size(); ++i)
+                    vertices[i] = viennagrid::make_unique_vertex( hull_domain, viennagrid::point(volume_segment, viennagrid::vertices(hull_element)[i]) );
+
+                  viennagrid::make_element<HullHullElement>( hull_segment, vertices.begin(), vertices.end() );
                 }
             }
         }
     }
+
+
+
+    template<typename SegmentationT, typename SeedPointContainerT>
+    void extract_seed_points( SegmentationT const & segmentation, SeedPointContainerT & seed_points )
+    {
+        typedef typename viennagrid::result_of::cell_tag<SegmentationT>::type CellTag;
+        typedef typename viennagrid::result_of::point<SegmentationT>::type point_type;
+
+        for (typename SegmentationT::const_iterator it = segmentation.begin(); it != segmentation.end(); ++it)
+        {
+            point_type centroid = viennagrid::centroid( viennagrid::elements<CellTag>(*it)[0] );
+            seed_points.push_back( std::make_pair(it->id(), centroid) );
+        }
+    }
+    
 }
 
 #endif

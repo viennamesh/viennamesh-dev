@@ -525,27 +525,29 @@ STLGeometry *  STLTopology ::Load (const char* filename)
 
 
 
-void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain const & vgriddomain, viennagrid::config::triangular_3d_segmentation const & vgridsegmentation )
+void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_domain const & vgriddomain, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation )
 {
-//    typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     domain_type;
-   typedef viennagrid::config::triangular_3d_domain domain_type;
+//    typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     DomainType;
+   typedef viennagrid::triangular_3d_domain DomainType;
+   typedef viennagrid::triangular_hull_3d_segmentation SegmentationType;
+   typedef viennagrid::triangular_hull_3d_segment SegmentType;
 
-//    typedef domain_type::config_type                     DomainConfiguration;
+//    typedef DomainType::config_type                     DomainConfiguration;
 
 //    typedef DomainConfiguration::numeric_type            CoordType;
    typedef double            CoordType;
 //    typedef DomainConfiguration::cell_tag                CellTag;
    typedef viennagrid::triangle_tag                CellTag;
 
-//    typedef domain_type::segment_type                                                                  SegmentType;
-   typedef viennagrid::result_of::element<domain_type, viennagrid::triangle_tag>::type      CellType;   
-   typedef viennagrid::result_of::const_element_range<domain_type, viennagrid::vertex_tag>::type                               GeometryContainer;      
+//    typedef DomainType::segment_type                                                                  SegmentType;
+   typedef viennagrid::result_of::element<DomainType, viennagrid::triangle_tag>::type      CellType;
+   typedef viennagrid::result_of::const_element_range<DomainType, viennagrid::vertex_tag>::type                               GeometryContainer;
    typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
-   typedef viennagrid::result_of::const_element_range<domain_type, CellTag>::type         CellContainer;      
+   typedef viennagrid::result_of::const_element_range<DomainType, CellTag>::type         CellContainer;
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
    typedef viennagrid::result_of::const_element_range<CellType, viennagrid::vertex_tag>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
-   typedef viennagrid::result_of::point_type<domain_type>::type                               PointType;   
+   typedef viennagrid::result_of::point<DomainType>::type                               PointType;
 
    static const int DIMT = 3;
    static const int CELLSIZE = DIMT+1;      
@@ -572,13 +574,13 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
    domain_32t domain;
 
 //   typedef gsse::detail_topology::unstructured<2>                                   gsse_unstructured_topology_2t; 
-//   typedef gsse::get_domain<gsse_unstructured_topology_2t, double, double,3>::type  gsse_domain_type;      
+//   typedef gsse::get_domain<gsse_unstructured_topology_2t, double, double,3>::type  gsse_DomainType;
 //   typedef ads::FixedArray<3, CoordType>                                            gsse_point_type;
-//   typedef gsse::domain_traits<gsse_domain_type>::segment_type                      gsse_segment_type;       
-//   typedef gsse::domain_traits<gsse_domain_type>::segment_iterator                  gsse_segment_iterator;      
+//   typedef gsse::domain_traits<gsse_DomainType>::segment_type                      gsse_segment_type;
+//   typedef gsse::domain_traits<gsse_DomainType>::segment_iterator                  gsse_segment_iterator;
 //   typedef gsse::segment_traits<gsse_segment_type>::cell_2_vertex_mapping            cell_2_vertex_mapping;
 
-//   gsse_domain_type domain;
+//   gsse_DomainType domain;
 
    // transfer geometry
    //
@@ -597,17 +599,23 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
    std::size_t cell_counter = 0;
 //    for (std::size_t si = 0; si < vgriddomain.segments().size(); ++si)
    
-   typedef viennagrid::config::triangular_3d_segmentation::segment_ids_container_type segment_ids_container_type;
-   segment_ids_container_type const & used_segments = vgridsegmentation.segments();  
+//    typedef viennagrid::config::triangular_3d_segmentation::segment_ids_container_type segment_ids_container_type;
+//    segment_ids_container_type const & used_segments = vgridsegmentation.segments();  
 //    viennamesh::segment_id_container_type const & used_segments = viennamesh::segments( vgriddomain );
+
+    viennagrid::result_of::default_point_accessor<DomainType>::type point_accessor = viennagrid::default_point_accessor( vgriddomain );
    
    
 //    for (std::size_t si = 0; si < num_segments; ++si)
    long gsse_domain_id = 0;
-   for (segment_ids_container_type::const_iterator it = used_segments.begin(); it != used_segments.end(); ++it, ++gsse_domain_id)
+   for (SegmentationType::const_iterator it = vgridsegmentation.begin(); it != vgridsegmentation.end(); ++it, ++gsse_domain_id)
    {
-       this->segment_id_map[gsse_domain_id] = *it;
-       viennagrid::config::triangular_3d_segmentation::segment_id_type current_segment_id = *it;
+      SegmentType const & current_segment = *it;
+       this->segment_id_map[gsse_domain_id] = it->id();
+
+       
+       
+//        viennagrid::config::triangular_3d_segmentation::segment_id_type current_segment_id = *it;
       // transfer segment
       //
 //       SegmentType & seg = vgriddomain.segments()[si];
@@ -620,15 +628,16 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
       CellContainer cells = viennagrid::elements<CellTag>(vgriddomain);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
-          PointType const & p0 = viennagrid::point( vgriddomain, viennagrid::elements<viennagrid::vertex_tag>(*cit)[0] );
-          PointType const & p1 = viennagrid::point( vgriddomain, viennagrid::elements<viennagrid::vertex_tag>(*cit)[1] );
-          PointType const & p2 = viennagrid::point( vgriddomain, viennagrid::elements<viennagrid::vertex_tag>(*cit)[2] );
+          PointType const & p0 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[0] );
+          PointType const & p1 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[1] );
+          PointType const & p2 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[2] );
           
-          typedef viennagrid::config::triangular_3d_segmentation::element_segment_info_type element_segment_info_type;
-          element_segment_info_type const & seg_def = vgridsegmentation.segment_info( *cit );
+//           typedef viennagrid::config::triangular_3d_segmentation::element_segment_info_type element_segment_info_type;
+//           element_segment_info_type const & seg_def = vgridsegmentation.segment_info( *cit );
 //           viennamesh::face_segment_definition_type const & seg_def = viennamesh::face_segments( *cit );
           
-          if ((current_segment_id == seg_def.positive_orientation_segment_id) || (current_segment_id == seg_def.negative_orientation_segment_id))
+//           if ((current_segment_id == seg_def.positive_orientation_segment_id) || (current_segment_id == seg_def.negative_orientation_segment_id))
+          if ( viennagrid::is_in_segment( current_segment, *cit ) )
 /*          
           
           viennamesh::face_segment_definition_type::const_iterator sdit = seg_def.find( current_segment_id );
@@ -652,8 +661,13 @@ void STLTopology :: InitSTLGeometry( viennagrid::config::triangular_3d_domain co
         //             std::cout << vocit->id().get() << std::endl;
                     cell[vi++] = vocit->id().get();
                 }
+
+                bool const * orientation = viennagrid::segment_element_info( current_segment, *cit );
+                bool current_orientation = true;
+                if (orientation)
+                  current_orientation = *orientation;
                 
-                if (current_segment_id == seg_def.positive_orientation_segment_id)
+                if (current_orientation)
                 {
                     (*gsse_segit).add_cell_2(cell_2_vertex_mapping(cell[0], cell[1], cell[2]));
                     domain.add_vertex(cell[0], gsse_segit);

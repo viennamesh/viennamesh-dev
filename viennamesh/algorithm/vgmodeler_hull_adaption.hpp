@@ -41,25 +41,25 @@ namespace viennamesh
         template<typename domain_type>
         struct best_matching_native_input_domain<vgmodeler_hull_adaption_tag, domain_type>
         {
-            typedef viennagrid::config::triangular_3d_domain type;
+            typedef viennagrid::triangular_3d_domain type;
         };
 
         template<typename domain_type>
         struct best_matching_native_output_domain<vgmodeler_hull_adaption_tag, domain_type>
         {
-            typedef viennagrid::config::triangular_3d_domain type;
+            typedef viennagrid::triangular_3d_domain type;
         };
         
         template<typename segmentation_type>
         struct best_matching_native_input_segmentation<vgmodeler_hull_adaption_tag, segmentation_type>
         {
-            typedef viennagrid::config::triangular_3d_segmentation type;
+            typedef viennagrid::triangular_hull_3d_segmentation type;
         };
 
         template<typename segmentation_type>
         struct best_matching_native_output_segmentation<vgmodeler_hull_adaption_tag, segmentation_type>
         {
-            typedef viennagrid::config::triangular_3d_segmentation type;
+            typedef viennagrid::triangular_hull_3d_segmentation type;
         };
         
         template<>

@@ -184,10 +184,10 @@ int main()
     typedef Tr::Vertex_handle Vertex_handle;
     
     
-    typedef viennagrid::config::tetrahedral_3d_domain tet_domain_type;
+    typedef viennagrid::tetrahedral_3d_domain tet_domain_type;
     tet_domain_type tet_domain;
     
-    typedef viennagrid::result_of::point_type<tet_domain_type>::type tet_point_type;
+    typedef viennagrid::result_of::point<tet_domain_type>::type tet_point_type;
      
     typedef viennagrid::result_of::element<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_type;
     typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_handle_type;
@@ -229,14 +229,14 @@ int main()
 //                     tmp[2] /= hw;
 //                 }
                 
-                vgrid_vtx[i] = viennagrid::create_vertex( tet_domain, tmp );
+                vgrid_vtx[i] = viennagrid::make_vertex( tet_domain, tmp );
                 points[ t.vertex(i) ] = vgrid_vtx[i];
             }
             else
                 vgrid_vtx[i] = pit->second;
         }
         
-        viennagrid::create_element<tet_tetrahedron_type>( tet_domain, vgrid_vtx, vgrid_vtx+4 );
+        viennagrid::make_element<tet_tetrahedron_type>( tet_domain, vgrid_vtx, vgrid_vtx+4 );
             
         
 //         std::cout << tri << std::endl;
@@ -249,7 +249,7 @@ int main()
 //     std::copy( viennagrid::elements<tet_tetrahedron_type>(tet_domain).begin(), viennagrid::elements<tet_tetrahedron_type>(tet_domain).end(), std::ostream_iterator<tet_tetrahedron_type>(std::cout, "\n") );
     
 
-    viennagrid::io::vtk_writer<tet_domain_type, tet_tetrahedron_type> vtk_writer;
-    vtk_writer(tet_domain, "test_tet_3d.vtu");
+    viennagrid::io::vtk_writer<tet_domain_type> vtk_writer;
+    vtk_writer(tet_domain, "test_tet_3d");
     
 }

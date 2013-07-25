@@ -10,17 +10,23 @@
 
 namespace viennamesh
 {
-    template<typename metric_tag, typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits)
+    template<typename MetricTagT, typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits)
     {
-        return metric( domain, element, numeric_limits, metric_tag() );
+        return metric( point_accessor, element, numeric_limits, MetricTagT() );
     }
 
     
-    template<typename metric_tag, typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element )
+    template<typename MetricTagT, typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element )
     {
-        return metric( domain, element, metric_tag() );
+        return metric( point_accessor, element, MetricTagT() );
+    }
+
+    template<typename MetricTagT, typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type metric( ElementT const & element )
+    {
+        return metric(element, MetricTagT());
     }
     
 }

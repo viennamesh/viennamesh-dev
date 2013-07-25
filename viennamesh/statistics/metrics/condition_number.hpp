@@ -7,18 +7,18 @@ namespace viennamesh
 {
     namespace metrics
     {
-        template<typename DomainType, typename ElementType, typename NumericLimitsType>
-        typename viennagrid::result_of::coord_type<DomainType>::type condition_number_impl(DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, viennagrid::triangle_tag)
+        template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+        typename viennagrid::result_of::coord<PointAccessorT>::type condition_number_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::triangle_tag)
         {
-            typedef typename viennagrid::result_of::coord_type<DomainType>::type            NumericType;
-            typedef typename viennagrid::result_of::point_type<DomainType>::type            PointType;
-            typedef typename viennagrid::result_of::const_vertex_range<ElementType>::type   VertexOnCellContainer;
+            typedef typename viennagrid::result_of::coord<PointAccessorT>::type            NumericType;
+            typedef typename viennagrid::result_of::point<PointAccessorT>::type            PointType;
+            typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
             
-            PointType const & p0 = viennagrid::point( domain, viennagrid::vertices(element)[0] );
-            PointType const & p1 = viennagrid::point( domain, viennagrid::vertices(element)[1] );
-            PointType const & p2 = viennagrid::point( domain, viennagrid::vertices(element)[2] );
+            PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
+            PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );
+            PointType const & p2 = point_accessor( viennagrid::vertices(element)[2] );
             
-            NumericType area = viennagrid::volume(domain, element);
+            NumericType area = viennagrid::volume(point_accessor, element);
             if (std::abs(area) < numeric_limits.epsilon()) return numeric_limits.max();
             
             PointType v1 = p1-p0;
@@ -33,30 +33,42 @@ namespace viennamesh
     
     
     struct condition_number_tag {};
-    
-    template<typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type condition_number( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits )
+
+
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type condition_number( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
     {
-        return metrics::condition_number_impl(domain, element, numeric_limits, typename ElementType::tag());
+        return metrics::condition_number_impl(point_accessor, element, numeric_limits, typename ElementT::tag());
     }
-    
-    template<typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type condition_number( DomainType const & domain, ElementType const & element )
+
+    template<typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type condition_number( PointAccessorT const point_accessor, ElementT const & element )
     {
-        return condition_number(domain, element, std::numeric_limits< typename viennagrid::result_of::coord_type<DomainType>::type >() );
-    }   
-    
-    
-    template<typename DomainType, typename ElementType, typename NumericLimitsType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, NumericLimitsType numeric_limits, condition_number_tag)
-    {
-        return condition_number(domain, element, numeric_limits);       
+        return condition_number(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<PointAccessorT>::type >() );
     }
-    
-    template<typename DomainType, typename ElementType>
-    typename viennagrid::result_of::coord_type<DomainType>::type metric( DomainType const & domain, ElementType const & element, condition_number_tag)
+
+    template<typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type condition_number(ElementT const & element)
     {
-        return condition_number(domain, element);       
+        return condition_number( viennagrid::default_point_accessor(element), element);
+    }
+
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, condition_number_tag)
+    {
+        return condition_number(point_accessor, element, numeric_limits);
+    }
+
+    template<typename PointAccessorT, typename ElementT>
+    typename viennagrid::result_of::coord<PointAccessorT>::type metric( PointAccessorT const point_accessor, ElementT const & element, condition_number_tag)
+    {
+        return condition_number(point_accessor, element);
+    }
+
+    template<typename ElementT>
+    typename viennagrid::result_of::coord< typename viennagrid::result_of::default_point_accessor<ElementT>::type >::type metric( ElementT const & element, condition_number_tag)
+    {
+        return condition_number(element);
     }
     
     

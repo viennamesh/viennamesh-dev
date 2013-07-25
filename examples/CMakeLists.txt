@@ -70,4 +70,5 @@ target_link_libraries(example9 ${CGAL_LIBS} nglib)
 target_link_libraries(example9 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
 add_executable(example10 src/example10.cpp)
+add_executable(example11 src/example11.cpp)
 

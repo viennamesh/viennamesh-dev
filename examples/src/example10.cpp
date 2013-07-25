@@ -25,103 +25,116 @@
 
 
 
-template<typename src_domain_type, typename src_segment_container_type, typename dst_domain_type, typename dst_segment_container_type>
-void copy( src_domain_type const & src_domain, src_segment_container_type const & src_segments,
-           dst_domain_type & dst_domain, dst_segment_container_type & dst_segments )
+template<typename SrcDomainT, typename SrcSegmentationT, typename DstDomainT, typename DstSegmentationT>
+void copy_cells(SrcDomainT const & src_domain,  SrcSegmentationT const & src_segmentation,
+                DstDomainT & dst_domain,        DstSegmentationT & dst_segmentation )
 {
-    typedef typename src_segment_container_type::value_type src_segment_type;
-    typedef typename dst_segment_container_type::value_type dst_segment_type;
+//     typedef typename src_segment_container_type::value_type src_segment_type;
+//     typedef typename dst_segment_container_type::value_type dst_segment_type;
+    typedef typename viennagrid::result_of::segment<SrcSegmentationT>::type SrcSegmentType;
+    typedef typename viennagrid::result_of::segment<DstSegmentationT>::type DstSegmentType;
     
-    typedef typename viennagrid::result_of::cell_tag<src_domain_type>::type src_cell_tag;
-    typedef typename viennagrid::result_of::cell_type<src_domain_type>::type src_cell_type;
+    typedef typename viennagrid::result_of::cell_tag<SrcDomainT>::type  SrcCellTag;
+    typedef typename viennagrid::result_of::cell<SrcDomainT>::type      SrcCellType;
     
-    typedef typename viennagrid::result_of::const_vertex_range<src_domain_type>::type src_vertex_range_type;
-    typedef typename viennagrid::result_of::iterator<src_vertex_range_type>::type src_vertex_range_iterator;
+    typedef typename viennagrid::result_of::const_vertex_range<SrcDomainT>::type    SrcVertexRangeType;
+    typedef typename viennagrid::result_of::iterator<SrcVertexRangeType>::type      SrcVertexRangeIterator;
     
-    typedef typename viennagrid::result_of::const_cell_range<src_segment_type>::type src_cell_range_type;
-    typedef typename viennagrid::result_of::iterator<src_cell_range_type>::type src_cell_range_itertor;
+    typedef typename viennagrid::result_of::const_cell_range<SrcSegmentType>::type  SrcCellRangeType;
+    typedef typename viennagrid::result_of::iterator<SrcCellRangeType>::type        SrcCellRangeIterator;
     
-    typedef typename viennagrid::result_of::const_vertex_handle<src_domain_type>::type src_const_vertex_handle;
-    typedef typename viennagrid::result_of::vertex_handle<dst_domain_type>::type dst_vertex_handle;
+    typedef typename viennagrid::result_of::const_vertex_handle<SrcDomainT>::type   SrcConstVertexHandle;
+    typedef typename viennagrid::result_of::vertex_handle<DstDomainT>::type         DstVertexHandleType;
     
     if (&src_domain == &dst_domain)
         return;
     
-    viennagrid::clear_domain(dst_domain);
-    dst_segments.clear();
+    dst_domain.clear();
+    dst_segmentation.clear();
     
-    std::map<src_const_vertex_handle, dst_vertex_handle> vertex_handle_map;
+    std::map<SrcConstVertexHandle, DstVertexHandleType> vertex_handle_map;
     
-    src_vertex_range_type vertices = viennagrid::elements( src_domain );
+    SrcVertexRangeType vertices = viennagrid::elements( src_domain );
 //     std::cout << "Copy: vertex count = " << vertices.size() << std::endl;
-    for (src_vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
-        vertex_handle_map[it.handle()] = viennagrid::create_vertex( dst_domain, viennagrid::point(src_domain, *it) );
+    for (SrcVertexRangeIterator it = vertices.begin(); it != vertices.end(); ++it)
+        vertex_handle_map[it.handle()] = viennagrid::make_vertex( dst_domain, viennagrid::point(src_domain, *it) );
     
 
     
-    for (typename src_segment_container_type::const_iterator seg_it = src_segments.begin(); seg_it != src_segments.end(); ++seg_it)
+    for (typename SrcSegmentationT::const_iterator seg_it = src_segmentation.begin(); seg_it != src_segmentation.end(); ++seg_it)
     {
-        dst_segments.push_back( viennagrid::create_view<dst_segment_type>(dst_domain) );
-        dst_segment_type & dst_segment = dst_segments.back();
+//         dst_segments.push_back( viennagrid::make_view<dst_segment_type>(dst_domain) );
+        DstSegmentType & dst_segment = dst_segmentation.get_make_segment( seg_it->id() );
         
-        src_cell_range_type cells = viennagrid::elements( *seg_it );
+        SrcCellRangeType cells = viennagrid::elements( *seg_it );
 //         std::cout << "Copy: cell count = " << cells.size() << std::endl;
-        for (src_cell_range_itertor it = cells.begin(); it != cells.end(); ++it)
+        for (SrcCellRangeIterator it = cells.begin(); it != cells.end(); ++it)
         {
-            src_cell_type const & cell = *it;
+            SrcCellType const & cell = *it;
             
-            std::deque<dst_vertex_handle> vertex_handles;
+            std::deque<DstVertexHandleType> vertex_handles;
             
-            typedef typename viennagrid::result_of::const_vertex_range<src_cell_type>::type src_vertex_on_src_cell_range_type;
-            typedef typename viennagrid::result_of::iterator<src_vertex_on_src_cell_range_type>::type src_vertex_on_src_cell_range_iterator;
+            typedef typename viennagrid::result_of::const_vertex_range<SrcCellType>::type SrcVertexOnSrcCellRangeType;
+            typedef typename viennagrid::result_of::iterator<SrcVertexOnSrcCellRangeType>::type SrcVertexOnSrcCellRangeIterator;
             
-            src_vertex_on_src_cell_range_type cell_vertices = viennagrid::elements(cell);
-            for (src_vertex_on_src_cell_range_iterator jt = cell_vertices.begin(); jt != cell_vertices.end(); ++jt)
+            SrcVertexOnSrcCellRangeType cell_vertices = viennagrid::elements(cell);
+            for (SrcVertexOnSrcCellRangeIterator jt = cell_vertices.begin(); jt != cell_vertices.end(); ++jt)
                 vertex_handles.push_back( vertex_handle_map[jt.handle()] );
             
-            typedef typename viennagrid::result_of::cell_type<dst_domain_type>::type dst_cell_type;
-            viennagrid::create_element<dst_cell_type>( dst_segment, vertex_handles.begin(), vertex_handles.end() );
+            typedef typename viennagrid::result_of::cell<DstDomainT>::type DstCellType;
+            viennagrid::make_element<DstCellType>( dst_segment, vertex_handles.begin(), vertex_handles.end() );
         }
     }
 }
 
 
 
-template<typename domain_in_type, typename segment_container_type_in, typename domain_out_type, typename segment_container_type_out, typename functor_type>
-unsigned int refine( domain_in_type const & domain_in, segment_container_type_in const & segments_in,
-                     domain_out_type & domain_out, segment_container_type_out & segments_out,
-                     functor_type functor, unsigned int max_iteration_count = 10 )
+template<typename DomainInT, typename SegmentationInT, typename DomainOutT, typename SegmentationOutT, typename FunctorT>
+unsigned int refine( DomainInT const & domain_in,   SegmentationInT const & segments_in,
+                     DomainOutT & domain_out,       SegmentationOutT & segments_out,
+                     FunctorT functor, unsigned int max_iteration_count = 10 )
 {
-    typedef typename viennagrid::result_of::cell_tag<domain_in_type>::type cell_tag;
-    typedef typename viennagrid::result_of::const_cell_range<domain_in_type>::type cell_range_type;
+    typedef typename viennagrid::result_of::cell<DomainInT>::type CellType;
+    typedef typename viennagrid::result_of::cell_tag<DomainInT>::type cell_tag;
+    typedef typename viennagrid::result_of::const_cell_range<DomainInT>::type cell_range_type;
     typedef typename viennagrid::result_of::iterator<cell_range_type>::type cell_range_itertor;
     
-    domain_out_type tmp_domain;
-    segment_container_type_out tmp_segments;
+    DomainOutT tmp_domain;
+    SegmentationOutT tmp_segmentation(tmp_domain);
     
     
-    copy( domain_in, segments_in, tmp_domain, tmp_segments );
+    copy_cells( domain_in, segments_in, tmp_domain, tmp_segmentation );
     
     
-    domain_out_type * domain_from = &tmp_domain;
-    segment_container_type_out * segments_from = &tmp_segments;
+    DomainOutT * domain_from = &tmp_domain;
+    SegmentationOutT * segmentation_from = &tmp_segmentation;
     
-    domain_out_type * domain_to = &domain_out;
-    segment_container_type_out * segments_to = &segments_out;
+    DomainOutT * domain_to = &domain_out;
+    SegmentationOutT * segmentation_to = &segments_out;
+
+
+
+
     
     
-    std::deque<domain_out_type> refined_domains;
+    
+    std::deque<DomainOutT> refined_domains;
     
     bool all_cells_good = false;
     unsigned int iteration_count = 0;
     for (; iteration_count < max_iteration_count; ++iteration_count)
     {
+        std::deque<bool> refinement_flag;
+        typename viennagrid::result_of::accessor<std::deque<bool>, CellType>::type refinement_flag_accessor(refinement_flag);
+        
         std::cout << "Iteration " << iteration_count << std::endl;
         
-        domain_out_type const & domain_src = *domain_from; //refined_domains.empty() ? domain_in : refined_domains.back();
-        segment_container_type_out const & segments_src = *segments_from;
+        DomainOutT const & domain_src = *domain_from; //refined_domains.empty() ? domain_in : refined_domains.back();
+        SegmentationOutT const & segmentation_src = *segmentation_from;
         
         cell_range_type cells = viennagrid::elements( domain_src );
+        
+        std::cout << "Number of Cells: " << cells.size() << std::endl;
         
         unsigned int bad_cells_count = 0;
         all_cells_good = true;
@@ -129,11 +142,20 @@ unsigned int refine( domain_in_type const & domain_in, segment_container_type_in
         {
             if ( !functor( domain_src, *it ) )
             {
-                viennadata::access<viennagrid::refinement_key, bool>()(*it) = true;
-                all_cells_good = false;
-                ++bad_cells_count;
+              refinement_flag_accessor(*it) = true;
+              all_cells_good = false;
+              
+              ++bad_cells_count;
             }
         }
+        
+//     {
+//       char name[100];
+//       sprintf( name, "src_iter%d", iteration_count );
+//         viennagrid::io::vtk_writer<DomainOutT> vtk_writer;
+// //         viennagrid::io::add_scalar_data_on_cells(vtk_writer, refinement_flag_double_accessor, "to_refine");
+//         vtk_writer(domain_src, segmentation_src, name);
+//     }
         
         std::cout << "Bad cells count = " << bad_cells_count << std::endl;
         
@@ -142,20 +164,36 @@ unsigned int refine( domain_in_type const & domain_in, segment_container_type_in
         
 //         refined_domains.resize( refined_domains.size()+1 );
             
-        domain_out_type & domain_dst = *domain_to; //refined_domains.empty() ? domain_in : refined_domains.back();
-        segment_container_type_out & segments_dst = *segments_to;
+        DomainOutT & domain_dst = *domain_to; //refined_domains.empty() ? domain_in : refined_domains.back();
+        SegmentationOutT & segmentation_dst = *segmentation_to;
         
-        viennagrid::clear_domain(domain_dst);
-        segments_dst.clear();
+//         viennagrid::clear_domain(domain_dst);
+        domain_dst.clear();
+        segmentation_dst.clear();
+//         segmentation_dst = SegmentationOutT();
         
-        viennagrid::refine<cell_tag>( domain_src, segments_src, domain_dst, segments_dst, viennagrid::local_refinement_tag() );
+        viennagrid::refine_element( domain_src, domain_dst, refinement_flag_accessor );
+//         viennagrid::refine_element( domain_src, segmentation_src, domain_dst, segmentation_dst, refinement_flag_accessor );
+
+//         cells = viennagrid::elements( domain_dst );
+        std::cout << "Number of refined Cells: " << viennagrid::lines( domain_dst ).size() << std::endl;
+        
+    {
+      char name[100];
+      sprintf( name, "refined_iter%d", iteration_count );
+        viennagrid::io::vtk_writer<DomainOutT> vtk_writer;
+//         viennagrid::io::add_scalar_data_on_cells<std::string, double>(vtk_writer, "segment_id", "segment_id");
+//         vtk_writer(domain_dst, segmentation_dst, name);
+        vtk_writer(domain_dst, name);
+    }
+        
         
         std::swap( domain_from, domain_to );
-        std::swap( segments_from, segments_to );
+        std::swap( segmentation_from, segmentation_to );
     }
     
     
-    copy( *domain_from, *segments_from, domain_out, segments_out );
+    copy_cells( *domain_from, *segmentation_from, domain_out, segments_out );
     
     return iteration_count;
 }
@@ -168,7 +206,7 @@ struct volume_functor
     template<typename domain_type, typename element_type>
     bool operator() ( domain_type const & domain, element_type const & element )
     {
-        return viennagrid::volume( domain, element ) < volume;
+        return viennagrid::volume( element ) < volume;
     }
     
     double volume;
@@ -184,8 +222,7 @@ struct smallest_boundary_volume_functor
     template<typename domain_type, typename element_type>
     bool operator() ( domain_type const & domain, element_type const & element )
     {
-        return viennagrid::volume( domain,
-                viennagrid::dereference_handle( domain, viennagrid::smallest_boundary_volume<viennagrid::line_tag>( domain, element ) ) ) < smallest_boundary_volume;
+        return viennagrid::volume( viennagrid::dereference_handle( domain, viennagrid::smallest_boundary_volume<viennagrid::line_tag>( domain, element ) ) ) < smallest_boundary_volume;
     }
     
     double smallest_boundary_volume;
@@ -198,8 +235,7 @@ struct largest_boundary_volume_functor
     template<typename domain_type, typename element_type>
     bool operator() ( domain_type const & domain, element_type const & element )
     {
-        return viennagrid::volume( domain,
-                viennagrid::dereference_handle( domain, viennagrid::largest_boundary_volume<viennagrid::line_tag>( domain, element ) ) ) < largest_boundary_volume;
+        return viennagrid::volume( viennagrid::dereference_handle( domain, viennagrid::largest_boundary_volume<viennagrid::line_tag>( domain, element ) ) ) < largest_boundary_volume;
     }
     
     double largest_boundary_volume;
@@ -216,24 +252,25 @@ int main()
     ///////////////////////////////////////////
     
     
-    typedef viennagrid::config::result_of::full_domain_config< viennagrid::tetrahedron_tag, viennagrid::config::point_type_3d, viennagrid::storage::pointer_handle_tag >::type domain_config_type;
+//     typedef viennagrid::config::result_of::full_domain_config< viennagrid::tetrahedron_tag, viennagrid::config::point_type_3d, viennagrid::storage::pointer_handle_tag >::type domain_config_type;
     
 //     typedef viennagrid::config::tetrahedral_3d_domain domain_type;
-    typedef viennagrid::result_of::domain< domain_config_type >::type domain_type;
+    typedef viennagrid::tetrahedral_3d_domain DomainType;
+    typedef viennagrid::tetrahedral_3d_segmentation SegmentationType;
     
-    typedef viennagrid::result_of::domain_view<domain_type>::type segment_type;
-    typedef viennagrid::result_of::cell_type<domain_type>::type cell_type;
-    typedef viennagrid::result_of::point_type<domain_type>::type point_type;
-    typedef viennagrid::result_of::cell_tag<domain_type>::type cell_tag;
+//     typedef viennagrid::result_of::domain_view<domain_type>::type segment_type;
+    typedef viennagrid::result_of::cell<DomainType>::type cell_type;
+    typedef viennagrid::result_of::point<DomainType>::type point_type;
+    typedef viennagrid::result_of::cell_tag<DomainType>::type cell_tag;
     
-    domain_type domain;
-    std::deque< segment_type > segments;
+    DomainType domain;
+    SegmentationType segmentation(domain);
     
     try
     {
-        viennagrid::io::vtk_reader<cell_type, domain_type> my_reader;
+        viennagrid::io::vtk_reader<DomainType> my_reader;
     //     my_reader(my_domain, my_segments, "../examples/data/netgen_volume.vtu_main.pvd");
-        my_reader(domain, segments, "../../examples/data/half-trigate_main.pvd");
+        my_reader(domain, segmentation, "../../examples/data/half-trigate_main.pvd");
     }
     catch (...)
     {
@@ -243,7 +280,7 @@ int main()
     
     
 
-    typedef viennagrid::result_of::cell_range<viennagrid::config::tetrahedral_3d_domain>::type cell_range_type;
+    typedef viennagrid::result_of::cell_range<DomainType>::type cell_range_type;
     typedef viennagrid::result_of::iterator<cell_range_type>::type cell_range_iterator;
     
     point_type to_refine( 0.0, 0.0, -80.0 );
@@ -252,8 +289,8 @@ int main()
     
     
     
-    domain_type refined_domain;
-    std::deque<segment_type> refined_segments;
+    DomainType refined_domain;
+    SegmentationType refined_segmentation(refined_domain);
     
     
     
@@ -297,15 +334,15 @@ int main()
 //     }
 //     domain_type adaptively_refined_domain;
 //     refine(domain, adaptively_refined_domain, volume_functor(20.0));
-    refine( domain, segments, refined_domain, refined_segments, volume_functor(30.0) );
+    refine( domain, segmentation, refined_domain, refined_segmentation, volume_functor(100.0) );
     
 //     copy(domain, adaptively_refined_domain);
     
     
     {        
-        viennagrid::io::vtk_writer<domain_type, cell_type> vtk_writer;
+        viennagrid::io::vtk_writer<DomainType> vtk_writer;
 //         viennagrid::io::add_scalar_data_on_cells<std::string, double>(vtk_writer, "segment_id", "segment_id");
-        vtk_writer(refined_domain, refined_segments, "refined_volume");
+        vtk_writer(refined_domain, refined_segmentation, "refined_volume");
     }
 
     

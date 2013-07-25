@@ -27,7 +27,7 @@ struct functor
 
 int main()
 {
-    viennagrid::config::plc_3d_domain plc_domain;
+    viennagrid::plc_3d_domain plc_domain;
     
     viennagrid::io::poly_reader reader;
     reader(plc_domain, "../../examples/data/cube.poly");
@@ -35,12 +35,12 @@ int main()
     
     viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type plc_settings;//(0.3, 0.0);
     
-    viennagrid::config::triangular_3d_domain triangle_domain;
+    viennagrid::triangular_3d_domain triangle_domain;
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_domain, triangle_domain, plc_settings );
     
     
-    viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_hull_writer;
-    vtk_hull_writer(triangle_domain, "cube_hull.vtu");
+    viennagrid::io::vtk_writer<viennagrid::triangular_3d_domain> vtk_hull_writer;
+    vtk_hull_writer(triangle_domain, "cube_hull");
     
     viennamesh::result_of::settings<viennamesh::cgal_delaunay_tetrahedron_tag>::type deltet_settings;
     
@@ -50,10 +50,10 @@ int main()
     deltet_settings.cell_radius_edge_ratio = 1.5;
     
     
-    viennagrid::config::tetrahedral_3d_domain tet_domain;
+    viennagrid::tetrahedral_3d_domain tet_domain;
     viennamesh::run_algo<viennamesh::cgal_delaunay_tetrahedron_tag>(triangle_domain, tet_domain, deltet_settings);
 
 
-    viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_volume_writer;
-    vtk_volume_writer(tet_domain, "cube_poly_meshed.vtu");    
+    viennagrid::io::vtk_writer<viennagrid::tetrahedral_3d_domain> vtk_volume_writer;
+    vtk_volume_writer(tet_domain, "cube_poly_meshed");
 }

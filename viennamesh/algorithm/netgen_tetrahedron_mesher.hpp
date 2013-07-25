@@ -57,13 +57,13 @@ namespace viennamesh
         template<typename domain_type>
         struct best_matching_native_input_segmentation<netgen_tetrahedron_tag, domain_type>
         {
-            typedef viennagrid::dummy_segmentation<> type;
+            typedef NoSegmentation type;
         };
 
         template<typename domain_type>
         struct best_matching_native_output_segmentation<netgen_tetrahedron_tag, domain_type>
         {
-            typedef viennagrid::dummy_segmentation<> type;
+            typedef NoSegmentation type;
         };
         
         

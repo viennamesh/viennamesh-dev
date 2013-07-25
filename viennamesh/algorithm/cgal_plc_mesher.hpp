@@ -93,13 +93,13 @@ namespace viennamesh
         template<unsigned int geometric_dimension, typename segmentation_type>
         struct best_matching_native_input_segmentation<cgal_plc_mesher_tag<geometric_dimension>, segmentation_type>
         {
-            typedef viennagrid::dummy_segmentation<> type;
+          typedef NoSegmentation type;
         };
         
         template<unsigned int geometric_dimension, typename segmentation_type>
         struct best_matching_native_output_segmentation<cgal_plc_mesher_tag<geometric_dimension>, segmentation_type>
         {
-            typedef viennagrid::dummy_segmentation<> type;
+          typedef NoSegmentation type;
         };
         
         

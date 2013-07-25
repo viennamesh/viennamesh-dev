@@ -684,7 +684,7 @@ namespace wrec {
 	{
 	    // std::cout << "wrec::mult \n";
 	    using namespace recursion;
-	    if (is_empty(rec_a) || is_empty(rec_b) || is_empty(rec_c))
+	    if (matrix::is_empty<RecA>(rec_a) || matrix::is_empty<RecB>(rec_b) || matrix::is_empty<RecC>(rec_c))
 		return;
 
 	    if (BaseTest()(rec_a)) {

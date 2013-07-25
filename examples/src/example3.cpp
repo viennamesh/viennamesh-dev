@@ -16,10 +16,10 @@
 
 int main()
 {
-    typedef viennagrid::config::plc_3d_domain domain_type;
+    typedef viennagrid::plc_3d_domain domain_type;
     domain_type domain;
     
-    typedef viennagrid::result_of::point_type<domain_type>::type point_type;
+    typedef viennagrid::result_of::point<domain_type>::type point_type;
      
     typedef viennagrid::result_of::element<domain_type, viennagrid::vertex_tag>::type vertex_type;
     typedef viennagrid::result_of::handle<domain_type, viennagrid::vertex_tag>::type vertex_handle_type;
@@ -35,21 +35,21 @@ int main()
     {
         std::vector<vertex_handle_type> v;
         
-        v.push_back( viennagrid::create_vertex( domain, point_type(0, 0) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(10, 0) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(20, 10) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(20, 20) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(10, 20) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(0, 10) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(5, 5) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(0, 0) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(10, 0) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(20, 10) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(20, 20) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(10, 20) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(0, 10) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(5, 5) ) );
         
-        v.push_back( viennagrid::create_vertex( domain, point_type(10, 10) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(12, 10) ) );
-        v.push_back( viennagrid::create_vertex( domain, point_type(10, 12) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(10, 10) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(12, 10) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(10, 12) ) );
         
-        v.push_back( viennagrid::create_vertex( domain, point_type(8, 10) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(8, 10) ) );
         
-        v.push_back( viennagrid::create_vertex( domain, point_type(15, 15) ) );
+        v.push_back( viennagrid::make_vertex( domain, point_type(15, 15) ) );
         
         
         std::vector<line_handle_type> lines;
@@ -61,8 +61,8 @@ int main()
             std::vector<vertex_handle_type>::iterator it1 = start;
             std::vector<vertex_handle_type>::iterator it2 = it1; ++it2;
             for (; it2 != end; ++it1, ++it2)
-                lines.push_back( viennagrid::create_line(domain, *it1, *it2) );
-            lines.push_back( viennagrid::create_line(domain, *it1, *start) );
+                lines.push_back( viennagrid::make_line(domain, *it1, *it2) );
+            lines.push_back( viennagrid::make_line(domain, *it1, *start) );
         }
         
         
@@ -73,11 +73,11 @@ int main()
             std::vector<vertex_handle_type>::iterator it1 = start;
             std::vector<vertex_handle_type>::iterator it2 = it1; ++it2;
             for (; it2 != end; ++it1, ++it2)
-                lines.push_back( viennagrid::create_line(domain, *it1, *it2) );
-            lines.push_back( viennagrid::create_line(domain, *it1, *start) );
+                lines.push_back( viennagrid::make_line(domain, *it1, *it2) );
+            lines.push_back( viennagrid::make_line(domain, *it1, *start) );
         }
         
-        lines.push_back( viennagrid::create_element<line_type>( domain, v.begin() + 9, v.begin() + 11 ) );
+        lines.push_back( viennagrid::make_element<line_type>( domain, v.begin() + 9, v.begin() + 11 ) );
         
         vertex_handle_type point = v[11];
 
@@ -85,7 +85,7 @@ int main()
         std::vector<point_type> hole_points;
         hole_points.push_back( point_type(10.5, 10.5) );
 
-        plc_handle  = viennagrid::create_plc(  domain, 
+        plc_handle  = viennagrid::make_plc(  domain,
                                                                         lines.begin(), lines.end(),
                                                                         &point, &point + 1,
                                                                         hole_points.begin(), hole_points.end()
@@ -183,7 +183,7 @@ int main()
         cdt.insert_constraint(cgal_v0, cgal_v1);
     }
     
-    std::vector<point_type> & vgrid_list_of_holes = viennagrid::hole_points<domain_type>(plc);
+    std::vector<point_type> & vgrid_list_of_holes = viennagrid::hole_points(plc);
     std::vector<point_type_2d> vgrid_list_of_holes_2d(vgrid_list_of_holes.size());
     
     viennagrid::geometry::project( vgrid_list_of_holes.begin(), vgrid_list_of_holes.end(), vgrid_list_of_holes_2d.begin(), center, (point_type*)projection_matrix, projection_matrix + 2 );
@@ -202,10 +202,10 @@ int main()
     
     
     
-    typedef viennagrid::config::triangular_3d_domain triangle_domain_type;
+    typedef viennagrid::triangular_3d_domain triangle_domain_type;
     triangle_domain_type triangle_domain;
     
-    typedef viennagrid::result_of::point_type<triangle_domain_type>::type triangle_point_type;
+    typedef viennagrid::result_of::point<triangle_domain_type>::type triangle_point_type;
      
     typedef viennagrid::result_of::element<triangle_domain_type, viennagrid::vertex_tag>::type triangle_vertex_type;
     typedef viennagrid::result_of::handle<triangle_domain_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
@@ -238,14 +238,14 @@ int main()
                     
                     std::cout << tmp << std::endl;
                     
-                    vgrid_vtx[i] = viennagrid::create_vertex( triangle_domain, tmp );
+                    vgrid_vtx[i] = viennagrid::make_vertex( triangle_domain, tmp );
                     points[ tri[i] ] = vgrid_vtx[i];
                 }
                 else
                     vgrid_vtx[i] = pit->second;
             }
             
-            viennagrid::create_element<triangle_triangle_type>( triangle_domain, vgrid_vtx, vgrid_vtx+3 );
+            viennagrid::make_element<triangle_triangle_type>( triangle_domain, vgrid_vtx, vgrid_vtx+3 );
                 
             
             std::cout << tri << std::endl;
@@ -259,7 +259,7 @@ int main()
     std::copy( viennagrid::elements<triangle_triangle_type>(triangle_domain).begin(), viennagrid::elements<triangle_triangle_type>(triangle_domain).end(), std::ostream_iterator<triangle_triangle_type>(std::cout, "\n") );
     
 
-    viennagrid::io::vtk_writer<triangle_domain_type, triangle_triangle_type> vtk_writer;
-    vtk_writer(triangle_domain, "test_3d.vtu");
+    viennagrid::io::vtk_writer<triangle_domain_type> vtk_writer;
+    vtk_writer(triangle_domain, "test_3d");
     
 }
