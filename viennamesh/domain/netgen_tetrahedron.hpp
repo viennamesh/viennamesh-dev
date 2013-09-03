@@ -116,7 +116,7 @@ namespace viennamesh
             typedef typename viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_type;
             
             typedef typename viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef typename viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
+            typedef typename viennagrid::result_of::iterator<vertex_range_type>::type vertex_range_iterator;
 
             typedef typename viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_range_type;
             typedef typename viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;

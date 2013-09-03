@@ -92,7 +92,7 @@ namespace viennamesh
             typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
+            typedef viennagrid::result_of::iterator<vertex_range_type>::type vertex_range_iterator;
             
             typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -106,10 +106,10 @@ namespace viennamesh
             cgal_element_type & cgal_element = cgal_domain.cells[0];
             
             vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_domain);
-            for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
+            for (vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
             {
-                vertex_const_handle_type const & vtx_handle = *it;
-                vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
+                vertex_const_handle_type const & vtx_handle = it.handle();
+                vertex_type const & vtx = *it;
                 point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx );
                 
                 cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
@@ -175,7 +175,7 @@ namespace viennamesh
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
+            typedef viennagrid::result_of::iterator<vertex_range_type>::type vertex_range_iterator;
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -196,10 +196,10 @@ namespace viennamesh
                 std::map<vertex_const_handle_type, cgal_element_type::Vertex_handle> vertex_handle_map;
                 
                 vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_element);
-                for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
+                for (vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
                 {
-                    vertex_const_handle_type const & vtx_handle = *it;
-                    vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
+                    vertex_const_handle_type const & vtx_handle = it.handle();
+                    vertex_type const & vtx = *it;
                     point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx );
                     
                     cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
@@ -397,7 +397,7 @@ namespace viennamesh
 
 
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
-            typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
+            typedef viennagrid::result_of::iterator<vertex_range_type>::type vertex_range_iterator;
 
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -425,10 +425,10 @@ namespace viennamesh
                 std::map<vertex_const_handle_type, std::size_t> vertex_to_index_map;
 
                 vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_element);
-                for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
+                for (vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
                 {
-                    vertex_const_handle_type const & vtx_handle = *it;
-                    vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
+                    vertex_const_handle_type const & vtx_handle = it.handle();
+                    vertex_type const & vtx = *it;
                     point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx);
 
                     vertex_to_index_map[vtx_handle] = plc_points_3d.size();
@@ -446,10 +446,10 @@ namespace viennamesh
 
                 std::map<vertex_const_handle_type, cgal_element_type::Vertex_handle> vertex_handle_map;
 
-                for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
+                for (vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
                 {
-                    vertex_const_handle_type const & vtx_handle = *it;
-                    vertex_type const & vtx = viennagrid::dereference_handle(vgrid_domain, *it);
+                    vertex_const_handle_type const & vtx_handle = it.handle();
+                    vertex_type const & vtx = *it;
                     point_type_2d const & vgrid_point = plc_points_2d[ vertex_to_index_map[vtx_handle] ];
 //                     std::cout << "3D Point: " << plc_points_3d[ vertex_to_index_map[vtx_handle] ] << " projected onto " << vgrid_point << std::endl;
 
