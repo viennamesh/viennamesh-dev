@@ -14,7 +14,7 @@
 #include "viennagrid/domain/segmentation.hpp"
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"
-#include "viennadata/api.hpp"
+// #include "viennadata/api.hpp"
 // #include "viennagrid/config/simplex.hpp"
 
 #include "stlgeom.hpp"
