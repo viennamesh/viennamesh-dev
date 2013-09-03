@@ -102,7 +102,7 @@ int main()
     
     
     typedef viennagrid::result_of::element_range<plc_type, viennagrid::vertex_tag>::type vertex_range_type;
-    typedef viennagrid::result_of::handle_iterator<vertex_range_type>::type vertex_range_handle_iterator;
+    typedef viennagrid::result_of::iterator<vertex_range_type>::type vertex_range_iterator;
     
     typedef viennagrid::result_of::element_range<plc_type, viennagrid::line_tag>::type line_range_type;
     typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
@@ -127,10 +127,10 @@ int main()
     std::map<vertex_handle_type, Vertex_handle> vertex_handle_map;
     
     vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(plc);
-    for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
+    for (vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
     {
-        vertex_handle_type const & vtx_handle = *it;
-        vertex_type const & vtx = viennagrid::dereference_handle(domain, *it);
+        vertex_handle_type const & vtx_handle = it.handle();
+        vertex_type const & vtx = *it;
         point_type const & vgrid_point = viennagrid::point( domain, vtx );
         
         Vertex_handle handle = cdt.insert( Point(vgrid_point[0], vgrid_point[1]) );
