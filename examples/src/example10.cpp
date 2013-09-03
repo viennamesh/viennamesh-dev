@@ -172,7 +172,7 @@ unsigned int refine( DomainInT const & domain_in,   SegmentationInT const & segm
         segmentation_dst.clear();
 //         segmentation_dst = SegmentationOutT();
         
-        viennagrid::refine_element( domain_src, domain_dst, refinement_flag_accessor );
+        viennagrid::cell_refine( domain_src, domain_dst, refinement_flag_accessor );
 //         viennagrid::refine_element( domain_src, segmentation_src, domain_dst, segmentation_dst, refinement_flag_accessor );
 
 //         cells = viennagrid::elements( domain_dst );
