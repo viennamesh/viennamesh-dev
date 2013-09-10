@@ -4,39 +4,39 @@ find_package(CGAL QUIET COMPONENTS Core )
 
 set( CGAL_LIBS CGAL CGAL_Core ${Boost_LIBRARIES} gmp mpfr )
 
-add_executable(example2 src/example2.cpp)
-target_link_libraries(example2 ${CGAL_LIBS})
+add_executable(cgal_plc_2d_direct src/cgal_plc_2d_direct.cpp)
+target_link_libraries(cgal_plc_2d_direct ${CGAL_LIBS})
 
-add_executable(example2a src/example2a.cpp)
-target_link_libraries(example2a ${CGAL_LIBS})
+add_executable(cgal_plc_2d_viennamesh src/cgal_plc_2d_viennamesh.cpp)
+target_link_libraries(cgal_plc_2d_viennamesh ${CGAL_LIBS})
 
-add_executable(example3 src/example3.cpp)
-target_link_libraries(example3 ${CGAL_LIBS})
+add_executable(cgal_plc_3d_direct src/cgal_plc_3d_direct.cpp)
+target_link_libraries(cgal_plc_3d_direct ${CGAL_LIBS})
 
-add_executable(example3a src/example3a.cpp)
-target_link_libraries(example3a ${CGAL_LIBS})
+add_executable(cgal_plc_3d_viennamesh src/cgal_plc_3d_viennamesh.cpp)
+target_link_libraries(cgal_plc_3d_viennamesh ${CGAL_LIBS})
 
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frounding-math" )
-set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -frounding-math" )
+# set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frounding-math" )
+# set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -frounding-math" )
 
-add_executable(example4 src/example4.cpp)
-target_link_libraries(example4 ${CGAL_LIBS})
+add_executable(cgal_tet_direct src/cgal_tet_direct.cpp)
+target_link_libraries(cgal_tet_direct ${CGAL_LIBS})
 
-add_executable(example4a src/example4a.cpp)
-target_link_libraries(example4a ${CGAL_LIBS})
+add_executable(cgal_tet_viennamesh src/cgal_tet_viennamesh.cpp)
+target_link_libraries(cgal_tet_viennamesh ${CGAL_LIBS})
 
-add_executable(example5 src/example5.cpp)
-target_link_libraries(example5 ${CGAL_LIBS})
+add_executable(plc2tet_cgal src/plc2tet_cgal.cpp)
+target_link_libraries(plc2tet_cgal ${CGAL_LIBS})
 
 
 include_directories( ${PROJECT_SOURCE_DIR}/external/vgmodeler/gsse/gsse01 )
 include_directories( ${PROJECT_SOURCE_DIR}/external/vgmodeler/gsse/gsse01/external/mauch )
 
 
-add_executable(example6 src/example6.cpp)
-add_dependencies(example6 netgen)
-target_link_libraries(example6 ${CGAL_LIBS} nglib)
-target_link_libraries(example6 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+add_executable(plc2tet_netgen src/plc2tet_netgen.cpp)
+add_dependencies(plc2tet_netgen netgen)
+target_link_libraries(plc2tet_netgen ${CGAL_LIBS} nglib)
+target_link_libraries(plc2tet_netgen vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
 
 # add_executable(example7 src/example7.cpp)
@@ -54,21 +54,21 @@ target_link_libraries(example6 vgmodeler_base vgmodeler_stltopo vgmodeler_meshst
 # target_link_libraries(example7b ${CGAL_LIBS} nglib)
 # target_link_libraries(example7b vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
-add_executable(example8 src/example8.cpp)
-add_dependencies(example8 netgen)
-target_link_libraries(example8 ${CGAL_LIBS} nglib)
-target_link_libraries(example8 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+add_executable(aspect_ratio src/aspect_ratio.cpp)
+add_dependencies(aspect_ratio netgen)
+target_link_libraries(aspect_ratio ${CGAL_LIBS} nglib)
+target_link_libraries(aspect_ratio vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
-add_executable(example8a src/example8a.cpp)
-add_dependencies(example8a netgen)
-target_link_libraries(example8a ${CGAL_LIBS} nglib)
-target_link_libraries(example8a vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+add_executable(boost_accumulator src/boost_accumulator.cpp)
+add_dependencies(boost_accumulator netgen)
+target_link_libraries(boost_accumulator ${CGAL_LIBS} nglib)
+target_link_libraries(boost_accumulator vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
-add_executable(example9 src/example9.cpp)
-add_dependencies(example9 netgen)
-target_link_libraries(example9 ${CGAL_LIBS} nglib)
-target_link_libraries(example9 vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+add_executable(extract_plc src/extract_plc.cpp)
+add_dependencies(extract_plc netgen)
+target_link_libraries(extract_plc ${CGAL_LIBS} nglib)
+target_link_libraries(extract_plc vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
 
-add_executable(example10 src/example10.cpp)
-add_executable(example11 src/example11.cpp)
+# add_executable(example10 src/example10.cpp)
+# add_executable(example11 src/example11.cpp)
 
