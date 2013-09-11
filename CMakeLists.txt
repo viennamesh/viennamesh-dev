@@ -80,6 +80,7 @@ ExternalProject_Add(netgen
 link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/lib )
 
 add_subdirectory( external/vgmodeler )
+add_subdirectory( external/tetgen )
 
 # Subdirectories
 ################
