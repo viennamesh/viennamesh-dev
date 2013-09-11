@@ -179,7 +179,7 @@ void remesh_worst_element( InputDomainT const & input_domain, OutputDomainT & ou
   typename viennagrid::result_of::field<std::vector<bool>, CellType>::type cavity_marker_accessor( cavity_marker );
   
   mark_neighours_radius( input_domain, cavity_marker_accessor, center, 4.0 );
-//   mark_neighours( domain, cavity_marker_accessor, 3 );
+//   mark_neighours( domain, cavity_marker_accessor, *worst_element, 3 );
   
 
 
