@@ -9,10 +9,11 @@
 
 namespace nglib
 {
-    #include "netgen-5.0.0/nglib/nglib.h"
+  #include "netgen-5.0.0/nglib/nglib.h"
+  
 }
 
-
+// #include "netgen-5.0.0/libsrc/include/nginterface.h"
 
 
 
@@ -23,13 +24,14 @@ namespace viennamesh
     {
         netgen_lib()
         {
-            std::cout << "Init Netgen" << std::endl;
+//             std::cout << "Init Netgen" << std::endl;
             nglib::Ng_Init();
+//             netgen::printmessage_importance = -1;
         }
         
         ~netgen_lib()
         {
-            std::cout << "Exit Netgen" << std::endl;
+//             std::cout << "Exit Netgen" << std::endl;
             nglib::Ng_Exit();
         }
     };
