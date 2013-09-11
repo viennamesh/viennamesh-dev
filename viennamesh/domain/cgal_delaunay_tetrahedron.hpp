@@ -218,8 +218,8 @@ namespace viennamesh
                     {
                         point_type tmp;
                         tmp[0] = t.vertex(i)->point().x();
-                        tmp[2] = t.vertex(i)->point().y();
-                        tmp[1] = t.vertex(i)->point().z();
+                        tmp[1] = t.vertex(i)->point().y();
+                        tmp[2] = t.vertex(i)->point().z();
                         
                         vgrid_vtx[i] = viennagrid::make_vertex( vgrid_domain, tmp );
                         points[ t.vertex(i) ] = vgrid_vtx[i];
