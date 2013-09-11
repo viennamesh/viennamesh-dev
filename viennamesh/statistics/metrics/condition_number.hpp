@@ -2,6 +2,7 @@
 #define VIENNAMESH_STATISTICS_METRICS_CONDITION_NUMBER_HPP
 
 #include "viennagrid/algorithm/volume.hpp"
+#include "viennamesh/statistics/common.hpp"
 
 namespace viennamesh
 {

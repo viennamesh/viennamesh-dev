@@ -2,6 +2,7 @@
 #define VIENNAMESH_STATISTICS_METRICS_MIN_DIHEDRAL_ANGLE_HPP
 
 #include "viennagrid/algorithm/angle.hpp"
+#include "viennamesh/statistics/common.hpp"
 
 namespace viennamesh
 {

@@ -3,6 +3,7 @@
 
 #include "viennagrid/algorithm/volume.hpp"
 #include "viennagrid/algorithm/surface.hpp"
+#include "viennamesh/statistics/common.hpp"
 
 namespace viennamesh
 {
