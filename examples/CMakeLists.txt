@@ -72,3 +72,15 @@ target_link_libraries(extract_plc vgmodeler_base vgmodeler_stltopo vgmodeler_mes
 # add_executable(example10 src/example10.cpp)
 # add_executable(example11 src/example11.cpp)
 
+
+
+add_executable(cavity_remesh src/cavity_remesh.cpp)
+add_dependencies(cavity_remesh netgen)
+target_link_libraries(cavity_remesh ${CGAL_LIBS} nglib tetgen)
+target_link_libraries(cavity_remesh vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl)
+
+
+add_executable(tetgen_viennamesh src/tetgen_viennamesh.cpp)
+target_link_libraries(tetgen_viennamesh tetgen)
+
+
