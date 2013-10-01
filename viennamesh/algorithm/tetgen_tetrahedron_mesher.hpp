@@ -3,9 +3,10 @@
 
 #include "viennamesh/base/algorithm.hpp"
 #include "viennamesh/base/settings.hpp"
-#include "viennamesh/domain/tetgen_tetrahedron.hpp"
+#include "viennamesh/mesh/tetgen_tetrahedron.hpp"
 
 #include "viennamesh/utils/utils.hpp"
+#include <boost/concept_check.hpp>
 
 
 namespace viennamesh
@@ -42,27 +43,27 @@ namespace viennamesh
             static const std::string name() { return "Tetgen 1.4.3 Triangle Hull to Tetrahedron Mesher"; }
         };
         
-        template<typename domain_type>
-        struct best_matching_native_input_domain<tetgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_mesh<tetgen_tetrahedron_tag, mesh_type>
         {
-            typedef tetgen_tetrahedron_domain type;
+            typedef tetgen_tetrahedron_mesh type;
         };
 
-        template<typename domain_type>
-        struct best_matching_native_output_domain<tetgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_mesh<tetgen_tetrahedron_tag, mesh_type>
         {
-            typedef tetgen_tetrahedron_domain type;
+            typedef tetgen_tetrahedron_mesh type;
         };
         
         
-        template<typename domain_type>
-        struct best_matching_native_input_segmentation<tetgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_segmentation<tetgen_tetrahedron_tag, mesh_type>
         {
             typedef NoSegmentation type;
         };
 
-        template<typename domain_type>
-        struct best_matching_native_output_segmentation<tetgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_segmentation<tetgen_tetrahedron_tag, mesh_type>
         {
             typedef NoSegmentation type;
         };
@@ -78,18 +79,35 @@ namespace viennamesh
     
     
     
+    bool test_volume(REAL * p0, REAL * p1, REAL * p2, REAL * p3, REAL * elen, REAL volume)
+    {
+      return volume < 5.0;
+      
+      REAL center[3];
+      center[0] = (p0[0]+p1[0]+p2[0]+p3[0])/4;
+      center[1] = (p0[1]+p1[1]+p2[1]+p3[1])/4;
+      center[2] = (p0[2]+p1[2]+p2[2]+p3[2])/4;
+      
+      if (center[2] >= -10.0)
+        return volume < (center[2]+11);
+      else
+        return true;
+    }
+    
+    
+    
     template<>
     struct native_algorithm_impl<tetgen_tetrahedron_tag>
     {
         typedef tetgen_tetrahedron_tag algorithm_tag;
         
-        template<typename native_input_domain_type, typename native_output_domain_type, typename settings_type>
-        static algorithm_feedback run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
+        template<typename native_input_mesh_type, typename native_output_mesh_type, typename settings_type>
+        static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_output_mesh_type & native_output_mesh, settings_type const & settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
 
             tetgenbehavior tetgen_settings;
-            tetgen_settings.quiet = 1;
+//             tetgen_settings.quiet = 1;
             tetgen_settings.plc = 1;
             
             if (!settings.cell_radius_edge_ratio.is_ignored())
@@ -104,6 +122,10 @@ namespace viennamesh
               tetgen_settings.fixedvolume = 1;
               tetgen_settings.maxvolume = settings.cell_size();
             }
+
+            tetgen_settings.steiner = -1;     // Steiner Points?? -1 = unlimited, 0 = no steiner points
+//             tetgen_settings.metric = 1;
+//             const_cast<tetgenio::TetSizeFunc&>(native_input_mesh.tetunsuitable) = test_volume;
             
             
             tetgen_settings.useshelles = tetgen_settings.plc || tetgen_settings.refine || tetgen_settings.coarse || tetgen_settings.quality; // tetgen.cxx:3008
@@ -123,7 +145,7 @@ namespace viennamesh
 //             tetgen_settings.parse_commandline( "pq1.414a0.1" );
             
             
-            tetrahedralize(&tetgen_settings, const_cast<tetgenio*>(&native_input_domain), &native_output_domain);
+            tetrahedralize(&tetgen_settings, const_cast<tetgenio*>(&native_input_mesh), &native_output_mesh);
             
             feedback.set_success();
             return feedback;

@@ -3,7 +3,7 @@
 
 #include "viennagrid/algorithm/geometry.hpp"
 #include "viennagrid/algorithm/intersect.hpp"
-#include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
 
 namespace viennamesh
 {
@@ -492,17 +492,17 @@ namespace viennamesh
                 }
             }
             
-            void to_viennagrid_domain( viennagrid::config::line_2d_domain & vgrid_domain ) const
+            void to_viennagrid_mesh( viennagrid::config::line_2d_mesh & vgrid_mesh ) const
             {
-                typedef viennagrid::result_of::handle<viennagrid::config::line_2d_domain, viennagrid::vertex_tag>::type vertex_handle_type;
+                typedef viennagrid::result_of::handle<viennagrid::config::line_2d_mesh, viennagrid::vertex_tag>::type vertex_handle_type;
                 
                 std::map<index_type, vertex_handle_type> vertex_handle_map;
                 
                 for (unsigned int it = 0; it != points.size(); ++it)
-                    vertex_handle_map[it] = viennagrid::create_vertex( vgrid_domain, get_point(it) );
+                    vertex_handle_map[it] = viennagrid::create_vertex( vgrid_mesh, get_point(it) );
                 
                 for (typename line_container_type::const_iterator it = lines.begin(); it != lines.end(); ++it)
-                    viennagrid::create_line( vgrid_domain, vertex_handle_map[it->first], vertex_handle_map[it->second] );
+                    viennagrid::create_line( vgrid_mesh, vertex_handle_map[it->first], vertex_handle_map[it->second] );
             }
             
             
@@ -691,7 +691,7 @@ namespace viennamesh
 
 
     
-    struct viennasap_layer_domain
+    struct viennasap_layer_mesh
     {
         typedef viennagrid::config::point_type_2d point_type;
         

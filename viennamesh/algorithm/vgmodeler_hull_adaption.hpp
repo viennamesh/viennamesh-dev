@@ -3,7 +3,7 @@
 
 #include "viennamesh/base/algorithm.hpp"
 #include "viennamesh/base/settings.hpp"
-#include "viennagrid/domain/segmentation.hpp"
+#include "viennagrid/mesh/segmentation.hpp"
 
 #include "viennamesh/utils/utils.hpp"
 
@@ -38,16 +38,16 @@ namespace viennamesh
             static const std::string name() { return "VGModeler/Netgen Triangle Hull Adaption"; }
         };
         
-        template<typename domain_type>
-        struct best_matching_native_input_domain<vgmodeler_hull_adaption_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_mesh<vgmodeler_hull_adaption_tag, mesh_type>
         {
-            typedef viennagrid::triangular_3d_domain type;
+            typedef viennagrid::triangular_3d_mesh type;
         };
 
-        template<typename domain_type>
-        struct best_matching_native_output_domain<vgmodeler_hull_adaption_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_mesh<vgmodeler_hull_adaption_tag, mesh_type>
         {
-            typedef viennagrid::triangular_3d_domain type;
+            typedef viennagrid::triangular_3d_mesh type;
         };
         
         template<typename segmentation_type>
@@ -75,9 +75,9 @@ namespace viennamesh
     {
         typedef vgmodeler_hull_adaption_tag algorithm_tag;
         
-        template<typename native_input_domain_type, typename input_segmentation_type, typename native_output_domain_type, typename output_segmentation_type,typename settings_type>
-        static algorithm_feedback run( native_input_domain_type const & native_input_domain, input_segmentation_type const & input_segmentation,
-                         native_output_domain_type & native_output_domain, output_segmentation_type & output_segmentation,
+        template<typename native_input_mesh_type, typename input_segmentation_type, typename native_output_mesh_type, typename output_segmentation_type,typename settings_type>
+        static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, input_segmentation_type const & input_segmentation,
+                         native_output_mesh_type & native_output_mesh, output_segmentation_type & output_segmentation,
                          settings_type settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
@@ -86,7 +86,7 @@ namespace viennamesh
             if (!settings.cell_size.is_ignored())
                 adaptor.maxsize() = settings.cell_size();
             
-            adaptor.process( native_input_domain, input_segmentation, native_output_domain, output_segmentation );
+            adaptor.process( native_input_mesh, input_segmentation, native_output_mesh, output_segmentation );
             
             feedback.set_success(); 
             return feedback;

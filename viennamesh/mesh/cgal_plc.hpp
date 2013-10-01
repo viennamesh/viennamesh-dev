@@ -2,7 +2,7 @@
 #define VIENNAMESH_DOMAIN_CGAL_PLC_HPP
 
 #include "viennagrid/config/default_configs.hpp"
-#include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 
 #include "viennamesh/base/convert.hpp"
@@ -36,7 +36,7 @@ namespace viennamesh
         std::list<Point> cgal_list_of_holes;
     };
     
-    struct cgal_plc_2d_domain
+    struct cgal_plc_2d_mesh
     {
         typedef std::vector<cgal_plc_2d_element> cell_container;
         cell_container cells;
@@ -50,13 +50,13 @@ namespace viennagrid
     namespace result_of
     {
         template<>
-        struct point<viennamesh::cgal_plc_2d_domain>
+        struct point<viennamesh::cgal_plc_2d_mesh>
         {
             typedef viennagrid::config::point_type_2d type;
         };
         
         template<>
-        struct point<const viennamesh::cgal_plc_2d_domain>
+        struct point<const viennamesh::cgal_plc_2d_mesh>
         {
             typedef viennagrid::config::point_type_2d type;
         };
@@ -66,51 +66,51 @@ namespace viennagrid
 namespace viennamesh
 {
     template<typename SourceSegmentationT, typename DestinationSegmentationT>
-    struct convert_impl<viennagrid::line_2d_domain, SourceSegmentationT, cgal_plc_2d_domain, DestinationSegmentationT >
+    struct convert_impl<viennagrid::line_2d_mesh, SourceSegmentationT, cgal_plc_2d_mesh, DestinationSegmentationT >
     {
-        typedef viennagrid::line_2d_domain vgrid_domain_type;
-        typedef typename viennagrid::result_of::cell<vgrid_domain_type>::type vgrid_element_type;
+        typedef viennagrid::line_2d_mesh vgrid_mesh_type;
+        typedef typename viennagrid::result_of::cell<vgrid_mesh_type>::type vgrid_element_type;
         
-        typedef cgal_plc_2d_domain cgal_domain_type;
+        typedef cgal_plc_2d_mesh cgal_mesh_type;
         typedef cgal_plc_2d_element cgal_element_type;
         
         
-        typedef vgrid_domain_type input_domain_type;
+        typedef vgrid_mesh_type input_mesh_type;
 //         typedef vgrid_element_type input_element_type;
         
-        typedef cgal_domain_type output_domain_type;
+        typedef cgal_mesh_type output_mesh_type;
 //         typedef cgal_element_type output_element_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, SourceSegmentationT const &, cgal_domain_type & cgal_domain, DestinationSegmentationT & )
+        static bool convert( vgrid_mesh_type const & vgrid_mesh, SourceSegmentationT const &, cgal_mesh_type & cgal_mesh, DestinationSegmentationT & )
         {
-            typedef viennagrid::result_of::point<vgrid_domain_type>::type point_type;
+            typedef viennagrid::result_of::point<vgrid_mesh_type>::type point_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_type;
+            typedef viennagrid::result_of::const_handle<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::line_tag>::type line_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::line_tag>::type line_handle_type;
             
-            typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_range_type;
+            typedef viennagrid::result_of::const_element_range<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_range_type;
             typedef viennagrid::result_of::iterator<vertex_range_type>::type vertex_range_iterator;
             
-            typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::line_tag>::type line_range_type;
+            typedef viennagrid::result_of::const_element_range<vgrid_mesh_type, viennagrid::line_tag>::type line_range_type;
             typedef viennagrid::result_of::iterator<line_range_type>::type line_range_iterator;
             
 
-            cgal_domain_type::cell_container::iterator jt = cgal_domain.cells.begin();
+            cgal_mesh_type::cell_container::iterator jt = cgal_mesh.cells.begin();
                 
             std::map<vertex_const_handle_type, cgal_element_type::Vertex_handle> vertex_handle_map;
             
-            cgal_domain.cells.resize(1);
-            cgal_element_type & cgal_element = cgal_domain.cells[0];
+            cgal_mesh.cells.resize(1);
+            cgal_element_type & cgal_element = cgal_mesh.cells[0];
             
-            vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_domain);
+            vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh);
             for (vertex_range_iterator it = vertices.begin(); it != vertices.end(); ++it)
             {
                 vertex_const_handle_type const & vtx_handle = it.handle();
                 vertex_type const & vtx = *it;
-                point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx );
+                point_type const & vgrid_point = viennagrid::point(vgrid_mesh, vtx );
                 
                 cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
                 
@@ -118,7 +118,7 @@ namespace viennamesh
             }
 
             
-            line_range_type lines = viennagrid::elements<viennagrid::line_tag>(vgrid_domain);
+            line_range_type lines = viennagrid::elements<viennagrid::line_tag>(vgrid_mesh);
             for (line_range_iterator it = lines.begin(); it != lines.end(); ++it)
             {
                 line_type const & line = *it;
@@ -139,39 +139,39 @@ namespace viennamesh
     
     
     template<typename SourceSegmentationT, typename DestinationSegmentationT>
-    struct convert_impl<viennagrid::plc_2d_domain, SourceSegmentationT, cgal_plc_2d_domain, DestinationSegmentationT >
+    struct convert_impl<viennagrid::plc_2d_mesh, SourceSegmentationT, cgal_plc_2d_mesh, DestinationSegmentationT >
     {
-        typedef viennagrid::plc_2d_domain vgrid_domain_type;
+        typedef viennagrid::plc_2d_mesh vgrid_mesh_type;
         typedef viennagrid::plc_2d_cell vgrid_element_type;
         
-        typedef cgal_plc_2d_domain cgal_domain_type;
+        typedef cgal_plc_2d_mesh cgal_mesh_type;
         typedef cgal_plc_2d_element cgal_element_type;
         
         
-        typedef vgrid_domain_type input_domain_type;
+        typedef vgrid_mesh_type input_mesh_type;
         typedef vgrid_element_type input_element_type;
         
-        typedef cgal_domain_type output_domain_type;
+        typedef cgal_mesh_type output_mesh_type;
         typedef cgal_element_type output_element_type;
         
-        static bool convert( vgrid_domain_type const & vgrid_domain, SourceSegmentationT const &, cgal_domain_type & cgal_domain, DestinationSegmentationT & )
+        static bool convert( vgrid_mesh_type const & vgrid_mesh, SourceSegmentationT const &, cgal_mesh_type & cgal_mesh, DestinationSegmentationT & )
         {
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::plc_tag>::type plc_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::plc_tag>::type plc_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::plc_tag>::type plc_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::plc_tag>::type plc_handle_type;
             
-            typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::plc_tag>::type plc_range_type;
+            typedef viennagrid::result_of::const_element_range<vgrid_mesh_type, viennagrid::plc_tag>::type plc_range_type;
             typedef viennagrid::result_of::iterator<plc_range_type>::type plc_range_iterator;
             
-            typedef viennagrid::result_of::point<vgrid_domain_type>::type point_type;
+            typedef viennagrid::result_of::point<vgrid_mesh_type>::type point_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_type;
+            typedef viennagrid::result_of::const_handle<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::line_tag>::type line_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::line_tag>::type line_handle_type;
             
-//             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
-//             typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_handle_type;
+//             typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::polygon_tag>::type polygon_type;
+//             typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::polygon_tag>::type polygon_handle_type;
             
             
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
@@ -183,10 +183,10 @@ namespace viennamesh
             
             
             
-            plc_range_type plcs = viennagrid::elements<viennagrid::plc_tag>( vgrid_domain );
-            cgal_domain.cells.resize(plcs.size());
+            plc_range_type plcs = viennagrid::elements<viennagrid::plc_tag>( vgrid_mesh );
+            cgal_mesh.cells.resize(plcs.size());
             
-            cgal_domain_type::cell_container::iterator jt = cgal_domain.cells.begin();
+            cgal_mesh_type::cell_container::iterator jt = cgal_mesh.cells.begin();
             
             for (plc_range_iterator it = plcs.begin(); it != plcs.end(); ++it)
             {
@@ -200,7 +200,7 @@ namespace viennamesh
                 {
                     vertex_const_handle_type const & vtx_handle = it.handle();
                     vertex_type const & vtx = *it;
-                    point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx );
+                    point_type const & vgrid_point = viennagrid::point(vgrid_mesh, vtx );
                     
                     cgal_element_type::Vertex_handle handle = cgal_element.cdt.insert( cgal_element_type::Point(vgrid_point[0], vgrid_point[1]) );
                     
@@ -237,39 +237,39 @@ namespace viennamesh
     
     
     template<typename SourceSegmentationT, typename DestinationSegmentationT>
-    struct convert_impl<cgal_plc_2d_domain, SourceSegmentationT, viennagrid::triangular_2d_domain, DestinationSegmentationT >
+    struct convert_impl<cgal_plc_2d_mesh, SourceSegmentationT, viennagrid::triangular_2d_mesh, DestinationSegmentationT >
     {              
-        typedef cgal_plc_2d_domain cgal_domain_type;
+        typedef cgal_plc_2d_mesh cgal_mesh_type;
         typedef cgal_plc_2d_element cgal_element_type;
         
-        typedef viennagrid::triangular_2d_domain vgrid_domain_type;
-        typedef typename viennagrid::result_of::cell<vgrid_domain_type> vgrid_element_type;
+        typedef viennagrid::triangular_2d_mesh vgrid_mesh_type;
+        typedef typename viennagrid::result_of::cell<vgrid_mesh_type> vgrid_element_type;
         
         
-        typedef cgal_domain_type input_domain_type;
+        typedef cgal_mesh_type input_mesh_type;
         typedef cgal_element_type input_element_type;
         
-        typedef vgrid_domain_type output_domain_type;
+        typedef vgrid_mesh_type output_mesh_type;
         typedef vgrid_element_type output_element_type;
 
         
-        static bool convert( cgal_domain_type const & cgal_domain, SourceSegmentationT const &, vgrid_domain_type & vgrid_domain, DestinationSegmentationT & )
+        static bool convert( cgal_mesh_type const & cgal_mesh, SourceSegmentationT const &, vgrid_mesh_type & vgrid_mesh, DestinationSegmentationT & )
         {
-            typedef viennagrid::result_of::point<vgrid_domain_type>::type triangle_point_type;
+            typedef viennagrid::result_of::point<vgrid_mesh_type>::type triangle_point_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::vertex_tag>::type triangle_vertex_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::line_tag>::type triangle_line_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::line_tag>::type triangle_line_handle_type;
             
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::triangle_tag>::type triangle_triangle_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::triangle_tag>::type triangle_triangle_handle_type;
             
             
             std::map<cgal_element_type::Point, triangle_vertex_handle_type> points;
             
-            for (cgal_domain_type::cell_container::const_iterator it = cgal_domain.cells.begin(); it != cgal_domain.cells.end(); ++it)
+            for (cgal_mesh_type::cell_container::const_iterator it = cgal_mesh.cells.begin(); it != cgal_mesh.cells.end(); ++it)
             {
                 cgal_element_type const & cgal_element = *it;
                 
@@ -287,14 +287,14 @@ namespace viennamesh
                             std::map<cgal_element_type::Point, triangle_vertex_handle_type>::iterator pit = points.find( tri[i] );
                             if (pit == points.end())
                             {
-                                vgrid_vtx[i] = viennagrid::make_vertex( vgrid_domain, triangle_point_type(tri[i].x(), tri[i].y()) );
+                                vgrid_vtx[i] = viennagrid::make_vertex( vgrid_mesh, triangle_point_type(tri[i].x(), tri[i].y()) );
                                 points[ tri[i] ] = vgrid_vtx[i];
                             }
                             else
                                 vgrid_vtx[i] = pit->second;
                         }
                         
-                        viennagrid::make_element<triangle_triangle_type>( vgrid_domain, vgrid_vtx.begin(), vgrid_vtx.end() );
+                        viennagrid::make_element<triangle_triangle_type>( vgrid_mesh, vgrid_vtx.begin(), vgrid_vtx.end() );
                     }
                 }
                 
@@ -329,7 +329,7 @@ namespace viennamesh
         std::list<Point> cgal_list_of_holes;
     };
     
-    struct cgal_plc_3d_domain
+    struct cgal_plc_3d_mesh
     {
         typedef std::deque<cgal_plc_3d_element> cell_container;
         cell_container cells;
@@ -343,13 +343,13 @@ namespace viennagrid
     namespace result_of
     {
         template<>
-        struct point<viennamesh::cgal_plc_3d_domain>
+        struct point<viennamesh::cgal_plc_3d_mesh>
         {
             typedef viennagrid::config::point_type_3d type;
         };
         
         template<>
-        struct point<const viennamesh::cgal_plc_3d_domain>
+        struct point<const viennamesh::cgal_plc_3d_mesh>
         {
             typedef viennagrid::config::point_type_3d type;
         };
@@ -361,39 +361,39 @@ namespace viennagrid
 namespace viennamesh
 {
     template<typename SourceSegmentationT, typename DestinationSegmentationT>
-    struct convert_impl<viennagrid::plc_3d_domain, SourceSegmentationT, cgal_plc_3d_domain, DestinationSegmentationT >
+    struct convert_impl<viennagrid::plc_3d_mesh, SourceSegmentationT, cgal_plc_3d_mesh, DestinationSegmentationT >
     {
-        typedef viennagrid::plc_3d_domain vgrid_domain_type;
-        typedef typename viennagrid::result_of::cell<vgrid_domain_type>::type vgrid_element_type;
+        typedef viennagrid::plc_3d_mesh vgrid_mesh_type;
+        typedef typename viennagrid::result_of::cell<vgrid_mesh_type>::type vgrid_element_type;
 
-        typedef cgal_plc_3d_domain cgal_domain_type;
+        typedef cgal_plc_3d_mesh cgal_mesh_type;
         typedef cgal_plc_3d_element cgal_element_type;
 
 
-        typedef vgrid_domain_type input_domain_type;
+        typedef vgrid_mesh_type input_mesh_type;
         typedef vgrid_element_type input_element_type;
 
-        typedef cgal_domain_type output_domain_type;
+        typedef cgal_mesh_type output_mesh_type;
         typedef cgal_element_type output_element_type;
 
-        static bool convert( vgrid_domain_type const & vgrid_domain, SourceSegmentationT const &, cgal_domain_type & cgal_domain, DestinationSegmentationT & )
+        static bool convert( vgrid_mesh_type const & vgrid_mesh, SourceSegmentationT const &, cgal_mesh_type & cgal_mesh, DestinationSegmentationT & )
         {
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::plc_tag>::type plc_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::plc_tag>::type plc_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::plc_tag>::type plc_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::plc_tag>::type plc_handle_type;
 
-            typedef viennagrid::result_of::const_element_range<vgrid_domain_type, viennagrid::plc_tag>::type plc_range_type;
+            typedef viennagrid::result_of::const_element_range<vgrid_mesh_type, viennagrid::plc_tag>::type plc_range_type;
             typedef viennagrid::result_of::iterator<plc_range_type>::type plc_range_iterator;
 
-            typedef viennagrid::result_of::point<vgrid_domain_type>::type point_type;
+            typedef viennagrid::result_of::point<vgrid_mesh_type>::type point_type;
 
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_type;
-            typedef viennagrid::result_of::const_handle<vgrid_domain_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_type;
+            typedef viennagrid::result_of::const_handle<vgrid_mesh_type, viennagrid::vertex_tag>::type vertex_const_handle_type;
 
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type line_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::line_tag>::type line_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::line_tag>::type line_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::line_tag>::type line_handle_type;
 
-//             typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_type;
-//             typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::polygon_tag>::type polygon_handle_type;
+//             typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::polygon_tag>::type polygon_type;
+//             typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::polygon_tag>::type polygon_handle_type;
 
 
             typedef viennagrid::result_of::const_element_range<vgrid_element_type, viennagrid::vertex_tag>::type vertex_range_type;
@@ -407,10 +407,10 @@ namespace viennamesh
 
             typedef viennagrid::config::point_type_2d point_type_2d;
 
-            plc_range_type plcs = viennagrid::elements<viennagrid::plc_tag>( vgrid_domain );
-            cgal_domain.cells.resize(plcs.size());
+            plc_range_type plcs = viennagrid::elements<viennagrid::plc_tag>( vgrid_mesh );
+            cgal_mesh.cells.resize(plcs.size());
 
-            cgal_domain_type::cell_container::iterator jt = cgal_domain.cells.begin();
+            cgal_mesh_type::cell_container::iterator jt = cgal_mesh.cells.begin();
 
             for (plc_range_iterator it = plcs.begin(); it != plcs.end(); ++it, ++jt)
             {
@@ -429,7 +429,7 @@ namespace viennamesh
                 {
                     vertex_const_handle_type const & vtx_handle = it.handle();
                     vertex_type const & vtx = *it;
-                    point_type const & vgrid_point = viennagrid::point(vgrid_domain, vtx);
+                    point_type const & vgrid_point = viennagrid::point(vgrid_mesh, vtx);
 
                     vertex_to_index_map[vtx_handle] = plc_points_3d.size();
                     plc_points_3d.push_back(vgrid_point);
@@ -496,45 +496,45 @@ namespace viennamesh
 
 
     template<typename SourceSegmentationT, typename DestinationSegmentationT>
-    struct convert_impl<cgal_plc_3d_domain, SourceSegmentationT, viennagrid::triangular_3d_domain, DestinationSegmentationT >
+    struct convert_impl<cgal_plc_3d_mesh, SourceSegmentationT, viennagrid::triangular_3d_mesh, DestinationSegmentationT >
     {
-        typedef cgal_plc_3d_domain cgal_domain_type;
+        typedef cgal_plc_3d_mesh cgal_mesh_type;
         typedef cgal_plc_3d_element cgal_element_type;
 
-        typedef viennagrid::triangular_3d_domain vgrid_domain_type;
-        typedef typename viennagrid::result_of::cell<vgrid_domain_type>::type vgrid_element_type;
+        typedef viennagrid::triangular_3d_mesh vgrid_mesh_type;
+        typedef typename viennagrid::result_of::cell<vgrid_mesh_type>::type vgrid_element_type;
 
 
-        typedef cgal_domain_type input_domain_type;
+        typedef cgal_mesh_type input_mesh_type;
         typedef cgal_element_type input_element_type;
 
-        typedef vgrid_domain_type output_domain_type;
+        typedef vgrid_mesh_type output_mesh_type;
         typedef vgrid_element_type output_element_type;
 
 
-        static bool convert( cgal_domain_type const & cgal_domain, SourceSegmentationT const &, vgrid_domain_type & vgrid_domain, DestinationSegmentationT & )
+        static bool convert( cgal_mesh_type const & cgal_mesh, SourceSegmentationT const &, vgrid_mesh_type & vgrid_mesh, DestinationSegmentationT & )
         {
-            typedef viennagrid::result_of::point<vgrid_domain_type>::type triangle_point_type;
+            typedef viennagrid::result_of::point<vgrid_mesh_type>::type triangle_point_type;
             typedef viennagrid::result_of::coord<triangle_point_type>::type numeric_type;
 
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::vertex_tag>::type triangle_vertex_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::vertex_tag>::type triangle_vertex_handle_type;
 
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::line_tag>::type triangle_line_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::line_tag>::type triangle_line_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::line_tag>::type triangle_line_handle_type;
 
-            typedef viennagrid::result_of::element<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_type;
-            typedef viennagrid::result_of::handle<vgrid_domain_type, viennagrid::triangle_tag>::type triangle_triangle_handle_type;
+            typedef viennagrid::result_of::element<vgrid_mesh_type, viennagrid::triangle_tag>::type triangle_triangle_type;
+            typedef viennagrid::result_of::handle<vgrid_mesh_type, viennagrid::triangle_tag>::type triangle_triangle_handle_type;
 
 
 //             typedef std::deque< std::pair<triangle_point_type, triangle_vertex_handle_type> > points_container;
 //             points_container points;
 
 
-//             vgrid_domain_type tmp_domain;
+//             vgrid_mesh_type tmp_mesh;
 
 
-            for (cgal_domain_type::cell_container::const_iterator it = cgal_domain.cells.begin(); it != cgal_domain.cells.end(); ++it)
+            for (cgal_mesh_type::cell_container::const_iterator it = cgal_mesh.cells.begin(); it != cgal_mesh.cells.end(); ++it)
             {
 //                 std::cout << "Converting back a PLC" << std::endl;
                 cgal_element_type const & cgal_element = *it;
@@ -554,10 +554,10 @@ namespace viennamesh
                             triangle_point_type point_3d = cgal_element.projection_matrix[0] * tri[i].x() + cgal_element.projection_matrix[1] * tri[i].y() + cgal_element.center;
 //                             std::cout << "  " << point_3d << std::endl;
 
-                            vgrid_vtx[i] = viennagrid::make_unique_vertex( vgrid_domain, point_3d );
+                            vgrid_vtx[i] = viennagrid::make_unique_vertex( vgrid_mesh, point_3d );
                         }
 
-                        viennagrid::make_element<triangle_triangle_type>( vgrid_domain, vgrid_vtx.begin(), vgrid_vtx.end() );
+                        viennagrid::make_element<triangle_triangle_type>( vgrid_mesh, vgrid_vtx.begin(), vgrid_vtx.end() );
                     }
                 }
             }

@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_CGAL_DELAUNEY_TETRAHEDRON_MESHER_HPP
 #define VIENNAMESH_ALGORITHM_CGAL_DELAUNEY_TETRAHEDRON_MESHER_HPP
 
-#include "viennamesh/domain/cgal_delaunay_tetrahedron.hpp"
+#include "viennamesh/mesh/cgal_delaunay_tetrahedron.hpp"
 #include "viennamesh/base/algorithm.hpp"
 #include "viennamesh/base/settings.hpp"
 
@@ -45,16 +45,16 @@ namespace viennamesh
         };
         
         
-        template<typename domain_type>
-        struct best_matching_native_input_domain<cgal_delaunay_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_mesh<cgal_delaunay_tetrahedron_tag, mesh_type>
         {
-            typedef cgal_mesh_polyhedron_domain type;
+            typedef cgal_mesh_polyhedron_mesh type;
         };
 
-        template<typename domain_type>
-        struct best_matching_native_output_domain<cgal_delaunay_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_mesh<cgal_delaunay_tetrahedron_tag, mesh_type>
         {
-            typedef cgal_delauney_tetdrahedron_domain type;
+            typedef cgal_delaunay_tetrahedron_mesh type;
         };
         
         template<typename segmentation_type>
@@ -121,7 +121,7 @@ namespace viennamesh
         if ( settings.cell_size.is_ignored() )
         {
             return new cgal_mesh_criteria_type(
-                CGAL::parameters::edge_size = std::numeric_limits<double>::max(),
+//                 CGAL::parameters::edge_size = std::numeric_limits<double>::max(),
                 CGAL::parameters::cell_radius_edge_ratio = settings.cell_radius_edge_ratio(),
                 CGAL::parameters::facet_angle = settings.facet_angle(),
                 CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK
@@ -185,21 +185,21 @@ namespace viennamesh
     {
         typedef cgal_delaunay_tetrahedron_tag algorithm_tag;
         
-        template<typename native_input_domain_type, typename native_output_domain_type, typename settings_type>
-        static algorithm_feedback run( native_input_domain_type const & native_input_domain, native_output_domain_type & native_output_domain, settings_type const & settings )
+        template<typename native_input_mesh_type, typename native_output_mesh_type, typename settings_type>
+        static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_output_mesh_type & native_output_mesh, settings_type const & settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
-            typename native_output_domain_type::Mesh_domain mesh_domain( native_input_domain.polyhedron );
+            typename native_output_mesh_type::Mesh_mesh mesh_mesh( native_input_mesh.polyhedron );
             
-            typename native_input_domain_type::feature_lines_type feature_lines(native_input_domain.feature_lines);
-            mesh_domain.add_features( feature_lines.begin(), feature_lines.end() );
+            typename native_input_mesh_type::feature_lines_type feature_lines(native_input_mesh.feature_lines);
+            mesh_mesh.add_features( feature_lines.begin(), feature_lines.end() );
             
             
-            typedef CGAL::Mesh_criteria_3<typename native_output_domain_type::Tr> mesh_criteria_type;
-            mesh_criteria_type * criteria = get_cirteria<mesh_criteria_type, typename native_input_domain_type::Mesh_domain::Index>(settings);
+            typedef CGAL::Mesh_criteria_3<typename native_output_mesh_type::Tr> mesh_criteria_type;
+            mesh_criteria_type * criteria = get_cirteria<mesh_criteria_type, typename native_input_mesh_type::Mesh_domain::Index>(settings);
 
             
-            native_output_domain.tetdrahedron_triangulation = CGAL::make_mesh_3<typename native_output_domain_type::C3t3>(mesh_domain, *criteria);
+            native_output_mesh.tetrahedron_triangulation = CGAL::make_mesh_3<typename native_output_mesh_type::C3t3>(mesh_mesh, *criteria);
             
             delete criteria;
             

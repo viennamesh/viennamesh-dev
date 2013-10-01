@@ -1,5 +1,5 @@
 //     {
-//         viennagrid::config::triangular_3d_domain sewed_hull_domain;
+//         viennagrid::config::triangular_3d_mesh sewed_hull_mesh;
 //         std::map<vertex_handle_type, vertex_handle_type> handle_handle_map;
 //         
 //         {
@@ -7,12 +7,12 @@
 //             point_handle_map_type point_handle_map;
 //             
 //             
-//             vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>( hull_domain );
+//             vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>( hull_mesh );
 //             std::cout << "Old num of vertices: " << vertices.size() << std::endl;
 //             for (vertex_range_handle_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it)
 //             {
-//                 vertex_type & vertex = viennagrid::dereference_handle( hull_domain, *it );
-//                 point_type & point = viennagrid::point( hull_domain, vertex );
+//                 vertex_type & vertex = viennagrid::dereference_handle( hull_mesh, *it );
+//                 point_type & point = viennagrid::point( hull_mesh, vertex );
 //                 
 //                 point_handle_map_type::iterator pit = point_handle_map.begin();
 //                 for (; pit != point_handle_map.end(); ++pit)
@@ -26,7 +26,7 @@
 //                 
 //                 if ( pit == point_handle_map.end() )
 //                 {
-//                     vertex_handle_type new_vertex = viennagrid::create_vertex( sewed_hull_domain, point );
+//                     vertex_handle_type new_vertex = viennagrid::create_vertex( sewed_hull_mesh, point );
 //                     
 //                     point_handle_map.push_back( std::make_pair(point, new_vertex) );
 //                     handle_handle_map.insert( std::make_pair(*it, new_vertex) );
@@ -34,9 +34,9 @@
 //             }
 //         }
 //         
-//         std::cout << "Old num of vertices: " << viennagrid::elements<viennagrid::vertex_tag>( hull_domain ).size() << std::endl;
+//         std::cout << "Old num of vertices: " << viennagrid::elements<viennagrid::vertex_tag>( hull_mesh ).size() << std::endl;
 //         
-//         triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( sewed_hull_domain );
+//         triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( sewed_hull_mesh );
 //         for (triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it)
 //         {
 //             triangle_type & triangle = *it;
@@ -46,6 +46,6 @@
 //             vtx[1] = handle_handle_map[viennagrid::elements<viennagrid::vertex_tag>(triangle).handle_at(1)];
 //             vtx[2] = handle_handle_map[viennagrid::elements<viennagrid::vertex_tag>(triangle).handle_at(2)];
 //             
-//             viennagrid::create_element<triangle_type>( sewed_hull_domain, vtx, vtx+3 );
+//             viennagrid::create_element<triangle_type>( sewed_hull_mesh, vtx, vtx+3 );
 //         }
 //     }

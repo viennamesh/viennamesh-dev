@@ -25,7 +25,7 @@
 // #include "viennamesh/base/segments.hpp"
 
 #include "viennagrid/config/default_configs.hpp"
-#include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
 
 
 /** @file netgen_reader.hpp
@@ -43,22 +43,22 @@ namespace viennagrid
     {
       /** @brief The functor interface triggering the read operation.
        * 
-       * @param domain    A ViennaGrid domain
+       * @param mesh    A ViennaGrid mesh
        * @param filename  Name of the file
        */
-      template <typename GeometricDomainType>
-      int operator()(GeometricDomainType & domain, std::string const & filename)
+      template <typename GeometricMeshType>
+      int operator()(GeometricMeshType & mesh, std::string const & filename)
       {        
-        typedef typename viennagrid::result_of::point_type<GeometricDomainType>::type    PointType;
+        typedef typename viennagrid::result_of::point_type<GeometricMeshType>::type    PointType;
         typedef typename viennagrid::result_of::coord_type< PointType >::type         CoordType;
 
         enum { point_dim = viennagrid::traits::static_size<PointType>::value };
         
         typedef tetrahedron_tag CellTag;
-        typedef typename result_of::element<GeometricDomainType, CellTag>::type CellType;
-        typedef typename result_of::handle<GeometricDomainType, CellTag>::type                           CellHookType;
+        typedef typename result_of::element<GeometricMeshType, CellTag>::type CellType;
+        typedef typename result_of::handle<GeometricMeshType, CellTag>::type                           CellHookType;
 
-        typedef typename result_of::handle<GeometricDomainType, vertex_tag>::type                           VertexHookType;
+        typedef typename result_of::handle<GeometricMeshType, vertex_tag>::type                           VertexHookType;
         
         
         std::ifstream reader(filename.c_str());
@@ -101,7 +101,7 @@ namespace viennagrid
             
             point *= scaling;
 
-            vertex_map[index] = viennagrid::create_vertex(domain, point);
+            vertex_map[index] = viennagrid::create_vertex(mesh, point);
         }
         
         
@@ -119,16 +119,16 @@ namespace viennagrid
             for (viennagrid::storage::static_array<int, 10>::iterator jt = node_ids.begin(); jt != node_ids.end(); ++jt)
                 current_element_string >> *jt;
             
-//             PointType const & p0 = viennagrid::point( domain, vertex_map[node_ids[0]] );
-//             PointType const & p1 = viennagrid::point( domain, vertex_map[node_ids[1]] );
-//             PointType const & p2 = viennagrid::point( domain, vertex_map[node_ids[2]] );
-//             PointType const & p3 = viennagrid::point( domain, vertex_map[node_ids[3]] );
+//             PointType const & p0 = viennagrid::point( mesh, vertex_map[node_ids[0]] );
+//             PointType const & p1 = viennagrid::point( mesh, vertex_map[node_ids[1]] );
+//             PointType const & p2 = viennagrid::point( mesh, vertex_map[node_ids[2]] );
+//             PointType const & p3 = viennagrid::point( mesh, vertex_map[node_ids[3]] );
 //             
 //             double det = viennamesh::utils::determinant(p1-p0, p2-p0, p3-p0);
 //             std::cout << "det=" << det << std::endl;
             
-            CellHookType tet_handle = viennagrid::create_tetrahedron( domain, vertex_map[node_ids[0]], vertex_map[node_ids[1]], vertex_map[node_ids[2]], vertex_map[node_ids[3]] );
-//             viennamesh::segment( viennagrid::dereference_handle( domain, tet_handle ) ) = segment;
+            CellHookType tet_handle = viennagrid::create_tetrahedron( mesh, vertex_map[node_ids[0]], vertex_map[node_ids[1]], vertex_map[node_ids[2]], vertex_map[node_ids[3]] );
+//             viennamesh::segment( viennagrid::dereference_handle( mesh, tet_handle ) ) = segment;
         }
         
         
@@ -144,7 +144,7 @@ namespace viennagrid
             
             current_element_string >> node_index >> value;
             
-            viennadata::access<std::string, double>(nodeattribute_name)(viennagrid::dereference_handle(domain, vertex_map[node_index])) = value;
+            viennadata::access<std::string, double>(nodeattribute_name)(viennagrid::dereference_handle(mesh, vertex_map[node_index])) = value;
         }
         
 

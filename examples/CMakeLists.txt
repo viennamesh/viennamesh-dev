@@ -84,3 +84,6 @@ add_executable(tetgen_viennamesh src/tetgen_viennamesh.cpp)
 target_link_libraries(tetgen_viennamesh tetgen)
 
 
+add_executable(mesh_conversion src/mesh_conversion.cpp)
+target_link_libraries(mesh_conversion ${CGAL_LIBS} nglib tetgen)
+

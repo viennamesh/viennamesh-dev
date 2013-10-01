@@ -2,7 +2,7 @@
 #define VIENNAMESH_BASE_CGAL_DATASTRUCTURE_HPP
 
 #include "viennamesh/base/datastructure.hpp"
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/mesh/config.hpp"
 
 namespace viennamesh
 {
@@ -26,9 +26,9 @@ namespace viennamesh
         };
         
         template<>
-        struct domain< viennagrid_tag<viennagrid::config::plc_2d> >
+        struct mesh< viennagrid_tag<viennagrid::config::plc_2d> >
         {
-            typedef viennagrid::config::plc_2d_domain type;
+            typedef viennagrid::config::plc_2d_mesh type;
         };
         
         
@@ -40,9 +40,9 @@ namespace viennamesh
         };
         
         template<>
-        struct domain< viennagrid_tag<viennagrid::config::plc_3d> >
+        struct mesh< viennagrid_tag<viennagrid::config::plc_3d> >
         {
-            typedef viennagrid::config::plc_3d_domain type;
+            typedef viennagrid::config::plc_3d_mesh type;
         };
         
         

@@ -63,16 +63,16 @@ namespace viennamesh
   };
   
   
-  template<typename MetricTagT, typename DomainT>
+  template<typename MetricTagT, typename MeshT>
   typename viennagrid::result_of::iterator<
-    typename viennagrid::result_of::const_cell_range<DomainT>::type
-  >::type worst_element( DomainT const & domain )
+    typename viennagrid::result_of::const_cell_range<MeshT>::type
+  >::type worst_element( MeshT const & mesh )
   {
-    typedef typename viennagrid::result_of::cell<DomainT>::type CellType;
+    typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
     typedef typename viennamesh::result_of::metric_ordering_tag<MetricTagT>::type MetricOrderingTag;
-    typedef typename viennagrid::result_of::const_cell_range<DomainT>::type CellRangeType;
+    typedef typename viennagrid::result_of::const_cell_range<MeshT>::type CellRangeType;
     
-    CellRangeType cells = viennagrid::elements(domain);
+    CellRangeType cells = viennagrid::elements(mesh);
     return worst_element_impl<MetricOrderingTag>::find( cells.begin(), cells.end(), viennamesh::metric_compare<MetricTagT, CellType> );
   }
 }

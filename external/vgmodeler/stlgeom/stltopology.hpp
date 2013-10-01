@@ -3,7 +3,7 @@
 
 
 
-#include "viennagrid/domain/segmentation.hpp"
+#include "viennagrid/mesh/segmentation.hpp"
 namespace vgmnetgen {
 
 
@@ -351,7 +351,7 @@ public:
   
   virtual void InitSTLGeometry (const ARRAY<STLReadTriangle> & readtrigs);
   virtual void InitSTLGeometry (const char * filename);
-  virtual void InitSTLGeometry (viennagrid::triangular_3d_domain const & domain, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation);
+  virtual void InitSTLGeometry (viennagrid::triangular_3d_mesh const & mesh, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation);
   
   virtual void TopologyChanged() {}; //do some things, if topology changed!
 

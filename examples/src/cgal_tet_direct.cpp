@@ -6,7 +6,7 @@
 
 
 #include "viennagrid/config/default_configs.hpp"
-#include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 
@@ -37,15 +37,15 @@ using namespace CGAL::parameters;
 
 int main()
 {
-    // Domain
+    // Mesh
     typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 //     typedef CGAL::Polyhedron_3<K> Polyhedron;
     typedef CGAL::Mesh_polyhedron_3<K>::type MeshPolyhedron;
-    typedef CGAL::Polyhedral_mesh_domain_with_features_3<K, MeshPolyhedron> Mesh_domain;
+    typedef CGAL::Polyhedral_mesh_domain_with_features_3<K, MeshPolyhedron> Mesh_mesh;
 
     // Triangulation
-    typedef CGAL::Mesh_triangulation_3<Mesh_domain>::type Tr;
-    typedef CGAL::Mesh_complex_3_in_triangulation_3<Tr, Mesh_domain::Corner_index,Mesh_domain::Curve_segment_index> C3t3;
+    typedef CGAL::Mesh_triangulation_3<Mesh_mesh>::type Tr;
+    typedef CGAL::Mesh_complex_3_in_triangulation_3<Tr, Mesh_mesh::Corner_index,Mesh_mesh::Curve_segment_index> C3t3;
 
     // Criteria
     typedef CGAL::Mesh_criteria_3<Tr> Mesh_criteria;
@@ -130,24 +130,24 @@ int main()
     
     
     
-    Mesh_domain domain(polyhedron);
+    Mesh_mesh mesh(polyhedron);
     
     
-    domain.add_features(lines.begin(), lines.end());
+    mesh.add_features(lines.begin(), lines.end());
 //     
 //     
 //     
 //     
 //     
 //     
-//     domain.detect_features();
+//     mesh.detect_features();
     
 
   // Mesh criteria
 //   Mesh_criteria criteria;
   
   // Mesh generation
-//   C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria, features(domain));
+//   C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(mesh, criteria, features(mesh));
 
     
   // Output
@@ -162,8 +162,8 @@ int main()
 //                          facet_angle = 25, facet_size = 0.05, facet_distance = 0.005,
 //                          cell_radius_edge_ratio = 3, cell_size = 0.05);
 
-//     domain.detect_features();
-    C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(domain, criteria);
+//     mesh.detect_features();
+    C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(mesh, criteria);
     
     
 //     typedef C3t3::Cell_handle Cell_handle;
@@ -184,22 +184,22 @@ int main()
     typedef Tr::Vertex_handle Vertex_handle;
     
     
-    typedef viennagrid::tetrahedral_3d_domain tet_domain_type;
-    tet_domain_type tet_domain;
+    typedef viennagrid::tetrahedral_3d_mesh tet_mesh_type;
+    tet_mesh_type tet_mesh;
     
-    typedef viennagrid::result_of::point<tet_domain_type>::type tet_point_type;
+    typedef viennagrid::result_of::point<tet_mesh_type>::type tet_point_type;
      
-    typedef viennagrid::result_of::element<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_type;
-    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::vertex_tag>::type tet_vertex_handle_type;
+    typedef viennagrid::result_of::element<tet_mesh_type, viennagrid::vertex_tag>::type tet_vertex_type;
+    typedef viennagrid::result_of::handle<tet_mesh_type, viennagrid::vertex_tag>::type tet_vertex_handle_type;
     
-    typedef viennagrid::result_of::element<tet_domain_type, viennagrid::line_tag>::type tet_line_type;
-    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::line_tag>::type tet_line_handle_type;
+    typedef viennagrid::result_of::element<tet_mesh_type, viennagrid::line_tag>::type tet_line_type;
+    typedef viennagrid::result_of::handle<tet_mesh_type, viennagrid::line_tag>::type tet_line_handle_type;
     
-    typedef viennagrid::result_of::element<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle_type;
-    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::triangle_tag>::type tet_triangle__handle_type;
+    typedef viennagrid::result_of::element<tet_mesh_type, viennagrid::triangle_tag>::type tet_triangle_type;
+    typedef viennagrid::result_of::handle<tet_mesh_type, viennagrid::triangle_tag>::type tet_triangle__handle_type;
 
-    typedef viennagrid::result_of::element<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_type;
-    typedef viennagrid::result_of::handle<tet_domain_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_handle_type;
+    typedef viennagrid::result_of::element<tet_mesh_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_type;
+    typedef viennagrid::result_of::handle<tet_mesh_type, viennagrid::tetrahedron_tag>::type tet_tetrahedron_handle_type;
     
     
     std::map<Vertex_handle, tet_vertex_handle_type> points;
@@ -229,27 +229,27 @@ int main()
 //                     tmp[2] /= hw;
 //                 }
                 
-                vgrid_vtx[i] = viennagrid::make_vertex( tet_domain, tmp );
+                vgrid_vtx[i] = viennagrid::make_vertex( tet_mesh, tmp );
                 points[ t.vertex(i) ] = vgrid_vtx[i];
             }
             else
                 vgrid_vtx[i] = pit->second;
         }
         
-        viennagrid::make_element<tet_tetrahedron_type>( tet_domain, vgrid_vtx, vgrid_vtx+4 );
+        viennagrid::make_element<tet_tetrahedron_type>( tet_mesh, vgrid_vtx, vgrid_vtx+4 );
             
         
 //         std::cout << tri << std::endl;
         ++mesh_faces_counter;
     }
-    std::cout << "Number of faces in the mesh domain: " << mesh_faces_counter << std::endl;
+    std::cout << "Number of faces in the mesh mesh: " << mesh_faces_counter << std::endl;
     
 
     
-//     std::copy( viennagrid::elements<tet_tetrahedron_type>(tet_domain).begin(), viennagrid::elements<tet_tetrahedron_type>(tet_domain).end(), std::ostream_iterator<tet_tetrahedron_type>(std::cout, "\n") );
+//     std::copy( viennagrid::elements<tet_tetrahedron_type>(tet_mesh).begin(), viennagrid::elements<tet_tetrahedron_type>(tet_mesh).end(), std::ostream_iterator<tet_tetrahedron_type>(std::cout, "\n") );
     
 
-    viennagrid::io::vtk_writer<tet_domain_type> vtk_writer;
-    vtk_writer(tet_domain, "test_tet_3d");
+    viennagrid::io::vtk_writer<tet_mesh_type> vtk_writer;
+    vtk_writer(tet_mesh, "test_tet_3d");
     
 }

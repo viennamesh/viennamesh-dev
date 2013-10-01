@@ -74,6 +74,15 @@ namespace viennamesh
     
     struct aspect_ratio_tag {};
     
+  namespace result_of
+  {
+    template<>
+    struct metric_ordering_tag<aspect_ratio_tag>
+    {
+      typedef lower_is_better_tag type;
+    };
+  }
+    
     template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
     typename viennagrid::result_of::coord<PointAccessorT>::type aspect_ratio( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
     {

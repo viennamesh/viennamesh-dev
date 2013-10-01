@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_DOCTOR_TRIANGULAR_HULL_HPP
 #define VIENNAMESH_DOCTOR_TRIANGULAR_HULL_HPP
 
-#include "viennagrid/domain/segmentation.hpp"
+#include "viennagrid/mesh/segmentation.hpp"
 
 #include "viennamesh/utils/utils.hpp"
 
@@ -34,27 +34,27 @@ namespace viennamesh
 // 
 // 
 // 
-//     template<typename hull_domain_type, typename segmentation_type, typename segment_id_type>
-//     bool check_hull_topology( hull_domain_type const & hull_domain, segmentation_type const & segmentation, segment_id_type segment_id )
+//     template<typename hull_mesh_type, typename segmentation_type, typename segment_id_type>
+//     bool check_hull_topology( hull_mesh_type const & hull_mesh, segmentation_type const & segmentation, segment_id_type segment_id )
 //     {
-//         typedef typename viennagrid::result_of::cell_type<hull_domain_type>::type cell_type;
-//         typedef typename viennagrid::result_of::const_cell_range<hull_domain_type>::type cell_range_type;
+//         typedef typename viennagrid::result_of::cell_type<hull_mesh_type>::type cell_type;
+//         typedef typename viennagrid::result_of::const_cell_range<hull_mesh_type>::type cell_range_type;
 //         typedef typename viennagrid::result_of::iterator<cell_range_type>::type cell_range_iterator;
 //         
-//         typedef typename viennagrid::result_of::const_vertex_handle<hull_domain_type>::type vertex_const_handle_type;
+//         typedef typename viennagrid::result_of::const_vertex_handle<hull_mesh_type>::type vertex_const_handle_type;
 //         
-//         cell_range_type cells = viennagrid::elements(hull_domain);
+//         cell_range_type cells = viennagrid::elements(hull_mesh);
 //         
 //         for (cell_range_iterator it = cells.begin(); it != cells.end(); ++it)
 //         {
-//             typedef typename viennagrid::result_of::const_neighbour_range<hull_domain_type, cell_type>::type neighbour_range_type;
+//             typedef typename viennagrid::result_of::const_neighbour_range<hull_mesh_type, cell_type>::type neighbour_range_type;
 //             typedef typename viennagrid::result_of::iterator<neighbour_range_type>::type neighbour_range_iterator;
 //             
 //             viennagrid::storage::static_array<vertex_const_handle_type, 3> vh;
 //             for (int i = 0; i < 3; ++i)
 //                 vh[i] = viennagrid::vertices(*it).handle_at(i);        
 //             
-//             neighbour_range_type neighbours = viennagrid::create_neighbour_elements<viennagrid::line_tag>(hull_domain, it.handle());
+//             neighbour_range_type neighbours = viennagrid::create_neighbour_elements<viennagrid::line_tag>(hull_mesh, it.handle());
 //             if (neighbours.size() != 3)
 //             {
 //                 std::cout << "TOPOLOGY ERROR!! hull triangle has " << neighbours.size() << " neighbours" << std::endl;

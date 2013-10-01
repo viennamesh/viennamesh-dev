@@ -10,9 +10,9 @@
 // stlgeom, as the viennagrid domain has to be used within 
 // stltopology.hpp
 #include "viennagrid/config/default_configs.hpp"
-#include "viennagrid/domain/element_creation.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
 // #include "viennagrid/config/simplex.hpp"
-#include "viennagrid/domain/segmentation.hpp"
+#include "viennagrid/mesh/segmentation.hpp"
 
 #include "stlgeom.hpp"
 
@@ -3136,7 +3136,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //
 int STLSurfaceMeshing (STLGeometry & geom,
 		       class Mesh & mesh,
-               viennagrid::triangular_3d_domain & domain,
+               viennagrid::triangular_3d_mesh & vgrid_mesh,
                viennagrid::triangular_hull_3d_segmentation & segmentation)
 {
   int i, j;
@@ -3516,14 +3516,14 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
   // [JW] here we transfer the data from the gsse domain to the viennagrid domain
   //
-   typedef viennagrid::triangular_3d_domain   DomainType;
+   typedef viennagrid::triangular_3d_mesh   MeshType;
    typedef viennagrid::triangular_hull_3d_segment   SegmentType;
-   typedef viennagrid::result_of::point<DomainType>::type PointType;
+   typedef viennagrid::result_of::point<MeshType>::type PointType;
 //    typedef DomainType::config_type                                                  DomainConfiguration;  
-   typedef viennagrid::result_of::element<DomainType, viennagrid::vertex_tag>::type       VertexType;   
+   typedef viennagrid::result_of::element<MeshType, viennagrid::vertex_tag>::type       VertexType;   
 //    typedef DomainConfiguration::cell_tag                                         CellTag;  
    typedef viennagrid::triangle_tag CellTag;
-   typedef viennagrid::result_of::element<DomainType, CellTag>::type     CellType;   
+   typedef viennagrid::result_of::element<MeshType, CellTag>::type     CellType;   
   
    using namespace gsse::access_specifier;   
    typedef gsse::result_of::at_dim<FullSpace, AC>::type                 SpaceTopologySegmentsT;  
@@ -3542,7 +3542,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
       CoordPosT point = gsse::at(i)(geometry);
       
       
-      viennagrid::make_vertex( domain, PointType( point[0], point[1], point[2]) );
+      viennagrid::make_vertex( vgrid_mesh, PointType( point[0], point[1], point[2]) );
       
 /*      PointType & point = viennagrid::point( PointType,
       
@@ -3587,14 +3587,14 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //          domain.segments()[si].push_back(cell); 
          
          
-         typedef viennagrid::result_of::handle<DomainType, viennagrid::triangle_tag>::type triangle_handle_type;
+         typedef viennagrid::result_of::handle<MeshType, viennagrid::triangle_tag>::type triangle_handle_type;
 
          
          
          triangle_handle_type triangle_handle = viennagrid::make_triangle( segment,
-                                    viennagrid::elements<viennagrid::vertex_tag>(domain).handle_at( cell_cont[ci][0] ),
-                                    viennagrid::elements<viennagrid::vertex_tag>(domain).handle_at( cell_cont[ci][1] ),
-                                    viennagrid::elements<viennagrid::vertex_tag>(domain).handle_at( cell_cont[ci][2] )
+                                    viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][0] ),
+                                    viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][1] ),
+                                    viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][2] )
                                     );
          
          
@@ -3605,7 +3605,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //          element_segment_info const & seg_info = segmentation.segment_info( viennagrid::dereference_handle(domain, triangle_handle) );
 
 
-         *viennagrid::segment_element_info( segment, viennagrid::dereference_handle(domain, triangle_handle) ) = true;
+         *viennagrid::segment_element_info( segment, viennagrid::dereference_handle(vgrid_mesh, triangle_handle) ) = true;
 //          segmentation.set_segment_info( viennagrid::dereference_handle(domain, triangle_handle), element_segment_info_type( geom.segment_id_map[si], segment_id_type() ) );
          
 //          viennamesh::add_face_to_segment( domain, viennagrid::dereference_handle(domain, triangle_handle), geom.segment_id_map[si], true );

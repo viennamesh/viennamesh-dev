@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_CGAL_PLC_MESHER_HPP
 #define VIENNAMESH_ALGORITHM_CGAL_PLC_MESHER_HPP
 
-#include "viennamesh/domain/cgal_plc.hpp"
+#include "viennamesh/mesh/cgal_plc.hpp"
 #include "viennamesh/base/algorithm.hpp"
 #include "viennamesh/base/settings.hpp"
 
@@ -62,30 +62,30 @@ namespace viennamesh
         
         
         
-        template<typename domain_type>
-        struct best_matching_native_input_domain<cgal_plc_2d_mesher_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_mesh<cgal_plc_2d_mesher_tag, mesh_type>
         {
-            typedef cgal_plc_2d_domain type;
+            typedef cgal_plc_2d_mesh type;
         };
         
-        template<typename domain_type>
-        struct best_matching_native_input_domain<cgal_plc_3d_mesher_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_mesh<cgal_plc_3d_mesher_tag, mesh_type>
         {
-            typedef cgal_plc_3d_domain type;
+            typedef cgal_plc_3d_mesh type;
         };
         
 
         
-        template<typename domain_type>
-        struct best_matching_native_output_domain<cgal_plc_2d_mesher_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_mesh<cgal_plc_2d_mesher_tag, mesh_type>
         {
-            typedef cgal_plc_2d_domain type;
+            typedef cgal_plc_2d_mesh type;
         };
         
-        template<typename domain_type>
-        struct best_matching_native_output_domain<cgal_plc_3d_mesher_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_mesh<cgal_plc_3d_mesher_tag, mesh_type>
         {
-            typedef cgal_plc_3d_domain type;
+            typedef cgal_plc_3d_mesh type;
         };
         
         
@@ -116,13 +116,13 @@ namespace viennamesh
     {
         typedef cgal_plc_2d_mesher_tag algorithm_tag;
         
-        template<typename native_domain_type, typename settings_type>
-        static algorithm_feedback run( native_domain_type & native_domain, settings_type const & settings )
+        template<typename native_mesh_type, typename settings_type>
+        static algorithm_feedback run( native_mesh_type & native_mesh, settings_type const & settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
-            typedef cgal_plc_2d_domain cgal_domain_type;
+            typedef cgal_plc_2d_mesh cgal_mesh_type;
             
-            for (cgal_domain_type::cell_container::iterator it = native_domain.cells.begin(); it != native_domain.cells.end(); ++it)
+            for (cgal_mesh_type::cell_container::iterator it = native_mesh.cells.begin(); it != native_mesh.cells.end(); ++it)
             {
                 cgal_plc_3d_element::Criteria crit(settings.shortes_edge_circumradius_ratio(), settings.size_bound());
                 cgal_plc_3d_element::Mesher m(it->cdt,crit);
@@ -149,13 +149,13 @@ namespace viennamesh
     {
         typedef cgal_plc_3d_mesher_tag algorithm_tag;
         
-        template<typename native_domain_type, typename settings_type>
-        static algorithm_feedback run( native_domain_type & native_domain, settings_type const & settings )
+        template<typename native_mesh_type, typename settings_type>
+        static algorithm_feedback run( native_mesh_type & native_mesh, settings_type const & settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
-            typedef cgal_plc_3d_domain cgal_domain_type;
+            typedef cgal_plc_3d_mesh cgal_mesh_type;
             
-            for (cgal_domain_type::cell_container::iterator it = native_domain.cells.begin(); it != native_domain.cells.end(); ++it)
+            for (cgal_mesh_type::cell_container::iterator it = native_mesh.cells.begin(); it != native_mesh.cells.end(); ++it)
             {
                 cgal_plc_3d_element::Criteria crit(settings.shortes_edge_circumradius_ratio(), settings.size_bound());
                 cgal_plc_3d_element::Mesher m(it->cdt,crit);

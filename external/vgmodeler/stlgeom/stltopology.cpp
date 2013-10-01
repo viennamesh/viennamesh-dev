@@ -11,7 +11,7 @@
 #include "gsse/math/geometric_barycenter.hpp"
 
 
-#include "viennagrid/domain/segmentation.hpp"
+#include "viennagrid/mesh/segmentation.hpp"
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"
 // #include "viennadata/api.hpp"
@@ -525,10 +525,10 @@ STLGeometry *  STLTopology ::Load (const char* filename)
 
 
 
-void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_domain const & vgriddomain, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation )
+void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgridmesh, viennagrid::triangular_hull_3d_segmentation const & vgridsegmentation )
 {
 //    typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     DomainType;
-   typedef viennagrid::triangular_3d_domain DomainType;
+   typedef viennagrid::triangular_3d_mesh MeshType;
    typedef viennagrid::triangular_hull_3d_segmentation SegmentationType;
    typedef viennagrid::triangular_hull_3d_segment SegmentType;
 
@@ -540,14 +540,14 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_domain const & vg
    typedef viennagrid::triangle_tag                CellTag;
 
 //    typedef DomainType::segment_type                                                                  SegmentType;
-   typedef viennagrid::result_of::element<DomainType, viennagrid::triangle_tag>::type      CellType;
-   typedef viennagrid::result_of::const_element_range<DomainType, viennagrid::vertex_tag>::type                               GeometryContainer;
+   typedef viennagrid::result_of::element<MeshType, viennagrid::triangle_tag>::type      CellType;
+   typedef viennagrid::result_of::const_element_range<MeshType, viennagrid::vertex_tag>::type                               GeometryContainer;
    typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
-   typedef viennagrid::result_of::const_element_range<DomainType, CellTag>::type         CellContainer;
+   typedef viennagrid::result_of::const_element_range<MeshType, CellTag>::type         CellContainer;
    typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
    typedef viennagrid::result_of::const_element_range<CellType, viennagrid::vertex_tag>::type                                  VertexOnCellContainer;
    typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
-   typedef viennagrid::result_of::point<DomainType>::type                               PointType;
+   typedef viennagrid::result_of::point<MeshType>::type                               PointType;
 
    static const int DIMT = 3;
    static const int CELLSIZE = DIMT+1;      
@@ -584,11 +584,11 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_domain const & vg
 
    // transfer geometry
    //
-   GeometryContainer geometry = viennagrid::elements<viennagrid::vertex_tag>(vgriddomain);
+   GeometryContainer geometry = viennagrid::elements<viennagrid::vertex_tag>(vgridmesh);
 
    for (GeometryIterator pit = geometry.begin(); pit != geometry.end(); ++pit)
    {
-      PointType point = viennagrid::point( vgriddomain, *pit );
+      PointType point = viennagrid::point( vgridmesh, *pit );
       point_t gssepoint;
       gssepoint[0] = point[0];
       gssepoint[1] = point[1];
@@ -603,7 +603,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_domain const & vg
 //    segment_ids_container_type const & used_segments = vgridsegmentation.segments();  
 //    viennamesh::segment_id_container_type const & used_segments = viennamesh::segments( vgriddomain );
 
-    viennagrid::result_of::default_point_accessor<DomainType>::type point_accessor = viennagrid::default_point_accessor( vgriddomain );
+    viennagrid::result_of::default_point_accessor<MeshType>::type point_accessor = viennagrid::default_point_accessor( vgridmesh );
    
    
 //    for (std::size_t si = 0; si < num_segments; ++si)
@@ -625,7 +625,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_domain const & vg
       
       // transfer topology
       //
-      CellContainer cells = viennagrid::elements<CellTag>(vgriddomain);
+      CellContainer cells = viennagrid::elements<CellTag>(vgridmesh);
       for (CellIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
           PointType const & p0 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[0] );

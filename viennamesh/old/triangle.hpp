@@ -6,69 +6,69 @@
 typedef double REAL;
 #include "triangle/triangle.h"
 
-#include "viennagrid/domain/config.hpp"
+#include "viennagrid/mesh/config.hpp"
 
 namespace viennamesh
 {
     
     namespace triangle
     {
-        typedef triangulateio domain_type;
+        typedef triangulateio mesh_type;
         
-        inline void init( domain_type & domain )
+        inline void init( mesh_type & mesh )
         {
-            domain.pointlist = NULL;
-            domain.pointattributelist = NULL;
-            domain.pointmarkerlist = NULL;
-            domain.numberofpoints = 0;
-            domain.numberofpointattributes = 0;
+            mesh.pointlist = NULL;
+            mesh.pointattributelist = NULL;
+            mesh.pointmarkerlist = NULL;
+            mesh.numberofpoints = 0;
+            mesh.numberofpointattributes = 0;
             
-            domain.trianglelist = NULL;
-            domain.triangleattributelist = NULL;
-            domain.trianglearealist = NULL;
-            domain.neighborlist = NULL;
-            domain.numberoftriangles = 0;
-            domain.numberofcorners = 0;
-            domain.numberoftriangleattributes = 0;
+            mesh.trianglelist = NULL;
+            mesh.triangleattributelist = NULL;
+            mesh.trianglearealist = NULL;
+            mesh.neighborlist = NULL;
+            mesh.numberoftriangles = 0;
+            mesh.numberofcorners = 0;
+            mesh.numberoftriangleattributes = 0;
             
-            domain.segmentlist = NULL;
-            domain.segmentmarkerlist = NULL;
-            domain.numberofsegments = 0;
+            mesh.segmentlist = NULL;
+            mesh.segmentmarkerlist = NULL;
+            mesh.numberofsegments = 0;
             
-            domain.holelist = NULL;
-            domain.numberofholes = 0;
+            mesh.holelist = NULL;
+            mesh.numberofholes = 0;
             
-            domain.regionlist = NULL;
-            domain.numberofregions = 0;
+            mesh.regionlist = NULL;
+            mesh.numberofregions = 0;
             
-            domain.edgelist = NULL;
-            domain.edgemarkerlist = NULL;
-            domain.normlist = NULL;
-            domain.numberofedges = 0;
+            mesh.edgelist = NULL;
+            mesh.edgemarkerlist = NULL;
+            mesh.normlist = NULL;
+            mesh.numberofedges = 0;
         }
         
         
-        inline void deinit( domain_type & domain )
+        inline void deinit( mesh_type & mesh )
         {
-            free( domain.pointlist );
-            free( domain.pointattributelist );
-            free( domain.pointmarkerlist );
+            free( mesh.pointlist );
+            free( mesh.pointattributelist );
+            free( mesh.pointmarkerlist );
             
-            free( domain.trianglelist );
-            free( domain.triangleattributelist );
-            free( domain.trianglearealist );
-            free( domain.neighborlist );
+            free( mesh.trianglelist );
+            free( mesh.triangleattributelist );
+            free( mesh.trianglearealist );
+            free( mesh.neighborlist );
             
-            free( domain.segmentlist );
-            free( domain.segmentmarkerlist );
+            free( mesh.segmentlist );
+            free( mesh.segmentmarkerlist );
             
-            free( domain.holelist );
+            free( mesh.holelist );
             
-            free( domain.regionlist );
+            free( mesh.regionlist );
             
-            free( domain.edgelist );
-            free( domain.edgemarkerlist );
-            free( domain.normlist );
+            free( mesh.edgelist );
+            free( mesh.edgemarkerlist );
+            free( mesh.normlist );
         }
     }
     
@@ -79,9 +79,9 @@ namespace viennamesh
     namespace result_of
     {        
         template<>
-        struct domain< triangle_plc_tag >
+        struct mesh< triangle_plc_tag >
         {
-            typedef viennamesh::triangle::domain_type type;
+            typedef viennamesh::triangle::mesh_type type;
         };
     }
 }

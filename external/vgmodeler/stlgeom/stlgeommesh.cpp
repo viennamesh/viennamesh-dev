@@ -1466,7 +1466,7 @@ void STLGeometry :: RestrictHChartDistOneChart(int chartnum, ARRAY<int>& acttrig
 
 ////# define DEBUGALL
 //void * STLMeshingDummy (void *)
-int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::triangular_3d_domain & domain, viennagrid::triangular_hull_3d_segmentation & segmentation,
+int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::triangular_3d_mesh & vgrid_mesh, viennagrid::triangular_hull_3d_segmentation & segmentation,
 			    int perfstepsstart, int perfstepsend)
 {
 
@@ -1553,7 +1553,7 @@ int STLMeshingDummy (STLGeometry* stlgeometry, Mesh*& mesh, viennagrid::triangul
     // --------------------------------------------------------------------
     // --------------------------------------------------------------------
     // --------------------------------------------------------------------
-    int retval = STLSurfaceMeshing (*stlgeometry, *mesh, domain, segmentation); // at meststlsurface.cpp
+    int retval = STLSurfaceMeshing (*stlgeometry, *mesh, vgrid_mesh, segmentation); // at meststlsurface.cpp
     // --------------------------------------------------------------------
     // --------------------------------------------------------------------
     // --------------------------------------------------------------------

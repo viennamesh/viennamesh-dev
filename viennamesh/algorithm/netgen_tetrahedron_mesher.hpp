@@ -3,7 +3,7 @@
 
 #include "viennamesh/base/algorithm.hpp"
 #include "viennamesh/base/settings.hpp"
-#include "viennamesh/domain/netgen_tetrahedron.hpp"
+#include "viennamesh/mesh/netgen_tetrahedron.hpp"
 
 #include "viennamesh/utils/utils.hpp"
 
@@ -41,27 +41,27 @@ namespace viennamesh
             static const std::string name() { return "Netgen 5.0.0 Triangle Hull to Tetrahedron Mesher"; }
         };
         
-        template<typename domain_type>
-        struct best_matching_native_input_domain<netgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_mesh<netgen_tetrahedron_tag, mesh_type>
         {
-            typedef netgen_tetrahedron_domain type;
+            typedef netgen_tetrahedron_mesh type;
         };
 
-        template<typename domain_type>
-        struct best_matching_native_output_domain<netgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_mesh<netgen_tetrahedron_tag, mesh_type>
         {
-            typedef netgen_tetrahedron_domain type;
+            typedef netgen_tetrahedron_mesh type;
         };
         
         
-        template<typename domain_type>
-        struct best_matching_native_input_segmentation<netgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_input_segmentation<netgen_tetrahedron_tag, mesh_type>
         {
             typedef NoSegmentation type;
         };
 
-        template<typename domain_type>
-        struct best_matching_native_output_segmentation<netgen_tetrahedron_tag, domain_type>
+        template<typename mesh_type>
+        struct best_matching_native_output_segmentation<netgen_tetrahedron_tag, mesh_type>
         {
             typedef NoSegmentation type;
         };
@@ -80,13 +80,16 @@ namespace viennamesh
     {
         typedef netgen_tetrahedron_tag algorithm_tag;
         
-        template<typename native_domain_type, typename native_segmentation_type, typename settings_type>
-        static algorithm_feedback run( native_domain_type & native_domain,
+        template<typename native_mesh_type, typename native_segmentation_type, typename settings_type>
+        static algorithm_feedback run( native_mesh_type & native_mesh,
                          native_segmentation_type & native_segmentation,
                          settings_type const & settings )
         {
             algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
             nglib::Ng_Meshing_Parameters mesh_parameters;
+            
+//             mesh_parameters.optvolmeshenable = 1;
+//             mesh_parameters.optsteps_3d = 3;
             
             if ( !settings.cell_size.is_ignored() ) mesh_parameters.maxh = settings.cell_size();
 //             mesh_parameters.optvolmeshenable = 0;
@@ -95,7 +98,7 @@ namespace viennamesh
 //             double h = 10.0;
             
             int segment_index = 0;
-            for (typename native_domain_type::netgen_mesh_container_type::const_iterator it = native_domain.meshes.begin(); it != native_domain.meshes.end(); ++it, ++segment_index)
+            for (typename native_mesh_type::netgen_mesh_container_type::const_iterator it = native_mesh.meshes.begin(); it != native_mesh.meshes.end(); ++it, ++segment_index)
             {
 //                 nglib::Ng_Meshing_Parameters mesh_parameters;
 //                 

@@ -261,7 +261,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 			class Mesh & mesh);
 int STLSurfaceMeshing (STLGeometry & geom,
 			class Mesh & mesh,
-            viennagrid::triangular_3d_domain & domain,
+            viennagrid::triangular_3d_mesh & domain,
             viennagrid::triangular_hull_3d_segmentation & segmentation);
 
 void STLSurfaceOptimization (STLGeometry & geom,

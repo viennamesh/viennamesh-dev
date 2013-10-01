@@ -10,25 +10,25 @@ namespace viennamesh
 
     namespace result_of
     {       
-        template<typename algorithm_tag, typename domain_type>
-        struct best_matching_native_input_domain;
+        template<typename algorithm_tag, typename mesh_type>
+        struct best_matching_native_input_mesh;
         
         template<typename algorithm_tag, typename segmentation_type>
         struct best_matching_native_input_segmentation;
 
-        template<typename algorithm_tag, typename domain_type>
-        struct best_matching_native_output_domain;
+        template<typename algorithm_tag, typename mesh_type>
+        struct best_matching_native_output_mesh;
         
         template<typename algorithm_tag, typename segmentation_type>
         struct best_matching_native_output_segmentation;
 
 
-        template<typename algorithm_tag, typename domain_type>
-        struct is_native_input_domain
+        template<typename algorithm_tag, typename mesh_type>
+        struct is_native_input_mesh
         {
             static const bool value = viennagrid::meta::EQUAL<
-                    domain_type,
-                    typename best_matching_native_input_domain<algorithm_tag, domain_type>::type
+                    mesh_type,
+                    typename best_matching_native_input_mesh<algorithm_tag, mesh_type>::type
                 >::value;
         };
         
@@ -41,21 +41,21 @@ namespace viennamesh
                 >::value;
         };
         
-        template<typename algorithm_tag, typename domain_type, typename segmentation_type>
+        template<typename algorithm_tag, typename mesh_type, typename segmentation_type>
         struct is_native_input
         {
-            static const bool value = is_native_input_domain<algorithm_tag, domain_type>::value &&
+            static const bool value = is_native_input_mesh<algorithm_tag, mesh_type>::value &&
                                       is_native_input_segmentation<algorithm_tag, segmentation_type>::value;
         };
         
         
         
-        template<typename algorithm_tag, typename domain_type>
-        struct is_native_output_domain
+        template<typename algorithm_tag, typename mesh_type>
+        struct is_native_output_mesh
         {
             static const bool value = viennagrid::meta::EQUAL<
-                    domain_type,
-                    typename best_matching_native_output_domain<algorithm_tag, domain_type>::type
+                    mesh_type,
+                    typename best_matching_native_output_mesh<algorithm_tag, mesh_type>::type
                 >::value;
         };
         
@@ -68,10 +68,10 @@ namespace viennamesh
                 >::value;
         };
         
-        template<typename algorithm_tag, typename domain_type, typename segmentation_type>
+        template<typename algorithm_tag, typename mesh_type, typename segmentation_type>
         struct is_native_output
         {
-            static const bool value = is_native_output_domain<algorithm_tag, domain_type>::value &&
+            static const bool value = is_native_output_mesh<algorithm_tag, mesh_type>::value &&
                                       is_native_output_segmentation<algorithm_tag, segmentation_type>::value;
         };
 
@@ -139,30 +139,30 @@ namespace viennamesh
     
     
     
-    template<typename algorithm_tag, typename native_domain_type, typename settings_type>
-    algorithm_feedback run_algo_native( native_domain_type & native_domain, settings_type const & settings )
+    template<typename algorithm_tag, typename native_mesh_type, typename settings_type>
+    algorithm_feedback run_algo_native( native_mesh_type & native_mesh, settings_type const & settings )
     {
-        return native_algorithm_impl<algorithm_tag>::run(native_domain, settings);
+        return native_algorithm_impl<algorithm_tag>::run(native_mesh, settings);
     }
     
-    template<typename algorithm_tag, typename native_domain_type, typename segmentation_type, typename settings_type>
-    algorithm_feedback run_algo_native( native_domain_type & native_domain, segmentation_type & segmentation, settings_type const & settings )
+    template<typename algorithm_tag, typename native_mesh_type, typename segmentation_type, typename settings_type>
+    algorithm_feedback run_algo_native( native_mesh_type & native_mesh, segmentation_type & segmentation, settings_type const & settings )
     {
-        return native_algorithm_impl<algorithm_tag>::run(native_domain, segmentation, settings);
+        return native_algorithm_impl<algorithm_tag>::run(native_mesh, segmentation, settings);
     }
     
-    template<typename algorithm_tag, typename native_input_domain_type, typename native_ouput_domain_type, typename settings_type>
-    algorithm_feedback run_algo_native( native_input_domain_type const & native_input_domain, native_ouput_domain_type & native_output_domain, settings_type const & settings )
+    template<typename algorithm_tag, typename native_input_mesh_type, typename native_ouput_mesh_type, typename settings_type>
+    algorithm_feedback run_algo_native( native_input_mesh_type const & native_input_mesh, native_ouput_mesh_type & native_output_mesh, settings_type const & settings )
     {
-        return native_algorithm_impl<algorithm_tag>::run(native_input_domain, native_output_domain, settings);
+        return native_algorithm_impl<algorithm_tag>::run(native_input_mesh, native_output_mesh, settings);
     }
     
-    template<typename algorithm_tag, typename native_input_domain_type, typename input_segmentation_type, typename native_ouput_domain_type, typename output_segmentation_type, typename settings_type>
-    algorithm_feedback run_algo_native( native_input_domain_type const & native_input_domain, input_segmentation_type const & input_segmentation,
-                          native_ouput_domain_type & native_output_domain, output_segmentation_type & output_segmentation,
+    template<typename algorithm_tag, typename native_input_mesh_type, typename input_segmentation_type, typename native_ouput_mesh_type, typename output_segmentation_type, typename settings_type>
+    algorithm_feedback run_algo_native( native_input_mesh_type const & native_input_mesh, input_segmentation_type const & input_segmentation,
+                          native_ouput_mesh_type & native_output_mesh, output_segmentation_type & output_segmentation,
                           settings_type const & settings )
     {
-        return native_algorithm_impl<algorithm_tag>::run(native_input_domain, input_segmentation, native_output_domain, output_segmentation, settings);
+        return native_algorithm_impl<algorithm_tag>::run(native_input_mesh, input_segmentation, native_output_mesh, output_segmentation, settings);
     }
     
     
@@ -176,81 +176,81 @@ namespace viennamesh
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, true, true, true>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            if (&input_domain != &output_domain)
-                convert(input_domain, output_domain);
+            if (&input_mesh != &output_mesh)
+                convert(input_mesh, output_mesh);
                 
-            return native_algorithm_impl<algorithm_tag>::run( output_domain, settings );
+            return native_algorithm_impl<algorithm_tag>::run( output_mesh, settings );
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )
         {
-            if (&input_domain != &output_domain)
-                convert(input_domain, input_segmentation, output_domain, output_segmentation);
+            if (&input_mesh != &output_mesh)
+                convert(input_mesh, input_segmentation, output_mesh, output_segmentation);
                 
-            return native_algorithm_impl<algorithm_tag>::run( output_domain, output_segmentation, settings );
+            return native_algorithm_impl<algorithm_tag>::run( output_mesh, output_segmentation, settings );
         }
     };
     
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, true, false, true>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            convert( input_domain, output_domain );
+            convert( input_mesh, output_mesh );
             
-            return native_algorithm_impl<algorithm_tag>::run( output_domain, settings );
+            return native_algorithm_impl<algorithm_tag>::run( output_mesh, settings );
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )
         {
-            convert( input_domain, input_segmentation, output_domain, output_segmentation );
+            convert( input_mesh, input_segmentation, output_mesh, output_segmentation );
             
-            return native_algorithm_impl<algorithm_tag>::run( output_domain, output_segmentation, settings );
+            return native_algorithm_impl<algorithm_tag>::run( output_mesh, output_segmentation, settings );
         }
     };
     
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, true, true, false>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            input_domain_type tmp_domain(input_domain);
+            input_mesh_type tmp_mesh(input_mesh);
                 
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_domain, settings );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_mesh, settings );
             
-            convert( tmp_domain, output_domain );
+            convert( tmp_mesh, output_mesh );
             return result;
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )        
         {
-//             typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
-            input_domain_type tmp_domain(input_domain);
+//             typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
+            input_mesh_type tmp_mesh(input_mesh);
             input_segmentation_type tmp_segmentation(input_segmentation);
                 
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_domain, tmp_segmentation, settings );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_mesh, tmp_segmentation, settings );
             
-            convert( tmp_domain, tmp_segmentation, output_domain, output_segmentation );
+            convert( tmp_mesh, tmp_segmentation, output_mesh, output_segmentation );
             return result;
         }
     };
@@ -258,37 +258,37 @@ namespace viennamesh
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, true, false, false>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
-            native_output_domain_type tmp_domain;
+            typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
+            native_output_mesh_type tmp_mesh;
             
-            convert( input_domain, tmp_domain );
+            convert( input_mesh, tmp_mesh );
             
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_domain, settings );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_mesh, settings );
             
-            convert( tmp_domain, output_domain );
+            convert( tmp_mesh, output_mesh );
             return result;
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )     
         {
-            typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
+            typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
             typedef typename result_of::best_matching_native_output_segmentation<algorithm_tag, output_segmentation_type>::type native_output_segmentation_type;
-            native_output_domain_type tmp_domain;
+            native_output_mesh_type tmp_mesh;
             native_output_segmentation_type tmp_segmentation;
             
-            convert( input_domain, input_segmentation, tmp_domain, tmp_segmentation );
+            convert( input_mesh, input_segmentation, tmp_mesh, tmp_segmentation );
             
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_domain, tmp_segmentation, settings );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( tmp_mesh, tmp_segmentation, settings );
             
-            convert( tmp_domain, tmp_segmentation, output_domain, output_segmentation );
+            convert( tmp_mesh, tmp_segmentation, output_mesh, output_segmentation );
             return result;
         }
     };
@@ -296,82 +296,82 @@ namespace viennamesh
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, false, true, true>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )        {
-            return native_algorithm_impl<algorithm_tag>::run( input_domain, output_domain, settings );
+            return native_algorithm_impl<algorithm_tag>::run( input_mesh, output_mesh, settings );
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )  
         {
-            return native_algorithm_impl<algorithm_tag>::run( input_domain, input_segmentation, output_domain, output_segmentation, settings );
+            return native_algorithm_impl<algorithm_tag>::run( input_mesh, input_segmentation, output_mesh, output_segmentation, settings );
         }
     };
     
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, false, false, true>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_input_domain<algorithm_tag, input_domain_type>::type native_input_domain_type;
-            native_input_domain_type native_input_domain;
+            typedef typename result_of::best_matching_native_input_mesh<algorithm_tag, input_mesh_type>::type native_input_mesh_type;
+            native_input_mesh_type native_input_mesh;
             
-            convert( input_domain, native_input_domain );
-            return native_algorithm_impl<algorithm_tag>::run( native_input_domain, output_domain, settings );
+            convert( input_mesh, native_input_mesh );
+            return native_algorithm_impl<algorithm_tag>::run( native_input_mesh, output_mesh, settings );
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_input_domain<algorithm_tag, input_domain_type>::type native_input_domain_type;
+            typedef typename result_of::best_matching_native_input_mesh<algorithm_tag, input_mesh_type>::type native_input_mesh_type;
             typedef typename result_of::best_matching_native_input_segmentation<algorithm_tag, input_segmentation_type>::type native_input_segmentation_type;
-            native_input_domain_type native_input_domain;
+            native_input_mesh_type native_input_mesh;
             native_input_segmentation_type native_input_segmentation;
             
-            convert( input_domain, input_segmentation, native_input_domain, native_input_segmentation );
-            return native_algorithm_impl<algorithm_tag>::run( native_input_domain, input_segmentation, output_domain, output_segmentation, settings );
+            convert( input_mesh, input_segmentation, native_input_mesh, native_input_segmentation );
+            return native_algorithm_impl<algorithm_tag>::run( native_input_mesh, input_segmentation, output_mesh, output_segmentation, settings );
         }
     };
     
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, false, true, false>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
-            native_output_domain_type native_output_domain;
+            typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
+            native_output_mesh_type native_output_mesh;
                 
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( input_domain, native_output_domain, settings );
-            convert( native_output_domain, output_domain );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( input_mesh, native_output_mesh, settings );
+            convert( native_output_mesh, output_mesh );
             
             return result;
         }
         
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
+            typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
             typedef typename result_of::best_matching_native_output_segmentation<algorithm_tag, output_segmentation_type>::type native_output_segmentation_type;
-            native_output_domain_type native_output_domain;
+            native_output_mesh_type native_output_mesh;
             native_output_segmentation_type native_output_segmentation;
                 
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( input_domain, input_segmentation, native_output_domain, native_output_segmentation, settings );
-            convert( native_output_domain, native_output_segmentation, output_domain, output_segmentation );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( input_mesh, input_segmentation, native_output_mesh, native_output_segmentation, settings );
+            convert( native_output_mesh, native_output_segmentation, output_mesh, output_segmentation );
             
             return result;
         }
@@ -380,125 +380,125 @@ namespace viennamesh
     template<typename algorithm_tag>
     struct algorithm_impl<algorithm_tag, false, false, false>
     {
-        template<typename input_domain_type, typename output_domain_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain,
-                         output_domain_type & output_domain,
+        template<typename input_mesh_type, typename output_mesh_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh,
+                         output_mesh_type & output_mesh,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_input_domain<algorithm_tag, input_domain_type>::type native_input_domain_type;
-            typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
-            native_input_domain_type native_input_domain;
-            native_output_domain_type native_output_domain;
+            typedef typename result_of::best_matching_native_input_mesh<algorithm_tag, input_mesh_type>::type native_input_mesh_type;
+            typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
+            native_input_mesh_type native_input_mesh;
+            native_output_mesh_type native_output_mesh;
             
-            convert( input_domain, native_input_domain );
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( native_input_domain, native_output_domain, settings );
-            convert( native_output_domain, output_domain );
+            convert( input_mesh, native_input_mesh );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( native_input_mesh, native_output_mesh, settings );
+            convert( native_output_mesh, output_mesh );
             
             return result;
         }
         
-        template<typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-        static algorithm_feedback run( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                         output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+        template<typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+        static algorithm_feedback run( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                         output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                          settings_type const & settings )
         {
-            typedef typename result_of::best_matching_native_input_domain<algorithm_tag, input_domain_type>::type native_input_domain_type;
+            typedef typename result_of::best_matching_native_input_mesh<algorithm_tag, input_mesh_type>::type native_input_mesh_type;
             typedef typename result_of::best_matching_native_input_segmentation<algorithm_tag, input_segmentation_type>::type native_input_segmentation_type;
-            typedef typename result_of::best_matching_native_output_domain<algorithm_tag, output_domain_type>::type native_output_domain_type;
+            typedef typename result_of::best_matching_native_output_mesh<algorithm_tag, output_mesh_type>::type native_output_mesh_type;
             typedef typename result_of::best_matching_native_output_segmentation<algorithm_tag, output_segmentation_type>::type native_output_segmentation_type;
-            native_input_domain_type native_input_domain;
+            native_input_mesh_type native_input_mesh;
             native_input_segmentation_type native_input_segmentation;
-            native_output_domain_type native_output_domain;
+            native_output_mesh_type native_output_mesh;
             native_output_segmentation_type native_output_segmentation;
             
-            convert( input_domain, input_segmentation, native_input_domain, native_input_segmentation );
-            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( native_input_domain, native_input_segmentation, native_output_domain, native_output_segmentation, settings );
-            convert( native_output_domain, native_output_segmentation, output_domain, output_segmentation );
+            convert( input_mesh, input_segmentation, native_input_mesh, native_input_segmentation );
+            algorithm_feedback result = native_algorithm_impl<algorithm_tag>::run( native_input_mesh, native_input_segmentation, native_output_mesh, native_output_segmentation, settings );
+            convert( native_output_mesh, native_output_segmentation, output_mesh, output_segmentation );
             
             return result;
         }
     };
     
     
-    // id - input: domain; od - output: domain
-    template<typename algorithm_tag, typename input_domain_type, typename output_domain_type, typename settings_type>
-    algorithm_feedback run_algo_id_od( input_domain_type const & input_domain,
-                   output_domain_type & output_domain,
+    // id - input: mesh; od - output: mesh
+    template<typename algorithm_tag, typename input_mesh_type, typename output_mesh_type, typename settings_type>
+    algorithm_feedback run_algo_id_od( input_mesh_type const & input_mesh,
+                   output_mesh_type & output_mesh,
                    settings_type const & settings )
     {
         return algorithm_impl<
                     algorithm_tag,
                     result_of::works_in_place<algorithm_tag>::value,
-                    result_of::is_native_input_domain<algorithm_tag, input_domain_type>::value,
-                    result_of::is_native_output_domain<algorithm_tag, output_domain_type>::value        
-            >::run(input_domain, output_domain, settings);
+                    result_of::is_native_input_mesh<algorithm_tag, input_mesh_type>::value,
+                    result_of::is_native_output_mesh<algorithm_tag, output_mesh_type>::value        
+            >::run(input_mesh, output_mesh, settings);
     }
     
-    // id - input: domain; ods - output: domain and segmentation
-    template<typename algorithm_tag, typename input_domain_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-    algorithm_feedback run_algo_id_ods( input_domain_type const & input_domain, 
-                   output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+    // id - input: mesh; ods - output: mesh and segmentation
+    template<typename algorithm_tag, typename input_mesh_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+    algorithm_feedback run_algo_id_ods( input_mesh_type const & input_mesh, 
+                   output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                    settings_type const & settings )
     {
         return algorithm_impl<
                     algorithm_tag,
                     result_of::works_in_place<algorithm_tag>::value,
-                    result_of::is_native_input_domain<algorithm_tag, input_domain_type>::value,
-                    result_of::is_native_output<algorithm_tag, output_domain_type, output_segmentation_type>::value        
-            >::run(input_domain, output_domain, output_segmentation, settings);
+                    result_of::is_native_input_mesh<algorithm_tag, input_mesh_type>::value,
+                    result_of::is_native_output<algorithm_tag, output_mesh_type, output_segmentation_type>::value        
+            >::run(input_mesh, output_mesh, output_segmentation, settings);
     }
     
-    // ids - input: domain and segmentation; od - output: domain
-    template<typename algorithm_tag, typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename settings_type>
-    algorithm_feedback run_algo_ids_od( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                   output_domain_type & output_domain,
+    // ids - input: mesh and segmentation; od - output: mesh
+    template<typename algorithm_tag, typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename settings_type>
+    algorithm_feedback run_algo_ids_od( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                   output_mesh_type & output_mesh,
                    settings_type const & settings )
     {
         return algorithm_impl<
                     algorithm_tag,
                     result_of::works_in_place<algorithm_tag>::value,
-                    result_of::is_native_input<algorithm_tag, input_domain_type, input_segmentation_type>::value,
-                    result_of::is_native_output_domain<algorithm_tag, output_domain_type>::value        
-            >::run(input_domain, input_segmentation, output_domain, settings);
+                    result_of::is_native_input<algorithm_tag, input_mesh_type, input_segmentation_type>::value,
+                    result_of::is_native_output_mesh<algorithm_tag, output_mesh_type>::value        
+            >::run(input_mesh, input_segmentation, output_mesh, settings);
     }
     
-    // ids - input: domain and segmentation; ods - output: domain and segmentation
-    template<typename algorithm_tag, typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-    algorithm_feedback run_algo_ids_ods( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                   output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+    // ids - input: mesh and segmentation; ods - output: mesh and segmentation
+    template<typename algorithm_tag, typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+    algorithm_feedback run_algo_ids_ods( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                   output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                    settings_type const & settings )
     {
         return algorithm_impl<
                     algorithm_tag,
                     result_of::works_in_place<algorithm_tag>::value,
-                    result_of::is_native_input<algorithm_tag, input_domain_type, input_segmentation_type>::value,
-                    result_of::is_native_output<algorithm_tag, output_domain_type, output_segmentation_type>::value        
-            >::run(input_domain, input_segmentation, output_domain, output_segmentation, settings);
+                    result_of::is_native_input<algorithm_tag, input_mesh_type, input_segmentation_type>::value,
+                    result_of::is_native_output<algorithm_tag, output_mesh_type, output_segmentation_type>::value        
+            >::run(input_mesh, input_segmentation, output_mesh, output_segmentation, settings);
     }
     
     
     
-    template<typename algorithm_tag, typename input_domain_type, typename output_domain_type, typename settings_type>
-    algorithm_feedback run_algo( input_domain_type const & input_domain,
-                   output_domain_type & output_domain,
+    template<typename algorithm_tag, typename input_mesh_type, typename output_mesh_type, typename settings_type>
+    algorithm_feedback run_algo( input_mesh_type const & input_mesh,
+                   output_mesh_type & output_mesh,
                    settings_type const & settings )
     {
         viennautils::Timer t;
         t.start();
-        algorithm_feedback feedback = run_algo_id_od<algorithm_tag>(input_domain, output_domain, settings);        
+        algorithm_feedback feedback = run_algo_id_od<algorithm_tag>(input_mesh, output_mesh, settings);        
         feedback.set_run_time( t.get() );
         
         return feedback;
     }
     
-    template<typename algorithm_tag, typename input_domain_type, typename input_segmentation_type, typename output_domain_type, typename output_segmentation_type, typename settings_type>
-    algorithm_feedback run_algo( input_domain_type const & input_domain, input_segmentation_type const & input_segmentation,
-                   output_domain_type & output_domain, output_segmentation_type & output_segmentation,
+    template<typename algorithm_tag, typename input_mesh_type, typename input_segmentation_type, typename output_mesh_type, typename output_segmentation_type, typename settings_type>
+    algorithm_feedback run_algo( input_mesh_type const & input_mesh, input_segmentation_type const & input_segmentation,
+                   output_mesh_type & output_mesh, output_segmentation_type & output_segmentation,
                    settings_type const & settings )
     {
         viennautils::Timer t;
         t.start();
-        algorithm_feedback feedback = run_algo_ids_ods<algorithm_tag>(input_domain, input_segmentation, output_domain, output_segmentation, settings);
+        algorithm_feedback feedback = run_algo_ids_ods<algorithm_tag>(input_mesh, input_segmentation, output_mesh, output_segmentation, settings);
         feedback.set_run_time( t.get() );
         
         return feedback;

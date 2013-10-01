@@ -236,7 +236,7 @@ enum Ng_Result { NG_OK = 0,
   // after adding triangles (and edges) initialize
 //  Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom);
 
-Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::triangular_3d_domain const & domain, viennagrid::triangular_hull_3d_segmentation const & segmentation);
+Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::triangular_3d_mesh const & vgrid_mesh, viennagrid::triangular_hull_3d_segmentation const & segmentation);
 Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, const char * filename);
 
 
@@ -254,7 +254,7 @@ Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, const char * filename)
 Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
                             Ng_Mesh* mesh,
                             Ng_Meshing_Parameters * mp, 
-                            viennagrid::triangular_3d_domain & domain,
+                            viennagrid::triangular_3d_mesh & vgrid_mesh,
                             viennagrid::triangular_hull_3d_segmentation & segmentation);
 
 // #ifdef __cplusplus

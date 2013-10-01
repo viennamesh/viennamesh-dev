@@ -13,13 +13,13 @@
 
 
 
-template<typename domain_type, typename vertex_handle_map_type, typename stream_type, typename interface_type>
-void write_flat_contact( domain_type & domain, vertex_handle_map_type & vertex_handle_map, stream_type & stream, interface_type const & interface)
+template<typename mesh_type, typename vertex_handle_map_type, typename stream_type, typename interface_type>
+void write_flat_contact( mesh_type & mesh, vertex_handle_map_type & vertex_handle_map, stream_type & stream, interface_type const & interface)
 {
-    typedef typename viennagrid::result_of::point_type< domain_type >::type point_type;
-    typedef typename viennagrid::result_of::handle< domain_type, viennagrid::vertex_tag >::type vertex_handle_type;
+    typedef typename viennagrid::result_of::point_type< mesh_type >::type point_type;
+    typedef typename viennagrid::result_of::handle< mesh_type, viennagrid::vertex_tag >::type vertex_handle_type;
     
-    typedef typename viennagrid::result_of::element_range< domain_type, viennagrid::triangle_tag >::type triangle_range_type;
+    typedef typename viennagrid::result_of::element_range< mesh_type, viennagrid::triangle_tag >::type triangle_range_type;
     typedef typename viennagrid::result_of::iterator< triangle_range_type >::type triangle_range_iterator;
     
 
@@ -28,14 +28,14 @@ void write_flat_contact( domain_type & domain, vertex_handle_map_type & vertex_h
         typedef boost::tuple<vertex_handle_type, vertex_handle_type, vertex_handle_type> tuple_triangle;
         std::deque< tuple_triangle > boundary_condition_triangles;
         
-        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( domain );
+        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( mesh );
         for (triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it)
         {
-            point_type const & p0 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] );
-            point_type const & p1 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
-            point_type const & p2 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
+            point_type const & p0 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] );
+            point_type const & p1 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
+            point_type const & p2 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
             
-//             typedef viennasap_layer_domain_type::point_type point_type_2d;
+//             typedef viennasap_layer_mesh_type::point_type point_type_2d;
             
             if ( (std::abs( interface(p0[0], p0[1]) - p0[2] ) < 1e-6) &&
                 (std::abs( interface(p1[0], p1[1]) - p1[2] ) < 1e-6) &&
@@ -62,29 +62,29 @@ void write_flat_contact( domain_type & domain, vertex_handle_map_type & vertex_h
 
 
 
-template<typename domain_type, typename vertex_handle_map_type, typename stream_type>
-void write_volume_contact( domain_type & domain, vertex_handle_map_type & vertex_handle_map, stream_type & stream, viennamesh::segment_id_type segment_id)
+template<typename mesh_type, typename vertex_handle_map_type, typename stream_type>
+void write_volume_contact( mesh_type & mesh, vertex_handle_map_type & vertex_handle_map, stream_type & stream, viennamesh::segment_id_type segment_id)
 {
-    typedef typename viennagrid::result_of::point_type< domain_type >::type point_type;
-    typedef typename viennagrid::result_of::handle< domain_type, viennagrid::vertex_tag >::type vertex_handle_type;
+    typedef typename viennagrid::result_of::point_type< mesh_type >::type point_type;
+    typedef typename viennagrid::result_of::handle< mesh_type, viennagrid::vertex_tag >::type vertex_handle_type;
     
-    typedef typename viennagrid::result_of::element_range< domain_type, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
+    typedef typename viennagrid::result_of::element_range< mesh_type, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
     typedef typename viennagrid::result_of::iterator< tetrahedron_range_type >::type tetrahedron_range_iterator;
     
     {
         typedef boost::tuple<vertex_handle_type, vertex_handle_type, vertex_handle_type, vertex_handle_type> tuple_tetrahedron;
         std::deque< tuple_tetrahedron > boundary_condition_tetrahedrons;
         
-        tetrahedron_range_type tets = viennagrid::elements<viennagrid::tetrahedron_tag>( domain );
+        tetrahedron_range_type tets = viennagrid::elements<viennagrid::tetrahedron_tag>( mesh );
         for (tetrahedron_range_iterator it = tets.begin(); it != tets.end(); ++it)
         {
             if (viennamesh::segment(*it) == segment_id)
             {
                 
-                point_type const & p0 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] );
-                point_type const & p1 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
-                point_type const & p2 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] );
-                point_type const & p3 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[3] );
+                point_type const & p0 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] );
+                point_type const & p1 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
+                point_type const & p2 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] );
+                point_type const & p3 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[3] );
                 
                 double det = viennamesh::utils::determinant(p1-p0, p2-p0, p3-p0);
                 
@@ -137,14 +137,14 @@ void write_volume_contact( domain_type & domain, vertex_handle_map_type & vertex
 
 int main()
 {
-    typedef viennamesh::viennasap_layer_domain viennasap_layer_domain_type;
+    typedef viennamesh::viennasap_layer_mesh viennasap_layer_mesh_type;
     
-    typedef viennasap_layer_domain_type::point_type point_type;
-    typedef viennasap_layer_domain_type::layer_type layer_type;
-    typedef viennasap_layer_domain_type::interface_type interface_type;
+    typedef viennasap_layer_mesh_type::point_type point_type;
+    typedef viennasap_layer_mesh_type::layer_type layer_type;
+    typedef viennasap_layer_mesh_type::interface_type interface_type;
     
     
-    viennasap_layer_domain_type viennasap_layer_domain;
+    viennasap_layer_mesh_type viennasap_layer_mesh;
     std::vector<double> layer_heights;
     
     unsigned int object_index = 0;
@@ -153,7 +153,7 @@ int main()
     {
         layer_type tmp;
         tmp.add_rectangle( point_type(0,0), point_type(6.5, 14.0), 1 );
-        viennasap_layer_domain.layers.push_back(tmp);
+        viennasap_layer_mesh.layers.push_back(tmp);
         layer_heights.push_back( 0.5 );
     }
     
@@ -165,14 +165,14 @@ int main()
         tmp.add_rectangle( point_type(2,0), point_type(2.5, 14.0), 3 );
         tmp.add_rectangle( point_type(3,0), point_type(3.5, 14.0), 4 );
         tmp.add_rectangle( point_type(4,0), point_type(4.5, 14.0), 5 );
-        viennasap_layer_domain.layers.push_back(tmp);
+        viennasap_layer_mesh.layers.push_back(tmp);
         layer_heights.push_back( 0.5 );
     }
     
     {
         layer_type tmp;
         tmp.add_rectangle( point_type(0,0), point_type(6.5, 14.0), 6 );
-        viennasap_layer_domain.layers.push_back(tmp);
+        viennasap_layer_mesh.layers.push_back(tmp);
         layer_heights.push_back( 0.5 );
     }
 
@@ -209,7 +209,7 @@ int main()
         }
         
 
-        viennasap_layer_domain.layers.push_back(tmp);
+        viennasap_layer_mesh.layers.push_back(tmp);
         layer_heights.push_back( 0.5 );
     }
 
@@ -217,53 +217,53 @@ int main()
     {
         layer_type tmp;
         tmp.add_rectangle( point_type(0,0), point_type(6.5, 14.0), 11 );
-        viennasap_layer_domain.layers.push_back(tmp);
+        viennasap_layer_mesh.layers.push_back(tmp);
         layer_heights.push_back( 3.0 );
     }
     
     
-    viennasap_layer_domain.calc_interface_layers();
+    viennasap_layer_mesh.calc_interface_layers();
 
     {
         double cur_z = 0.0;
         {
             interface_type tmp;
-            tmp.planar_from_layer( viennasap_layer_domain.interface_layers.front(), cur_z );
-            viennasap_layer_domain.interfaces.push_back( tmp );
+            tmp.planar_from_layer( viennasap_layer_mesh.interface_layers.front(), cur_z );
+            viennasap_layer_mesh.interfaces.push_back( tmp );
         }
         for (unsigned int i = 0; i < layer_heights.size(); ++i)
         {
             cur_z += layer_heights[i];
             interface_type tmp;
-            tmp.planar_from_layer( viennasap_layer_domain.interface_layers[i], cur_z );
-            viennasap_layer_domain.interfaces.push_back( tmp );
+            tmp.planar_from_layer( viennasap_layer_mesh.interface_layers[i], cur_z );
+            viennasap_layer_mesh.interfaces.push_back( tmp );
         }
     }
     
 
-    viennagrid::config::plc_3d_domain plc_domain_3d;
+    viennagrid::config::plc_3d_mesh plc_mesh_3d;
     {
         viennamesh::result_of::settings<viennamesh::viennasap_layer_mesher_tag>::type settings;
-        viennamesh::run_algo< viennamesh::viennasap_layer_mesher_tag >( viennasap_layer_domain, plc_domain_3d, settings );
+        viennamesh::run_algo< viennamesh::viennasap_layer_mesher_tag >( viennasap_layer_mesh, plc_mesh_3d, settings );
     }
     
     
-    viennagrid::config::triangular_3d_domain triangle_domain_3d;
+    viennagrid::config::triangular_3d_mesh triangle_mesh_3d;
     {
         viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type settings;
-        viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_domain_3d, triangle_domain_3d, settings );
+        viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_mesh_3d, triangle_mesh_3d, settings );
     }
     
-    viennamesh::mark_face_segments( triangle_domain_3d );
+    viennamesh::mark_face_segments( triangle_mesh_3d );
     
 
     std::cout << "Hull - face segment check" << std::endl << std::endl;
-    viennamesh::check_face_segments<viennagrid::triangle_tag>(triangle_domain_3d);
+    viennamesh::check_face_segments<viennagrid::triangle_tag>(triangle_mesh_3d);
     
     
     {        
-        viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_writer;
-        vtk_writer(triangle_domain_3d, "hull.vtu");
+        viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_mesh, viennagrid::config::triangular_3d_cell> vtk_writer;
+        vtk_writer(triangle_mesh_3d, "hull.vtu");
     }
     
     
@@ -287,16 +287,16 @@ int main()
         segment_merge_map[id] = id;
     
     
-    viennagrid::config::triangular_3d_domain triangle_domain_3d_simplified;
+    viennagrid::config::triangular_3d_mesh triangle_mesh_3d_simplified;
     
-    typedef viennagrid::result_of::element_range<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_range_type;
+    typedef viennagrid::result_of::element_range<viennagrid::config::triangular_3d_mesh, viennagrid::triangle_tag>::type triangle_range_type;
     typedef viennagrid::result_of::iterator<triangle_range_type>::type triangle_range_iterator;
     
-    typedef viennagrid::result_of::handle<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_handle_type;
-    typedef viennagrid::result_of::element<viennagrid::config::triangular_3d_domain, viennagrid::triangle_tag>::type triangle_type;
+    typedef viennagrid::result_of::handle<viennagrid::config::triangular_3d_mesh, viennagrid::triangle_tag>::type triangle_handle_type;
+    typedef viennagrid::result_of::element<viennagrid::config::triangular_3d_mesh, viennagrid::triangle_tag>::type triangle_type;
     
     {
-        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( triangle_domain_3d );
+        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( triangle_mesh_3d );
         for ( triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it )
         {
             viennamesh::face_segment_definition_type const & segment_def = viennamesh::face_segments( *it );
@@ -341,7 +341,7 @@ int main()
     
     
     {
-        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( triangle_domain_3d );
+        triangle_range_type triangles = viennagrid::elements<viennagrid::triangle_tag>( triangle_mesh_3d );
         for ( triangle_range_iterator it = triangles.begin(); it != triangles.end(); ++it )
         {
             viennamesh::face_segment_definition_type const & segment_def = viennamesh::face_segments( *it );
@@ -361,87 +361,87 @@ int main()
             
             if (use)
             {
-                triangle_handle_type triangle_handle = viennagrid::create_triangle(triangle_domain_3d_simplified,
-                    viennagrid::create_unique_vertex( triangle_domain_3d_simplified, viennagrid::point( triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] ) ),
-                    viennagrid::create_unique_vertex( triangle_domain_3d_simplified, viennagrid::point( triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] ) ),
-                    viennagrid::create_unique_vertex( triangle_domain_3d_simplified, viennagrid::point( triangle_domain_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] ) )
+                triangle_handle_type triangle_handle = viennagrid::create_triangle(triangle_mesh_3d_simplified,
+                    viennagrid::create_unique_vertex( triangle_mesh_3d_simplified, viennagrid::point( triangle_mesh_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] ) ),
+                    viennagrid::create_unique_vertex( triangle_mesh_3d_simplified, viennagrid::point( triangle_mesh_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] ) ),
+                    viennagrid::create_unique_vertex( triangle_mesh_3d_simplified, viennagrid::point( triangle_mesh_3d, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] ) )
                 );
                 
-                triangle_type & triangle = viennagrid::dereference_handle( triangle_domain_3d_simplified, triangle_handle );
+                triangle_type & triangle = viennagrid::dereference_handle( triangle_mesh_3d_simplified, triangle_handle );
                 
                 for (viennamesh::face_segment_definition_type::const_iterator jt = segment_def.begin(); jt != segment_def.end(); ++jt)
                 {
 //                     std::cout << segment_merge_map[jt->first] << std::endl;
-                    viennamesh::add_face_to_segment( triangle_domain_3d_simplified, triangle, segment_merge_map[jt->first], jt->second );
+                    viennamesh::add_face_to_segment( triangle_mesh_3d_simplified, triangle, segment_merge_map[jt->first], jt->second );
                 }
             }
         }
     }
     
 //     {
-//         viennamesh::segment_id_container_type const & segments = viennamesh::segments(triangle_domain_3d_simplified);
+//         viennamesh::segment_id_container_type const & segments = viennamesh::segments(triangle_mesh_3d_simplified);
 //         for (viennamesh::segment_id_container_type::iterator it = segments.begin(); it != segments.end(); ++it)
 //             std::cout << *it << std::endl;
 //     }
 
 
     std::cout << "Hull simplified - face segment check" << std::endl << std::endl;
-    viennamesh::check_face_segments<viennagrid::triangle_tag>(triangle_domain_3d_simplified);
+    viennamesh::check_face_segments<viennagrid::triangle_tag>(triangle_mesh_3d_simplified);
     
     {        
-        viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_writer;
-        vtk_writer(triangle_domain_3d_simplified, "hull_simplified.vtu");
+        viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_mesh, viennagrid::config::triangular_3d_cell> vtk_writer;
+        vtk_writer(triangle_mesh_3d_simplified, "hull_simplified.vtu");
     }
 
     
 
     
     
-        viennagrid::config::triangular_3d_domain hull_domain;
+        viennagrid::config::triangular_3d_mesh hull_mesh;
         viennamesh::result_of::settings<viennamesh::vgmodeler_hull_adaption_tag>::type vgm_settings;
         
         vgm_settings.cell_size = 0.4;
         
-        viennamesh::run_algo< viennamesh::vgmodeler_hull_adaption_tag >( triangle_domain_3d_simplified, hull_domain, vgm_settings );
+        viennamesh::run_algo< viennamesh::vgmodeler_hull_adaption_tag >( triangle_mesh_3d_simplified, hull_mesh, vgm_settings );
         
         
         {        
-            viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_domain, viennagrid::config::triangular_3d_cell> vtk_writer;
-            vtk_writer(hull_domain, "layer_adapted_hull_3d.vtu");
+            viennagrid::io::vtk_writer<viennagrid::config::triangular_3d_mesh, viennagrid::config::triangular_3d_cell> vtk_writer;
+            vtk_writer(hull_mesh, "layer_adapted_hull_3d.vtu");
         }
         
 //     {
-//         viennamesh::segment_id_container_type const & segments = viennamesh::segments(hull_domain);
+//         viennamesh::segment_id_container_type const & segments = viennamesh::segments(hull_mesh);
 //         for (viennamesh::segment_id_container_type::iterator it = segments.begin(); it != segments.end(); ++it)
 //             std::cout << *it << std::endl;
 //     }
         
         
-        viennagrid::config::tetrahedral_3d_domain tetrahedron_domain;
+        viennagrid::config::tetrahedral_3d_mesh tetrahedron_mesh;
         viennamesh::result_of::settings<viennamesh::netgen_tetrahedron_tag>::type netgen_settings;
         
         netgen_settings.cell_size = 0.4;
         
-        viennamesh::run_algo< viennamesh::netgen_tetrahedron_tag >( hull_domain, tetrahedron_domain, netgen_settings );
+        viennamesh::run_algo< viennamesh::netgen_tetrahedron_tag >( hull_mesh, tetrahedron_mesh, netgen_settings );
         
         
         {        
-            viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_domain, viennagrid::config::tetrahedral_3d_cell> vtk_writer;
+            viennagrid::io::vtk_writer<viennagrid::config::tetrahedral_3d_mesh, viennagrid::config::tetrahedral_3d_cell> vtk_writer;
             viennagrid::io::add_scalar_data_on_cells<viennamesh::unique_segment_tag, viennamesh::segment_id_type>(vtk_writer, "segment_id");
-            vtk_writer(tetrahedron_domain, "netgen_volume.vtu");
+            vtk_writer(tetrahedron_mesh, "netgen_volume.vtu");
         }
         
 //     {
-//         viennamesh::segment_id_container_type const & segments = viennamesh::segments(tetrahedron_domain);
+//         viennamesh::segment_id_container_type const & segments = viennamesh::segments(tetrahedron_mesh);
 //         for (viennamesh::segment_id_container_type::iterator it = segments.begin(); it != segments.end(); ++it)
 //             std::cout << *it << std::endl;
 //     }
         
         
-//     typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_domain, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
+//     typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_mesh, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
 //     typedef viennagrid::result_of::iterator< tetrahedron_range_type >::type tetrahedron_range_iterator;
 //     
-//     tetrahedron_range_type tets = viennagrid::elements<viennagrid::tetrahedron_tag>( tetrahedron_domain );
+//     tetrahedron_range_type tets = viennagrid::elements<viennagrid::tetrahedron_tag>( tetrahedron_mesh );
 //     for (tetrahedron_range_iterator it = tets.begin(); it != tets.end(); ++it)
 //         std::cout << viennamesh::segment(*it) << " ";
     
@@ -451,7 +451,7 @@ int main()
         
         {
         
-            viennagrid::config::tetrahedral_3d_domain & domain = tetrahedron_domain;
+            viennagrid::config::tetrahedral_3d_mesh & mesh = tetrahedron_mesh;
             
             std::ofstream file("test.fem");
             
@@ -465,32 +465,32 @@ int main()
             file << "    scalingfactor {1.000000e-06}\n";
             
             
-            typedef viennagrid::result_of::point_type< viennagrid::config::tetrahedral_3d_domain >::type point_type;
+            typedef viennagrid::result_of::point_type< viennagrid::config::tetrahedral_3d_mesh >::type point_type;
             
-            typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_domain, viennagrid::vertex_tag >::type vertex_range_type;
+            typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_mesh, viennagrid::vertex_tag >::type vertex_range_type;
             typedef viennagrid::result_of::handle_iterator< vertex_range_type >::type vertex_handle_range_iterator;
     
-            typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_domain, viennagrid::triangle_tag >::type triangle_range_type;
+            typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_mesh, viennagrid::triangle_tag >::type triangle_range_type;
             typedef viennagrid::result_of::iterator< triangle_range_type >::type triangle_range_iterator;
             
-            typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_domain, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
+            typedef viennagrid::result_of::element_range< viennagrid::config::tetrahedral_3d_mesh, viennagrid::tetrahedron_tag >::type tetrahedron_range_type;
             typedef viennagrid::result_of::iterator< tetrahedron_range_type >::type tetrahedron_range_iterator;
     
             
-            typedef viennagrid::result_of::handle< viennagrid::config::tetrahedral_3d_domain, viennagrid::vertex_tag >::type vertex_handle_type;
+            typedef viennagrid::result_of::handle< viennagrid::config::tetrahedral_3d_mesh, viennagrid::vertex_tag >::type vertex_handle_type;
             
             std::map<vertex_handle_type, int> vertex_handle_map;
             
             
             int vertex_index = 0;
-            vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>( domain );
+            vertex_range_type vertices = viennagrid::elements<viennagrid::vertex_tag>( mesh );
             
             file << "    objdesc { struct { label{int 1} x{double m} y{double m} z{double m}} numobj {" << vertices.size() << "} }\n";
             
             for (vertex_handle_range_iterator it = vertices.handle_begin(); it != vertices.handle_end(); ++it, vertex_index++)
             {
                 vertex_handle_map[*it] = vertex_index;
-                point_type point = viennagrid::point( domain, *it );
+                point_type point = viennagrid::point( mesh, *it );
                 file << "    { " << vertex_index << " " << point << " }\n";
             }
         
@@ -498,7 +498,7 @@ int main()
             file << "element {\n";
             
         
-            tetrahedron_range_type tets = viennagrid::elements<viennagrid::tetrahedron_tag>( domain );
+            tetrahedron_range_type tets = viennagrid::elements<viennagrid::tetrahedron_tag>( mesh );
             
             file << "    objdesc { struct { label{int 1} type{string 1} regionRef{int 1} conn{int 1}* } numobj{" << tets.size() << "} }\n";
             
@@ -507,10 +507,10 @@ int main()
             {
                 viennamesh::segment_id_type segment_id = viennamesh::segment(*it);
                 
-                    point_type const & p0 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] );
-                    point_type const & p1 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
-                    point_type const & p2 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] );
-                    point_type const & p3 = viennagrid::point( domain, viennagrid::elements<viennagrid::vertex_tag>(*it)[3] );
+                    point_type const & p0 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[0] );
+                    point_type const & p1 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[1] );
+                    point_type const & p2 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[2] );
+                    point_type const & p3 = viennagrid::point( mesh, viennagrid::elements<viennagrid::vertex_tag>(*it)[3] );
                     
                     double det = viennamesh::utils::determinant(p1-p0, p2-p0, p3-p0);
                     
@@ -545,52 +545,52 @@ int main()
             
             file << "    dirichlet{ \n";
             file << "    name { C_GND } \n";
-            write_flat_contact( domain, vertex_handle_map, file, viennasap_layer_domain.interfaces.front() );
+            write_flat_contact( mesh, vertex_handle_map, file, viennasap_layer_mesh.interfaces.front() );
             file << "    }\n";
             
             
             file << "    dirichlet{ \n";
             file << "    name { CONT1 } \n";
-            write_volume_contact( domain, vertex_handle_map, file, 1);
+            write_volume_contact( mesh, vertex_handle_map, file, 1);
             file << "    }\n";
     
             file << "    dirichlet{ \n";
             file << "    name { CONT2 } \n";
-            write_volume_contact( domain, vertex_handle_map, file, 2);
+            write_volume_contact( mesh, vertex_handle_map, file, 2);
             file << "    }\n";
             
             file << "    dirichlet{ \n";
             file << "    name { CONT3 } \n";
-            write_volume_contact( domain, vertex_handle_map, file, 3);
+            write_volume_contact( mesh, vertex_handle_map, file, 3);
             file << "    }\n";
             
             
             file << "    dirichlet{ \n";
             file << "    name { CONT4 } \n";
-            write_volume_contact( domain, vertex_handle_map, file, 4);
+            write_volume_contact( mesh, vertex_handle_map, file, 4);
             file << "    }\n";
             
             file << "    dirichlet{ \n";
             file << "    name { CONT5 } \n";
-            write_volume_contact( domain, vertex_handle_map, file, 5);
+            write_volume_contact( mesh, vertex_handle_map, file, 5);
             file << "    }\n";
     
             file << "    dirichlet{ \n";
             file << "    name { CONT6 } \n";
-            write_volume_contact( domain, vertex_handle_map, file, 6);
+            write_volume_contact( mesh, vertex_handle_map, file, 6);
             file << "    }\n";
             
             
             file << "    dirichlettherm{ \n";
             file << "    name { C_THA } \n";
             file << "    value { 3.000000e+02 K } \n";
-            write_flat_contact( domain, vertex_handle_map, file, viennasap_layer_domain.interfaces.front() );
+            write_flat_contact( mesh, vertex_handle_map, file, viennasap_layer_mesh.interfaces.front() );
             file << "    }\n";
     
             file << "    dirichlettherm{ \n";
             file << "    name { C_THB } \n";
             file << "    value { 3.500000e+02 K } \n";
-            write_flat_contact( domain, vertex_handle_map, file, viennasap_layer_domain.interfaces.back() );
+            write_flat_contact( mesh, vertex_handle_map, file, viennasap_layer_mesh.interfaces.back() );
             file << "    }\n";
     
             file << "} \n";
