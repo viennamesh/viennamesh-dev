@@ -13,7 +13,7 @@ namespace viennamesh
   template<typename HullMeshT, typename ElementHandleT, typename PointT, typename HullViewT, typename VisitedAccessorT>
   void recursively_add_neighbours( HullMeshT & hull_mesh, ElementHandleT const & element_handle, PointT const & normal_vector, VisitedAccessorT visited_accessor, HullViewT & view )
   {
-      typedef typename viennagrid::storage::handle::result_of::value_type<ElementHandleT>::type     ElementType;
+      typedef typename viennagrid::detail::result_of::value_type<ElementHandleT>::type     ElementType;
       ElementType & element = viennagrid::dereference_handle( hull_mesh, element_handle );
 
       if ( visited_accessor(element) )
@@ -26,15 +26,15 @@ namespace viennamesh
       if ( std::abs(viennagrid::inner_prod(normal_vector, current_normal_vector)) >= 1.0-1e-6)
       {
           visited_accessor(element) = true;
-          viennagrid::add_handle( view, hull_mesh, element_handle );
-          viennagrid::add_handle( view, hull_mesh, viennagrid::lines(element).handle_at(0) );
-          viennagrid::add_handle( view, hull_mesh, viennagrid::lines(element).handle_at(1) );
-          viennagrid::add_handle( view, hull_mesh, viennagrid::lines(element).handle_at(2) );
+          viennagrid::add_single_handle( view, element_handle );
+          viennagrid::add_single_handle( view, viennagrid::lines(element).handle_at(0) );
+          viennagrid::add_single_handle( view, viennagrid::lines(element).handle_at(1) );
+          viennagrid::add_single_handle( view, viennagrid::lines(element).handle_at(2) );
 
-          typedef typename viennagrid::result_of::neighbour_range<HullMeshT, ElementType, viennagrid::line_tag>::type NeighbourRangeType;
+          typedef typename viennagrid::result_of::neighbor_range<HullMeshT, ElementType, viennagrid::line_tag>::type NeighbourRangeType;
           typedef typename viennagrid::result_of::iterator<NeighbourRangeType>::type NeighbourRangeIterator;
 
-          NeighbourRangeType neighgbours = viennagrid::neighbour_elements< ElementType, viennagrid::line_tag >( hull_mesh, element_handle );
+          NeighbourRangeType neighgbours = viennagrid::neighbor_elements< ElementType, viennagrid::line_tag >( hull_mesh, element_handle );
           for (NeighbourRangeIterator it = neighgbours.begin(); it != neighgbours.end(); ++it)
               recursively_add_neighbours( hull_mesh, it.handle(), normal_vector, visited_accessor, view );
       }
@@ -48,7 +48,7 @@ namespace viennamesh
   {
       typedef typename viennagrid::result_of::coboundary_range<LineMeshT, viennagrid::vertex_tag, viennagrid::line_tag>::type   CoboundaryRangeType;
       typedef typename viennagrid::result_of::iterator<CoboundaryRangeType>::type                                                 CoboundaryRangeIterator;
-      typedef typename viennagrid::storage::handle::result_of::value_type<LineHandleT>::type                                      LineType;
+      typedef typename viennagrid::detail::result_of::value_type<LineHandleT>::type                                      LineType;
 
       CoboundaryRangeType lines = viennagrid::coboundary_elements<viennagrid::vertex_tag, viennagrid::line_tag>(line_mesh, vertex_handle);
       if (lines.size() != 2)
@@ -96,11 +96,11 @@ namespace viennamesh
 //       typedef typename hull_segment_container_type::value_type hull_segment_type;
 
       typedef typename HullSegmentationT::segment_id_type                               SegmentIDType;
-      typedef typename viennagrid::result_of::segment<HullSegmentationT>::type          HullSegmentType;
+      typedef typename viennagrid::result_of::segment_handle<HullSegmentationT>::type          HullSegmentHandleType;
       typedef typename viennagrid::result_of::point<HullMeshT>::type                  HullPointType;
       typedef typename viennagrid::result_of::cell<HullMeshT>::type                   HullCellType;
       typedef typename viennagrid::result_of::handle<HullMeshT, HullCellType>::type   HullCellHandleType;
-      
+
       typedef typename viennagrid::result_of::cell_range<HullMeshT>::type     CellRangeType;
       typedef typename viennagrid::result_of::iterator<CellRangeType>::type     CellRangeItertor;
 
@@ -141,7 +141,7 @@ namespace viennamesh
 
           recursively_add_neighbours( hull_mesh, cit.handle(), normal_vector, visited_accessor, current_plane );
 
-          typedef typename viennagrid::result_of::cell_range<HullSegmentType>::type     ViewCellRangeType;
+          typedef typename viennagrid::result_of::cell_range<HullSegmentHandleType>::type     ViewCellRangeType;
           typedef typename viennagrid::result_of::iterator<ViewCellRangeType>::type     ViewCellRangeIterator;
 
           ViewCellRangeType plane_elements = viennagrid::elements( current_plane );
@@ -149,12 +149,12 @@ namespace viennamesh
           {
               for (typename std::map<SegmentIDType, HullViewType>::iterator pit = current_plane_view.begin(); pit != current_plane_view.end(); ++pit)
               {
-                HullSegmentType & current_segment = hull_segmentation( pit->first );
+                HullSegmentHandleType & current_segment = hull_segmentation( pit->first );
                 ViewCellRangeIterator jt = viennagrid::find_by_handle( current_segment, it.handle() );
                   if ( jt != viennagrid::cells(current_segment).end() )
-                      viennagrid::add_handle( current_plane_view[ current_segment.id() ], hull_mesh, it.handle() );
+                      viennagrid::add_single_handle( current_plane_view[ current_segment.id() ], it.handle() );
               }
-            
+
 //               for (int i = 0; i < current_plane_view.size(); ++i)
 //               {
 //                   hull_segment_type & current_segment = hull_segments[i];
@@ -187,8 +187,8 @@ namespace viennamesh
 
                   if (viennagrid::is_boundary( current_view, *lit ))
                   {
-                      viennagrid::add_handle( all_lines, hull_mesh, lit.handle() );
-                      viennagrid::add_handle( current_plane_lines, hull_mesh, lit.handle() );
+                      viennagrid::add_single_handle( all_lines, lit.handle() );
+                      viennagrid::add_single_handle( current_plane_lines, lit.handle() );
                       break;
                   }
               }
@@ -241,7 +241,7 @@ namespace viennamesh
           viennagrid::make_plc(plc_mesh, plc_lines.begin(), plc_lines.end(), &tmp_vtx_handle, &tmp_vtx_handle, &tmp_pt, &tmp_pt);
       }
   }
-    
+
 }
 
 #endif

@@ -44,8 +44,8 @@ STLGeometry *  STLTopology :: LoadBinary (istream & ist)
   ARRAY<STLReadTriangle> readtrigs;
 
   PrintMessage(1,"Read STL binary file");
-  
-  if (sizeof(int) != 4 || sizeof(float) != 4) 
+
+  if (sizeof(int) != 4 || sizeof(float) != 4)
     {
       PrintWarning("for stl-binary compatibility only use 32 bit compilation!!!");
     }
@@ -74,23 +74,23 @@ STLGeometry *  STLTopology :: LoadBinary (istream & ist)
 
   for (cntface = 0; cntface < nofacets; cntface++)
     {
-      if (cntface % 10000 == 9999) { PrintDot(); } 
+      if (cntface % 10000 == 9999) { PrintDot(); }
 
       FIOReadFloat(ist,f); normal(0) = f;
       FIOReadFloat(ist,f); normal(1) = f;
       FIOReadFloat(ist,f); normal(2) = f;
-      
+
       for (j = 0; j < 3; j++)
 	{
 	  FIOReadFloat(ist,f); pts[j](0) = f;
 	  FIOReadFloat(ist,f); pts[j](1) = f;
-	  FIOReadFloat(ist,f); pts[j](2) = f;	  
-	} 
+	  FIOReadFloat(ist,f); pts[j](2) = f;
+	}
 
       readtrigs.Append (STLReadTriangle (pts, normal));
       FIOReadString(ist,spaces,nospaces);
-    }	    
-  
+    }
+
 
   geom->InitSTLGeometry(readtrigs);
 
@@ -103,7 +103,7 @@ void STLTopology :: SaveBinary (const char* filename, const char* aname)
   ofstream ost(filename);
   PrintFnStart("Write STL binary file '",filename,"'");
 
-  if (sizeof(int) != 4 || sizeof(float) != 4) 
+  if (sizeof(int) != 4 || sizeof(float) != 4)
     {PrintWarning("for stl-binary compatibility only use 32 bit compilation!!!");}
 
   //specific settings for stl-binary format
@@ -114,7 +114,7 @@ void STLTopology :: SaveBinary (const char* filename, const char* aname)
   int i, j;
   char buf[namelen+1];
   int strend = 0;
-  for(i = 0; i <= namelen; i++) 
+  for(i = 0; i <= namelen; i++)
     {
       if (aname[i] == 0) {strend = 1;}
       if (!strend) {buf[i] = aname[i];}
@@ -146,7 +146,7 @@ void STLTopology :: SaveBinary (const char* filename, const char* aname)
       for (j = 1; j <= 3; j++)
 	{
 	  const Point3d p = GetPoint(t.PNum(j));
-	  
+
 	  f = p.X(); FIOWriteFloat(ost,f);
 	  f = p.Y(); FIOWriteFloat(ost,f);
 	  f = p.Z(); FIOWriteFloat(ost,f);
@@ -161,7 +161,7 @@ void STLTopology :: SaveSTLE (const char* filename)
 {
   ofstream outf (filename);
   int i, j;
-  
+
   outf << GetNT() << endl;
   for (i = 1; i <= GetNT(); i++)
     {
@@ -180,7 +180,7 @@ void STLTopology :: SaveSTLE (const char* filename)
       if (GetTopEdge (i).GetStatus() == ED_CONFIRMED)
 	ned++;
     }
-  
+
   outf << ned << endl;
 
   for (i = 1; i <= GetNTE(); i++)
@@ -192,7 +192,7 @@ void STLTopology :: SaveSTLE (const char* filename)
 	    const Point3d p = GetPoint(edge.PNum(j));
 	    outf << p.X() << " " << p.Y() << " " << p.Z() << endl;
 	  }
-    }      
+    }
 }
 
 
@@ -204,14 +204,14 @@ STLGeometry *  STLTopology :: LoadNaomi (istream & ist)
   ARRAY<STLReadTriangle> readtrigs;
 
   PrintFnStart("read NAOMI file format");
-  
+
   char buf[100];
   Vec<3> normal;
 
   int cntface = 0;
   int cntvertex = 0;
   double px, py, pz;
-    
+
 
   int noface, novertex;
   ARRAY<Point<3> > readpoints;
@@ -255,7 +255,7 @@ STLGeometry *  STLTopology :: LoadNaomi (istream & ist)
 	  pts[0] = readpoints.Get(p1);
 	  pts[1] = readpoints.Get(p2);
 	  pts[2] = readpoints.Get(p3);
-	  
+
 	  normal = Cross (pts[1]-pts[0], pts[2]-pts[0]) . Normalize();
 
 	  readtrigs.Append (STLReadTriangle (pts, normal));
@@ -275,7 +275,7 @@ STLGeometry *  STLTopology :: LoadNaomi (istream & ist)
 }
 
 void STLTopology :: Save (const char* filename)
-{ 
+{
   PrintFnStart("Write stl-file '",filename, "'");
 
   ofstream fout(filename);
@@ -303,7 +303,7 @@ void STLTopology :: Save (const char* filename)
       for (j = 1; j <= 3; j++)
 	{
 	  const Point3d p = GetPoint(t.PNum(j));
-	  
+
 	  sprintf(buf1,"%1.9g",p.X());
 	  sprintf(buf2,"%1.9g",p.Y());
 	  sprintf(buf3,"%1.9g",p.Z());
@@ -312,11 +312,11 @@ void STLTopology :: Save (const char* filename)
 	}
 
       fout << "endloop\n";
-      fout << "endfacet\n"; 
+      fout << "endfacet\n";
     }
   fout << "endsolid\n";
 
-  
+
   // write also NETGEN surface mesh:
   ofstream fout2("geom.surf");
   fout2 << "surfacemesh" << endl;
@@ -335,7 +335,7 @@ void STLTopology :: Save (const char* filename)
   fout2 << GetNT() << endl;
   for (i = 1; i <= GetNT(); i++)
     {
-      const STLTriangle & t = GetTriangle(i);  
+      const STLTriangle & t = GetTriangle(i);
       for (j = 1; j <= 3; j++)
 	{
 	  fout2.width(8);
@@ -381,7 +381,7 @@ STLGeometry *  STLTopology ::Load (istream & ist)
 	      >> normal(2);
 	  normal.Normalize();
 	}
-      
+
       if (strcmp (buf, "vertex") == 0)
 	{
 	  ist >> pts[vertex](0)
@@ -417,14 +417,14 @@ STLGeometry *  STLTopology ::Load (istream & ist)
 	      if ( (Dist2 (pts[0], pts[1]) > 1e-16) &&
 		   (Dist2 (pts[0], pts[2]) > 1e-16) &&
 		   (Dist2 (pts[1], pts[2]) > 1e-16) )
-		
+
 		readtrigs.Append (STLReadTriangle (pts, normal));
 	    }
 	}
     }
 
-#ifdef DEBUGALL  
-  if (badnormals) 
+#ifdef DEBUGALL
+  if (badnormals)
     {
       PrintWarning("File has normal vectors which differ extremly from geometry->correct with stldoctor!!!");
     }
@@ -473,7 +473,7 @@ STLGeometry *  STLTopology ::Load (const char* filename)
 	      >> normal(2);
 	  normal.Normalize();
 	}
-      
+
       if (strcmp (buf, "vertex") == 0)
 	{
 	  ist >> pts[vertex](0)
@@ -509,14 +509,14 @@ STLGeometry *  STLTopology ::Load (const char* filename)
 	      if ( (Dist2 (pts[0], pts[1]) > 1e-16) &&
 		   (Dist2 (pts[0], pts[2]) > 1e-16) &&
 		   (Dist2 (pts[1], pts[2]) > 1e-16) )
-		
+
 		readtrigs.Append (STLReadTriangle (pts, normal));
 	    }
 	}
     }
 
   geom->InitSTLGeometry(filename);
-  return geom;  
+  return geom;
 }
 
 
@@ -530,7 +530,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 //    typedef viennagrid::result_of::domain<viennagrid::config::triangular_3d>::type     DomainType;
    typedef viennagrid::triangular_3d_mesh MeshType;
    typedef viennagrid::triangular_hull_3d_segmentation SegmentationType;
-   typedef viennagrid::triangular_hull_3d_segment SegmentType;
+   typedef viennagrid::triangular_hull_3d_segment_handle SegmentHandleType;
 
 //    typedef DomainType::config_type                     DomainConfiguration;
 
@@ -542,15 +542,15 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 //    typedef DomainType::segment_type                                                                  SegmentType;
    typedef viennagrid::result_of::element<MeshType, viennagrid::triangle_tag>::type      CellType;
    typedef viennagrid::result_of::const_element_range<MeshType, viennagrid::vertex_tag>::type                               GeometryContainer;
-   typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;         
+   typedef viennagrid::result_of::iterator<GeometryContainer>::type                                   GeometryIterator;
    typedef viennagrid::result_of::const_element_range<MeshType, CellTag>::type         CellContainer;
-   typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;         
+   typedef viennagrid::result_of::iterator<CellContainer>::type                                       CellIterator;
    typedef viennagrid::result_of::const_element_range<CellType, viennagrid::vertex_tag>::type                                  VertexOnCellContainer;
-   typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;         
+   typedef viennagrid::result_of::iterator<VertexOnCellContainer>::type                               VertexOnCellIterator;
    typedef viennagrid::result_of::point<MeshType>::type                               PointType;
 
    static const int DIMT = 3;
-   static const int CELLSIZE = DIMT+1;      
+   static const int CELLSIZE = DIMT+1;
 
   int i, j, k;
 
@@ -559,7 +559,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
    // *** transfer viennagrid domain to gsse01 domain
    //
    // ----------------------------------------------------------------------
-   typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t; 
+   typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t;
    typedef gsse::get_domain<unstructured_topology_2t, double, double,3>::type    domain_32t;
    typedef gsse::domain_traits<domain_32t>::cell_iterator		                  cell_iterator;
    typedef gsse::domain_traits<domain_32t>::vertex_handle                        vertex_handle;
@@ -573,7 +573,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
    domain_32t domain;
 
-//   typedef gsse::detail_topology::unstructured<2>                                   gsse_unstructured_topology_2t; 
+//   typedef gsse::detail_topology::unstructured<2>                                   gsse_unstructured_topology_2t;
 //   typedef gsse::get_domain<gsse_unstructured_topology_2t, double, double,3>::type  gsse_DomainType;
 //   typedef ads::FixedArray<3, CoordType>                                            gsse_point_type;
 //   typedef gsse::domain_traits<gsse_DomainType>::segment_type                      gsse_segment_type;
@@ -592,29 +592,29 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
       point_t gssepoint;
       gssepoint[0] = point[0];
       gssepoint[1] = point[1];
-      gssepoint[2] = point[2];                        
-      domain.fast_point_insert(gssepoint);    
+      gssepoint[2] = point[2];
+      domain.fast_point_insert(gssepoint);
    }
-   
+
    std::size_t cell_counter = 0;
 //    for (std::size_t si = 0; si < vgriddomain.segments().size(); ++si)
-   
+
 //    typedef viennagrid::config::triangular_3d_segmentation::segment_ids_container_type segment_ids_container_type;
-//    segment_ids_container_type const & used_segments = vgridsegmentation.segments();  
+//    segment_ids_container_type const & used_segments = vgridsegmentation.segments();
 //    viennamesh::segment_id_container_type const & used_segments = viennamesh::segments( vgriddomain );
 
     viennagrid::result_of::default_point_accessor<MeshType>::type point_accessor = viennagrid::default_point_accessor( vgridmesh );
-   
-   
+
+
 //    for (std::size_t si = 0; si < num_segments; ++si)
    long gsse_domain_id = 0;
    for (SegmentationType::const_iterator it = vgridsegmentation.begin(); it != vgridsegmentation.end(); ++it, ++gsse_domain_id)
    {
-      SegmentType const & current_segment = *it;
+      SegmentHandleType const & current_segment = *it;
        this->segment_id_map[gsse_domain_id] = it->id();
 
-       
-       
+
+
 //        viennagrid::config::triangular_3d_segmentation::segment_id_type current_segment_id = *it;
       // transfer segment
       //
@@ -622,7 +622,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
       segment_iterator gsse_segit = domain.add_segment();
       (*gsse_segit).set_cell_index_offset(cell_counter);
 //       cell_counter += viennagrid::elements<CellTag>( vgriddomain ).size();
-      
+
       // transfer topology
       //
       CellContainer cells = viennagrid::elements<CellTag>(vgridmesh);
@@ -631,15 +631,15 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
           PointType const & p0 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[0] );
           PointType const & p1 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[1] );
           PointType const & p2 = point_accessor( viennagrid::elements<viennagrid::vertex_tag>(*cit)[2] );
-          
+
 //           typedef viennagrid::config::triangular_3d_segmentation::element_segment_info_type element_segment_info_type;
 //           element_segment_info_type const & seg_def = vgridsegmentation.segment_info( *cit );
 //           viennamesh::face_segment_definition_type const & seg_def = viennamesh::face_segments( *cit );
-          
+
 //           if ((current_segment_id == seg_def.positive_orientation_segment_id) || (current_segment_id == seg_def.negative_orientation_segment_id))
           if ( viennagrid::is_in_segment( current_segment, *cit ) )
-/*          
-          
+/*
+
           viennamesh::face_segment_definition_type::const_iterator sdit = seg_def.find( current_segment_id );
           if (sdit != seg_def.end())*/
             {
@@ -650,9 +650,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 //                 std::cout << "      " << viennagrid::cross_prod(p1-p0,p2-p0) << std::endl;
 //                 std::cout << "      segment? " << sdit->first << std::endl;
 //                 std::cout << "      orient good? " << sdit->second << std::endl;
-                
+
                 boost::array<std::size_t,CELLSIZE>     cell;
-                std::size_t vi = 0;       
+                std::size_t vi = 0;
                 VertexOnCellContainer vertices_for_cell = viennagrid::elements<viennagrid::vertex_tag>(*cit);
                 for (VertexOnCellIterator vocit = vertices_for_cell.begin();
                     vocit != vertices_for_cell.end();
@@ -666,42 +666,42 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                 bool current_orientation = true;
                 if (orientation)
                   current_orientation = *orientation;
-                
+
                 if (current_orientation)
                 {
                     (*gsse_segit).add_cell_2(cell_2_vertex_mapping(cell[0], cell[1], cell[2]));
                     domain.add_vertex(cell[0], gsse_segit);
                     domain.add_vertex(cell[1], gsse_segit);
-                    domain.add_vertex(cell[2], gsse_segit);  
+                    domain.add_vertex(cell[2], gsse_segit);
                 }
                 else
                 {
                     (*gsse_segit).add_cell_2(cell_2_vertex_mapping(cell[0], cell[2], cell[1]));
                     domain.add_vertex(cell[0], gsse_segit);
                     domain.add_vertex(cell[2], gsse_segit);
-                    domain.add_vertex(cell[1], gsse_segit);  
+                    domain.add_vertex(cell[1], gsse_segit);
                 }
-                
+
                 ++cell_counter;
             }
         }
-       
+
    }
-   
+
 //    std::cout << "BLA" << std::endl;
-   
+
    //domain.write_file("gsse_hull.gau32");
-   
+
       int check_nm = 0;
       if(check_nm)
       {
 
-      // [INFO] checking for non-manifold edges 
+      // [INFO] checking for non-manifold edges
       //
       typedef boost::array<long,2> edge_t;
       std::vector<edge_t> non_manifold_edges;
       std::vector<long> non_oriented_triangles;
-      
+
       {
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
@@ -711,15 +711,15 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                                  
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ;eocit.valid(); ++eocit)
                {
                   int count = 0;
                   edge_t new_edge;
                   cell_on_edge_iterator coeit(*eocit);
-                  for (; coeit.valid(); ++coeit, ++count) ;                  
-                  
+                  for (; coeit.valid(); ++coeit, ++count) ;
+
                   // [INFO] premises: there are no holes in the input
                   //
                   if (count != 2)
@@ -730,7 +730,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                      non_manifold_edges.push_back(new_edge);
 
 #ifdef DEBUGFULL
-                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1]
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
@@ -741,7 +741,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
-               }                                            
+               }
             }
          }
       }
@@ -757,7 +757,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #ifdef DEBUGALL
          std::cout << ".. before orientation checker .. " << std::endl;
 #endif
-         check_and_repair_orientation(domain, non_manifold_edges);        
+         check_and_repair_orientation(domain, non_manifold_edges);
 
 #ifdef DEBUGALL
          std::cout << ".. after orientation checker .. " << std::endl;
@@ -774,10 +774,10 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #ifdef DEBUGALL
             std::cout << ".. seg: " << (*segit) << std::endl;
 #endif
-            
+
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {  
+            {
                if(domain(*cit, "orientation")(0,0) == -2.0) // -2.0 triangle adjacent to non-manifold edge
                {
 #ifdef DEBUGALL
@@ -787,9 +787,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                   int ci = 0;
                   boost::array<long,3>   cell_handle;
                   boost::array<double,3> cell_orient;
-                  
+
                   // [INFO] check if the neighbouring triangles are consistently oriented
-                  // 
+                  //
                   for (edge_on_cell_iterator eocit(*cit); eocit.valid(); ++eocit)
                   {
 #ifdef DEBUGALL
@@ -803,7 +803,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #ifdef DEBUGALL
                      std::cout << "..count: " << count << std::endl;
 #endif
-                     
+
                      if(count == 2)
                      {
                         for(cell_on_edge_iterator coeit(*eocit); coeit.valid(); ++coeit)
@@ -830,11 +830,11 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #endif
                      }
                   }
-                  
+
                   if(ci == 2)
                   {
                      bool is_oriented_consistently = 0;
-                     
+
                      if(cell_orient[0] == 1.0 && cell_orient[1] == 1.0)
                      {
                         is_oriented_consistently = 1;
@@ -845,34 +845,34 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                         std::cout << ".. neighbour not oriented consistently.." << std::cout;
 #endif
                      }
-                     
+
 #ifdef DEBUGALL
                      std::cout << "..is_oriented_consistently: " << is_oriented_consistently << std::endl;
 #endif
-                     
+
                      if (is_oriented_consistently)
-                     {  
-                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]), 
+                     {
+                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]),
                                                                     (*segit).retrieve_topology().get_cell((*cit).handle()) );
 
 #ifdef DEBUGALL
                         std::cout << "..correct: " << correct << std::endl;
 #endif
-                        
+
                         // try to change this error immediatly
                         //
                         if(!correct)
                         {
                            long temp = (*segit).retrieve_topology().get_cell( (*cit).handle() )[1];
                            (*segit).retrieve_topology().get_cell((*cit).handle())[1] = (*segit).retrieve_topology().get_cell((*cit).handle())[2];
-                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;                        
+                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;
 
 #ifdef DEBUGALL
                            std::cout << "..triangle: " << (*cit)
-                                     << ".. inverting orientation " 
+                                     << ".. inverting orientation "
                                      << std::endl;
 #endif
-                        }                        
+                        }
                      }
                   }
                   else
@@ -881,9 +881,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                         std::cout << ".. possible error !!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;
 #endif
                   }
-               }                                                         
-            }               
-         }                                                                                                        
+               }
+            }
+         }
       }
 
       long max_points = domain.point_size();
@@ -896,7 +896,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
       std::map<long, int> change_trigs;
 
       // [INFO] duplicate non-manifold edges and resume normal meshing
-      //      
+      //
       {
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
@@ -906,17 +906,17 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                    
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ; eocit.valid() ; ++eocit)
                {
                   int count = 0;
                   for(cell_on_edge_iterator coeit(*eocit) ; coeit.valid() ; ++coeit, ++count) ;
-                  
+
                   // [INFO] premises: there are no holes in the input
                   //
                   edge_t edge;
-                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();                  
+                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();
                   if(edge[0] < edge[1])
                      std::swap(edge[0], edge[1]);
 
@@ -941,31 +941,31 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                         //
                         if ((*coeit).handle() == (*cit).handle())
                            continue;
-                        
+
 #ifdef DEBUGALL
                         std::cout << ".. checking triangle: " << (*coeit).handle() << " ";
                         std::cout << "cell vertices: ";
-                        vertex_on_cell_iterator vocit(*coeit);                           
+                        vertex_on_cell_iterator vocit(*coeit);
                         while (vocit.valid())
                         {
                            std::cout << (*vocit).handle() << " ";
                            vocit++;
                         }
                         std::cout << std::endl;
-#endif                        
-                         
-                        bool is_oriented_consistently = 
-                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ), 
+#endif
+
+                        bool is_oriented_consistently =
+                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ),
                                                          (*segit).retrieve_topology().get_cell( (*cit).handle() )  );
-                        
+
                         // [INFO] exclude the triangle on the exact opposite side
                         //
 //                        if(is_oriented_consistently)
                         {
 #ifdef DEBUGALL
-                           std::cout << "..a match found" << std::endl;                           
+                           std::cout << "..a match found" << std::endl;
 #endif
-                                                   
+
                            point_t base_point;
                            long base_point_handle;
                            int pi;
@@ -975,7 +975,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #ifdef DEBUGALL
                            std::cout << "cell vertices: ";
 #endif
-                        
+
                            while (vocit.valid())
                            {
                               if((*vocit).handle() != (*eocit).handle1() && (*vocit).handle() != (*eocit).handle2())
@@ -1004,7 +1004,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
                               int count2 = 0;
                               for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() ; ++coeit2, ++count2) ;
-                              
+
                               // [INFO] only use triangles not connected on the non-manifold edge
                               //
                               if (count2 == 2)
@@ -1014,9 +1014,9 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #ifdef DEBUGALL
                                     std::cout << ".. coeit2: " << (*coeit2) << std::endl;
 #endif
-                                    
-                                    vertex_on_cell_iterator vocit2(*coeit2);                           
-                                    
+
+                                    vertex_on_cell_iterator vocit2(*coeit2);
+
                                     int found_edge = 0;
                                     int found_trig = 0;
                                     while (vocit2.valid() && !trig_found)
@@ -1037,17 +1037,17 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #ifdef DEBUGALL
                                           std::cout << ".. connection to other trig found " << std::endl ;
 #endif
-                                          used_edges[edge] = 1;                                          
+                                          used_edges[edge] = 1;
                                           trig_found = 1;
 
-                                          change_trig_handle = (*coeit2).handle();         
+                                          change_trig_handle = (*coeit2).handle();
                                           first_trig_handle  = (*coeit).handle();
                                           second_trig_handle = (*cit).handle();
                                        }
-                                       vocit2++;                                       
+                                       vocit2++;
                                     }
 #ifdef DEBUGALL
-                                    std::cout << std::endl;                               
+                                    std::cout << std::endl;
 #endif
                                  }
                               }
@@ -1055,43 +1055,43 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                               std::cout << "..after count==2 " << std::endl;
 #endif
                            }
-                        }                                                                     
+                        }
                      }
 
                      // apply changes
-                     // 
+                     //
                      if(trig_found)
                      {
-//                         vertex_on_cell_iterator vocit3(*coeit2);                           
+//                         vertex_on_cell_iterator vocit3(*coeit2);
 //                         long pi = 0;
 //                         while (vocit3.valid())
                         for(int pi=0; pi < 3; pi++)
                         {
-                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl; 
-                           
+                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl;
+
                            for(int ei=0; ei < 2; ei++)
                            {
                               if((*segit).retrieve_topology().get_cell(change_trig_handle)[pi] == edge[ei])
                               {
-                                 // [INFO] nm-edge handling 
+                                 // [INFO] nm-edge handling
                                  //
 #ifdef DEBUGALL
                                  std::cout << ".. nm-edge point[" << ei << "] found: " << edge[ei] << std::endl ;
-#endif                                 
+#endif
 //                                  point_t new_point;
 //                                  new_point = domain.get_point_fromhandle(edge[ei]);
-                                 
-                                 // [INFO] use barycenter calculation for new point 
+
+                                 // [INFO] use barycenter calculation for new point
                                  //        => new point is inside the trig but not the original point
-                                 //                  
+                                 //
                                  boost::array<point_t, 3> test_cell;
-                                 test_cell[0] = 
+                                 test_cell[0] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[0]);
-                                 test_cell[1] = 
+                                 test_cell[1] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[1]);
-                                 test_cell[2] = 
+                                 test_cell[2] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[2]);
-                                 
+
                                  point_t bary_point = gsse::barycenter(test_cell.begin(), test_cell.end());
 
                                  domain.fast_point_insert(bary_point);
@@ -1107,8 +1107,8 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                                     {
                                        cell_iterator cit2;
                                        for (cit2 = (*segit2).cell_begin(); cit2 != (*segit2).cell_end(); ++cit2)
-                                       {                
-                                          
+                                       {
+
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, first_trig_handle))
                                           {
 #ifdef DEBUGALL
@@ -1134,7 +1134,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                                                    (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci] = domain.point_size()-1;
                                              }
                                           }
-                                          
+
                                           // third trig but not of nm-edge
                                           //
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, change_trig_handle))
@@ -1165,12 +1165,12 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                                     if(edge[0] == (*segit).retrieve_topology().get_cell(second_trig_handle)[ci])
                                        (*segit).retrieve_topology().get_cell(second_trig_handle)[ci] = domain.point_size()-1;
                                  }
-                                                                                     
+
                               }
                            }
-                        }                                       
-                     }                     
-                  }                  
+                        }
+                     }
+                  }
                }
             }
          }
@@ -1182,7 +1182,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
 
                         // ################################################################
-                        // target are the points of both triangles under investigation                           
+                        // target are the points of both triangles under investigation
                         //
 //                            if(test_point == 8274)
 //                            {
@@ -1191,16 +1191,16 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 //                               target.push_back(3306);
 // //                               target.push_back(8274);
 // //                               target.push_back(3298);
-                              
+
 //                               std::cout << ".. starting nearest match .. " << std::endl;
-                              
+
 //                               long max_counter = 10;
 //                               long result = find_nearest_match(domain, segit, cit, edge, target, max_counter);
 //                               if(result != -1)
 //                                  std::cout << ".. found .. " << result << std::endl;
 //                               else
 //                                  std::cout << ".. NOT found .. " << result << std::endl;
-                              
+
 //                               std::cout << ".. finishing .. " << std::endl;
 //                            }
 
@@ -1213,17 +1213,17 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
 //                            // [TODO] quick hack ... redo if this idea works !!!
 //                            if(pi == 0)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
 //                            }
 //                            else if(pi == 1)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
 //                            }
 //                            else if(pi == 2)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
 //                            }
@@ -1235,23 +1235,23 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
 // //                            domain.fast_point_insert(new_point1);
 //                            domain.fast_point_insert(new_point2);
-                        
+
 //                            (*segit).retrieve_topology().get_cell((*cit).handle())[0] = base_point_handle;
 
 //                            if(pi == 0)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
 //                            }
 //                            else if(pi == 1)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
 //                            }
 //                            else if(pi == 2)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
@@ -1263,8 +1263,8 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 //                                      << " " << (*segit).retrieve_topology().get_cell((*cit).handle())[2]
 //                                      << std::endl;
 
-//                            bool is_oriented_consistently = 
-//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()), 
+//                            bool is_oriented_consistently =
+//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()),
 //                                                             (*segit).retrieve_topology().get_cell((*cit).handle()) );
 
 //                            std::cout << ".. is_oriented_consistently: " << is_oriented_consistently << std::endl;
@@ -1274,7 +1274,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
 
       std::cout << ".. before checking orientation the second time .. " << std::endl;
-      
+
       check_and_repair_orientation_new(domain);
 
       std::cout << ".. checking again for non-manifold edges .. " << std::endl;
@@ -1288,7 +1288,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                                  
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ;eocit.valid(); ++eocit)
                {
@@ -1296,7 +1296,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                   edge_t new_edge;
                   cell_on_edge_iterator coeit(*eocit);
                   for (; coeit.valid(); ++coeit, ++count) ;
-                  
+
                   // [INFO] premises: there are no holes in the input
                   //
                   if (count != 2)
@@ -1307,7 +1307,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                      non_manifold_edges.push_back(new_edge);
 
 #ifdef DEBUGALL
-                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1]
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
@@ -1318,7 +1318,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
-               }                                            
+               }
             }
          }
       }
@@ -1326,109 +1326,109 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
       domain.write_file("fs_output_test.gau32");
 #endif
     }
-      
+
 #ifdef DEBUGALL
       std::cout << "..point size: " << domain.point_size() << std::endl;
 #endif
 
       trias.SetSize(0);
       points.SetSize(0);
-  
+
 //      PrintMessage(3,"number of triangles = ", readtrigs.Size());
 
       // [FS][MOD] set the size for multiple surfaces
       //
       material_size = domain.segment_size();
-    
-      // [FS][TODO] .. maybe this can be removed ? 
+
+      // [FS][TODO] .. maybe this can be removed ?
       //           check if the bounding box really matters
       //
       segment_iterator segit = domain.segment_begin();
       for( ; segit != domain.segment_end(); ++segit)
-	{      
+	{
 	  cell_iterator cit = (*segit).cell_begin();
 	  for( ; cit != (*segit).cell_end(); ++cit, i++)
-	    {	  
+	    {
 	      vertex_on_cell_iterator vocit(*cit);
 	      while(vocit.valid())
 		{
 		  point_t point = domain.get_point(*vocit);
-		  Point<3> p(point[0],point[1],point[2]);		  
+		  Point<3> p(point[0],point[1],point[2]);
 		  boundingbox.Add(p);
 		  vocit++;
 		}
 	    }
 	}
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
       std::cout << "boundingbox: " << Point3d(boundingbox.PMin()) << " - " << Point3d(boundingbox.PMax()) << std::endl;
 #endif
 
       ARRAY<int> pintersect;
       Box<3> bb = boundingbox;
       bb.Increase (1);
-  
+
       pointtree = new Point3dTree (bb.PMin(), bb.PMax());
-  
+
       typedef std::map<point_t, vertex_handle>::iterator point_map_iterator;
       boost::array<vertex_handle, 3>                       element_container;
 
       std::map<std::vector<int>, int>        triangle_map;
 
-      long element_counter = 1;  
+      long element_counter = 1;
       long triangle_counter = 1;
       i=0;
       int material_number = 0;
       segit = domain.segment_begin();
-      
-      
+
+
     for( ; segit != domain.segment_end(); ++segit, ++material_number)
-    {      
+    {
         cell_iterator cit = (*segit).cell_begin();
 
         std::map<point_t, vertex_handle> point_map;
 
         for( ; cit != (*segit).cell_end(); ++cit, i++)
-        {      
+        {
             vertex_on_cell_iterator vocit(*cit);
 
             int actual_count = 0;
-                
+
             for (int element_index = 0; element_index < 3; element_index++, ++vocit)
             {
                 if((*vocit).handle() != -1)
-                {                      
+                {
                     point_t point = domain.get_point(*vocit);
-                        
+
                     point_map_iterator pmit = point_map.find(point);
-    #ifdef DEBUGALL  
+    #ifdef DEBUGALL
                     std::cout << "..checking point: " << (*vocit).handle() << " :: " << point << std::endl;
     #endif
                     if(pmit == point_map.end())
                     {
                         vgmnetgen::Point<3> p(point[0],point[1],point[2]);
-                            
+
                         vgmnetgen::Point<3> pmin = p - vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
                         vgmnetgen::Point<3> pmax = p + vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
-                            
+
                         pointtree->GetIntersecting (pmin, pmax, pintersect);
 
-    #ifdef DEBUGALL                         
+    #ifdef DEBUGALL
                         if (pintersect.Size() > 1)
                             std::cout << "too many close points" << std::endl;
-    #endif               
-            
+    #endif
+
                         int foundpos = -1;
-                            
+
                         // [INFO] ensure that a point is only added once => topological and geometrical unique
                         //
                         if (pintersect.Size())
                             foundpos = pintersect[0];
 
-    #ifdef DEBUGALL                         
+    #ifdef DEBUGALL
                         std::cout << "..foundpos: " << foundpos << std::endl;
     #endif
-                            
+
                         if (foundpos == -1)
                         {
     #ifdef DEBUGALL
@@ -1437,11 +1437,11 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                             foundpos = AddPoint(p);
                             pointtree->Insert (p, foundpos);
                         }
-                            
+
                         point_map[point] = foundpos;
                         element_container[element_index] = foundpos;
-                            
-                        element_counter++;		      
+
+                        element_counter++;
                     }
                     else
                     {
@@ -1462,7 +1462,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 
                     // 	      int foundpos = -1;
 
-                    // 	      // [FS] .. test: add the interface point a second time	 
+                    // 	      // [FS] .. test: add the interface point a second time
                     // 	      //
 
                     // 	      if (pintersect.Size())
@@ -1476,42 +1476,42 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                     // 		  pointtree->Insert (p, foundpos);
                     // 		}
                     // 	      st[k] = foundpos;
-                }                 
+                }
             }
 
-            
-            
-            
+
+
+
             if(actual_count == 3)
             {
 
                 // [INFO] .. calculate the normals from the gsse structure
                 //
-                STLTriangle st;  
-                Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]), 
+                STLTriangle st;
+                Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]),
                             GetPoint(element_container[2])-GetPoint(element_container[0]));
                 normal.Normalize();
                 st.SetNormal (normal);
-                
-                
+
+
 //                 Vec<3> v0( GetPoint(element_container[0])[0], GetPoint(element_container[0])[1], GetPoint(element_container[0])[2] );
 //                 Vec<3> v1( GetPoint(element_container[1])[0], GetPoint(element_container[1])[1], GetPoint(element_container[1])[2] );
 //                 Vec<3> v2( GetPoint(element_container[2])[0], GetPoint(element_container[2])[1], GetPoint(element_container[2])[2] );
-//                 
+//
 // //                 v0[0] = GetPoint(element_container[0])[0];
 // //                 v0[1] = GetPoint(element_container[0])[1];
 // //                 v0[2] = GetPoint(element_container[0])[2];
-//                 
+//
 // //                 Vec<3> v1 = GetPoint(element_container[1]);
 // //                 Vec<3> v2 = GetPoint(element_container[2]);
-//                 
+//
 //                 Vec<3> center = ( v0+v1+v2 );
 // //                 center[0] /= 3.0;
 // //                 center[1] /= 3.0;
 // //                 center[2] /= 3.0;
-//                 
+//
 //                 int mat_num;
-//                 
+//
 //                 if ( (center[2] - 30.0) < -1e-6 )
 //                     mat_num = 0;
 //                 else if ( (center[2] - 30.0) > 1e-6 )
@@ -1523,20 +1523,20 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
 //                     else
 //                         mat_num = 1;
 //                 }
-//                 
-//                 
-//                 
-//                 
+//
+//
+//
+//
 //                 st.material[0] = mat_num;
                 st.material[0] = material_number;
                 st.material[1] = -1;
-                
+
                 st[0] = element_container[0];
                 st[1] = element_container[1];
                 st[2] = element_container[2];
 
     #ifdef DEBUGALL
-                
+
                 std::cout << "..triangle_counter: " << triangle_counter << std::endl;
                 std::cout << "..st[0]: " << st[0] << std::endl;
                 std::cout << "..st[1]: " << st[1] << std::endl;
@@ -1551,14 +1551,14 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                 triangle.push_back(st[0]);
                 triangle.push_back(st[1]);
                 triangle.push_back(st[2]);
-                
+
                 // [FS][INFO] this is done to for searching in the triangle_map
                 //
                 sort(triangle.begin(), triangle.end());
 
                 std::map<std::vector<int>, int>::iterator tmit;
                 tmit = triangle_map.find(triangle);
-                
+
                 if(tmit == triangle_map.end())
                 {
     #ifdef DEBUGALL
@@ -1566,7 +1566,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
     #endif
 
                     triangle_map[triangle] = triangle_counter;
-                
+
                     if ( (st[0] == st[1]) || (st[0] == st[2]) || (st[1] == st[2]) )
                     {
                         PrintError("STL Triangle degenerated");
@@ -1574,7 +1574,7 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                     else
                     {
                         AddTriangle(st);
-                        triangle_counter++;                      
+                        triangle_counter++;
                     }
                 }
                 else
@@ -1585,13 +1585,13 @@ void STLTopology :: InitSTLGeometry( viennagrid::triangular_3d_mesh const & vgri
                     std::cout << "..triangle found: triangle_counter: " << (*tmit).second << " :: materialnum: " << material_number << std::endl;
     #endif
 
-                    
+
                     GetTriangle((*tmit).second).material[1] = material_number;
 //                     mat_num = 1 - GetTriangle((*tmit).second).material[0];
 //                     GetTriangle((*tmit).second).material[1] = mat_num;
                 }
-                
-                
+
+
 //                 std::cout << "### MATERIAL Number : " << mat_num << std::endl;
 //                 std::cout << " ------------------------------------------------------------------------------------- " << std::endl;
             }
@@ -1615,15 +1615,15 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
 
   int i, j, k;
-  
-  // const double geometry_tol_fact = 1E6; 
+
+  // const double geometry_tol_fact = 1E6;
   // distances lower than max_box_size/tol are ignored
-  
+
 
 
       // [INFO] .. GSSE STARTS HERE
       //
-      typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t; 
+      typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t;
       typedef gsse::get_domain<unstructured_topology_2t, double, double,3>::type    domain_32t;
 
       typedef gsse::domain_traits<domain_32t>::cell_iterator		  cell_iterator;
@@ -1632,7 +1632,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
       typedef gsse::domain_traits<domain_32t>::segment_iterator	  segment_iterator;
       typedef gsse::domain_traits<domain_32t>::point_t             point_t;
       typedef gsse::domain_traits<domain_32t>::vertex_on_cell_iterator  vertex_on_cell_iterator;
-      
+
       typedef gsse::domain_traits<domain_32t>::edge_on_cell_iterator    edge_on_cell_iterator;
       typedef gsse::domain_traits<domain_32t>::cell_on_edge_iterator    cell_on_edge_iterator;
 
@@ -1649,7 +1649,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
       domain.read_file(filename, false);
 
-//       typedef SpaceGenerator<3, 2, 1>::FullSpace    FullSpace32;      
+//       typedef SpaceGenerator<3, 2, 1>::FullSpace    FullSpace32;
 //       FullSpace32 output_space;
 
 
@@ -1657,11 +1657,11 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 //      domain.read_file("simple_box.gau32");
 //       domain.read_file("simple_box_fine.gau32");
-      
-      // almost touching 2 segment example
-//       domain.read_file("multiple_surfaces_22.gau32"); 
 
-//       domain.read_file("multiple_surfaces_23.gau32"); 
+      // almost touching 2 segment example
+//       domain.read_file("multiple_surfaces_22.gau32");
+
+//       domain.read_file("multiple_surfaces_23.gau32");
 
       // touching 2 segment example
 //      domain.read_file("multiple_surfaces_24.gau32");
@@ -1677,11 +1677,11 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
       // 8 boxes arranged as a ring
 //      domain.read_file("multiple_surfaces_35_oriented.gau32");
-      
+
       // 8 segments - each sharing the same single edge => cake
 //       domain.read_file("cake_model_1.gau32");
-      
-      // 4 segments - sharing the same egde - 
+
+      // 4 segments - sharing the same egde -
 //       domain.read_file("cake_model_2.gau32");
 
 //       domain.read_file("multiple_surfaces_24_orient_2.gau32");
@@ -1690,14 +1690,14 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 //      domain.read_file("multiple_surfaces_big_small_box_3.gau32");
 
 
-      // touching 2 segments - one box is smaller      
+      // touching 2 segments - one box is smaller
 //       domain.read_file("multiple_surfaces_big_small_box_4.gau32");
 //       domain.read_file("multiple_surfaces_big_small_box_5.gau32");
 
       // touching 3 segments - 2 small boxes on one big box
 //       domain.read_file("multiple_surfaces_big_small_box_11.gau32");
 //      domain.read_file("multiple_surfaces_big_small_box_12.gau32");
-      
+
       // touching 2 segments - part is on boundary - part is inside
 //         domain.read_file("multiple_surfaces_big_small_box_6.gau32");
 
@@ -1713,7 +1713,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 //       domain.read_file("multiple_surfaces_big_box_2.gau32");
 //       domain.read_file("multiple_surfaces_big_box_3.gau32");
 
-      
+
 //       domain.read_file("sample1_cospherical_points.gau32");
 
 //       domain.read_file("trench.gau32");
@@ -1734,7 +1734,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 //      domain.read_file("lto_depo_over_lines.gau32_oriented_seg0.gau32");
 //       domain.read_file("lto_depo_over_lines.gau32_oriented_seg3.gau32");
-  
+
 //      domain.read_file("pecvd_layer_in_trench.gau32_oriented_seg2.gau32");
 //      domain.read_file("cyl_mask_etched_flux_oriented_seg0.gau32_oriented.gau32");
 //      domain.read_file("cyl_mask_etched_flux_oriented_seg1.gau32");
@@ -1821,12 +1821,12 @@ void STLTopology :: InitSTLGeometry(const char * filename)
       if(check_nm)
       {
 
-      // [INFO] checking for non-manifold edges 
+      // [INFO] checking for non-manifold edges
       //
       typedef boost::array<long,2> edge_t;
       std::vector<edge_t> non_manifold_edges;
       std::vector<long> non_oriented_triangles;
-      
+
       {
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
@@ -1836,15 +1836,15 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                                  
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ;eocit.valid(); ++eocit)
                {
                   int count = 0;
                   edge_t new_edge;
                   cell_on_edge_iterator coeit(*eocit);
-                  for (; coeit.valid(); ++coeit, ++count) ;                  
-                  
+                  for (; coeit.valid(); ++coeit, ++count) ;
+
                   // [INFO] premises: there are no holes in the input
                   //
                   if (count != 2)
@@ -1855,7 +1855,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                      non_manifold_edges.push_back(new_edge);
 
 #ifdef DEBUGFULL
-                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1]
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
@@ -1866,7 +1866,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
-               }                                            
+               }
             }
          }
       }
@@ -1880,7 +1880,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #ifdef DEBUGALL
          std::cout << ".. before orientation checker .. " << std::endl;
 #endif
-         check_and_repair_orientation(domain, non_manifold_edges);        
+         check_and_repair_orientation(domain, non_manifold_edges);
 
 #ifdef DEBUGALL
          std::cout << ".. after orientation checker .. " << std::endl;
@@ -1895,20 +1895,20 @@ void STLTopology :: InitSTLGeometry(const char * filename)
          for( ; segit != domain.segment_end(); ++segit)
          {
             std::cout << ".. seg: " << (*segit) << std::endl;
-            
+
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {  
+            {
                if(domain(*cit, "orientation")(0,0) == -2.0) // -2.0 triangle adjacent to non-manifold edge
                {
-                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;                  
+                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;
 
                   int ci = 0;
                   boost::array<long,3>   cell_handle;
                   boost::array<double,3> cell_orient;
-                  
+
                   // [INFO] check if the neighbouring triangles are consistently oriented
-                  // 
+                  //
                   for (edge_on_cell_iterator eocit(*cit); eocit.valid(); ++eocit)
                   {
 #ifdef DEBUGALL
@@ -1920,7 +1920,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                      cell_on_edge_iterator coeit2(*eocit);
                      for( ; coeit2.valid(); ++coeit2, ++count) ;
                      std::cout << "..count: " << count << std::endl;
-                     
+
                      if(count == 2)
                      {
                         for(cell_on_edge_iterator coeit(*eocit); coeit.valid(); ++coeit)
@@ -1947,11 +1947,11 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
                      }
                   }
-                  
+
                   if(ci == 2)
                   {
                      bool is_oriented_consistently = 0;
-                     
+
                      if(cell_orient[0] == 1.0 && cell_orient[1] == 1.0)
                      {
                         is_oriented_consistently = 1;
@@ -1962,34 +1962,34 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                         std::cout << ".. neighbour not oriented consistently.." << std::cout;
 #endif
                      }
-                     
+
 #ifdef DEBUGALL
                      std::cout << "..is_oriented_consistently: " << is_oriented_consistently << std::endl;
 #endif
-                     
+
                      if (is_oriented_consistently)
-                     {  
-                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]), 
+                     {
+                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]),
                                                                     (*segit).retrieve_topology().get_cell((*cit).handle()) );
 
 #ifdef DEBUGALL
                         std::cout << "..correct: " << correct << std::endl;
 #endif
-                        
+
                         // try to change this error immediatly
                         //
                         if(!correct)
                         {
                            long temp = (*segit).retrieve_topology().get_cell( (*cit).handle() )[1];
                            (*segit).retrieve_topology().get_cell((*cit).handle())[1] = (*segit).retrieve_topology().get_cell((*cit).handle())[2];
-                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;                        
+                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;
 
 #ifdef DEBUGALL
                            std::cout << "..triangle: " << (*cit)
-                                     << ".. inverting orientation " 
+                                     << ".. inverting orientation "
                                      << std::endl;
 #endif
-                        }                        
+                        }
                      }
                   }
                   else
@@ -1998,9 +1998,9 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                         std::cout << ".. possible error !!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;
 #endif
                   }
-               }                                                         
-            }               
-         }                                                                                                        
+               }
+            }
+         }
       }
 
       long max_points = domain.point_size();
@@ -2013,7 +2013,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
       std::map<long, int> change_trigs;
 
       // [INFO] duplicate non-manifold edges and resume normal meshing
-      //      
+      //
       {
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
@@ -2023,17 +2023,17 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                    
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ; eocit.valid() ; ++eocit)
                {
                   int count = 0;
                   for(cell_on_edge_iterator coeit(*eocit) ; coeit.valid() ; ++coeit, ++count) ;
-                  
+
                   // [INFO] premises: there are no holes in the input
                   //
                   edge_t edge;
-                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();                  
+                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();
                   if(edge[0] < edge[1])
                      std::swap(edge[0], edge[1]);
 
@@ -2056,37 +2056,37 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                         //
                         if ((*coeit).handle() == (*cit).handle())
                            continue;
-                        
+
 #ifdef DEBUGALL
                         std::cout << ".. checking triangle: " << (*coeit).handle() << " ";
                         std::cout << "cell vertices: ";
-                        vertex_on_cell_iterator vocit(*coeit);                           
+                        vertex_on_cell_iterator vocit(*coeit);
                         while (vocit.valid())
                         {
                            std::cout << (*vocit).handle() << " ";
                            vocit++;
                         }
                         std::cout << std::endl;
-#endif                        
-                         
-                        bool is_oriented_consistently = 
-                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ), 
+#endif
+
+                        bool is_oriented_consistently =
+                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ),
                                                          (*segit).retrieve_topology().get_cell( (*cit).handle() )  );
-                        
+
                         // [INFO] exclude the triangle on the exact opposite side
                         //
 //                        if(is_oriented_consistently)
                         {
-                           std::cout << "..a match found" << std::endl;                           
-                                                   
+                           std::cout << "..a match found" << std::endl;
+
                            point_t base_point;
                            long base_point_handle;
                            int pi;
                            int pc = 0;
 
-                           vertex_on_cell_iterator vocit(*coeit);                           
+                           vertex_on_cell_iterator vocit(*coeit);
                            std::cout << "cell vertices: ";
-                        
+
                            while (vocit.valid())
                            {
                               if((*vocit).handle() != (*eocit).handle1() && (*vocit).handle() != (*eocit).handle2())
@@ -2109,7 +2109,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
                               int count2 = 0;
                               for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() ; ++coeit2, ++count2) ;
-                              
+
                               // [INFO] only use triangles not connected on the non-manifold edge
                               //
                               if (count2 == 2)
@@ -2117,9 +2117,9 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                  for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() && !trig_found ; ++coeit2)
                                  {
                                     std::cout << ".. coeit2: " << (*coeit2) << std::endl;
-                                    
-                                    vertex_on_cell_iterator vocit2(*coeit2);                           
-                                    
+
+                                    vertex_on_cell_iterator vocit2(*coeit2);
+
                                     int found_edge = 0;
                                     int found_trig = 0;
                                     while (vocit2.valid() && !trig_found)
@@ -2136,57 +2136,57 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                        if(found_edge && found_trig)
                                        {
                                           std::cout << ".. connection to other trig found " << std::endl ;
-                                          used_edges[edge] = 1;                                          
+                                          used_edges[edge] = 1;
                                           trig_found = 1;
 
-                                          change_trig_handle = (*coeit2).handle();         
+                                          change_trig_handle = (*coeit2).handle();
                                           first_trig_handle  = (*coeit).handle();
                                           second_trig_handle = (*cit).handle();
                                        }
-                                       vocit2++;                                       
+                                       vocit2++;
                                     }
-                                    std::cout << std::endl;                               
+                                    std::cout << std::endl;
                                  }
                               }
                               std::cout << "..after count==2 " << std::endl;
                            }
-                        }                                                                     
+                        }
                      }
 
                      // apply changes
-                     // 
+                     //
                      if(trig_found)
                      {
-//                         vertex_on_cell_iterator vocit3(*coeit2);                           
+//                         vertex_on_cell_iterator vocit3(*coeit2);
 //                         long pi = 0;
 //                         while (vocit3.valid())
                         for(int pi=0; pi < 3; pi++)
                         {
-                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl; 
-                           
+                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl;
+
                            for(int ei=0; ei < 2; ei++)
                            {
                               if((*segit).retrieve_topology().get_cell(change_trig_handle)[pi] == edge[ei])
                               {
-                                 // [INFO] nm-edge handling 
+                                 // [INFO] nm-edge handling
                                  //
 #ifdef DEBUGALL
                                  std::cout << ".. nm-edge point[" << ei << "] found: " << edge[ei] << std::endl ;
-#endif                                 
+#endif
 //                                  point_t new_point;
 //                                  new_point = domain.get_point_fromhandle(edge[ei]);
-                                 
-                                 // [INFO] use barycenter calculation for new point 
+
+                                 // [INFO] use barycenter calculation for new point
                                  //        => new point is inside the trig but not the original point
-                                 //                  
+                                 //
                                  boost::array<point_t, 3> test_cell;
-                                 test_cell[0] = 
+                                 test_cell[0] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[0]);
-                                 test_cell[1] = 
+                                 test_cell[1] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[1]);
-                                 test_cell[2] = 
+                                 test_cell[2] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[2]);
-                                 
+
                                  point_t bary_point = gsse::barycenter(test_cell.begin(), test_cell.end());
 
                                  domain.fast_point_insert(bary_point);
@@ -2200,8 +2200,8 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                     {
                                        cell_iterator cit2;
                                        for (cit2 = (*segit2).cell_begin(); cit2 != (*segit2).cell_end(); ++cit2)
-                                       {                
-                                          
+                                       {
+
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, first_trig_handle))
                                           {
                                              std::cout << ".. cell found .. " << (*cit2) << std::endl;
@@ -2223,7 +2223,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                                    (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci] = domain.point_size()-1;
                                              }
                                           }
-                                          
+
                                           // third trig but not of nm-edge
                                           //
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, change_trig_handle))
@@ -2252,12 +2252,12 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                     if(edge[0] == (*segit).retrieve_topology().get_cell(second_trig_handle)[ci])
                                        (*segit).retrieve_topology().get_cell(second_trig_handle)[ci] = domain.point_size()-1;
                                  }
-                                                                                     
+
                               }
                            }
-                        }                                       
-                     }                     
-                  }                  
+                        }
+                     }
+                  }
                }
             }
          }
@@ -2269,7 +2269,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 
                         // ################################################################
-                        // target are the points of both triangles under investigation                           
+                        // target are the points of both triangles under investigation
                         //
 //                            if(test_point == 8274)
 //                            {
@@ -2278,16 +2278,16 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 //                               target.push_back(3306);
 // //                               target.push_back(8274);
 // //                               target.push_back(3298);
-                              
+
 //                               std::cout << ".. starting nearest match .. " << std::endl;
-                              
+
 //                               long max_counter = 10;
 //                               long result = find_nearest_match(domain, segit, cit, edge, target, max_counter);
 //                               if(result != -1)
 //                                  std::cout << ".. found .. " << result << std::endl;
 //                               else
 //                                  std::cout << ".. NOT found .. " << result << std::endl;
-                              
+
 //                               std::cout << ".. finishing .. " << std::endl;
 //                            }
 
@@ -2300,17 +2300,17 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 //                            // [TODO] quick hack ... redo if this idea works !!!
 //                            if(pi == 0)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
 //                            }
 //                            else if(pi == 1)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
 //                            }
 //                            else if(pi == 2)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
 //                            }
@@ -2322,23 +2322,23 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 // //                            domain.fast_point_insert(new_point1);
 //                            domain.fast_point_insert(new_point2);
-                        
+
 //                            (*segit).retrieve_topology().get_cell((*cit).handle())[0] = base_point_handle;
 
 //                            if(pi == 0)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
 //                            }
 //                            else if(pi == 1)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
 //                            }
 //                            else if(pi == 2)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
@@ -2350,8 +2350,8 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 //                                      << " " << (*segit).retrieve_topology().get_cell((*cit).handle())[2]
 //                                      << std::endl;
 
-//                            bool is_oriented_consistently = 
-//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()), 
+//                            bool is_oriented_consistently =
+//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()),
 //                                                             (*segit).retrieve_topology().get_cell((*cit).handle()) );
 
 //                            std::cout << ".. is_oriented_consistently: " << is_oriented_consistently << std::endl;
@@ -2361,7 +2361,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 
       std::cout << ".. before checking orientation the second time .. " << std::endl;
-      
+
       check_and_repair_orientation_new(domain);
 
       std::cout << ".. checking again for non-manifold edges .. " << std::endl;
@@ -2375,7 +2375,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                                  
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ;eocit.valid(); ++eocit)
                {
@@ -2383,7 +2383,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                   edge_t new_edge;
                   cell_on_edge_iterator coeit(*eocit);
                   for (; coeit.valid(); ++coeit, ++count) ;
-                  
+
                   // [INFO] premises: there are no holes in the input
                   //
                   if (count != 2)
@@ -2394,7 +2394,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                      non_manifold_edges.push_back(new_edge);
 
 #ifdef DEBUGALL
-                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1]
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
@@ -2405,7 +2405,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
-               }                                            
+               }
             }
          }
       }
@@ -2413,107 +2413,107 @@ void STLTopology :: InitSTLGeometry(const char * filename)
       domain.write_file("fs_output_test.gau32");
 #endif
     }
-      
+
 #ifdef DEBUGALL
       std::cout << "..point size: " << domain.point_size() << std::endl;
 #endif
 
       trias.SetSize(0);
       points.SetSize(0);
-  
+
 //      PrintMessage(3,"number of triangles = ", readtrigs.Size());
 
       // [FS][MOD] set the size for multiple surfaces
       //
       material_size = domain.segment_size();
-    
-      // [FS][TODO] .. maybe this can be removed ? 
+
+      // [FS][TODO] .. maybe this can be removed ?
       //           check if the bounding box really matters
       //
       segment_iterator segit = domain.segment_begin();
       for( ; segit != domain.segment_end(); ++segit)
-	{      
+	{
 	  cell_iterator cit = (*segit).cell_begin();
 	  for( ; cit != (*segit).cell_end(); ++cit, i++)
-	    {	  
+	    {
 	      vertex_on_cell_iterator vocit(*cit);
 	      while(vocit.valid())
 		{
 		  point_t point = domain.get_point(*vocit);
-		  Point<3> p(point[0],point[1],point[2]);		  
+		  Point<3> p(point[0],point[1],point[2]);
 		  boundingbox.Add(p);
 		  vocit++;
 		}
 	    }
 	}
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
       std::cout << "boundingbox: " << Point3d(boundingbox.PMin()) << " - " << Point3d(boundingbox.PMax()) << std::endl;
 #endif
 
       ARRAY<int> pintersect;
       Box<3> bb = boundingbox;
       bb.Increase (1);
-  
+
       pointtree = new Point3dTree (bb.PMin(), bb.PMax());
-  
+
       typedef std::map<point_t, vertex_handle>::iterator point_map_iterator;
       boost::array<vertex_handle, 3>                       element_container;
 
       std::map<std::vector<int>, int>        triangle_map;
 
-      long element_counter = 1;  
+      long element_counter = 1;
       long triangle_counter = 1;
       i=0;
       int material_number = 0;
       segit = domain.segment_begin();
       for( ; segit != domain.segment_end(); ++segit, ++material_number)
-      {      
+      {
          cell_iterator cit = (*segit).cell_begin();
 
 	  std::map<point_t, vertex_handle> point_map;
 
 	  for( ; cit != (*segit).cell_end(); ++cit, i++)
-	    {      
+	    {
 	      vertex_on_cell_iterator vocit(*cit);
 
               int actual_count = 0;
-              
+
 	      for (int element_index = 0; element_index < 3; element_index++, ++vocit)
               {
                  if((*vocit).handle() != -1)
-                 {                      
+                 {
                     point_t point = domain.get_point(*vocit);
-                      
+
                     point_map_iterator pmit = point_map.find(point);
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
                     std::cout << "..checking point: " << (*vocit).handle() << " :: " << point << std::endl;
 #endif
                     if(pmit == point_map.end())
                     {
                        vgmnetgen::Point<3> p(point[0],point[1],point[2]);
-                         
+
                        vgmnetgen::Point<3> pmin = p - vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
                        vgmnetgen::Point<3> pmax = p + vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
-                         
+
                        pointtree->GetIntersecting (pmin, pmax, pintersect);
 
-#ifdef DEBUGALL                         
+#ifdef DEBUGALL
                        if (pintersect.Size() > 1)
                           std::cout << "too many close points" << std::endl;
-#endif               
-          
+#endif
+
                        int foundpos = -1;
-                         
+
                        // [INFO] ensure that a point is only added once => topological and geometrical unique
                        //
                        if (pintersect.Size())
                           foundpos = pintersect[0];
 
-#ifdef DEBUGALL                         
+#ifdef DEBUGALL
                        std::cout << "..foundpos: " << foundpos << std::endl;
 #endif
-                         
+
                        if (foundpos == -1)
                        {
 #ifdef DEBUGALL
@@ -2522,11 +2522,11 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                           foundpos = AddPoint(p);
                           pointtree->Insert (p, foundpos);
                        }
-                         
+
                        point_map[point] = foundpos;
                        element_container[element_index] = foundpos;
-                         
-                       element_counter++;		      
+
+                       element_counter++;
                     }
                     else
                     {
@@ -2534,34 +2534,34 @@ void STLTopology :: InitSTLGeometry(const char * filename)
                     }
 
                     actual_count++;
-  
+
                     // 	      Point<3> pmin = p - Vec<3> (pointtol, pointtol, pointtol);
                     // 	      Point<3> pmax = p + Vec<3> (pointtol, pointtol, pointtol);
-  
+
                     // 	      pointtree->GetIntersecting (pmin, pmax, pintersect);
-  
+
                     // 	      std::cout << ".. after intersection test: " << std::endl;
-  
+
                     // 	      if (pintersect.Size() > 1)
                     // 		PrintError("too many close points");
-  
+
                     // 	      int foundpos = -1;
-  
-                    // 	      // [FS] .. test: add the interface point a second time	 
+
+                    // 	      // [FS] .. test: add the interface point a second time
                     // 	      //
-  
+
                     // 	      if (pintersect.Size())
                     // 		foundpos = pintersect[0];
-  
+
                     // 	      std::cout << ".. foundpos: " << foundpos << " :: for point: " << p <<  std::endl;
-  
+
                     // 	      if (foundpos == -1)
                     // 		{
                     // 		  foundpos = AddPoint(p);
                     // 		  pointtree->Insert (p, foundpos);
                     // 		}
                     // 	      st[k] = foundpos;
-                 }                 
+                 }
               }
 
               if(actual_count == 3)
@@ -2569,14 +2569,14 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 
 	      // [INFO] .. calculate the normals from the gsse structure
 	      //
- 	      STLTriangle st;  
- 	      Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]), 
+ 	      STLTriangle st;
+ 	      Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]),
 				     GetPoint(element_container[2])-GetPoint(element_container[0]));
 	      normal.Normalize();
 	      st.SetNormal (normal);
 	      st.material[0] = material_number;
 	      st.material[1] = -1;
-	      
+
 	      st[0] = element_container[0];
 	      st[1] = element_container[1];
 	      st[2] = element_container[2];
@@ -2595,14 +2595,14 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 	      triangle.push_back(st[0]);
 	      triangle.push_back(st[1]);
 	      triangle.push_back(st[2]);
-	      
+
 	      // [FS][INFO] this is done to for searching in the triangle_map
 	      //
 	      sort(triangle.begin(), triangle.end());
 
 	      std::map<std::vector<int>, int>::iterator tmit;
 	      tmit = triangle_map.find(triangle);
-	      
+
 	      if(tmit == triangle_map.end())
 		{
 #ifdef DEBUGALL
@@ -2610,9 +2610,9 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 #endif
 
 		  triangle_map[triangle] = triangle_counter;
-		  
+
 		  if ( (st[0] == st[1]) ||
-		       (st[0] == st[2]) || 
+		       (st[0] == st[2]) ||
 		       (st[1] == st[2]) )
 		    {
 		      PrintError("STL Triangle degenerated");
@@ -2620,7 +2620,7 @@ void STLTopology :: InitSTLGeometry(const char * filename)
 		  else
                   {
                      AddTriangle(st);
-                     triangle_counter++;                      
+                     triangle_counter++;
                   }
 		}
 	      else
@@ -2657,26 +2657,26 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #endif
 
   int i, j, k;
-  
-  // const double geometry_tol_fact = 1E6; 
+
+  // const double geometry_tol_fact = 1E6;
   // distances lower than max_box_size/tol are ignored
-  
+
   int netgen = 0;
   if(netgen)
     {
       trias.SetSize(0);
       points.SetSize(0);
-  
+
 //      PrintMessage(3,"number of triangles = ", readtrigs.Size());
-  
+
       if (!readtrigs.Size())
 	return;
-  
+
       boundingbox.Set (readtrigs[0][0]);
       for (i = 0; i < readtrigs.Size(); i++)
 	for (k = 0; k < 3; k++)
 	  boundingbox.Add (readtrigs[i][k]);
-  
+
 #ifdef DEBUGALL
       std::cout << "boundingbox: " << Point3d(boundingbox.PMin()) << " - " << Point3d(boundingbox.PMax()) << std::endl;
 #endif
@@ -2694,7 +2694,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
       // [FS] .. here the point tolerance decides which two non identical points are treated as one
       //
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
       std::cout << "point tolerance = " << pointtol << std::endl;
 #endif
 
@@ -2730,7 +2730,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 	      int foundpos = -1;
 
-	      // [FS] .. test: add the interface point a second time	 
+	      // [FS] .. test: add the interface point a second time
 	      //
 
 	      if (pintersect.Size())
@@ -2747,7 +2747,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 	    }
 
 	  if ( (st[0] == st[1]) ||
-	       (st[0] == st[2]) || 
+	       (st[0] == st[2]) ||
 	       (st[1] == st[2]) )
 	    {
 	      PrintError("STL Triangle degenerated");
@@ -2759,14 +2759,14 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 	      AddTriangle(st);
 	    }
 
-	} 
+	}
     }
   else
     {
 
       // [INFO] .. GSSE STARTS HERE
       //
-      typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t; 
+      typedef gsse::detail_topology::unstructured<2>                                unstructured_topology_2t;
       typedef gsse::get_domain<unstructured_topology_2t, double, double,3>::type    domain_32t;
 
       typedef gsse::domain_traits<domain_32t>::cell_iterator		  cell_iterator;
@@ -2775,7 +2775,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
       typedef gsse::domain_traits<domain_32t>::segment_iterator	  segment_iterator;
       typedef gsse::domain_traits<domain_32t>::point_t             point_t;
       typedef gsse::domain_traits<domain_32t>::vertex_on_cell_iterator  vertex_on_cell_iterator;
-      
+
       typedef gsse::domain_traits<domain_32t>::edge_on_cell_iterator    edge_on_cell_iterator;
       typedef gsse::domain_traits<domain_32t>::cell_on_edge_iterator    cell_on_edge_iterator;
 
@@ -2786,7 +2786,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
       domain_32t domain;
 
 
-//       typedef SpaceGenerator<3, 2, 1>::FullSpace    FullSpace32;      
+//       typedef SpaceGenerator<3, 2, 1>::FullSpace    FullSpace32;
 //       FullSpace32 output_space;
 
 
@@ -2796,11 +2796,11 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 //      domain.read_file("simple_box.gau32");
 //       domain.read_file("simple_box_fine.gau32");
-      
-      // almost touching 2 segment example
-//       domain.read_file("multiple_surfaces_22.gau32"); 
 
-//       domain.read_file("multiple_surfaces_23.gau32"); 
+      // almost touching 2 segment example
+//       domain.read_file("multiple_surfaces_22.gau32");
+
+//       domain.read_file("multiple_surfaces_23.gau32");
 
       // touching 2 segment example
 //      domain.read_file("multiple_surfaces_24.gau32");
@@ -2816,11 +2816,11 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
       // 8 boxes arranged as a ring
 //      domain.read_file("multiple_surfaces_35_oriented.gau32");
-      
+
       // 8 segments - each sharing the same single edge => cake
 //       domain.read_file("cake_model_1.gau32");
-      
-      // 4 segments - sharing the same egde - 
+
+      // 4 segments - sharing the same egde -
 //       domain.read_file("cake_model_2.gau32");
 
 //       domain.read_file("multiple_surfaces_24_orient_2.gau32");
@@ -2829,14 +2829,14 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 //      domain.read_file("multiple_surfaces_big_small_box_3.gau32");
 
 
-      // touching 2 segments - one box is smaller      
+      // touching 2 segments - one box is smaller
 //       domain.read_file("multiple_surfaces_big_small_box_4.gau32");
 //       domain.read_file("multiple_surfaces_big_small_box_5.gau32");
 
       // touching 3 segments - 2 small boxes on one big box
 //       domain.read_file("multiple_surfaces_big_small_box_11.gau32");
 //      domain.read_file("multiple_surfaces_big_small_box_12.gau32");
-      
+
       // touching 2 segments - part is on boundary - part is inside
 //         domain.read_file("multiple_surfaces_big_small_box_6.gau32");
 
@@ -2852,7 +2852,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 //       domain.read_file("multiple_surfaces_big_box_2.gau32");
 //       domain.read_file("multiple_surfaces_big_box_3.gau32");
 
-      
+
 //       domain.read_file("sample1_cospherical_points.gau32");
 
 //       domain.read_file("trench.gau32");
@@ -2873,7 +2873,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 //      domain.read_file("lto_depo_over_lines.gau32_oriented_seg0.gau32");
 //       domain.read_file("lto_depo_over_lines.gau32_oriented_seg3.gau32");
-  
+
 //      domain.read_file("pecvd_layer_in_trench.gau32_oriented_seg2.gau32");
 //      domain.read_file("cyl_mask_etched_flux_oriented_seg0.gau32_oriented.gau32");
 //      domain.read_file("cyl_mask_etched_flux_oriented_seg1.gau32");
@@ -2960,12 +2960,12 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
       if(check_nm)
       {
 
-      // [INFO] checking for non-manifold edges 
+      // [INFO] checking for non-manifold edges
       //
       typedef boost::array<long,2> edge_t;
       std::vector<edge_t> non_manifold_edges;
       std::vector<long> non_oriented_triangles;
-      
+
       {
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
@@ -2975,15 +2975,15 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                                  
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ;eocit.valid(); ++eocit)
                {
                   int count = 0;
                   edge_t new_edge;
                   cell_on_edge_iterator coeit(*eocit);
-                  for (; coeit.valid(); ++coeit, ++count) ;                  
-                  
+                  for (; coeit.valid(); ++coeit, ++count) ;
+
                   // [INFO] premises: there are no holes in the input
                   //
                   if (count != 2)
@@ -2993,7 +2993,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
                      non_manifold_edges.push_back(new_edge);
 
-                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1]
                                << " .. count: " << count <<  std::endl;
                   }
                   else
@@ -3003,7 +3003,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
-               }                                            
+               }
             }
          }
       }
@@ -3017,7 +3017,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #ifdef DEBUGALL
          std::cout << ".. before orientation checker .. " << std::endl;
 #endif
-         check_and_repair_orientation(domain, non_manifold_edges);        
+         check_and_repair_orientation(domain, non_manifold_edges);
 
 #ifdef DEBUGALL
          std::cout << ".. after orientation checker .. " << std::endl;
@@ -3032,20 +3032,20 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
          for( ; segit != domain.segment_end(); ++segit)
          {
             std::cout << ".. seg: " << (*segit) << std::endl;
-            
+
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {  
+            {
                if(domain(*cit, "orientation")(0,0) == -2.0) // -2.0 triangle adjacent to non-manifold edge
                {
-                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;                  
+                  std::cout << ".. non oriented triangle: " << (*cit).handle() << std::endl;
 
                   int ci = 0;
                   boost::array<long,3>   cell_handle;
                   boost::array<double,3> cell_orient;
-                  
+
                   // [INFO] check if the neighbouring triangles are consistently oriented
-                  // 
+                  //
                   for (edge_on_cell_iterator eocit(*cit); eocit.valid(); ++eocit)
                   {
 #ifdef DEBUGALL
@@ -3057,7 +3057,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                      cell_on_edge_iterator coeit2(*eocit);
                      for( ; coeit2.valid(); ++coeit2, ++count) ;
                      std::cout << "..count: " << count << std::endl;
-                     
+
                      if(count == 2)
                      {
                         for(cell_on_edge_iterator coeit(*eocit); coeit.valid(); ++coeit)
@@ -3080,11 +3080,11 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                         std::cout << "..non-manifold edge.." << std::endl;
                      }
                   }
-                  
+
                   if(ci == 2)
                   {
                      bool is_oriented_consistently = 0;
-                     
+
                      if(cell_orient[0] == 1.0 && cell_orient[1] == 1.0)
                      {
                         is_oriented_consistently = 1;
@@ -3093,37 +3093,37 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                      {
                         std::cout << ".. neighbour not oriented consistently.." << std::cout;
                      }
-                     
+
                      std::cout << "..is_oriented_consistently: " << is_oriented_consistently << std::endl;
-                     
+
                      if (is_oriented_consistently)
-                     {  
-                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]), 
+                     {
+                        bool correct = gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell(cell_handle[0]),
                                                                     (*segit).retrieve_topology().get_cell((*cit).handle()) );
 
                         std::cout << "..correct: " << correct << std::endl;
-                        
+
                         // try to change this error immediatly
                         //
                         if(!correct)
                         {
                            long temp = (*segit).retrieve_topology().get_cell( (*cit).handle() )[1];
                            (*segit).retrieve_topology().get_cell((*cit).handle())[1] = (*segit).retrieve_topology().get_cell((*cit).handle())[2];
-                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;                        
+                           (*segit).retrieve_topology().get_cell((*cit).handle())[2] = temp;
 
                            std::cout << "..triangle: " << (*cit)
-                                     << ".. inverting orientation " 
+                                     << ".. inverting orientation "
                                      << std::endl;
-                        }                        
+                        }
                      }
                   }
                   else
                   {
                         std::cout << ".. possible error !!!!!!!!!!!!!!!!!!!!!!!!! " << std::endl << std::endl;
                   }
-               }                                                         
-            }               
-         }                                                                                                        
+               }
+            }
+         }
       }
 
       long max_points = domain.point_size();
@@ -3133,7 +3133,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
       std::map<long, int> change_trigs;
 
       // [INFO] duplicate non-manifold edges and resume normal meshing
-      //      
+      //
       {
          segment_iterator segit = domain.segment_begin();
          for( ; segit != domain.segment_end(); ++segit)
@@ -3143,17 +3143,17 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                    
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ; eocit.valid() ; ++eocit)
                {
                   int count = 0;
                   for(cell_on_edge_iterator coeit(*eocit) ; coeit.valid() ; ++coeit, ++count) ;
-                  
+
                   // [INFO] premises: there are no holes in the input
                   //
                   edge_t edge;
-                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();                  
+                  edge[0] = (*eocit).handle1(); edge[1] = (*eocit).handle2();
                   if(edge[0] < edge[1])
                      std::swap(edge[0], edge[1]);
 
@@ -3176,37 +3176,37 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                         //
                         if ((*coeit).handle() == (*cit).handle())
                            continue;
-                        
+
 #ifdef DEBUGALL
                         std::cout << ".. checking triangle: " << (*coeit).handle() << " ";
                         std::cout << "cell vertices: ";
-                        vertex_on_cell_iterator vocit(*coeit);                           
+                        vertex_on_cell_iterator vocit(*coeit);
                         while (vocit.valid())
                         {
                            std::cout << (*vocit).handle() << " ";
                            vocit++;
                         }
                         std::cout << std::endl;
-#endif                        
-                         
-                        bool is_oriented_consistently = 
-                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ), 
+#endif
+
+                        bool is_oriented_consistently =
+                           gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell( (*coeit).handle() ),
                                                          (*segit).retrieve_topology().get_cell( (*cit).handle() )  );
-                        
+
                         // [INFO] exclude the triangle on the exact opposite side
                         //
 //                        if(is_oriented_consistently)
                         {
-                           std::cout << "..a match found" << std::endl;                           
-                                                   
+                           std::cout << "..a match found" << std::endl;
+
                            point_t base_point;
                            long base_point_handle;
                            int pi;
                            int pc = 0;
 
-                           vertex_on_cell_iterator vocit(*coeit);                           
+                           vertex_on_cell_iterator vocit(*coeit);
                            std::cout << "cell vertices: ";
-                        
+
                            while (vocit.valid())
                            {
                               if((*vocit).handle() != (*eocit).handle1() && (*vocit).handle() != (*eocit).handle2())
@@ -3229,7 +3229,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
                               int count2 = 0;
                               for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() ; ++coeit2, ++count2) ;
-                              
+
                               // [INFO] only use triangles not connected on the non-manifold edge
                               //
                               if (count2 == 2)
@@ -3237,9 +3237,9 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                  for(cell_on_edge_iterator coeit2(*eocit2); coeit2.valid() && !trig_found ; ++coeit2)
                                  {
                                     std::cout << ".. coeit2: " << (*coeit2) << std::endl;
-                                    
-                                    vertex_on_cell_iterator vocit2(*coeit2);                           
-                                    
+
+                                    vertex_on_cell_iterator vocit2(*coeit2);
+
                                     int found_edge = 0;
                                     int found_trig = 0;
                                     while (vocit2.valid() && !trig_found)
@@ -3256,56 +3256,56 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                        if(found_edge && found_trig)
                                        {
                                           std::cout << ".. connection to other trig found " << std::endl ;
-                                          used_edges[edge] = 1;                                          
+                                          used_edges[edge] = 1;
                                           trig_found = 1;
 
-                                          change_trig_handle = (*coeit2).handle();         
+                                          change_trig_handle = (*coeit2).handle();
                                           first_trig_handle  = (*coeit).handle();
                                           second_trig_handle = (*cit).handle();
                                        }
-                                       vocit2++;                                       
+                                       vocit2++;
                                     }
-                                    std::cout << std::endl;                               
+                                    std::cout << std::endl;
                                  }
                               }
                               std::cout << "..after count==2 " << std::endl;
                            }
-                        }                                                                     
+                        }
                      }
 
                      // apply changes
-                     // 
+                     //
                      if(trig_found)
                      {
-//                         vertex_on_cell_iterator vocit3(*coeit2);                           
+//                         vertex_on_cell_iterator vocit3(*coeit2);
 //                         long pi = 0;
 //                         while (vocit3.valid())
                         for(int pi=0; pi < 3; pi++)
                         {
-                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl; 
-                           
+                           std::cout << " " << (*segit).retrieve_topology().get_cell(change_trig_handle)[pi] << std::endl;
+
                            for(int ei=0; ei < 2; ei++)
                            {
                               if((*segit).retrieve_topology().get_cell(change_trig_handle)[pi] == edge[ei])
                               {
-                                 // [INFO] nm-edge handling 
+                                 // [INFO] nm-edge handling
                                  //
                                  std::cout << ".. nm-edge point[" << ei << "] found: " << edge[ei] << std::endl ;
-                                 
+
 //                                  point_t new_point;
 //                                  new_point = domain.get_point_fromhandle(edge[ei]);
-                                 
-                                 // [INFO] use barycenter calculation for new point 
+
+                                 // [INFO] use barycenter calculation for new point
                                  //        => new point is inside the trig but not the original point
-                                 //                  
+                                 //
                                  boost::array<point_t, 3> test_cell;
-                                 test_cell[0] = 
+                                 test_cell[0] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[0]);
-                                 test_cell[1] = 
+                                 test_cell[1] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[1]);
-                                 test_cell[2] = 
+                                 test_cell[2] =
                                     domain.get_point_fromhandle((*segit).retrieve_topology().get_cell(change_trig_handle)[2]);
-                                 
+
                                  point_t bary_point = gsse::barycenter(test_cell.begin(), test_cell.end());
 
                                  domain.fast_point_insert(bary_point);
@@ -3319,8 +3319,8 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                     {
                                        cell_iterator cit2;
                                        for (cit2 = (*segit2).cell_begin(); cit2 != (*segit2).cell_end(); ++cit2)
-                                       {                
-                                          
+                                       {
+
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, first_trig_handle))
                                           {
                                              std::cout << ".. cell found .. " << (*cit2) << std::endl;
@@ -3342,7 +3342,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                                    (*segit2).retrieve_topology().get_cell((*cit2).handle())[ci] = domain.point_size()-1;
                                              }
                                           }
-                                          
+
                                           // third trig but not of nm-edge
                                           //
                                           if(compare_triangles(segit2, (*cit2).handle(), segit, change_trig_handle))
@@ -3371,12 +3371,12 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                     if(edge[0] == (*segit).retrieve_topology().get_cell(second_trig_handle)[ci])
                                        (*segit).retrieve_topology().get_cell(second_trig_handle)[ci] = domain.point_size()-1;
                                  }
-                                                                                     
+
                               }
                            }
-                        }                                       
-                     }                     
-                  }                  
+                        }
+                     }
+                  }
                }
             }
          }
@@ -3388,7 +3388,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 
                         // ################################################################
-                        // target are the points of both triangles under investigation                           
+                        // target are the points of both triangles under investigation
                         //
 //                            if(test_point == 8274)
 //                            {
@@ -3397,16 +3397,16 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 //                               target.push_back(3306);
 // //                               target.push_back(8274);
 // //                               target.push_back(3298);
-                              
+
 //                               std::cout << ".. starting nearest match .. " << std::endl;
-                              
+
 //                               long max_counter = 10;
 //                               long result = find_nearest_match(domain, segit, cit, edge, target, max_counter);
 //                               if(result != -1)
 //                                  std::cout << ".. found .. " << result << std::endl;
 //                               else
 //                                  std::cout << ".. NOT found .. " << result << std::endl;
-                              
+
 //                               std::cout << ".. finishing .. " << std::endl;
 //                            }
 
@@ -3419,17 +3419,17 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 //                            // [TODO] quick hack ... redo if this idea works !!!
 //                            if(pi == 0)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
 //                            }
 //                            else if(pi == 1)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[2]);
 //                            }
 //                            else if(pi == 2)
-//                            {                           
+//                            {
 //                               new_point1 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[0]);
 //                               new_point2 = domain.get_point_fromhandle((*segit).retrieve_topology().get_cell((*cit).handle())[1]);
 //                            }
@@ -3441,23 +3441,23 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 // //                            domain.fast_point_insert(new_point1);
 //                            domain.fast_point_insert(new_point2);
-                        
+
 //                            (*segit).retrieve_topology().get_cell((*cit).handle())[0] = base_point_handle;
 
 //                            if(pi == 0)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
 //                            }
 //                            else if(pi == 1)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[2] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
 //                            }
 //                            else if(pi == 2)
-//                            {                           
+//                            {
 // //                               (*segit).retrieve_topology().get_cell((*cit).handle())[0] = domain.point_size()-2;
 //                               (*segit).retrieve_topology().get_cell((*cit).handle())[1] = domain.point_size()-1;
 //                               (*segit).retrieve_topology().get_cell((*coeit).handle())[1] = domain.point_size()-1;
@@ -3469,8 +3469,8 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 //                                      << " " << (*segit).retrieve_topology().get_cell((*cit).handle())[2]
 //                                      << std::endl;
 
-//                            bool is_oriented_consistently = 
-//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()), 
+//                            bool is_oriented_consistently =
+//                               gsse::check_oriented_neighbor((*segit).retrieve_topology().get_cell((*coeit).handle()),
 //                                                             (*segit).retrieve_topology().get_cell((*cit).handle()) );
 
 //                            std::cout << ".. is_oriented_consistently: " << is_oriented_consistently << std::endl;
@@ -3480,7 +3480,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 
       std::cout << ".. before checking orientation the second time .. " << std::endl;
-      
+
       check_and_repair_orientation_new(domain);
 
       std::cout << ".. checking again for non-manifold edges .. " << std::endl;
@@ -3494,7 +3494,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #endif
             cell_iterator cit;
             for (cit = (*segit).cell_begin(); cit != (*segit).cell_end(); ++cit)
-            {                                                  
+            {
                edge_on_cell_iterator eocit(*cit);
                for( ;eocit.valid(); ++eocit)
                {
@@ -3502,7 +3502,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                   edge_t new_edge;
                   cell_on_edge_iterator coeit(*eocit);
                   for (; coeit.valid(); ++coeit, ++count) ;
-                  
+
                   // [INFO] premises: there are no holes in the input
                   //
                   if (count != 2)
@@ -3512,7 +3512,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
                      non_manifold_edges.push_back(new_edge);
 
-                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1] 
+                     std::cout << ".. non_manifold_edge found: " << new_edge[0] << " " << new_edge[1]
                                << " .. count: " << count <<  std::endl;
                   }
                   else
@@ -3522,7 +3522,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                                << " .. count: " << count <<  std::endl;
 #endif
                   }
-               }                                            
+               }
             }
          }
       }
@@ -3530,103 +3530,103 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
       domain.write_file("fs_output_test.gau32");
 
     }
-      
+
       std::cout << "..point size: " << domain.point_size() << std::endl;
 
       trias.SetSize(0);
       points.SetSize(0);
-  
+
 //      PrintMessage(3,"number of triangles = ", readtrigs.Size());
 
       // [FS][MOD] set the size for multiple surfaces
       //
       material_size = domain.segment_size();
-    
-      // [FS][TODO] .. maybe this can be removed ? 
+
+      // [FS][TODO] .. maybe this can be removed ?
       //           check if the bounding box really matters
       //
       segment_iterator segit = domain.segment_begin();
       for( ; segit != domain.segment_end(); ++segit)
-	{      
+	{
 	  cell_iterator cit = (*segit).cell_begin();
 	  for( ; cit != (*segit).cell_end(); ++cit, i++)
-	    {	  
+	    {
 	      vertex_on_cell_iterator vocit(*cit);
 	      while(vocit.valid())
 		{
 		  point_t point = domain.get_point(*vocit);
-		  Point<3> p(point[0],point[1],point[2]);		  
+		  Point<3> p(point[0],point[1],point[2]);
 		  boundingbox.Add(p);
 		  vocit++;
 		}
 	    }
 	}
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
       std::cout << "boundingbox: " << Point3d(boundingbox.PMin()) << " - " << Point3d(boundingbox.PMax()) << std::endl;
 #endif
 
       ARRAY<int> pintersect;
       Box<3> bb = boundingbox;
       bb.Increase (1);
-  
+
       pointtree = new Point3dTree (bb.PMin(), bb.PMax());
-  
+
       typedef std::map<point_t, vertex_handle>::iterator point_map_iterator;
       boost::array<vertex_handle, 3>                       element_container;
 
       std::map<std::vector<int>, int>        triangle_map;
 
-      long element_counter = 1;  
+      long element_counter = 1;
       long triangle_counter = 1;
       i=0;
       int material_number = 0;
       segit = domain.segment_begin();
       for( ; segit != domain.segment_end(); ++segit, ++material_number)
-      {      
+      {
          cell_iterator cit = (*segit).cell_begin();
 
 	  std::map<point_t, vertex_handle> point_map;
 
 	  for( ; cit != (*segit).cell_end(); ++cit, i++)
-	    {      
+	    {
 	      vertex_on_cell_iterator vocit(*cit);
 
               int actual_count = 0;
-              
+
 	      for (int element_index = 0; element_index < 3; element_index++, ++vocit)
               {
                  if((*vocit).handle() != -1)
-                 {                      
+                 {
                     point_t point = domain.get_point(*vocit);
-                      
+
                     point_map_iterator pmit = point_map.find(point);
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
                     std::cout << "..checking point: " << (*vocit).handle() << " :: " << point << std::endl;
 #endif
                     if(pmit == point_map.end())
                     {
                        vgmnetgen::Point<3> p(point[0],point[1],point[2]);
-                         
+
                        vgmnetgen::Point<3> pmin = p - vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
                        vgmnetgen::Point<3> pmax = p + vgmnetgen::Vec<3> (pointtol, pointtol, pointtol);
-                         
+
                        pointtree->GetIntersecting (pmin, pmax, pintersect);
-                         
+
                        if (pintersect.Size() > 1)
                           std::cout << "too many close points" << std::endl;
-                         
+
                        int foundpos = -1;
-                         
+
                        // [INFO] ensure that a point is only added once => topological and geometrical unique
                        //
                        if (pintersect.Size())
                           foundpos = pintersect[0];
 
-#ifdef DEBUGALL                         
+#ifdef DEBUGALL
                        std::cout << "..foundpos: " << foundpos << std::endl;
 #endif
-                         
+
                        if (foundpos == -1)
                        {
 #ifdef DEBUGALL
@@ -3635,11 +3635,11 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                           foundpos = AddPoint(p);
                           pointtree->Insert (p, foundpos);
                        }
-                         
+
                        point_map[point] = foundpos;
                        element_container[element_index] = foundpos;
-                         
-                       element_counter++;		      
+
+                       element_counter++;
                     }
                     else
                     {
@@ -3647,34 +3647,34 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
                     }
 
                     actual_count++;
-  
+
                     // 	      Point<3> pmin = p - Vec<3> (pointtol, pointtol, pointtol);
                     // 	      Point<3> pmax = p + Vec<3> (pointtol, pointtol, pointtol);
-  
+
                     // 	      pointtree->GetIntersecting (pmin, pmax, pintersect);
-  
+
                     // 	      std::cout << ".. after intersection test: " << std::endl;
-  
+
                     // 	      if (pintersect.Size() > 1)
                     // 		PrintError("too many close points");
-  
+
                     // 	      int foundpos = -1;
-  
-                    // 	      // [FS] .. test: add the interface point a second time	 
+
+                    // 	      // [FS] .. test: add the interface point a second time
                     // 	      //
-  
+
                     // 	      if (pintersect.Size())
                     // 		foundpos = pintersect[0];
-  
+
                     // 	      std::cout << ".. foundpos: " << foundpos << " :: for point: " << p <<  std::endl;
-  
+
                     // 	      if (foundpos == -1)
                     // 		{
                     // 		  foundpos = AddPoint(p);
                     // 		  pointtree->Insert (p, foundpos);
                     // 		}
                     // 	      st[k] = foundpos;
-                 }                 
+                 }
               }
 
               if(actual_count == 3)
@@ -3682,14 +3682,14 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 	      // [INFO] .. calculate the normals from the gsse structure
 	      //
- 	      STLTriangle st;  
- 	      Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]), 
+ 	      STLTriangle st;
+ 	      Vec<3> normal = Cross (GetPoint(element_container[1])-GetPoint(element_container[0]),
 				     GetPoint(element_container[2])-GetPoint(element_container[0]));
 	      normal.Normalize();
 	      st.SetNormal (normal);
 	      st.material[0] = material_number;
 	      st.material[1] = -1;
-	      
+
 	      st[0] = element_container[0];
 	      st[1] = element_container[1];
 	      st[2] = element_container[2];
@@ -3708,14 +3708,14 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 	      triangle.push_back(st[0]);
 	      triangle.push_back(st[1]);
 	      triangle.push_back(st[2]);
-	      
+
 	      // [FS][INFO] this is done to for searching in the triangle_map
 	      //
 	      sort(triangle.begin(), triangle.end());
 
 	      std::map<std::vector<int>, int>::iterator tmit;
 	      tmit = triangle_map.find(triangle);
-	      
+
 	      if(tmit == triangle_map.end())
 		{
 #ifdef DEBUGALL
@@ -3723,9 +3723,9 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 #endif
 
 		  triangle_map[triangle] = triangle_counter;
-		  
+
 		  if ( (st[0] == st[1]) ||
-		       (st[0] == st[2]) || 
+		       (st[0] == st[2]) ||
 		       (st[1] == st[2]) )
 		    {
 		      PrintError("STL Triangle degenerated");
@@ -3733,7 +3733,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 		  else
                   {
                      AddTriangle(st);
-                     triangle_counter++;                      
+                     triangle_counter++;
                   }
 		}
 	      else
@@ -3758,7 +3758,7 @@ void STLTopology :: InitSTLGeometry(const ARRAY<STLReadTriangle> & readtrigs)
 
 #ifdef DEBUGALL
   std::cout << "[FS] .. end of InitSTLGeometry: point size: " << GetNP() << std::endl;
-#endif 
+#endif
 }
 
 
@@ -3768,13 +3768,13 @@ int STLTopology :: GetPointNum (const Point<3> & p)
 {
   Point<3> pmin = p - Vec<3> (pointtol, pointtol, pointtol);
   Point<3> pmax = p + Vec<3> (pointtol, pointtol, pointtol);
-  
+
   ARRAY<int> pintersect;
 
   pointtree->GetIntersecting (pmin, pmax, pintersect);
   if (pintersect.Size() == 1)
     return pintersect[0];
-  else 
+  else
     return 0;
 }
 
@@ -3794,28 +3794,28 @@ void STLTopology :: FindNeighbourTrigs()
   int np = GetNP();
   int nt = GetNT();
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
   std::cout << " .. np: " << np << std::endl;
   std::cout << " .. nt: " << nt << std::endl;
 #endif
 
 //   INDEX_2_HASHTABLE<int> * oldedges = ht_topedges;
-//   ht_topedges = new INDEX_2_HASHTABLE<int> (GetNP()+1);     
+//   ht_topedges = new INDEX_2_HASHTABLE<int> (GetNP()+1);
 
-  INDEX_3_HASHTABLE<int> ht_topedges(GetNP()+1);   
+  INDEX_3_HASHTABLE<int> ht_topedges(GetNP()+1);
 
   topedges.SetSize(0);
 
   for(int m=0; m<material_size; m++)
-  {          
+  {
      for (i = 1; i <= nt; i++)
      {
         STLTriangle & trig = GetTriangle(i);
-        
+
 #ifdef DEBUGALL
         std::cout << "..trig: " << i << " " << trig << " :: mat1: " << trig.material[0] << " :: " << " :: mat2: " << trig.material[1] << " :: ";
 #endif
-        
+
         // [INFO] only use the first material, because the orientation in the first mat is the correct one
         //
         if(trig.material[0] == m)
@@ -3823,81 +3823,81 @@ void STLTopology :: FindNeighbourTrigs()
 #ifdef DEBUGALL
            std::cout << ".. mat: " << m << std::endl;
 #endif
-           
+
            // [INFO] go through the edges of the triangle
            //
            for (j = 1; j <= 3; j++)
            {
               int pi1 = trig.PNumMod (j+1);
               int pi2 = trig.PNumMod (j+2);
-              
+
               INDEX_2 temp(pi1, pi2);
               temp.Sort();
               INDEX_3 i2(temp.I1(), temp.I2(), m);
 
-#ifdef DEBUGALL                            
+#ifdef DEBUGALL
               std::cout << "..temp.I1: " << temp.I1() << " .. temp.I2: " << temp.I2() << std::endl;
               std::cout << "..p1: " << pi1 << " :: p2: "<< pi2 << " ";
 #endif
-              
+
               int enr;
               int othertn;
-              
+
               if (ht_topedges.Used(i2))
               {
 #ifdef DEBUGALL
 //                  std::cout << "..here 4 " << std::endl;
 #endif
-                 
+
                  enr = ht_topedges.Get(i2);
-      
-#ifdef DEBUGALL           
+
+#ifdef DEBUGALL
                  std::cout << ".. found enr: " << enr << std::endl;
 #endif
-                 
+
                  if(trig.material[1] != -1)
                  {
                     INDEX_3 m2(temp.I1(), temp.I2(), trig.material[1]);
 
 #ifdef DEBUGALL
-                    std::cout << ".. in material[1]: " << trig.material[1] 
-                              << " ..temp.I1: " << temp.I1() 
-                              << " .. temp.I2: " << temp.I2() 
+                    std::cout << ".. in material[1]: " << trig.material[1]
+                              << " ..temp.I1: " << temp.I1()
+                              << " .. temp.I2: " << temp.I2()
                               << std::endl;
 #endif
 
                     ht_topedges.Set(m2, enr);
                  }
-		 
+
                  // [FS] .. not used anymore
                  // 	      topedges.Elem(enr).TrigNum(2) = i;
-                 
+
 //                  if(topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] == -1)
 //                  {
 //                     meta_info_t meta_info;
 //                     meta_info.material = trig.material[0];
 // // 			  meta_info.status = -1;
-                    
+
 //                     std::cout << ".. before m == 1 .. " << std::endl;
-                    
+
 //                     meta_info.trigs[0] =  i;
 //                     meta_info.trigs[1] = -1;
-                    
+
 //                     std::cout << ".. after m == 1 .. " << std::endl;
-                    
+
 //                     topedges.Elem(enr).segment_info[trig.material[0]] = meta_info;
-                    
+
 //                     std::cout << " start1 mat: " << trig.material[0]
 //                               << " trig1: " << i
 //                               << " end1";
 //                  }
-//                  else 
-                 if(topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] != -1)		
+//                  else
+                 if(topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] != -1)
                  {
                     topedges.Elem(enr).segment_info[trig.material[0]].material = trig.material[0];
-                    topedges.Elem(enr).segment_info[trig.material[0]].trigs[1] = i;      		                     
+                    topedges.Elem(enr).segment_info[trig.material[0]].trigs[1] = i;
 
-#ifdef DEBUGALL                    
+#ifdef DEBUGALL
                     std::cout << " start2 mat: " << trig.material[0]
                               << " trig1: " << topedges.Elem(enr).segment_info[trig.material[0]].trigs[0]
                               << " trig2: " << topedges.Elem(enr).segment_info[trig.material[0]].trigs[1]
@@ -3907,9 +3907,9 @@ void STLTopology :: FindNeighbourTrigs()
                     if(trig.material[1] != -1)
                     {
                        topedges.Elem(enr).segment_info[trig.material[1]].material = trig.material[1];
-                       topedges.Elem(enr).segment_info[trig.material[1]].trigs[0] = i;      		                     
-      
-#ifdef DEBUGALL                 
+                       topedges.Elem(enr).segment_info[trig.material[1]].trigs[0] = i;
+
+#ifdef DEBUGALL
                        std::cout << " start3 mat: " << trig.material[1]
                                  << " trig1: " << topedges.Elem(enr).segment_info[trig.material[1]].trigs[0]
                                  << " trig2: " << topedges.Elem(enr).segment_info[trig.material[1]].trigs[1]
@@ -3917,10 +3917,10 @@ void STLTopology :: FindNeighbourTrigs()
 #endif
                     }
                  }
-                 else if(topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] == -1)		
+                 else if(topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] == -1)
                  {
                     topedges.Elem(enr).segment_info[trig.material[0]].material = trig.material[0];
-                    topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] = i;      		                     
+                    topedges.Elem(enr).segment_info[trig.material[0]].trigs[0] = i;
 
 #ifdef DEBUGALL
                     std::cout << " start4 mat: " << trig.material[0]
@@ -3932,9 +3932,9 @@ void STLTopology :: FindNeighbourTrigs()
                     if(trig.material[1] != -1)
                     {
                        topedges.Elem(enr).segment_info[trig.material[1]].material = trig.material[1];
-                       topedges.Elem(enr).segment_info[trig.material[1]].trigs[1] = i;      		                     
-      
-#ifdef DEBUGALL                 
+                       topedges.Elem(enr).segment_info[trig.material[1]].trigs[1] = i;
+
+#ifdef DEBUGALL
                        std::cout << " start5 mat: " << trig.material[1]
                                  << " trig1: " << topedges.Elem(enr).segment_info[trig.material[1]].trigs[0]
                                  << " trig2: " << topedges.Elem(enr).segment_info[trig.material[1]].trigs[1]
@@ -3946,22 +3946,22 @@ void STLTopology :: FindNeighbourTrigs()
                  {
                     std::cout << ".. topology does not match - maybe a hole ???? " << std::endl;
                  }
-                 
+
                  // [FS][INFO] set the neighbouthood information
                  //
                  // [FS] not used anymore
-                 //   	      othertn = topedges.Get(enr).TrigNum(1);	      
+                 //   	      othertn = topedges.Get(enr).TrigNum(1);
                  othertn = topedges.Get(enr).segment_info[trig.material[0]].trigs[0];
                  STLTriangle & othertrig = GetTriangle(othertn);
-                 
+
 #ifdef DEBUGALL
                  std::cout << " othertrig: " << othertrig << " :: ";
-#endif                 
-                 
+#endif
+
                  // [FS] not used anymore
                  trig.NBTrigNum(j) = othertn;
                  trig.segment_info[trig.material[0]].nbtrigs[0][j-1] = othertn;
-                 
+
                  trig.EdgeNum(j) = enr;
                  for (k = 1; k <= 3; k++)
                     if (othertrig.EdgeNum(k) == enr)
@@ -3973,14 +3973,14 @@ void STLTopology :: FindNeighbourTrigs()
               }
               else
               {
-// 	      enr = topedges.Append (STLTopEdge (pi1, pi2, i, 0));	      
+// 	      enr = topedges.Append (STLTopEdge (pi1, pi2, i, 0));
 
 #ifdef DEBUGALL
 //                  std::cout << "..here 5 " << std::endl;
 #endif
                  STLTopEdge etp = STLTopEdge (pi1, pi2, i, 0);
-      
-#ifdef DEBUGALL           
+
+#ifdef DEBUGALL
 //                  std::cout << "..here 6 " << std::endl;
 #endif
 
@@ -3988,40 +3988,40 @@ void STLTopology :: FindNeighbourTrigs()
 
                  // [FS][MOD] set the metainformation for the adjacent triangles
                  //
-#ifdef DEBUGALL                 
+#ifdef DEBUGALL
                  std::cout << ".. correct triangle" << std::endl;
 #endif
-                 
-                 meta_info.material = trig.material[0];		                       
-// 		    meta_info.status = -1;                 
+
+                 meta_info.material = trig.material[0];
+// 		    meta_info.status = -1;
                  meta_info.trigs[0] =  i;
                  meta_info.trigs[1] = -1;
 
-                 
+
                  etp.segment_info[trig.material[0]] = meta_info;
 
                  if(trig.material[1] != -1)
                  {
-                    meta_info.material = trig.material[1];		                       
-//                  meta_info.status = -1;                 
+                    meta_info.material = trig.material[1];
+//                  meta_info.status = -1;
                     meta_info.trigs[0] = -1;
-                    meta_info.trigs[1] =  i;                    
+                    meta_info.trigs[1] =  i;
 
                     etp.segment_info[trig.material[1]] = meta_info;
 
 #ifdef DEBUGALL
                     std::cout << ".. material[1]: " << trig.material[1] << std::endl;
 #endif
-                 }                 
-                                  
+                 }
+
 //                  std::cout << " mat: " << trig.material[0];
-                 
+
                  enr = topedges.Append(etp);
-      
-#ifdef DEBUGALL           
+
+#ifdef DEBUGALL
 //                  std::cout << "..here 1 " << std::endl;
 #endif
-                 
+
                  ht_topedges.Set(i2, enr);
 
                  if(trig.material[1] != -1)
@@ -4032,24 +4032,24 @@ void STLTopology :: FindNeighbourTrigs()
 #endif
                     ht_topedges.Set(m2, enr);
                  }
-      
-#ifdef DEBUGALL           
+
+#ifdef DEBUGALL
 //                  std::cout << "..here 2 .. enr: " << enr << std::endl;
 #endif
-                 
+
                  trig.EdgeNum(j) = enr;
 
-#ifdef DEBUGALL                 
+#ifdef DEBUGALL
 //                  std::cout << "..here 3 " << std::endl;
 #endif
               }
 
-#ifdef DEBUGALL              
+#ifdef DEBUGALL
               std::cout << " / ";
 #endif
            }
 
-#ifdef DEBUGALL           
+#ifdef DEBUGALL
            std::cout << std::endl;
 #endif
         }
@@ -4059,7 +4059,7 @@ void STLTopology :: FindNeighbourTrigs()
 #ifdef DEBUGALL
   std::cout << ".. number of top edges: " << topedges.Size() << std::endl;
 #endif
-  
+
 //  PrintMessage(5,"topology built, checking");
 
 #ifdef DEBUGALL
@@ -4084,21 +4084,21 @@ void STLTopology :: FindNeighbourTrigs()
   for (i = 1; i <= nt; i++)
     {
       int mat = GetTriangle(i).material[0];
-      
+
       for (j = 1; j <= 3; j++)
 	{
 	  const STLTopEdge & edge = GetTopEdge (GetTriangle(i).EdgeNum(j));
-	  
+
 	  if (edge.segment_info[mat].trigs[0] != i && edge.segment_info[mat].trigs[1] != i)
-	    {	      
+	    {
 	      topology_ok = 0;
 	      GetTriangle(i).flags.toperror = 1;
 
-#ifdef DEBUGALL                            
-              std::cout << ".. ERROR trig: " << i 
+#ifdef DEBUGALL
+              std::cout << ".. ERROR trig: " << i
                         << ".. trig[0]: " << edge.segment_info[mat].trigs[0]
                         << ".. trig[1]: " << edge.segment_info[mat].trigs[1]
-                        << ".. mat: " << mat 
+                        << ".. mat: " << mat
                         << std::endl;
 #endif
 	    }
@@ -4121,9 +4121,9 @@ void STLTopology :: FindNeighbourTrigs()
        for(int m=0; m < material_size; m++)
 	 {
 #ifdef DEBUGALL
-	   std::cout << "..edge segment info test: " 
+	   std::cout << "..edge segment info test: "
 		     << " p1: " << edge.PNum(1) << " :: p2: " << edge.PNum(2)
-		     << " mat: "   << edge.segment_info[m].material << " :: " 
+		     << " mat: "   << edge.segment_info[m].material << " :: "
 		     << " trig1: " << edge.segment_info[m].trigs[0] << " :: "
 		     << " trig2: " << edge.segment_info[m].trigs[1] << " :: "  << std::endl;
 #endif
@@ -4134,34 +4134,34 @@ void STLTopology :: FindNeighbourTrigs()
 	       GetTriangle(edge.TrigNum(1)).flags.toperror = 1;
 
 #ifdef DEBUGALL
-	       std::cout << "ERROR..edge segment info test: " 
+	       std::cout << "ERROR..edge segment info test: "
 			 << " p1: " << edge.PNum(1) << " :: p2: " << edge.PNum(2)
-			 << " mat: "   << edge.segment_info[m].material << " :: " 
+			 << " mat: "   << edge.segment_info[m].material << " :: "
 			 << " trig1: " << edge.segment_info[m].trigs[0] << " :: "
 			 << " trig2: " << edge.segment_info[m].trigs[1] << " :: "  << std::endl;
 #endif
 	     }
 
-	 }      
+	 }
     }
 
 #ifdef DEBUGALL
   std::cout << ".. topology_ok: " << topology_ok << std::endl;
 #endif
- 
+
 //   if (topology_ok)
 //     {
 //       orientation_ok = 1;
 //       for (i = 1; i <= nt; i++)
 // 	{
 // 	  const STLTriangle & t = GetTriangle (i);
-	  
+
 // 	  std::cout << ".. t: " << t;
 
 // 	  // [FS][MOD] changed to go through the adjacent materials of each triangle
 // 	  //
 // 	  for(int m=0; m<2; m++)
-// 	    {	      
+// 	    {
 // 	      if(t.material[m] != -1)
 // 		{
 // 		  for (j = 1; j <= 3; j++)
@@ -4175,8 +4175,8 @@ void STLTopology :: FindNeighbourTrigs()
 // 			  std::cout << std::endl << "..NOT NB: t: " << t << " :: " << " nbt: " << nbt << std::endl;
 // 			  std::cout << "t   p1: " << points[t[0]-1] << " :: p2: " << points[t[1]-1] << " :: p3: " << points[t[2]-1] << std::endl;
 // 			  std::cout << "nbt p1: " << points[nbt[0]-1] << " :: p2: " << points[nbt[1]-1] << " :: p3: " << points[nbt[2]-1] << std::endl;
-		      
-// 			  // [FS][TODO] change this back - check orientation 
+
+// 			  // [FS][TODO] change this back - check orientation
 // 			  //
 // //   			  orientation_ok = 0;
 // 			}
@@ -4188,7 +4188,7 @@ void STLTopology :: FindNeighbourTrigs()
 //     }
 //   else
 //     orientation_ok = 0;
-  
+
 
 
   status = STL_GOOD;
@@ -4206,7 +4206,7 @@ void STLTopology :: FindNeighbourTrigs()
 #endif
     }
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
   PrintMessage(3,"topology_ok = ",topology_ok);
   PrintMessage(3,"orientation_ok = ",orientation_ok);
   PrintMessage(3,"topology found");
@@ -4269,9 +4269,9 @@ void STLTopology :: FindNeighbourTrigs()
 
       for(int m=0;m<2; m++)
 	{
-	  std::cout << " mat: " << m << " ::" 
-		    << " " << GetTriangle(i).segment_info[m].nbtrigs[0][0] 
-		    << " " << GetTriangle(i).segment_info[m].nbtrigs[0][1] 
+	  std::cout << " mat: " << m << " ::"
+		    << " " << GetTriangle(i).segment_info[m].nbtrigs[0][0]
+		    << " " << GetTriangle(i).segment_info[m].nbtrigs[0][1]
 		    << " " << GetTriangle(i).segment_info[m].nbtrigs[0][2];
 	}
       std::cout << std::endl;
@@ -4284,7 +4284,7 @@ void STLTopology :: FindNeighbourTrigs()
 //  delete oldedges;
 
 
-  // [FS][INFO] 
+  // [FS][INFO]
   //
   for (STLTrigIndex ti = 0; ti < GetNT(); ti++)
     {
@@ -4296,7 +4296,7 @@ void STLTopology :: FindNeighbourTrigs()
 	  STLPointIndex pi = trig[k] - STLBASE;
 	  STLPointIndex pi2 = trig[(k+1)%3] - STLBASE;
 	  STLPointIndex pi3 = trig[(k+2)%3] - STLBASE;
-	  
+
 	  // vector along edge
 	  Vec<3> ve = points[pi2] - points[pi];
 	  ve.Normalize();
@@ -4317,7 +4317,7 @@ void STLTopology :: FindNeighbourTrigs()
 	      const STLTriangle & trig2 = trias[ti2];
 
 	      if (ti == ti2) continue;
-	      
+
 	      bool hasboth = 0;
 	      for (l = 0; l < 3; l++)
 		if (trig2[l] - STLBASE == pi2)
@@ -4336,10 +4336,10 @@ void STLTopology :: FindNeighbourTrigs()
 		  pi4 = trig2[l] - STLBASE;
 
 	      Vec<3> vt2 = points[pi4] - points[pi];
-	      
+
 	      double phi = atan2 (vt2 * vn, vt2 * vt);
 	      if (phi < 0) phi += 2 * M_PI;
-	      
+
 	      if (phi < phimin)
 		{
 		  phimin = phi;
@@ -4378,12 +4378,12 @@ void STLTopology :: FindNeighbourTrigs()
 		  }
 	      }
 	  }
-      
-    }  
+
+    }
   else
     {
       // assemble neighbourtrigs (should be done only for illegal topology):
-      
+
       neighbourtrigs.SetSize(GetNT());
 
       int tr, found;
@@ -4396,7 +4396,7 @@ void STLTopology :: FindNeighbourTrigs()
 	      PopStatus();
 	      return;
 	    }
-	  
+
 	  for (k = 1; k <= 3; k++)
 	    {
 	      for (j = 1; j <= trigsperpoint.EntrySize(GetTriangle(i).PNum(k)); j++)
@@ -4410,9 +4410,9 @@ void STLTopology :: FindNeighbourTrigs()
 // 			  (*testout) << "ERROR: triangle " << i << " has a wrong neighbour triangle!!!" << endl;
 wrongneighbourfound ++;
 			}
-		      
+
 		      found = 0;
-		      for (int ii = 1; ii <= NONeighbourTrigs(i); ii++) 
+		      for (int ii = 1; ii <= NONeighbourTrigs(i); ii++)
 			{if (NeighbourTrig(i,ii) == tr) {found = 1;break;};}
 		      if (! found) {AddNeighbourTrig(i,tr);}
 		    }
@@ -4420,7 +4420,7 @@ wrongneighbourfound ++;
 	    }
 
 #ifdef DEBUGALL
-	  if (NONeighbourTrigs(i) != 3) 
+	  if (NONeighbourTrigs(i) != 3)
 	    {
 	      PrintError("TRIG ",i," has ",NONeighbourTrigs(i)," neighbours!!!!");
 	      for (int kk=1; kk <= NONeighbourTrigs(i); kk++)
@@ -4439,7 +4439,7 @@ wrongneighbourfound ++;
 	  PrintError("try to correct it (with stldoctor)!");
 	  PrintError("++++++++++++++++++++\n");
 #endif
-	  
+
 	  status = STL_ERROR;
 	  statustext = "STL Mesh not consistent";
 
@@ -4468,7 +4468,7 @@ wrongneighbourfound ++;
 
 
 
-void STLTopology :: GetTrianglesInBox (/* 
+void STLTopology :: GetTrianglesInBox (/*
 					  const Point<3> & pmin,
 					  const Point<3> & pmax,
 				       */
@@ -4478,15 +4478,15 @@ void STLTopology :: GetTrianglesInBox (/*
   if (searchtree)
 
     searchtree -> GetIntersecting (box.PMin(), box.PMax(), trias);
-  
+
   else
-    {    
+    {
       int i;
       Box<3> box1 = box;
       box1.Increase (1e-4);
 
       trias.SetSize(0);
-   
+
       int nt = GetNT();
       for (i = 1; i <= nt; i++)
 	{
@@ -4494,7 +4494,7 @@ void STLTopology :: GetTrianglesInBox (/*
 	    {
 	      trias.Append (i);
 	    }
-	}    
+	}
     }
 }
 
@@ -4503,7 +4503,7 @@ void STLTopology :: GetTrianglesInBox (/*
 void STLTopology :: AddTriangle(const STLTriangle& t)
 {
   trias.Append(t);
-  
+
   const Point<3> & p1 = GetPoint (t.PNum(1));
   const Point<3> & p2 = GetPoint (t.PNum(2));
   const Point<3> & p3 = GetPoint (t.PNum(3));
@@ -4520,7 +4520,7 @@ void STLTopology :: AddTriangle(const STLTriangle& t)
   pmax.SetToMax (p3);
   */
 
-  trias.Last().box = box; 
+  trias.Last().box = box;
   trias.Last().center = Center (p1, p2, p3);
   double r1 = Dist (p1, trias.Last().center);
   double r2 = Dist (p2, trias.Last().center);
@@ -4631,11 +4631,11 @@ void STLTopology :: OrientAfterTrig (int trig)
 	{
 	  oriented.Elem(i) = 0;
 	}
- 
+
       oriented.Elem(starttrig) = 1;
-  
+
       int j = 0,k;
-      
+
       ARRAY <int> list1;
       list1.SetSize(0);
       ARRAY <int> list2;
@@ -4676,7 +4676,7 @@ void STLTopology :: OrientAfterTrig (int trig)
 	}
 
       PrintMessage(5,"NO corrected triangles = ",cnt);
-      if (cnt == GetNT()) 
+      if (cnt == GetNT())
 	{
 	  PrintMessage(5,"ALL triangles oriented in same way!");
 	}

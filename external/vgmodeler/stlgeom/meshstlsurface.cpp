@@ -6,8 +6,8 @@
 
 #include <meshing.hpp>
 
-// [JW] viennagrid has to be included prior to 
-// stlgeom, as the viennagrid domain has to be used within 
+// [JW] viennagrid has to be included prior to
+// stlgeom, as the viennagrid domain has to be used within
 // stltopology.hpp
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/mesh/element_creation.hpp"
@@ -48,26 +48,26 @@ namespace vgmnetgen
    void print_container(ContainerT& container)
    {
       typedef typename ContainerT::mapped_type value_type;
-      
+
       typename ContainerT::iterator ccit;
       for(ccit = container.begin(); ccit != container.end(); ++ccit)
       {
          std::cout << "..id: " << (*ccit).first << std::endl;
-         
-         typename value_type::iterator cit;     
+
+         typename value_type::iterator cit;
          for(cit = (*ccit).second.begin(); cit != (*ccit).second.end(); ++cit)
          {
             std::cout << "\t..sub id: " << (*cit).first << " .. value: " << (*cit).second << std::endl;
          }
       }
    }
-   
-   
+
+
    template<typename ChartContT, typename EdgeContT, typename MappingT>
    void orient_chart(ChartContT& chart_container, EdgeContT& meshlines, int base_edge, int start_chart, MappingT& additional_edges)
    {
 
-//       std::map<int,int>::iterator cit;     
+//       std::map<int,int>::iterator cit;
 //       for(cit = (*mccit).second.begin(); cit != (*mccit).second.end(); ++cit)
       {
 #ifdef DEBUGALL
@@ -81,45 +81,45 @@ namespace vgmnetgen
          // 0 = correct oriented, do not invert
          //
 //          (*cit).second = 0;
-      
-#ifdef DEBUGALL    
-         std::cout << "..starting at base_edge: " << base_edge 
+
+#ifdef DEBUGALL
+         std::cout << "..starting at base_edge: " << base_edge
                    << " p1: " << meshlines.Get(base_edge)->StartP() << " p2: " << meshlines.Get(base_edge)->EndP()
                    << std::endl;
 #endif
-        
+
          std::map<int,int> local_edge_used;
 
          int tries = 5;
-         
+
          while(local_edge_used.size() != chart_container[start_chart].size() && tries > 0)
          {
             if(tries < 5)
             {
                std::map<int,int>::iterator eit;
                for(eit = chart_container[start_chart].begin() ; eit != chart_container[start_chart].end(); ++eit)
-               {     
-//                std::cout << "..edge " << (*eit) << " mat: " << meshlines.Get((*eit).first)->material << ".. " 
-//                          << " .. p1: " << meshlines.Get((*eit).first)->StartP() 
+               {
+//                std::cout << "..edge " << (*eit) << " mat: " << meshlines.Get((*eit).first)->material << ".. "
+//                          << " .. p1: " << meshlines.Get((*eit).first)->StartP()
 //                          << " .. p2: " << meshlines.Get((*eit).first)->EndP() << std::endl;
-                  
+
                   int mat = meshlines.Get((*eit).first)->material;
 
 #ifdef DEBUGALL
-                  std::cout << "..edge " << (*eit) 
-                            << " .. p1: " << meshlines.Get((*eit).first)->StartP() 
-                            << " .. p2: " << meshlines.Get((*eit).first)->EndP() 
-                            << " .. left: " << meshlines.Get((*eit).first)->segment_info[mat].lefttrig 
-                            << " .. right: " << meshlines.Get((*eit).first)->segment_info[mat].righttrig 
+                  std::cout << "..edge " << (*eit)
+                            << " .. p1: " << meshlines.Get((*eit).first)->StartP()
+                            << " .. p2: " << meshlines.Get((*eit).first)->EndP()
+                            << " .. left: " << meshlines.Get((*eit).first)->segment_info[mat].lefttrig
+                            << " .. right: " << meshlines.Get((*eit).first)->segment_info[mat].righttrig
 //                             << " .. lface: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].lefttrig).GetFaceNum()
 //                             << " .. rface: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].righttrig).GetFaceNum()
-                            << " .. mat: " << meshlines.Get((*eit).first)->material 
+                            << " .. mat: " << meshlines.Get((*eit).first)->material
 //                             << " .. ltrig mat: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].lefttrig).material[0]
 //                             << " .. rtrig mat: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].righttrig).material[0]
                             << std::endl;
 #endif
 
-            
+
                   if(local_edge_used[(*eit).first] != 1)
                   {
                      base_edge = (*eit).first;
@@ -136,22 +136,22 @@ namespace vgmnetgen
                }
             }
 
-            
+
             int start_edge = base_edge;
             int closed = 0;
             int count_edges = 1;
-            
+
             int tries2 = 150;
 
             local_edge_used[start_edge] = 1;
-            
+
             while(!closed && tries2 > 0)
-            {        
+            {
                // go through the edges of the chart and find a connected circle => output is a connected oriented circle
                //
-               std::map<int,int>::iterator eit;   
+               std::map<int,int>::iterator eit;
                for(eit = chart_container[start_chart].begin() ; eit != chart_container[start_chart].end(); ++eit)
-               {     
+               {
 #ifdef DEBUGALL
                   std::cout << ".. start edge: " << start_edge << std::endl;
 #endif
@@ -164,9 +164,9 @@ namespace vgmnetgen
 #ifdef DEBUGALL
                      std::cout << ".. test line: " << (*eit).first << " p1: " << test_line->StartP() << " p2: " << test_line->EndP() << std::endl;
 #endif
-                 
+
                      if(chart_container[start_chart][start_edge])
-                     {                    
+                     {
 #ifdef DEBUGALL
                         std::cout << "..using the inverted edge .. " << std::endl;
 #endif
@@ -189,7 +189,7 @@ namespace vgmnetgen
                            }
                            else
                            {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                               std::cout << ".. eit.first != base_edge .. " << std::endl;
 #endif
 
@@ -202,7 +202,7 @@ namespace vgmnetgen
                         }
                         else if( (start_line->StartP() == test_line->EndP()) )
                         {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                            std::cout << "..coming to base_edge but other orientation ... problem ! " << std::endl;
 #endif
 
@@ -233,13 +233,13 @@ namespace vgmnetgen
                      }
                      else
                      {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                         std::cout << "..in else .. " << std::endl;
 #endif
 
                         if( (start_line->EndP() == test_line->StartP()) )
                         {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                            std::cout << ".. here " << std::endl;
 #endif
 
@@ -260,7 +260,7 @@ namespace vgmnetgen
                         }
                         else if( (start_line->EndP() == test_line->EndP()) )
                         {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                            std::cout << "..coming to base_edge but other orientation ... problem ! " << std::endl;
 #endif
 
@@ -279,27 +279,27 @@ namespace vgmnetgen
                               local_edge_used[(*eit).first] = 1;
                            }
                         }
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                         std::cout << "..end of else .. " << std::endl;
 #endif
-                     }                 
+                     }
                   }
                }
 
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
                std::cout << ".. tries2: " << tries2 << std::endl;
 #endif
 
                tries2--;
             }
 
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
             std::cout << "..processed edges " << local_edge_used.size() << " of " << chart_container[start_chart].size() << std::endl;
 #endif
-            
+
             if(local_edge_used.size() != chart_container[start_chart].size() && !closed)
-            {           
-#ifdef DEBUGALL    
+            {
+#ifdef DEBUGALL
                std::cout << "..ATTENTION: processed edges: " << local_edge_used.size() << " of " << chart_container[start_chart].size() << std::endl;
 #endif
 
@@ -309,45 +309,45 @@ namespace vgmnetgen
                   additional_edges[(*leuit).first] = (*leuit).second;
                }
             }
-      
-#ifdef DEBUGALL          
+
+#ifdef DEBUGALL
             std::cout << ".. tries: " << tries << std::endl;
 #endif
-            tries--;            
+            tries--;
          }
-         
+
          if(local_edge_used.size() != chart_container[start_chart].size())
-         {          
-#ifdef DEBUGALL     
+         {
+#ifdef DEBUGALL
             std::cout << "..ATTENTION: processed edges: " << local_edge_used.size() << " of " << chart_container[start_chart].size() << std::endl;
 #endif
-            
-            std::map<int,int>::iterator eit;   
-            for(eit = chart_container[start_chart].begin() ; eit != chart_container[start_chart].end(); ++eit)           
+
+            std::map<int,int>::iterator eit;
+            for(eit = chart_container[start_chart].begin() ; eit != chart_container[start_chart].end(); ++eit)
             {
                if(!local_edge_used[(*eit).first])
                   additional_edges[(*eit).first] = 1;
             }
-         }         
-      } 
+         }
+      }
    }
 
 
    template<typename MappingT, typename ContainerT, typename MeshlinesT>
-   void orient_material(MappingT& material_chart_mapping, MappingT& chart_container, 
+   void orient_material(MappingT& material_chart_mapping, MappingT& chart_container,
                         MappingT& chart_material_mapping, MappingT& edge_chart_mapping, MappingT& chart_edge_mapping,
-                        ContainerT& oriented_charts, MeshlinesT& meshlines, 
+                        ContainerT& oriented_charts, MeshlinesT& meshlines,
                         int material_id, int base_chart, int base_edge, ContainerT& additional_edges)
    {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
       std::cout << ".. in orient material.." << std::endl;
       std::cout << ".. chart: " << base_chart << " .. in mat: " << material_id << std::endl;
 #endif
-      
+
       // orient the current material according to the given chart
       //
-      orient_material_2(material_chart_mapping, chart_container, chart_material_mapping, 
-                        edge_chart_mapping, chart_edge_mapping, oriented_charts, meshlines, 
+      orient_material_2(material_chart_mapping, chart_container, chart_material_mapping,
+                        edge_chart_mapping, chart_edge_mapping, oriented_charts, meshlines,
                         material_id, base_chart, base_edge, additional_edges);
 
 
@@ -355,67 +355,67 @@ namespace vgmnetgen
 
 
       // THIRD go through the neighbour charts and orient adjacent materials
-      //      
+      //
       std::map<int,int>::iterator cit;
       for(cit = material_chart_mapping[material_id].begin(); cit != material_chart_mapping[material_id].end(); ++cit)
       {
-#ifdef DEBUGALL    
+#ifdef DEBUGALL
          std::cout << ".. checking chart: " << (*cit).first << std::endl;
 #endif
 
-         std::map<int,int>::iterator mit;     
-         for(mit = chart_material_mapping[(*cit).first].begin(); 
+         std::map<int,int>::iterator mit;
+         for(mit = chart_material_mapping[(*cit).first].begin();
              mit != chart_material_mapping[(*cit).first].end(); ++mit)
          {
 #ifdef DEBUGALL
             std::cout << ".. in material: " << material_id << " checking material: " << (*mit).first << std::endl;
 #endif
-            
+
             long chart_count = 0;
-            std::map<int,int>::iterator lcit; 
+            std::map<int,int>::iterator lcit;
             for(lcit = material_chart_mapping[(*mit).first].begin(); lcit != material_chart_mapping[(*mit).first].end(); ++lcit)
             {
                if(oriented_charts[(*lcit).first])
                   chart_count++;
             }
-            
+
 //          if(material_id != (*mit).first && used_materials[(*mit).first] != 1)
-            
+
             // only go here if the material is adjacent AND has some not oriented charts
             //
             if(material_id != (*mit).first && chart_count < material_chart_mapping[(*mit).first].size())
-            {      
+            {
 #ifdef DEBUGALL
                std::cout << ".. orienting the next material: " << (*mit).first << " ################" << std::endl;
 #endif
-               
+
                // set the orientation of the base_edge for the next material
                int chart_orientation = material_chart_mapping[material_id][(*cit).first];
                int new_orientation;
-               
-#ifdef DEBUGALL            
+
+#ifdef DEBUGALL
                std::cout << ".. invert orienation.." << std::endl;
 #endif
-               
+
                // invert orientation
                if(chart_orientation == 1)
                   new_orientation = 0;
                else if(chart_orientation == 0)
-                  new_orientation = 1;       
+                  new_orientation = 1;
                else
                   new_orientation = -1;
-               
+
 #ifdef DEBUGALL
                std::cout << "..new orientation: " << new_orientation << std::endl;
 #endif
-               
+
                material_chart_mapping[(*mit).first][(*cit).first] = new_orientation;
 
                int oriented_edge = (*chart_container[(*cit).first].begin()).first;
-               
+
                // [INFO] determine if all the charts of the current materials have already been oriented
                //
-//             std::map<int,int>::iterator lcit; 
+//             std::map<int,int>::iterator lcit;
 //             long chart_count = 0;
 //             for(lcit = material_chart_mapping[material_id].begin(); lcit != material_chart_mapping[material_id].end(); ++lcit)
 //             {
@@ -426,7 +426,7 @@ namespace vgmnetgen
 //             std::cout << "..chart_count: " << chart_count << std::endl;
 
 //             // [INFO] only set the material to used if ALL the charts are oriented
-//             //            
+//             //
 //             if(chart_count == material_chart_mapping[material_id].size())
 //                used_materials[material_id] = 1;
 //             else
@@ -438,18 +438,18 @@ namespace vgmnetgen
 
 //             std::cout << "..after setting used materials of material " << (*mit).first << " to: " << used_materials[(*mit).first] << std::endl;
 
-               orient_material(material_chart_mapping, chart_container, chart_material_mapping, 
-                               edge_chart_mapping, chart_edge_mapping, oriented_charts, meshlines, 
+               orient_material(material_chart_mapping, chart_container, chart_material_mapping,
+                               edge_chart_mapping, chart_edge_mapping, oriented_charts, meshlines,
                                (*mit).first, (*cit).first, oriented_edge, additional_edges);
             }
-         }            
+         }
       }
    }
 
    template<typename MappingT, typename ContainerT, typename MeshlinesT>
-   void orient_material_2(MappingT& material_chart_mapping, MappingT& chart_container, 
+   void orient_material_2(MappingT& material_chart_mapping, MappingT& chart_container,
                           MappingT& chart_material_mapping, MappingT& edge_chart_mapping, MappingT& chart_edge_mapping,
-                          ContainerT& oriented_charts, MeshlinesT& meshlines, 
+                          ContainerT& oriented_charts, MeshlinesT& meshlines,
                           int material_id, int base_chart, int base_edge, ContainerT& additional_edges)
    {
       std::cout << ".. in orient material 2.." << std::endl;
@@ -459,22 +459,22 @@ namespace vgmnetgen
 #endif
 
       // FIRST orient the chart
-      //      
+      //
       if(oriented_charts[base_chart] != 1)
       {
 #ifdef DEBUGALL
          std::cout << "..orienting chart: " << base_chart << std::endl;
 #endif
-         
+
          orient_chart(chart_container, meshlines, base_edge, base_chart, additional_edges);
-         
+
          // set this, so that the chart is only oriented once
          //
          material_chart_mapping[material_id][base_chart] = 0;
 
          // in the adjacent material set the chart to the inverse orientation
          //
-         std::map<int,int>::iterator mit; 
+         std::map<int,int>::iterator mit;
          for(mit = chart_material_mapping[base_chart].begin(); mit != chart_material_mapping[base_chart].end(); ++mit)
          {
             if(material_id != (*mit).first)
@@ -483,13 +483,13 @@ namespace vgmnetgen
             }
          }
 
-         // set the chart to already oriented 
+         // set the chart to already oriented
          //
          oriented_charts[base_chart] = 1;
 
-#ifdef DEBUGALL         
+#ifdef DEBUGALL
          std::cout << "..chart_container after orientation .. " << std::endl;
-         print_container(chart_container);              
+         print_container(chart_container);
 #endif
       }
       else
@@ -499,7 +499,7 @@ namespace vgmnetgen
 #endif
       }
 
-      
+
       // SECOND orient the adjacent charts
       //
       // the orientation of the base_chart can be determined in the material_chart_mapping
@@ -507,9 +507,9 @@ namespace vgmnetgen
       //
       // now go through all edges of this chart and orient the neighbour charts
       //
-      std::map<int,int>::iterator eit;     
+      std::map<int,int>::iterator eit;
       for(eit = chart_container[base_chart].begin(); eit != chart_container[base_chart].end(); ++eit)
-      {     
+      {
          int base_edge = (*eit).first;
 
          // these are the original orientations
@@ -519,18 +519,18 @@ namespace vgmnetgen
 
 #ifdef DEBUGALL
          std::cout << "..edge: " << base_edge
-                   << "..edge orientation:  " << edge_orientation 
+                   << "..edge orientation:  " << edge_orientation
                    << "..chart orientation: " << chart_orientation
-                   << std::endl;         
+                   << std::endl;
 #endif
 
-         std::map<int,int>::iterator cit;     
+         std::map<int,int>::iterator cit;
          for(cit = edge_chart_mapping[base_edge].begin(); cit != edge_chart_mapping[base_edge].end(); ++cit)
          {
 #ifdef DEBUGALL
             std::cout << "..check chart " << (*cit).first << " on edge " << base_edge << std::endl;
-#endif            
-            std::map<int,int>::iterator mit;     
+#endif
+            std::map<int,int>::iterator mit;
             for(mit = chart_material_mapping[(*cit).first].begin(); mit != chart_material_mapping[(*cit).first].end(); ++mit)
             {
                if((*cit).first != base_chart && material_id == (*mit).first && oriented_charts[(*cit).first] != 1)
@@ -542,7 +542,7 @@ namespace vgmnetgen
                   // invert the orientation of the edge independant on the orientation - it has to be inverted
                   //
                   int new_edge_orientation = edge_orientation;
-                  
+
                   // in the case the base_chart is not the inverse of the chart from the other material
                   //
                   if(!chart_orientation)
@@ -561,9 +561,9 @@ namespace vgmnetgen
                   //
                   chart_container[(*cit).first][base_edge] = new_edge_orientation;
 
-                  orient_material_2(material_chart_mapping, chart_container, chart_material_mapping, 
+                  orient_material_2(material_chart_mapping, chart_container, chart_material_mapping,
                                   edge_chart_mapping, chart_edge_mapping, oriented_charts, meshlines, material_id, (*cit).first, (*eit).first, additional_edges);
-               }               
+               }
             }
          }
       }
@@ -576,7 +576,7 @@ namespace vgmnetgen
 
 
 void STLFindEdges (STLGeometry & geom,
-                   class Mesh & mesh, 
+                   class Mesh & mesh,
                    std::map<int, std::map<int,int> >& material_chart_mapping)
 {
    int i, j, k;
@@ -602,7 +602,7 @@ void STLFindEdges (STLGeometry & geom,
   // [TEST][FS][LFS] .. commented out to control the feature size
   //                    here the edges will be refined ..
   //
-//   h = 0.5; 
+//   h = 0.5;
   geom.RestrictLocalH(mesh, h);
 
 #ifdef DEBUGALL
@@ -618,22 +618,22 @@ void STLFindEdges (STLGeometry & geom,
 #endif
 
   for (i = 1; i <= geom.GetNLines(); i++)
-    {      
+    {
 
-#ifdef DEBUGALL    
-       std::cout << "..stlline: " 
-                 << geom.GetLine(i)->StartP() << " " 
-                 << geom.GetLine(i)->EndP() << " \t " 
-                 << geom.GetPoint(geom.GetLine(i)->StartP()) << " " 
+#ifdef DEBUGALL
+       std::cout << "..stlline: "
+                 << geom.GetLine(i)->StartP() << " "
+                 << geom.GetLine(i)->EndP() << " \t "
+                 << geom.GetPoint(geom.GetLine(i)->StartP()) << " "
                  << geom.GetPoint(geom.GetLine(i)->EndP())
                  << std::endl;
 
        for(int m=0; m<geom.material_size; m++)
-       {                
-          // 
+       {
+          //
           if(geom.GetLine(i)->segment_info[m].lefttrig != -1)
           {
-             std::cout << "..seg: " << m 
+             std::cout << "..seg: " << m
                        << " .. facenum[0]: " << geom.GetLine(i)->segment_info[m].facenum[0]
                        << " .. facenum[1]: " << geom.GetLine(i)->segment_info[m].facenum[1]
                        << " .. lefttrig: " << geom.GetLine(i)->segment_info[m].lefttrig
@@ -647,9 +647,9 @@ void STLFindEdges (STLGeometry & geom,
        }
 #endif
 
-      meshlines.Append(geom.GetLine(i)->Mesh(geom.GetPoints(), meshpoints, h, mesh)); 
+      meshlines.Append(geom.GetLine(i)->Mesh(geom.GetPoints(), meshpoints, h, mesh));
 
-#ifdef DEBUGALL      
+#ifdef DEBUGALL
       std::cout << ".. new meshlines size: " << meshlines.Size() << std::endl;
 #endif
 
@@ -700,11 +700,11 @@ void STLFindEdges (STLGeometry & geom,
      faces_material[f] = -1;
 
 #ifdef DEBUGALL
-  // [FS] .. line debug 
+  // [FS] .. line debug
   //
   std::ofstream file1("fs_line_debug.gau32");
   std::map<long,long> pointmap;
-  
+
   file1 << "3" << std::endl;
 
   for(i = 1; i <= meshlines.Size(); i++)
@@ -712,7 +712,7 @@ void STLFindEdges (STLGeometry & geom,
      STLLine* line = meshlines.Get(i);
 
      std::cout << "..meshline: " << i << " .. p1: " << line->StartP() << " ..p2: " << line->EndP() << std::endl;
-     
+
      std::map<long,long>::iterator pmit;
      pmit = pointmap.find(line->StartP());
      if(pmit == pointmap.end())
@@ -723,7 +723,7 @@ void STLFindEdges (STLGeometry & geom,
               << std::endl;
         pointmap[line->StartP()] = pointmap.size();
      }
-     
+
      pmit = pointmap.find(line->EndP());
      if(pmit == pointmap.end())
      {
@@ -732,20 +732,20 @@ void STLFindEdges (STLGeometry & geom,
               << mesh.Point(line->EndP())(2) << " "
               << std::endl;
         pointmap[line->EndP()] = pointmap.size();
-     }  
+     }
   }
-  
+
   file1 << "1" << std::endl;
   file1 << "segment_1" << std::endl;
   file1 << meshlines.Size() << std::endl;
   file1 << pointmap.size() << std::endl;
-  
+
   for(i = 1; i <= meshlines.Size(); i++)
   {
      STLLine* line = meshlines.Get(i);
-            
+
 //      file1 << i-1 << " " << line->StartP()-1 << " " << line->EndP()-1 << std::endl;
-     file1 << i-1 << " " << pointmap[line->StartP()]-1 << " " 
+     file1 << i-1 << " " << pointmap[line->StartP()]-1 << " "
            << pointmap[line->EndP()]-1 << " "
            << pointmap[line->StartP()]-1
            << std::endl;
@@ -759,14 +759,14 @@ void STLFindEdges (STLGeometry & geom,
 
   // [FS] .. debug faces
   //
-  std::map<int, int> point_map;  
+  std::map<int, int> point_map;
 //   for(int mpi=1; mpi <= mesh.GetNP(); ++mpi)
 //   {
 //      std::cout << ".. meshpoint: " << mpi << "  " << mesh.Point(mpi) << std::endl;
 //      for(int gpi=1; gpi <= geom.GetNP(); ++gpi)
 //      {
 //         std::cout << ".. geompoint: " << gpi << "  " << geom.GetPoint(gpi) << std::endl;
-//         if(mesh.Point(mpi)(0) == geom.GetPoint(gpi)(0) && 
+//         if(mesh.Point(mpi)(0) == geom.GetPoint(gpi)(0) &&
 //            mesh.Point(mpi)(1) == geom.GetPoint(gpi)(1) &&
 //            mesh.Point(mpi)(2) == geom.GetPoint(gpi)(2) )
 //         {
@@ -782,7 +782,7 @@ void STLFindEdges (STLGeometry & geom,
   // #############################################################################################
   //
   // NEW APPROACH - this time mathematically correct ... Episode 6 - The Return of the Orientation
-  // 
+  //
   // #############################################################################################
   // #############################################################################################
 
@@ -809,13 +809,13 @@ void STLFindEdges (STLGeometry & geom,
   for(i = 1; i <= meshlines.Size(); i++)
   {
      STLLine* line = meshlines.Get(i);
-     
-     std::cout << "..meshline: " << i << " .. p1: " << line->StartP() << " ..p2: " << line->EndP() 
+
+     std::cout << "..meshline: " << i << " .. p1: " << line->StartP() << " ..p2: " << line->EndP()
                << std::endl;
-     
+
      for(int m=0; m < geom.material_size; m++)
      {
-        std::cout << "..mat: " << m 
+        std::cout << "..mat: " << m
                   << "..lefttrig: " << line->segment_info[m].lefttrig
                   << "..righttrig: " << line->segment_info[m].righttrig
                   << std::endl;
@@ -828,7 +828,7 @@ void STLFindEdges (STLGeometry & geom,
   {
      used_faces[f] = 0;
   }
-  
+
 #ifdef DEBUGALL
   std::cout << "######################## create CHART CONTAINER #############################" << std::endl;
 #endif
@@ -850,10 +850,10 @@ void STLFindEdges (STLGeometry & geom,
         if(!used_faces[f])
         {
            int edge_count = 0;
-           
+
            for(int i=1; i <= meshlines.Size(); i++)
            {
-              STLLine* line = meshlines.Get(i);                   
+              STLLine* line = meshlines.Get(i);
 
               // [FS][TEST] tried to fix the structural edge artefarcts
               //
@@ -877,21 +877,21 @@ void STLFindEdges (STLGeometry & geom,
                  }
               }
            }
-           
+
            if(edge_count > 0)
            {
               used_faces[f];
            }
         }
      }
-  }     
+  }
 
 #ifdef DEBUGALL
   std::cout << "..chart_container: " << std::endl;
   print_container(chart_container);
 #endif
 
-#ifdef DEBUGALL 
+#ifdef DEBUGALL
   std::cout << "######################## MATERIAL - CHART mapping #############################" << std::endl;
 #endif
 
@@ -902,7 +902,7 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
      std::cout << "..face: " << f << std::endl;
 #endif
-     
+
      for(int m=0; m < geom.material_size; m++)
      {
 #ifdef DEBUGALL
@@ -911,7 +911,7 @@ void STLFindEdges (STLGeometry & geom,
 
         for(int i=1; i <= meshlines.Size(); i++)
         {
-           STLLine* line = meshlines.Get(i);                   
+           STLLine* line = meshlines.Get(i);
            if(line->segment_info[m].facenum[0] == f || line->segment_info[m].facenum[1] == f)
            {
               if(chart_material_mapping[f].size() > 1)
@@ -926,13 +926,13 @@ void STLFindEdges (STLGeometry & geom,
               chart_material_mapping[f][m] = 1;
 
 #ifdef DEBUGALL
-              std::cout << "..adding chart: " << f << " to material " << m << std::endl;                                         
+              std::cout << "..adding chart: " << f << " to material " << m << std::endl;
 #endif
            }
         }
      }
   }
-    
+
   // [DEBUGALL]
   //
 #ifdef DEBUGALL
@@ -954,7 +954,7 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
      std::cout << "..face: " << f << std::endl;
 #endif
-     
+
      for(int m=0; m < geom.material_size; m++)
      {
 #ifdef DEBUGALL
@@ -978,13 +978,13 @@ void STLFindEdges (STLGeometry & geom,
               edge_chart_mapping[i][f] = 0;
 
 #ifdef DEBUGALL
-              std::cout << "..adding edge: " << i << " to chart " << f << std::endl;                                         
+              std::cout << "..adding edge: " << i << " to chart " << f << std::endl;
 #endif
            }
         }
      }
   }
-    
+
   // [DEBUGALL]
   //
 #ifdef DEBUGALL
@@ -1008,8 +1008,8 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
   std::cout << "..material: " << (*mccit).first << std::endl;
 #endif
-    
-  std::map<int,int>::iterator cit;     
+
+  std::map<int,int>::iterator cit;
   for(cit = (*mccit).second.begin(); cit != (*mccit).second.end(); ++cit)
   {
 #ifdef DEBUGALL
@@ -1024,33 +1024,33 @@ void STLFindEdges (STLGeometry & geom,
 
      int base_edge = 0;
      std::map<int,int> local_edge_used;
-     
+
      int tries = 5;
 
      while(local_edge_used.size() != chart_container[(*cit).first].size() && tries > 0)
      {
-        
+
         // find first edge, which is in the material and use it as starting edge
         //
         std::map<int,int>::iterator eit;
         for(eit = chart_container[(*cit).first].begin() ; eit != chart_container[(*cit).first].end(); ++eit)
-        {   
-#ifdef DEBUGALL  
-           std::cout << "..edge " << (*eit) 
-                     << " .. p1: " << meshlines.Get((*eit).first)->StartP() 
-                     << " .. p2: " << meshlines.Get((*eit).first)->EndP() 
-                     << " .. left: " << meshlines.Get((*eit).first)->segment_info[0].lefttrig 
-                     << " .. right: " << meshlines.Get((*eit).first)->segment_info[0].righttrig 
+        {
+#ifdef DEBUGALL
+           std::cout << "..edge " << (*eit)
+                     << " .. p1: " << meshlines.Get((*eit).first)->StartP()
+                     << " .. p2: " << meshlines.Get((*eit).first)->EndP()
+                     << " .. left: " << meshlines.Get((*eit).first)->segment_info[0].lefttrig
+                     << " .. right: " << meshlines.Get((*eit).first)->segment_info[0].righttrig
                      << " .. lface: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].lefttrig).GetFaceNum()
                      << " .. rface: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].righttrig).GetFaceNum()
-                     << " .. mat: " << meshlines.Get((*eit).first)->material 
+                     << " .. mat: " << meshlines.Get((*eit).first)->material
                      << " .. ltrig mat: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].lefttrig).material[0]
                      << " .. rtrig mat: " << geom.GetTriangle(meshlines.Get((*eit).first)->segment_info[0].righttrig).material[0]
                      << std::endl;
 #endif
 
-           if(meshlines.Get((*eit).first)->material == (*mccit).first && 
-              meshlines.Get((*eit).first)->segment_info[0].facenum[0] == (*cit).first && 
+           if(meshlines.Get((*eit).first)->material == (*mccit).first &&
+              meshlines.Get((*eit).first)->segment_info[0].facenum[0] == (*cit).first &&
               local_edge_used[(*eit).first] != 1)
            {
               base_edge = (*eit).first;
@@ -1058,8 +1058,8 @@ void STLFindEdges (STLGeometry & geom,
               local_edge_used[(*eit).first] = 1;
               break;
            }
-           else if(meshlines.Get((*eit).first)->material == (*mccit).first && 
-                   meshlines.Get((*eit).first)->segment_info[0].facenum[1] == (*cit).first && 
+           else if(meshlines.Get((*eit).first)->material == (*mccit).first &&
+                   meshlines.Get((*eit).first)->segment_info[0].facenum[1] == (*cit).first &&
                    local_edge_used[(*eit).first] != 1)
            {
               base_edge = (*eit).first;
@@ -1074,11 +1074,11 @@ void STLFindEdges (STLGeometry & geom,
 #endif
            }
         }
-     
+
 #ifdef DEBUGALL
         std::cout << "..starting at base_edge: " << base_edge << std::endl;
 #endif
-        
+
         int start_edge = base_edge;
         int closed = 0;
         int count_edges = 0;
@@ -1086,12 +1086,12 @@ void STLFindEdges (STLGeometry & geom,
         int tries2 = 150;
 
         while(!closed && (tries2 > 0))
-        {        
+        {
            // go through the edges of the chart and find a connected circle => output is a connected oriented circle
            //
            for(eit = chart_container[(*cit).first].begin() ; eit != chart_container[(*cit).first].end(); ++eit)
-           {   
-#ifdef DEBUGALL  
+           {
+#ifdef DEBUGALL
               std::cout << ".. start edge: " << start_edge << std::endl;
 #endif
 
@@ -1103,9 +1103,9 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
                  std::cout << ".. test line: " << (*eit).first << " p1: " << test_line->StartP() << " p2: " << test_line->EndP() << std::endl;
 #endif
-                 
+
                  if(chart_container[(*cit).first][start_edge])
-                 {                    
+                 {
 #ifdef DEBUGALL
                     std::cout << "..using the inverted edge .. " << std::endl;
 #endif
@@ -1153,7 +1153,7 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
                        std::cout << ".. in else .. NO MATCH - NOT DEFINED .." << std::endl;
 #endif
-                       
+
                     }
                  }
                  else
@@ -1206,10 +1206,10 @@ void STLFindEdges (STLGeometry & geom,
                        std::cout << ".. in else .. NO MATCH - NOT DEFINED .." << std::endl;
 #endif
                     }
-                 }                 
+                 }
               }
            }
-#ifdef DEBUGALL        
+#ifdef DEBUGALL
            std::cout << "..tries2: " << tries2 << std::endl;
 #endif
            tries2--;
@@ -1224,23 +1224,23 @@ void STLFindEdges (STLGeometry & geom,
 #endif
 
 //         if(local_edge_used.size() != chart_container[(*cit).first].size() && !closed)
-//         {           
+//         {
 //            std::map<int,int>::iterator leuit;
 //            for(leuit = local_edge_used.begin(); leuit != local_edge_used.end(); ++leuit)
 //            {
 //               additional_edges[(*leuit).first] = (*leuit).second;
 //            }
 //         }
-        
+
         tries--;
      }
 
 //      if(local_edge_used.size() != chart_container[(*cit).first].size())
-//      {           
+//      {
 //         std::cout << "..ATTENTION: processed edges: " << local_edge_used.size() << " of " << chart_container[(*cit).first].size() << std::endl;
-        
-//         std::map<int,int>::iterator eit;   
-//         for(eit = chart_container[(*cit).first].begin() ; eit != chart_container[(*cit).first].end(); ++eit)           
+
+//         std::map<int,int>::iterator eit;
+//         for(eit = chart_container[(*cit).first].begin() ; eit != chart_container[(*cit).first].end(); ++eit)
 //         {
 //            if(local_edge_used[(*eit).first] == 1)
 //               additional_edges[(*eit).first] = 0;
@@ -1249,7 +1249,7 @@ void STLFindEdges (STLGeometry & geom,
 //         }
 //      }
   }
-  
+
   // [DEBUGALL]
 #ifdef DEBUGALL
   std::cout << "..chart_container after orientation .. " << std::endl;
@@ -1259,7 +1259,7 @@ void STLFindEdges (STLGeometry & geom,
 
   // now the first material is oriented => derive the orientation for the remaining materials from this material
   // use the shared charts, but invert the orientation
-  // 
+  //
   std::map<int,int> used_materials;
   used_materials[0] = 1;
 
@@ -1269,19 +1269,19 @@ void STLFindEdges (STLGeometry & geom,
 #endif
 
 
-  
+
 //   std::map<int, std::map<int,int> >::iterator cmit;
 //   for(cmit = chart_material_mapping.begin(); cmit != chart_material_mapping.end(); ++cmit)
 //   {
 //      std::cout << "..chart id: " << (*cmit).first << std::endl;
-     
-//      std::map<int,int>::iterator cit1;     
+
+//      std::map<int,int>::iterator cit1;
 //      for(cit1 = (*cmit).second.begin(); cit1 != (*cmit).second.end(); ++cit1)
 //      {
 //         std::cout << "\t..sub id: " << (*cit1).first << " .. value: " << (*cit1).second << std::endl;
-        
-//         if(!used_materials[(*cit1).first])           
-//         {                 
+
+//         if(!used_materials[(*cit1).first])
+//         {
 //            mccit = material_chart_mapping.find((*cit1).first);
 
   std::map<int,int> oriented_charts2;
@@ -1289,47 +1289,47 @@ void STLFindEdges (STLGeometry & geom,
 //   mccit = material_chart_mapping.begin();
 // //   ++mccit;
 // //  for( ; mccit != material_chart_mapping.end(); ++mccit)
-//   {         
+//   {
 //      std::cout << "..material: " << (*mccit).first << std::endl;
-     
+
 // //      if(!used_materials[(*mccit).first])
-//      {        
+//      {
 //         int base_chart = -1;
 //         int base_edge  = -1;
-//         int orientation = -1;        
+//         int orientation = -1;
 //         std::map<int, int> local_oriented_charts;
-        
-//         std::map<int,int>::iterator cit; 
-//         cit = (*mccit).second.begin(); 
-        
+
+//         std::map<int,int>::iterator cit;
+//         cit = (*mccit).second.begin();
+
 //         // set a default edge - if no oriented edge can be found then the first chart of the material is used
 //         base_chart = (*cit).first;
 //         base_edge  = (*chart_edge_mapping[(*cit).first].begin()).first;
 //         orientation = (*cit).second;
-              
+
 //         for( ; cit != (*mccit).second.end(); ++cit)
 //         {
 //            std::cout << "..checking chart: " << (*cit).first << "..orientation: " << (*cit).second << std::endl;
-        
+
 //            if(oriented_charts[(*cit).first])
 //            {
 //               base_chart = (*cit).first;
 //               base_edge  = (*chart_edge_mapping[(*cit).first].begin()).first;
 //               orientation = (*cit).second;
-                            
+
 //               std::cout << ".. setting base_chart: " << base_chart << std::endl;
-           
+
 //               break;
-//            }        
+//            }
 //         }
 
 //         oriented_charts2[base_chart] = 1;
 
-//         used_materials[(*mccit).first] = 1;        
-                      
+//         used_materials[(*mccit).first] = 1;
+
 //         orient_material(material_chart_mapping, chart_container, chart_material_mapping, edge_chart_mapping, chart_edge_mapping,
 //                         oriented_charts2, meshlines, (*mccit).first, base_chart, base_edge, additional_edges);
-        
+
 //         std::cout << "..chart_container after orientation: material .. " << std::endl;
 //         print_container(chart_container);
 //      }
@@ -1339,7 +1339,7 @@ void STLFindEdges (STLGeometry & geom,
   std::cout << ".. FINISHING CHART ORIENTATION .. " << std::endl;
 #endif
 
-  
+
 
   // [DEBUGALL]
 #ifdef DEBUGALL
@@ -1365,8 +1365,8 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
      std::cout << "..material_chart_cont: " << (*mccit).first << std::endl;
 #endif
-  
-     std::map<int,int>::iterator cit;     
+
+     std::map<int,int>::iterator cit;
      for(cit = (*mccit).second.begin(); cit != (*mccit).second.end(); ++cit)
      {
 #ifdef DEBUGALL
@@ -1376,7 +1376,7 @@ void STLFindEdges (STLGeometry & geom,
         if(!used_faces[(*cit).first])
         {
            used_faces[(*cit).first] = 1;
-        
+
            std::map<int,int>::iterator eit;
            for(eit = chart_container[(*cit).first].begin(); eit != chart_container[(*cit).first].end(); ++eit)
            {
@@ -1384,9 +1384,9 @@ void STLFindEdges (STLGeometry & geom,
               std::cout << "\t\t..edge: " << (*eit).first << std::endl;
 #endif
 
-              {                      
+              {
               STLLine* line = meshlines.Get((*eit).first);
-           
+
               for (int ii = 1; ii <= line->GetNS(); ii++)
               {
 #ifdef DEBUGALL
@@ -1395,20 +1395,20 @@ void STLFindEdges (STLGeometry & geom,
 
                  int p1, p2;
                  line->GetSeg(ii,p1,p2);
-      
-#ifdef DEBUGALL        
-                 std::cout << ".. p1: " << p1 << " .. p2: " << p2 
+
+#ifdef DEBUGALL
+                 std::cout << ".. p1: " << p1 << " .. p2: " << p2
                            << ".. dist: " << line->GetDist(ii)
                            << std::endl;
 #endif
-            
+
                  vgmnetgen::Segment seg;
 
-                 seg.si = (*cit).first; 
-                 seg.edgenr = (*eit).first;  
+                 seg.si = (*cit).first;
+                 seg.edgenr = (*eit).first;
 
                  int invert = 0;
-		 
+
 		 if(line->segment_info[(*mccit).first].facenum[0] == (*cit).first)
 		   {
 #ifdef DEBUGALL
@@ -1462,53 +1462,53 @@ void STLFindEdges (STLGeometry & geom,
                      seg.p1 = p1;
                      seg.p2 = p2;
  		   }
-		 
-#ifdef DEBUGALL		 
+
+#ifdef DEBUGALL
 		 std::cout << "..lefttrigs size: " << line->segment_info[(*mccit).first].lefttrig_size
 			   << "..righttrigs size: " << line->segment_info[(*mccit).first].righttrig_size
 			   << std::endl;
 
-                 std::cout << ".. current material: " << (*mccit).first 
+                 std::cout << ".. current material: " << (*mccit).first
                            << ".. trig material: " << geom.GetTriangle(line->segment_info[(*mccit).first].lefttriangles[ii]).material[0]
                            << std::endl;
 #endif
-		 
-                 
+
+
                  // [INFO] insert the points according to the base orientation of the edge
                  //
 //                  if((*eit).second)
 //                  {
 //                     std::cout << ".. invert orientation .. " << std::endl;
-                    
+
 //                     seg.p1 = p2;
 //                     seg.p2 = p1;
 //                  }
 //                  else
 //                  {
 //                     std::cout << ".. keep orientation .. " << std::endl;
-                    
+
 //                     seg.p1 = p1;
 //                     seg.p2 = p2;
 //                   }
 
-                 
+
                  // [INFO] invert the orientation of the chart according to the material
                  //
                  if(material_chart_mapping[(*mccit).first][(*cit).first])
                  {
                     std::cout << ".. inverting edge because of chart - material orientation" << std::endl;
                     std::swap(seg.p1, seg.p2);
-                 }   
+                 }
 
 #ifdef DEBUGALL
                  std::cout << "..new approach: p1: " << seg.p1 << " p2: " << seg.p2
                            << ".. lefttrig: " << seg.geominfo[0].trignum
                            << ".. righttrig: " << seg.geominfo[1].trignum
-                           << std::endl;                              
+                           << std::endl;
 #endif
 
-                 
-                 mesh2.AddSegment(seg);  
+
+                 mesh2.AddSegment(seg);
 
 
                  // [FS] [TEST] CHECK BEFORE KEEPING IT
@@ -1517,7 +1517,7 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
                     std::cout << ".. adding additional edges .. " << (*eit).first << std::endl;
 #endif
-                    
+
                     std::swap(seg.p1, seg.p2);
 
                     if(invert)
@@ -1537,7 +1537,7 @@ void STLFindEdges (STLGeometry & geom,
                               << ".. righttrig: " << seg.geominfo[1].trignum
                               << std::endl;
 #endif
-                    
+
                     mesh2.AddSegment(seg);
                  }
 
@@ -1546,43 +1546,43 @@ void STLFindEdges (STLGeometry & geom,
 //                  {
 // #ifdef DEBUGALL
 //                     std::cout << "..correcting NON-MANIFOLD edge .. " << std::endl;
-// #endif                    
-                    
+// #endif
+
 //                     seg.p1 = 473;
 //                     seg.p2 = 59;
 
 //                     seg.geominfo[0].trignum = 16472;
 //                     seg.geominfo[1].trignum = 16472;
-                                        
+
 // #ifdef DEBUGALL
 //                     std::cout << ".. p1: " << seg.p1 << " p2: " << seg.p2
 //                               << ".. lefttrig: " << seg.geominfo[0].trignum
 //                                << ".. righttrig: " << seg.geominfo[1].trignum
 //                               << std::endl;
 // #endif
-                    
+
 //                     mesh2.AddSegment(seg);
 //                  }
-                 
+
 //                  if( (seg.si == 68) )
 //                  {
 // #ifdef DEBUGALL
 //                     std::cout << "..correcting NON-MANIFOLD edge .. " << std::endl;
-// #endif                    
-                    
+// #endif
+
 //                     seg.p1 = 59;
 //                     seg.p2 = 473;
 
 //                     seg.geominfo[0].trignum = 16471;
 //                     seg.geominfo[1].trignum = 16471;
-                                        
+
 // #ifdef DEBUGALL
 //                     std::cout << ".. p1: " << seg.p1 << " p2: " << seg.p2
 //                               << ".. lefttrig: " << seg.geominfo[0].trignum
 //                                << ".. righttrig: " << seg.geominfo[1].trignum
 //                               << std::endl;
 // #endif
-                    
+
 //                     mesh2.AddSegment(seg);
 //                  }
 
@@ -1592,11 +1592,11 @@ void STLFindEdges (STLGeometry & geom,
 //                  {
 //                     std::cout << ".. inverting edge because of test - chart 7" << std::endl;
 //                     std::swap(seg.p1, seg.p2);
-//                  }                       
+//                  }
 
 
-                 // [INFO] use the triangle number of the line segment calcualted by vgmnetgen only of it is on the same chart 
-                 //                 
+                 // [INFO] use the triangle number of the line segment calcualted by vgmnetgen only of it is on the same chart
+                 //
 //                  if(geom.GetTriangle(seg.geominfo[0].trignum).GetFaceNum() == geom.GetTriangle(line->GetLeftTrig(ii)).GetFaceNum())
 //                  {
 //                     seg.geominfo[0].trignum = line->GetLeftTrig(ii);
@@ -1607,10 +1607,10 @@ void STLFindEdges (STLGeometry & geom,
 // //                     seg.geominfo[0].trignum = line->GetRightTrig(ii);
 //                     seg.geominfo[1].trignum = line->GetRightTrig(ii);
 //                  }
-                                                                 
 
 
-// 		 if(seg.si == 67 && seg.p1 == 2)   
+
+// 		 if(seg.si == 67 && seg.p1 == 2)
 // 		   {
 // 		     seg.geominfo[0].trignum = 12181;
 // 		     std::cout << "..setting p1 to " << seg.geominfo[0].trignum << std::endl;
@@ -1621,7 +1621,7 @@ void STLFindEdges (STLGeometry & geom,
 // 		     std::cout << "..setting p2 to " << seg.geominfo[1].trignum << std::endl;
 // 		   }
 
-// 		 if(seg.si == 67 && seg.p1 == 3)   
+// 		 if(seg.si == 67 && seg.p1 == 3)
 // 		   {
 // 		     seg.geominfo[0].trignum = 12181;
 // 		     std::cout << "..setting p1 to " << seg.geominfo[0].trignum << std::endl;
@@ -1643,7 +1643,7 @@ void STLFindEdges (STLGeometry & geom,
 // 		     std::cout << "..setting p1 to " << seg.geominfo[1].trignum << std::endl;
 // 		   }
 
-// 		 if(seg.si == 2 && seg.p1 == 47)   
+// 		 if(seg.si == 2 && seg.p1 == 47)
 // 		   {
 // 		     seg.geominfo[0].trignum = 6468;
 // 		     std::cout << "..setting p1 to " << seg.geominfo[0].trignum << std::endl;
@@ -1654,7 +1654,7 @@ void STLFindEdges (STLGeometry & geom,
 // 		     std::cout << "..setting p2 to " << seg.geominfo[1].trignum << std::endl;
 // 		   }
 
-// 		 if(seg.si == 2 && seg.p1 == 48)   
+// 		 if(seg.si == 2 && seg.p1 == 48)
 // 		   {
 // 		     seg.geominfo[0].trignum = 4460;
 // 		     std::cout << "..setting p1 to " << seg.geominfo[0].trignum << std::endl;
@@ -1665,7 +1665,7 @@ void STLFindEdges (STLGeometry & geom,
 // 		     std::cout << "..setting p2 to " << seg.geominfo[1].trignum << std::endl;
 // 		   }
 
-// 		 if(seg.si == 2 && seg.p1 == 49)   
+// 		 if(seg.si == 2 && seg.p1 == 49)
 // 		   {
 // 		     seg.geominfo[0].trignum = 1833;
 // 		     std::cout << "..setting p1 to 1833" << std::endl;
@@ -1681,8 +1681,8 @@ void STLFindEdges (STLGeometry & geom,
 //                  seg.epgeominfo[0].dist = line->GetDist(ii);
 //                  seg.epgeominfo[1].edgenr = (*eit).first;
 //                  seg.epgeominfo[1].dist = line->GetDist(ii+1);
-              
-  
+
+
 
                  // [INFO] use this to cover all structural edges, which are not part of the chart boundary
                  //
@@ -1691,7 +1691,7 @@ void STLFindEdges (STLGeometry & geom,
 //                  {
 //                     std::cout << "..adding additional edge" << std::endl;
 //                     std::swap(seg.p1, seg.p2);
-                    
+
 //                     if(line->segment_info[(*mccit).first].facenum[0] == (*cit).first)
 //                     {
 //                        std::cout << "..using original left/right trigs.." << std::endl;
@@ -1704,7 +1704,7 @@ void STLFindEdges (STLGeometry & geom,
 //                        std::cout << "..using inverted left/right trigs.." << std::endl;
 
 //                        seg.geominfo[0].trignum = line->segment_info[(*mccit).first].lefttriangles[ii];
-//                        seg.geominfo[1].trignum = line->segment_info[(*mccit).first].lefttriangles[ii+1];                       
+//                        seg.geominfo[1].trignum = line->segment_info[(*mccit).first].lefttriangles[ii+1];
 //                     }
 //                     else
 //                     {
@@ -1712,11 +1712,11 @@ void STLFindEdges (STLGeometry & geom,
 //                        seg.geominfo[0].trignum = line->segment_info[(*mccit).first].righttriangles[ii+1];
 //                        seg.geominfo[1].trignum = line->segment_info[(*mccit).first].righttriangles[ii];
 //                     }
-                    
+
 // 		    // [FS] commented
 //  		    mesh2.AddSegment(seg);
-//                  } 
-                
+//                  }
+
               }
               }
            }
@@ -1727,22 +1727,22 @@ void STLFindEdges (STLGeometry & geom,
 
 //   std::map<int,int>::iterator aeit;
 //   for(aeit = additional_edges.begin(); aeit != additional_edges.end(); ++aeit)
-//   {            
+//   {
 //      std::cout << "\t\t..edge: " << (*aeit).first << std::endl;
-     
+
 //      STLLine* line = meshlines.Get((*aeit).first);
-     
+
 //      for (int ii = 1; ii <= line->GetNS(); ii++)
 //      {
 //         int p1, p2;
 //         line->GetSeg(ii,p1,p2);
-        
-//         std::cout << ".. p1: " << p1 << " .. p2: " << p2 
+
+//         std::cout << ".. p1: " << p1 << " .. p2: " << p2
 //                   << ".. dist: " << line->GetDist(ii)
 //                   << std::endl;
-        
+
 //         vgmnetgen::Segment seg;
-        
+
 //         if(line->segment_info[(*aeit).second].facenum[0] == (*cit).first)
 //         {
 //            std::cout << "..using original left/right trigs.." << std::endl;
@@ -1761,24 +1761,24 @@ void STLFindEdges (STLGeometry & geom,
 //            seg.geominfo[0].trignum = line->segment_info[(*aeit).second].lefttrig;
 //            seg.geominfo[1].trignum = line->segment_info[(*aeit).second].righttrig;
 //         }
-        
-        
+
+
 //         // [INFO] insert the points according to the base orientation of the edge
 //         //
 //         seg.p1 = p2;
 //         seg.p2 = p1;
-                 
+
 //         // [INFO] invert the orientation of the chart according to the material
 //         //
 //         if(material_chart_mapping[(*mc][(*cit).first])
 //         {
 //            std::cout << ".. inverting edge because of chart - material orientation" << std::endl;
 //            std::swap(seg.p1, seg.p2);
-//         }                 
+//         }
 
 
-//         // [INFO] use the triangle number of the line segment calcualted by vgmnetgen only of it is on the same chart 
-//         //                 
+//         // [INFO] use the triangle number of the line segment calcualted by vgmnetgen only of it is on the same chart
+//         //
 //         if(geom.GetTriangle(seg.geominfo[0].trignum).GetFaceNum() == geom.GetTriangle(line->GetLeftTrig(ii)).GetFaceNum())
 //         {
 //            seg.geominfo[0].trignum = line->GetLeftTrig(ii);
@@ -1789,18 +1789,18 @@ void STLFindEdges (STLGeometry & geom,
 // //                     seg.geominfo[0].trignum = line->GetRightTrig(ii);
 //            seg.geominfo[1].trignum = line->GetRightTrig(ii);
 //         }
-                                                                 
+
 //         std::cout << "..new approach: p1: " << seg.p1 << " p2: " << seg.p2
 //                   << ".. lefttrig: " << seg.geominfo[0].trignum
 //                   << ".. righttrig: " << seg.geominfo[1].trignum
 //                   << std::endl;
-                               
-//         seg.si = (*cit).first; 
-//         seg.edgenr = (*eit).first;              
-              
-//         mesh2.AddSegment(seg);                    
+
+//         seg.si = (*cit).first;
+//         seg.edgenr = (*eit).first;
+
+//         mesh2.AddSegment(seg);
 //      }
-                
+
 //   }
 
   // go through the charts
@@ -1819,26 +1819,26 @@ void STLFindEdges (STLGeometry & geom,
 //      }
 
 //      std::cout << "\t..material: " << material << std::endl;
-          
+
 //      std::map<int,int>::iterator eit;
 //      for(eit = chart_container[(*ccit).first].begin(); eit != chart_container[(*ccit).first].end(); ++eit)
 //      {
 //         std::cout << "\t\t..edge: " << (*eit).first << std::endl;
-        
-        
+
+
 //         STLLine* line = meshlines.Get((*eit).first);
-        
+
 //         for (int ii = 1; ii <= line->GetNS(); ii++)
 //         {
 //            int p1, p2;
 //            line->GetSeg(ii,p1,p2);
-           
-//            std::cout << ".. p1: " << p1 << " .. p2: " << p2 
+
+//            std::cout << ".. p1: " << p1 << " .. p2: " << p2
 //                      << ".. dist: " << line->GetDist(ii)
 //                      << std::endl;
-           
+
 //            vgmnetgen::Segment seg;
-              
+
 //            if(line->segment_info[material].facenum[0] == (*ccit).first)
 //            {
 //               std::cout << "..using original left/right trigs.." << std::endl;
@@ -1857,8 +1857,8 @@ void STLFindEdges (STLGeometry & geom,
 //               seg.geominfo[0].trignum = line->segment_info[material].lefttrig;
 //               seg.geominfo[1].trignum = line->segment_info[material].righttrig;
 //            }
-           
-           
+
+
 //            // [FS][NEW]
 //            //
 //            if((*eit).second)
@@ -1871,18 +1871,18 @@ void STLFindEdges (STLGeometry & geom,
 //               seg.p1 = p1;
 //               seg.p2 = p2;
 //            }
-           
+
 //            std::cout << "..new approach: p1: " << seg.p1 << " p2: " << seg.p2
 //                      << ".. lefttrig: " << seg.geominfo[0].trignum
 //                      << ".. righttrig: " << seg.geominfo[1].trignum
 //                      << std::endl;
-           
-//            seg.si = (*ccit).first; 
-//            seg.edgenr = (*eit).first;              
-           
-//            mesh2.AddSegment(seg);   
+
+//            seg.si = (*ccit).first;
+//            seg.edgenr = (*eit).first;
+
+//            mesh2.AddSegment(seg);
 //         }
-//      }  
+//      }
 //   }
 
 
@@ -1898,14 +1898,14 @@ void STLFindEdges (STLGeometry & geom,
 //   }
 
 //   for(int m=0; m<geom.material_size; m++)
-//   {   
-          
+//   {
+
 //      for(int f=1; f <= geom.GetNOFaces(); ++f)
 //      {
 //         if(!used_faces[f])
 //         {
 //         std::cout << ".. face: " << f << std::endl;
-        
+
 //         for (i = 1; i <= geom.GetNT(); i++)
 //         {
 //            STLTriangle& nt = geom.GetTriangle(i);
@@ -1915,17 +1915,17 @@ void STLFindEdges (STLGeometry & geom,
 //            }
 //         }
 //         std::cout << std::endl;
-        
+
 //         for(i = 1; i <= meshlines.Size(); i++)
 //         {
 //            STLLine* line = meshlines.Get(i);
-           
-//            std::cout << " :: line: "   << line->StartP() << "-" << line->EndP() << " " 
-//                      << mesh.Point(line->StartP()) << "/" << mesh.Point(line->EndP()) 
+
+//            std::cout << " :: line: "   << line->StartP() << "-" << line->EndP() << " "
+//                      << mesh.Point(line->StartP()) << "/" << mesh.Point(line->EndP())
 //                      << " .. linesegments: " << line->GetNS()
 //                      << std::endl;
-           
-           
+
+
 //            if(line->segment_info[m].facenum[0] == f)
 //            {
 //               used_faces[f] = 1;
@@ -1933,11 +1933,11 @@ void STLFindEdges (STLGeometry & geom,
 //                         << ".. face[0]: "  << line->segment_info[m].facenum[0]
 //                         << ".. lefttrig: " << line->segment_info[m].lefttrig
 //                         << ".. righttrig: " << line->segment_info[m].righttrig
-//                         << ".. " << geom.GetTriangle(line->segment_info[m].lefttrig) << " / " 
-//                         << ".. " << geom.GetTriangle(line->segment_info[m].righttrig) 
+//                         << ".. " << geom.GetTriangle(line->segment_info[m].lefttrig) << " / "
+//                         << ".. " << geom.GetTriangle(line->segment_info[m].righttrig)
 //                         << ".. normal: " << geom.GetTriangle(line->segment_info[m].lefttrig).Normal()
-//                         << std::endl;             
-        
+//                         << std::endl;
+
 //               // use the +1 index, because the vgmnetgen indices start at 1 not at 0
 //               //
 
@@ -1946,12 +1946,12 @@ void STLFindEdges (STLGeometry & geom,
 //                  int p1, p2;
 //                  line->GetSeg(ii,p1,p2);
 
-//                  std::cout << ".. p1: " << p1 << " .. p2: " << p2 
+//                  std::cout << ".. p1: " << p1 << " .. p2: " << p2
 //                            << ".. dist: " << line->GetDist(ii)
 //                            << std::endl;
 
 //                  vgmnetgen::Segment seg;
-                 
+
 //                  std::vector<int> tmp_edge;
 //                  tmp_edge.push_back(point_map[line->StartP()]);
 //                  tmp_edge.push_back(point_map[line->EndP()]);
@@ -1968,20 +1968,20 @@ void STLFindEdges (STLGeometry & geom,
 //                  seg.p2 = p2;
 
 
-//                  if(line->material != m && (geom.GetTriangle(line->GetLeftTrig(1)).GetFaceNum() == line->segment_info[m].facenum[0]) )                
+//                  if(line->material != m && (geom.GetTriangle(line->GetLeftTrig(1)).GetFaceNum() == line->segment_info[m].facenum[0]) )
 //                  {
 //                     seg.p1 = p2;
-//                     seg.p2 = p1;                                      
+//                     seg.p2 = p1;
 //                  }
 //                  else if(line->material != m && (geom.GetTriangle(line->GetRightTrig(1)).GetFaceNum() == line->segment_info[m].facenum[0]) )
 //                  {
 //                     seg.p1 = p1;
-//                     seg.p2 = p2; 
+//                     seg.p2 = p2;
 //                  }
 // //                  else if(line->material != m)
 // //                  {
 // //                     seg.p1 = p2;
-// //                     seg.p2 = p1;                                      
+// //                     seg.p2 = p1;
 // //                  }
 
 
@@ -1989,8 +1989,8 @@ void STLFindEdges (STLGeometry & geom,
 //                  seg.geominfo[1].trignum = line->segment_info[m].righttrig;
 
 
-//                  std::cout << "..line lefttrig: " << line->GetLeftTrig(1) << "..normal: " << geom.GetTriangle(line->GetLeftTrig(1)).Normal() 
-//                            << "..line righttrig: " << line->GetRightTrig(1) << "..normal: " << geom.GetTriangle(line->GetRightTrig(1)).Normal() 
+//                  std::cout << "..line lefttrig: " << line->GetLeftTrig(1) << "..normal: " << geom.GetTriangle(line->GetLeftTrig(1)).Normal()
+//                            << "..line righttrig: " << line->GetRightTrig(1) << "..normal: " << geom.GetTriangle(line->GetRightTrig(1)).Normal()
 //                            << std::endl;
 //                  std::cout << "..segment righttrig: " << line->segment_info[m].righttrig
 //                            << "..normal: " << geom.GetTriangle(line->segment_info[m].righttrig).Normal() << std::endl;
@@ -1999,7 +1999,7 @@ void STLFindEdges (STLGeometry & geom,
 //                  {
 //                     std::cout << ".. using same orientation.." << std::endl;
 //                     seg.p1 = p1;
-//                     seg.p2 = p2;                    
+//                     seg.p2 = p2;
 //                  }
 //                  else
 //                  {
@@ -2009,11 +2009,11 @@ void STLFindEdges (STLGeometry & geom,
 //                  }
 
 
-//                  seg.si = f; 
-//                  seg.edgenr = i;              
-                                  
-//                  mesh.AddSegment(seg);   
-//               }              
+//                  seg.si = f;
+//                  seg.edgenr = i;
+
+//                  mesh.AddSegment(seg);
+//               }
 //            }
 //            if(line->segment_info[m].facenum[1] == f)
 //            {
@@ -2029,10 +2029,10 @@ void STLFindEdges (STLGeometry & geom,
 //                  int p1, p2;
 //                  line->GetSeg(ii,p1,p2);
 
-//                  std::cout << ".. p1: " << p1 << " .. p2: " << p2 
+//                  std::cout << ".. p1: " << p1 << " .. p2: " << p2
 //                            << ".. dist: " << line->GetDist(ii)
 //                            << std::endl;
-              
+
 //                  vgmnetgen::Segment seg;
 
 //                  std::vector<int> tmp_edge;
@@ -2040,7 +2040,7 @@ void STLFindEdges (STLGeometry & geom,
 //                  tmp_edge.push_back(point_map[line->StartP()]);
 
 //                  std::cout << "..using geom edge: " << tmp_edge[0] << " - " << tmp_edge[1] << std::endl;
-                 
+
 // //                  if(!find_edge_in_triangle(tmp_edge, geom.GetTriangle(line->segment_info[m].righttrig)))
 // //                  {
 // //                     std::swap(p1,p2);
@@ -2048,33 +2048,33 @@ void STLFindEdges (STLGeometry & geom,
 // //                  }
 
 // //                  seg.p1 = p2;
-// //                  seg.p2 = p1; 
+// //                  seg.p2 = p1;
 
 // //                  // using facenum[0], because we want to compare the face, that is in common with the other material
 // //                  // since it is in common, it has already been meshed => therefore it cannot be the current face => facenum[0]
 // //                  // GetTriangle(line->GetLeftTrig(1)).GetFaceNum()
-// //                  if(line->material != m && (geom.GetTriangle(line->GetLeftTrig(1)).GetFaceNum() == line->segment_info[m].facenum[0]) )                
+// //                  if(line->material != m && (geom.GetTriangle(line->GetLeftTrig(1)).GetFaceNum() == line->segment_info[m].facenum[0]) )
 // //                  {
 // //                     seg.p1 = p1;
-// //                     seg.p2 = p2;                                      
+// //                     seg.p2 = p2;
 // //                  }
 // //                  else if(line->material != m && (geom.GetTriangle(line->GetRightTrig(1)).GetFaceNum() == line->segment_info[m].facenum[0]) )
 // //                  {
 // //                     seg.p1 = p2;
-// //                     seg.p2 = p1; 
+// //                     seg.p2 = p1;
 // //                  }
 // //                  else if(line->material != m)
 // //                  {
 // //                     seg.p1 = p1;
-// //                     seg.p2 = p2;                                      
+// //                     seg.p2 = p2;
 // //                  }
 
 //                  seg.geominfo[1].trignum = line->segment_info[m].lefttrig;
 //                  seg.geominfo[0].trignum = line->segment_info[m].righttrig;
 
 
-//                  std::cout << "..line lefttrig: " << line->GetLeftTrig(1) << "..normal: " << geom.GetTriangle(line->GetLeftTrig(1)).Normal() 
-//                            << "..line righttrig: " << line->GetRightTrig(1) << "..normal: " << geom.GetTriangle(line->GetRightTrig(1)).Normal() 
+//                  std::cout << "..line lefttrig: " << line->GetLeftTrig(1) << "..normal: " << geom.GetTriangle(line->GetLeftTrig(1)).Normal()
+//                            << "..line righttrig: " << line->GetRightTrig(1) << "..normal: " << geom.GetTriangle(line->GetRightTrig(1)).Normal()
 //                            << std::endl;
 //                  std::cout << "..segment righttrig: " << line->segment_info[m].righttrig
 //                            << "..normal: " << geom.GetTriangle(line->segment_info[m].righttrig).Normal() << std::endl;
@@ -2087,18 +2087,18 @@ void STLFindEdges (STLGeometry & geom,
 //                     std::cout << ".. is the same ... " << std::endl;
 //                  }
 
-                 
+
 //                  if(geom.GetTriangle(line->GetLeftTrig(1)).Normal() == geom.GetTriangle(line->segment_info[m].righttrig).Normal())
 //                  {
 //                     std::cout << ".. using same orientation.." << std::endl;
 //                     seg.p1 = p1;
-//                     seg.p2 = p2;                    
+//                     seg.p2 = p2;
 //                  }
 //                  else if(geom.GetTriangle(line->GetRightTrig(1)).Normal() == geom.GetTriangle(line->segment_info[m].righttrig).Normal())
 //                  {
 //                     std::cout << ".. using different orientation.." << std::endl;
 //                     seg.p1 = p2;
-//                     seg.p2 = p1;                    
+//                     seg.p2 = p1;
 //                  }
 //                  else
 //                  {
@@ -2106,14 +2106,14 @@ void STLFindEdges (STLGeometry & geom,
 //                     seg.p1 = p1;
 //                     seg.p2 = p2;
 //                  }
-                 
-//                  seg.si = f; 
-//                  seg.edgenr = i;              
-                                  
-//                  mesh.AddSegment(seg);   
+
+//                  seg.si = f;
+//                  seg.edgenr = i;
+
+//                  mesh.AddSegment(seg);
 //               }
 //            }
-//         }           
+//         }
 //      }
 //      }
 //      std::cout << std::endl;
@@ -2124,16 +2124,16 @@ void STLFindEdges (STLGeometry & geom,
   //
   // [DEBUGALL] end debug faces
 
-  
+
 // ###############################################################################
 
 /*
-  
+
   for(i = 1; i <= meshlines.Size(); i++)
   {
      STLLine* line = meshlines.Get(i);
 
-     std::cout << ".. line: " << i 
+     std::cout << ".. line: " << i
                << " :: edge: " << edge_count
                << std::endl;
 
@@ -2141,39 +2141,39 @@ void STLFindEdges (STLGeometry & geom,
      edges[edge_count].push_back(line->EndP());
 
      for(int m=0; m<10; m++)
-     {        
+     {
         if((line->segment_info[m].lefttrig != 0) && (line->segment_info[m].righttrig != 0))
-        {    
-           // an edge is added to the face 
+        {
+           // an edge is added to the face
            //
-           faces[line->segment_info[m].facenum[0]][edge_count] = 0;     
+           faces[line->segment_info[m].facenum[0]][edge_count] = 0;
 
            // also store the face normals for later comparison - taken from the adjacent triangle
            //
-           std::vector<double> normal1;           
+           std::vector<double> normal1;
            normal1.push_back(geom.GetTriangle(line->segment_info[m].lefttrig).Normal()(0));
            normal1.push_back(geom.GetTriangle(line->segment_info[m].lefttrig).Normal()(1));
            normal1.push_back(geom.GetTriangle(line->segment_info[m].lefttrig).Normal()(2));
            faces_normals[line->segment_info[m].facenum[0]] = normal1;
-           
+
            // store the first material the face is used in
            // [TODO] get rid of this use the container below - overall_material_faces
-           // 
+           //
            if(faces_material[line->segment_info[m].facenum[0]] == -1)
               faces_material[line->segment_info[m].facenum[0]] = m;
 
-           // store the materials, which this face is part of 
+           // store the materials, which this face is part of
            //
            overall_material_faces[line->segment_info[m].facenum[0]][m] = 1;
 
 
            // the inverse edge is added here
            //
-           faces[line->segment_info[m].facenum[1]][edge_count] = 1;           
+           faces[line->segment_info[m].facenum[1]][edge_count] = 1;
 
            // also store the face normals for later comparison - taken from the adjacent triangle
            //
-           std::vector<double> normal2;           
+           std::vector<double> normal2;
            normal2.push_back(geom.GetTriangle(line->segment_info[m].righttrig).Normal()(0));
            normal2.push_back(geom.GetTriangle(line->segment_info[m].righttrig).Normal()(1));
            normal2.push_back(geom.GetTriangle(line->segment_info[m].righttrig).Normal()(2));
@@ -2185,7 +2185,7 @@ void STLFindEdges (STLGeometry & geom,
            if(faces_material[line->segment_info[m].facenum[1]] == -1)
               faces_material[line->segment_info[m].facenum[1]] = m;
 
-           // store the materials, which this face is part of 
+           // store the materials, which this face is part of
            //
            overall_material_faces[line->segment_info[m].facenum[1]][m] = 1;
         }
@@ -2204,29 +2204,29 @@ void STLFindEdges (STLGeometry & geom,
   faces_container::iterator fit;
   long t =0 ;
   for(fit = faces.begin(); fit != faces.end(); ++fit, ++t)
-  {     
+  {
      std::vector<long> used;
-     for(int i=0 ; i< edges.size(); ++i)    
+     for(int i=0 ; i< edges.size(); ++i)
         used.push_back(-1);
-     
+
      std::cout << "..next call: " << t << std::endl;
-     
+
      start = (*(*fit).second.begin()).first;
      long next = start;
      long face = (*fit).first;
-     
+
      used[start] = start;
-          
+
      edge_container test;
      test[(*(*fit).second.begin()).first] = (*(*fit).second.begin()).second;
      found_holes[face].push_back(test);
-     
+
      if( find_next_edge((*fit).second, start, next, used, found_holes, edges, face) )
      {
         temp.push_back(t);
-     }     
+     }
   }
-  
+
 
   // [DEBUGALL] START this is just debug output ##############################
   //
@@ -2248,7 +2248,7 @@ void STLFindEdges (STLGeometry & geom,
   for(fit = faces.begin(); fit != faces.end(); ++fit)
   {
      std::cout << "face: " << (*fit).first << std::endl;
-     
+
      edge_container::iterator eit;
      for(eit = (*fit).second.begin(); eit != (*fit).second.end(); ++eit)
      {
@@ -2260,7 +2260,7 @@ void STLFindEdges (STLGeometry & geom,
   for(fit = faces_oriented.begin(); fit != faces_oriented.end(); ++fit)
   {
      std::cout << "face: " << (*fit).first << std::endl;
-     
+
      edge_container::iterator eit;
      for(eit = (*fit).second.begin(); eit != (*fit).second.end(); ++eit)
      {
@@ -2275,7 +2275,7 @@ void STLFindEdges (STLGeometry & geom,
   for(ofit = found_holes.begin(); ofit != found_holes.end(); ++ofit)
   {
      std::cout << "face: " << (*ofit).first << std::endl;
-     
+
      face_container::iterator eit;
      for(eit = (*ofit).second.begin(); eit != (*ofit).second.end(); ++eit)
      {
@@ -2302,7 +2302,7 @@ void STLFindEdges (STLGeometry & geom,
      }
      std::cout << std::endl;
   }
-  
+
   // [DEBUGALL] END ############################################################
 
 
@@ -2314,7 +2314,7 @@ void STLFindEdges (STLGeometry & geom,
      std::cout << "face: " << (*ofit).first << std::endl;
 
      // use the first two edge => 3 points to form a triangle
-     //     
+     //
      std::cout << ".. edge points: " << (*(*ofit).second[0].begin()).second << std::endl;
 
      std::vector<long> edge1, edge2;
@@ -2325,7 +2325,7 @@ void STLFindEdges (STLGeometry & geom,
      std::cout << " .. here2 " << std::endl;
      }
      else
-     {        
+     {
         edge1.push_back(edges[(*(*ofit).second[0].begin()).first][1]);
         edge1.push_back(edges[(*(*ofit).second[0].begin()).first][0]);
      }
@@ -2337,34 +2337,34 @@ void STLFindEdges (STLGeometry & geom,
         edge2 = edges[(*(*ofit).second[1].begin()).first];
      }
      else
-     {        
+     {
         edge2.push_back(edges[(*(*ofit).second[1].begin()).first][1]);
         edge2.push_back(edges[(*(*ofit).second[1].begin()).first][0]);
      }
 
      std::cout << ".. edge1: " << edge1[0] << " :: " << edge1[1] << std::endl;
      std::cout << ".. edge2: " << edge2[0] << " :: " << edge2[1] << std::endl;
-     
+
      gsse::exact predicate;
-     typedef double numeric_t; 
+     typedef double numeric_t;
      typedef gsse::metric_object<numeric_t, 3> point_t;
-     
+
      point_t p1(mesh.Point(edge1[0])(0), mesh.Point(edge1[0])(1), mesh.Point(edge1[0])(2));
      point_t p2(mesh.Point(edge1[1])(0), mesh.Point(edge1[1])(1), mesh.Point(edge1[1])(2));
      point_t p3(mesh.Point(edge2[1])(0), mesh.Point(edge2[1])(1), mesh.Point(edge2[1])(2));
-     
-     std::cout << ".. normal: " << faces_normals[(*ofit).first][0] << " / " 
+
+     std::cout << ".. normal: " << faces_normals[(*ofit).first][0] << " / "
                << faces_normals[(*ofit).first][1] << " / "
                << faces_normals[(*ofit).first][2] << std::endl;
 
      point_t normal(faces_normals[(*ofit).first][0], faces_normals[(*ofit).first][1], faces_normals[(*ofit).first][2]);
-     
+
      point_t p4( (p1[0] + normal[0]), (p1[1] + normal[1]), (p1[2] + normal[2])) ;
 
      std::cout << "..p1: "  << p1
                << " :: p2 " << p2
                << " :: p3 " << p3
-               << " :: p4 " << p4 
+               << " :: p4 " << p4
                << std::endl;
 
      short result = predicate.orient3d(p1, p2, p3, p4);
@@ -2375,25 +2375,25 @@ void STLFindEdges (STLGeometry & geom,
         faces_orient[(*ofit).first] = 1;
      else
         faces_orient[(*ofit).first] = -1;
-     
+
      std::cout << "\t\t..result: " << result << std::endl;
   }
-  
-  
-  std::cout << ".. faces found .. " << std::endl; 
+
+
+  std::cout << ".. faces found .. " << std::endl;
   for(ofit = found_holes.begin(); ofit != found_holes.end(); ++ofit)
   {
      std::cout << "face: " << (*ofit).first << std::endl;
-     
+
      if(faces_orient[(*ofit).first] == 0)
-     {        
-        face_container::iterator eit;        
+     {
+        face_container::iterator eit;
         for(eit = (*ofit).second.begin(); eit != (*ofit).second.end(); ++eit)
         {
            edge_container::iterator eeit;
            for(eeit = (*eit).begin(); eeit != (*eit).end(); ++eeit)
            {
-              std::cout << "\t " << (*eeit).first << " = " << (*eeit).second << std::endl;              
+              std::cout << "\t " << (*eeit).first << " = " << (*eeit).second << std::endl;
            }
         }
      }
@@ -2417,27 +2417,27 @@ void STLFindEdges (STLGeometry & geom,
 
 
 
-  std::cout << ".. adding line segments to mesh .. " << std::endl; 
+  std::cout << ".. adding line segments to mesh .. " << std::endl;
   for(ofit = found_holes.begin(); ofit != found_holes.end(); ++ofit)
   {
-     std::cout << "..face: " << (*ofit).first 
+     std::cout << "..face: " << (*ofit).first
                << " :: material: " << faces_material[(*ofit).first]
                << std::endl;
-     
+
      // [INFO] distinguish between two cases:
      //        1) face is oriented correct  == 0
      //        2) face needs to be inverted != 0
      //
      if(faces_orient[(*ofit).first] == 0)
-     {        
-        face_container::iterator eit;        
+     {
+        face_container::iterator eit;
         for(eit = (*ofit).second.begin(); eit != (*ofit).second.end(); ++eit)
         {
            edge_container::iterator eeit;
            for(eeit = (*eit).begin(); eeit != (*eit).end(); ++eeit)
            {
-              std::cout << "\t " << (*eeit).first << " = " << (*eeit).second << std::endl;  
- 
+              std::cout << "\t " << (*eeit).first << " = " << (*eeit).second << std::endl;
+
               int invert = 0;
               invert = (*eeit).second;
 
@@ -2446,10 +2446,10 @@ void STLFindEdges (STLGeometry & geom,
               int mat = faces_material[(*ofit).first];
 
               for (j = 1; j <= line->GetNS(); j++)
-              {                 
+              {
                  Segment seg1;
 
-                 int p1, p2;               
+                 int p1, p2;
                  line->GetSeg(j, p1, p2);
 
                  if(invert)
@@ -2459,8 +2459,8 @@ void STLFindEdges (STLGeometry & geom,
 
                     seg1.epgeominfo[0].dist = line->GetDist(j+1);
                     seg1.epgeominfo[1].dist = line->GetDist(j);
-                    
-                    // check if the correct triangle is given - depends on the orientation 
+
+                    // check if the correct triangle is given - depends on the orientation
                     // should be correct, but in some ways it is not working
                     // [TODO] investigate why in some ways the wrong triangle order is stored in geominfo
                     //
@@ -2479,7 +2479,7 @@ void STLFindEdges (STLGeometry & geom,
                  {
                     seg1.p1 = p1;
                     seg1.p2 = p2;
-                    
+
                     seg1.epgeominfo[0].dist = line->GetDist(j);
                     seg1.epgeominfo[1].dist = line->GetDist(j+1);
 
@@ -2493,36 +2493,36 @@ void STLFindEdges (STLGeometry & geom,
                        seg1.geominfo[1].trignum = line->segment_info[faces_material[(*ofit).first]].lefttrig;
                        seg1.geominfo[0].trignum = line->segment_info[faces_material[(*ofit).first]].righttrig;
                     }
-                 }  
-        
+                 }
+
                  std::cout << ".. p1: " << seg1.p1 << " :: p2: " << seg1.p2 << std::endl;
-       
+
                  // face number
                  //
                  seg1.si = (*ofit).first;
-	
-//               std::cout << "..facenum comp: trig1: " << geom.GetTriangle(trig1).GetFaceNum() 
+
+//               std::cout << "..facenum comp: trig1: " << geom.GetTriangle(trig1).GetFaceNum()
 //                         << " :: line: " << seg1.si << std::endl;
-        
+
                  // edge number
                  seg1.edgenr = (*eeit).first+1;
-        
+
                  // [FS] material info
                  //
                  seg1.domin = mat;
                  std::cout << ".. setting seg mat: " << seg1.domin << std::endl;
-        
+
                  seg1.epgeominfo[0].edgenr = (*eeit).first+1;
                  seg1.epgeominfo[1].edgenr = (*eeit).first+1;
 
-        
+
 //                  std::cout << ".. facenum[0]: " << line->segment_info[m].facenum[0]
 //                            << ".. facenum[1]: " << line->segment_info[m].facenum[1]
-//                            << std::endl;                
-        
+//                            << std::endl;
+
                  std::cout << ".. adding segment: " << seg1.p1 << " / " << seg1.p2 << std::endl;
-                 mesh.AddSegment(seg1);       
-              }       
+                 mesh.AddSegment(seg1);
+              }
            }
         }
      }
@@ -2535,7 +2535,7 @@ void STLFindEdges (STLGeometry & geom,
            for(eeit = (*eit).rbegin(); eeit != (*eit).rend(); ++eeit)
            {
               std::cout << "\t " << (*eeit).first << " = " << (*eeit).second << std::endl;
-              
+
               int invert = 0;
               invert = (*eeit).second;
 
@@ -2543,10 +2543,10 @@ void STLFindEdges (STLGeometry & geom,
               int mat = line->material;
 
               for (j = 1; j <= line->GetNS(); j++)
-              {                 
+              {
                  Segment seg1;
 
-                 int p1, p2;               
+                 int p1, p2;
                  line->GetSeg(j, p1, p2);
 
                  if(invert)
@@ -2556,24 +2556,24 @@ void STLFindEdges (STLGeometry & geom,
 
                     seg1.epgeominfo[0].dist = line->GetDist(j+1);
                     seg1.epgeominfo[1].dist = line->GetDist(j);
-                    
+
                     if((*ofit).first == geom.GetTriangle(line->segment_info[faces_material[(*ofit).first]].righttrig).GetFaceNum())
                     {
                        seg1.geominfo[0].trignum = line->segment_info[faces_material[(*ofit).first]].righttrig;
-                       seg1.geominfo[1].trignum = line->segment_info[faces_material[(*ofit).first]].lefttrig;     
+                       seg1.geominfo[1].trignum = line->segment_info[faces_material[(*ofit).first]].lefttrig;
                     }
                     else
                     {
                        seg1.geominfo[1].trignum = line->segment_info[faces_material[(*ofit).first]].righttrig;
-                       seg1.geominfo[0].trignum = line->segment_info[faces_material[(*ofit).first]].lefttrig;     
+                       seg1.geominfo[0].trignum = line->segment_info[faces_material[(*ofit).first]].lefttrig;
                     }
-                       
+
                  }
                  else
                  {
                     seg1.p1 = p1;
                     seg1.p2 = p2;
-                    
+
                     seg1.epgeominfo[0].dist = line->GetDist(j);
                     seg1.epgeominfo[1].dist = line->GetDist(j+1);
 
@@ -2587,43 +2587,43 @@ void STLFindEdges (STLGeometry & geom,
                        seg1.geominfo[0].trignum = line->segment_info[faces_material[(*ofit).first]].righttrig;
                        seg1.geominfo[1].trignum = line->segment_info[faces_material[(*ofit).first]].lefttrig;
                     }
-                 }  
-        
+                 }
+
                  std::cout << ".. p1: " << seg1.p1 << " :: p2: " << seg1.p2 << std::endl;
                  std::cout << "..trig1: " << seg1.geominfo[0].trignum
                            << " :: trig2: " << seg1.geominfo[1].trignum
                            << std::endl;
-       
+
                  // face number
                  //
                  seg1.si = (*ofit).first;
-	
-//               std::cout << "..facenum comp: trig1: " << geom.GetTriangle(trig1).GetFaceNum() 
+
+//               std::cout << "..facenum comp: trig1: " << geom.GetTriangle(trig1).GetFaceNum()
 //                         << " :: line: " << seg1.si << std::endl;
-        
+
                  // edge number
                  seg1.edgenr = (*eeit).first+1;
-        
+
                  // [FS] material info
                  //
                  seg1.domin = mat;
                  std::cout << ".. setting seg mat: " << seg1.domin << std::endl;
-        
+
                  seg1.epgeominfo[0].edgenr = (*eeit).first+1;
                  seg1.epgeominfo[1].edgenr = (*eeit).first+1;
 
-        
+
 //                  std::cout << ".. facenum[0]: " << line->segment_info[m].facenum[0]
 //                            << ".. facenum[1]: " << line->segment_info[m].facenum[1]
-//                            << std::endl;                
-                 
+//                            << std::endl;
+
                  std::cout << ".. adding segment: " << seg1.p1 << " / " << seg1.p2 << std::endl;
                  mesh.AddSegment(seg1);
               }
            }
-           
+
         }
-     }                             
+     }
   }
 
 */
@@ -2635,7 +2635,7 @@ void STLFindEdges (STLGeometry & geom,
 
   // [FS] .. an old face descriptor test
   //
-  /* 
+  /*
   mesh.ClearFaceDescriptors();
 
   std::cout << ".. facedescriptor test: mesh.GetNSeg 2: " << mesh.GetNSeg() << std::endl;
@@ -2643,9 +2643,9 @@ void STLFindEdges (STLGeometry & geom,
   for (int i = 1; i <= mesh.GetNSeg(); i++)
     {
       std::cout << "segment " << mesh.LineSegment(i) << " :: material: " << mesh.LineSegment(i).domin << std::endl;
-      
+
       // [FS][TEST] .. set all lines from the interface face to 0, meaning, that they are not meshed/used
-      //      
+      //
 //       if(mesh.LineSegment(i).si == 14 || mesh.LineSegment(i).si == 15 || mesh.LineSegment(i).si == 16 || mesh.LineSegment(i).si == 17)
 //       if(mesh.LineSegment(i).si == 11)
 // 	{
@@ -2653,7 +2653,7 @@ void STLFindEdges (STLGeometry & geom,
 // 	}
 //       else
 	{
-	  int ok = 0;	
+	  int ok = 0;
 	  for (int k = 1; k <= mesh.GetNFD(); k++)
 	    {
 
@@ -2668,14 +2668,14 @@ void STLFindEdges (STLGeometry & geom,
 	  if (!ok)
 	    {
 	      ok = mesh.AddFaceDescriptor (FaceDescriptor (mesh.LineSegment(i)));
-	      
-	      std::cout << "add new FaceDescriptor, now " << ok << " :: " << mesh.GetFaceDescriptor(ok) << std::endl;	  
+
+	      std::cout << "add new FaceDescriptor, now " << ok << " :: " << mesh.GetFaceDescriptor(ok) << std::endl;
 	    }
-	  
-	  std::cout << "change from " << mesh.LineSegment(i).si; 
-	  
-	  mesh.LineSegment(i).si = ok;        
-	  
+
+	  std::cout << "change from " << mesh.LineSegment(i).si;
+
+	  mesh.LineSegment(i).si = ok;
+
 	  std::cout << " to " << mesh.LineSegment(i).si << std::endl;
 	}
     }
@@ -2684,11 +2684,11 @@ void STLFindEdges (STLGeometry & geom,
 #ifdef DEBUGALL
   std::cout << ".. number of facedescriptors: " << mesh.GetNFD() << std::endl;
 #endif
-  
+
   //
   // END facedescriptor test
 
- 
+
   PopStatus();
 
 #ifdef DEBUGALL
@@ -2702,7 +2702,7 @@ void STLFindEdges (STLGeometry & geom,
 void STLSurfaceMeshing1 (STLGeometry & geom,
 			 class Mesh & mesh,
 			 int retrynr);
-			 
+
 int STLSurfaceMeshing (STLGeometry & geom,
 		       class Mesh & mesh)
 {
@@ -2736,7 +2736,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 #ifdef DEBUGALL
   geom.Save("fs_geometry_after.stl");
 #endif
- 
+
   int nopen;
   int outercnt = 20;
 
@@ -2749,14 +2749,14 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //   Mesh mesh3;
 //   mesh.Load("fs_surface_test.vol");
 //   std::cout << " .. before assign .. " << std::endl;
-//   mesh = mesh3;  
+//   mesh = mesh3;
 //   std::cout << " .. after load and assign .. " << std::endl;
 
 #ifdef DEBUGALL
   mesh.Save("mesh3.edges");
 #endif
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
   std::cout << "..number of segment: " << mesh.GetNSeg() << std::endl;
   std::cout << "..number of points: " << mesh.GetNP() << std::endl;
   std::cout << "..number of edges: " << mesh.GetNE() << std::endl;
@@ -2804,7 +2804,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 	      std::cout << "============================================================================================================" << std::endl;
 	      std::cout << ".. wait for input in STLSurfaceMeshing .. ==================================================================" << std::endl;
 #endif
-//   	      cin >> blabla;	      
+//   	      cin >> blabla;
 
 	      if (multithread.terminate)
 		{
@@ -2814,9 +2814,9 @@ int STLSurfaceMeshing (STLGeometry & geom,
 	      STLSurfaceMeshing1 (geom, mesh, trialcnt);
 
 #ifdef DEBUGALL
-	      mesh.Save("fs_surface_mesh.vol");  
+	      mesh.Save("fs_surface_mesh.vol");
               geom.Save("fs_geometry.stl");
-#endif              
+#endif
 
 	      mesh.FindOpenSegments();
 	      nopen = mesh.GetNOpenSegments();
@@ -2852,7 +2852,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		  optmesh.SetFaceIndex (0);
 		  optmesh.SetImproveEdges (0);
 		  optmesh.SetMetricWeight (0);
-		  
+
 		  mesh.CalcSurfacesOfNode();
 		  optmesh.EdgeSwapping (mesh, 0);
 		  mesh.CalcSurfacesOfNode();
@@ -2872,14 +2872,14 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		      mesh.FindOpenSegments();
 		      mesh.RemoveOneLayerSurfaceElements();
 
-		      mesh.FindOpenSegments ();		  
+		      mesh.FindOpenSegments ();
 		      nopen = mesh.GetNOpenSegments();
 		    }
 		}
 
 #ifdef DEBUGALL
               std::cout << ".. end of while .. " << std::endl;
-#endif                            
+#endif
 	    }
 
 
@@ -2888,12 +2888,12 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
 	  if (nopen)
 	    {
-	      
+
 //	      PrintMessage(3,"Meshing failed, trying to refine");
 
 	      mesh.FindOpenSegments ();
 	      nopen = mesh.GetNOpenSegments();
-			  
+
 	      mesh.FindOpenSegments ();
 	      mesh.RemoveOneLayerSurfaceElements();
 	      mesh.FindOpenSegments ();
@@ -2909,12 +2909,12 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		  openseght.Set (i2, 1);
 		}
 
-	      
+
 	      mesh.FindOpenSegments ();
 	      mesh.RemoveOneLayerSurfaceElements();
 	      mesh.FindOpenSegments ();
 	      mesh.RemoveOneLayerSurfaceElements();
-	      
+
 
 	      INDEX_2_HASHTABLE<int> newpht(100);
 
@@ -2928,21 +2928,21 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		    {
 		      // segment will be split
 //		      PrintMessage(7,"Split segment ", int(seg.p1), "-", int(seg.p2));
-	      
+
 		      Segment nseg1, nseg2;
 		      EdgePointGeomInfo newgi;
-		      
+
 		      const EdgePointGeomInfo & gi1 = seg.epgeominfo[0];
 		      const EdgePointGeomInfo & gi2 = seg.epgeominfo[1];
-		      
+
 		      newgi.dist = 0.5 * (gi1.dist + gi2.dist);
 		      newgi.edgenr = gi1.edgenr;
 
 		      int hi;
-		      
+
 		      Point3d newp;
 		      int newpi;
-		      
+
 		      if (!newpht.Used (i2))
 			{
 			  newp = geom.GetLine (gi1.edgenr)->
@@ -2960,13 +2960,13 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		      nseg2 = seg;
 		      nseg1.p2 = newpi;
 		      nseg1.epgeominfo[1] = newgi;
-		      
+
 		      nseg2.p1 = newpi;
 		      nseg2.epgeominfo[0] = newgi;
-		      
+
 		      mesh.LineSegment(i) = nseg1;
 		      mesh.AddSegment (nseg2);
-		      
+
 		      mesh.RestrictLocalH (Center (mesh.Point(nseg1.p1),
 						   mesh.Point(nseg1.p2)),
 					   Dist (mesh.Point(nseg1.p1),
@@ -2982,7 +2982,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
 	  nopen = -1;
 	}
-    
+
       else
 
 	{
@@ -3009,8 +3009,8 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		geom.SetMarkedTrig(trig,1);
 //		PrintMessage(7, "overlapping element, will be removed");
 	      }
-	  
-	  
+
+
 
 	  ARRAY<Point3d> refpts;
 	  ARRAY<double> refh;
@@ -3027,7 +3027,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 		  }
 		mesh.DeleteSurfaceElement(i);
 	      }
-	  	  
+
 	  // [FS] .. commenting out this part creates a surface mesh - this surface mesh is currently
 	  //         not consistent because the connecting layer is not meshed right
 	  // delete wrong oriented element
@@ -3037,9 +3037,9 @@ int STLSurfaceMeshing (STLGeometry & geom,
 	      if (!el.PNum(1))
 		continue;
 
-	      Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)), 
+	      Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)),
 				      mesh.Point(el.PNum(2))),
-			       Vec3d (mesh.Point(el.PNum(1)), 
+			       Vec3d (mesh.Point(el.PNum(1)),
 				      mesh.Point(el.PNum(3))));
 	      Vec3d ng = geom.GetTriangle(el.GeomInfoPi(1).trignum).Normal();
 	      if (n * ng < 0)
@@ -3057,7 +3057,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 	  mesh.RemoveOneLayerSurfaceElements();
 
 	  mesh.Compress();
-	  
+
 	  mesh.FindOpenSegments ();
 	  nopen = mesh.GetNOpenSegments();
 
@@ -3069,20 +3069,20 @@ int STLSurfaceMeshing (STLGeometry & geom,
 	      void STLSurfaceOptimization (STLGeometry & geom,
 					   class Mesh & mesh,
 					   MeshingParameters & mparam)
-	      
+
 	    }
 	  */
-	} 
-#ifdef DEBUGALL      
+	}
+#ifdef DEBUGALL
       std::cout << "..end while: nopen : " << nopen << std::endl;
 #endif
     }
   while (nopen);
-  
+
 #ifdef DEBUGALL
   mesh.Save("fs_surface_mesh.vol");
 #endif
-   
+
   mesh.Compress();
   mesh.CalcSurfacesOfNode();
 
@@ -3171,7 +3171,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
 #ifdef DEBUGALL
   geom.Save("fs_geometry_after.stl");
 #endif
- 
+
   int nopen;
   int outercnt = 20;
 
@@ -3184,14 +3184,14 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //   Mesh mesh3;
 //   mesh.Load("fs_surface_test.vol");
 //   std::cout << " .. before assign .. " << std::endl;
-//   mesh = mesh3;  
+//   mesh = mesh3;
 //   std::cout << " .. after load and assign .. " << std::endl;
 
 #ifdef DEBUGALL
   mesh.Save("mesh3.edges");
 #endif
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
   std::cout << "..number of segment: " << mesh.GetNSeg() << std::endl;
   std::cout << "..number of points: " << mesh.GetNP() << std::endl;
   std::cout << "..number of edges: " << mesh.GetNE() << std::endl;
@@ -3236,14 +3236,14 @@ int STLSurfaceMeshing (STLGeometry & geom,
         if (multithread.terminate)  return MESHING3_TERMINATE;
         trialcnt++;
         // -----------------------------------------------
-        // -----------------------------------------------        
+        // -----------------------------------------------
         STLSurfaceMeshing1 (geom, mesh, trialcnt);
         // -----------------------------------------------
-        // -----------------------------------------------        
+        // -----------------------------------------------
       #ifdef DEBUGALL
-        mesh.Save("fs_surface_mesh.vol");  
+        mesh.Save("fs_surface_mesh.vol");
         geom.Save("fs_geometry.stl");
-      #endif              
+      #endif
 
         mesh.FindOpenSegments();
         nopen = mesh.GetNOpenSegments();
@@ -3275,7 +3275,7 @@ int STLSurfaceMeshing (STLGeometry & geom,
           optmesh.SetFaceIndex (0);
           optmesh.SetImproveEdges (0);
           optmesh.SetMetricWeight (0);
-          
+
           mesh.CalcSurfacesOfNode();
           optmesh.EdgeSwapping (mesh, 0);
           mesh.CalcSurfacesOfNode();
@@ -3294,13 +3294,13 @@ int STLSurfaceMeshing (STLGeometry & geom,
           {
             mesh.FindOpenSegments();
             mesh.RemoveOneLayerSurfaceElements();
-            mesh.FindOpenSegments ();		  
+            mesh.FindOpenSegments ();
             nopen = mesh.GetNOpenSegments();
           }
         }
       #ifdef DEBUGALL
         std::cout << ".. end of while .. " << std::endl;
-      #endif                            
+      #endif
       }
 
       if (multithread.terminate)  return MESHING3_TERMINATE;
@@ -3344,15 +3344,15 @@ int STLSurfaceMeshing (STLGeometry & geom,
             // PrintMessage(7,"Split segment ", int(seg.p1), "-", int(seg.p2));
             Segment nseg1, nseg2;
             EdgePointGeomInfo newgi;
-            
+
             const EdgePointGeomInfo & gi1 = seg.epgeominfo[0];
             const EdgePointGeomInfo & gi2 = seg.epgeominfo[1];
-            
+
             newgi.dist = 0.5 * (gi1.dist + gi2.dist);
             newgi.edgenr = gi1.edgenr;
 
             int hi;
-            
+
             Point3d newp;
             int newpi;
 
@@ -3373,13 +3373,13 @@ int STLSurfaceMeshing (STLGeometry & geom,
             nseg2 = seg;
             nseg1.p2 = newpi;
             nseg1.epgeominfo[1] = newgi;
-            
+
             nseg2.p1 = newpi;
             nseg2.epgeominfo[0] = newgi;
-            
+
             mesh.LineSegment(i) = nseg1;
             mesh.AddSegment (nseg2);
-            
+
             mesh.RestrictLocalH (
               Center(mesh.Point(nseg1.p1),mesh.Point(nseg1.p2)),
               Dist (mesh.Point(nseg1.p1), mesh.Point(nseg1.p2))
@@ -3441,9 +3441,9 @@ int STLSurfaceMeshing (STLGeometry & geom,
         const Element2d & el = mesh.SurfaceElement(i);
         if (!el.PNum(1))  continue;
 
-        Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)), 
+        Vec3d n = Cross (Vec3d (mesh.Point(el.PNum(1)),
         mesh.Point(el.PNum(2))),
-        Vec3d (mesh.Point(el.PNum(1)), 
+        Vec3d (mesh.Point(el.PNum(1)),
         mesh.Point(el.PNum(3))));
         Vec3d ng = geom.GetTriangle(el.GeomInfoPi(1).trignum).Normal();
         if (n * ng < 0)
@@ -3468,17 +3468,17 @@ int STLSurfaceMeshing (STLGeometry & geom,
 //        // mesh is still ok
 //        void STLSurfaceOptimization (STLGeometry & geom, class Mesh & mesh, MeshingParameters & mparam)
 //      }
-    } 
-  #ifdef DEBUGALL      
+    }
+  #ifdef DEBUGALL
     std::cout << "..end while: nopen : " << nopen << std::endl;
   #endif
   }
   while (nopen);
-  
+
 #ifdef DEBUGALL
   mesh.Save("fs_surface_mesh.vol");
 #endif
-   
+
   mesh.Compress();
   mesh.CalcSurfacesOfNode();
 
@@ -3517,20 +3517,20 @@ int STLSurfaceMeshing (STLGeometry & geom,
   // [JW] here we transfer the data from the gsse domain to the viennagrid domain
   //
    typedef viennagrid::triangular_3d_mesh   MeshType;
-   typedef viennagrid::triangular_hull_3d_segment   SegmentType;
+   typedef viennagrid::triangular_hull_3d_segment_handle   SegmentHandleType;
    typedef viennagrid::result_of::point<MeshType>::type PointType;
-//    typedef DomainType::config_type                                                  DomainConfiguration;  
-   typedef viennagrid::result_of::element<MeshType, viennagrid::vertex_tag>::type       VertexType;   
-//    typedef DomainConfiguration::cell_tag                                         CellTag;  
+//    typedef DomainType::config_type                                                  DomainConfiguration;
+   typedef viennagrid::result_of::element<MeshType, viennagrid::vertex_tag>::type       VertexType;
+//    typedef DomainConfiguration::cell_tag                                         CellTag;
    typedef viennagrid::triangle_tag CellTag;
-   typedef viennagrid::result_of::element<MeshType, CellTag>::type     CellType;   
-  
-   using namespace gsse::access_specifier;   
-   typedef gsse::result_of::at_dim<FullSpace, AC>::type                 SpaceTopologySegmentsT;  
+   typedef viennagrid::result_of::element<MeshType, CellTag>::type     CellType;
+
+   using namespace gsse::access_specifier;
+   typedef gsse::result_of::at_dim<FullSpace, AC>::type                 SpaceTopologySegmentsT;
    typedef gsse::result_of::at_dim<FullSpace, AP>::type                 FBPosT;
    typedef gsse::result_of::at_dim_isd<FBPosT>::type                    CoordPosT;
-   typedef gsse::result_of::at_dim_index<SpaceTopologySegmentsT>::type  CellComplex;     
-   typedef gsse::result_of::at_dim<CellComplex, AT_cl>::type            CellContainer;   
+   typedef gsse::result_of::at_dim_index<SpaceTopologySegmentsT>::type  CellComplex;
+   typedef gsse::result_of::at_dim<CellComplex, AT_cl>::type            CellContainer;
 
    SpaceTopologySegmentsT& segments_topology = gsse::at_dim<AC>(fullspace);
    FBPosT&                 geometry          = gsse::at_dim<AP>(fullspace);
@@ -3540,27 +3540,27 @@ int STLSurfaceMeshing (STLGeometry & geom,
    for (long i =0 ; i < gsse::size( geometry ); ++i)
    {
       CoordPosT point = gsse::at(i)(geometry);
-      
-      
+
+
       viennagrid::make_vertex( vgrid_mesh, PointType( point[0], point[1], point[2]) );
-      
+
 /*      PointType & point = viennagrid::point( PointType,
-      
+
       VertexType vertex;
       vertex.point()[0] = point[0];
       vertex.point()[1] = point[1];
-      vertex.point()[2] = point[2];            
+      vertex.point()[2] = point[2];
       vertex.id(i);
-      domain.push_back(vertex);   */   
+      domain.push_back(vertex);   */
    }
-   
+
 //    domain.segments().resize( gsse::size(segments_topology) );
 
    std::size_t global_cell_count = 0;
    for (long si = 0; si < gsse::size(segments_topology); ++si)
    {
-      CellContainer& cell_cont = 
-         gsse::at_dim<AT_cl>(gsse::at_fiber(gsse::at(si)(segments_topology)));      
+      CellContainer& cell_cont =
+         gsse::at_dim<AT_cl>(gsse::at_fiber(gsse::at(si)(segments_topology)));
 
       global_cell_count += gsse::size(cell_cont);
    }
@@ -3569,48 +3569,48 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
    for (long si = 0; si < gsse::size(segments_topology); ++si)
    {
-      CellContainer& cell_cont = 
+      CellContainer& cell_cont =
          gsse::at_dim<AT_cl>(gsse::at_fiber(gsse::at(si)(segments_topology)));
 
 
-      SegmentType & segment = segmentation(geom.segment_id_map[si]);
-      
-         
+      SegmentHandleType & segment = segmentation(geom.segment_id_map[si]);
+
+
       for( size_t ci = 0; ci < gsse::size( cell_cont ); ci++ )
       {
-//          VertexType *vertices[viennagrid::topology::bndcells<CellTag, 0>::num];        
-//          vertices[0] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][0] ]);               
+//          VertexType *vertices[viennagrid::topology::bndcells<CellTag, 0>::num];
+//          vertices[0] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][0] ]);
 //          vertices[1] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][1] ]);
-//          vertices[2] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][2] ]);         
+//          vertices[2] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][2] ]);
 //          CellType cell;
-//          cell.vertices(vertices);         
-//          domain.segments()[si].push_back(cell); 
-         
-         
+//          cell.vertices(vertices);
+//          domain.segments()[si].push_back(cell);
+
+
          typedef viennagrid::result_of::handle<MeshType, viennagrid::triangle_tag>::type triangle_handle_type;
 
-         
-         
+
+
          triangle_handle_type triangle_handle = viennagrid::make_triangle( segment,
                                     viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][0] ),
                                     viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][1] ),
                                     viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][2] )
                                     );
-         
-         
+
+
          typedef viennagrid::triangular_hull_3d_segmentation segmentation_type;
 //          typedef segmentation_type::element_segment_info_type element_segment_info_type;
 //          typedef segmentation_type::segment_id_type segment_id_type;
-         
+
 //          element_segment_info const & seg_info = segmentation.segment_info( viennagrid::dereference_handle(domain, triangle_handle) );
 
 
          *viennagrid::segment_element_info( segment, viennagrid::dereference_handle(vgrid_mesh, triangle_handle) ) = true;
 //          segmentation.set_segment_info( viennagrid::dereference_handle(domain, triangle_handle), element_segment_info_type( geom.segment_id_map[si], segment_id_type() ) );
-         
+
 //          viennamesh::add_face_to_segment( domain, viennagrid::dereference_handle(domain, triangle_handle), geom.segment_id_map[si], true );
       }
-   }   
+   }
 
   // END conversion
   // #######################################################################################
@@ -3635,13 +3635,13 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
   double h;
 
 #ifdef DEBUGALL
-  std::cout << " .. in STLSurfaceMeshing1 .. " << std::endl;  
+  std::cout << " .. in STLSurfaceMeshing1 .. " << std::endl;
 #endif
-  
+
   h = mparam.maxh;
 
   mesh.FindOpenSegments();
-  
+
   ARRAY<int> spiralps(0);
   spiralps.SetSize(0);
   for (i = 1; i <= geom.GetNP(); i++)
@@ -3649,7 +3649,7 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
       if (geom.GetSpiralPoint(i)) {spiralps.Append(i);}
     }
 
-#ifdef DEBUGALL  
+#ifdef DEBUGALL
   PrintMessage(7,"NO spiralpoints = ", spiralps.Size());
 #endif
 
@@ -3662,7 +3662,7 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
     {
       meshsp.Elem(i) = 0;
       for (j = 1; j <= spiralps.Size(); j++)
-	if (Dist2(geom.GetPoint(spiralps.Get(j)), mesh.Point(i)) < 1e-20) 
+	if (Dist2(geom.GetPoint(spiralps.Get(j)), mesh.Point(i)) < 1e-20)
 	  meshsp.Elem(i) = spiralps.Get(j);
     }
 
@@ -3701,11 +3701,11 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
       //
 #ifdef DEBUGALL
       std::string blabla;
-      std::cout << "##############################################################################################################" << std::endl;      
+      std::cout << "##############################################################################################################" << std::endl;
       std::cout << ".. wait for input in STLSurfaceMeshing1 .. ###################################################################" << std::endl;
       std::cerr << ".. meshing chart: " << fnr << std::endl;
 
-#endif    
+#endif
 //      std::string blabla;
 //      if(fnr == 735 || fnr == 736 || fnr == 737)
 //         cin >> blabla;
@@ -3720,7 +3720,7 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
          std::cout << " .. before opensegsperface.Get(fnr) " << std::endl;
 	std::cout << ".. opensegsperface.Get(fnr): " <<  opensegsperface.Get(fnr) << std::endl;
 #endif
-	
+
 	// [FS] .. what does opensegsperface do ? in our case always the same value
 	//
 	  if (opensegsperface.Get(fnr))
@@ -3732,18 +3732,18 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
 	if (multithread.terminate)
 	  return;
 
-#ifdef DEBUGALL	
+#ifdef DEBUGALL
 	PrintMessage(5,"Meshing surface ", fnr, "/", mesh.GetNFD());
 #endif
 
 	// [FS] .. MeshingSTLSurface : public Meshing2
 	//
 	MeshingSTLSurface meshing (geom);
-	
+
 	meshing.SetStartTime (starttime);
-	
+
 	// [FS][INFO] add points to meshing2 and check for spiral points
-	//            if no spiral point is found the multipointgeomInfo variable is set to 
+	//            if no spiral point is found the multipointgeomInfo variable is set to
 	//
 	for (i = 1; i <= mesh.GetNP(); i++)
 	  {
@@ -3751,47 +3751,47 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
 	      spfound = 0;
 	      for (j = 1; j <= spiralps.Size(); j++)
 	      {
-	      if (Dist2(geom.GetPoint(spiralps.Get(j)),mesh.Point(i)) < 1e-20) 
+	      if (Dist2(geom.GetPoint(spiralps.Get(j)),mesh.Point(i)) < 1e-20)
 		{spfound =  1; sppointnum = spiralps.Get(j);}
 		}
 	    */
 	    sppointnum = 0;
 	    if (i <= meshsp.Size())
 	      sppointnum = meshsp.Get(i);
-	    
+
 	  //spfound = 0;
-#ifdef DEBUGALL      
+#ifdef DEBUGALL
 //	    std::cout << "..sppointnum: " << sppointnum << std::endl;
 #endif
 
 	  if (sppointnum)
 	    {
 	      MultiPointGeomInfo mgi;
-  
+
 	      int ntrigs = geom.NOTrigsPerPoint(sppointnum);
 	      spcnt++;
-	      
+
 	      for (j = 0; j < ntrigs; j++)
 		{
 		  PointGeomInfo gi;
 		  gi.trignum = geom.TrigPerPoint(sppointnum, j+1);
 		  mgi.AddPointGeomInfo (gi);
 		}
-	      
+
 	      // Einfuegen von ConePoint: Point bekommt alle
 	      // Dreiecke (werden dann intern kopiert)
 	      // Ein Segment zum ConePoint muss vorhanden sein !!!
-	      
+
 	      meshing.AddPoint (mesh.Point(i), i, &mgi);
-	      
+
 	    }
 	  else
 	    {
 	      meshing.AddPoint (mesh.Point(i), i);
 	    }
 	}
-      
-      
+
+
       for (i = 1; i <= mesh.GetNOpenSegments(); i++)
 	{
 	  const Segment & seg = mesh.GetOpenSegment (i);
@@ -3801,15 +3801,15 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
 	    {
 	      meshing.AddBoundaryElement (seg.p1, seg.p2, seg.geominfo[0], seg.geominfo[1]);
 
-#ifdef DEBUGALL      
+#ifdef DEBUGALL
 	      std::cout << "..adding boundary el: p1: " << seg.p1 << " :: p2: " << seg.p2 << std::endl;
 	      std::cout << ".. seg.geominfo[0]: " << seg.geominfo[0]
 			<< ".. seg.geominfo[1]: " << seg.geominfo[1] << std::endl;
-#endif	      
+#endif
 	    }
 	}
-      
-#ifdef DEBUGALL            
+
+#ifdef DEBUGALL
       PrintMessage(3,"start meshing, trialcnt = ", retrynr);
 #endif
 
@@ -3820,13 +3820,13 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
 //       else
 //       h = 1000.0;
 
-#ifdef DEBUGALL                              
+#ifdef DEBUGALL
       std::cout << ".. start meshing with h = " << h << std::endl;
 #endif
 
       meshing.GenerateMesh (mesh, h, fnr);  // face index
 
-#ifdef DEBUGALL            
+#ifdef DEBUGALL
       std::cout << " .. after GenerateMesh in STLSurfaceMeshing1 .. " << std::endl;
 #endif
 
@@ -3834,10 +3834,10 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
 	  ARRAY<SurfaceElementIndex> bla;
 	  mesh.GetSurfaceElementsOfFace(8, bla);
 
-#ifdef DEBUGALL            
+#ifdef DEBUGALL
 	  std::cout << "number surface elements of face: " << bla.Size() << std::endl;
 #endif
-#ifdef DEBUGALL            
+#ifdef DEBUGALL
 	  for(int t=0; t< bla.Size(); t++)
 	    {
 	      Element2d sel = mesh[bla[t]];
@@ -3864,14 +3864,14 @@ void STLSurfaceMeshing1 (STLGeometry & geom,
 
 
       }
-  
+
 	} // if FS test
-    }    
-      
-  
+    }
+
+
   mesh.CalcSurfacesOfNode();
 
-#ifdef DEBUGALL            
+#ifdef DEBUGALL
   std::cout << " .. leaving STLSurfaceMeshing1 .. " << std::endl;
 #endif
 }
@@ -3917,22 +3917,22 @@ void STLSurfaceOptimization (STLGeometry & geom,
 	mesh.CalcSurfacesOfNode();
 	switch (mparam.optimize2d[j-1])
 	  {
-	  case 's': 
-	    { 
+	  case 's':
+	    {
 	      optmesh.EdgeSwapping (mesh, 0);
 	      break;
 	    }
-	  case 'S': 
+	  case 'S':
 	    {
 	      optmesh.EdgeSwapping (mesh, 1);
 	      break;
 	    }
-	  case 'm': 
+	  case 'm':
 	    {
 	      optmesh.ImproveMesh(mesh);
 	      break;
 	    }
-	  case 'c': 
+	  case 'c':
 	    {
 	      optmesh.CombineImprove (mesh);
 	      break;
@@ -3962,7 +3962,7 @@ void MeshingSTLSurface :: DefineTransformation (const Point3d & p1, const Point3
 						const PointGeomInfo * geominfo2)
 {
   transformationtrig = geominfo[0].trignum;
-  
+
   geom.DefineTangentialPlane(p1, p2, transformationtrig);
 }
 
@@ -3976,7 +3976,7 @@ void MeshingSTLSurface :: TransformToPlain (const Point3d & locpoint, const Mult
   int trigs[10000];
   int i;
 
-  if (gi.GetNPGI() >= 9999) 
+  if (gi.GetNPGI() >= 9999)
     {
       PrintError("In Transform to plane: increase size of trigs!!!");
     }
@@ -3995,7 +3995,7 @@ void MeshingSTLSurface :: TransformToPlain (const Point3d & locpoint, const Mult
   //  geom.ToPlane (locpoint, NULL, plainpoint, h, zone, 1);
   /*
   (*testout) << " plainpoint = " << plainpoint
-	     << " h = " << h 
+	     << " h = " << h
 	     << endl;
   */
 }
@@ -4012,7 +4012,7 @@ int MeshingSTLSurface :: ComputeLineGeoInfo (const Point3d & p1, const Point3d &
 
   hp = p2;
   geomtrig[1] = geom.Project (hp);
-  
+
   geoinfosize = sizeof (geomtrig);
   geoinfo = &geomtrig;
 
@@ -4042,8 +4042,8 @@ int MeshingSTLSurface :: ComputePointGeomInfo (const Point3d & p, PointGeomInfo 
 }
 
 
-int MeshingSTLSurface :: 
-ChooseChartPointGeomInfo (const MultiPointGeomInfo & mpgi, 
+int MeshingSTLSurface ::
+ChooseChartPointGeomInfo (const MultiPointGeomInfo & mpgi,
 			  PointGeomInfo & pgi)
 {
   int i;
@@ -4072,7 +4072,7 @@ ChooseChartPointGeomInfo (const MultiPointGeomInfo & mpgi,
 
 
 
-int MeshingSTLSurface :: 
+int MeshingSTLSurface ::
 IsLineVertexOnChart (const Point3d & p1, const Point3d & p2,
 		     int endpoint, const PointGeomInfo & gi)
 {
@@ -4080,15 +4080,15 @@ IsLineVertexOnChart (const Point3d & p1, const Point3d & p2,
 
   int lineendtrig = gi.trignum;
 
-  
+
   return geom.TrigIsInOC (lineendtrig, geom.meshchart);
 
   //  Vec3d linenormal = geom.GetTriangleNormal (lineendtrig);
   //  return ( (baselinenormal * linenormal) > cos (30 * (M_PI/180)) );
 }
 
-void MeshingSTLSurface :: 
-GetChartBoundary (ARRAY<Point2d > & points, 
+void MeshingSTLSurface ::
+GetChartBoundary (ARRAY<Point2d > & points,
 		  ARRAY<Point3d > & points3d,
 		  ARRAY<INDEX_2> & lines, double h) const
 {
@@ -4102,8 +4102,8 @@ GetChartBoundary (ARRAY<Point2d > & points,
 
 
 int MeshingSTLSurface :: TransformFromPlain (Point2d & plainpoint,
-					     Point3d & locpoint, 
-					     PointGeomInfo & gi, 
+					     Point3d & locpoint,
+					     PointGeomInfo & gi,
 					     double h)
 {
   //return 0, wenn alles OK
@@ -4115,8 +4115,8 @@ int MeshingSTLSurface :: TransformFromPlain (Point2d & plainpoint,
 }
 
 
-int MeshingSTLSurface :: 
-BelongsToActiveChart (const Point3d & p, 
+int MeshingSTLSurface ::
+BelongsToActiveChart (const Point3d & p,
 		      const PointGeomInfo & gi)
 {
   return (geom.TrigIsInOC(gi.trignum, geom.meshchart) != 0);
@@ -4150,7 +4150,7 @@ void MeshOptimizeSTLSurface :: SelectSurfaceOfPoint (const Point<3> & p,
 						     const PointGeomInfo & gi)
 {
   //  (*testout) << "sel char: " << gi.trignum << endl;
-  
+
   geom.SelectChartOfTriangle (gi.trignum);
   //  geom.SelectChartOfPoint (p);
 }
@@ -4161,8 +4161,8 @@ void MeshOptimizeSTLSurface :: ProjectPoint (INDEX surfind, Point<3> & p) const
   if (!geom.Project (p))
     {
       PrintMessage(7,"project failed");
-      
-      if (!geom.ProjectOnWholeSurface(p)) 
+
+      if (!geom.ProjectOnWholeSurface(p))
 	{
 	  PrintMessage(7, "project on whole surface failed");
 	}
@@ -4174,7 +4174,7 @@ void MeshOptimizeSTLSurface :: ProjectPoint (INDEX surfind, Point<3> & p) const
 void MeshOptimizeSTLSurface :: ProjectPoint2 (INDEX surfind, INDEX surfind2, Point<3> & p) const
 {
   /*
-  ProjectToEdge ( geometry.GetSurface(surfind), 
+  ProjectToEdge ( geometry.GetSurface(surfind),
 		  geometry.GetSurface(surfind2), p);
   */
 }
@@ -4190,13 +4190,13 @@ int  MeshOptimizeSTLSurface :: CalcPointGeomInfo(PointGeomInfo& gi, const Point<
     }
 
   return 0;
-  
+
 }
 
 void MeshOptimizeSTLSurface :: GetNormalVector(INDEX surfind, const Point<3> & p, Vec<3> & n) const
 {
   n = geom.GetChartNormalVector();
-  
+
   /*
   geometry.GetSurface(surfind)->CalcGradient (p, n);
   n /= n.Length();
@@ -4204,7 +4204,7 @@ void MeshOptimizeSTLSurface :: GetNormalVector(INDEX surfind, const Point<3> & p
     n *= -1;
   */
 }
-  
+
 
 
 
@@ -4224,11 +4224,11 @@ RefinementSTLGeometry :: ~RefinementSTLGeometry ()
 {
   ;
 }
-  
-void RefinementSTLGeometry :: 
+
+void RefinementSTLGeometry ::
 PointBetween  (const Point<3> & p1, const Point<3> & p2, double secpoint,
-	       int surfi, 
-	       const PointGeomInfo & gi1, 
+	       int surfi,
+	       const PointGeomInfo & gi1,
 	       const PointGeomInfo & gi2,
 	       Point<3> & newp, PointGeomInfo & newgi)
 {
@@ -4254,11 +4254,11 @@ PointBetween  (const Point<3> & p1, const Point<3> & p2, double secpoint,
       newgi.trignum = tn1; //urspruengliche version
       newp = np1;          //urspruengliche version
 
-      if (!newgi.trignum) 
+      if (!newgi.trignum)
 	{ newgi.trignum = tn2; newp = np2; }
       if (!newgi.trignum) newgi.trignum = gi1.trignum;
 
-      /*    
+      /*
       if (tn1 != 0 && tn2 != 0 && ((STLGeometry&)geom).GetAngle(tn1,tn2) < M_PI*0.05)	{
 	  newgi.trignum = tn1;
 	  newp = np1;
@@ -4269,11 +4269,11 @@ PointBetween  (const Point<3> & p1, const Point<3> & p2, double secpoint,
 	  tn1 = ((STLGeometry&)geom).Project(newp);
 	  newgi.trignum = tn1;
 
-	  if (!tn1) 
+	  if (!tn1)
 	    {
 	      newp = Center (p1, p2);
 	      newgi.trignum = 0;
-	      
+
 	    }
 	}
       */
@@ -4284,14 +4284,14 @@ PointBetween  (const Point<3> & p1, const Point<3> & p2, double secpoint,
       newp =  p1+secpoint*(p2-p1);
       newgi.trignum = 0;
     }
-     
+
   //  (*testout) << "newp = " << newp << ", ngi = " << newgi << endl;
 }
 
 void RefinementSTLGeometry ::
 PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
-	      int surfi1, int surfi2, 
-	      const EdgePointGeomInfo & gi1, 
+	      int surfi1, int surfi2,
+	      const EdgePointGeomInfo & gi1,
 	      const EdgePointGeomInfo & gi2,
 	      Point<3> & newp, EdgePointGeomInfo & newgi)
 {
@@ -4330,9 +4330,9 @@ void RefinementSTLGeometry :: ProjectToSurface (Point<3> & p, int surfi,
 {
   ((STLGeometry&)geom).SelectChartOfTriangle (gi.trignum);
   gi.trignum = geom.Project (p);
-  //  if (!gi.trignum) 
+  //  if (!gi.trignum)
   //    cout << "projectSTL failed" << endl;
 };
 
- 
+
 }

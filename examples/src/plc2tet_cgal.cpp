@@ -6,7 +6,7 @@
 #include "viennagrid/algorithm/geometry.hpp"
 #include "viennagrid/algorithm/cross_prod.hpp"
 
-#include "viennagrid/io/poly_reader.hpp"
+#include "viennagrid/io/tetgen_poly_reader.hpp"
 
 #include "viennamesh/algorithm/cgal_delaunay_tetrahedron_mesher.hpp"
 #include "viennamesh/algorithm/cgal_plc_mesher.hpp"
@@ -28,28 +28,28 @@ struct functor
 int main()
 {
     viennagrid::plc_3d_mesh plc_mesh;
-    
-    viennagrid::io::poly_reader reader;
+
+    viennagrid::io::tetgen_poly_reader reader;
     reader(plc_mesh, "../../examples/data/cube.poly");
-    
-    
+
+
     viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type plc_settings;//(0.3, 0.0);
-    
+
     viennagrid::triangular_3d_mesh triangle_mesh;
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_mesh, triangle_mesh, plc_settings );
-    
-    
+
+
     viennagrid::io::vtk_writer<viennagrid::triangular_3d_mesh> vtk_hull_writer;
     vtk_hull_writer(triangle_mesh, "cube_hull");
-    
+
     viennamesh::result_of::settings<viennamesh::cgal_delaunay_tetrahedron_tag>::type deltet_settings;
-    
+
     functor f;
-    
+
     deltet_settings.cell_size = 2.0;
     deltet_settings.cell_radius_edge_ratio = 1.5;
-    
-    
+
+
     viennagrid::tetrahedral_3d_mesh tet_mesh;
     viennamesh::run_algo<viennamesh::cgal_delaunay_tetrahedron_tag>(triangle_mesh, tet_mesh, deltet_settings);
 

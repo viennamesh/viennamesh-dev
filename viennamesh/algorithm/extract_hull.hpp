@@ -16,30 +16,30 @@ namespace viennamesh
                       HullMeshT & hull_mesh,
                       HullSegmentationT & hull_segmentation )
   {
-    typedef typename viennagrid::result_of::segment<VolumeSegmentationT>::type    VolumeSegmentType;
+    typedef typename viennagrid::result_of::segment_handle<VolumeSegmentationT>::type    VolumeSegmentHandleType;
     typedef typename viennagrid::result_of::point<VolumeMeshT>::type            VolumePointType;
-    
-    typedef typename viennagrid::result_of::segment<HullSegmentationT>::type      HullSegmentType;
+
+    typedef typename viennagrid::result_of::segment_handle<HullSegmentationT>::type      HullSegmentHandleType;
 
     for (typename VolumeSegmentationT::const_iterator sit = volume_segmentation.begin(); sit != volume_segmentation.end(); ++sit)
     {
-      VolumeSegmentType const & volume_segment = *sit;
-      HullSegmentType & hull_segment = hull_segmentation( volume_segment.id() );
-      
-      typedef typename viennagrid::result_of::const_element_range<VolumeSegmentType, HullTypeOrTagT>::type    HullRangeType;
+      VolumeSegmentHandleType const & volume_segment = *sit;
+      HullSegmentHandleType & hull_segment = hull_segmentation( volume_segment.id() );
+
+      typedef typename viennagrid::result_of::const_element_range<VolumeSegmentHandleType, HullTypeOrTagT>::type    HullRangeType;
       typedef typename viennagrid::result_of::iterator<HullRangeType>::type                                   HullRangeIterator;
-      
-      typedef typename viennagrid::result_of::element<VolumeSegmentType, HullTypeOrTagT>::type    VolumeHullElement;
-      typedef typename viennagrid::result_of::element<HullSegmentType, HullTypeOrTagT>::type      HullHullElement;
-      
+
+      typedef typename viennagrid::result_of::element<VolumeSegmentHandleType, HullTypeOrTagT>::type    VolumeHullElement;
+      typedef typename viennagrid::result_of::element<HullSegmentHandleType, HullTypeOrTagT>::type      HullHullElement;
+
       HullRangeType hull_elements = viennagrid::elements( volume_segment );
       for (HullRangeIterator hit = hull_elements.begin(); hit != hull_elements.end(); ++hit)
       {
         VolumeHullElement const & hull_element = *hit;
-        
+
         if ( viennagrid::is_boundary( volume_segment, hull_element ) )
         {
-          typedef typename viennagrid::result_of::vertex_handle<HullSegmentType>::type HullVertexHandleType;
+          typedef typename viennagrid::result_of::vertex_handle<HullSegmentHandleType>::type HullVertexHandleType;
 
           std::vector<HullVertexHandleType> vertices;
           vertices.resize( viennagrid::vertices(hull_element).size() );
@@ -52,25 +52,25 @@ namespace viennamesh
       }
     }
   }
-  
+
   template<typename VolumeMeshT, typename MarkedAccessorT, typename HullMeshT>
   void extract_hull(VolumeMeshT const & volume_mesh, MarkedAccessorT const marked_cells, HullMeshT & hull_mesh)
   {
     typedef typename viennagrid::result_of::cell_tag<VolumeMeshT>::type CellTag;
     typedef typename viennagrid::result_of::cell<VolumeMeshT>::type CellType;
-    
+
     typedef typename viennagrid::result_of::vertex_handle<HullMeshT>::type HullVertexHandleType;
-    
+
     typedef typename viennagrid::result_of::const_triangle_range<VolumeMeshT>::type TriangleRangeType;
     typedef typename viennagrid::result_of::iterator<TriangleRangeType>::type TriangleRangeIterator;
-    
+
     TriangleRangeType hull_triangles = viennagrid::elements(volume_mesh);
     for (TriangleRangeIterator tit = hull_triangles.begin(); tit != hull_triangles.end(); ++tit)
     {
       typedef typename viennagrid::result_of::const_coboundary_range<VolumeMeshT, viennagrid::triangle_tag, CellTag>::type CoboundaryCellRange;
-      
+
       bool use = false;
-      
+
       CoboundaryCellRange coboundary_cells = viennagrid::coboundary_elements<viennagrid::triangle_tag, CellTag>( volume_mesh, tit.handle() );
       if ( coboundary_cells.size() == 1)
       {
@@ -82,8 +82,8 @@ namespace viennamesh
       }
       else
         std::cout << "Something went torribly wrong..." << std::endl;
-          
-      
+
+
       if ( use )
         viennagrid::copy_element( *tit, hull_mesh );
     }
@@ -103,7 +103,7 @@ namespace viennamesh
       seed_points.push_back( std::make_pair(it->id(), centroid) );
     }
   }
-    
+
 }
 
 #endif
