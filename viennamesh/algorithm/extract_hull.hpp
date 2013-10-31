@@ -32,7 +32,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::element<VolumeSegmentHandleType, HullTypeOrTagT>::type    VolumeHullElement;
       typedef typename viennagrid::result_of::element<HullSegmentHandleType, HullTypeOrTagT>::type      HullHullElement;
 
-      HullRangeType hull_elements = viennagrid::elements( volume_segment );
+      HullRangeType hull_elements( volume_segment );
       for (HullRangeIterator hit = hull_elements.begin(); hit != hull_elements.end(); ++hit)
       {
         VolumeHullElement const & hull_element = *hit;
@@ -64,7 +64,7 @@ namespace viennamesh
     typedef typename viennagrid::result_of::const_triangle_range<VolumeMeshT>::type TriangleRangeType;
     typedef typename viennagrid::result_of::iterator<TriangleRangeType>::type TriangleRangeIterator;
 
-    TriangleRangeType hull_triangles = viennagrid::elements(volume_mesh);
+    TriangleRangeType hull_triangles(volume_mesh);
     for (TriangleRangeIterator tit = hull_triangles.begin(); tit != hull_triangles.end(); ++tit)
     {
       typedef typename viennagrid::result_of::const_coboundary_range<VolumeMeshT, viennagrid::triangle_tag, CellTag>::type CoboundaryCellRange;

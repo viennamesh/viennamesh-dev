@@ -78,7 +78,7 @@ namespace viennamesh
     typedef typename viennamesh::result_of::metric_ordering_tag<MetricTagT>::type MetricOrderingTag;
     typedef typename viennagrid::result_of::const_cell_range<MeshT>::type CellRangeType;
 
-    CellRangeType cells = viennagrid::elements(mesh);
+    CellRangeType cells(mesh);
     return worst_element_impl<MetricOrderingTag>::find( cells.begin(), cells.end(), viennamesh::metric_compare<MetricTagT, CellType> );
   }
 }

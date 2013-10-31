@@ -53,7 +53,7 @@
 //   typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellRangeIterator;
 //
 //
-//   CellRangeType cells = viennagrid::elements(mesh);
+//   CellRangeType cells(mesh);
 //   for (CellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
 //   {
 //     if ( marked_cells(*cit) )
@@ -96,7 +96,7 @@ void mark_neighours_radius( MeshT const & mesh, MarkedAccessorT & marked_cells, 
   typedef typename viennagrid::result_of::const_cell_range<MeshT>::type CellRangeType;
   typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellRangeIterator;
 
-  CellRangeType cells_in_segment = viennagrid::elements(mesh);
+  CellRangeType cells_in_segment(mesh);
   for (CellRangeIterator cit = cells_in_segment.begin(); cit != cells_in_segment.end(); ++cit)
   {
     if (  (viennagrid::norm_2( center - viennagrid::point(mesh, viennagrid::vertices(*cit)[0]) ) < radius) &&
@@ -185,7 +185,7 @@ void remesh_worst_element( InputMeshT const & input_mesh, OutputMeshT & output_m
   histogram<double,long> hist;
   hist.init(0.6, 1.6, histogram_pins);
 
-  CellRangeType cells = viennagrid::elements(input_mesh);
+  CellRangeType cells(input_mesh);
   CellRangeIterator worst_element = viennamesh::worst_element<MetricTag>( input_mesh );
   typename viennagrid::result_of::point<InputMeshT>::type center = viennagrid::centroid( *worst_element );
 
@@ -234,10 +234,8 @@ void remesh_worst_element( InputMeshT const & input_mesh, OutputMeshT & output_m
 
 
   {
-    viennamesh::result_of::settings<viennamesh::tetgen_tetrahedron_tag>::type settings;
-
-//     settings.cell_size = 10.0;
-    settings.cell_radius_edge_ratio = 1.05;
+    viennamesh::ParameterSet settings;
+    settings.set("cell_radius_edge_ratio", 1.05);
 
     viennamesh::run_algo<viennamesh::tetgen_tetrahedron_tag>(cavity_hull, meshed_cavity, settings);
   }
@@ -264,7 +262,7 @@ void remesh_worst_element( InputMeshT const & input_mesh, OutputMeshT & output_m
 
   unsigned int to_remesh_counter = 0;
 
-  cells = viennagrid::elements(input_mesh);
+  cells = CellRangeType(input_mesh);
   for (CellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
   {
     if ( !cavity_marker_accessor(*cit) )
@@ -276,12 +274,12 @@ void remesh_worst_element( InputMeshT const & input_mesh, OutputMeshT & output_m
       ++to_remesh_counter;
   }
 
-  cells = viennagrid::elements(meshed_cavity);
+  cells = CellRangeType(meshed_cavity);
   for (CellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
     viennagrid::copy_element( *cit, output_mesh );
 
 
-  cells = viennagrid::elements(output_mesh);
+  cells = CellRangeType(output_mesh);
   CellRangeIterator worst_new_element = viennamesh::worst_element<MetricTag>( output_mesh );
 
 
@@ -342,13 +340,13 @@ int main()
 
 
   viennagrid::io::tetgen_poly_reader reader;
-  reader(plc_mesh, "../../examples/data/cube.poly");
+  reader(plc_mesh, "../data/cube.poly");
 
 
 
   viennagrid::triangular_3d_mesh hull;
   {
-    viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type plc_settings;
+    viennamesh::ParameterSet plc_settings;
 
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_mesh, hull, plc_settings );
 
@@ -388,18 +386,18 @@ int main()
 
     viennagrid::triangular_3d_mesh oriented_adapted_hull_mesh;
     viennagrid::triangular_hull_3d_segmentation oriented_adapted_hull_segmentation(oriented_adapted_hull_mesh);
-    viennamesh::result_of::settings<viennamesh::vgmodeler_hull_adaption_tag>::type vgm_settings;
 
-    vgm_settings.cell_size = 1.0;
+    viennamesh::ParameterSet vgm_settings;
+    vgm_settings.set("cell_size", 1.0);
 
     viennamesh::run_algo< viennamesh::vgmodeler_hull_adaption_tag >( hull, triangulated_plc_segmentation,
                                                                       oriented_adapted_hull_mesh, oriented_adapted_hull_segmentation,
                                                                       vgm_settings );
 
     viennagrid::tetrahedral_3d_segmentation tetrahedron_segmentation(mesh);
-    viennamesh::result_of::settings<viennamesh::netgen_tetrahedron_tag>::type netgen_settings;
 
-    netgen_settings.cell_size = 1.0;
+    viennamesh::ParameterSet netgen_settings;
+    netgen_settings.set("cell_size", 1.0);
 
     viennamesh::run_algo< viennamesh::netgen_tetrahedron_tag >( oriented_adapted_hull_mesh, oriented_adapted_hull_segmentation,
                                                                 mesh, tetrahedron_segmentation,

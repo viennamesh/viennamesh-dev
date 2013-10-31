@@ -1,11 +1,11 @@
-#ifndef VIENNAMESH_DOMAIN_CGAL_PLC_HPP
-#define VIENNAMESH_DOMAIN_CGAL_PLC_HPP
+#ifndef VIENNAMESH_MESH_CGAL_PLC_HPP
+#define VIENNAMESH_MESH_CGAL_PLC_HPP
 
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/mesh/element_creation.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 
-#include "viennamesh/base/convert.hpp"
+#include "viennamesh/core/convert.hpp"
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>

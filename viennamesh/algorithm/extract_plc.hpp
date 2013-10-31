@@ -104,7 +104,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::cell_range<HullMeshT>::type     CellRangeType;
       typedef typename viennagrid::result_of::iterator<CellRangeType>::type     CellRangeItertor;
 
-      CellRangeType cells = viennagrid::elements( hull_mesh );
+      CellRangeType cells( hull_mesh );
 
       std::deque<bool> visited( cells.size(), false );
       typename viennagrid::result_of::accessor< std::deque<bool>, HullCellType >::type visited_accessor( visited );
@@ -144,7 +144,7 @@ namespace viennamesh
           typedef typename viennagrid::result_of::cell_range<HullSegmentHandleType>::type     ViewCellRangeType;
           typedef typename viennagrid::result_of::iterator<ViewCellRangeType>::type     ViewCellRangeIterator;
 
-          ViewCellRangeType plane_elements = viennagrid::elements( current_plane );
+          ViewCellRangeType plane_elements( current_plane );
           for (ViewCellRangeIterator it = plane_elements.begin(); it != plane_elements.end(); ++it)
           {
               for (typename std::map<SegmentIDType, HullViewType>::iterator pit = current_plane_view.begin(); pit != current_plane_view.end(); ++pit)
@@ -175,7 +175,7 @@ namespace viennamesh
 //                   viennadata::erase<viennadata::all, viennadata::all>()(*it);
 //           }
 
-          ViewLineRangeType lines = viennagrid::elements( current_plane );
+          ViewLineRangeType lines( current_plane );
           for (ViewLineRangeIterator lit = lines.begin(); lit != lines.end(); ++lit)
 //           for (typename ViewLineRangeType::iterator lit = lines.begin(); lit != lines.end(); ++lit)
           {
@@ -208,7 +208,7 @@ namespace viennamesh
       {
           HullViewType & current_plane_lines_view = plane_lines[i];
 
-          ViewLineRangeType current_plane_lines = viennagrid::elements(current_plane_lines_view);
+          ViewLineRangeType current_plane_lines(current_plane_lines_view);
 
           std::deque<bool> lines_visited( current_plane_lines.size(), false );
           typename viennagrid::result_of::accessor< std::deque<bool>, HullLineType >::type visited_accessor( lines_visited );

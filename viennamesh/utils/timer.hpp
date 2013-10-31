@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-namespace viennautils {
+
 
 //void printOps(double num_ops, double exec_time)
 //{
@@ -31,72 +31,74 @@ namespace viennautils {
 #include <windows.h>
 #undef min
 #undef max
-
-//! timer class
-class Timer
+namespace viennautils
 {
-public:
-   //! default constructor
-   Timer()
-   {
+  //! timer class
+  class Timer
+  {
+  public:
+    //! default constructor
+    Timer()
+    {
       QueryPerformanceFrequency(&freq);
-   }
-   //! start the timer
-   void start()
-   {
+    }
+    //! start the timer
+    void start()
+    {
       QueryPerformanceCounter((LARGE_INTEGER*) &start_time);
-   }
-   //! retrieve the timer count
-   double get() const
-   {
+    }
+    //! retrieve the timer count
+    double get() const
+    {
       LARGE_INTEGER  end_time;
       QueryPerformanceCounter((LARGE_INTEGER*) &end_time);
       return (static_cast<double>(end_time.QuadPart) - static_cast<double>(start_time.QuadPart)) / static_cast<double>(freq.QuadPart);
-   }
+    }
 
 
-private:
-   //! timer states
-   LARGE_INTEGER freq;
-   LARGE_INTEGER start_time;
-};
+  private:
+    //! timer states
+    LARGE_INTEGER freq;
+    LARGE_INTEGER start_time;
+  };
+}
 
 #else
 
 #include <sys/time.h>
 
-//! timer class
-class Timer
+namespace viennautils
 {
-public:
-   //! default constructor
-   Timer() : ts(0)
-   {}
-   //! start the timer
-   void start()
-   {
+  //! timer class
+  class Timer
+  {
+  public:
+    //! default constructor
+    Timer() : ts(0)
+    {}
+    //! start the timer
+    void start()
+    {
       struct timeval tval;
       gettimeofday(&tval, NULL);
       ts = tval.tv_sec * 1000000 + tval.tv_usec;
-   }
-   //! retrieve the timer count
-   double get() const
-   {
+    }
+    //! retrieve the timer count
+    double get() const
+    {
       struct timeval tval;
       gettimeofday(&tval, NULL);
       unsigned long end_time = tval.tv_sec * 1000000 + tval.tv_usec;
 
       return static_cast<double>(end_time-ts) / 1000000.0;
-   }
+    }
 
-private:
-   //! state
-   unsigned long ts;
-};
-
+  private:
+    //! state
+    unsigned long ts;
+  };
+}
 
 #endif
-
-} // end namespace viennautils
 
 #endif

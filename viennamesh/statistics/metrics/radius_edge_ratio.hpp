@@ -19,7 +19,7 @@ namespace viennamesh
       PointType circum_center = viennagrid::circumcenter(point_accessor, element);
       NumericType circum_radius = viennagrid::norm_2( point_accessor(viennagrid::vertices(element)[0]) - circum_center );
 
-      LinesOnElementRangeType lines = viennagrid::elements(element);
+      LinesOnElementRangeType lines(element);
 
       NumericType min_length = 2 * circum_radius;
       std::vector<NumericType> edge_length( lines.size() );

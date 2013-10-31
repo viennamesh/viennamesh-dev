@@ -55,7 +55,7 @@ int main()
 //     std::deque<volume_view_type> tet_segments;
 
     viennagrid::io::netgen_reader reader;
-    reader(tet_mesh, tet_segmentation, "../../examples/data/half-trigate.mesh");
+    reader(tet_mesh, tet_segmentation, "../half-trigate.mesh");
 
     viennagrid::triangular_3d_mesh hull_mesh;
     viennagrid::triangular_3d_segmentation hull_segmentation(hull_mesh);
@@ -95,7 +95,8 @@ int main()
 //     ///////////////////////////////////////////
 
     viennagrid::triangular_3d_mesh triangulated_plc_mesh;
-    viennamesh::result_of::settings<viennamesh::cgal_plc_3d_mesher_tag>::type plc_settings(0.0, 0.0);
+
+    viennamesh::ParameterSet plc_settings;
 
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_mesh, triangulated_plc_mesh, plc_settings );
 
@@ -123,8 +124,8 @@ int main()
 //
     viennagrid::triangular_3d_mesh adapted_hull_mesh;
     viennagrid::triangular_hull_3d_segmentation adapted_hull_segmentation(adapted_hull_mesh);
-    viennamesh::result_of::settings<viennamesh::vgmodeler_hull_adaption_tag>::type vgm_settings;
 
+    viennamesh::ParameterSet vgm_settings;
 //     vgm_settings.cell_size = 10.0;
 
     viennamesh::run_algo< viennamesh::vgmodeler_hull_adaption_tag >( triangulated_plc_mesh, triangulated_plc_segmentation,
@@ -150,7 +151,8 @@ int main()
 
     viennagrid::tetrahedral_3d_mesh tetrahedron_mesh;
     viennagrid::tetrahedral_3d_segmentation tetrahedron_segmentation(tetrahedron_mesh);
-    viennamesh::result_of::settings<viennamesh::netgen_tetrahedron_tag>::type netgen_settings;
+
+    viennamesh::ParameterSet netgen_settings;
 
 //     netgen_settings.cell_size = 10.0;
 
