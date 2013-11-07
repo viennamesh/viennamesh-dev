@@ -65,28 +65,6 @@ namespace viennamesh
   };
 
 
-//   template<>
-//   struct mesh_converter<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation>
-//   {
-//     template<typename ConverterT>
-//     static void register_functions( ConverterT & converter )
-//     {
-//       typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
-//       typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
-//       typedef MeshWrapper<tetgen_tetrahedron_mesh, NoSegmentation> TetgenMesh;
-//
-//       converter.template register_conversion<Triangular3DViennaGridMesh, TetgenMesh>(
-//         &dynamic_convert<Triangular3DViennaGridMesh, TetgenMesh>);
-//
-//       converter.template register_conversion<TetgenMesh, Tetrahedral3DViennaGridMesh>(
-//         &dynamic_convert<TetgenMesh, Tetrahedral3DViennaGridMesh>);
-//     }
-//   };
-
-
-
-
-
   template<typename triangular_3d_segmentation_type>
   struct convert_impl<viennagrid::triangular_3d_mesh, triangular_3d_segmentation_type, tetgen_tetrahedron_mesh, NoSegmentation >
   {
