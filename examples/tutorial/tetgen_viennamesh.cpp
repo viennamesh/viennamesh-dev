@@ -58,7 +58,7 @@ int main()
 
 
 
-    viennamesh::ParameterSet settings;
+    viennamesh::ConstParameterSet settings;
     settings.set("cell_size", 1.0);
 
     viennagrid::tetrahedral_3d_mesh tet_mesh;

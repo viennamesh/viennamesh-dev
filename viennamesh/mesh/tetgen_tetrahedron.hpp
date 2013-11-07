@@ -5,7 +5,7 @@
 #include "viennagrid/mesh/element_creation.hpp"
 #include "viennagrid/mesh/segmentation.hpp"
 #include "viennamesh/core/convert.hpp"
-#include "viennamesh/core/dynamic_mesh.hpp"
+#include "viennamesh/core/parameter.hpp"
 
 
 // #define TETLIBRARY
@@ -20,42 +20,68 @@ namespace viennamesh
 
 namespace viennagrid
 {
-    namespace result_of
+  namespace result_of
+  {
+    template<>
+    struct point<viennamesh::tetgen_tetrahedron_mesh>
     {
-        template<>
-        struct point<viennamesh::tetgen_tetrahedron_mesh>
-        {
-            typedef viennagrid::config::point_type_3d type;
-        };
+      typedef viennagrid::config::point_type_3d type;
+    };
 
-        template<>
-        struct point<const viennamesh::tetgen_tetrahedron_mesh>
-        {
-            typedef viennagrid::config::point_type_3d type;
-        };
-    }
+    template<>
+    struct point<const viennamesh::tetgen_tetrahedron_mesh>
+    {
+      typedef viennagrid::config::point_type_3d type;
+    };
+  }
 }
 
 
 namespace viennamesh
 {
+
   template<>
-  struct mesh_converter<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation>
+  struct static_init< MeshWrapper<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation> >
   {
-    template<typename ConverterT>
-    static void register_functions( ConverterT & converter )
+    typedef MeshWrapper<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation> SelfT;
+
+    static void init()
     {
-      typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
-      typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
-      typedef MeshWrapper<tetgen_tetrahedron_mesh, NoSegmentation> TetgenMesh;
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init< MeshWrapper<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation> >::init" << std::endl;
 
-      converter.template register_conversion<Triangular3DViennaGridMesh, TetgenMesh>(
-        &dynamic_convert<Triangular3DViennaGridMesh, TetgenMesh>);
+        typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
+        typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
 
-      converter.template register_conversion<TetgenMesh, Tetrahedral3DViennaGridMesh>(
-        &dynamic_convert<TetgenMesh, Tetrahedral3DViennaGridMesh>);
+        Converter::get().register_conversion<Triangular3DViennaGridMesh, SelfT>( &mesh_convert<Triangular3DViennaGridMesh, SelfT> );
+        Converter::get().register_conversion<SelfT, Tetrahedral3DViennaGridMesh>( &mesh_convert<SelfT, Tetrahedral3DViennaGridMesh> );
+
+        TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
+      }
     }
   };
+
+
+//   template<>
+//   struct mesh_converter<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation>
+//   {
+//     template<typename ConverterT>
+//     static void register_functions( ConverterT & converter )
+//     {
+//       typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
+//       typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
+//       typedef MeshWrapper<tetgen_tetrahedron_mesh, NoSegmentation> TetgenMesh;
+//
+//       converter.template register_conversion<Triangular3DViennaGridMesh, TetgenMesh>(
+//         &dynamic_convert<Triangular3DViennaGridMesh, TetgenMesh>);
+//
+//       converter.template register_conversion<TetgenMesh, Tetrahedral3DViennaGridMesh>(
+//         &dynamic_convert<TetgenMesh, Tetrahedral3DViennaGridMesh>);
+//     }
+//   };
 
 
 

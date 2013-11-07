@@ -2,6 +2,7 @@
 #define VIENNAMESH_ALGORITHM_CGAL_PLC_MESHER_HPP
 
 #include "viennamesh/core/algorithm.hpp"
+#include "viennamesh/core/basic_parameters.hpp"
 #include "viennamesh/core/dynamic_algorithm.hpp"
 #include "viennamesh/mesh/cgal_plc.hpp"
 
@@ -86,8 +87,8 @@ namespace viennamesh
   {
     typedef cgal_plc_2d_mesher_tag algorithm_tag;
 
-    template<typename native_mesh_type, typename settings_type>
-    static algorithm_feedback run( native_mesh_type & native_mesh, settings_type const & settings )
+    template<typename native_mesh_type>
+    static algorithm_feedback run( native_mesh_type & native_mesh, ConstParameterSet const & settings )
     {
       algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
       typedef cgal_plc_2d_mesh cgal_mesh_type;
@@ -95,10 +96,10 @@ namespace viennamesh
       for (cgal_mesh_type::cell_container::iterator it = native_mesh.cells.begin(); it != native_mesh.cells.end(); ++it)
       {
         double shortes_edge_circumradius_ratio = 0.0;
-        settings.copyScalar("shortes_edge_circumradius_ratio", shortes_edge_circumradius_ratio);
+        settings.copy_if_present("shortes_edge_circumradius_ratio", shortes_edge_circumradius_ratio);
 
         double size_bound = 0.0;
-        settings.copyScalar("size_bound", size_bound);
+        settings.copy_if_present("size_bound", size_bound);
 
         cgal_plc_3d_element::Criteria crit(shortes_edge_circumradius_ratio, size_bound);
         cgal_plc_3d_element::Mesher m(it->cdt,crit);
@@ -126,7 +127,7 @@ namespace viennamesh
     typedef cgal_plc_3d_mesher_tag algorithm_tag;
 
     template<typename native_mesh_type>
-    static algorithm_feedback run( native_mesh_type & native_mesh, ParameterSet const & parameters )
+    static algorithm_feedback run( native_mesh_type & native_mesh, ConstParameterSet const & parameters )
     {
       algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
       typedef cgal_plc_3d_mesh cgal_mesh_type;
@@ -134,10 +135,12 @@ namespace viennamesh
       for (cgal_mesh_type::cell_container::iterator it = native_mesh.cells.begin(); it != native_mesh.cells.end(); ++it)
       {
         double shortes_edge_circumradius_ratio = 0.0;
-        parameters.copyScalar("shortes_edge_circumradius_ratio", shortes_edge_circumradius_ratio);
+        parameters.copy_if_present( "shortes_edge_circumradius_ratio", shortes_edge_circumradius_ratio );
+//         parameters.copyScalar("shortes_edge_circumradius_ratio", shortes_edge_circumradius_ratio);
 
         double size_bound = 0.0;
-        parameters.copyScalar("size_bound", size_bound);
+        parameters.copy_if_present( "size_bound", size_bound );
+//         parameters.copyScalar("size_bound", size_bound);
 
         cgal_plc_3d_element::Criteria crit(shortes_edge_circumradius_ratio, size_bound);
         cgal_plc_3d_element::Mesher m(it->cdt,crit);

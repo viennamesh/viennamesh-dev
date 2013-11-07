@@ -1,11 +1,8 @@
 #ifndef VIENNAMESH_ALGORITHM_TETGEN_TETRAHEDRON_MESHER_HPP
 #define VIENNAMESH_ALGORITHM_TETGEN_TETRAHEDRON_MESHER_HPP
 
-#include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/core/dynamic_algorithm.hpp"
 #include "viennamesh/mesh/tetgen_tetrahedron.hpp"
-
-#include "viennamesh/utils/utils.hpp"
 
 
 
@@ -16,29 +13,16 @@ namespace viennamesh
   namespace result_of
   {
     template<>
-    struct native_input_mesh<tetgen_tetrahedron_tag>
+    struct native_input_mesh_wrapper<tetgen_tetrahedron_tag>
     {
-      typedef tetgen_tetrahedron_mesh type;
+      typedef MeshWrapper<tetgen_tetrahedron_mesh, NoSegmentation> type;
     };
 
     template<>
-    struct native_input_segmentation<tetgen_tetrahedron_tag>
+    struct native_output_mesh_wrapper<tetgen_tetrahedron_tag>
     {
-      typedef NoSegmentation type;
+      typedef MeshWrapper<tetgen_tetrahedron_mesh, NoSegmentation> type;
     };
-
-    template<>
-    struct native_output_mesh<tetgen_tetrahedron_tag>
-    {
-      typedef tetgen_tetrahedron_mesh type;
-    };
-
-    template<>
-    struct native_output_segmentation<tetgen_tetrahedron_tag>
-    {
-      typedef NoSegmentation type;
-    };
-
 
     template<>
     struct works_in_place<tetgen_tetrahedron_tag>
@@ -104,27 +88,29 @@ namespace viennamesh
     typedef tetgen_tetrahedron_tag algorithm_tag;
 
     template<typename native_input_mesh_type, typename native_output_mesh_type>
-    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_output_mesh_type & native_output_mesh, ParameterSet const & parameters )
+    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_output_mesh_type & native_output_mesh, ConstParameterSet const & parameters )
     {
       algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
-      ConstParameterHandle param;
+      ConstDoubleParameterHandle param;
 
       tetgenbehavior tetgen_settings;
 //             tetgen_settings.quiet = 1;
       tetgen_settings.plc = 1;
 
-      param = parameters.getScalar("cell_radius_edge_ratio");
+      param = parameters.get<double>("cell_radius_edge_ratio");
+//       param = parameters.get_scalar("cell_radius_edge_ratio");
       if (param)
       {
         tetgen_settings.quality = 1;
-        tetgen_settings.minratio = param->getScalar();
+        tetgen_settings.minratio = param->value;
       }
 
-      param = parameters.getScalar("cell_size");
+//       param = parameters.get_scalar("cell_size");
+      param = parameters.get<double>("cell_size");
       if (param)
       {
         tetgen_settings.fixedvolume = 1;
-        tetgen_settings.maxvolume = param->getScalar();
+        tetgen_settings.maxvolume = param->value;
       }
 
       tetgen_settings.steiner = -1;     // Steiner Points?? -1 = unlimited, 0 = no steiner points

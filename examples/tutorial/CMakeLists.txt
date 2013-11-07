@@ -91,3 +91,6 @@ target_link_libraries(mesh_conversion ${CGAL_LIBS} nglib tetgen)
 
 add_executable(dynamic_mesh dynamic_mesh.cpp)
 target_link_libraries(dynamic_mesh ${CGAL_LIBS} tetgen)
+
+
+add_executable(logger logger.cpp)

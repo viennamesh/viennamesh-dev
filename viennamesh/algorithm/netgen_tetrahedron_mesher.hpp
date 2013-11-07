@@ -1,10 +1,8 @@
 #ifndef VIENNAMESH_ALGORITHM_NETGEN_TETRAHEDRON_MESHER_HPP
 #define VIENNAMESH_ALGORITHM_NETGEN_TETRAHEDRON_MESHER_HPP
 
-#include "viennamesh/core/algorithm.hpp"
+#include "viennamesh/core/dynamic_algorithm.hpp"
 #include "viennamesh/mesh/netgen_tetrahedron.hpp"
-
-#include "viennamesh/utils/utils.hpp"
 
 
 namespace viennamesh
@@ -60,7 +58,7 @@ namespace viennamesh
     template<typename native_mesh_type, typename native_segmentation_type>
     static algorithm_feedback run( native_mesh_type & native_mesh,
                       native_segmentation_type & native_segmentation,
-                      ParameterSet const & parameters )
+                      ConstParameterSet const & parameters )
     {
       algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
       nglib::Ng_Meshing_Parameters mesh_parameters;
@@ -68,7 +66,8 @@ namespace viennamesh
 //             mesh_parameters.optvolmeshenable = 1;
 //             mesh_parameters.optsteps_3d = 3;
 
-      parameters.copyScalar( "cell_size", mesh_parameters.maxh );
+      parameters.copy_if_present( "cell_size", mesh_parameters.maxh );
+//       parameters.copyScalar( "cell_size", mesh_parameters.maxh );
 //       if ( !settings.cell_size.is_ignored() ) mesh_parameters.maxh = settings.cell_size();
 //             mesh_parameters.optvolmeshenable = 0;
 //             mesh_parameters.optsteps_3d = 1;

@@ -65,11 +65,11 @@ int main()
   viennagrid::make_triangle( hull_mesh, vtx[3], vtx[7], vtx[6] );
 
 
-  viennamesh::ScalarField3DFunction f(size_field);
+//   viennamesh::ScalarField3DFunction f(size_field);
 
-  viennamesh::ParameterSet settings;
-//   settings.set("cell_size", 1.0);
-  settings.set("cell_size", f);
+  viennamesh::ConstParameterSet settings;
+  settings.set("cell_size", 1.0);
+//   settings.set("cell_size", f);
   settings.set("cell_radius_edge_ratio", 1.5);
 
   viennagrid::tetrahedral_3d_mesh tet_mesh;

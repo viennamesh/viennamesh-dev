@@ -42,9 +42,10 @@ int main()
 
     viennagrid::triangular_3d_mesh triangulated_plc_mesh;
 
-    viennamesh::ParameterSet plc_settings;
+    viennamesh::ConstParameterSet plc_settings;
     plc_settings.set( "shortes_edge_circumradius_ratio", 0.0 );
     plc_settings.set( "size_bound", 0.0 );
+
 
 
     {
@@ -78,7 +79,7 @@ int main()
     viennagrid::triangular_3d_mesh oriented_adapted_hull_mesh;
     viennagrid::triangular_hull_3d_segmentation oriented_adapted_hull_segmentation(oriented_adapted_hull_mesh);
 
-    viennamesh::ParameterSet vgm_settings;
+    viennamesh::ConstParameterSet vgm_settings;
     vgm_settings.set( "cell_size", 3.0 );
 
     {
@@ -97,8 +98,8 @@ int main()
     viennagrid::tetrahedral_3d_mesh tetrahedron_mesh;
     viennagrid::tetrahedral_3d_segmentation tetrahedron_segmentation(tetrahedron_mesh);
 
-    viennamesh::ParameterSet netgen_settings;
-    vgm_settings.set( "cell_size", 3.0 );
+    viennamesh::ConstParameterSet netgen_settings;
+    netgen_settings.set( "cell_size", 3.0 );
 
     {
         viennamesh::algorithm_feedback fb = viennamesh::run_algo< viennamesh::netgen_tetrahedron_tag >( oriented_adapted_hull_mesh, oriented_adapted_hull_segmentation,

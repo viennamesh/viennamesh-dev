@@ -99,7 +99,7 @@ int main()
 
 
 
-  viennamesh::ParameterSet settings;
+  viennamesh::ConstParameterSet settings;
   settings.set("shortes_edge_circumradius_ratio",0.3);
 
   viennagrid::triangular_3d_mesh triangle_mesh;

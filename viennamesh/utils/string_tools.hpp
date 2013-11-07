@@ -25,6 +25,9 @@ namespace stringtools
       pos = new_pos+delimiter.size();
     }
 
+    if (pos == str.size())
+      return tokens;
+
     std::cout << "something went wrong..." << std::endl;
 
     return std::list<std::string>();

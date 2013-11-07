@@ -117,17 +117,17 @@ namespace viennamesh
 
   typedef algorithm_feedback_t algorithm_feedback;
 
-  template<typename stream_type>
-  inline stream_type & operator<<(stream_type & stream, algorithm_feedback_t const & feedback)
-  {
-      stream << "---------------------------------------------------------------\n\n";
-      stream << "Algorithm:  " << feedback.algorithm() << "\n\n";
-      stream << " sucess:    " << feedback.success() << "\n";
-      stream << " run-time:  " << feedback.run_time() << " sec\n\n";
-      stream << "---------------------------------------------------------------\n";
-
-      return stream;
-  }
+//   template<typename stream_type>
+//   inline stream_type & operator<<(stream_type & stream, algorithm_feedback_t const & feedback)
+//   {
+//       stream << "---------------------------------------------------------------\n\n";
+//       stream << "Algorithm:  " << feedback.algorithm() << "\n\n";
+//       stream << " sucess:    " << feedback.success() << "\n";
+//       stream << " run-time:  " << feedback.run_time() << " sec\n\n";
+//       stream << "---------------------------------------------------------------\n";
+//
+//       return stream;
+//   }
 
 
 

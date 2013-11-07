@@ -5,6 +5,8 @@
 #include "viennagrid/mesh/element_creation.hpp"
 
 #include "viennamesh/core/convert.hpp"
+#include "viennamesh/core/parameter.hpp"
+#include "viennamesh/core/basic_parameters.hpp"
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
@@ -58,20 +60,20 @@ namespace viennamesh
   };
 
 
-  namespace result_of
-  {
-    template<typename SegmentationT>
-    struct best_matching_viennagrid_mesh<cgal_delaunay_tetrahedron_mesh, SegmentationT>
-    {
-      typedef viennagrid::tetrahedral_3d_mesh type;
-    };
-
-    template<typename SegmentationT>
-    struct best_matching_viennagrid_segmentation<cgal_delaunay_tetrahedron_mesh, SegmentationT>
-    {
-      typedef NoSegmentation type;
-    };
-  }
+//   namespace result_of
+//   {
+//     template<typename SegmentationT>
+//     struct best_matching_viennagrid_mesh<cgal_delaunay_tetrahedron_mesh, SegmentationT>
+//     {
+//       typedef viennagrid::tetrahedral_3d_mesh type;
+//     };
+//
+//     template<typename SegmentationT>
+//     struct best_matching_viennagrid_segmentation<cgal_delaunay_tetrahedron_mesh, SegmentationT>
+//     {
+//       typedef NoSegmentation type;
+//     };
+//   }
 }
 
 namespace viennagrid
@@ -108,33 +110,51 @@ namespace viennagrid
 namespace viennamesh
 {
   template<>
-  struct mesh_converter<viennamesh::cgal_mesh_polyhedron_mesh, NoSegmentation>
+  struct static_init< MeshWrapper<viennamesh::cgal_mesh_polyhedron_mesh, NoSegmentation> >
   {
-    template<typename ConverterT>
-    static void register_functions( ConverterT & converter )
-    {
-      typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
-      typedef MeshWrapper<cgal_mesh_polyhedron_mesh, NoSegmentation> CGALPolyhedronMesh;
+    typedef MeshWrapper<viennamesh::cgal_mesh_polyhedron_mesh, NoSegmentation> SelfT;
 
-      converter.template register_conversion<Triangular3DViennaGridMesh, CGALPolyhedronMesh>(
-        &dynamic_convert<Triangular3DViennaGridMesh, CGALPolyhedronMesh>);
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init< MeshWrapper<viennamesh::cgal_mesh_polyhedron_mesh, NoSegmentation> >::init" << std::endl;
+
+        typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
+
+        Converter::get().register_conversion<Triangular3DViennaGridMesh, SelfT>( &mesh_convert<Triangular3DViennaGridMesh, SelfT> );
+
+        TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
+      }
     }
   };
+
 
 
   template<>
-  struct mesh_converter<viennamesh::cgal_delaunay_tetrahedron_mesh, NoSegmentation>
+  struct static_init< MeshWrapper<viennamesh::cgal_delaunay_tetrahedron_mesh, NoSegmentation> >
   {
-    template<typename ConverterT>
-    static void register_functions( ConverterT & converter )
-    {
-      typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
-      typedef MeshWrapper<cgal_delaunay_tetrahedron_mesh, NoSegmentation> CGALDelauneyTetrahedralMesh;
+    typedef MeshWrapper<viennamesh::cgal_delaunay_tetrahedron_mesh, NoSegmentation> SelfT;
 
-      converter.template register_conversion<CGALDelauneyTetrahedralMesh, Tetrahedral3DViennaGridMesh>(
-        &dynamic_convert<CGALDelauneyTetrahedralMesh, Tetrahedral3DViennaGridMesh>);
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init< MeshWrapper<viennamesh::cgal_delaunay_tetrahedron_mesh, NoSegmentation> >::init" << std::endl;
+
+        typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
+
+        Converter::get().register_conversion<SelfT, Tetrahedral3DViennaGridMesh>( &mesh_convert<SelfT, Tetrahedral3DViennaGridMesh> );
+
+        TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
+      }
     }
   };
+
 
 
 

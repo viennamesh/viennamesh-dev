@@ -1,8 +1,9 @@
 #ifndef VIENNAMESH_BASE_CONVERT_HPP
 #define VIENNAMESH_BASE_CONVERT_HPP
 
+
 #include "viennagrid/mesh/segmentation.hpp"
-#include "viennamesh/core/mesh.hpp"
+#include "viennamesh/forwards.hpp"
 
 namespace viennamesh
 {

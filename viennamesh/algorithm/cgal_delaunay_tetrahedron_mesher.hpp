@@ -1,11 +1,8 @@
 #ifndef VIENNAMESH_ALGORITHM_CGAL_DELAUNEY_TETRAHEDRON_MESHER_HPP
 #define VIENNAMESH_ALGORITHM_CGAL_DELAUNEY_TETRAHEDRON_MESHER_HPP
 
-#include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/core/dynamic_algorithm.hpp"
 #include "viennamesh/mesh/cgal_delaunay_tetrahedron.hpp"
-
-#include "viennamesh/utils/utils.hpp"
 
 namespace viennamesh
 {
@@ -15,29 +12,16 @@ namespace viennamesh
   namespace result_of
   {
     template<>
-    struct native_input_mesh<cgal_delaunay_tetrahedron_tag>
+    struct native_input_mesh_wrapper<cgal_delaunay_tetrahedron_tag>
     {
-      typedef cgal_mesh_polyhedron_mesh type;
+      typedef ParameterWrapper< MeshWrapper<cgal_mesh_polyhedron_mesh, NoSegmentation> > type;
     };
 
     template<>
-    struct native_input_segmentation<cgal_delaunay_tetrahedron_tag>
+    struct native_output_mesh_wrapper<cgal_delaunay_tetrahedron_tag>
     {
-      typedef NoSegmentation type;
+      typedef ParameterWrapper< MeshWrapper<cgal_delaunay_tetrahedron_mesh, NoSegmentation> > type;
     };
-
-    template<>
-    struct native_output_mesh<cgal_delaunay_tetrahedron_tag>
-    {
-      typedef cgal_delaunay_tetrahedron_mesh type;
-    };
-
-    template<>
-    struct native_output_segmentation<cgal_delaunay_tetrahedron_tag>
-    {
-      typedef NoSegmentation type;
-    };
-
 
 
 
@@ -81,25 +65,25 @@ namespace viennamesh
   }
 
 
-  template<typename FT_, typename Point, typename Index_>
-  struct cgal_sizing_field
-  {
-  public:
-    typedef FT_ FT;
-    typedef Point Point_3;
-    typedef Index_ Index;
-
-    cgal_sizing_field(ScalarField3DFunction field_) : field(field_) {}
-
-    FT operator() ( Point_3 const & p, int dimension, Index const & index ) const
-    {
-        assert(field != 0);
-        return field( p.x(), p.y(), p.z() );
-    }
-
-  private:
-    ScalarField3DFunction field;
-  };
+//   template<typename FT_, typename Point, typename Index_>
+//   struct cgal_sizing_field
+//   {
+//   public:
+//     typedef FT_ FT;
+//     typedef Point Point_3;
+//     typedef Index_ Index;
+//
+//     cgal_sizing_field(ScalarField3DFunction field_) : field(field_) {}
+//
+//     FT operator() ( Point_3 const & p, int dimension, Index const & index ) const
+//     {
+//         assert(field != 0);
+//         return field( p.x(), p.y(), p.z() );
+//     }
+//
+//   private:
+//     ScalarField3DFunction field;
+//   };
 
 
 
@@ -118,15 +102,18 @@ namespace viennamesh
 
 
   template<typename cgal_mesh_criteria_type, typename index_type>
-  cgal_mesh_criteria_type * get_cirteria( ParameterSet const & parameters )
+  cgal_mesh_criteria_type * get_cirteria( ConstParameterSet const & parameters )
   {
-    ConstParameterHandle cell_size = parameters.get("cell_size");
+    ConstParameterHandle cell_size = parameters.get( "cell_size" );
+//     parameters.get("cell_size");
 
     double cell_radius_edge_ratio = 0;
-    parameters.copyScalar("cell_radius_edge_ratio", cell_radius_edge_ratio);
+    parameters.copy_if_present( "cell_radius_edge_ratio", cell_radius_edge_ratio );
+//     parameters.copy_scalar("cell_radius_edge_ratio", cell_radius_edge_ratio);
 
     double facet_angle = 0;
-    parameters.copyScalar("facet_angle", facet_angle);
+//     parameters.copy_scalar("facet_angle", facet_angle);
+    parameters.copy_if_present( "facet_angle", facet_angle );
 
     if ( !cell_size )
     {
@@ -138,52 +125,54 @@ namespace viennamesh
       );
     }
 
-    if ( cell_size->isScalar() )
+//     if ( cell_size->is_scalar() )
+    ConstDoubleParameterHandle cell_size_double = cell_size->get_converted<double>();
+    if ( cell_size_double )
     {
       return new cgal_mesh_criteria_type(
-          CGAL::parameters::edge_size = cell_size->getScalar(),
+          CGAL::parameters::edge_size = cell_size_double->value,
           CGAL::parameters::cell_radius_edge_ratio = cell_radius_edge_ratio,
           CGAL::parameters::facet_angle = facet_angle,
-          CGAL::parameters::facet_size = cell_size->getScalar(),
+          CGAL::parameters::facet_size = cell_size_double->value,
           CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK,
-          CGAL::parameters::cell_size = cell_size->getScalar()
+          CGAL::parameters::cell_size = cell_size_double->value
       );
     }
 
-    if ( cell_size->template cast<ScalarField3DFunction>() )
-    {
-
-//     typedef typename settings_type::field_parameter_type::field_functor_ptr_type field_functor_ptr_type;
-
-      typedef typename get_triangulation<cgal_mesh_criteria_type>::type::Triangulation_3 Triangulation;
-      typedef typename cgal_mesh_criteria_type::Edge_criteria::FT FT;
-      typedef typename Triangulation::Point Point;
-
-      typedef typename cgal_mesh_criteria_type::Edge_criteria::Point_3 EdgePoint;
-
-      typedef index_type Index;
-
-      cgal_sizing_field<
-          FT,
-          Point,
-          Index
-          > cell_and_facet_sizing_field( cell_size->template cast<ScalarField3DFunction>()->get() );
-
-      cgal_sizing_field<
-          FT,
-          EdgePoint,
-          Index
-          > edge_sizing_field( cell_size->template cast<ScalarField3DFunction>()->get() );
-
-      return new cgal_mesh_criteria_type(
-          CGAL::parameters::edge_size = edge_sizing_field,
-          CGAL::parameters::cell_radius_edge_ratio = cell_radius_edge_ratio,
-          CGAL::parameters::facet_angle = facet_angle,
-          CGAL::parameters::facet_size = cell_and_facet_sizing_field,
-          CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK,
-          CGAL::parameters::cell_size = cell_and_facet_sizing_field
-      );
-    }
+//     if ( cell_size->template cast<ScalarField3DFunction>() )
+//     {
+//
+// //     typedef typename settings_type::field_parameter_type::field_functor_ptr_type field_functor_ptr_type;
+//
+//       typedef typename get_triangulation<cgal_mesh_criteria_type>::type::Triangulation_3 Triangulation;
+//       typedef typename cgal_mesh_criteria_type::Edge_criteria::FT FT;
+//       typedef typename Triangulation::Point Point;
+//
+//       typedef typename cgal_mesh_criteria_type::Edge_criteria::Point_3 EdgePoint;
+//
+//       typedef index_type Index;
+//
+//       cgal_sizing_field<
+//           FT,
+//           Point,
+//           Index
+//           > cell_and_facet_sizing_field( cell_size->template cast<ScalarField3DFunction>()->get() );
+//
+//       cgal_sizing_field<
+//           FT,
+//           EdgePoint,
+//           Index
+//           > edge_sizing_field( cell_size->template cast<ScalarField3DFunction>()->get() );
+//
+//       return new cgal_mesh_criteria_type(
+//           CGAL::parameters::edge_size = edge_sizing_field,
+//           CGAL::parameters::cell_radius_edge_ratio = cell_radius_edge_ratio,
+//           CGAL::parameters::facet_angle = facet_angle,
+//           CGAL::parameters::facet_size = cell_and_facet_sizing_field,
+//           CGAL::parameters::facet_topology = CGAL::FACET_VERTICES_ON_SAME_SURFACE_PATCH_WITH_ADJACENCY_CHECK,
+//           CGAL::parameters::cell_size = cell_and_facet_sizing_field
+//       );
+//     }
 
     return new cgal_mesh_criteria_type();
   }
@@ -198,7 +187,7 @@ namespace viennamesh
     typedef cgal_delaunay_tetrahedron_tag algorithm_tag;
 
     template<typename native_input_mesh_type, typename native_output_mesh_type>
-    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_output_mesh_type & native_output_mesh, ParameterSet const & parameters )
+    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_output_mesh_type & native_output_mesh, ConstParameterSet const & parameters )
     {
       algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
       typename native_output_mesh_type::Mesh_mesh mesh_mesh( native_input_mesh.polyhedron );

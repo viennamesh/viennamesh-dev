@@ -31,7 +31,7 @@ int main()
     viennagrid::io::tetgen_poly_reader reader;
     reader(plc_mesh, "../cube.poly");
 
-    viennamesh::ParameterSet plc_settings;
+    viennamesh::ConstParameterSet plc_settings;
 
     viennagrid::triangular_3d_mesh triangle_mesh;
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_mesh, triangle_mesh, plc_settings );
@@ -40,7 +40,7 @@ int main()
     viennagrid::io::vtk_writer<viennagrid::triangular_3d_mesh> vtk_hull_writer;
     vtk_hull_writer(triangle_mesh, "cube_hull");
 
-    viennamesh::ParameterSet deltet_settings;
+    viennamesh::ConstParameterSet deltet_settings;
 
     functor f;
 

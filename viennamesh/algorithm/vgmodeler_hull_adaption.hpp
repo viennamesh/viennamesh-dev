@@ -1,12 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_VGMODELER_HULL_ADAPTION_HPP
 #define VIENNAMESH_ALGORITHM_VGMODELER_HULL_ADAPTION_HPP
 
-#include "viennagrid/mesh/segmentation.hpp"
-
-#include "viennamesh/core/algorithm.hpp"
-
-#include "viennamesh/utils/utils.hpp"
-
+#include "viennamesh/core/dynamic_algorithm.hpp"
 #include "vgmodeler/vgmodeler.hpp"
 
 
@@ -60,14 +55,17 @@ namespace viennamesh
     typedef vgmodeler_hull_adaption_tag algorithm_tag;
 
     template<typename native_input_mesh_type, typename input_segmentation_type, typename native_output_mesh_type, typename output_segmentation_type>
-    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, input_segmentation_type const & input_segmentation,
-                      native_output_mesh_type & native_output_mesh, output_segmentation_type & output_segmentation,
-                      ParameterSet const & parameters )
+    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh,
+                                   input_segmentation_type const & input_segmentation,
+                                   native_output_mesh_type & native_output_mesh,
+                                   output_segmentation_type & output_segmentation,
+                                   ConstParameterSet const & parameters )
     {
       algorithm_feedback feedback( result_of::algorithm_info<algorithm_tag>::name() );
       vgmodeler::hull_adaptor adaptor;
 
-      parameters.copyScalar("cell_size", adaptor.maxsize());
+      parameters.copy_if_present( "cell_size", adaptor.maxsize() );
+//       parameters.copyScalar("cell_size", adaptor.maxsize());
 
       adaptor.process( native_input_mesh, input_segmentation, native_output_mesh, output_segmentation );
 

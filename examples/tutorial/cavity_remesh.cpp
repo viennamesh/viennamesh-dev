@@ -234,7 +234,7 @@ void remesh_worst_element( InputMeshT const & input_mesh, OutputMeshT & output_m
 
 
   {
-    viennamesh::ParameterSet settings;
+    viennamesh::ConstParameterSet settings;
     settings.set("cell_radius_edge_ratio", 1.05);
 
     viennamesh::run_algo<viennamesh::tetgen_tetrahedron_tag>(cavity_hull, meshed_cavity, settings);
@@ -346,7 +346,7 @@ int main()
 
   viennagrid::triangular_3d_mesh hull;
   {
-    viennamesh::ParameterSet plc_settings;
+    viennamesh::ConstParameterSet plc_settings;
 
     viennamesh::run_algo< viennamesh::cgal_plc_3d_mesher_tag >( plc_mesh, hull, plc_settings );
 
@@ -387,7 +387,7 @@ int main()
     viennagrid::triangular_3d_mesh oriented_adapted_hull_mesh;
     viennagrid::triangular_hull_3d_segmentation oriented_adapted_hull_segmentation(oriented_adapted_hull_mesh);
 
-    viennamesh::ParameterSet vgm_settings;
+    viennamesh::ConstParameterSet vgm_settings;
     vgm_settings.set("cell_size", 1.0);
 
     viennamesh::run_algo< viennamesh::vgmodeler_hull_adaption_tag >( hull, triangulated_plc_segmentation,
@@ -396,7 +396,7 @@ int main()
 
     viennagrid::tetrahedral_3d_segmentation tetrahedron_segmentation(mesh);
 
-    viennamesh::ParameterSet netgen_settings;
+    viennamesh::ConstParameterSet netgen_settings;
     netgen_settings.set("cell_size", 1.0);
 
     viennamesh::run_algo< viennamesh::netgen_tetrahedron_tag >( oriented_adapted_hull_mesh, oriented_adapted_hull_segmentation,
