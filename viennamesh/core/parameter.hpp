@@ -258,10 +258,10 @@ namespace viennamesh
     }
 
     virtual type_info_wrapper input_type() const
-    { return type_info_wrapper::get<InputParameterT>(); }
+    { return type_info_wrapper::make<InputParameterT>(); }
 
     virtual type_info_wrapper output_type() const
-    { return type_info_wrapper::get<OutputParameterT>(); }
+    { return type_info_wrapper::make<OutputParameterT>(); }
 
 
     function<void (InputParameterT const &, OutputParameterT &)> convert_function;
@@ -637,7 +637,7 @@ namespace viennamesh
     {
       for (ConversionFunctionMapType::const_iterator opit = ipit->second.begin(); opit != ipit->second.end(); ++opit)
       {
-        info(10) << "Supports conversion to (" << opit->second->function_depth << "): [" << opit->first.internal() << "] " << std::endl;
+        info(10) << "Supports conversion to (" << opit->second->function_depth << "): [" << opit->first.get() << "] " << std::endl;
       }
     }
   }

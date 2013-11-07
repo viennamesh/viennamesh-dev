@@ -48,8 +48,11 @@ namespace viennamesh
       return info_->name();
     }
 
+    std::type_info const * get() const
+    { return info_; }
+
     template<typename TypeT>
-    static type_info_wrapper get()
+    static type_info_wrapper make()
     {
       return type_info_wrapper( typeid(TypeT) );
     }
