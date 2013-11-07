@@ -14,13 +14,13 @@ namespace viennamesh
     template<>
     struct native_input_mesh_wrapper<cgal_delaunay_tetrahedron_tag>
     {
-      typedef ParameterWrapper< MeshWrapper<cgal_mesh_polyhedron_mesh, NoSegmentation> > type;
+      typedef MeshWrapper<cgal_mesh_polyhedron_mesh, NoSegmentation> type;
     };
 
     template<>
     struct native_output_mesh_wrapper<cgal_delaunay_tetrahedron_tag>
     {
-      typedef ParameterWrapper< MeshWrapper<cgal_delaunay_tetrahedron_mesh, NoSegmentation> > type;
+      typedef MeshWrapper<cgal_delaunay_tetrahedron_mesh, NoSegmentation> type;
     };
 
 
