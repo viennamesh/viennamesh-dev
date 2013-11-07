@@ -75,9 +75,16 @@ namespace viennamesh
   template<typename AlgorithmTagT>
   class Algorithm : public BaseAlgorithm
   {
+    typedef typename result_of::native_input_mesh_wrapper<AlgorithmTagT>::type NativeInputMeshWrapperType;
+    typedef typename result_of::native_output_mesh_wrapper<AlgorithmTagT>::type NativeOutputMeshWrapperType;
+
   public:
 
-    Algorithm() {}
+    Algorithm()
+    {
+      static_init<NativeInputMeshWrapperType>::init();
+      static_init<NativeOutputMeshWrapperType>::init();
+    }
 
     bool run()
     {
@@ -92,9 +99,6 @@ namespace viennamesh
 
       ParameterHandle & output = outputs.get_create("default");
 
-      typedef typename result_of::native_input_mesh_wrapper<AlgorithmTagT>::type NativeInputMeshWrapperType;
-      typedef typename result_of::native_output_mesh_wrapper<AlgorithmTagT>::type NativeOutputMeshWrapperType;
-
       typename result_of::const_parameter_handle<NativeInputMeshWrapperType>::type native_input_mesh = dynamic_handle_cast<const NativeInputMeshWrapperType>(input);
       if (!native_input_mesh)
         native_input_mesh = input->get_converted<NativeInputMeshWrapperType>();
@@ -102,6 +106,8 @@ namespace viennamesh
       if (!native_input_mesh)
       {
         error(1) << "Input Parameter 'default' is not convertable to native input type" << std::endl;
+        Converter::get().print_conversions(input);
+        info(10) << "Required Type: [" << &typeid(ParameterWrapper<NativeInputMeshWrapperType>) << "]" << std::endl;
         return false;
       }
 
