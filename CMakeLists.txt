@@ -62,6 +62,12 @@ endif()
 
 find_package(Boost COMPONENTS thread program_options)
 
+FIND_PACKAGE(CGAL)
+IF(CGAL_FOUND)
+  MESSAGE(STATUS "CGAL detected")
+  INCLUDE(${CGAL_USE_FILE})
+ENDIF(CGAL_FOUND)
+
 # Compile options
 #################
 
