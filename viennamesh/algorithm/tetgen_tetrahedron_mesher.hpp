@@ -82,6 +82,45 @@ namespace viennamesh
 
 
 
+
+
+  struct seed_point_3d
+  {
+    seed_point_3d(double x, double y, double z, int segment_id_) : segment_id(segment_id_)
+    {
+      point[0] = x;
+      point[1] = y;
+      point[2] = z;
+    }
+
+    double point[3];
+    int segment_id;
+  };
+
+  typedef std::vector<seed_point_3d> seed_point_3d_container;
+
+
+  template<>
+  struct static_init<seed_point_3d_container>
+  {
+    typedef seed_point_3d_container SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init<seed_point_3d_container>::init" << std::endl;
+      }
+    }
+  };
+
+
+
+
+
+
   template<>
   struct native_algorithm_impl<tetgen_tetrahedron_tag>
   {
@@ -132,10 +171,53 @@ namespace viennamesh
       tetgen_settings.goodangle = cos(tetgen_settings.minangle * tetgenmesh::PI / 180.0);   // tetgen.cxx:3046
       tetgen_settings.goodangle *= tetgen_settings.goodangle;                               // tetgen.cxx:3047
 
-      tetrahedralize(&tetgen_settings, const_cast<tetgenio*>(&native_input_mesh), &native_output_mesh);
+
+      tetgenio & tmp = (tetgenio&)native_input_mesh;
+
+      int old_numberofregions = tmp.numberofregions;
+      REAL * old_regionlist = tmp.regionlist;
+
+      typedef viennamesh::result_of::const_parameter_handle<seed_point_3d_container>::type ConstSeedPointContainerHandle;
+      ConstSeedPointContainerHandle seed_points_handle = parameters.get<seed_point_3d_container>("seed_points");
+      if (seed_points_handle)
+      {
+        info(5) << "Using seed points" << std::endl;
+
+        seed_point_3d_container const & seed_points = seed_points_handle->value;
+
+        tmp.numberofregions = seed_points.size();
+        tmp.regionlist = new REAL[5 * seed_points.size()];
+
+        for (int i = 0; i < seed_points.size(); ++i)
+        {
+          tmp.regionlist[5*i+0] = seed_points[i].point[0];
+          tmp.regionlist[5*i+1] = seed_points[i].point[1];
+          tmp.regionlist[5*i+2] = seed_points[i].point[2];
+          tmp.regionlist[5*i+3] = REAL(seed_points[i].segment_id);
+          tmp.regionlist[5*i+4] = REAL(seed_points[i].segment_id);
+        }
+
+        tetgen_settings.regionattrib = 1;
+      }
+
+
+      tetrahedralize(&tetgen_settings, &tmp, &native_output_mesh);
+
+      tmp.numberofregions = old_numberofregions;
+      tmp.regionlist = old_regionlist;
+
 
       feedback.set_success();
       return feedback;
+    }
+
+
+
+
+    template<typename native_input_mesh_type, typename native_input_segmentation_type, typename native_output_mesh_type, typename native_output_segmentation_type>
+    static algorithm_feedback run( native_input_mesh_type const & native_input_mesh, native_input_segmentation_type const & input_segmentation, native_output_mesh_type & native_output_mesh, native_output_segmentation_type & native_output_segmentation, ConstParameterSet const & parameters )
+    {
+      return run(native_input_mesh, native_output_mesh, parameters);
     }
 
   };

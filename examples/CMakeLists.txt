@@ -1,6 +1,7 @@
 set(EXAMPLES_TESTDATA
    data/big_and_small_cube.poly
    data/cube.poly
+   data/example.poly
    data/cube_triangular_hull.vtu
    data/cube_with_cube_hole.poly
    data/half-trigate.mesh

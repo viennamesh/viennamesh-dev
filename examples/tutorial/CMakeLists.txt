@@ -83,6 +83,12 @@ target_link_libraries(cavity_remesh vgmodeler_base vgmodeler_stltopo vgmodeler_m
 add_executable(tetgen_viennamesh tetgen_viennamesh.cpp)
 target_link_libraries(tetgen_viennamesh tetgen)
 
+add_executable(tetgen_plc_viennamesh tetgen_plc_viennamesh.cpp)
+target_link_libraries(tetgen_plc_viennamesh tetgen)
+
+add_executable(triangle_viennamesh triangle_viennamesh.cpp)
+target_link_libraries(triangle_viennamesh triangle)
+
 
 add_executable(mesh_conversion mesh_conversion.cpp)
 target_link_libraries(mesh_conversion ${CGAL_LIBS} nglib tetgen)

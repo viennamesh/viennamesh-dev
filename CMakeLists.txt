@@ -60,7 +60,8 @@ IF(CGAL_FOUND)
   MESSAGE(STATUS "CGAL detected")
   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE)
 #   INCLUDE(${CGAL_USE_FILE})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CGAL_CXX_FLAGS_INIT} -DCGAL_CFG_ARRAY_MEMBER_INITIALIZATION_BUG")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CGAL_CXX_FLAGS_DEBUG_INIT} -DCGAL_CFG_ARRAY_MEMBER_INITIALIZATION_BUG")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CGAL_CXX_FLAGS_RELEASE_INIT} -DCGAL_CFG_ARRAY_MEMBER_INITIALIZATION_BUG")
 ENDIF(CGAL_FOUND)
 
 # Compile options
@@ -90,6 +91,7 @@ link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/lib )
 
 add_subdirectory( external/vgmodeler )
 add_subdirectory( external/tetgen )
+add_subdirectory( external/triangle )
 
 # Subdirectories
 ################

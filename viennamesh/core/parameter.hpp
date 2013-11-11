@@ -28,14 +28,8 @@ namespace viennamesh
     segmentation_type segmentation;
   };
 
-
   typedef shared_ptr<BaseParameter> ParameterHandle;
   typedef shared_ptr<const BaseParameter> ConstParameterHandle;
-
-//   typedef std::map<string, ParameterHandle> ParameterSet;
-//   typedef std::map<string, ConstParameterHandle> ConstParameterSet;
-
-
 
 
   namespace result_of
@@ -58,7 +52,6 @@ namespace viennamesh
       typedef typename const_parameter_handle<ValueT>::type type;
     };
   }
-
 
   typedef result_of::parameter_handle<double>::type DoubleParameterHandle;
   typedef result_of::const_parameter_handle<double>::type ConstDoubleParameterHandle;
