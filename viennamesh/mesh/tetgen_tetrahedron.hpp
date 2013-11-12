@@ -222,10 +222,6 @@ namespace viennamesh
       polygons.push_back(polygon);
     }
 
-
-    std::cout << "Num polygons: " << polygons.size() << std::endl;
-
-
     return polygons;
   }
 
@@ -290,6 +286,8 @@ namespace viennamesh
         typedef typename viennagrid::result_of::const_line_range<CellType>::type ConstLineOnCellRange;
         typedef typename viennagrid::result_of::iterator<ConstLineOnCellRange>::type ConstLineOnCellIterator;
 
+        std::vector<PointType> const & hole_points = viennagrid::hole_points(*cit);
+
 
         std::vector< std::vector<ConstVertexHandle> > polygons = split_into_polygons(*cit);
 
@@ -300,25 +298,30 @@ namespace viennamesh
 
         facet.numberofpolygons = polygons.size();
         facet.polygonlist = new tetgenio::polygon[ polygons.size() ];
-        facet.numberofholes = 0;
-        facet.holelist = 0;
 
-        std::cout << "Num Polygons: " << polygons.size() << std::endl;
+        facet.numberofholes = hole_points.size();
+        if (facet.numberofholes > 0)
+        {
+          facet.holelist = new REAL[ 3 * facet.numberofholes ];
+          for (int hole_point_index = 0; hole_point_index != facet.numberofholes; ++hole_point_index)
+          {
+            facet.holelist[3*hole_point_index+0] = hole_points[hole_point_index][0];
+            facet.holelist[3*hole_point_index+1] = hole_points[hole_point_index][1];
+            facet.holelist[3*hole_point_index+2] = hole_points[hole_point_index][2];
+          }
+        }
+        else
+          facet.holelist = 0;
 
         int polygon_index = 0;
         for (int polygon_index = 0; polygon_index != polygons.size(); ++polygon_index)
         {
-          std::cout << "  Num Vertices: " << polygons[polygon_index].size() << std::endl;
-
           tetgenio::polygon & polygon = facet.polygonlist[polygon_index];
           polygon.numberofvertices = polygons[polygon_index].size();
           polygon.vertexlist = new int[ polygons[polygon_index].size() ];
 
           for (int vertex_index = 0; vertex_index != polygons[polygon_index].size(); ++vertex_index)
-          {
-            std::cout << vertex_handle_to_tetgen_index_map[ polygons[polygon_index][vertex_index] ] << std::endl;
             polygon.vertexlist[vertex_index] = vertex_handle_to_tetgen_index_map[ polygons[polygon_index][vertex_index] ];
-          }
         }
       }
 
