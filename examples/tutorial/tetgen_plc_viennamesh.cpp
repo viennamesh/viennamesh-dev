@@ -14,24 +14,31 @@ int main()
 {
   // Typedefing the mesh type representing the 2D geometry; using PLCs
   typedef viennagrid::plc_3d_mesh GeometryMeshType;
+  typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
 
   // Creating the geometry mesh object and loading a file
   GeometryMeshType geometry;
 
+  // The container of hole points, either filled manually or automatically filled by tetgen_poly_reader
+  std::vector<PointType> hole_points;
+  // The container of seed points, either filled manually or automatically filled by tetgen_poly_reader
+  std::vector< std::pair<PointType, int> > seed_points;
+
+  // using tetgen_poly_reader to fill hole points and seed points
   viennagrid::io::tetgen_poly_reader reader;
-  reader(geometry, "../data/big_and_small_cube.poly");
+//   reader(geometry, "../data/cube.poly", hole_points, seed_points);
+  reader(geometry, "../data/two_cubes.poly", hole_points, seed_points);
+//   reader(geometry, "../data/big_and_small_cube.poly", hole_points, seed_points);
+//   reader(geometry, "../data/example.poly", hole_points, seed_points);
+//   reader(geometry, "../data/cube_with_tunnel.poly", hole_points, seed_points);
+//   reader(geometry, "../data/cube_with_cube_hole.poly", hole_points, seed_points);
 
   // creating a parameter set object
   viennamesh::ConstParameterSet settings;
 
-  // creating the seed points
-  // seed point constructor: seed_point_3d(x_coordinate_of_seed_point, y_coordinate_of_seed_point, z_coordinate_of_seed_point, segment_id)
-  viennamesh::seed_point_3d_container seed_points;
-  seed_points.push_back( viennamesh::seed_point_3d(0, 0, 0, 0) );
-  seed_points.push_back( viennamesh::seed_point_3d(0, 0, 20, 1) );
-
   // setting the parameters
   settings.set("seed_points", seed_points);   // the seed points
+  settings.set("hole_points", hole_points);   // the seed points
   settings.set("cell_size", 1.0);
 
   // creating a triangular mesh and segmentation

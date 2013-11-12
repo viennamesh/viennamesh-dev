@@ -84,21 +84,7 @@ namespace viennamesh
 
 
 
-  struct seed_point_3d
-  {
-    seed_point_3d(double x, double y, double z, int segment_id_) : segment_id(segment_id_)
-    {
-      point[0] = x;
-      point[1] = y;
-      point[2] = z;
-    }
-
-    double point[3];
-    int segment_id;
-  };
-
-  typedef std::vector<seed_point_3d> seed_point_3d_container;
-
+  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > seed_point_3d_container;
 
   template<>
   struct static_init<seed_point_3d_container>
@@ -112,6 +98,28 @@ namespace viennamesh
       {
         to_init = false;
         info(10) << "static_init<seed_point_3d_container>::init" << std::endl;
+      }
+    }
+  };
+
+
+
+
+  typedef std::vector<viennagrid::config::point_type_3d> point_3d_container;
+
+
+  template<>
+  struct static_init<point_3d_container>
+  {
+    typedef point_3d_container SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init<point_3d_container>::init" << std::endl;
       }
     }
   };
@@ -177,11 +185,20 @@ namespace viennamesh
       int old_numberofregions = tmp.numberofregions;
       REAL * old_regionlist = tmp.regionlist;
 
+      tmp.numberofregions = 0;
+      tmp.regionlist = NULL;
+
+      int old_numberofholes = tmp.numberofholes;
+      REAL * old_holelist = tmp.holelist;
+
+      tmp.numberofholes = 0;
+      tmp.holelist = NULL;
+
       typedef viennamesh::result_of::const_parameter_handle<seed_point_3d_container>::type ConstSeedPointContainerHandle;
       ConstSeedPointContainerHandle seed_points_handle = parameters.get<seed_point_3d_container>("seed_points");
-      if (seed_points_handle)
+      if (seed_points_handle && !seed_points_handle->value.empty())
       {
-        info(5) << "Using seed points" << std::endl;
+        info(5) << "Found seed points" << std::endl;
 
         seed_point_3d_container const & seed_points = seed_points_handle->value;
 
@@ -190,21 +207,48 @@ namespace viennamesh
 
         for (int i = 0; i < seed_points.size(); ++i)
         {
-          tmp.regionlist[5*i+0] = seed_points[i].point[0];
-          tmp.regionlist[5*i+1] = seed_points[i].point[1];
-          tmp.regionlist[5*i+2] = seed_points[i].point[2];
-          tmp.regionlist[5*i+3] = REAL(seed_points[i].segment_id);
-          tmp.regionlist[5*i+4] = REAL(seed_points[i].segment_id);
+          info(10) << "  Seed Point " << seed_points[i].first << " for segment " << seed_points[i].second << std::endl;
+          tmp.regionlist[5*i+0] = seed_points[i].first[0];
+          tmp.regionlist[5*i+1] = seed_points[i].first[1];
+          tmp.regionlist[5*i+2] = seed_points[i].first[2];
+          tmp.regionlist[5*i+3] = REAL(seed_points[i].second);
+          tmp.regionlist[5*i+4] = REAL(seed_points[i].second);
         }
 
         tetgen_settings.regionattrib = 1;
       }
 
 
+      typedef viennamesh::result_of::const_parameter_handle<point_3d_container>::type ConstPointContainerHandle;
+      ConstPointContainerHandle hole_points_handle = parameters.get<point_3d_container>("hole_points");
+      if (hole_points_handle && !hole_points_handle->value.empty())
+      {
+        info(5) << "Found hole points" << std::endl;
+
+        point_3d_container const & hole_points = hole_points_handle->value;
+
+        tmp.numberofholes = hole_points.size();
+        tmp.holelist = new REAL[3 * hole_points.size()];
+
+        for (int i = 0; i < hole_points.size(); ++i)
+        {
+          info(10) << "  Hole Point " << hole_points[i] << std::endl;
+          tmp.holelist[3*i+0] = hole_points[i][0];
+          tmp.holelist[3*i+1] = hole_points[i][1];
+          tmp.holelist[3*i+2] = hole_points[i][2];
+        }
+      }
+
       tetrahedralize(&tetgen_settings, &tmp, &native_output_mesh);
+
+      delete[] tmp.regionlist;
+      delete[] tmp.holelist;
 
       tmp.numberofregions = old_numberofregions;
       tmp.regionlist = old_regionlist;
+
+      tmp.numberofholes = old_numberofholes;
+      tmp.holelist = old_holelist;
 
 
       feedback.set_success();
