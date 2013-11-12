@@ -275,7 +275,7 @@ namespace viennamesh
 
       std::vector<VertexHandle> vertex_handles(tri_mesh.mesh.numberofpoints);
 
-      std::cout << "Num attribs: " << tri_mesh.mesh.numberoftriangleattributes << std::endl;
+//       std::cout << "Num attribs: " << tri_mesh.mesh.numberoftriangleattributes << std::endl;
 
       for (int i = 0; i < tri_mesh.mesh.numberofpoints; ++i)
       {
