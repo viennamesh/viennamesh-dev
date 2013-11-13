@@ -7,6 +7,7 @@
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/netgen_reader.hpp"
 #include "viennagrid/io/tetgen_poly_reader.hpp"
+#include <boost/concept_check.hpp>
 
 
 namespace viennamesh
@@ -17,7 +18,7 @@ namespace viennamesh
   {
   public:
 
-    bool run()
+    bool run_impl()
     {
       LoggingStack stack( "Algoritm: FileReader" );
 
@@ -41,7 +42,57 @@ namespace viennamesh
 
         viennagrid::io::netgen_reader reader;
         reader(output->value.mesh, output->value.segmentation, filename);
-        result = output;
+
+        outputs.set("default", output);
+        return true;
+      }
+      else if (extension == "poly")
+      {
+        info(5) << "Found .poly extension, using ViennaGrid Tetgen polg Reader" << std::endl;
+
+        viennagrid::io::tetgen_poly_reader reader;
+
+        try
+        {
+          typedef ParameterWrapper< MeshWrapper<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation> > MeshType;
+          typedef viennagrid::config::point_type_3d PointType;
+          shared_ptr<MeshType> output( new MeshType() );
+
+          std::vector<PointType> hole_points;
+          std::vector< std::pair<PointType, int> > seed_points;
+
+          reader(output->value.mesh, filename, hole_points, seed_points);
+
+          if (!hole_points.empty())
+            outputs.set("hole_points", hole_points);
+          if (!seed_points.empty())
+            outputs.set("seed_points", seed_points);
+          outputs.set("default", output);
+          return true;
+        }
+        catch (viennagrid::io::bad_file_format_exception const & ) {}
+
+        try
+        {
+          typedef ParameterWrapper< MeshWrapper<viennagrid::plc_2d_mesh, viennagrid::plc_2d_segmentation> > MeshType;
+          typedef viennagrid::config::point_type_2d PointType;
+          shared_ptr<MeshType> output( new MeshType() );
+
+          std::vector<PointType> hole_points;
+          std::vector< std::pair<PointType, int> > seed_points;
+
+          reader(output->value.mesh, filename, hole_points, seed_points);
+
+          if (!hole_points.empty())
+            outputs.set("hole_points", hole_points);
+          if (!seed_points.empty())
+            outputs.set("seed_points", seed_points);
+          outputs.set("default", output);
+          return true;
+        }
+        catch (viennagrid::io::bad_file_format_exception const & ) {}
+
+        return false;
       }
       else if (extension == "vtu" || extension == "pvd")
       {
@@ -118,7 +169,8 @@ namespace viennamesh
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
             vtk_writer(output->value.mesh, output->value.segmentation, filename);
 
-            result = output;
+            outputs.set("default", output);
+            return true;
           }
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
           {
@@ -128,7 +180,8 @@ namespace viennamesh
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;
             vtk_writer(output->value.mesh, output->value.segmentation, filename);
 
-            result = output;
+            outputs.set("default", output);
+            return true;
           }
           else
           {
@@ -143,10 +196,7 @@ namespace viennamesh
         return false;
       }
 
-
-      outputs.set("default", result);
-
-      return result;
+      return false;
     }
 
   private:

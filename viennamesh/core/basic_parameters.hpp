@@ -92,6 +92,86 @@ namespace viennamesh
     }
   };
 
+
+
+
+  typedef std::vector< std::pair<viennagrid::config::point_type_2d, int> > seed_point_2d_container;
+
+  template<>
+  struct static_init<seed_point_2d_container>
+  {
+    typedef seed_point_2d_container SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init<seed_point_2d_container>::init" << std::endl;
+      }
+    }
+  };
+
+  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > seed_point_3d_container;
+
+  template<>
+  struct static_init<seed_point_3d_container>
+  {
+    typedef seed_point_3d_container SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init<seed_point_3d_container>::init" << std::endl;
+      }
+    }
+  };
+
+
+
+
+  typedef std::vector<viennagrid::config::point_type_2d> point_2d_container;
+
+  template<>
+  struct static_init<point_2d_container>
+  {
+    typedef point_2d_container SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init<point_2d_container>::init" << std::endl;
+      }
+    }
+  };
+
+  typedef std::vector<viennagrid::config::point_type_3d> point_3d_container;
+
+  template<>
+  struct static_init<point_3d_container>
+  {
+    typedef point_3d_container SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init<point_3d_container>::init" << std::endl;
+      }
+    }
+  };
+
+
+
 }
 
 

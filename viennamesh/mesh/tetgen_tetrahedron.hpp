@@ -53,9 +53,11 @@ namespace viennamesh
         to_init = false;
         info(10) << "static_init< MeshWrapper<viennamesh::tetgen_tetrahedron_mesh, NoSegmentation> >::init" << std::endl;
 
+        typedef MeshWrapper<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation> PLC3DViennaGridMesh;
         typedef MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> Triangular3DViennaGridMesh;
         typedef MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> Tetrahedral3DViennaGridMesh;
 
+        Converter::get().register_conversion<PLC3DViennaGridMesh, SelfT>( &mesh_convert<PLC3DViennaGridMesh, SelfT> );
         Converter::get().register_conversion<Triangular3DViennaGridMesh, SelfT>( &mesh_convert<Triangular3DViennaGridMesh, SelfT> );
         Converter::get().register_conversion<SelfT, Tetrahedral3DViennaGridMesh>( &mesh_convert<SelfT, Tetrahedral3DViennaGridMesh> );
 
@@ -232,11 +234,11 @@ namespace viennamesh
   struct convert_impl<viennagrid::plc_3d_mesh, NoSegmentation, tetgen_tetrahedron_mesh, NoSegmentation >
   {
     typedef viennagrid::plc_3d_mesh vgrid_mesh_type;
-    typedef tetgen_tetrahedron_mesh netgen_mesh_type;
+    typedef tetgen_tetrahedron_mesh tetgen_mesh_type;
 
     typedef vgrid_mesh_type input_mesh_type;
     typedef NoSegmentation input_segmentation_type;
-    typedef netgen_mesh_type output_mesh_type;
+    typedef tetgen_mesh_type output_mesh_type;
     typedef NoSegmentation output_segmentation_type;
 
     static bool convert( input_mesh_type const & vgrid_mesh, input_segmentation_type const & input_segmentation,
@@ -329,7 +331,20 @@ namespace viennamesh
     }
   };
 
+  template<>
+  struct convert_impl<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation, tetgen_tetrahedron_mesh, NoSegmentation >
+  {
+    typedef viennagrid::plc_3d_mesh input_mesh_type;
+    typedef viennagrid::plc_3d_segmentation input_segmentation_type;
+    typedef tetgen_tetrahedron_mesh output_mesh_type;
+    typedef NoSegmentation output_segmentation_type;
 
+    static bool convert( input_mesh_type const & vgrid_mesh, input_segmentation_type const & input_segmentation,
+                          output_mesh_type & tetgen_mesh, output_segmentation_type & output_segmentation )
+    {
+      return convert_impl<input_mesh_type, NoSegmentation, output_mesh_type, output_segmentation_type>::convert(vgrid_mesh, NoSegmentation(), tetgen_mesh, output_segmentation );
+    }
+  };
 
 
 

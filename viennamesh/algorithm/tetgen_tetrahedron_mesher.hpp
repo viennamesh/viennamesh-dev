@@ -84,45 +84,7 @@ namespace viennamesh
 
 
 
-  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > seed_point_3d_container;
 
-  template<>
-  struct static_init<seed_point_3d_container>
-  {
-    typedef seed_point_3d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<seed_point_3d_container>::init" << std::endl;
-      }
-    }
-  };
-
-
-
-
-  typedef std::vector<viennagrid::config::point_type_3d> point_3d_container;
-
-
-  template<>
-  struct static_init<point_3d_container>
-  {
-    typedef point_3d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<point_3d_container>::init" << std::endl;
-      }
-    }
-  };
 
 
 
@@ -198,7 +160,7 @@ namespace viennamesh
       ConstSeedPointContainerHandle seed_points_handle = parameters.get<seed_point_3d_container>("seed_points");
       if (seed_points_handle && !seed_points_handle->value.empty())
       {
-        info(5) << "Found seed points" << std::endl;
+        std::cout << "Found seed points" << std::endl;
 
         seed_point_3d_container const & seed_points = seed_points_handle->value;
 
@@ -207,7 +169,7 @@ namespace viennamesh
 
         for (int i = 0; i < seed_points.size(); ++i)
         {
-          info(10) << "  Seed Point " << seed_points[i].first << " for segment " << seed_points[i].second << std::endl;
+          std::cout << "  Seed Point " << seed_points[i].first << " for segment " << seed_points[i].second << std::endl;
           tmp.regionlist[5*i+0] = seed_points[i].first[0];
           tmp.regionlist[5*i+1] = seed_points[i].first[1];
           tmp.regionlist[5*i+2] = seed_points[i].first[2];
@@ -223,7 +185,7 @@ namespace viennamesh
       ConstPointContainerHandle hole_points_handle = parameters.get<point_3d_container>("hole_points");
       if (hole_points_handle && !hole_points_handle->value.empty())
       {
-        info(5) << "Found hole points" << std::endl;
+        std::cout << "Found hole points" << std::endl;
 
         point_3d_container const & hole_points = hole_points_handle->value;
 
@@ -232,7 +194,7 @@ namespace viennamesh
 
         for (int i = 0; i < hole_points.size(); ++i)
         {
-          info(10) << "  Hole Point " << hole_points[i] << std::endl;
+          std::cout << "  Hole Point " << hole_points[i] << std::endl;
           tmp.holelist[3*i+0] = hole_points[i][0];
           tmp.holelist[3*i+1] = hole_points[i][1];
           tmp.holelist[3*i+2] = hole_points[i][2];

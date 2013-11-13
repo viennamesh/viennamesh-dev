@@ -418,6 +418,9 @@ namespace viennamesh
 
     virtual ~BaseParameter() {}
 
+    virtual ParameterHandle unpack() = 0;
+    virtual ConstParameterHandle unpack() const = 0;
+
 
     std::pair<string, bool> get_property( string const & key ) const
     { return TypeProperties::get().get_property( typeid(*this), key ); }
@@ -428,12 +431,6 @@ namespace viennamesh
     bool match_properties( std::map<string, string> const & properties ) const
     { return TypeProperties::get().match_properties( typeid(*this), properties ); }
 
-
-
-//     bool is_convertable_to(ParameterHandle dest_mesh) const
-//     { return Converter::get().is_convertable( shared_from_this(), dest_mesh ); }
-//     bool convert_to(ParameterHandle dest_mesh) const
-//     { return Converter::get().convert( shared_from_this(), dest_mesh ); }
 
     template<typename ValueT>
     bool is_convertable_to() const
@@ -512,6 +509,12 @@ namespace viennamesh
     ParameterWrapper(value_type const & value_) :
       value(value_) { static_init(); }
 
+    ParameterHandle unpack()
+    { return shared_from_this(); }
+
+    ConstParameterHandle unpack() const
+    { return shared_from_this(); }
+
     static void static_init()
     {
       static bool to_init = true;
@@ -528,9 +531,7 @@ namespace viennamesh
 
 
   type_info_wrapper Converter::get_type_id( ConstParameterHandle const & tmp )
-  {
-    return typeid(*tmp);
-  }
+  { return typeid(*tmp); }
 
   shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input, ConstParameterHandle const & output_mesh )
   {
@@ -637,72 +638,74 @@ namespace viennamesh
 
 
 
-
-  namespace result_of
-  {
-
-    template<typename ValueT, typename BaseHandleT>
-    struct parameter_handle_from_base_handle;
-
-    template<typename ValueT>
-    struct parameter_handle_from_base_handle<ValueT, ParameterHandle>
-    {
-      typedef typename parameter_handle<ValueT>::type type;
-    };
-
-    template<typename ValueT>
-    struct parameter_handle_from_base_handle<ValueT, ConstParameterHandle>
-    {
-      typedef typename const_parameter_handle<ValueT>::type type;
-    };
-
-    template<typename ValueT, typename BaseHandleT>
-    struct value_constness_from_base_handle;
-
-    template<typename ValueT>
-    struct value_constness_from_base_handle<ValueT, ParameterHandle>
-    {
-      typedef ValueT type;
-    };
-
-    template<typename ValueT>
-    struct value_constness_from_base_handle<ValueT, ConstParameterHandle>
-    {
-      typedef const ValueT type;
-    };
+  class ParameterSet;
+  class ConstParameterSet;
 
 
-  }
-
-
-
-  template<typename ParameterHandleT>
-  class ParameterSetType
+  class ParameterLink : public BaseParameter
   {
   public:
 
-    typedef std::map<string, ParameterHandleT> ParameterMapType;
+    ParameterLink(ParameterSet & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_)
+    {}
 
+    ParameterHandle unpack();
+    ConstParameterHandle unpack() const;
+
+  private:
+
+    ParameterSet & parameter_set;
+    string parameter_name;
+  };
+
+  class ConstParameterLink : public BaseParameter
+  {
+  public:
+
+    ConstParameterLink(ConstParameterSet const & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_) {}
+
+    ParameterHandle unpack();
+    ConstParameterHandle unpack() const;
+
+  private:
+
+    ConstParameterSet const & parameter_set;
+    string parameter_name;
+  };
+
+  typedef shared_ptr<ParameterLink> ParameterLinkHandle;
+  typedef shared_ptr<ConstParameterLink> ConstParameterLinkHandle;
+
+
+
+  class ParameterSet
+  {
+  public:
+
+    typedef std::map<string, ParameterHandle> ParameterMapType;
+
+    void set( string const & name, ConstParameterHandle const & parameter ); // not supported
     void set( string const & name, ParameterHandle const & parameter )
     {
-      parameters[name] = parameter;
+      if (parameter)
+        parameters[name] = parameter;
     }
 
-    void set( string const & name, ConstParameterHandle const & parameter )
+    void set( string const & name, ConstParameterLinkHandle const & parameter ); // not supported
+    void set( string const & name, ParameterLinkHandle const & parameter )
     {
-      parameters[name] = parameter;
+      if (parameter)
+        parameters[name] = parameter;
     }
+
+    template<typename ValueT>
+    void set( string const & name, shared_ptr< const ParameterWrapper<ValueT> > const & parameter ); // not supported
 
     template<typename ValueT>
     void set( string const & name, shared_ptr< ParameterWrapper<ValueT> > const & parameter )
     {
-      parameters[name] = parameter;
-    }
-
-    template<typename ValueT>
-    void set( string const & name, shared_ptr< const ParameterWrapper<ValueT> > const & parameter )
-    {
-      parameters[name] = parameter;
+      if (parameter)
+        parameters[name] = parameter;
     }
 
     template<typename ValueT>
@@ -716,32 +719,51 @@ namespace viennamesh
       parameters.erase(name);
     }
 
-    ParameterHandleT & get_create( string const & name )
+    ConstParameterHandle get( string const & name ) const
     {
-      return parameters[name];
-    }
-
-    ParameterHandleT get( string const & name ) const
-    {
-      typename ParameterMapType::const_iterator it = parameters.find(name);
+      ParameterMapType::const_iterator it = parameters.find(name);
       if (it == parameters.end())
         return ParameterHandle();
-      return it->second;
+      return it->second->unpack();
+    }
+
+    ParameterHandle get( string const & name )
+    {
+      ParameterMapType::iterator it = parameters.find(name);
+      if (it == parameters.end())
+        return ParameterHandle();
+      return it->second->unpack();
     }
 
     template<typename ValueT>
-    typename result_of::parameter_handle_from_base_handle<ValueT, ParameterHandleT>::type get( string const & name ) const
+    typename result_of::const_parameter_handle<ValueT>::type get( string const & name ) const
     {
-      typename ParameterMapType::const_iterator it = parameters.find(name);
-      if (it == parameters.end())
-        return typename result_of::parameter_handle<ValueT>::type();
-
-      typename result_of::parameter_handle_from_base_handle<ValueT, ParameterHandleT>::type result = dynamic_handle_cast< typename result_of::value_constness_from_base_handle<ValueT, ParameterHandleT>::type >(it->second);
+      ConstParameterHandle handle = get(name);
+      if (!handle) return typename result_of::const_parameter_handle<ValueT>::type();
+      typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(handle);
 
       if (result)
         return result;
 
-      return it->second->template get_converted<ValueT>();
+      return handle->template get_converted<ValueT>();
+    }
+
+    template<typename ValueT>
+    typename result_of::parameter_handle<ValueT>::type get( string const & name )
+    {
+      ConstParameterHandle handle = get(name);
+      if (!handle) return typename result_of::parameter_handle<ValueT>::type();
+      typename result_of::parameter_handle<ValueT>::type result = dynamic_handle_cast<ValueT>(handle);
+
+      if (result)
+        return result;
+
+      return handle->template get_converted<ValueT>();
+    }
+
+    ParameterHandle & get_create( string const & name )
+    {
+      return parameters[name];
     }
 
     template<typename ValueT>
@@ -756,13 +778,140 @@ namespace viennamesh
       return false;
     }
 
+    void clear()
+    { parameters.clear(); }
 
   private:
     ParameterMapType parameters;
   };
 
-  typedef ParameterSetType<ParameterHandle> ParameterSet;
-  typedef ParameterSetType<ConstParameterHandle> ConstParameterSet;
+
+
+
+
+  class ConstParameterSet
+  {
+  public:
+
+    typedef std::map<string, ConstParameterHandle> ParameterMapType;
+
+    void set( string const & name, ConstParameterHandle const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    void set( string const & name, ParameterHandle const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    void set( string const & name, ConstParameterLinkHandle const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    void set( string const & name, ParameterLinkHandle const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    template<typename ValueT>
+    void set( string const & name, shared_ptr< const ParameterWrapper<ValueT> > const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    template<typename ValueT>
+    void set( string const & name, shared_ptr< ParameterWrapper<ValueT> > const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    template<typename ValueT>
+    void set( string const & name, ValueT const & value )
+    {
+      set( name, make_parameter(value) );
+    }
+
+    void unset( string const & name )
+    {
+      parameters.erase(name);
+    }
+
+    ConstParameterHandle get( string const & name ) const
+    {
+      ParameterMapType::const_iterator it = parameters.find(name);
+      if (it == parameters.end())
+        return ConstParameterHandle();
+      return it->second->unpack();
+    }
+
+    template<typename ValueT>
+    typename result_of::const_parameter_handle<ValueT>::type get( string const & name ) const
+    {
+      ConstParameterHandle handle = get(name);
+      if (!handle) return typename result_of::const_parameter_handle<ValueT>::type();
+      typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(handle);
+
+      if (result)
+        return result;
+
+      return handle->template get_converted<ValueT>();
+    }
+
+    ConstParameterHandle & get_create( string const & name )
+    {
+      return parameters[name];
+    }
+
+    template<typename ValueT>
+    bool copy_if_present( string const & name, ValueT & target ) const
+    {
+      typename result_of::const_parameter_handle<ValueT>::type ptr = get<ValueT>(name);
+      if (ptr)
+      {
+        target = ptr->value;
+        return true;
+      }
+      return false;
+    }
+
+    void clear()
+    { parameters.clear(); }
+
+  private:
+    ParameterMapType parameters;
+  };
+
+
+  ParameterHandle ParameterLink::unpack()
+  {
+    return parameter_set.get(parameter_name);
+  }
+
+  ConstParameterHandle ParameterLink::unpack() const
+  {
+    return parameter_set.get(parameter_name);
+  }
+
+
+  ParameterHandle ConstParameterLink::unpack()
+  {
+    return ParameterHandle();
+  }
+
+  ConstParameterHandle ConstParameterLink::unpack() const
+  {
+    return parameter_set.get(parameter_name);
+  }
+
+
 }
 
 

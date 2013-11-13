@@ -43,7 +43,7 @@ namespace viennamesh
   {
   public:
 
-    bool run()
+    bool run_impl()
     {
       LoggingStack stack( "Algoritm: FileWriter" );
 

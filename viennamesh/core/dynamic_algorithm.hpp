@@ -23,6 +23,11 @@ namespace viennamesh
 
 
 
+  class BaseAlgorithm;
+
+  typedef shared_ptr<BaseAlgorithm> AlgorithmHandle;
+
+
 
   class BaseAlgorithm
   {
@@ -30,46 +35,56 @@ namespace viennamesh
     virtual ~BaseAlgorithm() {}
 
     template<typename TypeT>
-    void set_input( string const & usage, TypeT const & value )
+    void set_input( string const & name, TypeT const & value )
     {
-      inputs.set( usage, value );
-    }
-//     { inputs[usage] = shared_ptr< ParameterWrapper<TypeT> >( new ParameterWrapper<TypeT>(value) ); }
-
-    void set_input( string const & usage, char const * value )
-    {
-      inputs.set( usage, string(value) );
-    }
-//     { inputs[usage] = shared_ptr< ParameterWrapper<string> >( new ParameterWrapper<string>(value) ); }
-
-//     void set_input( string const & usage, ParameterHandle const & parameter ) { inputs.set( usage, parameter ); }
-//     void set_input( string const & usage, ConstParameterHandle const & parameter ) { inputs.set( usage, parameter ); }
-
-
-    ConstParameterHandle get_input( string const & usage ) const
-    {
-      return inputs.get(usage);
+      inputs.set( name, value );
     }
 
-    ParameterHandle get_output( string const & usage ) const
+    void set_input( string const & name, char const * value )
     {
-      return outputs.get(usage);
+      inputs.set( name, string(value) );
     }
 
-    void unset_input( string const & usage ) { inputs.unset(usage); }
-    void unset_output( string const & usage ) { outputs.unset(usage); }
+    void link_input( string const & name, AlgorithmHandle const & algorithm, string const & output_name )
+    {
+      set_input( name, ParameterLinkHandle(new ParameterLink( algorithm->outputs, output_name )) );
+    }
 
-    virtual bool run() = 0;
+
+    ConstParameterHandle get_input( string const & name ) const
+    {
+      return inputs.get(name);
+    }
+
+
+    ConstParameterHandle get_output( string const & name ) const
+    {
+      return outputs.get(name);
+    }
+
+    ParameterHandle get_output( string const & name )
+    {
+      return outputs.get(name);
+    }
+
+    void unset_input( string const & name ) { inputs.unset(name); }
+    void unset_output( string const & name ) { outputs.unset(name); }
+
+    bool run()
+    {
+      outputs.clear();
+      return run_impl();
+    }
 
   protected:
-    typedef ConstParameterSet InputParameterContainerType;
-    typedef ParameterSet OutputParameterContainerType;
 
-    InputParameterContainerType inputs;
-    OutputParameterContainerType outputs;
+    virtual bool run_impl() = 0;
+
+    ConstParameterSet inputs;
+    ParameterSet outputs;
   };
 
-  typedef shared_ptr<BaseAlgorithm> AlgorithmHandle;
+
 
 
   template<typename AlgorithmTagT>
@@ -86,7 +101,7 @@ namespace viennamesh
       static_init<NativeOutputMeshWrapperType>::init();
     }
 
-    bool run()
+    bool run_impl()
     {
       LoggingStack stack( string("Algoritm: ") + result_of::algorithm_info<AlgorithmTagT>::name() );
 
