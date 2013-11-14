@@ -17,15 +17,10 @@ namespace viennamesh
   {
   public:
 
-    static string name()
-    {
-      return "ViennaGrid FileReader";
-    }
+    string name() const { return "ViennaGrid FileReader"; }
 
     bool run_impl()
     {
-      LoggingStack stack( "Algoritm: FileReader" );
-
       ConstStringParameterHandle param = inputs.get<string>("filename");
       if (!param)
       {
@@ -105,9 +100,9 @@ namespace viennamesh
         std::ifstream file(filename.c_str());
         if (file)
         {
-          int geometric_dimension;
-          int topologic_dimension;
-          int num_cells;
+          int geometric_dimension = 0;
+          int topologic_dimension = 0;
+          int num_cells = 0;
 
           string line;
           while (std::getline(file, line))

@@ -72,15 +72,10 @@ namespace viennamesh
   {
   public:
 
-    static string name()
-    {
-      return "Mesh file writer";
-    }
+    string name() const { return "ViennaGrid FileWriter"; }
 
     bool run_impl()
     {
-      LoggingStack stack( "Algoritm: FileWriter" );
-
       ConstParameterHandle mesh = inputs.get("default");
       if (!mesh)
       {
