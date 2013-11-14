@@ -71,45 +71,6 @@ namespace viennamesh
   };
 
 
-
-
-  typedef std::vector< std::pair<viennagrid::config::point_type_2d, int> > SeedPoint2DContainer;
-
-  template<>
-  struct static_init_impl<SeedPoint2DContainer>
-  {
-    static void init() {}
-  };
-
-  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > SeedPoint3DContainer;
-
-  template<>
-  struct static_init_impl<SeedPoint3DContainer>
-  {
-    static void init() {}
-  };
-
-
-
-
-  typedef std::vector<viennagrid::config::point_type_2d> Point2DContainer;
-
-  template<>
-  struct static_init<Point2DContainer>
-  {
-    static void init() {}
-  };
-
-  typedef std::vector<viennagrid::config::point_type_3d> Point3DContainer;
-
-  template<>
-  struct static_init<Point3DContainer>
-  {
-    static void init() {}
-  };
-
-
-
 }
 
 
