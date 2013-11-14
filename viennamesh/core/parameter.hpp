@@ -19,7 +19,7 @@ namespace viennamesh
 
 
   template<typename MeshT, typename SegmentationT>
-  struct MeshWrapper
+  struct SegmentedMesh
   {
     typedef MeshT mesh_type;
     typedef SegmentationT segmentation_type;
@@ -218,7 +218,7 @@ namespace viennamesh
     BaseConversionFunction(int function_depth_) : function_depth(function_depth_) {}
     virtual ~BaseConversionFunction() {}
 
-    virtual void convert( ConstParameterHandle const &, ParameterHandle const & ) const = 0;
+    virtual bool convert( ConstParameterHandle const &, ParameterHandle const & ) const = 0;
     virtual ParameterHandle get_converted( ConstParameterHandle const & ) const = 0;
 
     virtual type_info_wrapper input_type() const = 0;
@@ -227,37 +227,41 @@ namespace viennamesh
     int function_depth;
   };
 
-  template<typename InputParameterT, typename OutputParameterT>
+  template<typename InputValueT, typename OutputValueT>
   struct ConversionFunction : BaseConversionFunction
   {
+    typedef ParameterWrapper<InputValueT> InputParameterType;
+    typedef ParameterWrapper<OutputValueT> OutputParameterType;
+
     ConversionFunction() : BaseConversionFunction(1) {}
-    ConversionFunction( function<void (InputParameterT const &, OutputParameterT &)> const & f) :
+    ConversionFunction( function<bool (InputValueT const &, OutputValueT &)> const & f) :
         BaseConversionFunction(1), convert_function(f) {}
 
-    virtual void convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
+    virtual bool convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
     {
 #ifdef DEBUG
-      convert_function( dynamic_cast<InputParameterT const &>(*input), dynamic_cast<OutputParameterT &>(*output) );
+      return convert_function( dynamic_cast<InputParameterType const &>(*input).value, dynamic_cast<OutputParameterType &>(*output).value );
 #else
-      convert_function( static_cast<InputParameterT const &>(*input), static_cast<OutputParameterT &>(*output) );
+      return convert_function( static_cast<InputParameterType const &>(*input).value, static_cast<OutputParameterType &>(*output).value );
 #endif
     }
 
     virtual ParameterHandle get_converted( ConstParameterHandle const & input ) const
     {
-      shared_ptr<OutputParameterT> result( new OutputParameterT() );
-      convert(input, result);
-      return result;
+      shared_ptr<OutputParameterType> result( new OutputParameterType() );
+      if (convert(input, result))
+        return result;
+      return shared_ptr<OutputParameterType>();
     }
 
     virtual type_info_wrapper input_type() const
-    { return type_info_wrapper::make<InputParameterT>(); }
+    { return type_info_wrapper::make<InputParameterType>(); }
 
     virtual type_info_wrapper output_type() const
-    { return type_info_wrapper::make<OutputParameterT>(); }
+    { return type_info_wrapper::make<OutputParameterType>(); }
 
 
-    function<void (InputParameterT const &, OutputParameterT &)> convert_function;
+    function<bool (InputValueT const &, OutputValueT &)> convert_function;
   };
 
   struct DualConversionFunction : BaseConversionFunction
@@ -265,9 +269,9 @@ namespace viennamesh
     DualConversionFunction( shared_ptr<BaseConversionFunction> const & first_, shared_ptr<BaseConversionFunction> const & second_ ) :
         BaseConversionFunction(first_->function_depth + second_->function_depth), first(first_), second(second_) {}
 
-    virtual void convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
+    virtual bool convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
     {
-      second->convert( first->get_converted(input), output );
+      return second->convert( first->get_converted(input), output );
     }
 
     virtual ParameterHandle get_converted( ConstParameterHandle const & input ) const
@@ -315,9 +319,8 @@ namespace viennamesh
     bool convert( ConstParameterHandle const & input, ParameterHandle const & output )
     {
       shared_ptr<BaseConversionFunction> cf = convert_function(input, output);
-      if (cf)
+      if (cf && cf->convert(input, output))
       {
-        cf->convert(input, output);
         return true;
       }
       else
@@ -338,7 +341,7 @@ namespace viennamesh
 
 
     template<typename InputValueT, typename OutputValueT>
-    void register_conversion( void (*fp)(ParameterWrapper<InputValueT> const &, ParameterWrapper<OutputValueT> &) )
+    void register_conversion( bool (*fp)(InputValueT const &, OutputValueT &) )
     {
       typedef ParameterWrapper<InputValueT> InputParameterType;
       typedef ParameterWrapper<OutputValueT> OutputParameterType;
@@ -346,7 +349,7 @@ namespace viennamesh
       type_info_wrapper input_type_id(typeid(InputParameterType));
       type_info_wrapper output_type_id(typeid(OutputParameterType));
 
-      shared_ptr<BaseConversionFunction> current_conversion(new ConversionFunction<InputParameterType, OutputParameterType>(fp));
+      shared_ptr<BaseConversionFunction> current_conversion(new ConversionFunction<InputValueT, OutputValueT>(fp));
       simple_register_conversion( input_type_id, output_type_id, current_conversion );
 
       for (ConversionFunctionMapMapType::iterator imtit = conversions.begin();
@@ -400,10 +403,28 @@ namespace viennamesh
 
 
 
+  template<typename ParameterT>
+  struct static_init_impl
+  {
+    static void init();
+  };
 
 
   template<typename ParameterT>
-  struct static_init;
+  struct static_init
+  {
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init< " << typeid(ParameterT).name() << " >::init" << std::endl;
+        static_init_impl<ParameterT>::init();
+      }
+    }
+
+  };
 
 
   template<typename T>
@@ -455,12 +476,12 @@ namespace viennamesh
 
 
   template<typename WrappedMeshConfig, typename WrappedSegmentationConfig>
-  struct MeshWrapper< viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> >
+  struct SegmentedMesh< viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> >
   {
     typedef viennagrid::mesh<WrappedMeshConfig> mesh_type;
     typedef viennagrid::segmentation<WrappedSegmentationConfig> segmentation_type;
 
-    MeshWrapper() : segmentation(mesh) {}
+    SegmentedMesh() : segmentation(mesh) {}
 
     mesh_type mesh;
     segmentation_type segmentation;
@@ -470,18 +491,12 @@ namespace viennamesh
 
 
 
-  template<typename InputT, typename OutputT>
-  void static_cast_convert( ParameterWrapper<InputT> const & input, ParameterWrapper<OutputT> & output )
+  template<typename InputValueT, typename OutputValueT>
+  bool static_cast_convert( InputValueT const & input, OutputValueT & output )
   {
-    output.value = static_cast<OutputT>(input.value);
+    output = static_cast<OutputValueT>(input);
+    return true;
   }
-
-  template<typename InputMeshWrapperT, typename OutputMeshWrapperT>
-  void mesh_convert( ParameterWrapper<InputMeshWrapperT> const & input, ParameterWrapper<OutputMeshWrapperT> & output )
-  {
-    viennamesh::convert( input.value.mesh, input.value.segmentation, output.value.mesh, output.value.segmentation );
-  }
-
 
 
 

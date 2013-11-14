@@ -1,13 +1,84 @@
 #ifndef VIENNAMESH_CORE_ALGORITHM_HPP
 #define VIENNAMESH_CORE_ALGORITHM_HPP
 
-#include "viennamesh/core/convert.hpp"
-#include "viennamesh/utils/timer.hpp"
+
+#include "viennagrid/mesh/element_creation.hpp"
+
+#include "viennamesh/core/parameter.hpp"
+#include "viennamesh/core/basic_parameters.hpp"
+
+#include "viennamesh/utils/logger.hpp"
+#include "viennamesh/utils/std_capture.hpp"
+
 
 
 namespace viennamesh
 {
 
+  class BaseAlgorithm;
+
+  typedef shared_ptr<BaseAlgorithm> AlgorithmHandle;
+
+
+
+  class BaseAlgorithm : public enable_shared_from_this<BaseAlgorithm>
+  {
+  public:
+    virtual ~BaseAlgorithm() {}
+
+    template<typename TypeT>
+    void set_input( string const & name, TypeT const & value )
+    {
+      inputs.set( name, value );
+    }
+
+    void set_input( string const & name, char const * value )
+    {
+      inputs.set( name, string(value) );
+    }
+
+    void link_input( string const & name, AlgorithmHandle const & algorithm, string const & output_name )
+    {
+      set_input( name, ParameterLinkHandle(new ParameterLink( algorithm->outputs, output_name )) );
+    }
+
+
+    ConstParameterHandle get_input( string const & name ) const
+    {
+      return inputs.get(name);
+    }
+
+
+    ConstParameterHandle get_output( string const & name ) const
+    {
+      return outputs.get(name);
+    }
+
+    ParameterHandle get_output( string const & name )
+    {
+      return outputs.get(name);
+    }
+
+    void unset_input( string const & name ) { inputs.unset(name); }
+    void unset_output( string const & name ) { outputs.unset(name); }
+
+    bool run()
+    {
+      LoggingStack stack( string("Algoritm") );
+      outputs.clear();
+      return run_impl();
+    }
+
+  protected:
+
+    virtual bool run_impl() = 0;
+
+    ConstParameterSet inputs;
+    ParameterSet outputs;
+  };
+
+
+/*
   namespace result_of
   {
     template<typename algorithm_tag, typename mesh_type>
@@ -502,7 +573,7 @@ namespace viennamesh
       feedback.set_run_time( t.get() );
 
       return feedback;
-  }
+  }*/
 
 }
 

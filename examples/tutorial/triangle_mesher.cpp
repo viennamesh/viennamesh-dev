@@ -1,0 +1,70 @@
+#include "viennamesh/algorithm/triangle/triangle.hpp"
+#include "viennamesh/algorithm/file_writer.hpp"
+
+
+int main()
+{
+  // creating an algorithm using the Tetgen meshing library for meshing a hull
+  viennamesh::AlgorithmHandle mesher = viennamesh::AlgorithmHandle( new viennamesh::triangle::Algorithm() );
+
+  // creating an algorithm for writing a mesh to a file
+  viennamesh::AlgorithmHandle writer = viennamesh::AlgorithmHandle( new viennamesh::FileWriter() );
+
+
+  // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
+  typedef viennagrid::line_2d_mesh GeometryMeshType;
+  // Typedefing vertex handle and point type for geometry creation
+  typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
+  typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;
+
+  // creating the geometry mesh
+  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry = viennamesh::make_parameter<GeometryMeshType>();
+
+  double s = 10.0;
+  GeometryVertexHandle vtx[6];
+
+  vtx[0] = viennagrid::make_vertex( geometry->value, PointType(0, 0) );
+  vtx[1] = viennagrid::make_vertex( geometry->value, PointType(0, s) );
+  vtx[2] = viennagrid::make_vertex( geometry->value, PointType(s, 0) );
+  vtx[3] = viennagrid::make_vertex( geometry->value, PointType(s, s) );
+  vtx[4] = viennagrid::make_vertex( geometry->value, PointType(2*s, 0) );
+  vtx[5] = viennagrid::make_vertex( geometry->value, PointType(2*s, s) );
+
+  viennagrid::make_line( geometry->value, vtx[0], vtx[1] );
+
+  viennagrid::make_line( geometry->value, vtx[0], vtx[2] );
+  viennagrid::make_line( geometry->value, vtx[1], vtx[3] );
+
+  viennagrid::make_line( geometry->value, vtx[2], vtx[3] );
+
+  viennagrid::make_line( geometry->value, vtx[2], vtx[4] );
+  viennagrid::make_line( geometry->value, vtx[3], vtx[5] );
+
+  viennagrid::make_line( geometry->value, vtx[4], vtx[5] );
+
+
+  // setting the created line geometry as input for the mesher
+  mesher->set_input( "default", geometry );
+
+  // creating the seed points
+  viennamesh::SeedPoint2DContainer seed_points;
+  seed_points.push_back( std::make_pair(PointType(s/2, s/2), 0) );
+  seed_points.push_back( std::make_pair(PointType(s+s/2, s/2), 1) );
+
+  // setting the seed points as input for the mesher
+  mesher->set_input( "seed_points", seed_points );
+
+  // set the cell size parameter for the mesher
+  mesher->set_input( "cell_size", 1.0 );
+
+
+  // linking the output from the mesher to the writer
+  writer->link_input( "default", mesher, "default" );
+  // Setting the filename for the reader and writer
+  writer->set_input( "filename", "meshed_quads.vtu" );
+
+
+  // start the algorithms
+  mesher->run();
+  writer->run();
+}

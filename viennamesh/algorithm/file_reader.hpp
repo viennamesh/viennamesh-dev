@@ -1,13 +1,12 @@
 #ifndef VIENNAMESH_ALGORITHM_FILE_READER_HPP
 #define VIENNAMESH_ALGORITHM_FILE_READER_HPP
 
-#include "viennamesh/core/dynamic_algorithm.hpp"
+#include "viennamesh/core/algorithm.hpp"
 
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/netgen_reader.hpp"
 #include "viennagrid/io/tetgen_poly_reader.hpp"
-#include <boost/concept_check.hpp>
 
 
 namespace viennamesh
@@ -42,7 +41,7 @@ namespace viennamesh
       if (extension == "mesh")
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
-        typedef ParameterWrapper< MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
+        typedef ParameterWrapper< SegmentedMesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
         shared_ptr<MeshType> output( new MeshType() );
 
         viennagrid::io::netgen_reader reader;
@@ -59,14 +58,14 @@ namespace viennamesh
 
         try
         {
-          typedef ParameterWrapper< MeshWrapper<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation> > MeshType;
+          typedef ParameterWrapper< viennagrid::plc_3d_mesh > MeshType;
           typedef viennagrid::config::point_type_3d PointType;
           shared_ptr<MeshType> output( new MeshType() );
 
           std::vector<PointType> hole_points;
           std::vector< std::pair<PointType, int> > seed_points;
 
-          reader(output->value.mesh, filename, hole_points, seed_points);
+          reader(output->value, filename, hole_points, seed_points);
 
           if (!hole_points.empty())
             outputs.set("hole_points", hole_points);
@@ -79,14 +78,14 @@ namespace viennamesh
 
         try
         {
-          typedef ParameterWrapper< MeshWrapper<viennagrid::plc_2d_mesh, viennagrid::plc_2d_segmentation> > MeshType;
+          typedef ParameterWrapper< viennagrid::plc_2d_mesh > MeshType;
           typedef viennagrid::config::point_type_2d PointType;
           shared_ptr<MeshType> output( new MeshType() );
 
           std::vector<PointType> hole_points;
           std::vector< std::pair<PointType, int> > seed_points;
 
-          reader(output->value.mesh, filename, hole_points, seed_points);
+          reader(output->value, filename, hole_points, seed_points);
 
           if (!hole_points.empty())
             outputs.set("hole_points", hole_points);
@@ -168,7 +167,7 @@ namespace viennamesh
 
           if ( (geometric_dimension == 3) && (topologic_dimension == 2) )
           {
-            typedef ParameterWrapper< MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> > MeshType;
+            typedef ParameterWrapper< SegmentedMesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> > MeshType;
             shared_ptr<MeshType> output( new MeshType() );
 
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
@@ -179,7 +178,7 @@ namespace viennamesh
           }
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
           {
-            typedef ParameterWrapper< MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
+            typedef ParameterWrapper< SegmentedMesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
             shared_ptr<MeshType> output( new MeshType() );
 
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;

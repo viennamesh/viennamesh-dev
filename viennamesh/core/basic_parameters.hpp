@@ -7,70 +7,36 @@
 namespace viennamesh
 {
   template<>
-  struct static_init<bool>
+  struct static_init_impl<bool>
   {
-    typedef bool SelfT;
-
     static void init()
     {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<bool>::init" << std::endl;
-
-        Converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
-        Converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
-
-        TypeProperties::get().set_property<SelfT>( "is_scalar", "true" );
-      }
+      Converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
     }
   };
 
   template<>
-  struct static_init<int>
+  struct static_init_impl<int>
   {
-    typedef int SelfT;
-
     static void init()
     {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<int>::init" << std::endl;
-
-        Converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
-        Converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
-
-        TypeProperties::get().set_property<SelfT>( "is_scalar", "true" );
-      }
+      Converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
+      Converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
     }
   };
 
   template<>
-  struct static_init<double>
+  struct static_init_impl<double>
   {
-    typedef double SelfT;
-
     static void init()
     {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<double>::init" << std::endl;
-
-        Converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
-        Converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
-
-        TypeProperties::get().set_property<SelfT>( "is_scalar", "true" );
-      }
+      Converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
     }
   };
 
+
   template<>
-  struct static_init<string>
+  struct static_init_impl<string>
   {
     typedef string SelfT;
 
@@ -81,9 +47,9 @@ namespace viennamesh
   };
 
   template<typename WrappedMeshConfig, typename WrappedSegmentationConfig>
-  struct static_init< MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > >
+  struct static_init_impl< SegmentedMesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > >
   {
-    typedef MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > SelfT;
+    typedef SegmentedMesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > SelfT;
 
     static void init()
     {
@@ -93,9 +59,9 @@ namespace viennamesh
   };
 
   template<typename WrappedMeshConfig>
-  struct static_init< MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, NoSegmentation > >
+  struct static_init_impl< viennagrid::mesh<WrappedMeshConfig> >
   {
-    typedef MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, NoSegmentation > SelfT;
+    typedef viennagrid::mesh<WrappedMeshConfig> SelfT;
 
     static void init()
     {
@@ -107,79 +73,39 @@ namespace viennamesh
 
 
 
-  typedef std::vector< std::pair<viennagrid::config::point_type_2d, int> > seed_point_2d_container;
+  typedef std::vector< std::pair<viennagrid::config::point_type_2d, int> > SeedPoint2DContainer;
 
   template<>
-  struct static_init<seed_point_2d_container>
+  struct static_init_impl<SeedPoint2DContainer>
   {
-    typedef seed_point_2d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<seed_point_2d_container>::init" << std::endl;
-      }
-    }
+    static void init() {}
   };
 
-  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > seed_point_3d_container;
+  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > SeedPoint3DContainer;
 
   template<>
-  struct static_init<seed_point_3d_container>
+  struct static_init_impl<SeedPoint3DContainer>
   {
-    typedef seed_point_3d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<seed_point_3d_container>::init" << std::endl;
-      }
-    }
+    static void init() {}
   };
 
 
 
 
-  typedef std::vector<viennagrid::config::point_type_2d> point_2d_container;
+  typedef std::vector<viennagrid::config::point_type_2d> Point2DContainer;
 
   template<>
-  struct static_init<point_2d_container>
+  struct static_init<Point2DContainer>
   {
-    typedef point_2d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<point_2d_container>::init" << std::endl;
-      }
-    }
+    static void init() {}
   };
 
-  typedef std::vector<viennagrid::config::point_type_3d> point_3d_container;
+  typedef std::vector<viennagrid::config::point_type_3d> Point3DContainer;
 
   template<>
-  struct static_init<point_3d_container>
+  struct static_init<Point3DContainer>
   {
-    typedef point_3d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<point_3d_container>::init" << std::endl;
-      }
-    }
+    static void init() {}
   };
 
 
