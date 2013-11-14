@@ -50,8 +50,8 @@ int main()
   // creating the seed points
   // seed point constructor: seed_point_2d(x_coordinate_of_seed_point, y_coordinate_of_seed_point, segment_id)
   viennamesh::seed_point_2d_container seed_points;
-  seed_points.push_back( viennamesh::seed_point_2d(s/2, s/2, 0) );
-  seed_points.push_back( viennamesh::seed_point_2d(s+s/2, s/2, 1) );
+  seed_points.push_back( std::make_pair(PointType(s/2, s/2), 0) );
+  seed_points.push_back( std::make_pair(PointType(s+s/2, s/2), 1) );
 
   // setting the parameters
   settings.set("seed_points", seed_points);   // the seed points

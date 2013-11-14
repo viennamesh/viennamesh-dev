@@ -92,6 +92,18 @@ namespace viennamesh
     }
   };
 
+  template<typename WrappedMeshConfig>
+  struct static_init< MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, NoSegmentation > >
+  {
+    typedef MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, NoSegmentation > SelfT;
+
+    static void init()
+    {
+      TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
+      TypeProperties::get().set_property<SelfT>( "is_viennagrid", "true" );
+    }
+  };
+
 
 
 
