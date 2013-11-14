@@ -43,6 +43,11 @@ namespace viennamesh
   {
   public:
 
+    static string name()
+    {
+      return "Mesh file writer";
+    }
+
     bool run_impl()
     {
       LoggingStack stack( "Algoritm: FileWriter" );

@@ -62,11 +62,11 @@ namespace viennamesh
         Converter::get().register_conversion<SelfT, Tetrahedral3DViennaGridMesh>( &mesh_convert<SelfT, Tetrahedral3DViennaGridMesh> );
 
         TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
+        TypeProperties::get().set_property<SelfT>( "geometric_dimension", "3" );
+        TypeProperties::get().set_property<SelfT>( "cell_type", "tetrahedron" );
       }
     }
   };
-
-
 
 
 

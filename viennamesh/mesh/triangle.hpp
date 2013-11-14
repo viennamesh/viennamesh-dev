@@ -118,6 +118,39 @@ namespace viennamesh
 {
 
 
+  template<>
+  struct static_init< MeshWrapper<viennamesh::triangle_mesh, NoSegmentation> >
+  {
+    typedef MeshWrapper<viennamesh::triangle_mesh, NoSegmentation> SelfT;
+
+    static void init()
+    {
+      static bool to_init = true;
+      if (to_init)
+      {
+        to_init = false;
+        info(10) << "static_init< MeshWrapper<viennamesh::triangle_mesh, NoSegmentation> >::init" << std::endl;
+
+        typedef MeshWrapper<viennagrid::plc_2d_mesh, NoSegmentation> PLC2DViennaGridMesh;
+        typedef MeshWrapper<viennagrid::line_2d_mesh, NoSegmentation> Line2DViennaGridMesh;
+
+        typedef MeshWrapper<viennagrid::triangular_2d_mesh, NoSegmentation> Triangular2DNoSegmentationViennaGridMesh;
+        typedef MeshWrapper<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> Triangular2DViennaGridMesh;
+
+        Converter::get().register_conversion<PLC2DViennaGridMesh, SelfT>( &mesh_convert<PLC2DViennaGridMesh, SelfT> );
+        Converter::get().register_conversion<Line2DViennaGridMesh, SelfT>( &mesh_convert<Line2DViennaGridMesh, SelfT> );
+
+        Converter::get().register_conversion<SelfT, Triangular2DNoSegmentationViennaGridMesh>( &mesh_convert<SelfT, Triangular2DNoSegmentationViennaGridMesh> );
+        Converter::get().register_conversion<SelfT, Triangular2DViennaGridMesh>( &mesh_convert<SelfT, Triangular2DViennaGridMesh> );
+
+        TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
+        TypeProperties::get().set_property<SelfT>( "geometric_dimension", "2" );
+        TypeProperties::get().set_property<SelfT>( "cell_type", "triangle" );
+      }
+    }
+  };
+
+
 
   template<typename WrappedContigT>
   void triangle_convert_generic( viennagrid::mesh<WrappedContigT> const & input, triangle_mesh & output )

@@ -18,6 +18,11 @@ namespace viennamesh
   {
   public:
 
+    static string name()
+    {
+      return "ViennaGrid FileReader";
+    }
+
     bool run_impl()
     {
       LoggingStack stack( "Algoritm: FileReader" );

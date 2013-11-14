@@ -29,7 +29,7 @@ namespace viennamesh
 
 
 
-  class BaseAlgorithm
+  class BaseAlgorithm : public enable_shared_from_this<BaseAlgorithm>
   {
   public:
     virtual ~BaseAlgorithm() {}
@@ -99,6 +99,11 @@ namespace viennamesh
     {
       static_init<NativeInputMeshWrapperType>::init();
       static_init<NativeOutputMeshWrapperType>::init();
+    }
+
+    static string name()
+    {
+      return result_of::algorithm_info<AlgorithmTagT>::name();
     }
 
     bool run_impl()

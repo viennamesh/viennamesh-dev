@@ -101,5 +101,8 @@ target_link_libraries(dynamic_mesh ${CGAL_LIBS} tetgen)
 add_executable(dynamic_geometry dynamic_geometry.cpp)
 target_link_libraries(dynamic_geometry ${CGAL_LIBS} tetgen)
 
+add_executable(algorithm_factory algorithm_factory.cpp)
+target_link_libraries(algorithm_factory ${CGAL_LIBS} tetgen)
+
 
 add_executable(logger logger.cpp)
