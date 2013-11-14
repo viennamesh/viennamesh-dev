@@ -61,40 +61,40 @@ namespace viennamesh
     {
       typedef NoSegmentation type;
     };
-  }
+  } // result_of
 
 
 
-  struct seed_point_2d
-  {
-    seed_point_2d(double x, double y, int segment_id_) : segment_id(segment_id_)
-    {
-      point[0] = x;
-      point[1] = y;
-    }
+//  struct seed_point_2d
+//  {
+//    seed_point_2d(double x, double y, int segment_id_) : segment_id(segment_id_)
+//    {
+//      point[0] = x;
+//      point[1] = y;
+//    }
 
-    double point[2];
-    int segment_id;
-  };
+//    double point[2];
+//    int segment_id;
+//  };
 
-  typedef std::vector<seed_point_2d> seed_point_2d_container;
+//  typedef std::vector<seed_point_2d> seed_point_2d_container;
 
 
-  template<>
-  struct static_init<seed_point_2d_container>
-  {
-    typedef seed_point_2d_container SelfT;
+//  template<>
+//  struct static_init<seed_point_2d_container>
+//  {
+//    typedef seed_point_2d_container SelfT;
 
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<seed_point_2d_container>::init" << std::endl;
-      }
-    }
-  };
+//    static void init()
+//    {
+//      static bool to_init = true;
+//      if (to_init)
+//      {
+//        to_init = false;
+//        info(10) << "static_init<seed_point_2d_container>::init" << std::endl;
+//      }
+//    }
+//  };
 
 
   template<>
@@ -130,12 +130,16 @@ namespace viennamesh
         if (tmp.regionlist) free(tmp.regionlist);
         tmp.regionlist = (REAL*)malloc( 4*sizeof(REAL)*tmp.numberofregions );
 
-        for (int i = 0; i < seed_points.size(); ++i)
+        for (unsigned int i = 0; i < seed_points.size(); ++i)
         {
-          tmp.regionlist[4*i+0] = seed_points[i].point[0];
-          tmp.regionlist[4*i+1] = seed_points[i].point[1];
-          tmp.regionlist[4*i+2] = REAL(seed_points[i].segment_id);
-          tmp.regionlist[4*i+3] = REAL(seed_points[i].segment_id);
+          tmp.regionlist[4*i+0] = seed_points[i].first[0];
+          tmp.regionlist[4*i+1] = seed_points[i].first[1];
+          tmp.regionlist[4*i+2] = REAL(seed_points[i].second);
+          tmp.regionlist[4*i+3] = REAL(seed_points[i].second);
+//          tmp.regionlist[4*i+0] = seed_points[i].point[0];
+//          tmp.regionlist[4*i+1] = seed_points[i].point[1];
+//          tmp.regionlist[4*i+2] = REAL(seed_points[i].segment_id);
+//          tmp.regionlist[4*i+3] = REAL(seed_points[i].segment_id);
         }
 
         options << "A";
@@ -166,6 +170,6 @@ namespace viennamesh
 
 
 
-}
+} // viennamesh
 
 #endif
