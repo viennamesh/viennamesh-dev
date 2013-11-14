@@ -9,7 +9,6 @@
 #define VOID int
 #define ANSI_DECLARATORS
 #define TRILIBRARY
-#include "../../core/dynamic_algorithm.hpp"
 extern "C"
 {
   #include "triangle/triangle.h"

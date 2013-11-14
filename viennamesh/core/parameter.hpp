@@ -1,13 +1,10 @@
 #ifndef VIENNAMESH_CORE_PARAMETER_HPP
 #define VIENNAMESH_CORE_PARAMETER_HPP
 
-
 #include <vector>
 
 #include "viennamesh/forwards.hpp"
-#include "viennamesh/core/convert.hpp"
 #include "viennamesh/utils/logger.hpp"
-
 
 
 namespace viennamesh
