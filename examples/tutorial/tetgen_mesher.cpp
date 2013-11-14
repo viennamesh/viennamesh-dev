@@ -19,8 +19,12 @@ int main()
   mesher->link_input( "default", reader, "default" );
   mesher->link_input( "seed_points", reader, "seed_points" );
   mesher->link_input( "hole_points", reader, "hole_points" );
-  // set the cell size parameter for the mesher
-  mesher->set_input( "cell_size", 1.0 );
+
+
+  // setting the mesher paramters
+  mesher->set_input( "cell_size", 1.0 );              // maximum cell size
+  mesher->set_input( "max_radius_edge_ratio", 1.5 );  // maximum radius edge ratio
+  mesher->set_input( "min_dihedral_angle", 0.17 );     // minimum dihedral angle in radiant, 0.17 are about 10 degrees
 
   // linking the output from the mesher to the writer
   writer->link_input( "default", mesher, "default" );

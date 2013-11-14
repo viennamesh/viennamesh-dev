@@ -21,7 +21,7 @@ int main()
   viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry = viennamesh::make_parameter<GeometryMeshType>();
 
   double s = 10.0;
-  GeometryVertexHandle vtx[6];
+  GeometryVertexHandle vtx[10];
 
   vtx[0] = viennagrid::make_vertex( geometry->value, PointType(0, 0) );
   vtx[1] = viennagrid::make_vertex( geometry->value, PointType(0, s) );
@@ -29,6 +29,12 @@ int main()
   vtx[3] = viennagrid::make_vertex( geometry->value, PointType(s, s) );
   vtx[4] = viennagrid::make_vertex( geometry->value, PointType(2*s, 0) );
   vtx[5] = viennagrid::make_vertex( geometry->value, PointType(2*s, s) );
+
+  vtx[6] = viennagrid::make_vertex( geometry->value, PointType(s/3, s/3) );
+  vtx[7] = viennagrid::make_vertex( geometry->value, PointType(s/3, 2*s/3) );
+  vtx[8] = viennagrid::make_vertex( geometry->value, PointType(2*s/3, s/3) );
+  vtx[9] = viennagrid::make_vertex( geometry->value, PointType(2*s/3, 2*s/3) );
+
 
   viennagrid::make_line( geometry->value, vtx[0], vtx[1] );
 
@@ -42,20 +48,35 @@ int main()
 
   viennagrid::make_line( geometry->value, vtx[4], vtx[5] );
 
+  viennagrid::make_line( geometry->value, vtx[6], vtx[7] );
+
+  viennagrid::make_line( geometry->value, vtx[6], vtx[8] );
+  viennagrid::make_line( geometry->value, vtx[7], vtx[9] );
+
+  viennagrid::make_line( geometry->value, vtx[8], vtx[9] );
+
 
   // setting the created line geometry as input for the mesher
   mesher->set_input( "default", geometry );
 
   // creating the seed points
   viennamesh::SeedPoint2DContainer seed_points;
-  seed_points.push_back( std::make_pair(PointType(s/2, s/2), 0) );
+  seed_points.push_back( std::make_pair(PointType(s/4, s/2), 0) );
   seed_points.push_back( std::make_pair(PointType(s+s/2, s/2), 1) );
 
-  // setting the seed points as input for the mesher
-  mesher->set_input( "seed_points", seed_points );
+  // creating the hole points
+  viennamesh::Point2DContainer hole_points;
+  hole_points.push_back( PointType(s/2, s/2) );
 
-  // set the cell size parameter for the mesher
-  mesher->set_input( "cell_size", 1.0 );
+  // setting the seed points and hole points as input for the mesher
+  mesher->set_input( "seed_points", seed_points );
+  mesher->set_input( "hole_points", hole_points );
+
+  // setting the mesher paramters
+  mesher->set_input( "cell_size", 1.0 );      // maximum cell size
+  mesher->set_input( "min_angle", 0.35 );     // minimum angle in radiant, 0.35 are about 20 degrees
+  mesher->set_input( "delaunay", true  );     // we want a Delaunay triangulation
+  mesher->set_input( "algorithm_type", "incremental_delaunay" );  // incremental Delaunay algorithm is used
 
 
   // linking the output from the mesher to the writer
