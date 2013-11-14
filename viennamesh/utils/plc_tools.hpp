@@ -82,7 +82,7 @@ namespace viennamesh
     {
       if (vertex_used_counter[vit->id()] == 0)
       {
-        std::cout << "Some might be wrong?" << std::endl;
+        std::cout << "Something might be wrong?" << std::endl;
         continue;
       }
 
