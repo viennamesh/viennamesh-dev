@@ -50,6 +50,12 @@ namespace viennamesh
     };
   }
 
+  typedef result_of::parameter_handle<bool>::type BoolParameterHandle;
+  typedef result_of::const_parameter_handle<bool>::type ConstBoolParameterHandle;
+
+  typedef result_of::parameter_handle<int>::type IntParameterHandle;
+  typedef result_of::const_parameter_handle<int>::type ConstIntParameterHandle;
+
   typedef result_of::parameter_handle<double>::type DoubleParameterHandle;
   typedef result_of::const_parameter_handle<double>::type ConstDoubleParameterHandle;
 
@@ -311,7 +317,7 @@ namespace viennamesh
     { return convert_function(input, output); }
     template<typename ValueT>
     bool is_convertable( ConstParameterHandle const & input )
-    { return convert_function< ParameterWrapper<ValueT> >(input); }
+    { return convert_function<ValueT>(input); }
 
     bool convert( ConstParameterHandle const & input, ParameterHandle const & output )
     {
@@ -403,7 +409,8 @@ namespace viennamesh
   template<typename ParameterT>
   struct static_init_impl
   {
-    static void init();
+    // default implementation is empty! spezialise this class if you want something special
+    static void init() {}
   };
 
 
@@ -430,9 +437,6 @@ namespace viennamesh
   class BaseParameter : public enable_shared_from_this<BaseParameter>
   {
   public:
-
-    template<typename TypeT>
-    friend class static_init;
 
     virtual ~BaseParameter() {}
 
@@ -763,7 +767,7 @@ namespace viennamesh
     template<typename ValueT>
     typename result_of::parameter_handle<ValueT>::type get( string const & name )
     {
-      ConstParameterHandle handle = get(name);
+      ParameterHandle handle = get(name);
       if (!handle) return typename result_of::parameter_handle<ValueT>::type();
       typename result_of::parameter_handle<ValueT>::type result = dynamic_handle_cast<ValueT>(handle);
 
