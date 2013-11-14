@@ -130,7 +130,7 @@ namespace viennamesh
         if (tmp.regionlist) free(tmp.regionlist);
         tmp.regionlist = (REAL*)malloc( 4*sizeof(REAL)*tmp.numberofregions );
 
-        for (int i = 0; i < seed_points.size(); ++i)
+        for (unsigned int i = 0; i < seed_points.size(); ++i)
         {
           tmp.regionlist[4*i+0] = seed_points[i].point[0];
           tmp.regionlist[4*i+1] = seed_points[i].point[1];

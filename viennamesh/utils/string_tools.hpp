@@ -44,7 +44,7 @@ namespace stringtools
     }
 
     std::string::size_type end = str.size()-1;
-    for (; end != -1; --end)
+    for (; end != std::size_t(-1); --end)
     {
       char const & cur = str[end];
       if ((cur != ' ') && (cur != '\n') && (cur != '\t'))
