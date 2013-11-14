@@ -5,6 +5,7 @@
 
 #include "viennamesh/utils/plc_tools.hpp"
 
+#define TETLIBRARY
 #include "tetgen/tetgen.h"
 
 
@@ -98,14 +99,13 @@ namespace viennamesh
         else
           facet.holelist = 0;
 
-        int polygon_index = 0;
-        for (int polygon_index = 0; polygon_index != polygons.size(); ++polygon_index)
+        for (std::size_t polygon_index = 0; polygon_index != polygons.size(); ++polygon_index)
         {
           tetgenio::polygon & polygon = facet.polygonlist[polygon_index];
           polygon.numberofvertices = polygons[polygon_index].size();
           polygon.vertexlist = new int[ polygons[polygon_index].size() ];
 
-          for (int vertex_index = 0; vertex_index != polygons[polygon_index].size(); ++vertex_index)
+          for (std::size_t vertex_index = 0; vertex_index != polygons[polygon_index].size(); ++vertex_index)
             polygon.vertexlist[vertex_index] = vertex_handle_to_tetgen_index_map[ polygons[polygon_index][vertex_index] ];
         }
       }
@@ -282,10 +282,10 @@ namespace viennamesh
     {
     public:
 
+      string name() const { return "Tetgen 1.4 mesher"; }
+
       bool run_impl()
       {
-        ConstDoubleParameterHandle param;
-
         viennamesh::result_of::const_parameter_handle<tetgen::InputMesh>::type input_mesh = inputs.get<tetgen::InputMesh>("default");
 
         if (!input_mesh)
@@ -294,42 +294,61 @@ namespace viennamesh
           return false;
         }
 
-        tetgenbehavior tetgen_settings;
-  //             tetgen_settings.quiet = 1;
-        tetgen_settings.plc = 1;
+        std::ostringstream options;
+        options << "zp";
 
-        param = inputs.get<double>("cell_radius_edge_ratio");
-        if (param)
-        {
-          tetgen_settings.quality = 1;
-          tetgen_settings.minratio = param->value;
-        }
+        ConstDoubleParameterHandle cell_size = inputs.get<double>("cell_size");
+        if (cell_size)
+          options << "a" << cell_size->value;
 
-        param = inputs.get<double>("cell_size");
-        if (param)
-        {
-          tetgen_settings.fixedvolume = 1;
-          tetgen_settings.maxvolume = param->value;
-        }
+        ConstDoubleParameterHandle max_radius_edge_ratio = inputs.get<double>("max_radius_edge_ratio");
+        ConstDoubleParameterHandle min_dihedral_angle = inputs.get<double>("min_dihedral_angle");
 
-        tetgen_settings.steiner = -1;     // Steiner Points?? -1 = unlimited, 0 = no steiner points
-  //      tetgen_settings.metric = 1;
-  //      const_cast<tetgenio::TetSizeFunc&>(native_input_mesh.tetunsuitable) = test_volume;
+        if (max_radius_edge_ratio && min_dihedral_angle)
+          options << "q" << max_radius_edge_ratio->value << "q" << min_dihedral_angle->value / M_PI * 180.0;
+        else if (max_radius_edge_ratio)
+          options << "q" << max_radius_edge_ratio->value;
+        else if (min_dihedral_angle)
+          options << "qq" << min_dihedral_angle->value / M_PI * 180.0;
 
 
-        tetgen_settings.useshelles = tetgen_settings.plc || tetgen_settings.refine || tetgen_settings.coarse || tetgen_settings.quality; // tetgen.cxx:3008
-        tetgen_settings.goodratio = tetgen_settings.minratio; // tetgen.cxx:3009
-        tetgen_settings.goodratio *= tetgen_settings.goodratio; // tetgen.cxx:3010
 
-        // tetgen.cxx:3040
-        if (tetgen_settings.fixedvolume || tetgen_settings.varvolume) {
-          if (tetgen_settings.quality == 0) {
-            tetgen_settings.quality = 1;
-          }
-        }
-
-        tetgen_settings.goodangle = cos(tetgen_settings.minangle * tetgenmesh::PI / 180.0);   // tetgen.cxx:3046
-        tetgen_settings.goodangle *= tetgen_settings.goodangle;                               // tetgen.cxx:3047
+//         tetgenbehavior tetgen_settings;
+//   //             tetgen_settings.quiet = 1;
+//         tetgen_settings.plc = 1;
+//
+//         param = inputs.get<double>("cell_radius_edge_ratio");
+//         if (param)
+//         {
+//           tetgen_settings.quality = 1;
+//           tetgen_settings.minratio = param->value;
+//         }
+//
+//         param = inputs.get<double>("cell_size");
+//         if (param)
+//         {
+//           tetgen_settings.fixedvolume = 1;
+//           tetgen_settings.maxvolume = param->value;
+//         }
+//
+//         tetgen_settings.steiner = -1;     // Steiner Points?? -1 = unlimited, 0 = no steiner points
+//   //      tetgen_settings.metric = 1;
+//   //      const_cast<tetgenio::TetSizeFunc&>(native_input_mesh.tetunsuitable) = test_volume;
+//
+//
+//         tetgen_settings.useshelles = tetgen_settings.plc || tetgen_settings.refine || tetgen_settings.coarse || tetgen_settings.quality; // tetgen.cxx:3008
+//         tetgen_settings.goodratio = tetgen_settings.minratio; // tetgen.cxx:3009
+//         tetgen_settings.goodratio *= tetgen_settings.goodratio; // tetgen.cxx:3010
+//
+//         // tetgen.cxx:3040
+//         if (tetgen_settings.fixedvolume || tetgen_settings.varvolume) {
+//           if (tetgen_settings.quality == 0) {
+//             tetgen_settings.quality = 1;
+//           }
+//         }
+//
+//         tetgen_settings.goodangle = cos(tetgen_settings.minangle * tetgenmesh::PI / 180.0);   // tetgen.cxx:3046
+//         tetgen_settings.goodangle *= tetgen_settings.goodangle;                               // tetgen.cxx:3047
 
 
         tetgenio & tmp = (tetgenio&)input_mesh->value;
@@ -350,24 +369,27 @@ namespace viennamesh
         ConstSeedPointContainerHandle seed_points_handle = inputs.get<SeedPoint3DContainer>("seed_points");
         if (seed_points_handle && !seed_points_handle->value.empty())
         {
-          std::cout << "Found seed points" << std::endl;
+          info(5) << "Found seed points" << std::endl;
 
           SeedPoint3DContainer const & seed_points = seed_points_handle->value;
 
-          tmp.numberofregions = seed_points.size();
-          tmp.regionlist = new REAL[5 * seed_points.size()];
+          REAL * tmp_regionlist = new REAL[5 * (seed_points.size() + tmp.numberofregions)];
+          memcpy( tmp_regionlist, tmp.regionlist, sizeof(REAL)*5*tmp.numberofregions );
 
-          for (int i = 0; i < seed_points.size(); ++i)
+          for (std::size_t i = 0; i < seed_points.size(); ++i)
           {
-            std::cout << "  Seed Point " << seed_points[i].first << " for segment " << seed_points[i].second << std::endl;
-            tmp.regionlist[5*i+0] = seed_points[i].first[0];
-            tmp.regionlist[5*i+1] = seed_points[i].first[1];
-            tmp.regionlist[5*i+2] = seed_points[i].first[2];
-            tmp.regionlist[5*i+3] = REAL(seed_points[i].second);
-            tmp.regionlist[5*i+4] = REAL(seed_points[i].second);
+            tmp_regionlist[5*(tmp.numberofregions+i)+0] = seed_points[i].first[0];
+            tmp_regionlist[5*(tmp.numberofregions+i)+1] = seed_points[i].first[1];
+            tmp_regionlist[5*(tmp.numberofregions+i)+2] = seed_points[i].first[2];
+            tmp_regionlist[5*(tmp.numberofregions+i)+3] = REAL(seed_points[i].second);
+            tmp_regionlist[5*(tmp.numberofregions+i)+4] = 0;
           }
 
-          tetgen_settings.regionattrib = 1;
+          tmp.numberofregions += seed_points.size();
+          tmp.regionlist = tmp_regionlist;
+
+//           tetgen_settings.regionattrib = 1;
+          options << "A";
         }
 
 
@@ -375,33 +397,40 @@ namespace viennamesh
         ConstPointContainerHandle hole_points_handle = inputs.get<Point3DContainer>("hole_points");
         if (hole_points_handle && !hole_points_handle->value.empty())
         {
-          std::cout << "Found hole points" << std::endl;
+          info(5) << "Found hole points" << std::endl;
 
           Point3DContainer const & hole_points = hole_points_handle->value;
 
-          tmp.numberofholes = hole_points.size();
-          tmp.holelist = new REAL[3 * hole_points.size()];
 
-          for (int i = 0; i < hole_points.size(); ++i)
+          REAL * tmp_holelist = new REAL[3 * (hole_points.size() + tmp.numberofholes)];
+          memcpy( tmp_holelist, tmp.holelist, sizeof(REAL)*3*tmp.numberofholes );
+
+          for (std::size_t i = 0; i < hole_points.size(); ++i)
           {
-            std::cout << "  Hole Point " << hole_points[i] << std::endl;
-            tmp.holelist[3*i+0] = hole_points[i][0];
-            tmp.holelist[3*i+1] = hole_points[i][1];
-            tmp.holelist[3*i+2] = hole_points[i][2];
+            tmp_holelist[3*(tmp.numberofholes+i)+0] = hole_points[i][0];
+            tmp_holelist[3*(tmp.numberofholes+i)+1] = hole_points[i][1];
+            tmp_holelist[3*(tmp.numberofholes+i)+2] = hole_points[i][2];
           }
+
+          tmp.numberofholes += hole_points.size();
+          tmp.holelist = tmp_holelist;
         }
 
         viennamesh::result_of::parameter_handle<tetgen::OutputMesh>::type output_mesh = make_parameter<tetgen::OutputMesh>();
 
+        char * buffer = new char[options.str().length()];
+        std::strcpy(buffer, options.str().c_str());
 
         viennautils::StdCapture capture;
         capture.start();
 
-        tetrahedralize(&tetgen_settings, &tmp, &output_mesh->value);
+//         tetrahedralize(&tetgen_settings, &tmp, &output_mesh->value);
+        tetrahedralize(buffer, &tmp, &output_mesh->value);
 
         capture.finish();
         info(5) << capture.get() << std::endl;
 
+        delete[] buffer;
         delete[] tmp.regionlist;
         delete[] tmp.holelist;
 
@@ -411,7 +440,7 @@ namespace viennamesh
         tmp.numberofholes = old_numberofholes;
         tmp.holelist = old_holelist;
 
-        outputs.get_create("default") = output_mesh;
+        outputs.set( "default", output_mesh );
 
         return true;
       }

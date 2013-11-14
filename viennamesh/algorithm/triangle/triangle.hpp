@@ -68,10 +68,6 @@ namespace viennamesh
         if (mesh.segmentlist) free(mesh.segmentlist);
         if (mesh.segmentmarkerlist) free(mesh.segmentmarkerlist);
 
-        if (mesh.holelist) free(mesh.holelist);
-
-        if (mesh.regionlist) free(mesh.regionlist);
-
         if (mesh.edgelist) free(mesh.edgelist);
         if (mesh.edgemarkerlist) free(mesh.edgemarkerlist);
         if (mesh.normlist) free(mesh.normlist);
@@ -91,25 +87,18 @@ namespace viennamesh
         mesh.numberofsegments = num_segments;
       }
 
-      void init_regions(int num_regions)
-      {
-        if (mesh.regionlist) free(mesh.regionlist);
-        mesh.regionlist = (REAL*)malloc( sizeof(REAL) * 4 * num_regions);
-        mesh.numberofregions = num_regions;
-      }
-
-      void init_holes(int num_holes)
-      {
-        if (mesh.holelist) free(mesh.holelist);
-        mesh.holelist = (REAL*)malloc( sizeof(REAL) * 2 * num_holes);
-        mesh.numberofholes = num_holes;
-      }
-
       triangulateio mesh;
     };
 
     class InputMesh : public BaseMesh
-    {};
+    {
+    public:
+      ~InputMesh()
+      {
+        if (mesh.holelist) free(mesh.holelist);
+        if (mesh.regionlist) free(mesh.regionlist);
+      }
+    };
 
     class OutputMesh : public BaseMesh
     {};
@@ -182,8 +171,6 @@ namespace viennamesh
 
       std::vector<VertexHandleType> vertex_handles(input.mesh.numberofpoints);
 
-      std::cout << "Num attribs: " << input.mesh.numberoftriangleattributes << std::endl;
-
       for (int i = 0; i < input.mesh.numberofpoints; ++i)
       {
         PointType point;
@@ -197,9 +184,6 @@ namespace viennamesh
 
       for (int i = 0; i < input.mesh.numberoftriangles; ++i)
       {
-        if (input.mesh.numberoftriangleattributes > 0)
-          std::cout << input.mesh.triangleattributelist[i] << std::endl;
-
         viennagrid::make_triangle(
           output,
           vertex_handles[ input.mesh.trianglelist[3*i+0] ],
@@ -266,10 +250,10 @@ namespace viennamesh
     {
     public:
 
+      string name() const { return "Triangle 1.6 mesher"; }
+
       bool run_impl()
       {
-        ConstDoubleParameterHandle param;
-
         viennamesh::result_of::const_parameter_handle<triangle::InputMesh>::type input_mesh = inputs.get<triangle::InputMesh>("default");
 
         if (!input_mesh)
@@ -279,43 +263,94 @@ namespace viennamesh
         }
 
         std::ostringstream options;
-        options << "zpDq";
-        param = inputs.get<double>("min_angle");
-        if (param)
-          options << param->value;
+        options << "zp";
+
+        ConstDoubleParameterHandle min_angle = inputs.get<double>("min_angle");
+        if (min_angle)
+          options << "q" << min_angle->value / M_PI * 180.0;
+
+
+        ConstDoubleParameterHandle cell_size = inputs.get<double>("cell_size");
+        if (cell_size)
+          options << "a" << cell_size->value;
+
+        ConstBoolParameterHandle delaunay = inputs.get<bool>("delaunay");
+        if (delaunay && delaunay->value)
+          options << "D";
+
+
+        ConstStringParameterHandle algorithm_type = inputs.get<string>("algorithm_type");
+        if (algorithm_type)
+        {
+          if (algorithm_type->value == "incremental_delaunay")
+            options << "i";
+          else if (algorithm_type->value == "sweepline")
+            options << "F";
+          else if (algorithm_type->value == "devide_and_conquer")
+          {}
+          else
+          {
+            warning(5) << "Algorithm not recognized: '" << algorithm_type->value << "' supported algorithms:" << std::endl;
+            warning(5) << "  'incremental_delaunay'" << std::endl;
+            warning(5) << "  'sweepline'" << std::endl;
+            warning(5) << "  'devide_and_conquer'" << std::endl;
+          }
+        }
+
 
         triangulateio tmp = input_mesh->value.mesh;
 
+        REAL * tmp_regionlist = NULL;
+        REAL * tmp_holelist = NULL;
 
         typedef viennamesh::result_of::const_parameter_handle<SeedPoint2DContainer>::type ConstSeedPointContainerHandle;
-
         ConstSeedPointContainerHandle seed_points_handle = inputs.get<SeedPoint2DContainer>("seed_points");
-        if (seed_points_handle)
+        if (seed_points_handle && !seed_points_handle->value.empty())
         {
-          info(5) << "Using seed points" << std::endl;
-
+          info(5) << "Found seed points" << std::endl;
           SeedPoint2DContainer const & seed_points = seed_points_handle->value;
 
-          tmp.numberofregions = seed_points.size();
-          if (tmp.regionlist) free(tmp.regionlist);
-          tmp.regionlist = (REAL*)malloc( 4*sizeof(REAL)*tmp.numberofregions );
+          tmp_regionlist = (REAL*)malloc( 4*sizeof(REAL)*(tmp.numberofregions+seed_points.size()) );
+          memcpy( tmp_regionlist, tmp.regionlist, 4*sizeof(REAL)*tmp.numberofregions );
 
           for (unsigned int i = 0; i < seed_points.size(); ++i)
           {
-            tmp.regionlist[4*i+0] = seed_points[i].first[0];
-            tmp.regionlist[4*i+1] = seed_points[i].first[1];
-            tmp.regionlist[4*i+2] = REAL(seed_points[i].second);
-            tmp.regionlist[4*i+3] = REAL(seed_points[i].second);
+            tmp_regionlist[4*(i+tmp.numberofregions)+0] = seed_points[i].first[0];
+            tmp_regionlist[4*(i+tmp.numberofregions)+1] = seed_points[i].first[1];
+            tmp_regionlist[4*(i+tmp.numberofregions)+2] = REAL(seed_points[i].second);
+            tmp_regionlist[4*(i+tmp.numberofregions)+3] = 0;
           }
+
+          tmp.numberofregions += seed_points.size();
+          tmp.regionlist = tmp_regionlist;
 
           options << "A";
         }
 
-        param = inputs.get<double>("cell_size");
-        if (param)
-          options << "a" << param->value;
 
-        char * buffer = (char *)malloc( options.str().length() * sizeof(char) );
+        typedef viennamesh::result_of::const_parameter_handle<Point2DContainer>::type ConstPointContainerHandle;
+        ConstPointContainerHandle hole_points_handle = inputs.get<Point2DContainer>("hole_points");
+        if (hole_points_handle && !hole_points_handle->value.empty())
+        {
+          info(5) << "Found hole points" << std::endl;
+          Point2DContainer const & hole_points = hole_points_handle->value;
+
+          tmp_holelist = (REAL*)malloc( 2*sizeof(REAL)*(tmp.numberofholes+hole_points.size()) );
+          memcpy( tmp_holelist, tmp.holelist, 2*sizeof(REAL)*tmp.numberofholes );
+
+          for (std::size_t i = 0; i < hole_points.size(); ++i)
+          {
+            tmp_holelist[2*(tmp.numberofholes+i)+0] = hole_points[i][0];
+            tmp_holelist[2*(tmp.numberofholes+i)+1] = hole_points[i][1];
+          }
+
+          tmp.numberofholes += hole_points.size();
+          tmp.holelist = tmp_holelist;
+        }
+
+
+
+        char * buffer = new char[options.str().length()];
         std::strcpy(buffer, options.str().c_str());
 
         viennamesh::result_of::parameter_handle<triangle::OutputMesh>::type output_mesh = make_parameter<triangle::OutputMesh>();
@@ -328,9 +363,13 @@ namespace viennamesh
         capture.finish();
         info(5) << capture.get() << std::endl;
 
-        free(buffer);
+        delete[] buffer;
+        if (seed_points_handle && !seed_points_handle->value.empty())
+          free(tmp_regionlist);
+        if (hole_points_handle && !hole_points_handle->value.empty())
+          free(tmp_holelist);
 
-        outputs.get_create("default") = output_mesh;
+        outputs.set( "default", output_mesh );
 
         return true;
       }
