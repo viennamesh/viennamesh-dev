@@ -524,13 +524,13 @@ namespace viennamesh
     return logger_;
   }
 
-  log_instance<info_tag> info(int log_level, std::string const & category  = "")
+  inline log_instance<info_tag> info(int log_level, std::string const & category  = "")
   { return logger().info(log_level, category); }
-  log_instance<error_tag> error(int log_level, std::string const & category  = "")
+  inline log_instance<error_tag> error(int log_level, std::string const & category  = "")
   { return logger().error(log_level, category); }
-  log_instance<warning_tag> warning(int log_level, std::string const & category  = "")
+  inline log_instance<warning_tag> warning(int log_level, std::string const & category  = "")
   { return logger().warning(log_level, category); }
-  log_instance<debug_tag> debug(int log_level, std::string const & category  = "")
+  inline log_instance<debug_tag> debug(int log_level, std::string const & category  = "")
   { return logger().debug(log_level, category); }
 
 
