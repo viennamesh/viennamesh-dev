@@ -7,7 +7,7 @@
 namespace stringtools
 {
 
-  std::list<std::string> split_string( std::string const & str, std::string const & delimiter )
+  inline std::list<std::string> split_string( std::string const & str, std::string const & delimiter )
   {
     std::list<std::string> tokens;
 
@@ -33,7 +33,7 @@ namespace stringtools
     return std::list<std::string>();
   }
 
-  std::string remove_begin_end_chars( std::string const & str )
+  inline std::string remove_begin_end_chars( std::string const & str )
   {
     std::string::size_type start = 0;
     for (; start != str.size(); ++start)
@@ -56,7 +56,7 @@ namespace stringtools
 
 
   template<typename stream_type>
-  std::string read_stream( stream_type & stream )
+  inline std::string read_stream( stream_type & stream )
   {
     std::string line;
     std::string tmp;

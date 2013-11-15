@@ -466,10 +466,10 @@ namespace viennamesh
   };
 
 
-  bool is_convertable( ConstParameterHandle const & source, ParameterHandle & destination )
+  inline bool is_convertable( ConstParameterHandle const & source, ParameterHandle & destination )
   { return Converter::get().is_convertable( source, destination ); }
 
-  bool convert( ConstParameterHandle const & source, ParameterHandle & destination )
+  inline bool convert( ConstParameterHandle const & source, ParameterHandle & destination )
   {
     return Converter::get().convert( source, destination );
   }
@@ -546,10 +546,10 @@ namespace viennamesh
 
 
 
-  type_info_wrapper Converter::get_type_id( ConstParameterHandle const & tmp )
+  inline type_info_wrapper Converter::get_type_id( ConstParameterHandle const & tmp )
   { return typeid(*tmp); }
 
-  shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input, ConstParameterHandle const & output_mesh )
+  inline shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input, ConstParameterHandle const & output_mesh )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -565,7 +565,7 @@ namespace viennamesh
   }
 
   template<typename ValueT>
-  shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input )
+  inline shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input )
   {
     static_init<ValueT>::init();
 
@@ -582,7 +582,7 @@ namespace viennamesh
     return shared_ptr<BaseConversionFunction>();
   }
 
-  shared_ptr<BaseConversionFunction> Converter::best_convert_function( ConstParameterHandle const & input, std::map<string, string> const & properties )
+  inline shared_ptr<BaseConversionFunction> Converter::best_convert_function( ConstParameterHandle const & input, std::map<string, string> const & properties )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -609,7 +609,7 @@ namespace viennamesh
     return shared_ptr<BaseConversionFunction>();
   }
 
-  shared_ptr<BaseConversionFunction> Converter::best_convert_function( ConstParameterHandle const & input, string const & property_key, string const & property_value )
+  inline shared_ptr<BaseConversionFunction> Converter::best_convert_function( ConstParameterHandle const & input, string const & property_key, string const & property_value )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -638,7 +638,7 @@ namespace viennamesh
 
 
 
-  void Converter::print_conversions(ConstParameterHandle const & input) const
+  inline void Converter::print_conversions(ConstParameterHandle const & input) const
   {
     LoggingStack ls("Supported conversion functions");
     info(10) << "Source type: [" << &typeid(*input) << "] " << std::endl;
@@ -906,23 +906,23 @@ namespace viennamesh
   };
 
 
-  ParameterHandle ParameterLink::unpack()
+  inline ParameterHandle ParameterLink::unpack()
   {
     return parameter_set.get(parameter_name);
   }
 
-  ConstParameterHandle ParameterLink::unpack() const
+  inline ConstParameterHandle ParameterLink::unpack() const
   {
     return parameter_set.get(parameter_name);
   }
 
 
-  ParameterHandle ConstParameterLink::unpack()
+  inline ParameterHandle ConstParameterLink::unpack()
   {
     return ParameterHandle();
   }
 
-  ConstParameterHandle ConstParameterLink::unpack() const
+  inline ConstParameterHandle ConstParameterLink::unpack() const
   {
     return parameter_set.get(parameter_name);
   }
