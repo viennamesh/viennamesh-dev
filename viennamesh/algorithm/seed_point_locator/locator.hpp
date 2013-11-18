@@ -2,8 +2,8 @@
 #define VIENNAMESH_ALGORITHM_SEED_POINT_LOCATOR_SEED_POINT_LOCATOR_HPP
 
 #include "viennamesh/core/algorithm.hpp"
-#include "viennamesh/algorithm/triangle/triangle.hpp"
-#include "viennamesh/algorithm/tetgen/tetgen.hpp"
+#include "viennamesh/algorithm/triangle.hpp"
+#include "viennamesh/algorithm/tetgen.hpp"
 
 #include "viennagrid/algorithm/centroid.hpp"
 

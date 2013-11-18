@@ -1,4 +1,4 @@
-#include "viennamesh/algorithm/triangle/triangle.hpp"
+#include "viennamesh/algorithm/triangle.hpp"
 #include "viennamesh/algorithm/file_writer.hpp"
 
 

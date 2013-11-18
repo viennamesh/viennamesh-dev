@@ -1,4 +1,4 @@
-#include "viennamesh/algorithm/tetgen/tetgen.hpp"
+#include "viennamesh/algorithm/tetgen.hpp"
 #include "viennamesh/algorithm/file_reader.hpp"
 #include "viennamesh/algorithm/file_writer.hpp"
 
