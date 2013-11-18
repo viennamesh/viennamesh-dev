@@ -197,7 +197,7 @@ namespace viennamesh
 
 
 
-    static bool convert(triangle::OutputMesh const & input, SegmentedMesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> & output)
+    static bool convert(triangle::OutputMesh const & input, viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> & output)
     {
       typedef viennagrid::triangular_2d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
@@ -409,7 +409,7 @@ namespace viennamesh
     static void init()
     {
         typedef viennagrid::triangular_2d_mesh Triangular2DViennaGridMeshType;
-        typedef SegmentedMesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> SegmentedTriangular2DViennaGridMeshType;
+        typedef viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> SegmentedTriangular2DViennaGridMeshType;
 
         Converter::get().register_conversion<SelfType, Triangular2DViennaGridMeshType>( &triangle::convert );
         Converter::get().register_conversion<SelfType, SegmentedTriangular2DViennaGridMeshType>( &triangle::convert );

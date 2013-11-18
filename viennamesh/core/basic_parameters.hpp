@@ -2,6 +2,7 @@
 #define VIENNAMESH_CORE_BASIC_PARAMETERS_HPP
 
 #include "viennagrid/config/default_configs.hpp"
+#include "viennagrid/mesh/segmented_mesh.hpp"
 #include "viennamesh/core/parameter.hpp"
 
 namespace viennamesh
@@ -47,9 +48,9 @@ namespace viennamesh
   };
 
   template<typename WrappedMeshConfig, typename WrappedSegmentationConfig>
-  struct static_init_impl< SegmentedMesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > >
+  struct static_init_impl< viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > >
   {
-    typedef SegmentedMesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > SelfT;
+    typedef viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > SelfT;
 
     static void init()
     {

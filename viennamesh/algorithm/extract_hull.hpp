@@ -132,8 +132,8 @@ namespace viennamesh
       bool run_impl()
       {
         {
-          typedef SegmentedMesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> InputMeshType;
-          typedef SegmentedMesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> OutputMeshType;
+          typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> InputMeshType;
+          typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> OutputMeshType;
 
           viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = inputs.get<InputMeshType>("default");
 

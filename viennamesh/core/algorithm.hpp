@@ -32,10 +32,10 @@ namespace viennamesh
       inputs.set( name, value );
     }
 
-    void set_input( string const & name, char const * value )
-    {
-      inputs.set( name, string(value) );
-    }
+//     void set_input( string const & name, char const * value )
+//     {
+//       inputs.set( name, string(value) );
+//     }
 
     void link_input( string const & name, AlgorithmHandle const & algorithm, string const & output_name )
     {
@@ -52,6 +52,13 @@ namespace viennamesh
     ConstParameterHandle get_output( string const & name ) const
     {
       return outputs.get(name);
+    }
+
+
+    template<typename TypeT>
+    void reference_output( string const & name, TypeT & value )
+    {
+      outputs.set( name, make_reference_parameter(value) );
     }
 
     ParameterHandle get_output( string const & name )
@@ -75,10 +82,11 @@ namespace viennamesh
     void unset_input( string const & name ) { inputs.unset(name); }
     void unset_output( string const & name ) { outputs.unset(name); }
 
+    void clear_outputs() { outputs.clear(); }
+
     bool run()
     {
       LoggingStack stack( string("Algoritm: ") + name() );
-      outputs.clear();
       return run_impl();
     }
 

@@ -36,7 +36,7 @@ namespace viennamesh
       if (extension == "mesh")
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
-        typedef ParameterWrapper< SegmentedMesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
+        typedef ParameterWrapper< viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
         shared_ptr<MeshType> output( new MeshType() );
 
         viennagrid::io::netgen_reader reader;
@@ -47,7 +47,7 @@ namespace viennamesh
       }
       else if (extension == "poly")
       {
-        info(5) << "Found .poly extension, using ViennaGrid Tetgen polg Reader" << std::endl;
+        info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
 
         viennagrid::io::tetgen_poly_reader reader;
 
@@ -162,7 +162,7 @@ namespace viennamesh
 
           if ( (geometric_dimension == 3) && (topologic_dimension == 2) )
           {
-            typedef ParameterWrapper< SegmentedMesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> > MeshType;
+            typedef ParameterWrapper< viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> > MeshType;
             shared_ptr<MeshType> output( new MeshType() );
 
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
@@ -173,7 +173,7 @@ namespace viennamesh
           }
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
           {
-            typedef ParameterWrapper< SegmentedMesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
+            typedef ParameterWrapper< viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
             shared_ptr<MeshType> output( new MeshType() );
 
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;

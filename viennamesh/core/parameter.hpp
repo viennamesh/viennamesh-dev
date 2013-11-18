@@ -14,17 +14,6 @@ namespace viennamesh
   template<typename T>
   class ParameterWrapper;
 
-
-  template<typename MeshT, typename SegmentationT>
-  struct SegmentedMesh
-  {
-    typedef MeshT mesh_type;
-    typedef SegmentationT segmentation_type;
-
-    mesh_type mesh;
-    segmentation_type segmentation;
-  };
-
   typedef shared_ptr<BaseParameter> ParameterHandle;
   typedef shared_ptr<const BaseParameter> ConstParameterHandle;
 
@@ -101,6 +90,12 @@ namespace viennamesh
   typename result_of::parameter_handle<ValueT>::type make_parameter( ValueT const & value )
   {
     return typename result_of::parameter_handle<ValueT>::type( new ParameterWrapper<ValueT>(value) );
+  }
+
+  template<typename ValueT>
+  typename result_of::parameter_handle<ValueT>::type make_reference_parameter( ValueT & value )
+  {
+    return typename result_of::parameter_handle<ValueT>::type( new ParameterWrapper<ValueT>(&value) );
   }
 
 
@@ -476,17 +471,7 @@ namespace viennamesh
 
 
 
-  template<typename WrappedMeshConfig, typename WrappedSegmentationConfig>
-  struct SegmentedMesh< viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> >
-  {
-    typedef viennagrid::mesh<WrappedMeshConfig> mesh_type;
-    typedef viennagrid::segmentation<WrappedSegmentationConfig> segmentation_type;
 
-    SegmentedMesh() : segmentation(mesh) {}
-
-    mesh_type mesh;
-    segmentation_type segmentation;
-  };
 
 
 
@@ -521,9 +506,11 @@ namespace viennamesh
   public:
     typedef ValueT value_type;
 
-    ParameterWrapper() { static_init(); }
+    ParameterWrapper() : value_ptr(NULL) { static_init(); }
     ParameterWrapper(value_type const & value_) :
-      value(value_) { static_init(); }
+      value(value_), value_ptr(NULL) { static_init(); }
+    ParameterWrapper(value_type * value_ptr_) :
+      value_ptr(value_ptr_) { static_init(); }
 
     ParameterHandle unpack()
     { return shared_from_this(); }
@@ -541,11 +528,15 @@ namespace viennamesh
       }
     }
 
-    ValueT & get() { return value; }
-    ValueT const & get() const { return value; }
+    void set_ptr( ValueT * value_ptr_ ) { value_ptr = value_ptr_; }
+    void set( ValueT const & value_ ) { value_ptr = NULL; value = value_; }
+
+    ValueT & get() { if (value_ptr) return *value_ptr; else return value; }
+    ValueT const & get() const { if (value_ptr) return *value_ptr; else return value; }
 
   private:
     ValueT value;
+    ValueT * value_ptr;
   };
 
 
@@ -698,6 +689,9 @@ namespace viennamesh
 
 
 
+  class ParameterSet;
+
+
   class ParameterSet
   {
   public:
@@ -733,6 +727,14 @@ namespace viennamesh
     {
       set( name, make_parameter(value) );
     }
+
+    void set( string const & name, char const * value )
+    {
+      set( name, make_parameter( string(value) ) );
+    }
+
+
+
 
     void unset( string const & name )
     {
@@ -809,6 +811,58 @@ namespace viennamesh
 
 
 
+  template<typename ValueT>
+  class OutputParameterProxy
+  {
+  public:
+    typedef typename result_of::parameter_handle<ValueT>::type ParameterHandleType;
+
+
+    OutputParameterProxy(ParameterSet & parameter_set_, string const & name_) : parameter_set(parameter_set_), name(name_)
+    {
+      handle = dynamic_handle_cast<ValueT>( parameter_set.get(name) );
+
+      if (handle)
+        is_native_in_parameter_set = true;
+      else
+      {
+        is_native_in_parameter_set = false;
+        handle = make_parameter<ValueT>();
+      }
+    }
+
+    ~OutputParameterProxy()
+    {
+      if (!is_native_in_parameter_set)
+      {
+        ParameterHandle output_handle = parameter_set.get(name);
+        if (output_handle)
+        {
+          convert(handle, output_handle);
+//           handle->convert_to(base_handle);
+        }
+        else
+        {
+          parameter_set.set(name, handle);
+        }
+      }
+    }
+
+    ValueT & operator()() { return handle->get(); }
+    ValueT const & operator()() const { return handle->get(); }
+
+  private:
+    ParameterSet & parameter_set;
+    string name;
+
+    bool is_native_in_parameter_set;
+    ParameterHandleType handle;
+  };
+
+
+
+
+
   class ConstParameterSet
   {
   public:
@@ -857,6 +911,11 @@ namespace viennamesh
     void set( string const & name, ValueT const & value )
     {
       set( name, make_parameter(value) );
+    }
+
+    void set( string const & name, char const * value )
+    {
+      set( name, make_parameter( string(value) ) );
     }
 
     void unset( string const & name )

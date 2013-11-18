@@ -15,6 +15,8 @@ target_link_libraries(seed_point_locator_2d triangle tetgen)
 add_executable(seed_point_locator_3d seed_point_locator_3d.cpp)
 target_link_libraries(seed_point_locator_3d triangle tetgen)
 
+add_executable(reference_parameter reference_parameter.cpp)
+target_link_libraries(reference_parameter tetgen)
 
 # currently not working
 # add_executable(complete_remesh complete_remesh.cpp)

@@ -41,7 +41,7 @@ namespace viennamesh
   template<typename MeshT, typename SegmentationT>
   bool writeToFile( ConstParameterHandle const & mesh, string const & filename )
   {
-    typedef SegmentedMesh<MeshT, SegmentationT> WrappedMeshType;
+    typedef viennagrid::segmented_mesh<MeshT, SegmentationT> WrappedMeshType;
     typename result_of::const_parameter_handle<WrappedMeshType>::type tmp = dynamic_handle_cast<const WrappedMeshType>( mesh );
     if (!tmp)
       tmp = mesh->get_converted<WrappedMeshType>();
