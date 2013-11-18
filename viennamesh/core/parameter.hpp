@@ -243,9 +243,9 @@ namespace viennamesh
     virtual bool convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
     {
 #ifdef DEBUG
-      return convert_function( dynamic_cast<InputParameterType const &>(*input).value, dynamic_cast<OutputParameterType &>(*output).value );
+      return convert_function( dynamic_cast<InputParameterType const &>(*input).get(), dynamic_cast<OutputParameterType &>(*output).get() );
 #else
-      return convert_function( static_cast<InputParameterType const &>(*input).value, static_cast<OutputParameterType &>(*output).value );
+      return convert_function( static_cast<InputParameterType const &>(*input).get(), static_cast<OutputParameterType &>(*output).get() );
 #endif
     }
 
@@ -541,6 +541,10 @@ namespace viennamesh
       }
     }
 
+    ValueT & get() { return value; }
+    ValueT const & get() const { return value; }
+
+  private:
     ValueT value;
   };
 

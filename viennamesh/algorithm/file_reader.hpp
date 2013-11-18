@@ -28,7 +28,7 @@ namespace viennamesh
         return false;
       }
 
-      string filename = param->value;
+      string filename = param->get();
       string extension = filename.substr( filename.rfind(".")+1 );
 
       ParameterHandle result;
@@ -40,7 +40,7 @@ namespace viennamesh
         shared_ptr<MeshType> output( new MeshType() );
 
         viennagrid::io::netgen_reader reader;
-        reader(output->value.mesh, output->value.segmentation, filename);
+        reader(output->get().mesh, output->get().segmentation, filename);
 
         outputs.set("default", output);
         return true;
@@ -60,7 +60,7 @@ namespace viennamesh
           std::vector<PointType> hole_points;
           std::vector< std::pair<PointType, int> > seed_points;
 
-          reader(output->value, filename, hole_points, seed_points);
+          reader(output->get(), filename, hole_points, seed_points);
 
           if (!hole_points.empty())
             outputs.set("hole_points", hole_points);
@@ -80,7 +80,7 @@ namespace viennamesh
           std::vector<PointType> hole_points;
           std::vector< std::pair<PointType, int> > seed_points;
 
-          reader(output->value, filename, hole_points, seed_points);
+          reader(output->get(), filename, hole_points, seed_points);
 
           if (!hole_points.empty())
             outputs.set("hole_points", hole_points);
@@ -166,7 +166,7 @@ namespace viennamesh
             shared_ptr<MeshType> output( new MeshType() );
 
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
-            vtk_writer(output->value.mesh, output->value.segmentation, filename);
+            vtk_writer(output->get().mesh, output->get().segmentation, filename);
 
             outputs.set("default", output);
             return true;
@@ -177,7 +177,7 @@ namespace viennamesh
             shared_ptr<MeshType> output( new MeshType() );
 
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;
-            vtk_writer(output->value.mesh, output->value.segmentation, filename);
+            vtk_writer(output->get().mesh, output->get().segmentation, filename);
 
             outputs.set("default", output);
             return true;

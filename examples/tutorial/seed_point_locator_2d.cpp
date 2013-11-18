@@ -18,17 +18,17 @@ int main()
   GeometryVertexHandle vtx[4];
   GeometryLineHandle lines[4];
 
-  vtx[0] = viennagrid::make_vertex( geometry->value, PointType(0, 0) );
-  vtx[1] = viennagrid::make_vertex( geometry->value, PointType(0, s) );
-  vtx[2] = viennagrid::make_vertex( geometry->value, PointType(s, 0) );
-  vtx[3] = viennagrid::make_vertex( geometry->value, PointType(s, s) );
+  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(0, 0) );
+  vtx[1] = viennagrid::make_vertex( geometry->get(), PointType(0, s) );
+  vtx[2] = viennagrid::make_vertex( geometry->get(), PointType(s, 0) );
+  vtx[3] = viennagrid::make_vertex( geometry->get(), PointType(s, s) );
 
-  lines[0] = viennagrid::make_line( geometry->value, vtx[0], vtx[1] );
-  lines[1] = viennagrid::make_line( geometry->value, vtx[1], vtx[3] );
-  lines[2] = viennagrid::make_line( geometry->value, vtx[3], vtx[2] );
-  lines[3] = viennagrid::make_line( geometry->value, vtx[2], vtx[0] );
+  lines[0] = viennagrid::make_line( geometry->get(), vtx[0], vtx[1] );
+  lines[1] = viennagrid::make_line( geometry->get(), vtx[1], vtx[3] );
+  lines[2] = viennagrid::make_line( geometry->get(), vtx[3], vtx[2] );
+  lines[3] = viennagrid::make_line( geometry->get(), vtx[2], vtx[0] );
 
-  viennagrid::make_plc( geometry->value, lines+0, lines+4 );
+  viennagrid::make_plc( geometry->get(), lines+0, lines+4 );
 
 
 
@@ -45,5 +45,5 @@ int main()
 
   viennamesh::result_of::parameter_handle<PointType>::type point = seed_point_locator->get_output<PointType>( "default" );
   if (point)
-    std::cout << point->value << std::endl;
+    std::cout << point->get() << std::endl;
 }

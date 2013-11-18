@@ -142,10 +142,10 @@ namespace viennamesh
             viennamesh::result_of::parameter_handle<OutputMeshType>::type output_mesh = make_parameter<OutputMeshType>();
             SeedPoint3DContainer seed_points;
 
-            extract_hull<viennagrid::triangle_tag>(input_mesh->value.mesh, input_mesh->value.segmentation,
-                                                   output_mesh->value.mesh, output_mesh->value.segmentation);
+            extract_hull<viennagrid::triangle_tag>(input_mesh->get().mesh, input_mesh->get().segmentation,
+                                                   output_mesh->get().mesh, output_mesh->get().segmentation);
 
-            extract_seed_points(input_mesh->value.segmentation, seed_points);
+            extract_seed_points(input_mesh->get().segmentation, seed_points);
 
             outputs.set( "default", output_mesh );
             outputs.set( "seed_points", seed_points );

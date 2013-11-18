@@ -41,7 +41,7 @@ namespace viennamesh
           typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
           typedef viennagrid::result_of::cell_range<ViennaGridMeshType>::type CellRangeType;
 
-          CellRangeType cells(meshed_geometry->value);
+          CellRangeType cells(meshed_geometry->get());
           if (!cells.empty())
             outputs.set( "default", viennagrid::centroid(cells[0]) );
 
@@ -67,7 +67,7 @@ namespace viennamesh
           typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
           typedef viennagrid::result_of::cell_range<ViennaGridMeshType>::type CellRangeType;
 
-          CellRangeType cells(meshed_geometry->value);
+          CellRangeType cells(meshed_geometry->get());
           if (!cells.empty())
             outputs.set( "default", viennagrid::centroid(cells[0]) );
           return true;

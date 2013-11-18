@@ -299,17 +299,17 @@ namespace viennamesh
 
         ConstDoubleParameterHandle cell_size = inputs.get<double>("cell_size");
         if (cell_size)
-          options << "a" << cell_size->value;
+          options << "a" << cell_size->get();
 
         ConstDoubleParameterHandle max_radius_edge_ratio = inputs.get<double>("max_radius_edge_ratio");
         ConstDoubleParameterHandle min_dihedral_angle = inputs.get<double>("min_dihedral_angle");
 
         if (max_radius_edge_ratio && min_dihedral_angle)
-          options << "q" << max_radius_edge_ratio->value << "q" << min_dihedral_angle->value / M_PI * 180.0;
+          options << "q" << max_radius_edge_ratio->get() << "q" << min_dihedral_angle->get() / M_PI * 180.0;
         else if (max_radius_edge_ratio)
-          options << "q" << max_radius_edge_ratio->value;
+          options << "q" << max_radius_edge_ratio->get();
         else if (min_dihedral_angle)
-          options << "qq" << min_dihedral_angle->value / M_PI * 180.0;
+          options << "qq" << min_dihedral_angle->get() / M_PI * 180.0;
 
 
 
@@ -321,14 +321,14 @@ namespace viennamesh
 //         if (param)
 //         {
 //           tetgen_settings.quality = 1;
-//           tetgen_settings.minratio = param->value;
+//           tetgen_settings.minratio = param->get();
 //         }
 //
 //         param = inputs.get<double>("cell_size");
 //         if (param)
 //         {
 //           tetgen_settings.fixedvolume = 1;
-//           tetgen_settings.maxvolume = param->value;
+//           tetgen_settings.maxvolume = param->get();
 //         }
 //
 //         tetgen_settings.steiner = -1;     // Steiner Points?? -1 = unlimited, 0 = no steiner points
@@ -351,7 +351,7 @@ namespace viennamesh
 //         tetgen_settings.goodangle *= tetgen_settings.goodangle;                               // tetgen.cxx:3047
 
 
-        tetgenio & tmp = (tetgenio&)input_mesh->value;
+        tetgenio & tmp = (tetgenio&)input_mesh->get();
 
         int old_numberofregions = tmp.numberofregions;
         REAL * old_regionlist = tmp.regionlist;
@@ -367,11 +367,11 @@ namespace viennamesh
 
         typedef viennamesh::result_of::const_parameter_handle<SeedPoint3DContainer>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = inputs.get<SeedPoint3DContainer>("seed_points");
-        if (seed_points_handle && !seed_points_handle->value.empty())
+        if (seed_points_handle && !seed_points_handle->get().empty())
         {
           info(5) << "Found seed points" << std::endl;
 
-          SeedPoint3DContainer const & seed_points = seed_points_handle->value;
+          SeedPoint3DContainer const & seed_points = seed_points_handle->get();
 
           REAL * tmp_regionlist = new REAL[5 * (seed_points.size() + tmp.numberofregions)];
           memcpy( tmp_regionlist, tmp.regionlist, sizeof(REAL)*5*tmp.numberofregions );
@@ -395,11 +395,11 @@ namespace viennamesh
 
         typedef viennamesh::result_of::const_parameter_handle<Point3DContainer>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = inputs.get<Point3DContainer>("hole_points");
-        if (hole_points_handle && !hole_points_handle->value.empty())
+        if (hole_points_handle && !hole_points_handle->get().empty())
         {
           info(5) << "Found hole points" << std::endl;
 
-          Point3DContainer const & hole_points = hole_points_handle->value;
+          Point3DContainer const & hole_points = hole_points_handle->get();
 
 
           REAL * tmp_holelist = new REAL[3 * (hole_points.size() + tmp.numberofholes)];
@@ -424,8 +424,8 @@ namespace viennamesh
         viennautils::StdCapture capture;
         capture.start();
 
-//         tetrahedralize(&tetgen_settings, &tmp, &output_mesh->value);
-        tetrahedralize(buffer, &tmp, &output_mesh->value);
+//         tetrahedralize(&tetgen_settings, &tmp, &output_mesh->get());
+        tetrahedralize(buffer, &tmp, &output_mesh->get());
 
         capture.finish();
         info(5) << capture.get() << std::endl;

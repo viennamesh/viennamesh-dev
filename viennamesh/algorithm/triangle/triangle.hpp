@@ -267,30 +267,30 @@ namespace viennamesh
 
         ConstDoubleParameterHandle min_angle = inputs.get<double>("min_angle");
         if (min_angle)
-          options << "q" << min_angle->value / M_PI * 180.0;
+          options << "q" << min_angle->get() / M_PI * 180.0;
 
 
         ConstDoubleParameterHandle cell_size = inputs.get<double>("cell_size");
         if (cell_size)
-          options << "a" << cell_size->value;
+          options << "a" << cell_size->get();
 
         ConstBoolParameterHandle delaunay = inputs.get<bool>("delaunay");
-        if (delaunay && delaunay->value)
+        if (delaunay && delaunay->get())
           options << "D";
 
 
         ConstStringParameterHandle algorithm_type = inputs.get<string>("algorithm_type");
         if (algorithm_type)
         {
-          if (algorithm_type->value == "incremental_delaunay")
+          if (algorithm_type->get() == "incremental_delaunay")
             options << "i";
-          else if (algorithm_type->value == "sweepline")
+          else if (algorithm_type->get() == "sweepline")
             options << "F";
-          else if (algorithm_type->value == "devide_and_conquer")
+          else if (algorithm_type->get() == "devide_and_conquer")
           {}
           else
           {
-            warning(5) << "Algorithm not recognized: '" << algorithm_type->value << "' supported algorithms:" << std::endl;
+            warning(5) << "Algorithm not recognized: '" << algorithm_type->get() << "' supported algorithms:" << std::endl;
             warning(5) << "  'incremental_delaunay'" << std::endl;
             warning(5) << "  'sweepline'" << std::endl;
             warning(5) << "  'devide_and_conquer'" << std::endl;
@@ -298,17 +298,17 @@ namespace viennamesh
         }
 
 
-        triangulateio tmp = input_mesh->value.mesh;
+        triangulateio tmp = input_mesh->get().mesh;
 
         REAL * tmp_regionlist = NULL;
         REAL * tmp_holelist = NULL;
 
         typedef viennamesh::result_of::const_parameter_handle<SeedPoint2DContainer>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = inputs.get<SeedPoint2DContainer>("seed_points");
-        if (seed_points_handle && !seed_points_handle->value.empty())
+        if (seed_points_handle && !seed_points_handle->get().empty())
         {
           info(5) << "Found seed points" << std::endl;
-          SeedPoint2DContainer const & seed_points = seed_points_handle->value;
+          SeedPoint2DContainer const & seed_points = seed_points_handle->get();
 
           tmp_regionlist = (REAL*)malloc( 4*sizeof(REAL)*(tmp.numberofregions+seed_points.size()) );
           memcpy( tmp_regionlist, tmp.regionlist, 4*sizeof(REAL)*tmp.numberofregions );
@@ -330,10 +330,10 @@ namespace viennamesh
 
         typedef viennamesh::result_of::const_parameter_handle<Point2DContainer>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = inputs.get<Point2DContainer>("hole_points");
-        if (hole_points_handle && !hole_points_handle->value.empty())
+        if (hole_points_handle && !hole_points_handle->get().empty())
         {
           info(5) << "Found hole points" << std::endl;
-          Point2DContainer const & hole_points = hole_points_handle->value;
+          Point2DContainer const & hole_points = hole_points_handle->get();
 
           tmp_holelist = (REAL*)malloc( 2*sizeof(REAL)*(tmp.numberofholes+hole_points.size()) );
           memcpy( tmp_holelist, tmp.holelist, 2*sizeof(REAL)*tmp.numberofholes );
@@ -358,15 +358,15 @@ namespace viennamesh
         viennautils::StdCapture capture;
         capture.start();
 
-        triangulate( buffer, &tmp, &output_mesh->value.mesh, NULL);
+        triangulate( buffer, &tmp, &output_mesh->get().mesh, NULL);
 
         capture.finish();
         info(5) << capture.get() << std::endl;
 
         delete[] buffer;
-        if (seed_points_handle && !seed_points_handle->value.empty())
+        if (seed_points_handle && !seed_points_handle->get().empty())
           free(tmp_regionlist);
-        if (hole_points_handle && !hole_points_handle->value.empty())
+        if (hole_points_handle && !hole_points_handle->get().empty())
           free(tmp_holelist);
 
         outputs.set( "default", output_mesh );
