@@ -15,9 +15,9 @@
 namespace viennamesh
 {
 
-  class BaseAlgorithm;
+  class base_algorithm;
 
-  typedef shared_ptr<BaseAlgorithm> AlgorithmHandle;
+  typedef shared_ptr<base_algorithm> algorithm_handle;
 
 
 
@@ -70,14 +70,14 @@ namespace viennamesh
 
 
   template<typename ValueT>
-  class OutputParameterProxy
+  class output_parameter_proxy
   {
   public:
     typedef typename result_of::parameter_handle<ValueT>::type ParameterHandleType;
 
-    OutputParameterProxy() : parameters(NULL), is_native_(false), used_(false) {}
+    output_parameter_proxy() : parameters(NULL), is_native_(false), used_(false) {}
 
-    void init(ParameterSet & parameters_, string const & name_)
+    void init(parameter_set & parameters_, string const & name_)
     {
       parameters = &parameters_;
       name = name_;
@@ -100,14 +100,14 @@ namespace viennamesh
       }
     }
 
-    ~OutputParameterProxy()
+    ~output_parameter_proxy()
     {
       if (used_ && !is_native_)
       {
         if (base_handle)
         {
           if (!convert(native_handle, base_handle))
-            error(1) << "OutputParameterProxy::~OutputParameterProxy() - convert failed -> BUG!!" << std::endl;
+            error(1) << "output_parameter_proxy::~output_parameter_proxy() - convert failed -> BUG!!" << std::endl;
         }
         else
         {
@@ -122,22 +122,22 @@ namespace viennamesh
     ValueT const & operator()() const { used_ = true; return native_handle->get(); }
 
   private:
-    ParameterSet * parameters;
+    parameter_set * parameters;
     string name;
 
     bool is_native_;
     bool used_;
 
-    ParameterHandle base_handle;
+    parameter_handle base_handle;
     ParameterHandleType native_handle;
   };
 
 
 
-  class BaseAlgorithm : public enable_shared_from_this<BaseAlgorithm>
+  class base_algorithm : public enable_shared_from_this<base_algorithm>
   {
   public:
-    virtual ~BaseAlgorithm() {}
+    virtual ~base_algorithm() {}
 
     // sets an input parameter
     template<typename TypeT>
@@ -145,15 +145,15 @@ namespace viennamesh
     { inputs.set( name, value ); }
 
     // links an input parameter to an output parameter of another algorithm
-    void link_input( string const & name, AlgorithmHandle const & algorithm, string const & output_name )
-    { set_input( name, ParameterLinkHandle(new ParameterLink( algorithm->outputs, output_name )) ); }
+    void link_input( string const & name, algorithm_handle const & algorithm, string const & output_name )
+    { set_input( name, parameter_link_handle(new parameter_link( algorithm->outputs, output_name )) ); }
 
     // unsets an input parameter
     void unset_input( string const & name ) { inputs.unset(name); }
 
 
     // queries an input parameter
-    ConstParameterHandle get_input( string const & name ) const
+    const_parameter_handle get_input( string const & name ) const
     { return inputs.get(name); }
 
     // queries an input parameter of special type
@@ -185,19 +185,19 @@ namespace viennamesh
 
     // gets a proxy for an output parameter, only way of setting an output parameter, used within an algorithm
     template<typename ValueT>
-    OutputParameterProxy<ValueT> output_proxy( string const & name )
+    output_parameter_proxy<ValueT> output_proxy( string const & name )
     {
-      OutputParameterProxy<ValueT> proxy;
+      output_parameter_proxy<ValueT> proxy;
       proxy.init(outputs, name);
       return proxy;
     }
 
 
     // queries an output parameter
-    ConstParameterHandle get_output( string const & name ) const
+    const_parameter_handle get_output( string const & name ) const
     { return outputs.get(name); }
 
-    ParameterHandle get_output( string const & name )
+    parameter_handle get_output( string const & name )
     { return outputs.get(name); }
 
     // queries an output parameter of special type
@@ -223,7 +223,12 @@ namespace viennamesh
 
       try
       {
-        return run_impl();
+        bool success = run_impl();
+
+        if (!success)
+          error(1) << "Algorithm failed" << std::endl;
+
+        return success;
       }
       catch ( algorithm_exception const & ex )
       {
@@ -241,8 +246,8 @@ namespace viennamesh
 
   private:
 
-    ConstParameterSet inputs;
-    ParameterSet outputs;
+    const_parameter_set inputs;
+    parameter_set outputs;
   };
 }
 

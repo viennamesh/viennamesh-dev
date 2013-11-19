@@ -12,7 +12,7 @@ namespace viennamesh
   {
     static void init()
     {
-      Converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
+      converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
     }
   };
 
@@ -21,8 +21,8 @@ namespace viennamesh
   {
     static void init()
     {
-      Converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
-      Converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
+      converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
+      converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
     }
   };
 
@@ -31,7 +31,7 @@ namespace viennamesh
   {
     static void init()
     {
-      Converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
+      converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
     }
   };
 
@@ -47,27 +47,27 @@ namespace viennamesh
     }
   };
 
-  template<typename WrappedMeshConfig, typename WrappedSegmentationConfig>
-  struct static_init_impl< viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > >
+  template<typename WrappedMeshConfigT, typename WrappedSegmentationConfigT>
+  struct static_init_impl< viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfigT>, viennagrid::segmentation<WrappedSegmentationConfigT> > >
   {
-    typedef viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > SelfT;
+    typedef viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfigT>, viennagrid::segmentation<WrappedSegmentationConfigT> > SelfT;
 
     static void init()
     {
-      TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
-      TypeProperties::get().set_property<SelfT>( "is_viennagrid", "true" );
+      type_properties::get().set_property<SelfT>( "is_mesh", "true" );
+      type_properties::get().set_property<SelfT>( "is_viennagrid", "true" );
     }
   };
 
-  template<typename WrappedMeshConfig>
-  struct static_init_impl< viennagrid::mesh<WrappedMeshConfig> >
+  template<typename WrappedMeshConfigT>
+  struct static_init_impl< viennagrid::mesh<WrappedMeshConfigT> >
   {
-    typedef viennagrid::mesh<WrappedMeshConfig> SelfT;
+    typedef viennagrid::mesh<WrappedMeshConfigT> SelfT;
 
     static void init()
     {
-      TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
-      TypeProperties::get().set_property<SelfT>( "is_viennagrid", "true" );
+      type_properties::get().set_property<SelfT>( "is_mesh", "true" );
+      type_properties::get().set_property<SelfT>( "is_viennagrid", "true" );
     }
   };
 

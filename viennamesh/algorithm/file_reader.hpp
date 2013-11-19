@@ -13,7 +13,7 @@ namespace viennamesh
 {
 
 
-  class FileReader : public BaseAlgorithm
+  class file_reader : public base_algorithm
   {
   public:
 
@@ -21,19 +21,19 @@ namespace viennamesh
 
     bool run_impl()
     {
-      ConstStringParameterHandle param = get_required_input<string>("filename");
+      const_string_parameter_handle param = get_required_input<string>("filename");
 
       string filename = param->get();
       string extension = filename.substr( filename.rfind(".")+1 );
 
-      ParameterHandle result;
+      parameter_handle result;
 
       if (extension == "mesh")
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
         typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
 
-        OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+        output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
         viennagrid::io::netgen_reader reader;
         reader(output_mesh().mesh, output_mesh().segmentation, filename);
@@ -50,12 +50,12 @@ namespace viennamesh
         {
           typedef viennagrid::plc_3d_mesh MeshType;
 
-          OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
-          OutputParameterProxy<Point3DContainer> output_hole_points = output_proxy<Point3DContainer>("hole_points");
-          OutputParameterProxy<SeedPoint3DContainer> output_seed_points = output_proxy<SeedPoint3DContainer>("seed_points");
+          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<point_3d_container> output_hole_points = output_proxy<point_3d_container>("hole_points");
+          output_parameter_proxy<seed_point_3d_container> output_seed_points = output_proxy<seed_point_3d_container>("seed_points");
 
-          Point3DContainer hole_points;
-          SeedPoint3DContainer seed_points;
+          point_3d_container hole_points;
+          seed_point_3d_container seed_points;
 
           output_mesh().clear();
           reader(output_mesh(), filename, hole_points, seed_points);
@@ -85,18 +85,28 @@ namespace viennamesh
         {
           typedef viennagrid::plc_2d_mesh MeshType;
 
-          OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<point_2d_container> output_hole_points = output_proxy<point_2d_container>("hole_points");
+          output_parameter_proxy<seed_point_2d_container> output_seed_points = output_proxy<seed_point_2d_container>("seed_points");
 
-          Point2DContainer hole_points;
-          SeedPoint2DContainer seed_points;
+
+          point_2d_container hole_points;
+          seed_point_2d_container seed_points;
 
           reader(output_mesh(), filename, hole_points, seed_points);
 
-          if (!hole_points.empty())
-            output_proxy<Point2DContainer>("hole_points")() = hole_points;
 
           if (!hole_points.empty())
-            output_proxy<SeedPoint2DContainer>("seed_points")() = seed_points;
+          {
+            info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
+            output_hole_points() = hole_points;
+          }
+
+          if (!seed_points.empty())
+          {
+            info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
+            output_seed_points() = seed_points;
+          }
 
           return true;
         }
@@ -174,7 +184,7 @@ namespace viennamesh
           if ( (geometric_dimension == 3) && (topologic_dimension == 2) )
           {
             typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> MeshType;
-            OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+            output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
             vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
@@ -183,7 +193,7 @@ namespace viennamesh
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
           {
             typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
-            OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+            output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;
             vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);

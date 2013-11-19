@@ -123,7 +123,7 @@ namespace viennamesh
 
 
 
-    class Algorithm : public BaseAlgorithm
+    class algorithm : public base_algorithm
     {
     public:
 
@@ -139,8 +139,8 @@ namespace viennamesh
 
           if (input_mesh)
           {
-            OutputParameterProxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>( "default" );
-            OutputParameterProxy<SeedPoint3DContainer> seed_points = output_proxy<SeedPoint3DContainer>( "seed_points" );
+            output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>( "default" );
+            output_parameter_proxy<seed_point_3d_container> seed_points = output_proxy<seed_point_3d_container>( "seed_points" );
 
             extract_hull<viennagrid::triangle_tag>(input_mesh->get().mesh, input_mesh->get().segmentation,
                                                    output_mesh().mesh, output_mesh().segmentation);

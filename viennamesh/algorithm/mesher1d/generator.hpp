@@ -9,12 +9,12 @@ namespace viennamesh
   namespace mesher1d
   {
     template<typename MeshT>
-    class VertexHandlePointSorter1D
+    class vertex_handle_point_sorter_1d
     {
     public:
       typedef typename viennagrid::result_of::const_vertex_handle<MeshT>::type ConstVertexHandleType;
 
-      VertexHandlePointSorter1D(MeshT const & mesh_) : mesh(mesh_) {}
+      vertex_handle_point_sorter_1d(MeshT const & mesh_) : mesh(mesh_) {}
 
       bool operator()( ConstVertexHandleType const & v0, ConstVertexHandleType const & v1 ) const
       {
@@ -28,7 +28,7 @@ namespace viennamesh
     };
 
     template<typename MeshT>
-    class PointSorter1D
+    class point_sorter_1d
     {
     public:
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
@@ -42,7 +42,7 @@ namespace viennamesh
 
 
 
-    class Algorithm : public BaseAlgorithm
+    class algorithm : public base_algorithm
     {
     public:
 
@@ -71,24 +71,24 @@ namespace viennamesh
         GeometryHandleType input_geometry = get_required_input<GeometryT>("default");
 
         // query possible output parameters: mesh and segmented mesh
-        OutputParameterProxy<OutputMeshT> output_mesh = output_proxy<OutputMeshT>("default");
-        OutputParameterProxy<OutputSegmentedMesh> output_segmented_mesh = output_proxy<OutputSegmentedMesh>("default");
+        output_parameter_proxy<OutputMeshT> output_mesh = output_proxy<OutputMeshT>("default");
+        output_parameter_proxy<OutputSegmentedMesh> output_segmented_mesh = output_proxy<OutputSegmentedMesh>("default");
 
         // query cell size input parameter
         double cell_size = -1.0;
         copy_input( "cell_size", cell_size );
 
         // query seed points input parameter
-        SeedPoint1DContainer seed_points;
-        typedef viennamesh::result_of::const_parameter_handle<SeedPoint1DContainer>::type ConstSeedPointContainerHandle;
-        ConstSeedPointContainerHandle seed_points_handle = get_input<SeedPoint1DContainer>("seed_points");
+        seed_point_1d_container seed_points;
+        typedef viennamesh::result_of::const_parameter_handle<seed_point_1d_container>::type ConstSeedPointContainerHandle;
+        ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_1d_container>("seed_points");
         if (seed_points_handle && !seed_points_handle->get().empty())
           seed_points = seed_points_handle->get();
 
         // query hole points input parameter
-        Point1DContainer hole_points;
-        typedef viennamesh::result_of::const_parameter_handle<Point1DContainer>::type ConstPointContainerHandle;
-        ConstPointContainerHandle hole_points_handle = get_input<Point1DContainer>("hole_points");
+        point_1d_container hole_points;
+        typedef viennamesh::result_of::const_parameter_handle<point_1d_container>::type ConstPointContainerHandle;
+        ConstPointContainerHandle hole_points_handle = get_input<point_1d_container>("hole_points");
         if (hole_points_handle && !hole_points_handle->get().empty())
           hole_points = hole_points_handle->get();
 
@@ -99,7 +99,9 @@ namespace viennamesh
         OutputSegmentationT * segmentation = NULL;
 
         if (seed_points.empty())
+        {
           mesh = &output_mesh();
+        }
         else
         {
           mesh = &output_segmented_mesh().mesh;
@@ -112,7 +114,7 @@ namespace viennamesh
         std::list<GeometryVertexHandleType> sorted_geometry_points;
         for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
           sorted_geometry_points.push_back( vit.handle() );
-        sorted_geometry_points.sort( VertexHandlePointSorter1D<GeometryT>(input_geometry->get()) );
+        sorted_geometry_points.sort( vertex_handle_point_sorter_1d<GeometryT>(input_geometry->get()) );
 
 
         // query and determine minimal line length
@@ -161,17 +163,17 @@ namespace viennamesh
 
         // determine unused segment ID
         int default_segment_id = -1;
-        for (SeedPoint1DContainer::iterator it = seed_points.begin(); it != seed_points.end(); ++it)
+        for (seed_point_1d_container::iterator it = seed_points.begin(); it != seed_points.end(); ++it)
           default_segment_id = std::max(it->second, default_segment_id);
         ++default_segment_id;
 
 
         // sort seed points and hole points
-        std::sort( seed_points.begin(), seed_points.end(), PointSorter1D<GeometryT>() );
-        std::sort( hole_points.begin(), hole_points.end(), PointSorter1D<GeometryT>() );
+        std::sort( seed_points.begin(), seed_points.end(), point_sorter_1d<GeometryT>() );
+        std::sort( hole_points.begin(), hole_points.end(), point_sorter_1d<GeometryT>() );
 
-        SeedPoint1DContainer::iterator spit = seed_points.begin();
-        Point1DContainer::iterator hpit = hole_points.begin();
+        seed_point_1d_container::iterator spit = seed_points.begin();
+        point_1d_container::iterator hpit = hole_points.begin();
 
 
         // iterate over all intervals in sorted point array

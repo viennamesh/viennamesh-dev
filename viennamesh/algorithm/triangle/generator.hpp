@@ -9,7 +9,7 @@ namespace viennamesh
   namespace triangle
   {
 
-    class Algorithm : public BaseAlgorithm
+    class algorithm : public base_algorithm
     {
     public:
 
@@ -17,27 +17,27 @@ namespace viennamesh
 
       bool run_impl()
       {
-        viennamesh::result_of::const_parameter_handle<triangle::InputMesh>::type input_mesh = get_required_input<triangle::InputMesh>("default");
-        OutputParameterProxy<triangle::OutputMesh> output_mesh = output_proxy<triangle::OutputMesh>("default");
+        viennamesh::result_of::const_parameter_handle<triangle::input_mesh>::type input_mesh = get_required_input<triangle::input_mesh>("default");
+        output_parameter_proxy<triangle::output_mesh> output_mesh = output_proxy<triangle::output_mesh>("default");
 
         std::ostringstream options;
         options << "zp";
 
-        ConstDoubleParameterHandle min_angle = get_input<double>("min_angle");
+        const_double_parameter_handle min_angle = get_input<double>("min_angle");
         if (min_angle)
           options << "q" << min_angle->get() / M_PI * 180.0;
 
 
-        ConstDoubleParameterHandle cell_size = get_input<double>("cell_size");
+        const_double_parameter_handle cell_size = get_input<double>("cell_size");
         if (cell_size)
           options << "a" << cell_size->get();
 
-        ConstBoolParameterHandle delaunay = get_input<bool>("delaunay");
+        const_bool_parameter_handle delaunay = get_input<bool>("delaunay");
         if (delaunay && delaunay->get())
           options << "D";
 
 
-        ConstStringParameterHandle algorithm_type = get_input<string>("algorithm_type");
+        const_string_parameter_handle algorithm_type = get_input<string>("algorithm_type");
         if (algorithm_type)
         {
           if (algorithm_type->get() == "incremental_delaunay")
@@ -61,12 +61,12 @@ namespace viennamesh
         REAL * tmp_regionlist = NULL;
         REAL * tmp_holelist = NULL;
 
-        typedef viennamesh::result_of::const_parameter_handle<SeedPoint2DContainer>::type ConstSeedPointContainerHandle;
-        ConstSeedPointContainerHandle seed_points_handle = get_input<SeedPoint2DContainer>("seed_points");
+        typedef viennamesh::result_of::const_parameter_handle<seed_point_2d_container>::type ConstSeedPointContainerHandle;
+        ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_2d_container>("seed_points");
         if (seed_points_handle && !seed_points_handle->get().empty())
         {
           info(5) << "Found seed points" << std::endl;
-          SeedPoint2DContainer const & seed_points = seed_points_handle->get();
+          seed_point_2d_container const & seed_points = seed_points_handle->get();
 
           tmp_regionlist = (REAL*)malloc( 4*sizeof(REAL)*(tmp.numberofregions+seed_points.size()) );
           memcpy( tmp_regionlist, tmp.regionlist, 4*sizeof(REAL)*tmp.numberofregions );
@@ -86,12 +86,12 @@ namespace viennamesh
         }
 
 
-        typedef viennamesh::result_of::const_parameter_handle<Point2DContainer>::type ConstPointContainerHandle;
-        ConstPointContainerHandle hole_points_handle = get_input<Point2DContainer>("hole_points");
+        typedef viennamesh::result_of::const_parameter_handle<point_2d_container>::type ConstPointContainerHandle;
+        ConstPointContainerHandle hole_points_handle = get_input<point_2d_container>("hole_points");
         if (hole_points_handle && !hole_points_handle->get().empty())
         {
           info(5) << "Found hole points" << std::endl;
-          Point2DContainer const & hole_points = hole_points_handle->get();
+          point_2d_container const & hole_points = hole_points_handle->get();
 
           tmp_holelist = (REAL*)malloc( 2*sizeof(REAL)*(tmp.numberofholes+hole_points.size()) );
           memcpy( tmp_holelist, tmp.holelist, 2*sizeof(REAL)*tmp.numberofholes );

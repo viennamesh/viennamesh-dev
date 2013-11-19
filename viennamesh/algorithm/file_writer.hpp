@@ -11,7 +11,7 @@ namespace viennamesh
 {
 
   template<typename MeshT>
-  bool writeToFile( ConstParameterHandle const & mesh, string const & filename )
+  bool writeToFile( const_parameter_handle const & mesh, string const & filename )
   {
     typename result_of::const_parameter_handle<MeshT>::type tmp = dynamic_handle_cast<const MeshT>( mesh );
     if (!tmp)
@@ -39,7 +39,7 @@ namespace viennamesh
 
 
   template<typename MeshT, typename SegmentationT>
-  bool writeToFile( ConstParameterHandle const & mesh, string const & filename )
+  bool writeToFile( const_parameter_handle const & mesh, string const & filename )
   {
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> WrappedMeshType;
     typename result_of::const_parameter_handle<WrappedMeshType>::type tmp = dynamic_handle_cast<const WrappedMeshType>( mesh );
@@ -68,7 +68,7 @@ namespace viennamesh
 
 
 
-  class FileWriter : public BaseAlgorithm
+  class file_writer : public base_algorithm
   {
   public:
 
@@ -76,14 +76,14 @@ namespace viennamesh
 
     bool run_impl()
     {
-      ConstParameterHandle mesh = get_input("default");
+      const_parameter_handle mesh = get_input("default");
       if (!mesh)
       {
         error(1) << "Input Parameter 'default' (type: mesh) is missing" << std::endl;
         return false;
       }
 
-      ConstStringParameterHandle filename = get_input<string>("filename");
+      const_string_parameter_handle filename = get_input<string>("filename");
       if (!filename)
       {
         error(1) << "Input Parameter 'filename' (type: string) is missing" << std::endl;

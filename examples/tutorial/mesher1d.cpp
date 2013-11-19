@@ -5,10 +5,10 @@
 int main()
 {
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::AlgorithmHandle mesher = viennamesh::AlgorithmHandle( new viennamesh::mesher1d::Algorithm() );
+  viennamesh::algorithm_handle mesher( new viennamesh::mesher1d::algorithm() );
 
   // creating an algorithm for writing a mesh to a file
-  viennamesh::AlgorithmHandle writer = viennamesh::AlgorithmHandle( new viennamesh::FileWriter() );
+  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
 
   // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
 
@@ -35,12 +35,12 @@ int main()
   mesher->set_input( "default", geometry );
 
   // creating the seed points
-  viennamesh::SeedPoint1DContainer seed_points;
+  viennamesh::seed_point_1d_container seed_points;
   seed_points.push_back( std::make_pair(PointType(-s/2), 0) );
   seed_points.push_back( std::make_pair(PointType(s+s/2), 1) );
 
   // creating the hole points
-  viennamesh::Point1DContainer hole_points;
+  viennamesh::point_1d_container hole_points;
   hole_points.push_back( PointType(s/2) );
 
   // setting the seed points and hole points as input for the mesher

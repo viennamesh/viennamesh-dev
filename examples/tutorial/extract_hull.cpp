@@ -6,13 +6,13 @@
 int main()
 {
   // creating an algorithm for reading a mesh from a file
-  viennamesh::AlgorithmHandle reader = viennamesh::AlgorithmHandle( new viennamesh::FileReader() );
+  viennamesh::algorithm_handle reader( new viennamesh::file_reader() );
 
   // creating a hull extraction algorithm
-  viennamesh::AlgorithmHandle extract_hull = viennamesh::AlgorithmHandle( new viennamesh::extract_hull::Algorithm() );
+  viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull::algorithm() );
 
   // creating an algorithm for writing a mesh to a file
-  viennamesh::AlgorithmHandle writer = viennamesh::AlgorithmHandle( new viennamesh::FileWriter() );
+  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
 
 
   // linking the output from the reader to the mesher

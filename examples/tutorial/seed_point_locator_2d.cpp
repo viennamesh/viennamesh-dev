@@ -33,11 +33,7 @@ int main()
 
 
   // creating the seed point locator algorithm
-  viennamesh::AlgorithmHandle seed_point_locator = viennamesh::AlgorithmHandle( new viennamesh::seed_point_locator::Algorithm() );
-
-  // creating an algorithm for writing a mesh to a file
-  viennamesh::AlgorithmHandle writer = viennamesh::AlgorithmHandle( new viennamesh::FileWriter() );
-
+  viennamesh::algorithm_handle seed_point_locator( new viennamesh::seed_point_locator::algorithm() );
 
 
   seed_point_locator->set_input( "default", geometry );

@@ -9,13 +9,13 @@
 
 namespace viennamesh
 {
-  class BaseParameter;
+  class base_parameter;
 
   template<typename T>
-  class ParameterWrapper;
+  class parameter_wrapper;
 
-  typedef shared_ptr<BaseParameter> ParameterHandle;
-  typedef shared_ptr<const BaseParameter> ConstParameterHandle;
+  typedef shared_ptr<base_parameter> parameter_handle;
+  typedef shared_ptr<const base_parameter> const_parameter_handle;
 
 
   namespace result_of
@@ -23,13 +23,13 @@ namespace viennamesh
     template<typename ValueT>
     struct parameter_handle
     {
-      typedef shared_ptr< ParameterWrapper<ValueT> > type;
+      typedef shared_ptr< parameter_wrapper<ValueT> > type;
     };
 
     template<typename ValueT>
     struct const_parameter_handle
     {
-      typedef shared_ptr< const ParameterWrapper<ValueT> > type;
+      typedef shared_ptr< const parameter_wrapper<ValueT> > type;
     };
 
     template<typename ValueT>
@@ -39,17 +39,17 @@ namespace viennamesh
     };
   }
 
-  typedef result_of::parameter_handle<bool>::type BoolParameterHandle;
-  typedef result_of::const_parameter_handle<bool>::type ConstBoolParameterHandle;
+  typedef result_of::parameter_handle<bool>::type bool_parameter_handle;
+  typedef result_of::const_parameter_handle<bool>::type const_bool_parameter_handle;
 
-  typedef result_of::parameter_handle<int>::type IntParameterHandle;
-  typedef result_of::const_parameter_handle<int>::type ConstIntParameterHandle;
+  typedef result_of::parameter_handle<int>::type int_parameter_handle;
+  typedef result_of::const_parameter_handle<int>::type const_int_parameter_handle;
 
-  typedef result_of::parameter_handle<double>::type DoubleParameterHandle;
-  typedef result_of::const_parameter_handle<double>::type ConstDoubleParameterHandle;
+  typedef result_of::parameter_handle<double>::type double_parameter_handle;
+  typedef result_of::const_parameter_handle<double>::type const_double_parameter_handle;
 
-  typedef result_of::parameter_handle<string>::type StringParameterHandle;
-  typedef result_of::const_parameter_handle<string>::type ConstStringParameterHandle;
+  typedef result_of::parameter_handle<string>::type string_parameter_handle;
+  typedef result_of::const_parameter_handle<string>::type const_string_parameter_handle;
 
 
   namespace detail
@@ -59,7 +59,7 @@ namespace viennamesh
     {
       static typename result_of::parameter_handle<ValueT>::type cast( shared_ptr<SourceT> const & ptr )
       {
-        return dynamic_pointer_cast< ParameterWrapper<ValueT> >(ptr);
+        return dynamic_pointer_cast< parameter_wrapper<ValueT> >(ptr);
       }
     };
 
@@ -68,7 +68,7 @@ namespace viennamesh
     {
       static typename result_of::const_parameter_handle<ValueT>::type cast( shared_ptr<SourceT> const & ptr )
       {
-        return dynamic_pointer_cast< const ParameterWrapper<ValueT> >(ptr);
+        return dynamic_pointer_cast< const parameter_wrapper<ValueT> >(ptr);
       }
     };
   }
@@ -83,41 +83,41 @@ namespace viennamesh
   template<typename ValueT>
   typename result_of::parameter_handle<ValueT>::type make_parameter()
   {
-    return typename result_of::parameter_handle<ValueT>::type( new ParameterWrapper<ValueT>() );
+    return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>() );
   }
 
   template<typename ValueT>
   typename result_of::parameter_handle<ValueT>::type make_parameter( ValueT const & value )
   {
-    return typename result_of::parameter_handle<ValueT>::type( new ParameterWrapper<ValueT>(value) );
+    return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(value) );
   }
 
   template<typename ValueT>
   typename result_of::parameter_handle<ValueT>::type make_reference_parameter( ValueT & value )
   {
-    return typename result_of::parameter_handle<ValueT>::type( new ParameterWrapper<ValueT>(&value) );
+    return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(&value) );
   }
 
 
 
-  class TypeProperties
+  class type_properties
   {
   public:
 
-    typedef std::map<string, string> PropertyMap;
+    typedef std::map<string, string> PropertyMapType;
 
 
-    PropertyMap & get_map(type_info_wrapper const & ti)
+    PropertyMapType & get_map(type_info_wrapper const & ti)
     {
       return type_properties_map[ti];
     }
 
     std::pair<string, bool> get_property( type_info_wrapper const & ti, string const & name ) const
     {
-      std::map<type_info_wrapper, PropertyMap>::const_iterator tpit = type_properties_map.find(ti);
+      std::map<type_info_wrapper, PropertyMapType>::const_iterator tpit = type_properties_map.find(ti);
       if (tpit != type_properties_map.end())
       {
-        PropertyMap::const_iterator pmit = tpit->second.find(name);
+        PropertyMapType::const_iterator pmit = tpit->second.find(name);
         if (pmit != tpit->second.end())
         {
           return std::pair<string, bool>(pmit->second, true);
@@ -135,24 +135,24 @@ namespace viennamesh
     template<typename ValueT>
     void set_property( string const & key, string const & value )
     {
-      set_property( typeid( ParameterWrapper<ValueT> ), key, value );
+      set_property( typeid( parameter_wrapper<ValueT> ), key, value );
     }
 
-    bool match_properties( type_info_wrapper const & ti, PropertyMap const & to_match ) const
+    bool match_properties( type_info_wrapper const & ti, PropertyMapType const & to_match ) const
     {
       if (to_match.empty())
         return true;
 
-      std::map<type_info_wrapper, PropertyMap>::const_iterator pmit = type_properties_map.find(ti);
+      std::map<type_info_wrapper, PropertyMapType>::const_iterator pmit = type_properties_map.find(ti);
 
       if (pmit == type_properties_map.end())
         return false;
 
-      PropertyMap const & properties = pmit->second;
+      PropertyMapType const & properties = pmit->second;
 
-      for (PropertyMap::const_iterator it = to_match.begin(); it != to_match.end(); ++it)
+      for (PropertyMapType::const_iterator it = to_match.begin(); it != to_match.end(); ++it)
       {
-        PropertyMap::const_iterator pit = properties.find( it->first );
+        PropertyMapType::const_iterator pit = properties.find( it->first );
         if ( pit == properties.end() )
           return false;
 
@@ -165,14 +165,14 @@ namespace viennamesh
 
     bool match_property( type_info_wrapper const & ti, string const & key, string const & value ) const
     {
-      std::map<type_info_wrapper, PropertyMap>::const_iterator pmit = type_properties_map.find(ti);
+      std::map<type_info_wrapper, PropertyMapType>::const_iterator pmit = type_properties_map.find(ti);
 
       if (pmit == type_properties_map.end())
         return false;
 
-      PropertyMap const & properties = pmit->second;
+      PropertyMapType const & properties = pmit->second;
 
-      PropertyMap::const_iterator pit = properties.find(key);
+      PropertyMapType::const_iterator pit = properties.find(key);
       if ( pit == properties.end() )
         return false;
 
@@ -182,10 +182,10 @@ namespace viennamesh
 
     void print() const
     {
-      for (std::map<type_info_wrapper, PropertyMap>::const_iterator tit = type_properties_map.begin(); tit != type_properties_map.end(); ++tit)
+      for (std::map<type_info_wrapper, PropertyMapType>::const_iterator tit = type_properties_map.begin(); tit != type_properties_map.end(); ++tit)
       {
         std::cout << "Type: " << tit->first.name() << std::endl;
-        for (PropertyMap::const_iterator pit = tit->second.begin(); pit != tit->second.end(); ++pit)
+        for (PropertyMapType::const_iterator pit = tit->second.begin(); pit != tit->second.end(); ++pit)
         {
           std::cout << "  " << pit->first << " - " << pit->second << std::endl;
         }
@@ -193,14 +193,14 @@ namespace viennamesh
     }
 
 
-    static TypeProperties & get()
+    static type_properties & get()
     {
-      static TypeProperties type_properties_;
+      static type_properties type_properties_;
       return type_properties_;
     }
 
   private:
-    std::map<type_info_wrapper, PropertyMap> type_properties_map;
+    std::map<type_info_wrapper, PropertyMapType> type_properties_map;
   };
 
 
@@ -211,13 +211,13 @@ namespace viennamesh
 
 
 
-  struct BaseConversionFunction
+  struct base_conversion_function
   {
-    BaseConversionFunction(int function_depth_) : function_depth(function_depth_) {}
-    virtual ~BaseConversionFunction() {}
+    base_conversion_function(int function_depth_) : function_depth(function_depth_) {}
+    virtual ~base_conversion_function() {}
 
-    virtual bool convert( ConstParameterHandle const &, ParameterHandle const & ) const = 0;
-    virtual ParameterHandle get_converted( ConstParameterHandle const & ) const = 0;
+    virtual bool convert( const_parameter_handle const &, parameter_handle const & ) const = 0;
+    virtual parameter_handle get_converted( const_parameter_handle const & ) const = 0;
 
     virtual type_info_wrapper input_type() const = 0;
     virtual type_info_wrapper output_type() const = 0;
@@ -226,16 +226,16 @@ namespace viennamesh
   };
 
   template<typename InputValueT, typename OutputValueT>
-  struct ConversionFunction : BaseConversionFunction
+  struct conversion_function : base_conversion_function
   {
-    typedef ParameterWrapper<InputValueT> InputParameterType;
-    typedef ParameterWrapper<OutputValueT> OutputParameterType;
+    typedef parameter_wrapper<InputValueT> InputParameterType;
+    typedef parameter_wrapper<OutputValueT> OutputParameterType;
 
-    ConversionFunction() : BaseConversionFunction(1) {}
-    ConversionFunction( function<bool (InputValueT const &, OutputValueT &)> const & f) :
-        BaseConversionFunction(1), convert_function(f) {}
+    conversion_function() : base_conversion_function(1) {}
+    conversion_function( function<bool (InputValueT const &, OutputValueT &)> const & f) :
+        base_conversion_function(1), convert_function(f) {}
 
-    virtual bool convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
+    virtual bool convert( const_parameter_handle const & input, parameter_handle const & output ) const
     {
 #ifdef DEBUG
       return convert_function( dynamic_cast<InputParameterType const &>(*input).get(), dynamic_cast<OutputParameterType &>(*output).get() );
@@ -244,7 +244,7 @@ namespace viennamesh
 #endif
     }
 
-    virtual ParameterHandle get_converted( ConstParameterHandle const & input ) const
+    virtual parameter_handle get_converted( const_parameter_handle const & input ) const
     {
       shared_ptr<OutputParameterType> result( new OutputParameterType() );
       if (convert(input, result))
@@ -262,17 +262,17 @@ namespace viennamesh
     function<bool (InputValueT const &, OutputValueT &)> convert_function;
   };
 
-  struct DualConversionFunction : BaseConversionFunction
+  struct dual_conversion_function : base_conversion_function
   {
-    DualConversionFunction( shared_ptr<BaseConversionFunction> const & first_, shared_ptr<BaseConversionFunction> const & second_ ) :
-        BaseConversionFunction(first_->function_depth + second_->function_depth), first(first_), second(second_) {}
+    dual_conversion_function( shared_ptr<base_conversion_function> const & first_, shared_ptr<base_conversion_function> const & second_ ) :
+        base_conversion_function(first_->function_depth + second_->function_depth), first(first_), second(second_) {}
 
-    virtual bool convert( ConstParameterHandle const & input, ParameterHandle const & output ) const
+    virtual bool convert( const_parameter_handle const & input, parameter_handle const & output ) const
     {
       return second->convert( first->get_converted(input), output );
     }
 
-    virtual ParameterHandle get_converted( ConstParameterHandle const & input ) const
+    virtual parameter_handle get_converted( const_parameter_handle const & input ) const
     {
       return second->get_converted( first->get_converted(input) );
     }
@@ -283,40 +283,40 @@ namespace viennamesh
     virtual type_info_wrapper output_type() const
     { return second->output_type(); }
 
-    shared_ptr<BaseConversionFunction> first;
-    shared_ptr<BaseConversionFunction> second;
+    shared_ptr<base_conversion_function> first;
+    shared_ptr<base_conversion_function> second;
   };
 
 
 
 
 
-  class Converter
+  class converter
   {
   public:
 
-    typedef std::map<type_info_wrapper, shared_ptr<BaseConversionFunction> > ConversionFunctionMapType;
+    typedef std::map<type_info_wrapper, shared_ptr<base_conversion_function> > ConversionFunctionMapType;
     typedef std::map<type_info_wrapper, ConversionFunctionMapType> ConversionFunctionMapMapType;
 
-    static type_info_wrapper get_type_id( ConstParameterHandle const & tmp );
+    static type_info_wrapper get_type_id( const_parameter_handle const & tmp );
 
-    shared_ptr<BaseConversionFunction> convert_function( ConstParameterHandle const & input, ConstParameterHandle const & output );
+    shared_ptr<base_conversion_function> convert_function( const_parameter_handle const & input, const_parameter_handle const & output );
     template<typename ValueT>
-    shared_ptr<BaseConversionFunction> convert_function( ConstParameterHandle const & input );
+    shared_ptr<base_conversion_function> convert_function( const_parameter_handle const & input );
 
-    shared_ptr<BaseConversionFunction> best_convert_function( ConstParameterHandle const & input, std::map<string, string> const & properties );
-    shared_ptr<BaseConversionFunction> best_convert_function( ConstParameterHandle const & input, string const & property_key, string const & property_value );
+    shared_ptr<base_conversion_function> best_convert_function( const_parameter_handle const & input, std::map<string, string> const & properties );
+    shared_ptr<base_conversion_function> best_convert_function( const_parameter_handle const & input, string const & property_key, string const & property_value );
 
 
-    bool is_convertable( ConstParameterHandle const & input, ConstParameterHandle const & output )
+    bool is_convertable( const_parameter_handle const & input, const_parameter_handle const & output )
     { return convert_function(input, output); }
     template<typename ValueT>
-    bool is_convertable( ConstParameterHandle const & input )
+    bool is_convertable( const_parameter_handle const & input )
     { return convert_function<ValueT>(input); }
 
-    bool convert( ConstParameterHandle const & input, ParameterHandle const & output )
+    bool convert( const_parameter_handle const & input, parameter_handle const & output )
     {
-      shared_ptr<BaseConversionFunction> cf = convert_function(input, output);
+      shared_ptr<base_conversion_function> cf = convert_function(input, output);
       if (cf && cf->convert(input, output))
       {
         return true;
@@ -325,29 +325,29 @@ namespace viennamesh
         return false;
     }
     template<typename ValueT>
-    typename result_of::parameter_handle<ValueT>::type get_converted(ConstParameterHandle const & input)
+    typename result_of::parameter_handle<ValueT>::type get_converted(const_parameter_handle const & input)
     {
-      shared_ptr<BaseConversionFunction> cf = convert_function<ValueT>(input);
+      shared_ptr<base_conversion_function> cf = convert_function<ValueT>(input);
       if (cf)
-        return static_pointer_cast< ParameterWrapper<ValueT> >(cf->get_converted(input));
+        return static_pointer_cast< parameter_wrapper<ValueT> >(cf->get_converted(input));
       else
         return typename result_of::parameter_handle<ValueT>::type();
     }
 
 
-    void print_conversions(ConstParameterHandle const & input) const;
+    void print_conversions(const_parameter_handle const & input) const;
 
 
     template<typename InputValueT, typename OutputValueT>
     void register_conversion( bool (*fp)(InputValueT const &, OutputValueT &) )
     {
-      typedef ParameterWrapper<InputValueT> InputParameterType;
-      typedef ParameterWrapper<OutputValueT> OutputParameterType;
+      typedef parameter_wrapper<InputValueT> InputParameterType;
+      typedef parameter_wrapper<OutputValueT> OutputParameterType;
 
       type_info_wrapper input_type_id(typeid(InputParameterType));
       type_info_wrapper output_type_id(typeid(OutputParameterType));
 
-      shared_ptr<BaseConversionFunction> current_conversion(new ConversionFunction<InputValueT, OutputValueT>(fp));
+      shared_ptr<base_conversion_function> current_conversion(new conversion_function<InputValueT, OutputValueT>(fp));
       simple_register_conversion( input_type_id, output_type_id, current_conversion );
 
       for (ConversionFunctionMapMapType::iterator imtit = conversions.begin();
@@ -357,7 +357,7 @@ namespace viennamesh
         ConversionFunctionMapType::iterator omtit = imtit->second.find(input_type_id);
         if (omtit != imtit->second.end())
         {
-          simple_register_conversion(imtit->first, output_type_id, shared_ptr<BaseConversionFunction>(new DualConversionFunction(omtit->second, current_conversion)));
+          simple_register_conversion(imtit->first, output_type_id, shared_ptr<base_conversion_function>(new dual_conversion_function(omtit->second, current_conversion)));
         }
       }
 
@@ -368,22 +368,22 @@ namespace viennamesh
             omtit != imtit->second.end();
             ++omtit)
         {
-          simple_register_conversion(input_type_id, omtit->first, shared_ptr<BaseConversionFunction>(new DualConversionFunction(current_conversion, omtit->second)));
+          simple_register_conversion(input_type_id, omtit->first, shared_ptr<base_conversion_function>(new dual_conversion_function(current_conversion, omtit->second)));
         }
       }
     }
 
-    static Converter & get()
+    static converter & get()
     {
-      static Converter converter_;
+      static converter converter_;
       return converter_;
     }
 
   private:
 
-    void simple_register_conversion( type_info_wrapper const & input_type_id, type_info_wrapper const & output_type_id, shared_ptr<BaseConversionFunction> const & conversion )
+    void simple_register_conversion( type_info_wrapper const & input_type_id, type_info_wrapper const & output_type_id, shared_ptr<base_conversion_function> const & conversion )
     {
-      shared_ptr<BaseConversionFunction> & entry = conversions[input_type_id][output_type_id];
+      shared_ptr<base_conversion_function> & entry = conversions[input_type_id][output_type_id];
       if (!entry)
         entry = conversion;
       else
@@ -427,48 +427,48 @@ namespace viennamesh
 
 
   template<typename T>
-  class ParameterWrapper;
+  class parameter_wrapper;
 
-  class BaseParameter : public enable_shared_from_this<BaseParameter>
+  class base_parameter : public enable_shared_from_this<base_parameter>
   {
   public:
 
-    virtual ~BaseParameter() {}
+    virtual ~base_parameter() {}
 
-    virtual ParameterHandle unpack() = 0;
-    virtual ConstParameterHandle unpack() const = 0;
+    virtual parameter_handle unpack() = 0;
+    virtual const_parameter_handle unpack() const = 0;
     virtual bool is_link() const = 0;
     virtual bool is_reference() const = 0;
 
 
     std::pair<string, bool> get_property( string const & key ) const
-    { return TypeProperties::get().get_property( typeid(*this), key ); }
+    { return type_properties::get().get_property( typeid(*this), key ); }
 
     bool match_property( string const & key, string const & value ) const
-    { return TypeProperties::get().match_property( typeid(*this), key, value ); }
+    { return type_properties::get().match_property( typeid(*this), key, value ); }
 
     bool match_properties( std::map<string, string> const & properties ) const
-    { return TypeProperties::get().match_properties( typeid(*this), properties ); }
+    { return type_properties::get().match_properties( typeid(*this), properties ); }
 
 
     template<typename ValueT>
     bool is_convertable_to() const
-    { return Converter::get().is_convertable<ValueT>( shared_from_this() ); }
+    { return converter::get().is_convertable<ValueT>( shared_from_this() ); }
 
     template<typename ValueT>
     typename result_of::parameter_handle<ValueT>::type get_converted() const
-    { return Converter::get().get_converted<ValueT>( shared_from_this() ); }
+    { return converter::get().get_converted<ValueT>( shared_from_this() ); }
 
   protected:
   };
 
 
-  inline bool is_convertable( ConstParameterHandle const & source, ParameterHandle & destination )
-  { return Converter::get().is_convertable( source, destination ); }
+  inline bool is_convertable( const_parameter_handle const & source, parameter_handle & destination )
+  { return converter::get().is_convertable( source, destination ); }
 
-  inline bool convert( ConstParameterHandle const & source, ParameterHandle & destination )
+  inline bool convert( const_parameter_handle const & source, parameter_handle & destination )
   {
-    return Converter::get().convert( source, destination );
+    return converter::get().convert( source, destination );
   }
 
 
@@ -492,7 +492,7 @@ namespace viennamesh
   struct static_init;
 
   template<typename ParameterT>
-  struct static_init< ParameterWrapper<ParameterT> >
+  struct static_init< parameter_wrapper<ParameterT> >
   {
     static void init()
     {
@@ -503,19 +503,19 @@ namespace viennamesh
 
 
   template<typename ValueT>
-  class ParameterWrapper : public BaseParameter
+  class parameter_wrapper : public base_parameter
   {
   public:
     typedef ValueT value_type;
 
-    ParameterWrapper() : value_ptr(NULL) { static_init(); }
-    ParameterWrapper(value_type const & value_) :
+    parameter_wrapper() : value_ptr(NULL) { static_init(); }
+    parameter_wrapper(value_type const & value_) :
       value(value_), value_ptr(NULL) { static_init(); }
-    ParameterWrapper(value_type * value_ptr_) :
+    parameter_wrapper(value_type * value_ptr_) :
       value_ptr(value_ptr_) { static_init(); }
 
-    ParameterHandle unpack() { return shared_from_this(); }
-    ConstParameterHandle unpack() const { return shared_from_this(); }
+    parameter_handle unpack() { return shared_from_this(); }
+    const_parameter_handle unpack() const { return shared_from_this(); }
     bool is_link() const { return false; }
     bool is_reference() const { return value_ptr; }
 
@@ -542,10 +542,10 @@ namespace viennamesh
 
 
 
-  inline type_info_wrapper Converter::get_type_id( ConstParameterHandle const & tmp )
+  inline type_info_wrapper converter::get_type_id( const_parameter_handle const & tmp )
   { return typeid(*tmp); }
 
-  inline shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input, ConstParameterHandle const & output_mesh )
+  inline shared_ptr<base_conversion_function> converter::convert_function( const_parameter_handle const & input, const_parameter_handle const & output_mesh )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -557,28 +557,28 @@ namespace viennamesh
       }
     }
 
-    return shared_ptr<BaseConversionFunction>();
+    return shared_ptr<base_conversion_function>();
   }
 
   template<typename ValueT>
-  inline shared_ptr<BaseConversionFunction> Converter::convert_function( ConstParameterHandle const & input )
+  inline shared_ptr<base_conversion_function> converter::convert_function( const_parameter_handle const & input )
   {
     static_init<ValueT>::init();
 
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
     {
-      ConversionFunctionMapType::iterator opit = ipit->second.find(typeid(ParameterWrapper<ValueT>));
+      ConversionFunctionMapType::iterator opit = ipit->second.find(typeid(parameter_wrapper<ValueT>));
       if ( opit != ipit->second.end() )
       {
         return opit->second;
       }
     }
 
-    return shared_ptr<BaseConversionFunction>();
+    return shared_ptr<base_conversion_function>();
   }
 
-  inline shared_ptr<BaseConversionFunction> Converter::best_convert_function( ConstParameterHandle const & input, std::map<string, string> const & properties )
+  inline shared_ptr<base_conversion_function> converter::best_convert_function( const_parameter_handle const & input, std::map<string, string> const & properties )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -586,7 +586,7 @@ namespace viennamesh
       ConversionFunctionMapType::iterator best = ipit->second.end();
       for (ConversionFunctionMapType::iterator opit = ipit->second.begin(); opit != ipit->second.end(); ++opit)
       {
-        if ( TypeProperties::get().match_properties(opit->second->output_type(), properties) )
+        if ( type_properties::get().match_properties(opit->second->output_type(), properties) )
         {
           if (best == ipit->second.end())
             best = opit;
@@ -602,10 +602,10 @@ namespace viennamesh
         return best->second;
     }
 
-    return shared_ptr<BaseConversionFunction>();
+    return shared_ptr<base_conversion_function>();
   }
 
-  inline shared_ptr<BaseConversionFunction> Converter::best_convert_function( ConstParameterHandle const & input, string const & property_key, string const & property_value )
+  inline shared_ptr<base_conversion_function> converter::best_convert_function( const_parameter_handle const & input, string const & property_key, string const & property_value )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -613,7 +613,7 @@ namespace viennamesh
       ConversionFunctionMapType::iterator best = ipit->second.end();
       for (ConversionFunctionMapType::iterator opit = ipit->second.begin(); opit != ipit->second.end(); ++opit)
       {
-        if ( TypeProperties::get().match_property(opit->second->output_type(), property_key, property_value) )
+        if ( type_properties::get().match_property(opit->second->output_type(), property_key, property_value) )
         {
           if (best == ipit->second.end())
             best = opit;
@@ -629,12 +629,12 @@ namespace viennamesh
         return best->second;
     }
 
-    return shared_ptr<BaseConversionFunction>();
+    return shared_ptr<base_conversion_function>();
   }
 
 
 
-  inline void Converter::print_conversions(ConstParameterHandle const & input) const
+  inline void converter::print_conversions(const_parameter_handle const & input) const
   {
     LoggingStack ls("Supported conversion functions");
     info(10) << "Source type: [" << &typeid(*input) << "] " << std::endl;
@@ -650,79 +650,79 @@ namespace viennamesh
 
 
 
-  class ParameterSet;
-  class ConstParameterSet;
+  class parameter_set;
+  class const_parameter_set;
 
 
-  class ParameterLink : public BaseParameter
+  class parameter_link : public base_parameter
   {
   public:
 
-    ParameterLink(ParameterSet & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_)
+    parameter_link(parameter_set & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_)
     {}
 
-    ParameterHandle unpack();
-    ConstParameterHandle unpack() const;
+    parameter_handle unpack();
+    const_parameter_handle unpack() const;
 
     bool is_link() const { return true; }
     bool is_reference() const { return false; }
 
   private:
 
-    ParameterSet & parameter_set;
+    parameter_set & parameter_set;
     string parameter_name;
   };
 
-  class ConstParameterLink : public BaseParameter
+  class const_parameter_link : public base_parameter
   {
   public:
 
-    ConstParameterLink(ConstParameterSet const & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_) {}
+    const_parameter_link(const_parameter_set const & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_) {}
 
-    ParameterHandle unpack();
-    ConstParameterHandle unpack() const;
+    parameter_handle unpack();
+    const_parameter_handle unpack() const;
     bool is_link() const { return true; }
     bool is_reference() const { return false; }
 
   private:
 
-    ConstParameterSet const & parameter_set;
+    const_parameter_set const & parameter_set;
     string parameter_name;
   };
 
-  typedef shared_ptr<ParameterLink> ParameterLinkHandle;
-  typedef shared_ptr<ConstParameterLink> ConstParameterLinkHandle;
+  typedef shared_ptr<parameter_link> parameter_link_handle;
+  typedef shared_ptr<const_parameter_link> const_parameter_link_handle;
 
 
 
-  class ParameterSet;
+  class parameter_set;
 
 
-  class ParameterSet
+  class parameter_set
   {
   public:
 
-    typedef std::map<string, ParameterHandle> ParameterMapType;
+    typedef std::map<string, parameter_handle> ParameterMapType;
 
-    void set( string const & name, ConstParameterHandle const & parameter ); // not supported
-    void set( string const & name, ParameterHandle const & parameter )
+    void set( string const & name, const_parameter_handle const & parameter ); // not supported
+    void set( string const & name, parameter_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
-    void set( string const & name, ConstParameterLinkHandle const & parameter ); // not supported
-    void set( string const & name, ParameterLinkHandle const & parameter )
+    void set( string const & name, const_parameter_link_handle const & parameter ); // not supported
+    void set( string const & name, parameter_link_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< const ParameterWrapper<ValueT> > const & parameter ); // not supported
+    void set( string const & name, shared_ptr< const parameter_wrapper<ValueT> > const & parameter ); // not supported
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< ParameterWrapper<ValueT> > const & parameter )
+    void set( string const & name, shared_ptr< parameter_wrapper<ValueT> > const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
@@ -747,26 +747,26 @@ namespace viennamesh
       parameters.erase(name);
     }
 
-    ConstParameterHandle get( string const & name ) const
+    const_parameter_handle get( string const & name ) const
     {
       ParameterMapType::const_iterator it = parameters.find(name);
       if (it == parameters.end())
-        return ParameterHandle();
+        return parameter_handle();
       return it->second->unpack();
     }
 
-    ParameterHandle get( string const & name )
+    parameter_handle get( string const & name )
     {
       ParameterMapType::iterator it = parameters.find(name);
       if (it == parameters.end())
-        return ParameterHandle();
+        return parameter_handle();
       return it->second->unpack();
     }
 
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get( string const & name ) const
     {
-      ConstParameterHandle handle = get(name);
+      const_parameter_handle handle = get(name);
       if (!handle) return typename result_of::const_parameter_handle<ValueT>::type();
       typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(handle);
 
@@ -779,7 +779,7 @@ namespace viennamesh
     template<typename ValueT>
     typename result_of::parameter_handle<ValueT>::type get( string const & name )
     {
-      ParameterHandle handle = get(name);
+      parameter_handle handle = get(name);
       if (!handle) return typename result_of::parameter_handle<ValueT>::type();
       typename result_of::parameter_handle<ValueT>::type result = dynamic_handle_cast<ValueT>(handle);
 
@@ -789,7 +789,7 @@ namespace viennamesh
       return handle->template get_converted<ValueT>();
     }
 
-    ParameterHandle & get_create( string const & name )
+    parameter_handle & get_create( string const & name )
     {
       return parameters[name];
     }
@@ -826,45 +826,45 @@ namespace viennamesh
   };
 
 
-  class ConstParameterSet
+  class const_parameter_set
   {
   public:
 
-    typedef std::map<string, ConstParameterHandle> ParameterMapType;
+    typedef std::map<string, const_parameter_handle> ParameterMapType;
 
-    void set( string const & name, ConstParameterHandle const & parameter )
+    void set( string const & name, const_parameter_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
-    void set( string const & name, ParameterHandle const & parameter )
+    void set( string const & name, parameter_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
-    void set( string const & name, ConstParameterLinkHandle const & parameter )
+    void set( string const & name, const_parameter_link_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
-    void set( string const & name, ParameterLinkHandle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
-
-    template<typename ValueT>
-    void set( string const & name, shared_ptr< const ParameterWrapper<ValueT> > const & parameter )
+    void set( string const & name, parameter_link_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< ParameterWrapper<ValueT> > const & parameter )
+    void set( string const & name, shared_ptr< const parameter_wrapper<ValueT> > const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+    }
+
+    template<typename ValueT>
+    void set( string const & name, shared_ptr< parameter_wrapper<ValueT> > const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
@@ -886,18 +886,18 @@ namespace viennamesh
       parameters.erase(name);
     }
 
-    ConstParameterHandle get( string const & name ) const
+    const_parameter_handle get( string const & name ) const
     {
       ParameterMapType::const_iterator it = parameters.find(name);
       if (it == parameters.end())
-        return ConstParameterHandle();
+        return const_parameter_handle();
       return it->second->unpack();
     }
 
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get( string const & name ) const
     {
-      ConstParameterHandle handle = get(name);
+      const_parameter_handle handle = get(name);
       if (!handle) return typename result_of::const_parameter_handle<ValueT>::type();
       typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(handle);
 
@@ -907,7 +907,7 @@ namespace viennamesh
       return handle->template get_converted<ValueT>();
     }
 
-    ConstParameterHandle & get_create( string const & name )
+    const_parameter_handle & get_create( string const & name )
     {
       return parameters[name];
     }
@@ -932,23 +932,23 @@ namespace viennamesh
   };
 
 
-  inline ParameterHandle ParameterLink::unpack()
+  inline parameter_handle parameter_link::unpack()
   {
     return parameter_set.get(parameter_name);
   }
 
-  inline ConstParameterHandle ParameterLink::unpack() const
+  inline const_parameter_handle parameter_link::unpack() const
   {
     return parameter_set.get(parameter_name);
   }
 
 
-  inline ParameterHandle ConstParameterLink::unpack()
+  inline parameter_handle const_parameter_link::unpack()
   {
-    return ParameterHandle();
+    return parameter_handle();
   }
 
-  inline ConstParameterHandle ConstParameterLink::unpack() const
+  inline const_parameter_handle const_parameter_link::unpack() const
   {
     return parameter_set.get(parameter_name);
   }
