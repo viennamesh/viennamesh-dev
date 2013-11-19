@@ -437,6 +437,8 @@ namespace viennamesh
 
     virtual ParameterHandle unpack() = 0;
     virtual ConstParameterHandle unpack() const = 0;
+    virtual bool is_link() const = 0;
+    virtual bool is_reference() const = 0;
 
 
     std::pair<string, bool> get_property( string const & key ) const
@@ -512,11 +514,10 @@ namespace viennamesh
     ParameterWrapper(value_type * value_ptr_) :
       value_ptr(value_ptr_) { static_init(); }
 
-    ParameterHandle unpack()
-    { return shared_from_this(); }
-
-    ConstParameterHandle unpack() const
-    { return shared_from_this(); }
+    ParameterHandle unpack() { return shared_from_this(); }
+    ConstParameterHandle unpack() const { return shared_from_this(); }
+    bool is_link() const { return false; }
+    bool is_reference() const { return value_ptr; }
 
     static void static_init()
     {
@@ -663,6 +664,9 @@ namespace viennamesh
     ParameterHandle unpack();
     ConstParameterHandle unpack() const;
 
+    bool is_link() const { return true; }
+    bool is_reference() const { return false; }
+
   private:
 
     ParameterSet & parameter_set;
@@ -677,6 +681,8 @@ namespace viennamesh
 
     ParameterHandle unpack();
     ConstParameterHandle unpack() const;
+    bool is_link() const { return true; }
+    bool is_reference() const { return false; }
 
   private:
 
@@ -803,64 +809,21 @@ namespace viennamesh
     void clear()
     { parameters.clear(); }
 
+    void clear_non_references()
+    {
+      ParameterMapType::iterator it = parameters.begin();
+      while (it != parameters.end())
+      {
+        if (!it->second->is_reference())
+          parameters.erase(it++);
+        else
+          ++it;
+      }
+    }
+
   private:
     ParameterMapType parameters;
   };
-
-
-
-
-
-  template<typename ValueT>
-  class OutputParameterProxy
-  {
-  public:
-    typedef typename result_of::parameter_handle<ValueT>::type ParameterHandleType;
-
-
-    OutputParameterProxy(ParameterSet & parameter_set_, string const & name_) : parameter_set(parameter_set_), name(name_)
-    {
-      handle = dynamic_handle_cast<ValueT>( parameter_set.get(name) );
-
-      if (handle)
-        is_native_in_parameter_set = true;
-      else
-      {
-        is_native_in_parameter_set = false;
-        handle = make_parameter<ValueT>();
-      }
-    }
-
-    ~OutputParameterProxy()
-    {
-      if (!is_native_in_parameter_set)
-      {
-        ParameterHandle output_handle = parameter_set.get(name);
-        if (output_handle)
-        {
-          convert(handle, output_handle);
-//           handle->convert_to(base_handle);
-        }
-        else
-        {
-          parameter_set.set(name, handle);
-        }
-      }
-    }
-
-    ValueT & operator()() { return handle->get(); }
-    ValueT const & operator()() const { return handle->get(); }
-
-  private:
-    ParameterSet & parameter_set;
-    string name;
-
-    bool is_native_in_parameter_set;
-    ParameterHandleType handle;
-  };
-
-
-
 
 
   class ConstParameterSet
@@ -955,7 +918,7 @@ namespace viennamesh
       typename result_of::const_parameter_handle<ValueT>::type ptr = get<ValueT>(name);
       if (ptr)
       {
-        target = ptr->value;
+        target = ptr->get();
         return true;
       }
       return false;

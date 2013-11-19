@@ -135,20 +135,17 @@ namespace viennamesh
           typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> InputMeshType;
           typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> OutputMeshType;
 
-          viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = inputs.get<InputMeshType>("default");
+          viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_input<InputMeshType>("default");
 
           if (input_mesh)
           {
-            viennamesh::result_of::parameter_handle<OutputMeshType>::type output_mesh = make_parameter<OutputMeshType>();
-            SeedPoint3DContainer seed_points;
+            OutputParameterProxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>( "default" );
+            OutputParameterProxy<SeedPoint3DContainer> seed_points = output_proxy<SeedPoint3DContainer>( "seed_points" );
 
             extract_hull<viennagrid::triangle_tag>(input_mesh->get().mesh, input_mesh->get().segmentation,
-                                                   output_mesh->get().mesh, output_mesh->get().segmentation);
+                                                   output_mesh().mesh, output_mesh().segmentation);
+            extract_seed_points( input_mesh->get().segmentation, seed_points() );
 
-            extract_seed_points(input_mesh->get().segmentation, seed_points);
-
-            outputs.set( "default", output_mesh );
-            outputs.set( "seed_points", seed_points );
             return true;
           }
         }

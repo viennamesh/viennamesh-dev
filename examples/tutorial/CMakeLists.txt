@@ -18,10 +18,14 @@ target_link_libraries(seed_point_locator_3d triangle tetgen)
 add_executable(reference_parameter reference_parameter.cpp)
 target_link_libraries(reference_parameter tetgen)
 
+add_executable(mesher1d mesher1d.cpp)
+
+
 # currently not working
 # add_executable(complete_remesh complete_remesh.cpp)
 # target_link_libraries(complete_remesh tetgen)
 
+# add_dependencies(some_netgen_project netgen)
 
 
 

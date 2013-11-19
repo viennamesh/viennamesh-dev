@@ -17,32 +17,27 @@ namespace viennamesh
 
       bool run_impl()
       {
-        viennamesh::result_of::const_parameter_handle<triangle::InputMesh>::type input_mesh = inputs.get<triangle::InputMesh>("default");
-
-        if (!input_mesh)
-        {
-          error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
-          return false;
-        }
+        viennamesh::result_of::const_parameter_handle<triangle::InputMesh>::type input_mesh = get_required_input<triangle::InputMesh>("default");
+        OutputParameterProxy<triangle::OutputMesh> output_mesh = output_proxy<triangle::OutputMesh>("default");
 
         std::ostringstream options;
         options << "zp";
 
-        ConstDoubleParameterHandle min_angle = inputs.get<double>("min_angle");
+        ConstDoubleParameterHandle min_angle = get_input<double>("min_angle");
         if (min_angle)
           options << "q" << min_angle->get() / M_PI * 180.0;
 
 
-        ConstDoubleParameterHandle cell_size = inputs.get<double>("cell_size");
+        ConstDoubleParameterHandle cell_size = get_input<double>("cell_size");
         if (cell_size)
           options << "a" << cell_size->get();
 
-        ConstBoolParameterHandle delaunay = inputs.get<bool>("delaunay");
+        ConstBoolParameterHandle delaunay = get_input<bool>("delaunay");
         if (delaunay && delaunay->get())
           options << "D";
 
 
-        ConstStringParameterHandle algorithm_type = inputs.get<string>("algorithm_type");
+        ConstStringParameterHandle algorithm_type = get_input<string>("algorithm_type");
         if (algorithm_type)
         {
           if (algorithm_type->get() == "incremental_delaunay")
@@ -67,7 +62,7 @@ namespace viennamesh
         REAL * tmp_holelist = NULL;
 
         typedef viennamesh::result_of::const_parameter_handle<SeedPoint2DContainer>::type ConstSeedPointContainerHandle;
-        ConstSeedPointContainerHandle seed_points_handle = inputs.get<SeedPoint2DContainer>("seed_points");
+        ConstSeedPointContainerHandle seed_points_handle = get_input<SeedPoint2DContainer>("seed_points");
         if (seed_points_handle && !seed_points_handle->get().empty())
         {
           info(5) << "Found seed points" << std::endl;
@@ -92,7 +87,7 @@ namespace viennamesh
 
 
         typedef viennamesh::result_of::const_parameter_handle<Point2DContainer>::type ConstPointContainerHandle;
-        ConstPointContainerHandle hole_points_handle = inputs.get<Point2DContainer>("hole_points");
+        ConstPointContainerHandle hole_points_handle = get_input<Point2DContainer>("hole_points");
         if (hole_points_handle && !hole_points_handle->get().empty())
         {
           info(5) << "Found hole points" << std::endl;
@@ -113,15 +108,15 @@ namespace viennamesh
 
 
 
+
+
         char * buffer = new char[options.str().length()];
         std::strcpy(buffer, options.str().c_str());
-
-        viennamesh::result_of::parameter_handle<triangle::OutputMesh>::type output_mesh = make_parameter<triangle::OutputMesh>();
 
         viennautils::StdCapture capture;
         capture.start();
 
-        triangulate( buffer, &tmp, &output_mesh->get().mesh, NULL);
+        triangulate( buffer, &tmp, &output_mesh().mesh, NULL);
 
         capture.finish();
         info(5) << capture.get() << std::endl;
@@ -131,8 +126,6 @@ namespace viennamesh
           free(tmp_regionlist);
         if (hole_points_handle && !hole_points_handle->get().empty())
           free(tmp_holelist);
-
-        outputs.set( "default", output_mesh );
 
         return true;
       }

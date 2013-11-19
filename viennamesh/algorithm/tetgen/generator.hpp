@@ -17,23 +17,21 @@ namespace viennamesh
 
       bool run_impl()
       {
-        viennamesh::result_of::const_parameter_handle<tetgen::InputMesh>::type input_mesh = inputs.get<tetgen::InputMesh>("default");
+        viennamesh::result_of::const_parameter_handle<tetgen::InputMesh>::type input_mesh = get_required_input<tetgen::InputMesh>("default");
 
-        if (!input_mesh)
-        {
-          error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
-          return false;
-        }
+        OutputParameterProxy<tetgen::OutputMesh> output_mesh = output_proxy<tetgen::OutputMesh>("default");
+
+
 
         std::ostringstream options;
         options << "zp";
 
-        ConstDoubleParameterHandle cell_size = inputs.get<double>("cell_size");
+        ConstDoubleParameterHandle cell_size = get_input<double>("cell_size");
         if (cell_size)
           options << "a" << cell_size->get();
 
-        ConstDoubleParameterHandle max_radius_edge_ratio = inputs.get<double>("max_radius_edge_ratio");
-        ConstDoubleParameterHandle min_dihedral_angle = inputs.get<double>("min_dihedral_angle");
+        ConstDoubleParameterHandle max_radius_edge_ratio = get_input<double>("max_radius_edge_ratio");
+        ConstDoubleParameterHandle min_dihedral_angle = get_input<double>("min_dihedral_angle");
 
         if (max_radius_edge_ratio && min_dihedral_angle)
           options << "q" << max_radius_edge_ratio->get() << "q" << min_dihedral_angle->get() / M_PI * 180.0;
@@ -97,7 +95,7 @@ namespace viennamesh
         tmp.holelist = NULL;
 
         typedef viennamesh::result_of::const_parameter_handle<SeedPoint3DContainer>::type ConstSeedPointContainerHandle;
-        ConstSeedPointContainerHandle seed_points_handle = inputs.get<SeedPoint3DContainer>("seed_points");
+        ConstSeedPointContainerHandle seed_points_handle = get_input<SeedPoint3DContainer>("seed_points");
         if (seed_points_handle && !seed_points_handle->get().empty())
         {
           info(5) << "Found seed points" << std::endl;
@@ -125,7 +123,7 @@ namespace viennamesh
 
 
         typedef viennamesh::result_of::const_parameter_handle<Point3DContainer>::type ConstPointContainerHandle;
-        ConstPointContainerHandle hole_points_handle = inputs.get<Point3DContainer>("hole_points");
+        ConstPointContainerHandle hole_points_handle = get_input<Point3DContainer>("hole_points");
         if (hole_points_handle && !hole_points_handle->get().empty())
         {
           info(5) << "Found hole points" << std::endl;
@@ -148,18 +146,12 @@ namespace viennamesh
         }
 
 
-        viennamesh::OutputParameterProxy<tetgen::OutputMesh> output_mesh(outputs, "default");
-
-//         viennamesh::result_of::parameter_handle<tetgen::OutputMesh>::type output_mesh = make_parameter<tetgen::OutputMesh>();
-
         char * buffer = new char[options.str().length()];
         std::strcpy(buffer, options.str().c_str());
 
         viennautils::StdCapture capture;
         capture.start();
 
-//         tetrahedralize(&tetgen_settings, &tmp, &output_mesh->get());
-//         tetrahedralize(buffer, &tmp, &output_mesh->get());
         tetrahedralize(buffer, &tmp, &output_mesh());
 
         capture.finish();
@@ -174,8 +166,6 @@ namespace viennamesh
 
         tmp.numberofholes = old_numberofholes;
         tmp.holelist = old_holelist;
-
-//         outputs.set( "default", output_mesh );
 
         return true;
       }

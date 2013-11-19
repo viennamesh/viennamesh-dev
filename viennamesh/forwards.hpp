@@ -69,13 +69,13 @@ namespace viennamesh
   typedef viennagrid::config::point_type_2d Point2DType;
   typedef viennagrid::config::point_type_3d Point3DType;
 
-  typedef std::vector< std::pair<Point1DType, int> > SeedPoint1DContainer;
-  typedef std::vector< std::pair<Point2DType, int> > SeedPoint2DContainer;
-  typedef std::vector< std::pair<Point3DType, int> > SeedPoint3DContainer;
-
   typedef std::vector<Point1DType> Point1DContainer;
   typedef std::vector<Point2DType> Point2DContainer;
   typedef std::vector<Point3DType> Point3DContainer;
+
+  typedef std::vector< std::pair<Point1DType, int> > SeedPoint1DContainer;
+  typedef std::vector< std::pair<Point2DType, int> > SeedPoint2DContainer;
+  typedef std::vector< std::pair<Point3DType, int> > SeedPoint3DContainer;
 }
 
 #endif

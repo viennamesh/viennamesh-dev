@@ -76,19 +76,33 @@ namespace viennamesh
 
     bool run_impl()
     {
-      ConstParameterHandle mesh = inputs.get("default");
+      ConstParameterHandle mesh = get_input("default");
       if (!mesh)
       {
         error(1) << "Input Parameter 'default' (type: mesh) is missing" << std::endl;
         return false;
       }
 
-      ConstStringParameterHandle filename = inputs.get<string>("filename");
+      ConstStringParameterHandle filename = get_input<string>("filename");
       if (!filename)
       {
         error(1) << "Input Parameter 'filename' (type: string) is missing" << std::endl;
         return false;
       }
+
+
+
+      if (writeToFile<viennagrid::line_1d_mesh, viennagrid::line_1d_segmentation>(mesh, filename->get()))
+        return true;
+
+      if (writeToFile<viennagrid::line_1d_mesh>(mesh, filename->get()))
+        return true;
+
+      if (writeToFile<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>(mesh, filename->get()))
+        return true;
+
+      if (writeToFile<viennagrid::line_2d_mesh>(mesh, filename->get()))
+        return true;
 
       if (writeToFile<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(mesh, filename->get()))
         return true;

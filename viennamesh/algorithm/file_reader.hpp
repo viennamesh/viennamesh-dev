@@ -21,12 +21,7 @@ namespace viennamesh
 
     bool run_impl()
     {
-      ConstStringParameterHandle param = inputs.get<string>("filename");
-      if (!param)
-      {
-        error(1) << "Input Parameter 'filename' (type: string) is missing" << std::endl;
-        return false;
-      }
+      ConstStringParameterHandle param = get_required_input<string>("filename");
 
       string filename = param->get();
       string extension = filename.substr( filename.rfind(".")+1 );
@@ -36,13 +31,13 @@ namespace viennamesh
       if (extension == "mesh")
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
-        typedef ParameterWrapper< viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
-        shared_ptr<MeshType> output( new MeshType() );
+        typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
+
+        OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
         viennagrid::io::netgen_reader reader;
-        reader(output->get().mesh, output->get().segmentation, filename);
+        reader(output_mesh().mesh, output_mesh().segmentation, filename);
 
-        outputs.set("default", output);
         return true;
       }
       else if (extension == "poly")
@@ -53,40 +48,56 @@ namespace viennamesh
 
         try
         {
-          typedef ParameterWrapper< viennagrid::plc_3d_mesh > MeshType;
-          typedef viennagrid::config::point_type_3d PointType;
-          shared_ptr<MeshType> output( new MeshType() );
+          typedef viennagrid::plc_3d_mesh MeshType;
 
-          std::vector<PointType> hole_points;
-          std::vector< std::pair<PointType, int> > seed_points;
+          OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          OutputParameterProxy<Point3DContainer> output_hole_points = output_proxy<Point3DContainer>("hole_points");
+          OutputParameterProxy<SeedPoint3DContainer> output_seed_points = output_proxy<SeedPoint3DContainer>("seed_points");
 
-          reader(output->get(), filename, hole_points, seed_points);
+          Point3DContainer hole_points;
+          SeedPoint3DContainer seed_points;
+
+          output_mesh().clear();
+          reader(output_mesh(), filename, hole_points, seed_points);
 
           if (!hole_points.empty())
-            outputs.set("hole_points", hole_points);
+          {
+            info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
+            output_hole_points() = hole_points;
+          }
+          else
+            unset_output("hole_points");
+
+
           if (!seed_points.empty())
-            outputs.set("seed_points", seed_points);
-          outputs.set("default", output);
+          {
+            info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
+            output_seed_points() = seed_points;
+          }
+          else
+            unset_output("seed_points");
+
           return true;
         }
         catch (viennagrid::io::bad_file_format_exception const & ) {}
 
         try
         {
-          typedef ParameterWrapper< viennagrid::plc_2d_mesh > MeshType;
-          typedef viennagrid::config::point_type_2d PointType;
-          shared_ptr<MeshType> output( new MeshType() );
+          typedef viennagrid::plc_2d_mesh MeshType;
 
-          std::vector<PointType> hole_points;
-          std::vector< std::pair<PointType, int> > seed_points;
+          OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
-          reader(output->get(), filename, hole_points, seed_points);
+          Point2DContainer hole_points;
+          SeedPoint2DContainer seed_points;
+
+          reader(output_mesh(), filename, hole_points, seed_points);
 
           if (!hole_points.empty())
-            outputs.set("hole_points", hole_points);
-          if (!seed_points.empty())
-            outputs.set("seed_points", seed_points);
-          outputs.set("default", output);
+            output_proxy<Point2DContainer>("hole_points")() = hole_points;
+
+          if (!hole_points.empty())
+            output_proxy<SeedPoint2DContainer>("seed_points")() = seed_points;
+
           return true;
         }
         catch (viennagrid::io::bad_file_format_exception const & ) {}
@@ -162,24 +173,20 @@ namespace viennamesh
 
           if ( (geometric_dimension == 3) && (topologic_dimension == 2) )
           {
-            typedef ParameterWrapper< viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> > MeshType;
-            shared_ptr<MeshType> output( new MeshType() );
+            typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> MeshType;
+            OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
-            vtk_writer(output->get().mesh, output->get().segmentation, filename);
-
-            outputs.set("default", output);
+            vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
             return true;
           }
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
           {
-            typedef ParameterWrapper< viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
-            shared_ptr<MeshType> output( new MeshType() );
+            typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
+            OutputParameterProxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;
-            vtk_writer(output->get().mesh, output->get().segmentation, filename);
-
-            outputs.set("default", output);
+            vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
             return true;
           }
           else
