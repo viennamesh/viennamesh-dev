@@ -38,6 +38,4 @@ int main()
 
   viennagrid::io::vtk_writer<viennagrid::tetrahedral_3d_mesh> writer;
   writer(mesh.mesh, mesh.segmentation, "test");
-
-
 }
