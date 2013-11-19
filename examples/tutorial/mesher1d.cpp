@@ -21,12 +21,12 @@ int main()
   viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry = viennamesh::make_parameter<GeometryMeshType>();
 
   double s = 10.0;
-  GeometryVertexHandle vtx[10];
-
-  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(s) );
-  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(-s) );
-  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(0) );
-  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(2*s) );
+  viennagrid::make_vertex( geometry->get(), PointType(s) );
+  viennagrid::make_vertex( geometry->get(), PointType(-s) );
+  viennagrid::make_vertex( geometry->get(), PointType(0) );
+  viennagrid::make_vertex( geometry->get(), PointType(0) );
+  viennagrid::make_vertex( geometry->get(), PointType(0) );
+  viennagrid::make_vertex( geometry->get(), PointType(2*s) );
 
 
 

@@ -8,108 +8,6 @@ namespace viennamesh
 {
   namespace mesher1d
   {
-//     template<typename InputMeshT, typename InputSegmentationT,
-//              typename OutputMeshT, typename OutputSegmentationT>
-//     void adapt( viennagrid::vertex_1d_mesh const & input_mesh,
-//                 viennagrid::line_1d_mesh & output_mesh, viennagrid::line_1d_segmentation & output_segmentation,
-//                 ConstParameterSet const & parameters )
-//     {
-//       typedef typename viennagrid::result_of::coord<InputMeshT>::type NumericType;
-//       typedef typename viennagrid::result_of::point<InputMeshT>::type PointType;
-//
-//       typedef typename InputSegmentationT::const_iterator ConstSegmentHandleIteratorType;
-//       typedef typename viennagrid::result_of::segment_handle<InputSegmentationT>::type InputSegmentHandleType;
-//       typedef typename viennagrid::result_of::segment_handle<OutputSegmentationT>::type OutputSegmentHandleType;
-//
-//       typedef typename viennagrid::result_of::const_vertex_range<InputMeshT>::type ConstVertexRangeType;
-//       typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
-//
-//       typedef typename viennagrid::result_of::const_vertex_handle<InputMeshT>::type ConstInputVertexHandleType;
-//       typedef typename viennagrid::result_of::vertex_handle<OutputMeshT>::type OutputVertexHandleType;
-//
-//       std::map<ConstInputVertexHandleType, OutputVertexHandleType> vertex_map;
-//       ConstVertexRangeType vertices(input_mesh);
-//       for(ConstVertexIteratorType it = vertices.begin(); it != vertices.end(); ++it)
-//         vertex_map[ it.handle() ] = viennagrid::make_vertex( output_mesh, viennagrid::point(output_mesh, *it) );
-//
-//       double cell_size = -1.0;
-//       parameters.copy_if_present( "cell_size", cell_size );
-//
-//       for (ConstSegmentHandleIteratorType sit = input_segmentation.begin(); sit != input_segmentation.end(); ++sit)
-//       {
-//         OutputSegmentHandleType output_segment = output_segmentation.get_make_segment( sit->id() );
-//
-//         typedef typename viennagrid::result_of::const_line_range<InputSegmentHandleType>::type ConstLineRangeType;
-//         typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
-//
-//         ConstLineRangeType lines(*sit);
-//         for (ConstLineIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
-//         {
-//           PointType start = viennagrid::point(input_mesh, viennagrid::vertices(*lit)[0]);
-//           PointType end = viennagrid::point(input_mesh, viennagrid::vertices(*lit)[1]);
-//
-//           double length = viennagrid::norm_2(end-start);
-//           unsigned int new_line_count = 1;
-//           if (cell_size > 0.0)
-//             new_line_count = static_cast<unsigned int>(length / cell_size + 0.5);
-//
-//           if (new_line_count <= 1)
-//           {
-//             viennagrid::make_line( output_segment,
-//                                    vertex_map[viennagrid::vertices(*lit).handle_at(0)],
-//                                    vertex_map[viennagrid::vertices(*lit).handle_at(1)] );
-//           }
-//           else
-//           {
-//             unsigned int lines_in_between = new_line_count - 2;
-//             PointType delta = (end-start) / new_line_count;
-//
-//
-//             OutputVertexHandleType last_vertex = viennagrid::make_vertex( output_mesh, start+delta );
-//
-//             viennagrid::make_line( output_segment,
-//                                    vertex_map[viennagrid::vertices(*lit).handle_at(0)],
-//                                    last_vertex );
-//
-//             for (unsigned int i = 0; i < lines_in_between; ++i)
-//             {
-//               OutputVertexHandleType tmp = viennagrid::make_vertex( output_mesh, start+delta*(i+2) );
-//               viennagrid::make_line( output_segment, last_vertex, tmp );
-//               last_vertex = tmp;
-//             }
-//
-//             viennagrid::make_line( output_segment,
-//                                    last_vertex,
-//                                    vertex_map[viennagrid::vertices(*lit).handle_at(1)] );
-//           }
-//
-//         }
-//       }
-//     }
-//
-//
-//
-//     template<typename SegmentedMeshT>
-//     bool adapt( ConstParameterSet const & inputs, ParameterSet & outputs )
-//     {
-//       typedef typename viennamesh::result_of::const_parameter_handle<SegmentedMeshT>::type ConstMeshParameterType;
-//
-//       ConstMeshParameterType input_mesh = inputs.get<SegmentedMeshT>( "default" );
-//
-//       if (!input_mesh)
-//         return false;
-//
-//       viennamesh::OutputParameterProxy<SegmentedMeshT> output_mesh(outputs, "default");
-//
-//       adapt( input_mesh->get().mesh, input_mesh->get().segmentation, output_mesh().mesh, output_mesh().segmentation, inputs );
-//
-//       output_mesh.set();
-//
-//       return true;
-//     }
-
-
-
     template<typename MeshT>
     class VertexHandlePointSorter1D
     {
@@ -171,30 +69,6 @@ namespace viennamesh
 
 
 
-//     template<typename SegmentedMeshT>
-//     bool adapt( ConstParameterSet const & inputs, ParameterSet & outputs )
-//     {
-//       typedef typename viennamesh::result_of::const_parameter_handle<SegmentedMeshT>::type ConstMeshParameterType;
-//
-//       ConstMeshParameterType input_mesh = inputs.get<SegmentedMeshT>( "default" );
-//
-//       if (!input_mesh)
-//         return false;
-//
-//       viennamesh::OutputParameterProxy<SegmentedMeshT> output_mesh(outputs, "default");
-//
-//       adapt( input_mesh->get().mesh, input_mesh->get().segmentation, output_mesh().mesh, output_mesh().segmentation, inputs );
-//
-//       output_mesh.set();
-//
-//       return true;
-//     }
-
-
-
-
-
-
 
 
     class Algorithm : public BaseAlgorithm
@@ -214,6 +88,7 @@ namespace viennamesh
         typedef typename viennagrid::result_of::segment_handle<OutputSegmentationT>::type OutputSegmentHandleType;
         typedef typename viennagrid::segmented_mesh<OutputMeshT, OutputSegmentationT> OutputSegmentedMesh;
 
+        typedef typename viennagrid::result_of::const_vertex_handle<GeometryT>::type GeometryVertexHandleType;
         typedef typename viennagrid::result_of::vertex_handle<OutputMeshT>::type OutputVertexHandleType;
 
         typedef typename viennagrid::result_of::const_vertex_range<GeometryT>::type ConstVertexRangeType;
@@ -221,37 +96,25 @@ namespace viennamesh
 
 
 
+        // query input parameters
         GeometryHandleType input_geometry = get_required_input<GeometryT>("default");
-        OutputParameterProxy<OutputSegmentedMesh> output_mesh = output_proxy<OutputSegmentedMesh>("default");
 
+        // query possible output parameters: mesh and segmented mesh
+        OutputParameterProxy<OutputMeshT> output_mesh = output_proxy<OutputMeshT>("default");
+        OutputParameterProxy<OutputSegmentedMesh> output_segmented_mesh = output_proxy<OutputSegmentedMesh>("default");
+
+        // query cell size input parameter
         double cell_size = -1.0;
         copy_input( "cell_size", cell_size );
 
-
-        std::vector<OutputVertexHandleType> sorted_points;
-
-        ConstVertexRangeType vertices( input_geometry->get() );
-        for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-        {
-          OutputVertexHandleType vertex_handle =
-          viennagrid::make_vertex(
-            output_mesh().mesh,
-            viennagrid::point(input_geometry->get(), *vit) );
-
-          sorted_points.push_back(vertex_handle);
-        }
-
-
-        std::sort( sorted_points.begin(), sorted_points.end(), VertexHandlePointSorter1D<OutputMeshT>(output_mesh().mesh) );
-
-
-
+        // query seed points input parameter
         SeedPoint1DContainer seed_points;
         typedef viennamesh::result_of::const_parameter_handle<SeedPoint1DContainer>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = get_input<SeedPoint1DContainer>("seed_points");
         if (seed_points_handle && !seed_points_handle->get().empty())
           seed_points = seed_points_handle->get();
 
+        // query hole points input parameter
         Point1DContainer hole_points;
         typedef viennamesh::result_of::const_parameter_handle<Point1DContainer>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = get_input<Point1DContainer>("hole_points");
@@ -260,84 +123,162 @@ namespace viennamesh
 
 
 
-        std::sort( seed_points.begin(), seed_points.end(), PointSorter1D<GeometryT>() );
-        std::sort( hole_points.begin(), hole_points.end(), PointSorter1D<GeometryT>() );
+        // decide, if mesh or segmented mesh is used (seed points available?)
+        OutputMeshT * mesh = NULL;
+        OutputSegmentationT * segmentation = NULL;
 
-        SeedPoint1DContainer::iterator spit = seed_points.begin();
-        Point1DContainer::iterator hpit = hole_points.begin();
+        if (seed_points.empty())
+          mesh = &output_mesh();
+        else
+        {
+          mesh = &output_segmented_mesh().mesh;
+          segmentation = &output_segmented_mesh().segmentation;
+        }
 
+
+        // copy and sort vertices
+        ConstVertexRangeType vertices( input_geometry->get() );
+        std::list<GeometryVertexHandleType> sorted_geometry_points;
+        for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+          sorted_geometry_points.push_back( vit.handle() );
+        sorted_geometry_points.sort( VertexHandlePointSorter1D<GeometryT>(input_geometry->get()) );
+
+
+        // query and determine minimal line length
+        double relative_min_line_length = 1e-10;
+        copy_input( "relative_min_line_length", relative_min_line_length );
+
+        double absolute_min_line_length =
+          (viennagrid::point(input_geometry->get(), sorted_geometry_points.back())[0] -
+          viennagrid::point(input_geometry->get(), sorted_geometry_points.front())[0]) * relative_min_line_length;
+        copy_input( "absolute_min_line_length", absolute_min_line_length );
+
+
+        // remove points which would lead to too short lines
+        {
+          typename std::list<GeometryVertexHandleType>::iterator vhit0 = sorted_geometry_points.begin();
+          typename std::list<GeometryVertexHandleType>::iterator vhit1 = vhit0; ++vhit1;
+
+          while (vhit1 != sorted_geometry_points.end())
+          {
+            double length = std::abs(viennagrid::point(input_geometry->get(), *vhit0)[0] -
+                                     viennagrid::point(input_geometry->get(), *vhit1)[0]);
+
+            if (length < absolute_min_line_length)
+            {
+              sorted_geometry_points.erase(vhit1++);
+            }
+            else
+            {
+              ++vhit0;
+              ++vhit1;
+            }
+          }
+        }
+
+
+        // create points in output mesh
+        std::vector<OutputVertexHandleType> sorted_points;
+        for (typename std::list<GeometryVertexHandleType>::iterator vhit = sorted_geometry_points.begin(); vhit != sorted_geometry_points.end(); ++vhit)
+        {
+          OutputVertexHandleType vertex_handle =
+          viennagrid::make_vertex(*mesh, viennagrid::point(input_geometry->get(), *vhit) );
+
+          sorted_points.push_back(vertex_handle);
+        }
+
+
+        // determine unused segment ID
         int default_segment_id = -1;
         for (SeedPoint1DContainer::iterator it = seed_points.begin(); it != seed_points.end(); ++it)
           default_segment_id = std::max(it->second, default_segment_id);
         ++default_segment_id;
 
 
+        // sort seed points and hole points
+        std::sort( seed_points.begin(), seed_points.end(), PointSorter1D<GeometryT>() );
+        std::sort( hole_points.begin(), hole_points.end(), PointSorter1D<GeometryT>() );
 
+        SeedPoint1DContainer::iterator spit = seed_points.begin();
+        Point1DContainer::iterator hpit = hole_points.begin();
+
+
+        // iterate over all intervals in sorted point array
         for (unsigned int i = 1; i < sorted_points.size(); ++i)
         {
-          double start = viennagrid::point( output_mesh().mesh, viennagrid::dereference_handle(output_mesh().mesh, sorted_points[i-1]) )[0];
-          double end = viennagrid::point( output_mesh().mesh, viennagrid::dereference_handle(output_mesh().mesh, sorted_points[i]) )[0];
+          // getting start and end point of the current interval
+          double start = viennagrid::point( *mesh, sorted_points[i-1])[0];
+          double end = viennagrid::point( *mesh, sorted_points[i])[0];
 
+
+          // updating the hole point iterator to fit into the current interval
           while ( (hpit != hole_points.end()) && ((*hpit)[0] < start) )
             ++hpit;
 
+          // if the hole point is inside the current interval -> skip current interval
           if ( (hpit != hole_points.end()) && ((*hpit)[0] < end) )
-          {
             continue;
-          }
 
+          // updating the seed point iterator to fit into the current interval
           while ( (spit != seed_points.end()) && (spit->first[0] < start) )
             ++spit;
 
+
+          // determining the segment ID of the current interval
           int output_segment_id;
           if ( (spit != seed_points.end()) && (spit->first[0] < end) )
-          {
             output_segment_id = spit->second;
-          }
           else
             output_segment_id = default_segment_id;
 
 
-          OutputSegmentHandleType output_segment = output_mesh().segmentation.get_make_segment( output_segment_id );
-
+          // calculate the interval length and the line count in the current interval
           double length = std::abs(end-start);
-
           unsigned int new_line_count = 1;
           if (cell_size > 0.0)
             new_line_count = static_cast<unsigned int>(length / cell_size + 0.5);
 
+
+          // if only one line should be created
           if (new_line_count <= 1)
           {
-            viennagrid::make_line( output_segment,
-                                   sorted_points[i-1],
-                                   sorted_points[i] );
+            if (segmentation)
+              viennagrid::make_line( segmentation->get_make_segment(output_segment_id), sorted_points[i-1], sorted_points[i] );
+            else
+              viennagrid::make_line( *mesh, sorted_points[i-1], sorted_points[i] );
           }
           else
           {
+            // create all line segments
             unsigned int lines_in_between = new_line_count - 2;
             double delta = (end-start) / new_line_count;
 
+            OutputVertexHandleType last_vertex = viennagrid::make_vertex( *mesh, PointType(start+delta) );
 
-            OutputVertexHandleType last_vertex = viennagrid::make_vertex( output_mesh().mesh, PointType(start+delta) );
-
-            viennagrid::make_line( output_segment,
-                                   sorted_points[i-1],
-                                   last_vertex );
+            if (segmentation)
+              viennagrid::make_line( segmentation->get_make_segment(output_segment_id), sorted_points[i-1], last_vertex );
+            else
+              viennagrid::make_line( *mesh, sorted_points[i-1], last_vertex );
 
             for (unsigned int i = 0; i < lines_in_between; ++i)
             {
-              OutputVertexHandleType tmp = viennagrid::make_vertex( output_mesh().mesh, PointType(start+delta*(i+2)) );
-              viennagrid::make_line( output_segment, last_vertex, tmp );
+              OutputVertexHandleType tmp = viennagrid::make_vertex( *mesh, PointType(start+delta*(i+2)) );
+
+              if (segmentation)
+                viennagrid::make_line( segmentation->get_make_segment(output_segment_id), last_vertex, tmp );
+              else
+                viennagrid::make_line( *mesh, last_vertex, tmp );
+
               last_vertex = tmp;
             }
 
-            viennagrid::make_line( output_segment,
-                                   last_vertex,
-                                   sorted_points[i] );
+            if (segmentation)
+              viennagrid::make_line( segmentation->get_make_segment(output_segment_id), last_vertex, sorted_points[i] );
+            else
+              viennagrid::make_line( *mesh, last_vertex, sorted_points[i] );
           }
         }
 
-//         return output_mesh.set();
         return true;
       }
 
