@@ -42,35 +42,6 @@ namespace viennamesh
 
 
 
-    template<typename MeshT>
-    class no_segment_handle
-    {
-    public:
-
-      typedef int segmend_id_type;
-
-      no_segment_handle(MeshT & mesh_) : mesh(mesh_) {}
-
-    private:
-      MeshT & mesh;
-    };
-
-
-    template<typename MeshT>
-    class no_segmentation
-    {
-    private:
-      no_segmentation(MeshT & mesh_) : mesh(mesh_) {}
-
-    public:
-      MeshT & mesh;
-    };
-
-
-
-
-
-
     class Algorithm : public BaseAlgorithm
     {
     public:
@@ -145,13 +116,13 @@ namespace viennamesh
 
 
         // query and determine minimal line length
-        double relative_min_line_length = 1e-10;
-        copy_input( "relative_min_line_length", relative_min_line_length );
+        double relative_min_geometry_point_distance = 1e-10;
+        copy_input( "relative_min_geometry_point_distance", relative_min_geometry_point_distance );
 
-        double absolute_min_line_length =
+        double absolute_min_geometry_point_distance =
           (viennagrid::point(input_geometry->get(), sorted_geometry_points.back())[0] -
-          viennagrid::point(input_geometry->get(), sorted_geometry_points.front())[0]) * relative_min_line_length;
-        copy_input( "absolute_min_line_length", absolute_min_line_length );
+          viennagrid::point(input_geometry->get(), sorted_geometry_points.front())[0]) * relative_min_geometry_point_distance;
+        copy_input( "absolute_min_geometry_point_distance", absolute_min_geometry_point_distance );
 
 
         // remove points which would lead to too short lines
@@ -164,7 +135,7 @@ namespace viennamesh
             double length = std::abs(viennagrid::point(input_geometry->get(), *vhit0)[0] -
                                      viennagrid::point(input_geometry->get(), *vhit1)[0]);
 
-            if (length < absolute_min_line_length)
+            if (length < absolute_min_geometry_point_distance)
             {
               sorted_geometry_points.erase(vhit1++);
             }

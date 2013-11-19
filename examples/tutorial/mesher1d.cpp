@@ -50,6 +50,10 @@ int main()
   // setting the mesher paramters
   mesher->set_input( "cell_size", 1.0 );      // maximum cell size
 
+  mesher->set_input( "absolute_min_geometry_point_distance", 1e-10 );   // minimal distance between 2 points of the input geometry. IF two points are closer than this parameter one is discarded. an absolute_min_geometry_point_distance parameter will overwrite a relative_min_geometry_point_distance
+
+  mesher->set_input( "relative_min_geometry_point_distance", 1e-10 );   // relative minimal distance between 2 points of the input geometry. If two points are closer than (max(points) - min(points)) * relative_min_geometry_point_distance one is discarded. If absolute_min_geometry_point_distance is set this parameter is ignored.
+
   // linking the output from the mesher to the writer
   writer->link_input( "default", mesher, "default" );
   // Setting the filename for the reader and writer
