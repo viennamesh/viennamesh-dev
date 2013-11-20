@@ -658,7 +658,7 @@ namespace viennamesh
   {
   public:
 
-    parameter_link(parameter_set & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_)
+    parameter_link(parameter_set & para_set, string const & para_name) : parameter_set_(para_set), parameter_name_(para_name)
     {}
 
     parameter_handle unpack();
@@ -669,15 +669,15 @@ namespace viennamesh
 
   private:
 
-    parameter_set & parameter_set;
-    string parameter_name;
+    parameter_set & parameter_set_;
+    string          parameter_name_;
   };
 
   class const_parameter_link : public base_parameter
   {
   public:
 
-    const_parameter_link(const_parameter_set const & parameter_set_, string const & parameter_name_) : parameter_set(parameter_set_), parameter_name(parameter_name_) {}
+    const_parameter_link(const_parameter_set const & para_set, string const & para_name) : parameter_set_(para_set), parameter_name_(para_name) {}
 
     parameter_handle unpack();
     const_parameter_handle unpack() const;
@@ -686,16 +686,12 @@ namespace viennamesh
 
   private:
 
-    const_parameter_set const & parameter_set;
-    string parameter_name;
+    const_parameter_set const & parameter_set_;
+    string parameter_name_;
   };
 
   typedef shared_ptr<parameter_link> parameter_link_handle;
   typedef shared_ptr<const_parameter_link> const_parameter_link_handle;
-
-
-
-  class parameter_set;
 
 
   class parameter_set
@@ -933,17 +929,17 @@ namespace viennamesh
 
 
   inline parameter_handle parameter_link::unpack()
-  { return parameter_set.get(parameter_name); }
+  { return parameter_set_.get(parameter_name_); }
 
   inline const_parameter_handle parameter_link::unpack() const
-  { return parameter_set.get(parameter_name); }
+  { return parameter_set_.get(parameter_name_); }
 
 
   inline parameter_handle const_parameter_link::unpack()
   { return parameter_handle(); }
 
   inline const_parameter_handle const_parameter_link::unpack() const
-  { return parameter_set.get(parameter_name); }
+  { return parameter_set_.get(parameter_name_); }
 
 
 }
