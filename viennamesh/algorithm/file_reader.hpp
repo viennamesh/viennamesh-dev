@@ -1,98 +1,113 @@
 #ifndef VIENNAMESH_ALGORITHM_FILE_READER_HPP
 #define VIENNAMESH_ALGORITHM_FILE_READER_HPP
 
-#include "viennamesh/core/dynamic_algorithm.hpp"
+#include "viennamesh/core/algorithm.hpp"
 
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/netgen_reader.hpp"
 #include "viennagrid/io/tetgen_poly_reader.hpp"
-#include <boost/concept_check.hpp>
 
 
 namespace viennamesh
 {
 
 
-  class FileReader : public BaseAlgorithm
+  class file_reader : public base_algorithm
   {
   public:
 
-    static string name()
-    {
-      return "ViennaGrid FileReader";
-    }
+    string name() const { return "ViennaGrid FileReader"; }
 
     bool run_impl()
     {
-      LoggingStack stack( "Algoritm: FileReader" );
+      const_string_parameter_handle param = get_required_input<string>("filename");
 
-      ConstStringParameterHandle param = inputs.get<string>("filename");
-      if (!param)
-      {
-        error(1) << "Input Parameter 'filename' (type: string) is missing" << std::endl;
-        return false;
-      }
-
-      string filename = param->value;
+      string filename = param->get();
       string extension = filename.substr( filename.rfind(".")+1 );
 
-      ParameterHandle result;
+      parameter_handle result;
 
       if (extension == "mesh")
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
-        typedef ParameterWrapper< MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
-        shared_ptr<MeshType> output( new MeshType() );
+        typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
+
+        output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
         viennagrid::io::netgen_reader reader;
-        reader(output->value.mesh, output->value.segmentation, filename);
+        reader(output_mesh().mesh, output_mesh().segmentation, filename);
 
-        outputs.set("default", output);
         return true;
       }
       else if (extension == "poly")
       {
-        info(5) << "Found .poly extension, using ViennaGrid Tetgen polg Reader" << std::endl;
+        info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
 
         viennagrid::io::tetgen_poly_reader reader;
 
         try
         {
-          typedef ParameterWrapper< MeshWrapper<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation> > MeshType;
-          typedef viennagrid::config::point_type_3d PointType;
-          shared_ptr<MeshType> output( new MeshType() );
+          typedef viennagrid::plc_3d_mesh MeshType;
 
-          std::vector<PointType> hole_points;
-          std::vector< std::pair<PointType, int> > seed_points;
+          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<point_3d_container> output_hole_points = output_proxy<point_3d_container>("hole_points");
+          output_parameter_proxy<seed_point_3d_container> output_seed_points = output_proxy<seed_point_3d_container>("seed_points");
 
-          reader(output->value.mesh, filename, hole_points, seed_points);
+          point_3d_container hole_points;
+          seed_point_3d_container seed_points;
+
+          output_mesh().clear();
+          reader(output_mesh(), filename, hole_points, seed_points);
 
           if (!hole_points.empty())
-            outputs.set("hole_points", hole_points);
+          {
+            info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
+            output_hole_points() = hole_points;
+          }
+          else
+            unset_output("hole_points");
+
+
           if (!seed_points.empty())
-            outputs.set("seed_points", seed_points);
-          outputs.set("default", output);
+          {
+            info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
+            output_seed_points() = seed_points;
+          }
+          else
+            unset_output("seed_points");
+
           return true;
         }
         catch (viennagrid::io::bad_file_format_exception const & ) {}
 
         try
         {
-          typedef ParameterWrapper< MeshWrapper<viennagrid::plc_2d_mesh, viennagrid::plc_2d_segmentation> > MeshType;
-          typedef viennagrid::config::point_type_2d PointType;
-          shared_ptr<MeshType> output( new MeshType() );
+          typedef viennagrid::plc_2d_mesh MeshType;
 
-          std::vector<PointType> hole_points;
-          std::vector< std::pair<PointType, int> > seed_points;
+          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<point_2d_container> output_hole_points = output_proxy<point_2d_container>("hole_points");
+          output_parameter_proxy<seed_point_2d_container> output_seed_points = output_proxy<seed_point_2d_container>("seed_points");
 
-          reader(output->value.mesh, filename, hole_points, seed_points);
+
+          point_2d_container hole_points;
+          seed_point_2d_container seed_points;
+
+          reader(output_mesh(), filename, hole_points, seed_points);
+
 
           if (!hole_points.empty())
-            outputs.set("hole_points", hole_points);
+          {
+            info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
+            output_hole_points() = hole_points;
+          }
+
           if (!seed_points.empty())
-            outputs.set("seed_points", seed_points);
-          outputs.set("default", output);
+          {
+            info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
+            output_seed_points() = seed_points;
+          }
+
           return true;
         }
         catch (viennagrid::io::bad_file_format_exception const & ) {}
@@ -106,9 +121,9 @@ namespace viennamesh
         std::ifstream file(filename.c_str());
         if (file)
         {
-          int geometric_dimension;
-          int topologic_dimension;
-          int num_cells;
+          int geometric_dimension = 0;
+          int topologic_dimension = 0;
+          int num_cells = 0;
 
           string line;
           while (std::getline(file, line))
@@ -168,24 +183,20 @@ namespace viennamesh
 
           if ( (geometric_dimension == 3) && (topologic_dimension == 2) )
           {
-            typedef ParameterWrapper< MeshWrapper<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> > MeshType;
-            shared_ptr<MeshType> output( new MeshType() );
+            typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> MeshType;
+            output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
             viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
-            vtk_writer(output->value.mesh, output->value.segmentation, filename);
-
-            outputs.set("default", output);
+            vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
             return true;
           }
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
           {
-            typedef ParameterWrapper< MeshWrapper<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> > MeshType;
-            shared_ptr<MeshType> output( new MeshType() );
+            typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
+            output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
             viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;
-            vtk_writer(output->value.mesh, output->value.segmentation, filename);
-
-            outputs.set("default", output);
+            vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
             return true;
           }
           else

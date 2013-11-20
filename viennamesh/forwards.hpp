@@ -1,6 +1,8 @@
 #ifndef VIENNAMESH_FORWARDS_HPP
 #define VIENNAMESH_FORWARDS_HPP
 
+#include "viennagrid/config/default_configs.hpp"
+
 #if __cplusplus > 199711L
   #include <functional>
   #include <memory>
@@ -61,7 +63,19 @@ namespace viennamesh
     std::type_info const * info_;
   };
 
-  struct NoSegmentation {};
+
+
+  typedef viennagrid::config::point_type_1d point_1d;
+  typedef viennagrid::config::point_type_2d point_2d;
+  typedef viennagrid::config::point_type_3d point_3d;
+
+  typedef std::vector<point_1d> point_1d_container;
+  typedef std::vector<point_2d> point_2d_container;
+  typedef std::vector<point_3d> point_3d_container;
+
+  typedef std::vector< std::pair<point_1d, int> > seed_point_1d_container;
+  typedef std::vector< std::pair<point_2d, int> > seed_point_2d_container;
+  typedef std::vector< std::pair<point_3d, int> > seed_point_3d_container;
 }
 
 #endif

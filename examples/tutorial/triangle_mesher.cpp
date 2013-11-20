@@ -1,0 +1,91 @@
+#include "viennamesh/algorithm/triangle.hpp"
+#include "viennamesh/algorithm/file_writer.hpp"
+
+
+int main()
+{
+  // creating an algorithm using the Tetgen meshing library for meshing a hull
+  viennamesh::algorithm_handle mesher( new viennamesh::triangle::algorithm() );
+
+  // creating an algorithm for writing a mesh to a file
+  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
+
+
+  // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
+  typedef viennagrid::line_2d_mesh GeometryMeshType;
+  // Typedefing vertex handle and point type for geometry creation
+  typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
+  typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;
+
+  // creating the geometry mesh
+  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry = viennamesh::make_parameter<GeometryMeshType>();
+
+  double s = 10.0;
+  GeometryVertexHandle vtx[10];
+
+  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(0, 0) );
+  vtx[1] = viennagrid::make_vertex( geometry->get(), PointType(0, s) );
+  vtx[2] = viennagrid::make_vertex( geometry->get(), PointType(s, 0) );
+  vtx[3] = viennagrid::make_vertex( geometry->get(), PointType(s, s) );
+  vtx[4] = viennagrid::make_vertex( geometry->get(), PointType(2*s, 0) );
+  vtx[5] = viennagrid::make_vertex( geometry->get(), PointType(2*s, s) );
+
+  vtx[6] = viennagrid::make_vertex( geometry->get(), PointType(s/3, s/3) );
+  vtx[7] = viennagrid::make_vertex( geometry->get(), PointType(s/3, 2*s/3) );
+  vtx[8] = viennagrid::make_vertex( geometry->get(), PointType(2*s/3, s/3) );
+  vtx[9] = viennagrid::make_vertex( geometry->get(), PointType(2*s/3, 2*s/3) );
+
+
+  viennagrid::make_line( geometry->get(), vtx[0], vtx[1] );
+
+  viennagrid::make_line( geometry->get(), vtx[0], vtx[2] );
+  viennagrid::make_line( geometry->get(), vtx[1], vtx[3] );
+
+  viennagrid::make_line( geometry->get(), vtx[2], vtx[3] );
+
+  viennagrid::make_line( geometry->get(), vtx[2], vtx[4] );
+  viennagrid::make_line( geometry->get(), vtx[3], vtx[5] );
+
+  viennagrid::make_line( geometry->get(), vtx[4], vtx[5] );
+
+  viennagrid::make_line( geometry->get(), vtx[6], vtx[7] );
+
+  viennagrid::make_line( geometry->get(), vtx[6], vtx[8] );
+  viennagrid::make_line( geometry->get(), vtx[7], vtx[9] );
+
+  viennagrid::make_line( geometry->get(), vtx[8], vtx[9] );
+
+
+  // setting the created line geometry as input for the mesher
+  mesher->set_input( "default", geometry );
+
+  // creating the seed points
+  viennamesh::seed_point_2d_container seed_points;
+  seed_points.push_back( std::make_pair(PointType(s/4, s/2), 0) );
+  seed_points.push_back( std::make_pair(PointType(s+s/2, s/2), 1) );
+
+  // creating the hole points
+  viennamesh::point_2d_container hole_points;
+  hole_points.push_back( PointType(s/2, s/2) );
+
+  // setting the seed points and hole points as input for the mesher
+  mesher->set_input( "seed_points", seed_points );
+  mesher->set_input( "hole_points", hole_points );
+
+  // setting the mesher paramters
+  mesher->set_input( "cell_size", 1.0 );      // maximum cell size
+  mesher->set_input( "min_angle", 0.35 );     // minimum angle in radiant, 0.35 are about 20 degrees
+  mesher->set_input( "delaunay", true  );     // we want a Delaunay triangulation
+  mesher->set_input( "algorithm_type", "incremental_delaunay" );  // incremental Delaunay algorithm is used
+
+
+  // linking the output from the mesher to the writer
+  writer->link_input( "default", mesher, "default" );
+  // Setting the filename for the reader and writer
+  writer->set_input( "filename", "meshed_quads.vtu" );
+
+
+  // start the algorithms
+  mesher->run();
+  writer->run();
+}

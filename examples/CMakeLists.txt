@@ -4,6 +4,7 @@ set(EXAMPLES_TESTDATA
    data/example.poly
    data/cube_triangular_hull.vtu
    data/cube_with_cube_hole.poly
+   data/cube_with_tunnel.poly
    data/half-trigate.mesh
    data/half-trigate_0.vtu
    data/half-trigate_1.vtu

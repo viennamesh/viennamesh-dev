@@ -56,7 +56,7 @@ namespace stringtools
 
 
   template<typename stream_type>
-  std::string read_stream( stream_type & stream )
+  inline std::string read_stream( stream_type & stream )
   {
     std::string line;
     std::string tmp;

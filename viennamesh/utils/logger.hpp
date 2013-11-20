@@ -174,6 +174,17 @@ namespace viennamesh
     template<typename LoggingTagT>
     LoggingLevelT const & get() const { return get( LoggingTagT() ); }
 
+
+    void set( stack_tag, LoggingLevelT const & value ) { stack_level = value; }
+    void set( info_tag, LoggingLevelT const & value ) { info_level = value; }
+    void set( warning_tag, LoggingLevelT const & value ) { warning_level = value; }
+    void set( error_tag, LoggingLevelT const & value ) { error_level = value; }
+    void set( debug_tag, LoggingLevelT const & value ) { debug_level = value; }
+
+    template<typename LoggingTagT>
+    void set(LoggingLevelT const & value) { set( LoggingTagT(), value ); }
+
+
     LoggingLevelT stack_level;
     LoggingLevelT info_level;
     LoggingLevelT warning_level;
@@ -274,7 +285,7 @@ namespace viennamesh
   {
   public:
 
-    Logger() : behavior_(use_global_loglevels), indentation_count_(0), global_log_levels_(10) {}
+    Logger() : behavior_(use_global_loglevels), indentation_count_(0), global_log_levels_(5) {}
     ~Logger()
     {
       for (std::list< BaseCallback * >::iterator it = callbacks.begin(); it != callbacks.end(); ++it)
@@ -324,6 +335,8 @@ namespace viennamesh
 
     LoggerBehavior behavior() const { return behavior_; }
     LoggingLevels< int > const & global_log_levels() const { return global_log_levels_; }
+    template<typename LoggingTagT>
+    void set_log_level( int level ) { global_log_levels_.set<LoggingTagT>(level); }
 
     void increase_indentation() { ++indentation_count_; }
     void decrease_indentation() { --indentation_count_; }
@@ -391,7 +404,7 @@ namespace viennamesh
 
 
     void make_header(Logger const & logger,
-            std::string const & tag_name,
+            std::string const &,
             std::string const & colored_tag_name,
             int log_level,
             std::string const & category,
@@ -455,7 +468,7 @@ namespace viennamesh
 
     void make_header(Logger const & logger,
             std::string const & tag_name,
-            std::string const & colored_tag_name,
+            std::string const &,
             int log_level,
             std::string const & category,
             std::ostream & stream) const

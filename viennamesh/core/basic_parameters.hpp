@@ -2,75 +2,42 @@
 #define VIENNAMESH_CORE_BASIC_PARAMETERS_HPP
 
 #include "viennagrid/config/default_configs.hpp"
+#include "viennagrid/mesh/segmented_mesh.hpp"
 #include "viennamesh/core/parameter.hpp"
 
 namespace viennamesh
 {
   template<>
-  struct static_init<bool>
+  struct static_init_impl<bool>
   {
-    typedef bool SelfT;
-
     static void init()
     {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<bool>::init" << std::endl;
-
-        Converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
-        Converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
-
-        TypeProperties::get().set_property<SelfT>( "is_scalar", "true" );
-      }
+      converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
     }
   };
 
   template<>
-  struct static_init<int>
+  struct static_init_impl<int>
   {
-    typedef int SelfT;
-
     static void init()
     {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<int>::init" << std::endl;
-
-        Converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
-        Converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
-
-        TypeProperties::get().set_property<SelfT>( "is_scalar", "true" );
-      }
+      converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
+      converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
     }
   };
 
   template<>
-  struct static_init<double>
+  struct static_init_impl<double>
   {
-    typedef double SelfT;
-
     static void init()
     {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<double>::init" << std::endl;
-
-        Converter::get().register_conversion<int, double>( &static_cast_convert<int, double> );
-        Converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
-
-        TypeProperties::get().set_property<SelfT>( "is_scalar", "true" );
-      }
+      converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
     }
   };
 
+
   template<>
-  struct static_init<string>
+  struct static_init_impl<string>
   {
     typedef string SelfT;
 
@@ -80,108 +47,29 @@ namespace viennamesh
     }
   };
 
-  template<typename WrappedMeshConfig, typename WrappedSegmentationConfig>
-  struct static_init< MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > >
+  template<typename WrappedMeshConfigT, typename WrappedSegmentationConfigT>
+  struct static_init_impl< viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfigT>, viennagrid::segmentation<WrappedSegmentationConfigT> > >
   {
-    typedef MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, viennagrid::segmentation<WrappedSegmentationConfig> > SelfT;
+    typedef viennagrid::segmented_mesh<viennagrid::mesh<WrappedMeshConfigT>, viennagrid::segmentation<WrappedSegmentationConfigT> > SelfT;
 
     static void init()
     {
-      TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
-      TypeProperties::get().set_property<SelfT>( "is_viennagrid", "true" );
+      type_properties::get().set_property<SelfT>( "is_mesh", "true" );
+      type_properties::get().set_property<SelfT>( "is_viennagrid", "true" );
     }
   };
 
-  template<typename WrappedMeshConfig>
-  struct static_init< MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, NoSegmentation > >
+  template<typename WrappedMeshConfigT>
+  struct static_init_impl< viennagrid::mesh<WrappedMeshConfigT> >
   {
-    typedef MeshWrapper<viennagrid::mesh<WrappedMeshConfig>, NoSegmentation > SelfT;
+    typedef viennagrid::mesh<WrappedMeshConfigT> SelfT;
 
     static void init()
     {
-      TypeProperties::get().set_property<SelfT>( "is_mesh", "true" );
-      TypeProperties::get().set_property<SelfT>( "is_viennagrid", "true" );
+      type_properties::get().set_property<SelfT>( "is_mesh", "true" );
+      type_properties::get().set_property<SelfT>( "is_viennagrid", "true" );
     }
   };
-
-
-
-
-  typedef std::vector< std::pair<viennagrid::config::point_type_2d, int> > seed_point_2d_container;
-
-  template<>
-  struct static_init<seed_point_2d_container>
-  {
-    typedef seed_point_2d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<seed_point_2d_container>::init" << std::endl;
-      }
-    }
-  };
-
-  typedef std::vector< std::pair<viennagrid::config::point_type_3d, int> > seed_point_3d_container;
-
-  template<>
-  struct static_init<seed_point_3d_container>
-  {
-    typedef seed_point_3d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<seed_point_3d_container>::init" << std::endl;
-      }
-    }
-  };
-
-
-
-
-  typedef std::vector<viennagrid::config::point_type_2d> point_2d_container;
-
-  template<>
-  struct static_init<point_2d_container>
-  {
-    typedef point_2d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<point_2d_container>::init" << std::endl;
-      }
-    }
-  };
-
-  typedef std::vector<viennagrid::config::point_type_3d> point_3d_container;
-
-  template<>
-  struct static_init<point_3d_container>
-  {
-    typedef point_3d_container SelfT;
-
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init<point_3d_container>::init" << std::endl;
-      }
-    }
-  };
-
 
 
 }
