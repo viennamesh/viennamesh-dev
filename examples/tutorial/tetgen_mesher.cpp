@@ -50,4 +50,13 @@ int main()
   writer->run();
 
 
+  // Setting the filename for the reader and writer
+  reader->set_input( "filename", "../data/two_cubes.poly" );
+  writer->set_input( "filename", "two_cubes.vtu" );
+
+  // start the algorithms
+  reader->run();
+  mesher->run();
+  writer->run();
+
 }
