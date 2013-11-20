@@ -1,8 +1,6 @@
 #ifndef VIENNAMESH_ALGORITHM_TETGEN_MESH_HPP
 #define VIENNAMESH_ALGORITHM_TETGEN_MESH_HPP
 
-#include "viennamesh/utils/plc_tools.hpp"
-
 #define TETLIBRARY
 #include "tetgen/tetgen.h"
 
@@ -73,16 +71,7 @@ namespace viennamesh
 
         std::vector<PointType> const & hole_points = viennagrid::hole_points(*cit);
 
-
-        std::vector< std::vector<ConstVertexHandleType> > polygons = split_plc_into_polygons(*cit);
-
-        if (polygons.empty())
-          return false;
-
         tetgenio::facet & facet = output.facetlist[index];
-
-        facet.numberofpolygons = polygons.size();
-        facet.polygonlist = new tetgenio::polygon[ polygons.size() ];
 
         facet.numberofholes = hole_points.size();
         if (facet.numberofholes > 0)
@@ -98,15 +87,22 @@ namespace viennamesh
         else
           facet.holelist = 0;
 
-        for (std::size_t polygon_index = 0; polygon_index != polygons.size(); ++polygon_index)
+
+        ConstLineOnCellRange lines(*cit);
+        facet.numberofpolygons = lines.size();
+        facet.polygonlist = new tetgenio::polygon[ lines.size() ];
+
+        std::size_t polygon_index = 0;
+        for (ConstLineOnCellIterator lcit = lines.begin(); lcit != lines.end(); ++lcit, ++polygon_index)
         {
           tetgenio::polygon & polygon = facet.polygonlist[polygon_index];
-          polygon.numberofvertices = polygons[polygon_index].size();
-          polygon.vertexlist = new int[ polygons[polygon_index].size() ];
+          polygon.numberofvertices = 2;
+          polygon.vertexlist = new int[ 2 ];
 
-          for (std::size_t vertex_index = 0; vertex_index != polygons[polygon_index].size(); ++vertex_index)
-            polygon.vertexlist[vertex_index] = vertex_handle_to_tetgen_index_map[ polygons[polygon_index][vertex_index] ];
+          polygon.vertexlist[0] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lcit).handle_at(0) ];
+          polygon.vertexlist[1] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lcit).handle_at(1) ];
         }
+
       }
 
       return true;
