@@ -77,20 +77,35 @@ namespace viennamesh
         // query cell size input parameter
         double cell_size = -1.0;
         copy_input( "cell_size", cell_size );
+        info(10) << "Using cell size: " << cell_size << std::endl;
+
+        bool make_segmented_mesh = false;
+        copy_input( "make_segmented_mesh", make_segmented_mesh );
+
+        bool use_different_segment_ids_for_unknown_segments = false;
+        copy_input( "use_different_segment_ids_for_unknown_segments", use_different_segment_ids_for_unknown_segments );
+        info(10) << "Using different segment IDs for unknown segments: " << cell_size << std::endl;
 
         // query seed points input parameter
         seed_point_1d_container seed_points;
         typedef viennamesh::result_of::const_parameter_handle<seed_point_1d_container>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_1d_container>("seed_points");
         if (seed_points_handle && !seed_points_handle->get().empty())
+        {
+          info(10) << "Found seed points -> enabling make_segmented_mesh" << std::endl;
           seed_points = seed_points_handle->get();
+          make_segmented_mesh = true;
+        }
 
         // query hole points input parameter
         point_1d_container hole_points;
         typedef viennamesh::result_of::const_parameter_handle<point_1d_container>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = get_input<point_1d_container>("hole_points");
         if (hole_points_handle && !hole_points_handle->get().empty())
+        {
+          info(10) << "Found hole points" << std::endl;
           hole_points = hole_points_handle->get();
+        }
 
 
 
@@ -98,12 +113,14 @@ namespace viennamesh
         OutputMeshT * mesh = NULL;
         OutputSegmentationT * segmentation = NULL;
 
-        if (seed_points.empty())
+        if (!make_segmented_mesh)
         {
+          info(10) << "Making a non-segmented mesh" << std::endl;
           mesh = &output_mesh();
         }
         else
         {
+          info(10) << "Making a segmented mesh" << std::endl;
           mesh = &output_segmented_mesh().mesh;
           segmentation = &output_segmented_mesh().segmentation;
         }
@@ -166,6 +183,7 @@ namespace viennamesh
         for (seed_point_1d_container::iterator it = seed_points.begin(); it != seed_points.end(); ++it)
           default_segment_id = std::max(it->second, default_segment_id);
         ++default_segment_id;
+        info(10) << "Default segment id: " << default_segment_id << std::endl;
 
 
         // sort seed points and hole points
@@ -202,7 +220,11 @@ namespace viennamesh
           if ( (spit != seed_points.end()) && (spit->first[0] < end) )
             output_segment_id = spit->second;
           else
+          {
             output_segment_id = default_segment_id;
+            if (use_different_segment_ids_for_unknown_segments)
+              ++default_segment_id;
+          }
 
 
           // calculate the interval length and the line count in the current interval
