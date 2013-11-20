@@ -561,7 +561,7 @@ namespace viennamesh
   }
 
   template<typename ValueT>
-  inline shared_ptr<base_conversion_function> converter::convert_function( const_parameter_handle const & input )
+  shared_ptr<base_conversion_function> converter::convert_function( const_parameter_handle const & input )
   {
     static_init<ValueT>::init();
 
@@ -933,25 +933,17 @@ namespace viennamesh
 
 
   inline parameter_handle parameter_link::unpack()
-  {
-    return parameter_set.get(parameter_name);
-  }
+  { return parameter_set.get(parameter_name); }
 
   inline const_parameter_handle parameter_link::unpack() const
-  {
-    return parameter_set.get(parameter_name);
-  }
+  { return parameter_set.get(parameter_name); }
 
 
   inline parameter_handle const_parameter_link::unpack()
-  {
-    return parameter_handle();
-  }
+  { return parameter_handle(); }
 
   inline const_parameter_handle const_parameter_link::unpack() const
-  {
-    return parameter_set.get(parameter_name);
-  }
+  { return parameter_set.get(parameter_name); }
 
 
 }

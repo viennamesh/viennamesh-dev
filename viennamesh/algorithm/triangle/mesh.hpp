@@ -152,12 +152,12 @@ namespace viennamesh
       return true;
     }
 
-    bool convert( viennagrid::plc_2d_mesh const & input, input_mesh & output )
+    inline bool convert( viennagrid::plc_2d_mesh const & input, input_mesh & output )
     {
       return generic_convert(input, output);
     }
 
-    bool convert( viennagrid::line_2d_mesh const & input, input_mesh & output )
+    inline bool convert( viennagrid::line_2d_mesh const & input, input_mesh & output )
     {
       return generic_convert(input, output);
     }
@@ -167,7 +167,7 @@ namespace viennamesh
 
 
 
-    bool convert(triangle::output_mesh const & input, viennagrid::triangular_2d_mesh & output)
+    static bool convert(triangle::output_mesh const & input, viennagrid::triangular_2d_mesh & output)
     {
       typedef viennagrid::triangular_2d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
@@ -202,7 +202,7 @@ namespace viennamesh
 
 
 
-    bool convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> & output)
+    static bool convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> & output)
     {
       typedef viennagrid::triangular_2d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;

@@ -24,7 +24,7 @@ namespace viennamesh
 
 
 
-    bool convert(viennagrid::plc_3d_mesh const & input, tetgen::input_mesh & output)
+    static bool convert(viennagrid::plc_3d_mesh const & input, tetgen::input_mesh & output)
     {
       typedef viennagrid::plc_3d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
@@ -114,7 +114,7 @@ namespace viennamesh
 
 
 
-    bool convert(viennagrid::segmented_mesh<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation> const & input, tetgen::input_mesh & output)
+    inline bool convert(viennagrid::segmented_mesh<viennagrid::plc_3d_mesh, viennagrid::plc_3d_segmentation> const & input, tetgen::input_mesh & output)
     {
       return convert(input.mesh, output );
     }
@@ -122,7 +122,7 @@ namespace viennamesh
 
 
 
-    bool convert(viennagrid::triangular_3d_mesh const & input, tetgen::input_mesh & output)
+    static bool convert(viennagrid::triangular_3d_mesh const & input, tetgen::input_mesh & output)
     {
       typedef viennagrid::triangular_3d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
@@ -185,7 +185,7 @@ namespace viennamesh
     }
 
 
-    bool convert(viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> const & input, tetgen::input_mesh & output)
+    inline bool convert(viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> const & input, tetgen::input_mesh & output)
     {
       return convert(input.mesh, output );
     }
@@ -194,7 +194,7 @@ namespace viennamesh
 
 
 
-    bool convert(tetgen::output_mesh const & input, viennagrid::tetrahedral_3d_mesh & output)
+    static bool convert(tetgen::output_mesh const & input, viennagrid::tetrahedral_3d_mesh & output)
     {
       typedef viennagrid::tetrahedral_3d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
@@ -226,7 +226,7 @@ namespace viennamesh
 
 
 
-    bool convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> & output)
+    static bool convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> & output)
     {
       typedef viennagrid::tetrahedral_3d_mesh ViennaGridMeshType;
       typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
