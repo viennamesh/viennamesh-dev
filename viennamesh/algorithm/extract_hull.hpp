@@ -150,6 +150,25 @@ namespace viennamesh
           }
         }
 
+        {
+          typedef viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> InputMeshType;
+          typedef viennagrid::segmented_mesh<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation> OutputMeshType;
+
+          viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_input<InputMeshType>("default");
+
+          if (input_mesh)
+          {
+            output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>( "default" );
+            output_parameter_proxy<seed_point_2d_container> seed_points = output_proxy<seed_point_2d_container>( "seed_points" );
+
+            extract_hull<viennagrid::line_tag>(input_mesh().mesh, input_mesh().segmentation,
+                                                   output_mesh().mesh, output_mesh().segmentation);
+            extract_seed_points( input_mesh().segmentation, seed_points() );
+
+            return true;
+          }
+        }
+
 
         error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
         return false;
