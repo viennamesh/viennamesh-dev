@@ -18,16 +18,17 @@ int main()
   typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;
 
   // creating the geometry mesh
-  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry = viennamesh::make_parameter<GeometryMeshType>();
+  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry_handle = viennamesh::make_parameter<GeometryMeshType>();
+  GeometryMeshType & geometry = geometry_handle->value();
 
   double s = 10.0;
-  viennagrid::make_vertex( geometry->get(), PointType(s) );
-  viennagrid::make_vertex( geometry->get(), PointType(-s) );
-  viennagrid::make_vertex( geometry->get(), PointType(0) );
-  viennagrid::make_vertex( geometry->get(), PointType(0) );
-  viennagrid::make_vertex( geometry->get(), PointType(0) );
-  viennagrid::make_vertex( geometry->get(), PointType(2*s) );
-  viennagrid::make_vertex( geometry->get(), PointType(3*s) );
+  viennagrid::make_vertex( geometry, PointType(s) );
+  viennagrid::make_vertex( geometry, PointType(-s) );
+  viennagrid::make_vertex( geometry, PointType(0) );
+  viennagrid::make_vertex( geometry, PointType(0) );
+  viennagrid::make_vertex( geometry, PointType(0) );
+  viennagrid::make_vertex( geometry, PointType(2*s) );
+  viennagrid::make_vertex( geometry, PointType(3*s) );
 
 
 

@@ -238,9 +238,9 @@ namespace viennamesh
     virtual bool convert( const_parameter_handle const & input, parameter_handle const & output ) const
     {
 #ifdef DEBUG
-      return convert_function( dynamic_cast<InputParameterType const &>(*input).get(), dynamic_cast<OutputParameterType &>(*output).get() );
+      return convert_function( dynamic_cast<InputParameterType const &>(*input).value(), dynamic_cast<OutputParameterType &>(*output).value() );
 #else
-      return convert_function( static_cast<InputParameterType const &>(*input).get(), static_cast<OutputParameterType &>(*output).get() );
+      return convert_function( static_cast<InputParameterType const &>(*input).value(), static_cast<OutputParameterType &>(*output).value() );
 #endif
     }
 
@@ -507,16 +507,16 @@ namespace viennamesh
   public:
     typedef ValueT value_type;
 
-    parameter_wrapper() : value_ptr(NULL) { static_init(); }
-    parameter_wrapper(value_type const & value_) :
-      value(value_), value_ptr(NULL) { static_init(); }
-    parameter_wrapper(value_type * value_ptr_) :
-      value_ptr(value_ptr_) { static_init(); }
+    parameter_wrapper() : value_ptr_(NULL) { static_init(); }
+    parameter_wrapper(value_type const & val) :
+      value_(val), value_ptr_(NULL) { static_init(); }
+    parameter_wrapper(value_type * val_ptr) :
+      value_ptr_(val_ptr) { static_init(); }
 
     parameter_handle unpack() { return shared_from_this(); }
     const_parameter_handle unpack() const { return shared_from_this(); }
     bool is_link() const { return false; }
-    bool is_reference() const { return value_ptr; }
+    bool is_reference() const { return value_ptr_; }
 
     static void static_init()
     {
@@ -528,15 +528,15 @@ namespace viennamesh
       }
     }
 
-    void set_ptr( ValueT * value_ptr_ ) { value_ptr = value_ptr_; }
-    void set( ValueT const & value_ ) { value_ptr = NULL; value = value_; }
+    void set_ptr( ValueT * val_ptr ) { value_ptr_ = val_ptr; }
+    void set( ValueT const & val ) { value_ptr_ = NULL; value_ = val; }
 
-    ValueT & get() { if (value_ptr) return *value_ptr; else return value; }
-    ValueT const & get() const { if (value_ptr) return *value_ptr; else return value; }
+    ValueT & value() { return value_ptr_ ? *value_ptr_ : value_; }
+    ValueT const & value() const { return value_ptr_ ? *value_ptr_ : value_; }
 
   private:
-    ValueT value;
-    ValueT * value_ptr;
+    ValueT value_;
+    ValueT * value_ptr_;
   };
 
 
@@ -914,7 +914,7 @@ namespace viennamesh
       typename result_of::const_parameter_handle<ValueT>::type ptr = get<ValueT>(name);
       if (ptr)
       {
-        target = ptr->get();
+        target = ptr->value();
         return true;
       }
       return false;

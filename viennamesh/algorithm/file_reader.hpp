@@ -23,7 +23,7 @@ namespace viennamesh
     {
       const_string_parameter_handle param = get_required_input<string>("filename");
 
-      string filename = param->get();
+      string filename = param->value();
       string extension = filename.substr( filename.rfind(".")+1 );
 
       parameter_handle result;

@@ -68,7 +68,8 @@ namespace viennamesh
 
 
         // query input parameters
-        GeometryHandleType input_geometry = get_required_input<GeometryT>("default");
+        GeometryHandleType geometry_handle = get_required_input<GeometryT>("default");
+        GeometryT const & geometry = geometry_handle->value();
 
         // query possible output parameters: mesh and segmented mesh
         output_parameter_proxy<OutputMeshT> output_mesh = output_proxy<OutputMeshT>("default");
@@ -90,10 +91,10 @@ namespace viennamesh
         seed_point_1d_container seed_points;
         typedef viennamesh::result_of::const_parameter_handle<seed_point_1d_container>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_1d_container>("seed_points");
-        if (seed_points_handle && !seed_points_handle->get().empty())
+        if (seed_points_handle && !seed_points_handle->value().empty())
         {
           info(10) << "Found seed points -> enabling make_segmented_mesh" << std::endl;
-          seed_points = seed_points_handle->get();
+          seed_points = seed_points_handle->value();
           make_segmented_mesh = true;
         }
 
@@ -101,10 +102,10 @@ namespace viennamesh
         point_1d_container hole_points;
         typedef viennamesh::result_of::const_parameter_handle<point_1d_container>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = get_input<point_1d_container>("hole_points");
-        if (hole_points_handle && !hole_points_handle->get().empty())
+        if (hole_points_handle && !hole_points_handle->value().empty())
         {
           info(10) << "Found hole points" << std::endl;
-          hole_points = hole_points_handle->get();
+          hole_points = hole_points_handle->value();
         }
 
 
@@ -127,11 +128,11 @@ namespace viennamesh
 
 
         // copy and sort vertices
-        ConstVertexRangeType vertices( input_geometry->get() );
+        ConstVertexRangeType vertices( geometry );
         std::list<GeometryVertexHandleType> sorted_geometry_points;
         for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
           sorted_geometry_points.push_back( vit.handle() );
-        sorted_geometry_points.sort( vertex_handle_point_sorter_1d<GeometryT>(input_geometry->get()) );
+        sorted_geometry_points.sort( vertex_handle_point_sorter_1d<GeometryT>(geometry) );
 
 
         // query and determine minimal line length
@@ -139,8 +140,8 @@ namespace viennamesh
         copy_input( "relative_min_geometry_point_distance", relative_min_geometry_point_distance );
 
         double absolute_min_geometry_point_distance =
-          (viennagrid::point(input_geometry->get(), sorted_geometry_points.back())[0] -
-          viennagrid::point(input_geometry->get(), sorted_geometry_points.front())[0]) * relative_min_geometry_point_distance;
+          (viennagrid::point(geometry, sorted_geometry_points.back())[0] -
+          viennagrid::point(geometry, sorted_geometry_points.front())[0]) * relative_min_geometry_point_distance;
         copy_input( "absolute_min_geometry_point_distance", absolute_min_geometry_point_distance );
 
 
@@ -151,8 +152,8 @@ namespace viennamesh
 
           while (vhit1 != sorted_geometry_points.end())
           {
-            double length = std::abs(viennagrid::point(input_geometry->get(), *vhit0)[0] -
-                                     viennagrid::point(input_geometry->get(), *vhit1)[0]);
+            double length = std::abs(viennagrid::point(geometry, *vhit0)[0] -
+                                     viennagrid::point(geometry, *vhit1)[0]);
 
             if (length < absolute_min_geometry_point_distance)
             {
@@ -172,7 +173,7 @@ namespace viennamesh
         for (typename std::list<GeometryVertexHandleType>::iterator vhit = sorted_geometry_points.begin(); vhit != sorted_geometry_points.end(); ++vhit)
         {
           OutputVertexHandleType vertex_handle =
-          viennagrid::make_vertex(*mesh, viennagrid::point(input_geometry->get(), *vhit) );
+          viennagrid::make_vertex(*mesh, viennagrid::point(geometry, *vhit) );
 
           sorted_points.push_back(vertex_handle);
         }

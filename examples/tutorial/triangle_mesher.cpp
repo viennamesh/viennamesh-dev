@@ -18,42 +18,43 @@ int main()
   typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;
 
   // creating the geometry mesh
-  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry = viennamesh::make_parameter<GeometryMeshType>();
+  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry_handle = viennamesh::make_parameter<GeometryMeshType>();
+  GeometryMeshType & geometry = geometry_handle->value();
 
   double s = 10.0;
   GeometryVertexHandle vtx[10];
 
-  vtx[0] = viennagrid::make_vertex( geometry->get(), PointType(0, 0) );
-  vtx[1] = viennagrid::make_vertex( geometry->get(), PointType(0, s) );
-  vtx[2] = viennagrid::make_vertex( geometry->get(), PointType(s, 0) );
-  vtx[3] = viennagrid::make_vertex( geometry->get(), PointType(s, s) );
-  vtx[4] = viennagrid::make_vertex( geometry->get(), PointType(2*s, 0) );
-  vtx[5] = viennagrid::make_vertex( geometry->get(), PointType(2*s, s) );
+  vtx[0] = viennagrid::make_vertex( geometry, PointType(0, 0) );
+  vtx[1] = viennagrid::make_vertex( geometry, PointType(0, s) );
+  vtx[2] = viennagrid::make_vertex( geometry, PointType(s, 0) );
+  vtx[3] = viennagrid::make_vertex( geometry, PointType(s, s) );
+  vtx[4] = viennagrid::make_vertex( geometry, PointType(2*s, 0) );
+  vtx[5] = viennagrid::make_vertex( geometry, PointType(2*s, s) );
 
-  vtx[6] = viennagrid::make_vertex( geometry->get(), PointType(s/3, s/3) );
-  vtx[7] = viennagrid::make_vertex( geometry->get(), PointType(s/3, 2*s/3) );
-  vtx[8] = viennagrid::make_vertex( geometry->get(), PointType(2*s/3, s/3) );
-  vtx[9] = viennagrid::make_vertex( geometry->get(), PointType(2*s/3, 2*s/3) );
+  vtx[6] = viennagrid::make_vertex( geometry, PointType(s/3, s/3) );
+  vtx[7] = viennagrid::make_vertex( geometry, PointType(s/3, 2*s/3) );
+  vtx[8] = viennagrid::make_vertex( geometry, PointType(2*s/3, s/3) );
+  vtx[9] = viennagrid::make_vertex( geometry, PointType(2*s/3, 2*s/3) );
 
 
-  viennagrid::make_line( geometry->get(), vtx[0], vtx[1] );
+  viennagrid::make_line( geometry, vtx[0], vtx[1] );
 
-  viennagrid::make_line( geometry->get(), vtx[0], vtx[2] );
-  viennagrid::make_line( geometry->get(), vtx[1], vtx[3] );
+  viennagrid::make_line( geometry, vtx[0], vtx[2] );
+  viennagrid::make_line( geometry, vtx[1], vtx[3] );
 
-  viennagrid::make_line( geometry->get(), vtx[2], vtx[3] );
+  viennagrid::make_line( geometry, vtx[2], vtx[3] );
 
-  viennagrid::make_line( geometry->get(), vtx[2], vtx[4] );
-  viennagrid::make_line( geometry->get(), vtx[3], vtx[5] );
+  viennagrid::make_line( geometry, vtx[2], vtx[4] );
+  viennagrid::make_line( geometry, vtx[3], vtx[5] );
 
-  viennagrid::make_line( geometry->get(), vtx[4], vtx[5] );
+  viennagrid::make_line( geometry, vtx[4], vtx[5] );
 
-  viennagrid::make_line( geometry->get(), vtx[6], vtx[7] );
+  viennagrid::make_line( geometry, vtx[6], vtx[7] );
 
-  viennagrid::make_line( geometry->get(), vtx[6], vtx[8] );
-  viennagrid::make_line( geometry->get(), vtx[7], vtx[9] );
+  viennagrid::make_line( geometry, vtx[6], vtx[8] );
+  viennagrid::make_line( geometry, vtx[7], vtx[9] );
 
-  viennagrid::make_line( geometry->get(), vtx[8], vtx[9] );
+  viennagrid::make_line( geometry, vtx[8], vtx[9] );
 
 
   // setting the created line geometry as input for the mesher

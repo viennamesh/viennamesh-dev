@@ -28,7 +28,7 @@ namespace viennamesh
     {
       info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Writer" << std::endl;
       viennagrid::io::vtk_writer<MeshT> vtk_writer;
-      vtk_writer( tmp->get(), filename.substr(0, filename.rfind(".")) );
+      vtk_writer( tmp->value(), filename.substr(0, filename.rfind(".")) );
       return true;
     }
 
@@ -57,7 +57,7 @@ namespace viennamesh
     {
       info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Writer" << std::endl;
       viennagrid::io::vtk_writer<MeshT, SegmentationT> vtk_writer;
-      vtk_writer( tmp->get().mesh, tmp->get().segmentation, filename.substr(0, filename.rfind(".")) );
+      vtk_writer( tmp->value().mesh, tmp->value().segmentation, filename.substr(0, filename.rfind(".")) );
       return true;
     }
 
@@ -92,29 +92,29 @@ namespace viennamesh
 
 
 
-      if (writeToFile<viennagrid::line_1d_mesh, viennagrid::line_1d_segmentation>(mesh, filename->get()))
+      if (writeToFile<viennagrid::line_1d_mesh, viennagrid::line_1d_segmentation>(mesh, filename->value()))
         return true;
 
-      if (writeToFile<viennagrid::line_1d_mesh>(mesh, filename->get()))
+      if (writeToFile<viennagrid::line_1d_mesh>(mesh, filename->value()))
         return true;
 
-      if (writeToFile<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>(mesh, filename->get()))
+      if (writeToFile<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>(mesh, filename->value()))
         return true;
 
-      if (writeToFile<viennagrid::line_2d_mesh>(mesh, filename->get()))
+      if (writeToFile<viennagrid::line_2d_mesh>(mesh, filename->value()))
         return true;
 
-      if (writeToFile<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(mesh, filename->get()))
+      if (writeToFile<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(mesh, filename->value()))
         return true;
 
-      if (writeToFile<viennagrid::triangular_2d_mesh>(mesh, filename->get()))
+      if (writeToFile<viennagrid::triangular_2d_mesh>(mesh, filename->value()))
         return true;
 
 
-      if (writeToFile<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(mesh, filename->get()))
+      if (writeToFile<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(mesh, filename->value()))
         return true;
 
-      if (writeToFile<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>(mesh, filename->get()))
+      if (writeToFile<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>(mesh, filename->value()))
         return true;
 
       error(1) << "Input mesh is not convertable to any supported ViennaGrid mesh." << std::endl;

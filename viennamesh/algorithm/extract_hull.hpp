@@ -142,9 +142,9 @@ namespace viennamesh
             output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>( "default" );
             output_parameter_proxy<seed_point_3d_container> seed_points = output_proxy<seed_point_3d_container>( "seed_points" );
 
-            extract_hull<viennagrid::triangle_tag>(input_mesh->get().mesh, input_mesh->get().segmentation,
+            extract_hull<viennagrid::triangle_tag>(input_mesh->value().mesh, input_mesh->value().segmentation,
                                                    output_mesh().mesh, output_mesh().segmentation);
-            extract_seed_points( input_mesh->get().segmentation, seed_points() );
+            extract_seed_points( input_mesh->value().segmentation, seed_points() );
 
             return true;
           }
