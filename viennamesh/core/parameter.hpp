@@ -593,8 +593,8 @@ namespace viennamesh
     template<typename InputValueT, typename OutputValueT>
     friend class conversion_function;
 
-    ValueT & value() { return value_ptr_ ? *value_ptr_ : value_; }
-    ValueT const & value() const { return value_ptr_ ? *value_ptr_ : value_; }
+    ValueT & value() { if (value_ptr_) return *value_ptr_; else return value_; }
+    ValueT const & value() const { if (value_ptr_) return *value_ptr_; else return value_; }
 
     ValueT value_;
     ValueT * value_ptr_;
