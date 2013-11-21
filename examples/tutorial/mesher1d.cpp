@@ -12,7 +12,7 @@ int main()
 
   // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
 
-  typedef viennagrid::vertex_1d_mesh GeometryMeshType;
+  typedef viennagrid::brep_1d_mesh GeometryMeshType;
   // Typedefing vertex handle and point type for geometry creation
   typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
   typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;

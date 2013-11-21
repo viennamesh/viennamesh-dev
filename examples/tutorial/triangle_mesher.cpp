@@ -59,17 +59,15 @@ int main()
   // setting the created line geometry as input for the mesher
   mesher->set_input( "default", geometry );
 
-  // creating the seed points
+  // creating the seed points and set it as input for the mesher
   viennamesh::seed_point_2d_container seed_points;
   seed_points.push_back( std::make_pair(PointType(s/4, s/2), 0) );
   seed_points.push_back( std::make_pair(PointType(s+s/2, s/2), 1) );
+  mesher->set_input( "seed_points", seed_points );
 
-  // creating the hole points
+  // creating the hole points and set it as input for the mesher
   viennamesh::point_2d_container hole_points;
   hole_points.push_back( PointType(s/2, s/2) );
-
-  // setting the seed points and hole points as input for the mesher
-  mesher->set_input( "seed_points", seed_points );
   mesher->set_input( "hole_points", hole_points );
 
   // setting the mesher paramters

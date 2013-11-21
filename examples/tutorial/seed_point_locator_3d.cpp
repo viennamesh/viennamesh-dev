@@ -97,7 +97,12 @@ int main()
   seed_point_locator->set_input( "default", geometry );
   seed_point_locator->run();
 
-  viennamesh::result_of::parameter_handle<PointType>::type point = seed_point_locator->get_output<PointType>( "default" );
-  if (point)
-    std::cout << point->get() << std::endl;
+  typedef viennamesh::result_of::point_container<PointType>::type PointContainerType;
+  viennamesh::result_of::parameter_handle<PointContainerType>::type point_container = seed_point_locator->get_output<PointContainerType>( "default" );
+  if (point_container)
+  {
+    std::cout << "Number of extracted seed points: " << point_container->get().size() << std::endl;
+    for (PointContainerType::iterator it = point_container->get().begin(); it != point_container->get().end(); ++it)
+      std::cout << "  " << *it << std::endl;
+  }
 }

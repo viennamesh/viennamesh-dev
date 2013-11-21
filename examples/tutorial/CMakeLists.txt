@@ -9,6 +9,9 @@ target_link_libraries(tetgen_mesher tetgen)
 
 add_executable(extract_hull extract_hull.cpp)
 
+add_executable(seed_point_locator_1d seed_point_locator_1d.cpp)
+target_link_libraries(seed_point_locator_1d triangle tetgen)
+
 add_executable(seed_point_locator_2d seed_point_locator_2d.cpp)
 target_link_libraries(seed_point_locator_2d triangle tetgen)
 
