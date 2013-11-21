@@ -28,8 +28,8 @@ include(ViennaMeshCommon)
 
 option(BUILD_EXTERNAL_LIB_TRIANGLE "Build the Triangle library" ON)
 option(BUILD_EXTERNAL_LIB_TETGEN "Build the Tetgen library" ON)
-option(BUILD_EXTERNAL_LIB_NETGEN "Build the Netgen library" ON)
-option(BUILD_EXTERNAL_LIB_VGMODELER "Build the VGModeler library" ON)
+# option(BUILD_EXTERNAL_LIB_NETGEN "Build the Netgen library" ON)
+# option(BUILD_EXTERNAL_LIB_VGMODELER "Build the VGModeler library" ON)
 
 option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
 
@@ -94,17 +94,17 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 # external libraries
 ################
 
-IF(BUILD_EXTERNAL_LIB_NETGEN)
-  include(ExternalProject)
-  ExternalProject_Add(netgen
-     URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
-     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui
-     )
-  link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/lib )
-ENDIF(BUILD_EXTERNAL_LIB_NETGEN)
-IF(BUILD_EXTERNAL_LIB_VGMODELER)
-  add_subdirectory( external/vgmodeler )
-ENDIF(BUILD_EXTERNAL_LIB_VGMODELER)
+# IF(BUILD_EXTERNAL_LIB_NETGEN)
+#   include(ExternalProject)
+#   ExternalProject_Add(netgen
+#      URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
+#      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui
+#      )
+#   link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/lib )
+# ENDIF(BUILD_EXTERNAL_LIB_NETGEN)
+# IF(BUILD_EXTERNAL_LIB_VGMODELER)
+#   add_subdirectory( external/vgmodeler )
+# ENDIF(BUILD_EXTERNAL_LIB_VGMODELER)
 IF(BUILD_EXTERNAL_LIB_TETGEN)
   add_subdirectory( external/tetgen )
 ENDIF(BUILD_EXTERNAL_LIB_TETGEN)
@@ -119,9 +119,9 @@ if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif()
 
-if(BUILD_TOOLS)
-   add_subdirectory(tools)
-endif()
+# if(BUILD_TOOLS)
+#    add_subdirectory(tools)
+# endif()
 
 if(BUILD_TESTING)
    INCLUDE(CTest)
