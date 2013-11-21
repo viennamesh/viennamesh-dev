@@ -154,16 +154,7 @@ namespace viennamesh
   struct LoggingLevels
   {
     LoggingLevels() {}
-    LoggingLevels( LoggingLevelT default_level ) { init(default_level); }
-
-    void init( LoggingLevelT default_level )
-    {
-      stack_level = default_level;
-      info_level = default_level;
-      warning_level = default_level;
-      error_level = default_level;
-      debug_level = default_level;
-    }
+    LoggingLevels( LoggingLevelT default_level ) { set_all(default_level); }
 
     LoggingLevelT const & get( stack_tag ) const { return stack_level; }
     LoggingLevelT const & get( info_tag ) const { return info_level; }
@@ -183,6 +174,15 @@ namespace viennamesh
 
     template<typename LoggingTagT>
     void set(LoggingLevelT const & value) { set( LoggingTagT(), value ); }
+
+    void set_all( LoggingLevelT default_level )
+    {
+      stack_level = default_level;
+      info_level = default_level;
+      warning_level = default_level;
+      error_level = default_level;
+      debug_level = default_level;
+    }
 
 
     LoggingLevelT stack_level;
@@ -337,6 +337,7 @@ namespace viennamesh
     LoggingLevels< int > const & global_log_levels() const { return global_log_levels_; }
     template<typename LoggingTagT>
     void set_log_level( int level ) { global_log_levels_.set<LoggingTagT>(level); }
+    void set_all_log_level( int level ) { global_log_levels_.set_all(level); }
 
     void increase_indentation() { ++indentation_count_; }
     void decrease_indentation() { --indentation_count_; }
