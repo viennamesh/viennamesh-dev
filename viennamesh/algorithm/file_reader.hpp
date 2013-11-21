@@ -48,7 +48,7 @@ namespace viennamesh
 
         try
         {
-          typedef viennagrid::plc_3d_mesh MeshType;
+          typedef viennagrid::brep_3d_mesh MeshType;
 
           output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
           output_parameter_proxy<point_3d_container> output_hole_points = output_proxy<point_3d_container>("hole_points");
@@ -81,36 +81,36 @@ namespace viennamesh
         }
         catch (viennagrid::io::bad_file_format_exception const & ) {}
 
-        try
-        {
-          typedef viennagrid::plc_2d_mesh MeshType;
-
-          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
-          output_parameter_proxy<point_2d_container> output_hole_points = output_proxy<point_2d_container>("hole_points");
-          output_parameter_proxy<seed_point_2d_container> output_seed_points = output_proxy<seed_point_2d_container>("seed_points");
-
-
-          point_2d_container hole_points;
-          seed_point_2d_container seed_points;
-
-          reader(output_mesh(), filename, hole_points, seed_points);
-
-
-          if (!hole_points.empty())
-          {
-            info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
-            output_hole_points() = hole_points;
-          }
-
-          if (!seed_points.empty())
-          {
-            info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
-            output_seed_points() = seed_points;
-          }
-
-          return true;
-        }
-        catch (viennagrid::io::bad_file_format_exception const & ) {}
+//         try
+//         {
+//           typedef viennagrid::brep_2d_mesh MeshType;
+//
+//           output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+//           output_parameter_proxy<point_2d_container> output_hole_points = output_proxy<point_2d_container>("hole_points");
+//           output_parameter_proxy<seed_point_2d_container> output_seed_points = output_proxy<seed_point_2d_container>("seed_points");
+//
+//
+//           point_2d_container hole_points;
+//           seed_point_2d_container seed_points;
+//
+//           reader(output_mesh(), filename, hole_points, seed_points);
+//
+//
+//           if (!hole_points.empty())
+//           {
+//             info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
+//             output_hole_points() = hole_points;
+//           }
+//
+//           if (!seed_points.empty())
+//           {
+//             info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
+//             output_seed_points() = seed_points;
+//           }
+//
+//           return true;
+//         }
+//         catch (viennagrid::io::bad_file_format_exception const & ) {}
 
         return false;
       }

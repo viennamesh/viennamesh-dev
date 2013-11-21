@@ -152,12 +152,7 @@ namespace viennamesh
       return true;
     }
 
-    inline bool convert( viennagrid::plc_2d_mesh const & input, input_mesh & output )
-    {
-      return generic_convert(input, output);
-    }
-
-    inline bool convert( viennagrid::line_2d_mesh const & input, input_mesh & output )
+    inline bool convert( viennagrid::brep_2d_mesh const & input, input_mesh & output )
     {
       return generic_convert(input, output);
     }
@@ -260,11 +255,9 @@ namespace viennamesh
 
     static void init()
     {
-      typedef viennagrid::plc_2d_mesh PLC2DViennaGridMeshType;
-      typedef viennagrid::line_2d_mesh Line2DViennaGridMeshType;
+      typedef viennagrid::brep_2d_mesh BRep2DViennaGridMeshType;
 
-      converter::get().register_conversion<PLC2DViennaGridMeshType, SelfType>( &triangle::convert );
-      converter::get().register_conversion<Line2DViennaGridMeshType, SelfType>( &triangle::convert );
+      converter::get().register_conversion<BRep2DViennaGridMeshType, SelfType>( &triangle::convert );
 
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "2" );
