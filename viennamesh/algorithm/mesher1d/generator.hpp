@@ -256,9 +256,9 @@ namespace viennamesh
             else
               viennagrid::make_line( *mesh, sorted_points[i-1], last_vertex );
 
-            for (unsigned int i = 0; i < lines_in_between; ++i)
+            for (unsigned int j = 0; j < lines_in_between; ++j)
             {
-              OutputVertexHandleType tmp = viennagrid::make_vertex( *mesh, PointType(start+delta*(i+2)) );
+              OutputVertexHandleType tmp = viennagrid::make_vertex( *mesh, PointType(start+delta*(j+2)) );
 
               if (segmentation)
                 viennagrid::make_line( segmentation->get_make_segment(output_segment_id), last_vertex, tmp );
