@@ -28,17 +28,17 @@ namespace viennamesh
 
         const_double_parameter_handle cell_size = get_input<double>("cell_size");
         if (cell_size)
-          options << "a" << cell_size->value();
+          options << "a" << cell_size();
 
         const_double_parameter_handle max_radius_edge_ratio = get_input<double>("max_radius_edge_ratio");
         const_double_parameter_handle min_dihedral_angle = get_input<double>("min_dihedral_angle");
 
         if (max_radius_edge_ratio && min_dihedral_angle)
-          options << "q" << max_radius_edge_ratio->value() << "q" << min_dihedral_angle->value() / M_PI * 180.0;
+          options << "q" << max_radius_edge_ratio() << "q" << min_dihedral_angle() / M_PI * 180.0;
         else if (max_radius_edge_ratio)
-          options << "q" << max_radius_edge_ratio->value();
+          options << "q" << max_radius_edge_ratio();
         else if (min_dihedral_angle)
-          options << "qq" << min_dihedral_angle->value() / M_PI * 180.0;
+          options << "qq" << min_dihedral_angle() / M_PI * 180.0;
 
 
 
@@ -80,7 +80,7 @@ namespace viennamesh
 //         tetgen_settings.goodangle *= tetgen_settings.goodangle;                               // tetgen.cxx:3047
 
 
-        tetgenio & tmp = (tetgenio&)input_mesh->value();
+        tetgenio & tmp = (tetgenio&)input_mesh();
 
         int old_numberofregions = tmp.numberofregions;
         REAL * old_regionlist = tmp.regionlist;
@@ -96,11 +96,11 @@ namespace viennamesh
 
         typedef viennamesh::result_of::const_parameter_handle<seed_point_3d_container>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_3d_container>("seed_points");
-        if (seed_points_handle && !seed_points_handle->value().empty())
+        if (seed_points_handle && !seed_points_handle().empty())
         {
           info(5) << "Found seed points" << std::endl;
 
-          seed_point_3d_container const & seed_points = seed_points_handle->value();
+          seed_point_3d_container const & seed_points = seed_points_handle();
 
           REAL * tmp_regionlist = new REAL[5 * (seed_points.size() + tmp.numberofregions)];
           memcpy( tmp_regionlist, tmp.regionlist, sizeof(REAL)*5*tmp.numberofregions );
@@ -124,11 +124,11 @@ namespace viennamesh
 
         typedef viennamesh::result_of::const_parameter_handle<point_3d_container>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = get_input<point_3d_container>("hole_points");
-        if (hole_points_handle && !hole_points_handle->value().empty())
+        if (hole_points_handle && !hole_points_handle().empty())
         {
           info(5) << "Found hole points" << std::endl;
 
-          point_3d_container const & hole_points = hole_points_handle->value();
+          point_3d_container const & hole_points = hole_points_handle();
 
 
           REAL * tmp_holelist = new REAL[3 * (hole_points.size() + tmp.numberofholes)];

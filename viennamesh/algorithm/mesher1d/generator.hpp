@@ -69,7 +69,7 @@ namespace viennamesh
 
         // query input parameters
         GeometryHandleType geometry_handle = get_required_input<GeometryT>("default");
-        GeometryT const & geometry = geometry_handle->value();
+        GeometryT const & geometry = geometry_handle();
 
         // query possible output parameters: mesh and segmented mesh
         output_parameter_proxy<OutputMeshT> output_mesh = output_proxy<OutputMeshT>("default");
@@ -91,10 +91,10 @@ namespace viennamesh
         seed_point_1d_container seed_points;
         typedef viennamesh::result_of::const_parameter_handle<seed_point_1d_container>::type ConstSeedPointContainerHandle;
         ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_1d_container>("seed_points");
-        if (seed_points_handle && !seed_points_handle->value().empty())
+        if (seed_points_handle && !seed_points_handle().empty())
         {
           info(10) << "Found seed points -> enabling make_segmented_mesh" << std::endl;
-          seed_points = seed_points_handle->value();
+          seed_points = seed_points_handle();
           make_segmented_mesh = true;
         }
 
@@ -102,10 +102,10 @@ namespace viennamesh
         point_1d_container hole_points;
         typedef viennamesh::result_of::const_parameter_handle<point_1d_container>::type ConstPointContainerHandle;
         ConstPointContainerHandle hole_points_handle = get_input<point_1d_container>("hole_points");
-        if (hole_points_handle && !hole_points_handle->value().empty())
+        if (hole_points_handle && !hole_points_handle().empty())
         {
           info(10) << "Found hole points" << std::endl;
-          hole_points = hole_points_handle->value();
+          hole_points = hole_points_handle();
         }
 
 

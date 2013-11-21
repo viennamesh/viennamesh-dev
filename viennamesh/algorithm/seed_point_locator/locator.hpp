@@ -92,7 +92,7 @@ namespace viennamesh
         typedef typename viennagrid::result_of::cell_range<ViennaGridMeshT>::type CellRangeType;
         typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellIteratorType;
 
-        CellRangeType cells(meshed_geometry->value());
+        CellRangeType cells(meshed_geometry());
 
         if (!cells.empty())
         {
@@ -113,7 +113,7 @@ namespace viennamesh
               seed_point().push_back( viennagrid::centroid(*cit) );
               unvisited_cells.erase( ucit );
 
-              neighbor_mark( meshed_geometry->value(), unvisited_cells );
+              neighbor_mark( meshed_geometry(), unvisited_cells );
             }
           }
         }

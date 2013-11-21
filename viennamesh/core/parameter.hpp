@@ -14,23 +14,74 @@ namespace viennamesh
   template<typename T>
   class parameter_wrapper;
 
-  typedef shared_ptr<base_parameter> parameter_handle;
-  typedef shared_ptr<const base_parameter> const_parameter_handle;
 
+
+
+  template<typename ObjectT>
+  class parameter_handle_t : public shared_ptr<ObjectT>
+  {
+  public:
+    parameter_handle_t() {}
+
+    template<typename AnotherObjectT>
+    parameter_handle_t( parameter_handle_t<AnotherObjectT> const & rhs ) : shared_ptr<ObjectT>(rhs) {}
+
+    parameter_handle_t( shared_ptr<ObjectT> const & ptr ) : shared_ptr<ObjectT>(ptr) {}
+
+    explicit parameter_handle_t( ObjectT * ptr ) : shared_ptr<ObjectT>(ptr) {}
+
+  };
+
+  template<typename ValueT>
+  class parameter_handle_t< parameter_wrapper<ValueT> > : public shared_ptr< parameter_wrapper<ValueT> >
+  {
+    typedef parameter_wrapper<ValueT> ObjectType;
+  public:
+    parameter_handle_t() {}
+    parameter_handle_t( shared_ptr<ObjectType> const & ptr ) : shared_ptr<ObjectType>(ptr) {}
+
+    explicit parameter_handle_t( ObjectType * ptr ) : shared_ptr<ObjectType>(ptr) {}
+
+    ValueT & operator()() { return (*this)->value(); }
+    ValueT const & operator()() const { return (*this)->value(); }
+  };
+
+  template<typename ValueT>
+  class parameter_handle_t< const parameter_wrapper<ValueT> > : public shared_ptr<const parameter_wrapper<ValueT> >
+  {
+    typedef parameter_wrapper<ValueT> NonConstObjectType;
+    typedef const parameter_wrapper<ValueT> ObjectType;
+  public:
+    parameter_handle_t() {}
+
+    parameter_handle_t( shared_ptr<ObjectType> const & ptr ) : shared_ptr<ObjectType>(ptr) {}
+    parameter_handle_t( shared_ptr<NonConstObjectType> const & ptr ) : shared_ptr<ObjectType>(ptr) {}
+
+    explicit parameter_handle_t( ObjectType * ptr ) : shared_ptr<ObjectType>(ptr) {}
+
+    ValueT const & operator()() { return (*this)->value(); }
+    ValueT const & operator()() const { return (*this)->value(); }
+  };
+
+
+
+  typedef parameter_handle_t<base_parameter> parameter_handle;
+  typedef parameter_handle_t<const base_parameter> const_parameter_handle;
 
   namespace result_of
   {
     template<typename ValueT>
     struct parameter_handle
     {
-      typedef shared_ptr< parameter_wrapper<ValueT> > type;
+      typedef parameter_handle_t< parameter_wrapper<ValueT> > type;
     };
 
     template<typename ValueT>
     struct const_parameter_handle
     {
-      typedef shared_ptr< const parameter_wrapper<ValueT> > type;
+      typedef parameter_handle_t< const parameter_wrapper<ValueT> > type;
     };
+
 
     template<typename ValueT>
     struct parameter_handle<const ValueT>
@@ -211,8 +262,9 @@ namespace viennamesh
 
 
 
-  struct base_conversion_function
+  class base_conversion_function
   {
+  public:
     base_conversion_function(int function_depth_) : function_depth(function_depth_) {}
     virtual ~base_conversion_function() {}
 
@@ -226,8 +278,9 @@ namespace viennamesh
   };
 
   template<typename InputValueT, typename OutputValueT>
-  struct conversion_function : base_conversion_function
+  class conversion_function : public base_conversion_function
   {
+  public:
     typedef parameter_wrapper<InputValueT> InputParameterType;
     typedef parameter_wrapper<OutputValueT> OutputParameterType;
 
@@ -246,10 +299,10 @@ namespace viennamesh
 
     virtual parameter_handle get_converted( const_parameter_handle const & input ) const
     {
-      shared_ptr<OutputParameterType> result( new OutputParameterType() );
+      parameter_handle_t<OutputParameterType> result( new OutputParameterType() );
       if (convert(input, result))
         return result;
-      return shared_ptr<OutputParameterType>();
+      return parameter_handle_t<OutputParameterType>();
     }
 
     virtual type_info_wrapper input_type() const
@@ -262,9 +315,10 @@ namespace viennamesh
     function<bool (InputValueT const &, OutputValueT &)> convert_function;
   };
 
-  struct dual_conversion_function : base_conversion_function
+  class dual_conversion_function : public base_conversion_function
   {
-    dual_conversion_function( shared_ptr<base_conversion_function> const & first_, shared_ptr<base_conversion_function> const & second_ ) :
+  public:
+    dual_conversion_function( parameter_handle_t<base_conversion_function> const & first_, parameter_handle_t<base_conversion_function> const & second_ ) :
         base_conversion_function(first_->function_depth + second_->function_depth), first(first_), second(second_) {}
 
     virtual bool convert( const_parameter_handle const & input, parameter_handle const & output ) const
@@ -531,10 +585,17 @@ namespace viennamesh
     void set_ptr( ValueT * val_ptr ) { value_ptr_ = val_ptr; }
     void set( ValueT const & val ) { value_ptr_ = NULL; value_ = val; }
 
+  private:
+
+    template<typename TypeT>
+    friend class parameter_handle_t;
+
+    template<typename InputValueT, typename OutputValueT>
+    friend class conversion_function;
+
     ValueT & value() { return value_ptr_ ? *value_ptr_ : value_; }
     ValueT const & value() const { return value_ptr_ ? *value_ptr_ : value_; }
 
-  private:
     ValueT value_;
     ValueT * value_ptr_;
   };
@@ -690,8 +751,14 @@ namespace viennamesh
     string parameter_name_;
   };
 
-  typedef shared_ptr<parameter_link> parameter_link_handle;
-  typedef shared_ptr<const_parameter_link> const_parameter_link_handle;
+//   typedef shared_ptr<parameter_link> parameter_link_handle;
+//   typedef shared_ptr<const_parameter_link> const_parameter_link_handle;
+
+//   typedef result_of::parameter_handle<parameter_link>::type parameter_link_handle;
+//   typedef result_of::const_parameter_handle<parameter_link>::type const_parameter_link_handle;
+
+  typedef parameter_handle_t<parameter_link> parameter_link_handle;
+  typedef parameter_handle_t<const_parameter_link> const_parameter_link_handle;
 
 
   class parameter_set
@@ -715,10 +782,10 @@ namespace viennamesh
     }
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< const parameter_wrapper<ValueT> > const & parameter ); // not supported
+    void set( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter ); // not supported
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< parameter_wrapper<ValueT> > const & parameter )
+    void set( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
@@ -853,14 +920,14 @@ namespace viennamesh
     }
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< const parameter_wrapper<ValueT> > const & parameter )
+    void set( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
     }
 
     template<typename ValueT>
-    void set( string const & name, shared_ptr< parameter_wrapper<ValueT> > const & parameter )
+    void set( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
@@ -911,10 +978,10 @@ namespace viennamesh
     template<typename ValueT>
     bool copy_if_present( string const & name, ValueT & target ) const
     {
-      typename result_of::const_parameter_handle<ValueT>::type ptr = get<ValueT>(name);
-      if (ptr)
+      typename result_of::const_parameter_handle<ValueT>::type handle = get<ValueT>(name);
+      if (handle)
       {
-        target = ptr->value();
+        target = handle();
         return true;
       }
       return false;

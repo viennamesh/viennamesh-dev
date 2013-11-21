@@ -19,7 +19,7 @@ int main()
 
   // creating the geometry mesh
   viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry_handle = viennamesh::make_parameter<GeometryMeshType>();
-  GeometryMeshType & geometry = geometry_handle->value();
+  GeometryMeshType & geometry = geometry_handle();
 
   double s = 10.0;
   GeometryVertexHandle vtx[10];

@@ -13,7 +13,7 @@ int main()
 
   // creating the geometry mesh
   viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry_handle = viennamesh::make_parameter<GeometryMeshType>();
-  GeometryMeshType & geometry = geometry_handle->value();
+  GeometryMeshType & geometry = geometry_handle();
 
 
   double s = 10.0;
@@ -103,8 +103,8 @@ int main()
   viennamesh::result_of::parameter_handle<PointContainerType>::type point_container = seed_point_locator->get_output<PointContainerType>( "default" );
   if (point_container)
   {
-    std::cout << "Number of extracted seed points: " << point_container->value().size() << std::endl;
-    for (PointContainerType::iterator it = point_container->value().begin(); it != point_container->value().end(); ++it)
+    std::cout << "Number of extracted seed points: " << point_container().size() << std::endl;
+    for (PointContainerType::iterator it = point_container().begin(); it != point_container().end(); ++it)
       std::cout << "  " << *it << std::endl;
   }
 }
