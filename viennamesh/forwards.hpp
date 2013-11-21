@@ -45,6 +45,16 @@ namespace viennamesh
       return false;
     }
 
+    bool operator==( type_info_wrapper const & rhs ) const
+    {
+      return *info_ == *rhs.info_;
+    }
+
+    bool operator!=( type_info_wrapper const & rhs ) const
+    {
+      return !(*this == rhs);
+    }
+
     string name() const
     {
       return info_->name();
@@ -65,17 +75,58 @@ namespace viennamesh
 
 
 
-  typedef viennagrid::config::point_type_1d point_1d;
-  typedef viennagrid::config::point_type_2d point_2d;
-  typedef viennagrid::config::point_type_3d point_3d;
+  namespace result_of
+  {
+    template<unsigned int dim>
+    struct point;
 
-  typedef std::vector<point_1d> point_1d_container;
-  typedef std::vector<point_2d> point_2d_container;
-  typedef std::vector<point_3d> point_3d_container;
+    template<>
+    struct point<1>
+    {
+      typedef viennagrid::config::point_type_1d type;
+    };
 
-  typedef std::vector< std::pair<point_1d, int> > seed_point_1d_container;
-  typedef std::vector< std::pair<point_2d, int> > seed_point_2d_container;
-  typedef std::vector< std::pair<point_3d, int> > seed_point_3d_container;
+    template<>
+    struct point<2>
+    {
+      typedef viennagrid::config::point_type_2d type;
+    };
+
+    template<>
+    struct point<3>
+    {
+      typedef viennagrid::config::point_type_3d type;
+    };
+
+
+
+
+    template<typename PointT>
+    struct point_container
+    {
+      typedef std::vector<PointT> type;
+    };
+
+    template<typename PointT>
+    struct seed_point_container
+    {
+      typedef std::vector< std::pair<PointT, int> > type;
+    };
+
+  }
+
+
+  typedef result_of::point<1>::type point_1d;
+  typedef result_of::point<2>::type point_2d;
+  typedef result_of::point<3>::type point_3d;
+
+  typedef result_of::point_container<point_1d>::type point_1d_container;
+  typedef result_of::point_container<point_2d>::type point_2d_container;
+  typedef result_of::point_container<point_3d>::type point_3d_container;
+
+  typedef result_of::seed_point_container<point_1d>::type seed_point_1d_container;
+  typedef result_of::seed_point_container<point_2d>::type seed_point_2d_container;
+  typedef result_of::seed_point_container<point_3d>::type seed_point_3d_container;
 }
 
 #endif
