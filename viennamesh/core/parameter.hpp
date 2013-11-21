@@ -309,10 +309,10 @@ namespace viennamesh
 
 
     bool is_convertable( const_parameter_handle const & input, const_parameter_handle const & output )
-    { return convert_function(input, output); }
+    { return (get_type_id(input) == get_type_id(output)) || convert_function(input, output); }
     template<typename ValueT>
     bool is_convertable( const_parameter_handle const & input )
-    { return convert_function<ValueT>(input); }
+    { return (get_type_id(input) == type_info_wrapper::make< parameter_wrapper<ValueT> >()) ||  convert_function<ValueT>(input); }
 
     bool convert( const_parameter_handle const & input, parameter_handle const & output )
     {
