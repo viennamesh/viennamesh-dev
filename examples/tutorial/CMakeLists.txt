@@ -26,6 +26,10 @@ target_link_libraries(reference_parameter tetgen)
 
 add_executable(mesher1d mesher1d.cpp)
 
+add_executable(tetgen_seedpoints_3segments tetgen_seedpoints_3segments.cpp)
+target_link_libraries(tetgen_seedpoints_3segments triangle tetgen)
+
+
 
 # add_dependencies(some_netgen_project netgen)
 
