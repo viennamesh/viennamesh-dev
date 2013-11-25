@@ -186,8 +186,8 @@ namespace viennamesh
             typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> MeshType;
             output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
-            viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_writer;
-            vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
+            viennagrid::io::vtk_reader<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> vtk_reader;
+            vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
             return true;
           }
           else if ( (geometric_dimension == 3) && (topologic_dimension == 3) )
@@ -195,8 +195,8 @@ namespace viennamesh
             typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
             output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
 
-            viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_writer;
-            vtk_writer(output_mesh().mesh, output_mesh().segmentation, filename);
+            viennagrid::io::vtk_reader<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> vtk_reader;
+            vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
             return true;
           }
           else
@@ -204,6 +204,63 @@ namespace viennamesh
             error(1) << "Combination of geometric and topologic dimension is not supported" << std::endl;
             return false;
           }
+
+
+
+
+//         try
+//         {
+//           typedef viennagrid::triangular_2d_mesh MeshType;
+//           typedef viennagrid::triangular_2d_segmentation SegmentationType;
+//
+//           typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
+//           output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>("default");
+//
+//
+//           viennagrid::io::vtk_reader<MeshType, SegmentationType> vtk_reader;
+//
+//           output_mesh().mesh.clear();
+//           vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
+//
+//           return true;
+//         }
+//         catch (viennagrid::io::bad_file_format_exception const & ) {}
+//
+//         try
+//         {
+//           typedef viennagrid::triangular_3d_mesh MeshType;
+//           typedef viennagrid::triangular_3d_segmentation SegmentationType;
+//
+//           typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
+//           output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>("default");
+//
+//
+//           viennagrid::io::vtk_reader<MeshType, SegmentationType> vtk_reader;
+//
+//           output_mesh().mesh.clear();
+//           vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
+//
+//           return true;
+//         }
+//         catch (viennagrid::io::bad_file_format_exception const & ) {}
+//
+//         try
+//         {
+//           typedef viennagrid::tetrahedral_3d_mesh MeshType;
+//           typedef viennagrid::tetrahedral_3d_segmentation SegmentationType;
+//
+//           typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
+//           output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>("default");
+//
+//
+//           viennagrid::io::vtk_reader<MeshType, SegmentationType> vtk_reader;
+//
+//           output_mesh().mesh.clear();
+//           vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
+//
+//           return true;
+//         }
+//         catch (viennagrid::io::bad_file_format_exception const & ) {}
         }
       }
       else

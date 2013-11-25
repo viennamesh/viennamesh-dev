@@ -228,32 +228,31 @@ namespace viennamesh
         vertex_handles[i] = viennagrid::make_vertex( output.mesh, PointType(input.pointlist[3*i+0], input.pointlist[3*i+1], input.pointlist[3*i+2]) );
       }
 
-
-        for (int i = 0; i < input.numberoftetrahedra; ++i)
+      for (int i = 0; i < input.numberoftetrahedra; ++i)
+      {
+        if (input.numberoftetrahedronattributes == 0)
         {
-          if (input.numberoftetrahedronattributes == 0)
-          {
-            viennagrid::make_tetrahedron(
-              output.mesh,
-              vertex_handles[ input.tetrahedronlist[4*i+0] ],
-              vertex_handles[ input.tetrahedronlist[4*i+1] ],
-              vertex_handles[ input.tetrahedronlist[4*i+2] ],
-              vertex_handles[ input.tetrahedronlist[4*i+3] ]
-            );
-          }
-          else
-          {
-            viennagrid::tetrahedral_3d_segmentation::segment_id_type segment_id = input.tetrahedronattributelist[i];
-
-            viennagrid::make_tetrahedron(
-              output.segmentation.get_make_segment(segment_id),
-              vertex_handles[ input.tetrahedronlist[4*i+0] ],
-              vertex_handles[ input.tetrahedronlist[4*i+1] ],
-              vertex_handles[ input.tetrahedronlist[4*i+2] ],
-              vertex_handles[ input.tetrahedronlist[4*i+3] ]
-            );
-          }
+          viennagrid::make_tetrahedron(
+            output.mesh,
+            vertex_handles[ input.tetrahedronlist[4*i+0] ],
+            vertex_handles[ input.tetrahedronlist[4*i+1] ],
+            vertex_handles[ input.tetrahedronlist[4*i+2] ],
+            vertex_handles[ input.tetrahedronlist[4*i+3] ]
+          );
         }
+        else
+        {
+          viennagrid::tetrahedral_3d_segmentation::segment_id_type segment_id = input.tetrahedronattributelist[i];
+
+          viennagrid::make_tetrahedron(
+            output.segmentation.get_make_segment(segment_id),
+            vertex_handles[ input.tetrahedronlist[4*i+0] ],
+            vertex_handles[ input.tetrahedronlist[4*i+1] ],
+            vertex_handles[ input.tetrahedronlist[4*i+2] ],
+            vertex_handles[ input.tetrahedronlist[4*i+3] ]
+          );
+        }
+      }
 
       return true;
     }
