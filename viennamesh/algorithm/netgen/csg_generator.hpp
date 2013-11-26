@@ -25,7 +25,7 @@ namespace viennamesh
         std::istringstream csg_stream(csg_string());
         ::netgen::CSGeometry * geom = ::netgen::ParseCSG( csg_stream );
 
-        geom->FindIdenticSurfaces(1e-8);// * geom->MaxSize());
+        geom->FindIdenticSurfaces(1e-8 * geom->MaxSize());
         ::netgen::MeshingParameters mparams;
 
         geom->GenerateMesh(output_mesh().mesh, mparams, 1, 5);
