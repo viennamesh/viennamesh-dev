@@ -1,5 +1,5 @@
 #include "viennamesh/algorithm/mesher1d.hpp"
-#include "viennamesh/algorithm/file_writer.hpp"
+#include "viennamesh/algorithm/io.hpp"
 
 
 int main()
@@ -8,7 +8,7 @@ int main()
   viennamesh::algorithm_handle mesher( new viennamesh::mesher1d::algorithm() );
 
   // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
 

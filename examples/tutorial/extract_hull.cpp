@@ -1,18 +1,17 @@
-#include "viennamesh/algorithm/extract_hull.hpp"
-#include "viennamesh/algorithm/file_reader.hpp"
-#include "viennamesh/algorithm/file_writer.hpp"
+#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/algorithm/io.hpp"
 
 
 int main()
 {
   // creating an algorithm for reading a mesh from a file
-  viennamesh::algorithm_handle reader( new viennamesh::file_reader() );
+  viennamesh::algorithm_handle reader( new viennamesh::io::mesh_reader() );
 
   // creating a hull extraction algorithm
   viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull::algorithm() );
 
   // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
 
   // linking the output from the reader to the mesher

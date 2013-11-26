@@ -1,6 +1,5 @@
 #include "viennamesh/algorithm/tetgen.hpp"
-#include "viennamesh/algorithm/file_reader.hpp"
-#include "viennamesh/algorithm/file_writer.hpp"
+#include "viennamesh/algorithm/io.hpp"
 
 
 int main()
@@ -9,7 +8,7 @@ int main()
   viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
 
   // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
 
 

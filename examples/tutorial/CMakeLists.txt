@@ -31,8 +31,8 @@ add_executable(mesh_yannick mesh_yannick.cpp)
 
 
 
-add_executable(netgen_csg netgen_csg.cpp)
-target_link_libraries(netgen_csg ${NETGEN_LIBS})
+# add_executable(netgen_csg netgen_csg.cpp)
+# target_link_libraries(netgen_csg ${NETGEN_LIBS})
 
 add_executable(netgen_csg_mesher netgen_csg_mesher.cpp)
 target_link_libraries(netgen_csg_mesher ${NETGEN_LIBS})

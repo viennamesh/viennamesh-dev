@@ -1,7 +1,4 @@
 #include "viennamesh/algorithm/seed_point_locator.hpp"
-#include "viennamesh/algorithm/file_reader.hpp"
-#include "viennamesh/algorithm/file_writer.hpp"
-
 
 int main()
 {
