@@ -156,6 +156,14 @@ namespace viennamesh
     const_parameter_handle get_input( string const & name ) const
     { return inputs.get(name); }
 
+    const_parameter_handle get_required_input( string const & name ) const
+    {
+      const_parameter_handle param = get_input(name);
+      if (!param)
+        throw input_parameter_not_found_exception(name);
+      return param;
+    }
+
     // queries an input parameter of special type
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get_input( string const & name ) const
