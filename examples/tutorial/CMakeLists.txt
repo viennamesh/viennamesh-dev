@@ -28,7 +28,11 @@ add_executable(mesher1d mesher1d.cpp)
 
 
 add_executable(mesh_yannick mesh_yannick.cpp)
+add_executable(nld_extract_hull nld_extract_hull.cpp)
+add_executable(nld_coarsen_hull nld_coarsen_hull.cpp)
 
+add_executable(nld_mesh_quad_hull nld_mesh_quad_hull.cpp)
+target_link_libraries(nld_mesh_quad_hull triangle)
 
 
 # add_executable(netgen_csg netgen_csg.cpp)
