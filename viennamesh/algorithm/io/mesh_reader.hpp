@@ -187,22 +187,28 @@ namespace viennamesh
             }
           }
 
+          if (is_mesh_type<viennagrid::line_tag, 1>(vtk_cell_type, geometric_dimension))
+            return generic_read_vtk<viennagrid::line_tag, 1>(filename);
+          if (is_mesh_type<viennagrid::line_tag, 2>(vtk_cell_type, geometric_dimension))
+            return generic_read_vtk<viennagrid::line_tag, 2>(filename);
+          if (is_mesh_type<viennagrid::line_tag, 3>(vtk_cell_type, geometric_dimension))
+            return generic_read_vtk<viennagrid::line_tag, 3>(filename);
+
           if (is_mesh_type<viennagrid::triangle_tag, 2>(vtk_cell_type, geometric_dimension))
             return generic_read_vtk<viennagrid::triangle_tag, 2>(filename);
-          else if (is_mesh_type<viennagrid::triangle_tag, 3>(vtk_cell_type, geometric_dimension))
+          if (is_mesh_type<viennagrid::triangle_tag, 3>(vtk_cell_type, geometric_dimension))
             return generic_read_vtk<viennagrid::triangle_tag, 3>(filename);
+
           if (is_mesh_type<viennagrid::quadrilateral_tag, 2>(vtk_cell_type, geometric_dimension))
             return generic_read_vtk<viennagrid::quadrilateral_tag, 2>(filename);
-          else if (is_mesh_type<viennagrid::quadrilateral_tag, 3>(vtk_cell_type, geometric_dimension))
+          if (is_mesh_type<viennagrid::quadrilateral_tag, 3>(vtk_cell_type, geometric_dimension))
             return generic_read_vtk<viennagrid::quadrilateral_tag, 3>(filename);
-          else if (is_mesh_type<viennagrid::tetrahedron_tag, 3>(vtk_cell_type, geometric_dimension))
-            return generic_read_vtk<viennagrid::tetrahedron_tag, 3>(filename);
-          else
-          {
-            error(1) << "Combination of geometric and topologic dimension is not supported" << std::endl;
-            return false;
-          }
 
+          if (is_mesh_type<viennagrid::tetrahedron_tag, 3>(vtk_cell_type, geometric_dimension))
+            return generic_read_vtk<viennagrid::tetrahedron_tag, 3>(filename);
+
+          error(1) << "Combination of geometric and topologic dimension is not supported" << std::endl;
+          return false;
         }
         else
         {
