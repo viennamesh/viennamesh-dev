@@ -157,6 +157,11 @@ namespace viennamesh
       return generic_convert(input, output);
     }
 
+    inline bool convert( viennagrid::segmented_mesh<viennagrid::brep_2d_mesh, viennagrid::result_of::segmentation<viennagrid::brep_2d_mesh>::type> const & input, input_mesh & output )
+    {
+      return generic_convert(input.mesh, output);
+    }
+
 
 
 
@@ -256,8 +261,10 @@ namespace viennamesh
     static void init()
     {
       typedef viennagrid::brep_2d_mesh BRep2DViennaGridMeshType;
+      typedef viennagrid::segmented_mesh<viennagrid::brep_2d_mesh, viennagrid::result_of::segmentation<viennagrid::brep_2d_mesh>::type> SegmentedBRep2DViennaGridMeshType;
 
       converter::get().register_conversion<BRep2DViennaGridMeshType, SelfType>( &triangle::convert );
+      converter::get().register_conversion<SegmentedBRep2DViennaGridMeshType, SelfType>( &triangle::convert );
 
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "2" );
