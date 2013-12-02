@@ -1,4 +1,5 @@
-#include "viennamesh/algorithm/seed_point_locator.hpp"
+#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/algorithm/tetgen.hpp"
 
 
 int main()
@@ -91,18 +92,21 @@ int main()
 
 
   // creating the seed point locator algorithm
-  viennamesh::algorithm_handle seed_point_locator( new viennamesh::seed_point_locator::algorithm() );
+  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
+  viennamesh::algorithm_handle extract_seed_points( new viennamesh::extract_seed_points::algorithm() );
 
+  mesher->set_input( "default", geometry_handle );
+  extract_seed_points->link_input( "default", mesher, "default" );
 
-  seed_point_locator->set_input( "default", geometry_handle );
-  seed_point_locator->run();
+  mesher->run();
+  extract_seed_points->run();
 
-  typedef viennamesh::result_of::point_container<PointType>::type PointContainerType;
-  viennamesh::result_of::parameter_handle<PointContainerType>::type point_container = seed_point_locator->get_output<PointContainerType>( "default" );
+  typedef viennamesh::result_of::seed_point_container<PointType>::type PointContainerType;
+  viennamesh::result_of::parameter_handle<PointContainerType>::type point_container = extract_seed_points->get_output<PointContainerType>( "default" );
   if (point_container)
   {
     std::cout << "Number of extracted seed points: " << point_container().size() << std::endl;
     for (PointContainerType::iterator it = point_container().begin(); it != point_container().end(); ++it)
-      std::cout << "  " << *it << std::endl;
+      std::cout << "  " << it->first << " " << it->second << std::endl;
   }
 }

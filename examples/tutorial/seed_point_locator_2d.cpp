@@ -15,6 +15,7 @@ int main()
 
   double s = 10.0;
   GeometryVertexHandle vtx[8];
+  GeometryLineHandle lines[10];
 
   vtx[0] = viennagrid::make_vertex( geometry, PointType(0, 0) );
   vtx[1] = viennagrid::make_vertex( geometry, PointType(0, s) );
@@ -26,18 +27,18 @@ int main()
   vtx[6] = viennagrid::make_vertex( geometry, PointType(3*s+s, 0) );
   vtx[7] = viennagrid::make_vertex( geometry, PointType(3*s+s, s) );
 
-  viennagrid::make_line( geometry, vtx[0], vtx[1] );
-  viennagrid::make_line( geometry, vtx[1], vtx[3] );
-  viennagrid::make_line( geometry, vtx[3], vtx[2] );
-  viennagrid::make_line( geometry, vtx[2], vtx[0] );
+  lines[0] = viennagrid::make_line( geometry, vtx[0], vtx[1] );
+  lines[1] = viennagrid::make_line( geometry, vtx[1], vtx[3] );
+  lines[2] = viennagrid::make_line( geometry, vtx[3], vtx[2] );
+  lines[3] = viennagrid::make_line( geometry, vtx[2], vtx[0] );
 
-  viennagrid::make_line( geometry, vtx[4], vtx[5] );
-  viennagrid::make_line( geometry, vtx[5], vtx[7] );
-  viennagrid::make_line( geometry, vtx[7], vtx[6] );
-  viennagrid::make_line( geometry, vtx[6], vtx[4] );
+  lines[4] = viennagrid::make_line( geometry, vtx[4], vtx[5] );
+  lines[5] = viennagrid::make_line( geometry, vtx[5], vtx[7] );
+  lines[6] = viennagrid::make_line( geometry, vtx[7], vtx[6] );
+  lines[7] = viennagrid::make_line( geometry, vtx[6], vtx[4] );
 
-  viennagrid::make_line( geometry, vtx[2], vtx[4] );
-  viennagrid::make_line( geometry, vtx[3], vtx[5] );
+  lines[8] = viennagrid::make_line( geometry, vtx[2], vtx[4] );
+  lines[9] = viennagrid::make_line( geometry, vtx[3], vtx[5] );
 
 
   // creating the seed point locator algorithm
