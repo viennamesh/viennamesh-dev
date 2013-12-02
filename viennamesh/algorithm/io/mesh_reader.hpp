@@ -7,6 +7,8 @@
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/netgen_reader.hpp"
 #include "viennagrid/io/tetgen_poly_reader.hpp"
+#include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
+
 
 #include "pugixml/pugixml.hpp"
 
@@ -16,6 +18,11 @@ namespace viennamesh
 {
   namespace io
   {
+
+
+
+
+
     class mesh_reader : public base_algorithm
     {
     public:
@@ -27,6 +34,13 @@ namespace viennamesh
       {
         return (viennagrid::io::ELEMENT_TAG_TO_VTK_TYPE<CellTagT>::value == vtk_cell_type) && (geometric_dimension == GeometricDimensionV);
       }
+
+      template<typename CellTagT, unsigned int GeometricDimensionV>
+      bool is_mesh_type( string const & cell_type, unsigned int geometric_dimension )
+      {
+        return (CellTagT::name() == cell_type) && (geometric_dimension == GeometricDimensionV);
+      }
+
 
       template<typename CellTagT, unsigned int GeometricDimensionV>
       bool generic_read_vtk( string const & filename )
@@ -42,11 +56,88 @@ namespace viennamesh
       }
 
 
-      bool run_impl()
-      {
-        const_string_parameter_handle param = get_required_input<string>("filename");
 
-        string filename = param();
+
+      template<int GeometricDimensionV>
+      bool read_seed_points( pugi::xml_document const & xml )
+      {
+        typedef typename viennamesh::result_of::point<GeometricDimensionV>::type PointType;
+        typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
+
+        output_parameter_proxy<SeedPointContainerType> output_seed_points = output_proxy<SeedPointContainerType>("seed_points");
+
+        pugi::xpath_node_set xml_segments = xml.select_nodes( "/mesh/segment" );
+        for (pugi::xpath_node_set::const_iterator xsit = xml_segments.begin(); xsit != xml_segments.end(); ++xsit)
+        {
+          int segment_id;
+          pugi::xpath_node_set xml_segment_id = xsit->node().select_nodes( "/id" );
+          if (!xml_segment_id.empty())
+            segment_id = atoi( xml_segment_id.first().node().text().get() );
+          else
+            continue;
+
+          pugi::xpath_node_set xml_seed_points = xsit->node().select_nodes( "/seed_point" );
+          for (pugi::xpath_node_set::const_iterator xspit = xml_seed_points.begin(); xspit != xml_seed_points.end(); ++xspit)
+          {
+            std::stringstream ss( xspit->node().text().get() );
+            PointType point;
+            for (std::size_t i = 0; i < point.size(); ++i)
+              ss >> point[i];
+
+            info(5) << "Found seed point for segment " << segment_id << ": " << point << std::endl;
+
+            output_seed_points().push_back( std::make_pair(point, segment_id) );
+          }
+        }
+
+        return true;
+      }
+
+
+      bool read_vmesh( string const & filename )
+      {
+        int geometric_dimension = -1;
+        string mesh_filename;
+
+        pugi::xml_document xml;
+        xml.load_file( filename.c_str() );
+
+        {
+          pugi::xpath_node_set nodes = xml.select_nodes( "/mesh/dimension" );
+          if (!nodes.empty())
+          {
+            geometric_dimension = atoi( nodes.first().node().text().get() );
+            info(5) << "geometric dimension = " << geometric_dimension << std::endl;
+          }
+        }
+
+
+        {
+          pugi::xpath_node_set nodes = xml.select_nodes( "/mesh/file" );
+          if (!nodes.empty())
+          {
+            mesh_filename = nodes.first().node().text().get();
+            info(5) << "vmesh inner mesh filename = " << mesh_filename << std::endl;
+          }
+        }
+
+        load(mesh_filename);
+
+        if (geometric_dimension == 1)
+          read_seed_points<1>(xml);
+        else if (geometric_dimension == 2)
+          read_seed_points<2>(xml);
+        else if (geometric_dimension == 3)
+          read_seed_points<3>(xml);
+
+        return true;
+      }
+
+
+
+
+      bool load( string const & filename )
+      {
         string path = stringtools::extract_path( filename );
         string extension = filename.substr( filename.rfind(".")+1 );
 
@@ -138,6 +229,18 @@ namespace viennamesh
 
           return false;
         }
+        else if (extension == "deva")
+        {
+          info(5) << "Found .deva extension, using ViennaMesh GTS deva Reader" << std::endl;
+          typedef viennagrid::segmented_mesh<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation> MeshType;
+
+          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+
+          viennamesh::io::gts_deva_geometry_reader reader;
+          reader(output_mesh().mesh, output_mesh().segmentation, filename);
+
+          return true;
+        }
         else if (extension == "vtu" || extension == "pvd")
         {
           info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
@@ -217,6 +320,14 @@ namespace viennamesh
         }
 
         return false;
+      }
+
+
+
+      bool run_impl()
+      {
+        const_string_parameter_handle param = get_required_input<string>("filename");
+        return load(param());
       }
 
     private:
