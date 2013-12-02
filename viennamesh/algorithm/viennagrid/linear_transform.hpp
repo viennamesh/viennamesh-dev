@@ -126,6 +126,8 @@ namespace viennamesh
             generic_run_impl<2>(input_mesh().mesh, input_mesh().segmentation, matrix);
           else if (destination_dimension == 3)
             generic_run_impl<3>(input_mesh().mesh, input_mesh().segmentation, matrix);
+          else
+            return false;
 
           return true;
         }

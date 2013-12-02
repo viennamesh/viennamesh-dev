@@ -88,7 +88,6 @@ namespace viennamesh
           if (input_mesh)
           {
             output_parameter_proxy<MeshT> output_mesh = output_proxy<MeshT>( "default" );
-            MeshT & mesh = output_mesh();
             output_mesh() = input_mesh().mesh;
             coarsen(output_mesh(), max_angle);
 
@@ -101,7 +100,6 @@ namespace viennamesh
           if (input_mesh)
           {
             output_parameter_proxy<MeshT> output_mesh = output_proxy<MeshT>( "default" );
-            MeshT & mesh = output_mesh();
             output_mesh() = input_mesh();
             coarsen(output_mesh(), max_angle);
 
