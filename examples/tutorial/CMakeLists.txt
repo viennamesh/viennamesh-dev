@@ -22,6 +22,8 @@ add_executable(mesher1d mesher1d.cpp)
 add_executable(gts_deva_reader gts_deva_reader.cpp)
 
 add_executable(mesh_yannick mesh_yannick.cpp)
+target_link_libraries(mesh_yannick triangle)
+
 add_executable(nld_extract_hull nld_extract_hull.cpp)
 add_executable(nld_coarsen_hull nld_coarsen_hull.cpp)
 
