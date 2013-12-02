@@ -11,18 +11,25 @@ int main()
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
 
-  // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
+  // Typedefing the mesh type representing the 2D geometry; using just lines
   typedef viennagrid::line_2d_mesh GeometryMeshType;
-  // Typedefing vertex handle and point type for geometry creation
+  typedef viennagrid::result_of::segmentation<GeometryMeshType>::type GeometrySegmentationType;
+  typedef viennagrid::result_of::segment_handle<GeometrySegmentationType>::type GeometrySegmentHandleType;
+  typedef viennagrid::segmented_mesh<GeometryMeshType, GeometrySegmentationType> SegmentedGeometryMeshType;
+  
+  // Typedefing vertex handle, line handle and point type for geometry creation
   typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
   typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;
+  typedef viennagrid::result_of::line_handle<GeometryMeshType>::type GeometryLineHandle;
 
-  // creating the geometry mesh
-  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry_handle = viennamesh::make_parameter<GeometryMeshType>();
-  GeometryMeshType & geometry = geometry_handle();
+  // creating the geometry mesh and segmentation
+  viennamesh::result_of::parameter_handle< SegmentedGeometryMeshType >::type geometry_handle = viennamesh::make_parameter<SegmentedGeometryMeshType>();
+  GeometryMeshType & geometry = geometry_handle().mesh;
+  GeometrySegmentationType & segmentation = geometry_handle().segmentation;
 
   double s = 10.0;
   GeometryVertexHandle vtx[10];
+  GeometryLineHandle line[11];
 
   vtx[0] = viennagrid::make_vertex( geometry, PointType(0, 0) );
   vtx[1] = viennagrid::make_vertex( geometry, PointType(0, s) );
@@ -37,34 +44,48 @@ int main()
   vtx[9] = viennagrid::make_vertex( geometry, PointType(2*s/3, 2*s/3) );
 
 
-  viennagrid::make_line( geometry, vtx[0], vtx[1] );
+  line[0] = viennagrid::make_line( geometry, vtx[0], vtx[1] );
 
-  viennagrid::make_line( geometry, vtx[0], vtx[2] );
-  viennagrid::make_line( geometry, vtx[1], vtx[3] );
+  line[1] = viennagrid::make_line( geometry, vtx[0], vtx[2] );
+  line[2] = viennagrid::make_line( geometry, vtx[1], vtx[3] );
 
-  viennagrid::make_line( geometry, vtx[2], vtx[3] );
+  line[3] = viennagrid::make_line( geometry, vtx[2], vtx[3] );
 
-  viennagrid::make_line( geometry, vtx[2], vtx[4] );
-  viennagrid::make_line( geometry, vtx[3], vtx[5] );
+  line[4] = viennagrid::make_line( geometry, vtx[2], vtx[4] );
+  line[5] = viennagrid::make_line( geometry, vtx[3], vtx[5] );
 
-  viennagrid::make_line( geometry, vtx[4], vtx[5] );
+  line[6] = viennagrid::make_line( geometry, vtx[4], vtx[5] );
 
-  viennagrid::make_line( geometry, vtx[6], vtx[7] );
+  line[7] = viennagrid::make_line( geometry, vtx[6], vtx[7] );
 
-  viennagrid::make_line( geometry, vtx[6], vtx[8] );
-  viennagrid::make_line( geometry, vtx[7], vtx[9] );
+  line[8] = viennagrid::make_line( geometry, vtx[6], vtx[8] );
+  line[9] = viennagrid::make_line( geometry, vtx[7], vtx[9] );
 
-  viennagrid::make_line( geometry, vtx[8], vtx[9] );
+  line[10] = viennagrid::make_line( geometry, vtx[8], vtx[9] );
+
+
+  // creating a geometry segment for each segment in the mesh
+  GeometrySegmentHandleType segment0 = segmentation.make_segment();
+  viennagrid::add( segment0, line[0] );
+  viennagrid::add( segment0, line[1] );
+  viennagrid::add( segment0, line[2] );
+  viennagrid::add( segment0, line[3] );
+
+  viennagrid::add( segment0, line[7] );
+  viennagrid::add( segment0, line[8] );
+  viennagrid::add( segment0, line[9] );
+  viennagrid::add( segment0, line[10] );
+
+  GeometrySegmentHandleType segment1 = segmentation.make_segment();
+  viennagrid::add( segment1, line[3] );
+  viennagrid::add( segment1, line[4] );
+  viennagrid::add( segment1, line[5] );
+  viennagrid::add( segment1, line[6] );
+
 
 
   // setting the created line geometry as input for the mesher
-  mesher->set_input( "default", geometry );
-
-  // creating the seed points and set it as input for the mesher
-  viennamesh::seed_point_2d_container seed_points;
-  seed_points.push_back( std::make_pair(PointType(s/4, s/2), 0) );
-  seed_points.push_back( std::make_pair(PointType(s+s/2, s/2), 1) );
-  mesher->set_input( "seed_points", seed_points );
+  mesher->set_input( "default", geometry_handle );
 
   // creating the hole points and set it as input for the mesher
   viennamesh::point_2d_container hole_points;
