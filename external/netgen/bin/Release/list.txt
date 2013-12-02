@@ -1,0 +1,10 @@
+csg.lib
+gen.lib
+geom2d.lib
+gprim.lib
+interface.lib
+linalg.lib
+meshing.lib
+nglib.lib
+occ.lib
+stlgeom.lib
