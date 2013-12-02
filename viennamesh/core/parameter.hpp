@@ -802,6 +802,11 @@ namespace viennamesh
       set( name, make_parameter( string(value) ) );
     }
 
+    void set( string const & name, char * value )
+    {
+      set( name, make_parameter( string(value) ) );
+    }
+
 
 
 
@@ -940,6 +945,11 @@ namespace viennamesh
     }
 
     void set( string const & name, char const * value )
+    {
+      set( name, make_parameter( string(value) ) );
+    }
+
+    void set( string const & name, char * value )
     {
       set( name, make_parameter( string(value) ) );
     }

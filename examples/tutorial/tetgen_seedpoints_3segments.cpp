@@ -1,7 +1,5 @@
 #include "viennamesh/algorithm/tetgen.hpp"
-#include "viennamesh/algorithm/seed_point_locator.hpp"
-#include "viennamesh/algorithm/file_reader.hpp"
-#include "viennamesh/algorithm/file_writer.hpp"
+#include "viennamesh/algorithm/io.hpp"
 
 
 
@@ -51,44 +49,20 @@ typename viennagrid::result_of::plc_handle<MeshT>::type make_quad_plc(MeshT & me
   return viennagrid::make_plc(mesh, lines.begin(), lines.end());
 }
 
-
-// this method helps us finding the seed point of a geometry based on a range of boundary PLCs
-template<typename MeshT, typename PLCHandleIteratorT>
-typename viennagrid::result_of::point<MeshT>::type get_seed_point( MeshT const & mesh, PLCHandleIteratorT const & begin, PLCHandleIteratorT const & end)
-{
-  // creating a temporary mesh parameter for the seed point locator
-  typename viennamesh::result_of::parameter_handle< MeshT >::type tmp_mesh = viennamesh::make_parameter<MeshT>();
-
-  // copy all PLCs to our temporary mesh
-  viennagrid::copy_element_handles(mesh, begin, end, tmp_mesh(), 0.0);
-
-  // Create the algorithm, set the temporary mesh as an input and execute it
-  viennamesh::algorithm_handle seed_point_locator( new viennamesh::seed_point_locator::algorithm() );
-  seed_point_locator->set_input( "default", tmp_mesh );
-  seed_point_locator->run();
-
-  // Querying the algorithm output (a seed point) and return it
-  typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-  typedef typename viennamesh::result_of::point_container<PointType>::type PointContainerType;
-  typename viennamesh::result_of::parameter_handle<PointContainerType>::type point_container = seed_point_locator->get_output<PointContainerType>( "default" );
-  if (point_container && !point_container().empty())
-    return point_container()[0];
-
-  // something went wront...
-  return PointType();
-}
-
 int main()
 {
   // creating an algorithm using the Tetgen meshing library for meshing a hull
   viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
 
   // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::file_writer() );
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
 
   // typedefing some needed type for creating the geometry
-  typedef viennagrid::plc_3d_mesh GeometryMeshType;
+  typedef viennagrid::brep_3d_mesh GeometryMeshType;
+  typedef viennagrid::result_of::segmentation<GeometryMeshType>::type GeometrySegmentationType;
+  typedef viennagrid::result_of::segment_handle<GeometrySegmentationType>::type GeometrySegmentHandleType;
+  typedef viennagrid::segmented_mesh<GeometryMeshType, GeometrySegmentationType> SegmentedGeometryMeshType;
 
   typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
   typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandleType;
@@ -97,8 +71,9 @@ int main()
   typedef viennagrid::result_of::plc_handle<GeometryMeshType>::type GeometryPLCHandleType;
 
   // creating the geometry mesh
-  viennamesh::result_of::parameter_handle< GeometryMeshType >::type geometry_handle = viennamesh::make_parameter<GeometryMeshType>();
-  GeometryMeshType & geometry = geometry_handle();
+  viennamesh::result_of::parameter_handle< SegmentedGeometryMeshType >::type geometry_handle = viennamesh::make_parameter<SegmentedGeometryMeshType>();
+  GeometryMeshType & geometry = geometry_handle().mesh;
+  GeometrySegmentationType & segmentation = geometry_handle().segmentation;
 
 
   // creating a geometry with 3 cubes next to each other:
@@ -168,21 +143,34 @@ int main()
   plcs[15] = make_quad_plc( geometry, vertex_line_map, vtx[12], vtx[13], vtx[15], vtx[14] );
 
 
-  // extracting the seed points for each cube based on their boundary PLCs
-  PointType seed_point_cube0 = get_seed_point( geometry, plcs.begin()+0, plcs.begin()+6 );
-  PointType seed_point_cube1 = get_seed_point( geometry, plcs.begin()+5, plcs.begin()+11 );
-  PointType seed_point_cube2 = get_seed_point( geometry, plcs.begin()+10, plcs.begin()+16 );
+  // creating segment for each part of the mesh using the boundary geometry for that segment
+  GeometrySegmentHandleType segment0 = segmentation.make_segment();
+  viennagrid::add( segment0, plcs[0] );
+  viennagrid::add( segment0, plcs[1] );
+  viennagrid::add( segment0, plcs[2] );
+  viennagrid::add( segment0, plcs[3] );
+  viennagrid::add( segment0, plcs[4] );
+  viennagrid::add( segment0, plcs[5] );
+
+  GeometrySegmentHandleType segment1 = segmentation.make_segment();
+  viennagrid::add( segment1, plcs[5] );
+  viennagrid::add( segment1, plcs[6] );
+  viennagrid::add( segment1, plcs[7] );
+  viennagrid::add( segment1, plcs[8] );
+  viennagrid::add( segment1, plcs[9] );
+  viennagrid::add( segment1, plcs[10] );
+
+  GeometrySegmentHandleType segment2 = segmentation.make_segment();
+  viennagrid::add( segment2, plcs[10] );
+  viennagrid::add( segment2, plcs[11] );
+  viennagrid::add( segment2, plcs[12] );
+  viennagrid::add( segment2, plcs[13] );
+  viennagrid::add( segment2, plcs[14] );
+  viennagrid::add( segment2, plcs[15] );
 
 
-  // set the input geometry and seed points
+  // set the input geometry
   mesher->set_input( "default", geometry_handle );
-  viennamesh::seed_point_3d_container seed_points;
-  seed_points.push_back( std::make_pair( seed_point_cube0, 0 ) );
-  seed_points.push_back( std::make_pair( seed_point_cube1, 1 ) );
-  seed_points.push_back( std::make_pair( seed_point_cube2, 2 ) );
-
-  mesher->set_input( "seed_points", seed_points );
-
 
   // setting the mesher paramters
   mesher->set_input( "cell_size", 1.0 );              // maximum cell size
@@ -192,13 +180,10 @@ int main()
   // linking the output from the mesher to the writer
   writer->link_input( "default", mesher, "default" );
 
-
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "three_cubes.vtu" );
 
   // start the algorithms
   mesher->run();
   writer->run();
-
-
 }

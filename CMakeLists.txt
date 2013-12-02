@@ -28,7 +28,7 @@ include(ViennaMeshCommon)
 
 option(BUILD_EXTERNAL_LIB_TRIANGLE "Build the Triangle library" ON)
 option(BUILD_EXTERNAL_LIB_TETGEN "Build the Tetgen library" ON)
-# option(BUILD_EXTERNAL_LIB_NETGEN "Build the Netgen library" ON)
+option(BUILD_EXTERNAL_LIB_NETGEN "Build the Netgen library" ON)
 # option(BUILD_EXTERNAL_LIB_VGMODELER "Build the VGModeler library" ON)
 
 option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
@@ -94,14 +94,44 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 # external libraries
 ################
 
+
+# add_library(viennamesh STATIC)
+
+
+IF(BUILD_EXTERNAL_LIB_NETGEN)
+  set(netgen_BUILD_NGLIB_API ON)
+  set(netgen_BUILD_GUI OFF)
+  set(netgen_ENABLE_OPENCASCADE_SUPPORT OFF)
+  set(netgen_ENABLE_STL_SUPPORT ON)
+  add_subdirectory( external/netgen )
+
+  INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/external/netgen/libsrc/include")
+  set(NETGEN_LIBS csg meshing z nglib)
+endif(BUILD_EXTERNAL_LIB_NETGEN)
+
+# OLD!!!
 # IF(BUILD_EXTERNAL_LIB_NETGEN)
 #   include(ExternalProject)
-#   ExternalProject_Add(netgen
-#      URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
-#      CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui
-#      )
+#
+#
+#   if (CMAKE_BUILD_TYPE MATCHES "Debug")
+#       ExternalProject_Add(netgen
+#         URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
+#         CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui CPPFLAGS=-DDEBUG CXXFLAGS=-g\ -O0)
+#   else()
+#       ExternalProject_Add(netgen
+#         URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
+#         CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui CPPFLAGS=-DNDEBUG CXXFLAGS=-30)
+#   endif()
+#
+#
 #   link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/lib )
+#
 # ENDIF(BUILD_EXTERNAL_LIB_NETGEN)
+
+
+
+
 # IF(BUILD_EXTERNAL_LIB_VGMODELER)
 #   add_subdirectory( external/vgmodeler )
 # ENDIF(BUILD_EXTERNAL_LIB_VGMODELER)
