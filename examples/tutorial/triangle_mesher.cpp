@@ -16,7 +16,7 @@ int main()
   typedef viennagrid::result_of::segmentation<GeometryMeshType>::type GeometrySegmentationType;
   typedef viennagrid::result_of::segment_handle<GeometrySegmentationType>::type GeometrySegmentHandleType;
   typedef viennagrid::segmented_mesh<GeometryMeshType, GeometrySegmentationType> SegmentedGeometryMeshType;
-  
+
   // Typedefing vertex handle, line handle and point type for geometry creation
   typedef viennagrid::result_of::point<GeometryMeshType>::type PointType;
   typedef viennagrid::result_of::vertex_handle<GeometryMeshType>::type GeometryVertexHandle;
@@ -83,7 +83,6 @@ int main()
   viennagrid::add( segment1, line[6] );
 
 
-
   // setting the created line geometry as input for the mesher
   mesher->set_input( "default", geometry_handle );
 
@@ -103,7 +102,6 @@ int main()
   writer->link_input( "default", mesher, "default" );
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "meshed_quads.vtu" );
-
 
   // start the algorithms
   mesher->run();
