@@ -143,7 +143,7 @@ int main()
   plcs[15] = make_quad_plc( geometry, vertex_line_map, vtx[12], vtx[13], vtx[15], vtx[14] );
 
 
-  // extracting the seed points for each cube based on their boundary PLCs
+  // creating segment for each part of the mesh using the boundary geometry for that segment
   GeometrySegmentHandleType segment0 = segmentation.make_segment();
   viennagrid::add( segment0, plcs[0] );
   viennagrid::add( segment0, plcs[1] );
@@ -169,10 +169,8 @@ int main()
   viennagrid::add( segment2, plcs[15] );
 
 
-
   // set the input geometry
   mesher->set_input( "default", geometry_handle );
-
 
   // setting the mesher paramters
   mesher->set_input( "cell_size", 1.0 );              // maximum cell size
@@ -182,13 +180,10 @@ int main()
   // linking the output from the mesher to the writer
   writer->link_input( "default", mesher, "default" );
 
-
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "three_cubes.vtu" );
 
   // start the algorithms
   mesher->run();
   writer->run();
-
-
 }
