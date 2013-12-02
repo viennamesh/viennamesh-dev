@@ -1,6 +1,8 @@
 #ifndef VIENNAMESH_ALGORITHM_IO_GTS_DEVA_GEOMETRY_READER_HPP
 #define VIENNAMESH_ALGORITHM_IO_GTS_DEVA_GEOMETRY_READER_HPP
 
+#include "pugixml/pugixml.hpp"
+
 
 namespace viennamesh
 {
@@ -314,7 +316,7 @@ namespace viennamesh
 
               for (int i = 0; i < num_faces; ++i)
               {
-//                 int face_type = atoi( (*vit++).c_str() );
+                vit++; //int face_type = atoi( (*vit++).c_str() );
                 int num_indices = atoi( (*vit++).c_str() );
 
                 std::vector<int> indices(num_indices);
@@ -330,7 +332,6 @@ namespace viennamesh
                 faces[i][num_indices-1] = viennagrid::make_line( mesh, vertices[indices.back()], vertices[indices.front()] );
               }
             }
-
 
             std::vector<std::vector<LineHandleType> > & faces = line_map[ facelist_name ];
 
@@ -350,7 +351,6 @@ namespace viennamesh
                 viennagrid::add( current_segment, viennagrid::dereference_handle(mesh, faces[face_index][j]) );
             }
           }
-
         }
 
 
