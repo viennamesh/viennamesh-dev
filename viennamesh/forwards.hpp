@@ -12,6 +12,8 @@
   #include <boost/enable_shared_from_this.hpp>
 #endif
 
+#include <boost/lexical_cast.hpp>
+
 namespace viennamesh
 {
 #if __cplusplus > 199711L
@@ -28,6 +30,7 @@ namespace viennamesh
   using boost::static_pointer_cast;
 #endif
 
+  using boost::lexical_cast;
   using std::string;
 
 
