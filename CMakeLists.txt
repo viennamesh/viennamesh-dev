@@ -151,7 +151,6 @@ ENDIF(BUILD_SHARED_LIBS)
 
 
 IF (DEFINED THREADS_REQUIRED_FOR_LIB_VIENNAMESH)
-  message( STATUS "YEAH!!!!!!" )
   find_package (Threads)
   target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
 ENDIF()
