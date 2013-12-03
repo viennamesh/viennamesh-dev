@@ -25,7 +25,6 @@ include(ViennaMeshCommon)
 
 # User options
 ##############
-
 option(BUILD_EXTERNAL_LIB_TRIANGLE "Build the Triangle library" ON)
 option(BUILD_EXTERNAL_LIB_TETGEN "Build the Tetgen library" ON)
 option(BUILD_EXTERNAL_LIB_NETGEN "Build the Netgen library" ON)
@@ -91,56 +90,73 @@ message( STATUS "DEBUG FLAGS = ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 
-# external libraries
+# libviennamesh
 ################
 
 
-# add_library(viennamesh STATIC)
-
-
 IF(BUILD_EXTERNAL_LIB_NETGEN)
-  set(netgen_BUILD_NGLIB_API ON)
-  set(netgen_BUILD_GUI OFF)
-  set(netgen_ENABLE_OPENCASCADE_SUPPORT OFF)
-  set(netgen_ENABLE_STL_SUPPORT ON)
-  add_subdirectory( external/netgen )
+  file(GLOB NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/*.cpp")
+  list(REMOVE_ITEM NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/csgpkg.cpp")
+  list(REMOVE_ITEM NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/vscsg.cpp")
 
-  INCLUDE_DIRECTORIES("${PROJECT_SOURCE_DIR}/external/netgen/libsrc/include")
-  set(NETGEN_LIBS csg meshing z nglib)
+  file(GLOB NETGEN_GENERAL_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/general/*.cpp")
+
+  file(GLOB NETGEN_GEOM2D_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/geom2d/*.cpp")
+  list(REMOVE_ITEM NETGEN_GEOM2D_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/geom2d/vsgeom2d.cpp")
+  list(REMOVE_ITEM NETGEN_GEOM2D_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/geom2d/geom2dpkg.cpp")
+
+  file(GLOB NETGEN_GPRIM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/gprim/*.cpp")
+  file(GLOB NETGEN_INTERFACE_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/interface/*.cpp")
+  file(GLOB NETGEN_LINALG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/linalg/*.cpp")
+  file(GLOB NETGEN_MESHING_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/meshing/*.cpp")
+
+  file(GLOB NETGEN_STLGEOM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/stlgeom/*.cpp")
+  list(REMOVE_ITEM NETGEN_STLGEOM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/stlgeom/vsstl.cpp")
+  list(REMOVE_ITEM NETGEN_STLGEOM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/stlgeom/stlpkg.cpp")
+
+  SET(NETGEN_SRC ${NETGEN_CSG_SRC} ${NETGEN_GENERAL_SRC} ${NETGEN_GEOM2D_SRC} ${NETGEN_GPRIM_SRC} ${NETGEN_INTERFACE_SRC} ${NETGEN_LINALG_SRC} ${NETGEN_MESHING_SRC} ${NETGEN_STLGEOM_SRC} ${PROJECT_SOURCE_DIR}/external/netgen/nglib/nglib.cpp)
+
+
+  SET(NETGEN_COMPILE_FLAGS "-DPACKAGE_VERSION=5.1")
+  include_directories(${PROJECT_SOURCE_DIR}/external/netgen/libsrc/include)
+
+  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${NETGEN_SRC})
+  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} ${NETGEN_COMPILE_FLAGS}")
+
+  set(THREADS_REQUIRED_FOR_LIB_VIENNAMESH TRUE)
 endif(BUILD_EXTERNAL_LIB_NETGEN)
 
-# OLD!!!
-# IF(BUILD_EXTERNAL_LIB_NETGEN)
-#   include(ExternalProject)
-#
-#
-#   if (CMAKE_BUILD_TYPE MATCHES "Debug")
-#       ExternalProject_Add(netgen
-#         URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
-#         CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui CPPFLAGS=-DDEBUG CXXFLAGS=-g\ -O0)
-#   else()
-#       ExternalProject_Add(netgen
-#         URL "${PROJECT_SOURCE_DIR}/external/netgen-5.0.0/"
-#         CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-nglib --disable-gui CPPFLAGS=-DNDEBUG CXXFLAGS=-30)
-#   endif()
-#
-#
-#   link_directories( ${PROJECT_BINARY_DIR}/netgen-prefix/lib )
-#
-# ENDIF(BUILD_EXTERNAL_LIB_NETGEN)
 
-
-
-
-# IF(BUILD_EXTERNAL_LIB_VGMODELER)
-#   add_subdirectory( external/vgmodeler )
-# ENDIF(BUILD_EXTERNAL_LIB_VGMODELER)
 IF(BUILD_EXTERNAL_LIB_TETGEN)
-  add_subdirectory( external/tetgen )
+  include_directories(${PROJECT_SOURCE_DIR}/external/tetgen/)
+  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/tetgen/tetgen.cxx ${PROJECT_SOURCE_DIR}/external/tetgen/predicates.cxx)
+  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DTETLIBRARY")
 ENDIF(BUILD_EXTERNAL_LIB_TETGEN)
+
 IF(BUILD_EXTERNAL_LIB_TRIANGLE)
-  add_subdirectory( external/triangle )
+  include_directories(${PROJECT_SOURCE_DIR}/external/triangle/)
+  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/triangle/triangle.c)
+  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DTRILIBRARY -DANSI_DECLARATORS")
 ENDIF(BUILD_EXTERNAL_LIB_TRIANGLE)
+
+ADD_LIBRARY(viennamesh ${LIBVIENNAMESH_SRC})
+
+IF(BUILD_SHARED_LIBS)
+  SET_TARGET_PROPERTIES(viennamesh PROPERTIES COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
+else(BUILD_SHARED_LIBS)
+  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
+  SET_TARGET_PROPERTIES(viennamesh PROPERTIES COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
+ENDIF(BUILD_SHARED_LIBS)
+
+
+
+IF (DEFINED THREADS_REQUIRED_FOR_LIB_VIENNAMESH)
+  message( STATUS "YEAH!!!!!!" )
+  find_package (Threads)
+  target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
+ENDIF()
+
+
 
 # Subdirectories
 ################
