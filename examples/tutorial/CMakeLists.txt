@@ -3,6 +3,9 @@
 add_executable(triangle_mesher triangle_mesher.cpp)
 target_link_libraries(triangle_mesher viennamesh)
 
+add_executable(triangle_mesher_sizing_function triangle_mesher_sizing_function.cpp)
+target_link_libraries(triangle_mesher_sizing_function viennamesh)
+
 add_executable(triangle_mesher_with_seedpoints triangle_mesher_with_seedpoints.cpp)
 target_link_libraries(triangle_mesher_with_seedpoints viennamesh)
 
