@@ -116,6 +116,13 @@ namespace viennamesh
       typedef std::vector< std::pair<PointT, int> > type;
     };
 
+
+    template<typename PointT>
+    struct sizing_function
+    {
+      typedef viennamesh::function< double( PointT const & ) > type;
+    };
+
   }
 
 
@@ -130,6 +137,10 @@ namespace viennamesh
   typedef result_of::seed_point_container<point_1d>::type seed_point_1d_container;
   typedef result_of::seed_point_container<point_2d>::type seed_point_2d_container;
   typedef result_of::seed_point_container<point_3d>::type seed_point_3d_container;
+
+  typedef result_of::sizing_function<point_1d>::type sizing_function_1d;
+  typedef result_of::sizing_function<point_2d>::type sizing_function_2d;
+  typedef result_of::sizing_function<point_3d>::type sizing_function_3d;
 
 
 
