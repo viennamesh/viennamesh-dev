@@ -1,19 +1,10 @@
 #ifndef VIENNAMESH_ALGORITHM_TRIANGLE_MESH_HPP
 #define VIENNAMESH_ALGORITHM_TRIANGLE_MESH_HPP
 
-
-// defines for triangle library
-#define REAL double
-#define VOID int
-#define ANSI_DECLARATORS
-#define TRILIBRARY
-#include <boost/iterator/iterator_concepts.hpp>
 extern "C"
 {
-  #include "triangle/triangle.h"
+  #include "triangle/triangle_interface.h"
 }
-
-
 
 namespace viennamesh
 {

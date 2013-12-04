@@ -9,12 +9,49 @@ namespace viennamesh
 {
   namespace triangle
   {
-
     class algorithm : public base_algorithm
     {
     public:
 
       string name() const { return "Triangle 1.6 mesher"; }
+
+
+
+      static sizing_function_2d sizing_function;
+
+      static int is_triangle_okay(double * triorg, double * tridest, double * triapex, double)
+      {
+        REAL dxoa, dxda, dxod;
+        REAL dyoa, dyda, dyod;
+        REAL oalen, dalen, odlen;
+        REAL maxlen;
+
+        dxoa = triorg[0] - triapex[0];
+        dyoa = triorg[1] - triapex[1];
+        dxda = tridest[0] - triapex[0];
+        dyda = tridest[1] - triapex[1];
+        dxod = triorg[0] - tridest[0];
+        dyod = triorg[1] - tridest[1];
+        /* Find the squares of the lengths of the triangle's three edges. */
+        oalen = dxoa * dxoa + dyoa * dyoa;
+        dalen = dxda * dxda + dyda * dyda;
+        odlen = dxod * dxod + dyod * dyod;
+        /* Find the square of the length of the longest edge. */
+        maxlen = (dalen > oalen) ? dalen : oalen;
+        maxlen = (odlen > maxlen) ? odlen : maxlen;
+
+        point_2d pt;
+        pt[0] = (triorg[0] + tridest[0] + triapex[0]) / 3;
+        pt[1] = (triorg[1] + tridest[1] + triapex[1]) / 3;
+
+        double local_size = sizing_function(pt);
+
+        if (maxlen > local_size)
+          return 1;
+        else
+          return 0;
+      }
+
 
 
 
@@ -188,6 +225,14 @@ namespace viennamesh
           tmp.regionlist = tmp_regionlist;
 
           options << "A";
+        }
+
+        viennamesh::result_of::const_parameter_handle<sizing_function_2d>::type sf = get_input<sizing_function_2d>("sizing_function");
+        if (sf)
+        {
+          sizing_function = sf();
+          options << "u";
+          triangle_okay = is_triangle_okay;
         }
 
 
