@@ -44,9 +44,27 @@ namespace viennamesh
         pt[0] = (triorg[0] + tridest[0] + triapex[0]) / 3;
         pt[1] = (triorg[1] + tridest[1] + triapex[1]) / 3;
 
-        double local_size = sizing_function(pt);
+        viennagrid::static_array<double, 4> local_sizes;
 
-        if (maxlen > local_size)
+        local_sizes[0] = sizing_function( point_2d(triorg[0], triorg[1]) );
+        local_sizes[1] = sizing_function( point_2d(tridest[0], tridest[1]) );
+        local_sizes[2] = sizing_function( point_2d(triapex[0], triapex[1]) );
+        local_sizes[3] = sizing_function(pt);
+
+        double local_size = -1;
+        for (int i = 0; i < 4; ++i)
+        {
+          if (local_sizes[i] > 0)
+          {
+            if (local_size < 0)
+              local_size = local_sizes[i];
+            else
+              local_size = std::min( local_size, local_sizes[i] );
+          }
+        }
+        local_size *= local_size;
+
+        if (local_size > 0 && maxlen > local_size)
           return 1;
         else
           return 0;
