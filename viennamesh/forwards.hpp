@@ -7,9 +7,11 @@
   #include <functional>
   #include <memory>
 #else
-  #include <boost/function.hpp>
   #include <boost/shared_ptr.hpp>
   #include <boost/enable_shared_from_this.hpp>
+
+  #include <boost/function.hpp>
+  #include <boost/bind.hpp>
 #endif
 
 #include <boost/lexical_cast.hpp>
@@ -18,16 +20,20 @@ namespace viennamesh
 {
 #if __cplusplus > 199711L
   using std::shared_ptr;
-  using std::function;
   using std::enable_shared_from_this;
   using std::dynamic_pointer_cast;
   using std::static_pointer_cast;
+
+  using std::function;
+  using std::bind;
 #else
   using boost::shared_ptr;
-  using boost::function;
   using boost::enable_shared_from_this;
   using boost::dynamic_pointer_cast;
   using boost::static_pointer_cast;
+
+  using boost::function;
+  using boost::bind;
 #endif
 
   using boost::lexical_cast;
