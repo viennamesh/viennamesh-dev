@@ -14,7 +14,7 @@ namespace viennamesh
     {
     public:
 
-      string name() const { return "Tetgen 1.4 mesher"; }
+      string name() const { return "Tetgen 1.5 mesher"; }
 
       void extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points,
                                 seed_point_3d_container & seed_points )
