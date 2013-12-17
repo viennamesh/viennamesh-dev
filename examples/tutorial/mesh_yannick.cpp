@@ -5,7 +5,8 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/interface.hpp"
 #include "viennagrid/algorithm/distance.hpp"
-#include <boost/concept_check.hpp>
+
+#include "viennagrid/algorithm/inclusion.hpp"
 
 
 
@@ -51,32 +52,6 @@ typename viennagrid::result_of::coord<PointT>::type size( std::pair<PointT, Poin
   return viennagrid::norm_2(bounding_box.second - bounding_box.first);
 }
 
-
-
-template<typename LineT, typename SomethingT>
-typename viennagrid::result_of::coord<SomethingT>::type distance( LineT const & line, SomethingT const & something )
-{
-  typedef typename viennagrid::result_of::const_line_range<SomethingT>::type ConstLineRangeType;
-  typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
-
-  typedef typename viennagrid::result_of::coord<SomethingT>::type CoordType;
-
-  ConstLineRangeType lines(something);
-  if (lines.empty())
-    return -1;
-
-  ConstLineIteratorType lit = lines.begin();
-  CoordType min_distance = viennagrid::distance(line, *(lit++));
-
-  for (; lit != lines.end(); ++lit)
-  {
-    CoordType current_distance = viennagrid::distance(line, *lit);
-    if (current_distance < min_distance)
-      min_distance = current_distance;
-  }
-
-  return min_distance;
-}
 
 
 
@@ -160,74 +135,14 @@ bool connects_to_segment( SegmentHandleT const & segment, viennagrid::element<El
 }
 
 
-
-// http://www.blackpawn.com/texts/pointinpoly/
 template<typename PointT>
 typename viennagrid::result_of::coord<PointT>::type determinant( PointT const & p0, PointT const & p1 )
 {
   return p0[0]*p1[1] - p0[1]*p1[0];
 }
 
-
-template<typename PointT>
-bool same_side( PointT const & p1, PointT const & p2, PointT const & a, PointT const & b )
-{
-  typedef typename viennagrid::result_of::coord<PointT>::type NumericT;
-
-  NumericT cp1 = determinant( b-a, p1-a );
-  NumericT cp2 = determinant( b-a, p2-a );
-
-  if (cp1*cp2 >= 0)
-    return true;
-  else
-    return false;
-}
-
-
-template<typename TriangleT, typename PointT>
-bool is_inside( TriangleT const & triangle, PointT const & p, typename viennagrid::result_of::coord<PointT>::type eps = 1e-6 )
-{
-  PointT const & a = viennagrid::point( viennagrid::vertices(triangle)[0] );
-  PointT const & b = viennagrid::point( viennagrid::vertices(triangle)[1] );
-  PointT const & c = viennagrid::point( viennagrid::vertices(triangle)[2] );
-
-  PointT v0 = c-a;
-  PointT v1 = b-a;
-  PointT v2 = p-a;
-
-  typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
-
-  NumericType dot00 = viennagrid::inner_prod(v0, v0);
-  NumericType dot01 = viennagrid::inner_prod(v0, v1);
-  NumericType dot02 = viennagrid::inner_prod(v0, v2);
-  NumericType dot11 = viennagrid::inner_prod(v1, v1);
-  NumericType dot12 = viennagrid::inner_prod(v1, v2);
-
-  NumericType denom = (dot00 * dot11 - dot01 * dot01);
-  NumericType u = (dot11*dot02 - dot01*dot12);
-  NumericType v = (dot00*dot12 - dot01*dot02);
-
-  return (u >= -eps*denom) && (v >= -eps*denom) && (u+v <= (1+2*eps)*denom);
-
-
-
-//   PointT middle = (a+b+c)/3.0;
-//
-//   PointT new_a = a + (a-middle)*eps;
-//   PointT new_b = b + (b-middle)*eps;
-//   PointT new_c = c + (c-middle)*eps;
-//
-// //   if ( same_side(p, a, b, c) && same_side(p, b, a, c) && same_side(p, c, a, b) )
-//   if ( same_side(p, new_a, new_b, new_c) && same_side(p, new_b, new_a, new_c) && same_side(p, new_c, new_a, new_b) )
-//     return true;
-//   else
-//     return false;
-}
-
-
-
-template<typename ElementT, typename FieldT>
-typename viennagrid::result_of::coord<ElementT>::type gradient( ElementT const & element, FieldT const & field )
+template<typename ElementT, typename AccessorFieldT>
+typename viennagrid::result_of::coord<ElementT>::type gradient( ElementT const & element, AccessorFieldT const & accessor_field )
 {
   typedef typename viennagrid::result_of::point<ElementT>::type PointType;
   typedef typename viennagrid::result_of::coord<ElementT>::type NumericType;
@@ -236,9 +151,9 @@ typename viennagrid::result_of::coord<ElementT>::type gradient( ElementT const &
   PointType p1 = viennagrid::point( viennagrid::vertices(element)[1] );
   PointType p2 = viennagrid::point( viennagrid::vertices(element)[2] );
 
-  NumericType s0 = field(viennagrid::vertices(element)[0]);
-  NumericType s1 = field(viennagrid::vertices(element)[1]);
-  NumericType s2 = field(viennagrid::vertices(element)[2]);
+  NumericType s0 = accessor_field(viennagrid::vertices(element)[0]);
+  NumericType s1 = accessor_field(viennagrid::vertices(element)[1]);
+  NumericType s2 = accessor_field(viennagrid::vertices(element)[2]);
 
 
   PointType p10 = p1-p0;
@@ -276,9 +191,9 @@ namespace viennamesh
   namespace sizing_function
   {
     template<typename SizingFunctionT>
-    typename SizingFunctionT::result_type get_size( shared_ptr<SizingFunctionT> const & sf, typename SizingFunctionT::point_type const & point )
+    typename SizingFunctionT::result_type get( shared_ptr<SizingFunctionT> const & sf, typename SizingFunctionT::point_type const & point )
     {
-      return sf->get_size(point);
+      return sf->get(point);
     }
 
 
@@ -296,7 +211,7 @@ namespace viennamesh
 
       virtual ~base_sizing_function() {}
 
-      virtual NumericType get_size( PointT const & ) const = 0;
+      virtual NumericType get( PointT const & ) const = 0;
 
     private:
     };
@@ -324,7 +239,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
       typedef NumericType result_type;
 
-      NumericType get_size( PointType const & pt ) const
+      NumericType get( PointType const & pt ) const
       {
         typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
@@ -332,7 +247,7 @@ namespace viennamesh
         ConstCellRangeType cells(mesh);
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
         {
-          if ( is_inside( *cit, pt ) )
+          if ( viennagrid::is_inside( *cit, pt ) )
           {
             PointType p0 = viennagrid::point( viennagrid::vertices(*cit)[0] );
             PointType p1 = viennagrid::point( viennagrid::vertices(*cit)[1] );
@@ -348,7 +263,7 @@ namespace viennamesh
 
             NumericType val = (s0*f0 + s1*f1 + s2*f2) / (f0 + f1 + f2);
 
-            return (s0*f0 + s1*f1 + s2*f2) / (f0 + f1 + f2);
+            return val;
           }
         }
 
@@ -379,7 +294,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
       typedef NumericType result_type;
 
-      NumericType get_size( PointType const & pt ) const
+      NumericType get( PointType const & pt ) const
       {
         typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
@@ -387,7 +302,7 @@ namespace viennamesh
         ConstCellRangeType cells(mesh);
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
         {
-          if ( is_inside( *cit, pt ) )
+          if ( viennagrid::is_inside( *cit, pt ) )
             return gradient( *cit, field );
         }
 
@@ -419,7 +334,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
 
-      NumericType get_size( PointType const & pt ) const
+      NumericType get( PointType const & pt ) const
       {
         return viennagrid::boundary_distance( pt, *segment );
       }
@@ -446,7 +361,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
       typedef NumericType result_type;
 
-      NumericType get_size( PointType const & pt ) const
+      NumericType get( PointType const & pt ) const
       {
         return ::distance_to_interface( pt, *segment0, *segment1 );
       }
@@ -522,7 +437,7 @@ namespace viennamesh
         segments.push_back(&segment1_);
       }
 
-      NumericType get_size( PointType const & pt ) const
+      NumericType get( PointType const & pt ) const
       {
         typedef typename viennagrid::result_of::const_cell_range<SegmentT>::type ConstCellRangeType;
         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
@@ -532,8 +447,8 @@ namespace viennamesh
           ConstCellRangeType cells(*segments[i]);
           for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
           {
-            if ( is_inside( *cit, pt ) )
-              return function->get_size(pt);
+            if ( viennagrid::is_inside( *cit, pt ) )
+              return function->get(pt);
           }
         }
 
@@ -578,13 +493,13 @@ namespace viennamesh
 
       typedef NumericType result_type;
 
-      NumericType get_size( PointType const & pt ) const
+      NumericType get( PointType const & pt ) const
       {
         NumericType distance_segment0 = viennagrid::boundary_distance( *segment0, pt );
         NumericType distance_segment1 = viennagrid::boundary_distance( *segment1, pt );
 
         if ( distance_segment0 + distance_segment1 < max_distance_between_interfaces )
-          return function->get_size(pt);
+          return function->get(pt);
 
         return -1;
       }
@@ -646,10 +561,10 @@ namespace viennamesh
 
       min_functor(BaseSizingFunctionHandleType const & function1_, BaseSizingFunctionHandleType const & function2_) : function1(function1_), function2(function2_) {}
 
-      NumericType get_size( PointT const & pt ) const
+      NumericType get( PointT const & pt ) const
       {
-        NumericType val1 = function1->get_size(pt);
-        NumericType val2 = function2->get_size(pt);
+        NumericType val1 = function1->get(pt);
+        NumericType val2 = function2->get(pt);
         if (val1 < 0)
           return val2;
         if (val2 < 0)
@@ -694,7 +609,7 @@ namespace viennamesh
 
       constant_functor(NumericType value_) : value(value_) {}
 
-      NumericType get_size( PointT const & ) const
+      NumericType get( PointT const & ) const
       { return value; }
 
       NumericType value;
@@ -742,9 +657,9 @@ namespace viennamesh
 
       linear_interpolate_functor(BaseSizingFunctionHandleType const & function_, NumericType lower_, NumericType upper_, NumericType lower_to_, NumericType upper_to_) : function(function_), lower(lower_), upper(upper_), lower_to(lower_to_), upper_to(upper_to_) {}
 
-      NumericType get_size( PointT const & pt ) const
+      NumericType get( PointT const & pt ) const
       {
-        NumericType tmp = function->get_size(pt);
+        NumericType tmp = function->get(pt);
         if (tmp <= 0)
           return tmp;
 
@@ -781,6 +696,55 @@ namespace viennamesh
 
   }
 }
+
+
+
+
+
+
+template<typename SegmentT, typename FieldT>
+typename FieldT::value_type arithmetic_average( SegmentT const & seg0, SegmentT const & seg1, FieldT const & field )
+{
+  typedef typename FieldT::access_type ElementType;
+  typedef typename viennagrid::result_of::const_element_range<SegmentT, ElementType>::type ConstElementRangeType;
+  typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+
+  typename FieldT::value_type value = 0;
+  int count = 0;
+
+  ConstElementRangeType elements( seg0 );
+  for (ConstElementIteratorType eit = elements.begin(); eit != elements.end(); ++eit)
+  {
+    if (viennagrid::is_interface(seg0, seg1, *eit))
+    {
+      value += field(*eit);
+      ++count;
+    }
+  }
+
+  return value/count;
+}
+
+
+
+
+
+template<typename SegmentT, typename FieldT, typename NumericT>
+void set_on_interface( SegmentT const & seg0, SegmentT const & seg1, FieldT & field, NumericT value )
+{
+  typedef typename FieldT::access_type ElementType;
+  typedef typename viennagrid::result_of::const_element_range<SegmentT, ElementType>::type ConstElementRangeType;
+  typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+
+  ConstElementRangeType elements( seg0 );
+  for (ConstElementIteratorType eit = elements.begin(); eit != elements.end(); ++eit)
+  {
+    if (viennagrid::is_interface(seg0, seg1, *eit))
+      field(*eit) = value;
+  }
+}
+
+
 
 
 
@@ -844,15 +808,23 @@ int main()
   SegmentationType & segmentation = segmented_mesh.segmentation;
 
 
+  int oxide1_id = 0;
+  int silicon_id = 1;
+  int oxide2_id = 2;
+  int gate_id = 3;
+  int drain_id = 4;
+  int bulk_id = 5;
+  int source_id = 6;
+  int substrate_id = 7;
 
-  SegmentHandleType oxide1 = segmentation.get_segment(0);  // oxide 1
-  SegmentHandleType silicon = segmentation.get_segment(1);  // silicon
-  SegmentHandleType oxide2 = segmentation.get_segment(2);  // oxide 2
-  SegmentHandleType gate = segmentation.get_segment(3);  // gate contact
-  SegmentHandleType drain = segmentation.get_segment(4);  // drain contact
-  SegmentHandleType bulk = segmentation.get_segment(5);  // bulk contact
-  SegmentHandleType source = segmentation.get_segment(6);  // source contact
-  SegmentHandleType substrate = segmentation.get_segment(7);  // substrate contact
+  SegmentHandleType oxide1 = segmentation.get_segment(oxide1_id);  // oxide 1
+  SegmentHandleType silicon = segmentation.get_segment(silicon_id);  // silicon
+  SegmentHandleType oxide2 = segmentation.get_segment(oxide2_id);  // oxide 2
+  SegmentHandleType gate = segmentation.get_segment(gate_id);  // gate contact
+  SegmentHandleType drain = segmentation.get_segment(drain_id);  // drain contact
+  SegmentHandleType bulk = segmentation.get_segment(bulk_id);  // bulk contact
+  SegmentHandleType source = segmentation.get_segment(source_id);  // source contact
+  SegmentHandleType substrate = segmentation.get_segment(substrate_id);  // substrate contact
 
   // auflösen bei: contact-silicon-interfaces, über gate (im oxide und im silicon)
 
@@ -868,6 +840,9 @@ int main()
 
   typedef viennagrid::result_of::vertex<MeshType>::type VertexType;
   typedef viennagrid::result_of::cell<MeshType>::type CellType;
+
+  typedef viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
+  typedef viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
 
   typedef viennagrid::result_of::cell_range<MeshType>::type CellRangeType;
   typedef viennagrid::result_of::iterator<CellRangeType>::type CellIteratorType;
@@ -947,31 +922,34 @@ int main()
   viennamesh::sizing_function::sizing_function_2d_handle function =
     viennamesh::sizing_function::min(
       viennamesh::sizing_function::min(
-        viennamesh::sizing_function::is_in_segments(
-          viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::mesh_gradient( doping_mesh, builtin_field ), 0, 2e5, mesh_size, distance_gate_silicon*10),
-          silicon
+        viennamesh::sizing_function::min(
+          viennamesh::sizing_function::is_in_segments(
+            viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::mesh_gradient( doping_mesh, builtin_field ), 0, 2e5, mesh_size, distance_gate_silicon*10),
+            silicon
+          ),
+          viennamesh::sizing_function::is_in_segments(
+            viennamesh::sizing_function::is_near_double_interface( viennamesh::sizing_function::constant<PointType>(distance_gate_silicon), gate, silicon, 5*distance_gate_silicon),
+            oxide1, silicon
+          )
         ),
-        viennamesh::sizing_function::is_in_segments(
-          viennamesh::sizing_function::is_near_double_interface( viennamesh::sizing_function::constant<PointType>(distance_gate_silicon), gate, silicon, 5*distance_gate_silicon),
-          oxide1, silicon
+
+        viennamesh::sizing_function::min(
+          viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::distance_to_interface( drain, silicon ), distance_gate_silicon*2, mesh_size, drain_silicon_interface_length/10, mesh_size),
+          viennamesh::sizing_function::min(
+            viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::distance_to_interface( source, silicon ), distance_gate_silicon*2, mesh_size, source_silicon_interface_length/10, mesh_size),
+            viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::distance_to_interface( bulk, silicon ), distance_gate_silicon*2, mesh_size, bulk_silicon_interface_length/10, mesh_size)
+          )
         )
       ),
-
-      viennamesh::sizing_function::min(
-        viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::distance_to_interface( drain, silicon ), distance_gate_silicon*2, mesh_size, drain_silicon_interface_length/10, mesh_size),
-        viennamesh::sizing_function::min(
-          viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::distance_to_interface( source, silicon ), distance_gate_silicon*2, mesh_size, source_silicon_interface_length/10, mesh_size),
-          viennamesh::sizing_function::linear_interpolate( viennamesh::sizing_function::distance_to_interface( bulk, silicon ), distance_gate_silicon*2, mesh_size, bulk_silicon_interface_length/10, mesh_size)
-        )
-      )
+      viennamesh::sizing_function::constant<PointType>(distance_gate_silicon*100)
     );
 
 
-  viennamesh::sizing_function_2d sizing_function = viennamesh::bind(viennamesh::sizing_function::get_size<viennamesh::sizing_function::base_sizing_function_2d>, function, _1);
+  viennamesh::sizing_function_2d sizing_function = viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function_2d>, function, _1);
 
   mesher_sizing_function->set_input( "sizing_function", sizing_function );
 
-  mesher_sizing_function->set_input( "min_angle", 0.52 );     // minimum angle in radiant, 0.35 are about 20 degrees
+  mesher_sizing_function->set_input( "min_angle", 0.56 );     // minimum angle in radiant, 0.35 are about 20 degrees
   mesher_sizing_function->set_input( "delaunay", true  );     // we want a Delaunay triangulation
   mesher_sizing_function->set_input( "algorithm_type", "incremental_delaunay" );  // incremental Delaunay algorithm is used
 
@@ -1002,40 +980,69 @@ int main()
   typedef viennagrid::result_of::vertex_range<SegmentHandleType>::type VertexOnSegmentRangeType;
   typedef viennagrid::result_of::iterator<VertexOnSegmentRangeType>::type VertexOnSegmentIteratorType;
 
-//   functors::mesh_interpolate<MeshType, VertexDoubleFieldType> doping_n_interpolate( doping_mesh, doping_n_field );
-//   functors::mesh_interpolate<MeshType, VertexDoubleFieldType> doping_p_interpolate( doping_mesh, doping_p_field );
-//
-//   functors::mesh_interpolate<MeshType, VertexDoubleFieldType> n_interpolate( doping_mesh, n_field );
-//   functors::mesh_interpolate<MeshType, VertexDoubleFieldType> p_interpolate( doping_mesh, p_field );
-//   functors::mesh_interpolate<MeshType, VertexDoubleFieldType> potential_interpolate( doping_mesh, potential_field );
-//
-//   VertexOnSegmentRangeType vertices( segmented_sized_mesh.segmentation(1) );
-//   for (VertexOnSegmentIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-//   {
-//     double doping_n = doping_n_interpolate( viennagrid::point(*vit) );
-//     double doping_p = doping_p_interpolate( viennagrid::point(*vit) );
-//
-//     sized_doping_n_field(*vit) = doping_n;
-//     sized_doping_p_field(*vit) = doping_p;
+
+
+  viennamesh::sizing_function::sizing_function_2d_handle doping_n_interpolate = viennamesh::sizing_function::mesh_interpolate( doping_mesh, doping_n_field );
+  viennamesh::sizing_function::sizing_function_2d_handle doping_p_interpolate = viennamesh::sizing_function::mesh_interpolate( doping_mesh, doping_p_field );
+
+  viennamesh::sizing_function::sizing_function_2d_handle n_interpolate = viennamesh::sizing_function::mesh_interpolate( doping_mesh, n_field );
+  viennamesh::sizing_function::sizing_function_2d_handle p_interpolate = viennamesh::sizing_function::mesh_interpolate( doping_mesh, p_field );
+  viennamesh::sizing_function::sizing_function_2d_handle potential_interpolate = viennamesh::sizing_function::mesh_interpolate( doping_mesh, potential_field );
+
+
+  VertexRangeType vertices( segmented_sized_mesh.mesh );
+  for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+    sized_potential_field(*vit) = potential_interpolate->get( viennagrid::point(*vit) );
+
+  VertexOnSegmentRangeType vertices_on_silicon( segmented_sized_mesh.segmentation(1) );
+  for (VertexOnSegmentIteratorType vit = vertices_on_silicon.begin(); vit != vertices_on_silicon.end(); ++vit)
+  {
+    double doping_n = doping_n_interpolate->get( viennagrid::point(*vit) );
+    double doping_p = doping_p_interpolate->get( viennagrid::point(*vit) );
+
+    sized_doping_n_field(*vit) = doping_n;
+    sized_doping_p_field(*vit) = doping_p;
 //     sized_netto_doping_field(*vit) = doping_p - doping_n;
-//
-//     sized_n_field(*vit) = n_interpolate( viennagrid::point(*vit) );
-//     sized_p_field(*vit) = p_interpolate( viennagrid::point(*vit) );
-//     sized_potential_field(*vit) = potential_interpolate( viennagrid::point(*vit) );
-//   }
+
+    sized_n_field(*vit) = n_interpolate->get( viennagrid::point(*vit) );
+    sized_p_field(*vit) = p_interpolate->get( viennagrid::point(*vit) );
+  }
+
+
+  set_on_interface( source, silicon, sized_doping_n_field, arithmetic_average(source, silicon, sized_doping_n_field) );
+  set_on_interface( source, silicon, sized_doping_p_field, arithmetic_average(source, silicon, sized_doping_p_field) );
+  set_on_interface( source, silicon, sized_potential_field, arithmetic_average(source, silicon, sized_potential_field) );
+
+  set_on_interface( drain, silicon, sized_doping_n_field, arithmetic_average(drain, silicon, sized_doping_n_field) );
+  set_on_interface( drain, silicon, sized_doping_p_field, arithmetic_average(drain, silicon, sized_doping_p_field) );
+  set_on_interface( drain, silicon, sized_potential_field, arithmetic_average(drain, silicon, sized_potential_field) );
+
+  set_on_interface( bulk, silicon, sized_doping_n_field, arithmetic_average(bulk, silicon, sized_doping_n_field) );
+  set_on_interface( bulk, silicon, sized_doping_p_field, arithmetic_average(bulk, silicon, sized_doping_p_field) );
+  set_on_interface( bulk, silicon, sized_potential_field, arithmetic_average(bulk, silicon, sized_potential_field) );
+
+  set_on_interface( substrate, silicon, sized_doping_n_field, arithmetic_average(substrate, silicon, sized_doping_n_field) );
+  set_on_interface( substrate, silicon, sized_doping_p_field, arithmetic_average(substrate, silicon, sized_doping_p_field) );
+  set_on_interface( substrate, silicon, sized_potential_field, arithmetic_average(substrate, silicon, sized_potential_field) );
+
+
+
+  for (VertexOnSegmentIteratorType vit = vertices_on_silicon.begin(); vit != vertices_on_silicon.end(); ++vit)
+    sized_netto_doping_field(*vit) = sized_doping_p_field(*vit) - sized_doping_n_field(*vit);
+
 
 
 
   {
     viennagrid::io::vtk_writer<MeshType, SegmentationType> vtk_writer;
 
-//     viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_doping_n_field, "doping_n" );
-//     viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_doping_p_field, "doping_p" );
-//     viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_netto_doping_field, "netto_doping_field" );
-//
-//     viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_n_field, "n" );
-//     viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_p_field, "p" );
-//     viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_potential_field, "potential" );
+    viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_doping_n_field, "doping_n" );
+    viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_doping_p_field, "doping_p" );
+    viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_netto_doping_field, "netto_doping_field" );
+
+    viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_n_field, "n" );
+    viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_p_field, "p" );
+    viennagrid::io::add_scalar_data_on_vertices( vtk_writer, sized_potential_field, "potential" );
 
     vtk_writer( segmented_sized_mesh.mesh, segmented_sized_mesh.segmentation, "meshed_nld_sizing_field" );
   }
