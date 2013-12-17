@@ -15,8 +15,9 @@ namespace viennamesh
   namespace laplace_smooth
   {
 
-    template<typename MeshT>
-    void smooth( MeshT & mesh, double lambda, double max_distance )
+    // http://en.wikipedia.org/wiki/Laplacian_smoothing
+    template<typename MeshT, typename NumericT>
+    void smooth( MeshT & mesh, NumericT lambda, NumericT max_distance )
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
 
