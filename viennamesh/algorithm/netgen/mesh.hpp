@@ -110,7 +110,7 @@ namespace viennamesh
 
 
   template<>
-  struct static_init_impl< netgen::output_mesh >
+  struct type_information< netgen::output_mesh >
   {
     typedef netgen::output_mesh SelfType;
 
@@ -125,6 +125,11 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "3" );
       type_properties::get().set_property<SelfType>( "cell_type", "tetrahedron" );
+    }
+
+    static string name()
+    {
+      return "netgen::output_mesh";
     }
   };
 
