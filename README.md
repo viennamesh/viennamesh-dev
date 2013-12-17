@@ -1,3 +1,12 @@
+License
+
+ViennaMesh (everything in viennamesh directory) is distributed under GNU LGPL license
+Netgen (everything in external/netgen) is distributed under GNU LGPLv2 license (see external/netgen/LICENSE file for more information)
+Tetgen (everything in external/tetgen) is distributed under GNU Affero General Public License (see external/tetgen/LICENSE file for more information)
+Triangle (everything in external/triangle) is freely distributed for non-commercial purposes (see external/triangle/LICENSE file for more information)
+
+
+
 System requirements for the developer version:
 
 * Boost libraries >= 1.45
