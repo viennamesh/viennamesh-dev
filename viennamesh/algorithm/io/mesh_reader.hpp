@@ -45,7 +45,8 @@ namespace viennamesh
       template<typename CellTagT, unsigned int GeometricDimensionV>
       bool generic_read_vtk( string const & filename )
       {
-        typedef typename viennamesh::result_of::default_mesh<CellTagT, GeometricDimensionV>::type MeshType;
+        typedef typename viennamesh::result_of::full_config<CellTagT, GeometricDimensionV>::type ConfigType;
+        typedef typename viennagrid::mesh<ConfigType> MeshType;
         typedef typename viennagrid::result_of::segmentation<MeshType>::type SegmentationType;
 
         output_parameter_proxy< viennagrid::segmented_mesh<MeshType, SegmentationType> > output_mesh = output_proxy< viennagrid::segmented_mesh<MeshType, SegmentationType> >("default");
