@@ -189,13 +189,11 @@ namespace viennamesh
 
 
 
-
-    static bool convert(triangle::output_mesh const & input, viennagrid::triangular_2d_mesh & output)
+    template<typename MeshT>
+    void generic_convert(triangle::output_mesh const & input, MeshT & output)
     {
-      typedef viennagrid::triangular_2d_mesh ViennaGridMeshType;
-      typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
-
-      typedef viennagrid::result_of::vertex_handle<ViennaGridMeshType>::type VertexHandleType;
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
 
       std::vector<VertexHandleType> vertex_handles(input.triangle_mesh.numberofpoints);
 
@@ -219,21 +217,32 @@ namespace viennamesh
           vertex_handles[ input.triangle_mesh.trianglelist[3*i+2] ]
         );
       }
+    }
 
+    inline bool convert(triangle::output_mesh const & input, viennagrid::triangular_2d_mesh & output)
+    {
+      generic_convert(input, output);
+      return true;
+    }
+
+    inline bool convert(triangle::output_mesh const & input, viennagrid::thin_triangular_2d_mesh & output)
+    {
+      generic_convert(input, output);
       return true;
     }
 
 
-
-    static bool convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> & output)
+    template<typename MeshT, typename SegmentationT>
+    void generic_convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<MeshT, SegmentationT> & output)
     {
       if (input.triangle_mesh.numberoftriangleattributes == 0)
-        return convert(input, output.mesh);
+      {
+        generic_convert(input, output.mesh);
+        return;
+      }
 
-      typedef viennagrid::triangular_2d_mesh ViennaGridMeshType;
-      typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
-
-      typedef viennagrid::result_of::vertex_handle<ViennaGridMeshType>::type VertexHandleType;
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
 
       std::vector<VertexHandleType> vertex_handles(input.triangle_mesh.numberofpoints);
 
@@ -250,7 +259,7 @@ namespace viennamesh
 
       for (int i = 0; i < input.triangle_mesh.numberoftriangles; ++i)
       {
-        viennagrid::triangular_2d_segmentation::segment_id_type segment_id = input.triangle_mesh.triangleattributelist[i];
+        typename SegmentationT::segment_id_type segment_id = input.triangle_mesh.triangleattributelist[i];
 
         viennagrid::make_triangle(
           output.segmentation.get_make_segment(segment_id),
@@ -259,7 +268,23 @@ namespace viennamesh
           vertex_handles[ input.triangle_mesh.trianglelist[3*i+2] ]
         );
       }
+    }
 
+    inline bool convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> & output)
+    {
+      generic_convert(input, output);
+      return true;
+    }
+
+    inline bool convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::thin_triangular_2d_mesh, viennagrid::thin_triangular_2d_segmentation> & output)
+    {
+      generic_convert(input, output);
+      return true;
+    }
+
+    inline bool convert(triangle::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::thin_triangular_2d_mesh, viennagrid::thin_cell_only_triangular_2d_segmentation> & output)
+    {
+      generic_convert(input, output);
       return true;
     }
   }
@@ -268,7 +293,7 @@ namespace viennamesh
 
 
   template<>
-  struct static_init_impl< viennagrid::segmented_mesh<triangle::input_mesh, triangle::input_segmentation> >
+  struct type_information< viennagrid::segmented_mesh<triangle::input_mesh, triangle::input_segmentation> >
   {
     typedef viennagrid::segmented_mesh<triangle::input_mesh, triangle::input_segmentation> SelfType;
 
@@ -282,14 +307,18 @@ namespace viennamesh
 
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "2" );
-      type_properties::get().set_property<SelfType>( "cell_type", "line" );
+      type_properties::get().set_property<SelfType>( "cell_type", "1-simplex" );
+      type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
+
+    static string name()
+    { return "viennagrid::segmented_mesh<triangle::input_mesh, triangle::input_segmentation>"; }
 
   };
 
 
   template<>
-  struct static_init_impl< triangle::output_mesh >
+  struct type_information< triangle::output_mesh >
   {
     typedef triangle::output_mesh SelfType;
 
@@ -298,13 +327,28 @@ namespace viennamesh
       typedef viennagrid::triangular_2d_mesh Triangular2DViennaGridMeshType;
       typedef viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation> SegmentedTriangular2DViennaGridMeshType;
 
+      typedef viennagrid::thin_triangular_2d_mesh ThinTriangular2DViennaGridMeshType;
+      typedef viennagrid::segmented_mesh<viennagrid::thin_triangular_2d_mesh, viennagrid::thin_triangular_2d_segmentation> ThinSegmentedTriangular2DViennaGridMeshType;
+
+      typedef viennagrid::segmented_mesh<viennagrid::thin_triangular_2d_mesh, viennagrid::thin_cell_only_triangular_2d_segmentation> ThinCellOnlySegmentedTriangular2DViennaGridMeshType;
+
+
       converter::get().register_conversion<SelfType, Triangular2DViennaGridMeshType>( &triangle::convert );
       converter::get().register_conversion<SelfType, SegmentedTriangular2DViennaGridMeshType>( &triangle::convert );
 
+      converter::get().register_conversion<SelfType, ThinTriangular2DViennaGridMeshType>( &triangle::convert );
+      converter::get().register_conversion<SelfType, ThinSegmentedTriangular2DViennaGridMeshType>( &triangle::convert );
+      converter::get().register_conversion<SelfType, ThinCellOnlySegmentedTriangular2DViennaGridMeshType>( &triangle::convert );
+
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "2" );
-      type_properties::get().set_property<SelfType>( "cell_type", "triangle" );
+      type_properties::get().set_property<SelfType>( "cell_type", "2-simplex" );
+      type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
+
+    static string name()
+    { return "triangle::output_mesh"; }
+
   };
 
 }
