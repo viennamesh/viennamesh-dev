@@ -97,7 +97,8 @@ namespace viennamesh
       void generic_run_impl( InputMeshT const & input_mesh, InputSegmentationT const & input_segmentation, MatrixType const & matrix )
       {
         typedef typename viennagrid::result_of::cell_tag<InputMeshT>::type CellTagType;
-        typedef typename viennamesh::result_of::default_mesh<CellTagType, GeometricDimensionV>::type OutputMeshType;
+        typedef typename viennamesh::result_of::full_config<CellTagType, GeometricDimensionV>::type OutputConfigType;
+        typedef viennagrid::mesh<OutputConfigType> OutputMeshType;
         typedef typename viennagrid::result_of::segmentation<OutputMeshType>::type OutputSegmentationType;
 
         typedef viennagrid::segmented_mesh<OutputMeshType, OutputSegmentationType> OutputSegmentedMeshType;

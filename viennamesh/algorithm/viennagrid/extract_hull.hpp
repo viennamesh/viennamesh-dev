@@ -166,10 +166,11 @@ namespace viennamesh
         typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
         typedef typename viennagrid::result_of::facet_tag<MeshT>::type FacetTagType;
 
-        typedef typename viennamesh::result_of::default_mesh<
+        typedef typename viennamesh::result_of::full_config<
                 FacetTagType,
                 viennagrid::result_of::geometric_dimension<MeshT>::value
-            >::type FacetMeshType;
+            >::type FacetConfigType;
+        typedef viennagrid::mesh<FacetConfigType> FacetMeshType;
         typedef typename viennagrid::result_of::segmentation<FacetMeshType>::type FacetSegmentationType;
         typedef viennagrid::segmented_mesh<FacetMeshType, FacetSegmentationType> SegmentedFacetMeshType;
 
