@@ -6,6 +6,26 @@
 
 namespace stringtools
 {
+  // from http://stackoverflow.com/questions/4452136/how-do-i-use-boostlexical-cast-and-stdboolalpha-i-e-boostlexical-cast-b
+  struct locale_bool
+  {
+    bool data;
+    locale_bool() {}
+    locale_bool( bool data ) : data(data) {}
+    operator bool() const { return data; }
+    friend std::ostream & operator << ( std::ostream &out, locale_bool b )
+    {
+      out << std::boolalpha << b.data;
+      return out;
+    }
+    friend std::istream & operator >> ( std::istream &in, locale_bool &b )
+    {
+      in >> std::boolalpha >> b.data;
+      return in;
+    }
+  };
+
+
 
   inline std::list<std::string> split_string( std::string const & str, std::string const & delimiter )
   {
