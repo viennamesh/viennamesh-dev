@@ -172,13 +172,11 @@ namespace viennamesh
 
 
 
-
-    static bool convert(tetgen::output_mesh const & input, viennagrid::tetrahedral_3d_mesh & output)
+    template<typename MeshT>
+    void generic_convert(tetgen::output_mesh const & input, MeshT & output)
     {
-      typedef viennagrid::tetrahedral_3d_mesh ViennaGridMeshType;
-      typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
-
-      typedef viennagrid::result_of::vertex_handle<ViennaGridMeshType>::type VertexHandleType;
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
 
       std::vector<VertexHandleType> vertex_handles(input.numberofpoints);
 
@@ -198,23 +196,38 @@ namespace viennamesh
           vertex_handles[ input.tetrahedronlist[4*i+3] ]
         );
       }
+    }
 
+    inline bool convert(tetgen::output_mesh const & input, viennagrid::tetrahedral_3d_mesh & output)
+    {
+      generic_convert(input, output);
+      return true;
+    }
+
+    inline bool convert(tetgen::output_mesh const & input, viennagrid::thin_tetrahedral_3d_mesh & output)
+    {
+      generic_convert(input, output);
       return true;
     }
 
 
 
 
-    static bool convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> & output)
+    template<typename MeshT, typename SegmentationT>
+    void generic_convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<MeshT, SegmentationT> & output)
     {
       if (input.numberoftetrahedronattributes == 0)
-        return convert(input, output.mesh);
+      {
+        generic_convert(input, output.mesh);
+        return;
+      }
 
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
+      typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
+      typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
 
-      typedef viennagrid::tetrahedral_3d_mesh ViennaGridMeshType;
-      typedef viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
-
-      typedef viennagrid::result_of::vertex_handle<ViennaGridMeshType>::type VertexHandleType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
 
       std::vector<VertexHandleType> vertex_handles(input.numberofpoints);
 
@@ -223,19 +236,40 @@ namespace viennamesh
         vertex_handles[i] = viennagrid::make_vertex( output.mesh, PointType(input.pointlist[3*i+0], input.pointlist[3*i+1], input.pointlist[3*i+2]) );
       }
 
+      // performance
+      viennagrid::get<CellType>(viennagrid::detail::element_segment_mapping_collection(output.segmentation)).resize( input.numberoftetrahedra );
+
+
       for (int i = 0; i < input.numberoftetrahedra; ++i)
       {
-        viennagrid::tetrahedral_3d_segmentation::segment_id_type segment_id = input.tetrahedronattributelist[i];
-
-        viennagrid::make_tetrahedron(
-          output.segmentation.get_make_segment(segment_id),
+        CellHandleType cell_handle = viennagrid::make_tetrahedron(
+          output.mesh,
           vertex_handles[ input.tetrahedronlist[4*i+0] ],
           vertex_handles[ input.tetrahedronlist[4*i+1] ],
           vertex_handles[ input.tetrahedronlist[4*i+2] ],
           vertex_handles[ input.tetrahedronlist[4*i+3] ]
         );
-      }
 
+        viennagrid::tetrahedral_3d_segmentation::segment_id_type segment_id = input.tetrahedronattributelist[i];
+        viennagrid::unchecked_add(output.segmentation.get_make_segment(segment_id), cell_handle);
+      }
+    }
+
+    inline bool convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> & output)
+    {
+      generic_convert(input, output);
+      return true;
+    }
+
+    inline bool convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::thin_tetrahedral_3d_mesh, viennagrid::thin_tetrahedral_3d_segmentation> & output)
+    {
+      generic_convert(input, output);
+      return true;
+    }
+
+    inline bool convert(tetgen::output_mesh const & input, viennagrid::segmented_mesh<viennagrid::thin_tetrahedral_3d_mesh, viennagrid::thin_cell_only_tetrahedral_3d_segmentation> & output)
+    {
+      generic_convert(input, output);
       return true;
     }
 
@@ -244,7 +278,7 @@ namespace viennamesh
 
 
   template<>
-  struct static_init_impl< viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> >
+  struct type_information< viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> >
   {
     typedef viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> SelfType;
 
@@ -264,12 +298,16 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "3" );
       type_properties::get().set_property<SelfType>( "cell_type", "plc" );
+      type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
+
+    static string name()
+    { return "viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation>"; }
   };
 
 
   template<>
-  struct static_init_impl< tetgen::output_mesh >
+  struct type_information< tetgen::output_mesh >
   {
     typedef tetgen::output_mesh SelfType;
 
@@ -278,13 +316,27 @@ namespace viennamesh
       typedef viennagrid::tetrahedral_3d_mesh Tetrahedral3DViennaGridMeshType;
       typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> SegmentedTetrahedral3DViennaGridMeshType;
 
+      typedef viennagrid::thin_tetrahedral_3d_mesh ThinTetrahedral3DViennaGridMeshType;
+      typedef viennagrid::segmented_mesh<viennagrid::thin_tetrahedral_3d_mesh, viennagrid::thin_tetrahedral_3d_segmentation> ThinSegmentedTetrahedral3DViennaGridMeshType;
+
+      typedef viennagrid::segmented_mesh<viennagrid::thin_tetrahedral_3d_mesh, viennagrid::thin_cell_only_tetrahedral_3d_segmentation> ThinCellOnlySegmentedTetrahedral3DViennaGridMeshType;
+
+
       converter::get().register_conversion<SelfType, Tetrahedral3DViennaGridMeshType>( &tetgen::convert );
       converter::get().register_conversion<SelfType, SegmentedTetrahedral3DViennaGridMeshType>( &tetgen::convert );
 
+      converter::get().register_conversion<SelfType, ThinTetrahedral3DViennaGridMeshType>( &tetgen::convert );
+      converter::get().register_conversion<SelfType, ThinSegmentedTetrahedral3DViennaGridMeshType>( &tetgen::convert );
+      converter::get().register_conversion<SelfType, ThinCellOnlySegmentedTetrahedral3DViennaGridMeshType>( &tetgen::convert );
+
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "3" );
-      type_properties::get().set_property<SelfType>( "cell_type", "tetrahedron" );
+      type_properties::get().set_property<SelfType>( "cell_type", "3-simplex" );
+      type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
+
+    static string name()
+    { return "tetgen::output_mesh"; }
   };
 
 
