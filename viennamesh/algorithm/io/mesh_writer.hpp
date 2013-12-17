@@ -69,7 +69,8 @@ namespace viennamesh
           pugi::xml_node xml_mesh_segment = xml_mesh_segmentation.append_child("segment");
 
           add_xml_text_child(xml_mesh_segment, "id", sit->id() );
-          add_xml_text_child(xml_mesh_segment, "vertex_count", viennagrid::vertices(*sit).size());
+          // TODO: determine vertex count
+//           add_xml_text_child(xml_mesh_segment, "vertex_count", viennagrid::vertices(*sit).size());
           add_xml_text_child(xml_mesh_segment, "cell_count", viennagrid::cells(*sit).size());
 
           if (seed_points)
@@ -90,25 +91,17 @@ namespace viennamesh
 
 
 
-      template<typename MeshT>
-      bool write( const_parameter_handle const & mesh, string const & filename )
+      template<typename MeshT, typename ParameterHandleT>
+      bool write( ParameterHandleT const & mesh, string const & filename )
       {
-        typename result_of::const_parameter_handle<MeshT>::type tmp = dynamic_handle_cast<const MeshT>( mesh );
-        if (!tmp)
-          tmp = mesh->get_converted<MeshT>();
-
-        if (!tmp)
-          return false;
-
         info(5) << "Found conversion to ViennaGrid mesh." << std::endl;
-
         string extension = filename.substr( filename.rfind(".")+1 );
 
         if (extension == "vtu" || extension == "pvd")
         {
           info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Writer" << std::endl;
           viennagrid::io::vtk_writer<MeshT> vtk_writer;
-          vtk_writer( tmp(), filename.substr(0, filename.rfind(".")) );
+          vtk_writer( mesh(), filename.substr(0, filename.rfind(".")) );
           return true;
         }
 
@@ -118,33 +111,26 @@ namespace viennamesh
       }
 
 
-      template<typename MeshT, typename SegmentationT>
-      bool write( const_parameter_handle const & mesh, string const & filename )
+      template<typename MeshT, typename SegmentationT, typename ParameterHandleT>
+      bool write( ParameterHandleT const & mesh, string const & filename )
       {
         typedef viennagrid::segmented_mesh<MeshT, SegmentationT> WrappedMeshType;
-        typename result_of::const_parameter_handle<WrappedMeshType>::type tmp = dynamic_handle_cast<const WrappedMeshType>( mesh );
-        if (!tmp)
-          tmp = mesh->get_converted<WrappedMeshType>();
-
-        if (!tmp)
-          return false;
 
         info(5) << "Found conversion to ViennaGrid mesh." << std::endl;
-
         string extension = filename.substr( filename.rfind(".")+1 );
 
         if (extension == "vtu" || extension == "pvd")
         {
           info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Writer" << std::endl;
           viennagrid::io::vtk_writer<MeshT, SegmentationT> vtk_writer;
-          vtk_writer( tmp().mesh, tmp().segmentation, filename.substr(0, filename.rfind(".")) );
+          vtk_writer( mesh().mesh, mesh().segmentation, filename.substr(0, filename.rfind(".")) );
           return true;
         }
 
         if (extension == "vmesh")
         {
           info(5) << "Found .vmesh extension, using vmesh writer" << std::endl;
-          write_vmesh( tmp().mesh, tmp().segmentation, filename );
+          write_vmesh( mesh().mesh, mesh().segmentation, filename );
           return true;
         }
 
@@ -154,6 +140,78 @@ namespace viennamesh
       }
 
 
+
+      template<typename TagT, int DimensionT>
+      bool generic_run_nonsegmented( const_parameter_handle const & mesh, string const & filename )
+      {
+        typedef typename viennamesh::result_of::full_config<TagT, DimensionT>::type FullConfigType;
+        typedef typename viennamesh::result_of::thin_config<TagT, DimensionT>::type ThinConfigType;
+
+        typedef viennagrid::mesh<FullConfigType> FullMeshType;
+        typedef viennagrid::mesh<ThinConfigType> ThinMeshType;
+
+        // full mesh
+        if (mesh->is_type<FullMeshType>())
+          return write<FullMeshType>( dynamic_handle_cast<const FullMeshType>(mesh), filename );
+
+        // thin mesh
+        if (mesh->is_type<ThinMeshType>())
+          return write<ThinMeshType>( dynamic_handle_cast<const ThinMeshType>(mesh), filename );
+
+        typename result_of::const_parameter_handle<ThinMeshType>::type tmp = mesh->get_converted<ThinMeshType>();
+        return write<ThinMeshType>(tmp, filename);
+      }
+
+
+
+      template<typename TagT, int DimensionT>
+      bool generic_run_segmented( const_parameter_handle const & mesh, string const & filename )
+      {
+        typedef typename viennamesh::result_of::full_config<TagT, DimensionT>::type FullConfigType;
+        typedef typename viennamesh::result_of::thin_config<TagT, DimensionT>::type ThinConfigType;
+
+        typedef viennagrid::mesh<FullConfigType> FullMeshType;
+        typedef viennagrid::mesh<ThinConfigType> ThinMeshType;
+
+        typedef typename viennagrid::result_of::segmentation<FullMeshType>::type FullSegmentationOfFullMeshType;
+        typedef typename viennagrid::result_of::segmentation<ThinMeshType>::type FullSegmentationOfThinMeshType;
+
+        typedef typename viennagrid::result_of::cell_only_segmentation<FullMeshType>::type CellOnlySegmentationOfFullMeshType;
+        typedef typename viennagrid::result_of::cell_only_segmentation<ThinMeshType>::type CellOnlySegmentationOfThinMeshType;
+
+        // full mesh, full segmentation
+        if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >())
+          return write<FullMeshType, FullSegmentationOfFullMeshType>(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >(mesh), filename);
+
+        // full mesh, cell only segmentation
+        if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >())
+          return write<FullMeshType, CellOnlySegmentationOfFullMeshType>(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >(mesh), filename);
+
+        // thin mesh, full segmentation
+        if (mesh->is_type< viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >())
+          return write<ThinMeshType, FullSegmentationOfThinMeshType>(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >(mesh), filename);
+
+        // thin mesh, full segmentation
+        if (mesh->is_type< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >())
+          return write<ThinMeshType, CellOnlySegmentationOfThinMeshType>(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >(mesh), filename);
+
+
+        typename result_of::const_parameter_handle< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >::type tmp = mesh->get_converted< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >();
+        return write<ThinMeshType, CellOnlySegmentationOfThinMeshType>(tmp, filename);
+      }
+
+
+
+      template<typename TagT, int DimensionT>
+      bool generic_run( const_parameter_handle const & mesh, string const & filename )
+      {
+        bool is_segmented = boost::lexical_cast< stringtools::locale_bool >(mesh->get_property("is_segmented").first);
+
+        if ( is_segmented )
+          return generic_run_segmented<viennagrid::tetrahedron_tag, 3>( mesh, filename );
+        else
+          return generic_run_nonsegmented<viennagrid::tetrahedron_tag, 3>( mesh, filename );
+      }
 
 
 
@@ -166,59 +224,49 @@ namespace viennamesh
         const_parameter_handle mesh = get_required_input("default");
         const_string_parameter_handle filename = get_required_input<string>("filename");
 
+        int geometric_dimension = boost::lexical_cast<int>(mesh->get_property("geometric_dimension").first);
+        string cell_type = mesh->get_property("cell_type").first;
 
 
-        if (write<viennagrid::line_1d_mesh, viennagrid::line_1d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::line_1d_mesh>(mesh, filename()))
-          return true;
-
-        if (write<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::line_2d_mesh>(mesh, filename()))
-          return true;
-
-        if (write<viennagrid::line_3d_mesh, viennagrid::line_3d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::line_3d_mesh>(mesh, filename()))
-          return true;
 
 
-        if (write<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::triangular_2d_mesh>(mesh, filename()))
-          return true;
+        if ( cell_type == "1-simplex" && geometric_dimension == 1 )
+          return generic_run<viennagrid::line_tag, 1>( mesh, filename() );
 
-        if (write<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::triangular_3d_mesh>(mesh, filename()))
-          return true;
+        if ( cell_type == "1-simplex" && geometric_dimension == 2 )
+          return generic_run<viennagrid::line_tag, 2>( mesh, filename() );
 
-
-        if (write<viennagrid::quadrilateral_2d_mesh, viennagrid::quadrilateral_2d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::quadrilateral_2d_mesh>(mesh, filename()))
-          return true;
-
-        if (write<viennagrid::quadrilateral_3d_mesh, viennagrid::quadrilateral_3d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::quadrilateral_3d_mesh>(mesh, filename()))
-          return true;
+        if ( cell_type == "1-simplex" && geometric_dimension == 3 )
+          return generic_run<viennagrid::line_tag, 3>( mesh, filename() );
 
 
-        if (write<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::tetrahedral_3d_mesh>(mesh, filename()))
-          return true;
+
+        if ( cell_type == "2-simplex" && geometric_dimension == 2 )
+          return generic_run<viennagrid::triangle_tag, 2>( mesh, filename() );
+
+        if ( cell_type == "2-simplex" && geometric_dimension == 3 )
+          return generic_run<viennagrid::triangle_tag, 3>( mesh, filename() );
 
 
-        if (write<viennagrid::hexahedral_3d_mesh, viennagrid::hexahedral_3d_segmentation>(mesh, filename()))
-          return true;
-        if (write<viennagrid::hexahedral_3d_mesh>(mesh, filename()))
-          return true;
+
+        if ( cell_type == "quadrilateral" && geometric_dimension == 2 )
+          return generic_run<viennagrid::quadrilateral_tag, 2>( mesh, filename() );
+
+        if ( cell_type == "quadrilateral" && geometric_dimension == 3 )
+          return generic_run<viennagrid::quadrilateral_tag, 3>( mesh, filename() );
 
 
-        error(1) << "Input mesh is not convertable to any supported ViennaGrid mesh." << std::endl;
+
+        if ( cell_type == "3-simplex" && geometric_dimension == 3 )
+          return generic_run<viennagrid::tetrahedron_tag, 3>( mesh, filename() );
+
+
+
+        if ( cell_type == "hexahedron" && geometric_dimension == 3 )
+          return generic_run<viennagrid::hexahedron_tag, 3>( mesh, filename() );
+
+
+        error(1) << "Input mesh \"" << mesh->type_name() << "\"is not convertable to any supported ViennaGrid mesh." << std::endl;
 
         return false;
       }
