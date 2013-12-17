@@ -9,6 +9,16 @@
 
 namespace viennamesh
 {
+
+  template<typename ValueT>
+  struct type_information
+  {
+    // default implementation is empty! spezialise this class if you want something special
+    static void init() {}
+    static string name() { return typeid(ValueT).name(); }
+  };
+
+
   class base_parameter;
 
   template<typename T>
@@ -452,34 +462,6 @@ namespace viennamesh
 
 
 
-
-
-
-  template<typename ParameterT>
-  struct static_init_impl
-  {
-    // default implementation is empty! spezialise this class if you want something special
-    static void init() {}
-  };
-
-
-  template<typename ParameterT>
-  struct static_init
-  {
-    static void init()
-    {
-      static bool to_init = true;
-      if (to_init)
-      {
-        to_init = false;
-        info(10) << "static_init< " << typeid(ParameterT).name() << " >::init" << std::endl;
-        static_init_impl<ParameterT>::init();
-      }
-    }
-
-  };
-
-
   template<typename T>
   class parameter_wrapper;
 
@@ -493,6 +475,7 @@ namespace viennamesh
     virtual const_parameter_handle unpack() const = 0;
     virtual bool is_link() const = 0;
     virtual bool is_reference() const = 0;
+    virtual string type_name() const = 0;
 
 
     std::pair<string, bool> get_property( string const & key ) const
@@ -506,14 +489,35 @@ namespace viennamesh
 
 
     template<typename ValueT>
+    bool is_type() const
+    {
+      return typeid(*unpack()) == typeid(parameter_wrapper<ValueT>);
+    }
+
+    template<typename ValueT>
     bool is_convertable_to() const
-    { return converter::get().is_convertable<ValueT>( shared_from_this() ); }
+    {
+      bool is_convertable = converter::get().is_convertable<ValueT>( shared_from_this() );
+
+      info(10) << "is_convertable (" << (is_convertable ? "TRUE" : "FALSE")  << "): \"" << type_name() << "\" to \"" << type_information<ValueT>::name() << "\"" << std::endl;
+
+      return is_convertable;
+    }
 
     template<typename ValueT>
     typename result_of::parameter_handle<ValueT>::type get_converted() const
-    { return converter::get().get_converted<ValueT>( shared_from_this() ); }
+    {
+      LoggingStack stack( string("get_converted") );
+      info(5) << "Source type: " << type_name() << std::endl;
+      info(5) << "Destination type: " << type_information<ValueT>::name() << std::endl;
 
-  protected:
+      typename result_of::parameter_handle<ValueT>::type result_parameter = converter::get().get_converted<ValueT>( shared_from_this() );
+
+      info(5) << "Success: " << std::boolalpha << static_cast<bool>(result_parameter) << std::endl;
+
+      return result_parameter;
+
+    }
   };
 
 
@@ -541,19 +545,6 @@ namespace viennamesh
 
 
 
-  template<typename ParameterT>
-  struct static_init;
-
-  template<typename ParameterT>
-  struct static_init< parameter_wrapper<ParameterT> >
-  {
-    static void init()
-    {
-      static_init<ParameterT>::init();
-    }
-  };
-
-
 
   template<typename ValueT>
   class parameter_wrapper : public base_parameter
@@ -569,15 +560,19 @@ namespace viennamesh
 
     parameter_handle unpack() { return shared_from_this(); }
     const_parameter_handle unpack() const { return shared_from_this(); }
+
     bool is_link() const { return false; }
     bool is_reference() const { return value_ptr_; }
+
+    string type_name() const { return type_information<ValueT>::name(); }
 
     static void static_init()
     {
       static bool to_init = true;
       if (to_init)
       {
-        viennamesh::static_init<value_type>::init();
+        info(10) << "static_init< " << type_information<ValueT>::name() << " >::init" << std::endl;
+        viennamesh::type_information<value_type>::init();
         to_init = false;
       }
     }
@@ -624,7 +619,7 @@ namespace viennamesh
   template<typename ValueT>
   shared_ptr<base_conversion_function> converter::convert_function( const_parameter_handle const & input )
   {
-    static_init<ValueT>::init();
+    type_information<ValueT>::init();
 
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -724,9 +719,9 @@ namespace viennamesh
 
     parameter_handle unpack();
     const_parameter_handle unpack() const;
-
     bool is_link() const { return true; }
     bool is_reference() const { return false; }
+    string type_name() const { return "parameter_link"; }
 
   private:
 
@@ -744,6 +739,7 @@ namespace viennamesh
     const_parameter_handle unpack() const;
     bool is_link() const { return true; }
     bool is_reference() const { return false; }
+    string type_name() const { return "const_parameter_link"; }
 
   private:
 
