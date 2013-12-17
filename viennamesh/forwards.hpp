@@ -154,69 +154,87 @@ namespace viennamesh
   namespace result_of
   {
     template<typename CellTagT, unsigned int GeometricDimensionV>
-    struct default_mesh;
+    struct full_config;
 
     // vertex
     template<>
-    struct default_mesh<viennagrid::vertex_tag, 1>
-    { typedef viennagrid::vertex_1d_mesh type; };
+    struct full_config<viennagrid::vertex_tag, 1>
+    { typedef viennagrid::config::vertex_1d type; };
     template<>
-    struct default_mesh<viennagrid::vertex_tag, 2>
-    { typedef viennagrid::vertex_2d_mesh type; };
+    struct full_config<viennagrid::vertex_tag, 2>
+    { typedef viennagrid::config::vertex_2d type; };
     template<>
-    struct default_mesh<viennagrid::vertex_tag, 3>
-    { typedef viennagrid::vertex_3d_mesh type; };
+    struct full_config<viennagrid::vertex_tag, 3>
+    { typedef viennagrid::config::vertex_3d type; };
 
     // line
     template<>
-    struct default_mesh<viennagrid::line_tag, 1>
-    { typedef viennagrid::line_1d_mesh type; };
+    struct full_config<viennagrid::line_tag, 1>
+    { typedef viennagrid::config::line_1d type; };
     template<>
-    struct default_mesh<viennagrid::line_tag, 2>
-    { typedef viennagrid::line_2d_mesh type; };
+    struct full_config<viennagrid::line_tag, 2>
+    { typedef viennagrid::config::line_2d type; };
     template<>
-    struct default_mesh<viennagrid::line_tag, 3>
-    { typedef viennagrid::line_3d_mesh type; };
+    struct full_config<viennagrid::line_tag, 3>
+    { typedef viennagrid::config::line_3d type; };
 
     // triangle
     template<>
-    struct default_mesh<viennagrid::triangle_tag, 2>
-    { typedef viennagrid::triangular_2d_mesh type; };
+    struct full_config<viennagrid::triangle_tag, 2>
+    { typedef viennagrid::config::triangular_2d type; };
     template<>
-    struct default_mesh<viennagrid::triangle_tag, 3>
-    { typedef viennagrid::triangular_3d_mesh type; };
+    struct full_config<viennagrid::triangle_tag, 3>
+    { typedef viennagrid::config::triangular_3d type; };
 
     // quadrilateral
     template<>
-    struct default_mesh<viennagrid::quadrilateral_tag, 2>
-    { typedef viennagrid::quadrilateral_2d_mesh type; };
+    struct full_config<viennagrid::quadrilateral_tag, 2>
+    { typedef viennagrid::config::quadrilateral_2d type; };
     template<>
-    struct default_mesh<viennagrid::quadrilateral_tag, 3>
-    { typedef viennagrid::quadrilateral_3d_mesh type; };
+    struct full_config<viennagrid::quadrilateral_tag, 3>
+    { typedef viennagrid::config::quadrilateral_3d type; };
 
     // polygon
     template<>
-    struct default_mesh<viennagrid::polygon_tag, 2>
-    { typedef viennagrid::polygonal_2d_mesh type; };
+    struct full_config<viennagrid::polygon_tag, 2>
+    { typedef viennagrid::config::polygonal_2d type; };
     template<>
-    struct default_mesh<viennagrid::polygon_tag, 3>
-    { typedef viennagrid::polygonal_3d_mesh type; };
+    struct full_config<viennagrid::polygon_tag, 3>
+    { typedef viennagrid::config::polygonal_3d type; };
 
     // PLC
     template<>
-    struct default_mesh<viennagrid::plc_tag, 3>
-    { typedef viennagrid::plc_3d_mesh type; };
+    struct full_config<viennagrid::plc_tag, 3>
+    { typedef viennagrid::config::plc_3d type; };
 
     // Tetrahedron
     template<>
-    struct default_mesh<viennagrid::tetrahedron_tag, 3>
-    { typedef viennagrid::tetrahedral_3d_mesh type; };
+    struct full_config<viennagrid::tetrahedron_tag, 3>
+    { typedef viennagrid::config::tetrahedral_3d type; };
 
     // Hexahedron
     template<>
-    struct default_mesh<viennagrid::hexahedron_tag, 3>
-    { typedef viennagrid::hexahedral_3d_mesh type; };
+    struct full_config<viennagrid::hexahedron_tag, 3>
+    { typedef viennagrid::config::hexahedral_3d type; };
 
+
+
+
+    template<typename CellTagT, unsigned int GeometricDimensionV>
+    struct thin_config;
+
+    // triangle
+    template<>
+    struct thin_config<viennagrid::triangle_tag, 2>
+    { typedef viennagrid::config::thin_triangular_2d type; };
+    template<>
+    struct thin_config<viennagrid::triangle_tag, 3>
+    { typedef viennagrid::config::thin_triangular_3d type; };
+
+    // Tetrahedron
+    template<>
+    struct thin_config<viennagrid::tetrahedron_tag, 3>
+    { typedef viennagrid::config::thin_tetrahedral_3d type; };
   }
 
 }
