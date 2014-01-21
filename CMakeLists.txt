@@ -93,6 +93,9 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 ################
 
 
+SET(LIBVIENNAMESH_SRC ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_reader.cpp ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_writer.cpp ${PROJECT_SOURCE_DIR}/viennamesh/utils/logger.cpp)
+
+
 IF(BUILD_EXTERNAL_LIB_NETGEN)
   file(GLOB NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/*.cpp")
   list(REMOVE_ITEM NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/csgpkg.cpp")
@@ -144,6 +147,7 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
 ENDIF(NOT BUILD_SHARED_LIBS)
 SET_TARGET_PROPERTIES(viennamesh PROPERTIES COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
+
 
 IF (DEFINED THREADS_REQUIRED_FOR_LIB_VIENNAMESH)
   find_package (Threads REQUIRED)
