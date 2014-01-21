@@ -2,6 +2,7 @@
 #include "viennamesh/algorithm/io.hpp"
 #include "viennamesh/algorithm/triangle.hpp"
 
+#include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/algorithm/interface.hpp"
 #include "viennagrid/algorithm/distance.hpp"
