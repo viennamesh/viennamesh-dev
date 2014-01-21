@@ -84,8 +84,6 @@ namespace viennamesh
       int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshType>::value;
       type_properties::get().set_property<SelfType>( "geometric_dimension", boost::lexical_cast<string>(geometric_dimension) );
       type_properties::get().set_property<SelfType>( "cell_type", CellTag::name() );
-
-      info(1) << "init: cell_type = " << CellTag::name() << std::endl;
     }
 
     static string name()
@@ -114,8 +112,6 @@ namespace viennamesh
       int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshType>::value;
       type_properties::get().set_property<SelfType>( "geometric_dimension", boost::lexical_cast<string>(geometric_dimension) );
       type_properties::get().set_property<SelfType>( "cell_type", CellTag::name() );
-
-      info(1) << "init: cell_type = " << CellTag::name() << std::endl;
     }
 
     static string name()
