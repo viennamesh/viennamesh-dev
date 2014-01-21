@@ -223,6 +223,17 @@ namespace viennamesh
     template<typename CellTagT, unsigned int GeometricDimensionV>
     struct thin_config;
 
+    // line
+    template<>
+    struct thin_config<viennagrid::line_tag, 1>
+    { typedef viennagrid::config::line_1d type; };
+    template<>
+    struct thin_config<viennagrid::line_tag, 2>
+    { typedef viennagrid::config::line_2d type; };
+    template<>
+    struct thin_config<viennagrid::line_tag, 3>
+    { typedef viennagrid::config::line_3d type; };
+
     // triangle
     template<>
     struct thin_config<viennagrid::triangle_tag, 2>
@@ -231,10 +242,23 @@ namespace viennamesh
     struct thin_config<viennagrid::triangle_tag, 3>
     { typedef viennagrid::config::thin_triangular_3d type; };
 
+    // quadrilateral
+    template<>
+    struct thin_config<viennagrid::quadrilateral_tag, 2>
+    { typedef viennagrid::config::thin_quadrilateral_2d type; };
+    template<>
+    struct thin_config<viennagrid::quadrilateral_tag, 3>
+    { typedef viennagrid::config::thin_quadrilateral_3d type; };
+
     // Tetrahedron
     template<>
     struct thin_config<viennagrid::tetrahedron_tag, 3>
     { typedef viennagrid::config::thin_tetrahedral_3d type; };
+
+    // Hexahedron
+    template<>
+    struct thin_config<viennagrid::hexahedron_tag, 3>
+    { typedef viennagrid::config::thin_hexahedral_3d type; };
   }
 
 }
