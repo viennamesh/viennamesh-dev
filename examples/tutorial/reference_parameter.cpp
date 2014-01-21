@@ -1,5 +1,6 @@
 #include "viennamesh/algorithm/tetgen.hpp"
 #include "viennamesh/algorithm/io.hpp"
+#include "viennagrid/io/vtk_writer.hpp"
 
 
 int main()
