@@ -243,6 +243,8 @@ namespace viennamesh
 
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
+      typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
+      typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
 
       std::vector<VertexHandleType> vertex_handles(input.triangle_mesh.numberofpoints);
 
@@ -256,17 +258,21 @@ namespace viennamesh
         vertex_handles[i] = viennagrid::make_vertex( output.mesh, point );
       }
 
+      // performance
+      viennagrid::get<CellType>(viennagrid::detail::element_segment_mapping_collection(output.segmentation)).resize( input.triangle_mesh.numberoftriangles );
+
 
       for (int i = 0; i < input.triangle_mesh.numberoftriangles; ++i)
       {
-        typename SegmentationT::segment_id_type segment_id = input.triangle_mesh.triangleattributelist[i];
-
-        viennagrid::make_triangle(
-          output.segmentation.get_make_segment(segment_id),
+        CellHandleType cell_handle = viennagrid::make_triangle(
+          output.mesh,
           vertex_handles[ input.triangle_mesh.trianglelist[3*i+0] ],
           vertex_handles[ input.triangle_mesh.trianglelist[3*i+1] ],
           vertex_handles[ input.triangle_mesh.trianglelist[3*i+2] ]
         );
+
+        typename SegmentationT::segment_id_type segment_id = input.triangle_mesh.triangleattributelist[i];
+        viennagrid::unchecked_add(output.segmentation.get_make_segment(segment_id), cell_handle);
       }
     }
 
