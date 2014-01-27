@@ -7,6 +7,8 @@ set(EXAMPLES_TESTDATA
    data/cube_with_tunnel.poly
    data/cube_using_lines.poly
    data/two_cubes.poly
+   data/test.bnd
+   data/simple.bnd
 
    data/half-trigate.geo
    data/half-trigate.mesh
