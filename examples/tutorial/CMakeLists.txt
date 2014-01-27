@@ -42,6 +42,11 @@ target_link_libraries(nld_mesh_quad_hull viennamesh)
 add_executable(netgen_csg_mesher netgen_csg_mesher.cpp)
 target_link_libraries(netgen_csg_mesher viennamesh)
 
+add_executable(bnd_to_mphtxt bnd_to_mphtxt.cpp)
+target_link_libraries(bnd_to_mphtxt viennamesh)
+
+add_executable(bnd_to_vtk bnd_to_vtk.cpp)
+target_link_libraries(bnd_to_vtk viennamesh)
 
 
 add_executable(tetgen_seedpoints_3segments tetgen_seedpoints_3segments.cpp)
