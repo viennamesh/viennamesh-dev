@@ -26,7 +26,7 @@ namespace viennamesh
 
         info(5) << "Extracting seed points from segments" << std::endl;
 
-        string options = "zp";
+        string options = "zpQ";
 
         int highest_segment_id = -1;
         for (seed_point_3d_container::iterator spit = seed_points.begin(); spit != seed_points.end(); ++spit)
@@ -46,16 +46,16 @@ namespace viennamesh
             tmp.holelist = hole_points;
           }
 
-          char * buffer = new char[options.length()];
+          char * buffer = new char[options.length()+1];
           std::strcpy(buffer, options.c_str());
 
-          viennautils::StdCapture capture;
-          capture.start();
+//           viennautils::StdCapture capture;
+//           capture.start();
 
           tetrahedralize(buffer, &tmp, &tmp_mesh);
 
-          capture.finish();
-          info(5) << capture.get() << std::endl;
+//           capture.finish();
+//           info(5) << capture.get() << std::endl;
 
 
           viennagrid::tetrahedral_3d_mesh viennagrid_mesh;
@@ -69,6 +69,7 @@ namespace viennamesh
 
           tmp.holelist = NULL;
           tmp.numberofholes = 0;
+          delete[] buffer;
         }
       }
 
@@ -81,8 +82,18 @@ namespace viennamesh
         viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_required_input<InputMeshType>("default");
         output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>("default");
 
+        bool use_logger = true;
+        copy_input( "use_logger", use_logger );
+
+
         std::ostringstream options;
-        options << "zp";
+//         options << "zpVqO4/7x10000000";
+
+        const_string_parameter_handle option_string = get_input<string>("option_string");
+        if (option_string)
+          options << option_string();
+        else
+          options << "zpV";
 
         const_double_parameter_handle cell_size = get_input<double>("cell_size");
         if (cell_size)
@@ -92,11 +103,11 @@ namespace viennamesh
         const_double_parameter_handle min_dihedral_angle = get_input<double>("min_dihedral_angle");
 
         if (max_radius_edge_ratio && min_dihedral_angle)
-          options << "q" << max_radius_edge_ratio() << "q" << min_dihedral_angle() / M_PI * 180.0;
+          options << "q" << max_radius_edge_ratio() << "/" << min_dihedral_angle() / M_PI * 180.0;
         else if (max_radius_edge_ratio)
           options << "q" << max_radius_edge_ratio();
         else if (min_dihedral_angle)
-          options << "qq" << min_dihedral_angle() / M_PI * 180.0;
+          options << "q/" << min_dihedral_angle() / M_PI * 180.0;
 
 
         tetgenio & tmp = (tetgenio&)input_mesh().mesh;
@@ -177,20 +188,26 @@ namespace viennamesh
           tmp.numberofregions += seed_points.size();
           tmp.regionlist = tmp_regionlist;
 
-          options << "A";
+          if (options.str().find('A') == string::npos)
+            options << "A";
         }
 
+        std::cout << options.str() << std::endl;
 
-        char * buffer = new char[options.str().length()];
+        char * buffer = new char[options.str().length()+1];
         std::strcpy(buffer, options.str().c_str());
 
         viennautils::StdCapture capture;
-        capture.start();
+        if (use_logger)
+          capture.start();
 
         tetrahedralize(buffer, &tmp, &output_mesh());
 
-        capture.finish();
-        info(5) << capture.get() << std::endl;
+        if (use_logger)
+        {
+          capture.finish();
+          info(5) << capture.get() << std::endl;
+        }
 
         delete[] buffer;
         delete[] tmp.regionlist;
