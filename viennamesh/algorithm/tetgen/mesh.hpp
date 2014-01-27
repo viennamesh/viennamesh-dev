@@ -45,7 +45,11 @@ namespace viennamesh
         facet.holelist = 0;
     }
 
-    inline void set_hole_points( tetgenio::facet &, viennagrid::null_type const & ) {}
+    inline void set_hole_points( tetgenio::facet & facet, viennagrid::null_type const & )
+    {
+      facet.holelist = 0;
+      facet.numberofholes = 0;
+    }
 
     template<typename MeshSegmentT>
     void generic_convert(MeshSegmentT const & input, tetgen::input_mesh & output)
@@ -68,27 +72,28 @@ namespace viennamesh
       ConstVertexRangeType vertices(input);
 
       output.firstnumber = 0;
-      output.numberofpoints = vertices.size();
-      output.pointlist = new REAL[ output.numberofpoints * 3 ];
+      output.numberofpoints = 0;
+      output.pointlist = new REAL[ vertices.size() * 3 ];
 
       int index = 0;
-      for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++index)
-      {
-
-        output.pointlist[index*3+0] = viennagrid::point(input, *vit)[0];
-        output.pointlist[index*3+1] = viennagrid::point(input, *vit)[1];
-        output.pointlist[index*3+2] = viennagrid::point(input, *vit)[2];
-
-        vertex_handle_to_tetgen_index_map[ vit.handle() ] = index;
-      }
+//       for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++index)
+//       {
+//
+//         output.pointlist[index*3+0] = viennagrid::point(input, *vit)[0];
+//         output.pointlist[index*3+1] = viennagrid::point(input, *vit)[1];
+//         output.pointlist[index*3+2] = viennagrid::point(input, *vit)[2];
+//
+//         vertex_handle_to_tetgen_index_map[ vit.handle() ] = index;
+//       }
 
 
       ConstCellRangeType cells(input);
 
       output.numberoffacets = cells.size();
       output.facetlist = new tetgenio::facet[output.numberoffacets];
-      output.facetmarkerlist = new int[output.numberoffacets];
+//       output.facetmarkerlist = new int[output.numberoffacets];
 
+//       int vertex_index = 0;
       index = 0;
       for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit, ++index)
       {
@@ -98,6 +103,8 @@ namespace viennamesh
         tetgenio::facet & facet = output.facetlist[index];
 
         set_hole_points( facet, viennagrid::hole_points(*cit) );
+
+//         std::cout << "Facet #" << index << std::endl;
 
         ConstLineOnCellRange lines(*cit);
         facet.numberofpolygons = lines.size();
@@ -110,11 +117,35 @@ namespace viennamesh
           polygon.numberofvertices = 2;
           polygon.vertexlist = new int[ 2 ];
 
-          polygon.vertexlist[0] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lcit).handle_at(0) ];
-          polygon.vertexlist[1] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lcit).handle_at(1) ];
+          for (int i = 0; i < 2; ++i)
+          {
+            typename std::map<ConstVertexHandleType, int>::iterator vit = vertex_handle_to_tetgen_index_map.find( viennagrid::vertices(*lcit).handle_at(i) );
+            if (vit != vertex_handle_to_tetgen_index_map.end())
+            {
+              polygon.vertexlist[i] = vit->second;
+            }
+            else
+            {
+              output.pointlist[output.numberofpoints*3+0] = viennagrid::point(viennagrid::vertices(*lcit)[i])[0];
+              output.pointlist[output.numberofpoints*3+1] = viennagrid::point(viennagrid::vertices(*lcit)[i])[1];
+              output.pointlist[output.numberofpoints*3+2] = viennagrid::point(viennagrid::vertices(*lcit)[i])[2];
+
+              polygon.vertexlist[i] = output.numberofpoints;
+              vertex_handle_to_tetgen_index_map[viennagrid::vertices(*lcit).handle_at(i)] = output.numberofpoints;
+
+              ++output.numberofpoints;
+            }
+          }
+
+//           std::cout << "  Line " << polygon_index << ": " << polygon.vertexlist[0] << " " << polygon.vertexlist[1] << std::endl;
+
+//           polygon.vertexlist[0] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lcit).handle_at(0) ];
+//           polygon.vertexlist[1] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lcit).handle_at(1) ];
         }
 
       }
+
+//       std::cout << "Tetgen vertices " << output.numberofpoints << std::endl;
     }
 
 
@@ -141,6 +172,8 @@ namespace viennamesh
                           > const & input,
                           viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> & output)
     {
+//       std::cout << "Num of Lines in total " << viennagrid::lines(input.mesh).size() << std::endl;
+
       generic_convert( input.mesh, output.mesh );
       if (input.segmentation.size() <= 1)
         return;
