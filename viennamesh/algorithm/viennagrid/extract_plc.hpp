@@ -1,10 +1,11 @@
 #ifndef VIENNAMESH_ALGORITHM_EXTRACT_PLC_HPP
 #define VIENNAMESH_ALGORITHM_EXTRACT_PLC_HPP
 
+#include "viennagrid/algorithm/boundary.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
 #include "viennagrid/mesh/neighbor_iteration.hpp"
 
-#include "viennamesh/utils/utils.hpp"
+#include "viennamesh/core/algorithm.hpp"
 
 
 
@@ -244,42 +245,42 @@ namespace viennamesh
 
 
 
-    class Algorithm : public BaseAlgorithm
-    {
-    public:
-
-      string name() const { return "ViennaGrid Extract PLC"; }
-
-      bool run_impl()
-      {
-        {
-          typedef SegmentedMesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> InputMeshType;
-          typedef viennagrid::plc_3d_mesh OutputMeshType;
-
-          viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = inputs.get<InputMeshType>("default");
-
-          if (input_mesh)
-          {
-            std::cout << "DID IT" << std::endl;
-
-            viennamesh::result_of::parameter_handle<OutputMeshType>::type output_mesh = make_parameter<OutputMeshType>();
-            SeedPoint3DContainer seed_points;
-
-            extract_plcs(const_cast<viennagrid::triangular_3d_mesh&>(input_mesh->value.mesh),
-                         const_cast<viennagrid::triangular_3d_segmentation&>(input_mesh->value.segmentation),
-                         output_mesh->value);
-
-            outputs.set( "default", output_mesh );
-            return true;
-          }
-        }
-
-        error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
-        return false;
-      }
-
-    private:
-    };
+//     class Algorithm : public BaseAlgorithm
+//     {
+//     public:
+//
+//       string name() const { return "ViennaGrid Extract PLC"; }
+//
+//       bool run_impl()
+//       {
+//         {
+//           typedef SegmentedMesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> InputMeshType;
+//           typedef viennagrid::plc_3d_mesh OutputMeshType;
+//
+//           viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = inputs.get<InputMeshType>("default");
+//
+//           if (input_mesh)
+//           {
+//             std::cout << "DID IT" << std::endl;
+//
+//             viennamesh::result_of::parameter_handle<OutputMeshType>::type output_mesh = make_parameter<OutputMeshType>();
+//             SeedPoint3DContainer seed_points;
+//
+//             extract_plcs(const_cast<viennagrid::triangular_3d_mesh&>(input_mesh->value.mesh),
+//                          const_cast<viennagrid::triangular_3d_segmentation&>(input_mesh->value.segmentation),
+//                          output_mesh->value);
+//
+//             outputs.set( "default", output_mesh );
+//             return true;
+//           }
+//         }
+//
+//         error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
+//         return false;
+//       }
+//
+//     private:
+//     };
 
 
   }
