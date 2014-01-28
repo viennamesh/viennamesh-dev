@@ -82,7 +82,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
 
       int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshType>::value;
-      type_properties::get().set_property<SelfType>( "geometric_dimension", boost::lexical_cast<string>(geometric_dimension) );
+      type_properties::get().set_property<SelfType>( "geometric_dimension", lexical_cast<string>(geometric_dimension) );
       type_properties::get().set_property<SelfType>( "cell_type", CellTag::name() );
     }
 
@@ -110,7 +110,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "false" );
 
       int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshType>::value;
-      type_properties::get().set_property<SelfType>( "geometric_dimension", boost::lexical_cast<string>(geometric_dimension) );
+      type_properties::get().set_property<SelfType>( "geometric_dimension", lexical_cast<string>(geometric_dimension) );
       type_properties::get().set_property<SelfType>( "cell_type", CellTag::name() );
     }
 
