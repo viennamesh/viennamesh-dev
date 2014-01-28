@@ -193,7 +193,7 @@ namespace viennamesh
             options << "A";
         }
 
-        std::cout << options.str() << std::endl;
+        info(1) << "Tetgen option string: \"" <<  options.str() << "\"" << std::endl;
 
         char * buffer = new char[options.str().length()+1];
         std::strcpy(buffer, options.str().c_str());
