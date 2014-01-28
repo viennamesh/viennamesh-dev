@@ -48,6 +48,9 @@ target_link_libraries(bnd_to_mphtxt viennamesh)
 add_executable(bnd_to_vtk bnd_to_vtk.cpp)
 target_link_libraries(bnd_to_vtk viennamesh)
 
+add_executable(generate_tetgen generate_tetgen.cpp)
+target_link_libraries(generate_tetgen viennamesh)
+
 
 add_executable(tetgen_seedpoints_3segments tetgen_seedpoints_3segments.cpp)
 target_link_libraries(tetgen_seedpoints_3segments viennamesh)
