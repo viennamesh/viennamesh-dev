@@ -474,8 +474,9 @@ int main()
 //   mesher->link_input( "default", vmesh_reader, "default" );
   mesher->set_input( "default", triangle_mesh );
 //   mesher->set_input( "default", brep_mesh );
-  mesher->reference_output( "default", tetrahedron_mesh );
+//   mesher->reference_output( "default", tetrahedron_mesh );
 
+  mesher->set_input("use_logger", false);
   mesher->set_input("option_string", "zpVqO4/7x10000000");
 
 //   mesher->set_input( "cell_size", 1000000.0 );              // maximum cell size
@@ -489,10 +490,10 @@ int main()
   mesher->run();
 
 
-  {
-    viennagrid::io::vtk_writer<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> writer;
-    writer( tetrahedron_mesh.mesh, tetrahedron_mesh.segmentation, "meshed_bnd" );
-  }
+//   {
+//     viennagrid::io::vtk_writer<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> writer;
+//     writer( tetrahedron_mesh.mesh, tetrahedron_mesh.segmentation, "meshed_bnd" );
+//   }
 
 //   {
 //     viennagrid::io::mphtxt_writer writer;
