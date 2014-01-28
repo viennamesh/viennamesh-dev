@@ -15,7 +15,7 @@ void add_xml_text_child( pugi::xml_node & parent, std::string const & element_na
 template<typename TypeT>
 void add_xml_text_child( pugi::xml_node & parent, std::string const & element_name, TypeT const & value  )
 {
-  add_xml_text_child( parent, element_name, boost::lexical_cast<std::string>(value) );
+  add_xml_text_child( parent, element_name, lexical_cast<std::string>(value) );
 }
 
 
@@ -195,7 +195,7 @@ bool viennamesh::io::mesh_writer::generic_run_segmented( const_parameter_handle 
 template<typename TagT, int DimensionV>
 bool viennamesh::io::mesh_writer::generic_run( const_parameter_handle const & mesh, std::string const & filename )
 {
-  bool is_segmented = boost::lexical_cast< stringtools::locale_bool >(mesh->get_property("is_segmented").first);
+  bool is_segmented = lexical_cast< stringtools::boolalpha_bool >(mesh->get_property("is_segmented").first);
 
   if ( is_segmented )
     return generic_run_segmented<TagT, DimensionV>( mesh, filename );
@@ -210,7 +210,7 @@ bool viennamesh::io::mesh_writer::run_impl()
   const_parameter_handle mesh = get_required_input("default");
   const_string_parameter_handle filename = get_required_input<string>("filename");
 
-  int geometric_dimension = boost::lexical_cast<int>(mesh->get_property("geometric_dimension").first);
+  int geometric_dimension = lexical_cast<int>(mesh->get_property("geometric_dimension").first);
   string cell_type = mesh->get_property("cell_type").first;
 
 
