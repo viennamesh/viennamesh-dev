@@ -35,7 +35,7 @@ namespace viennamesh
 
         for ( std::list<tetgen::input_mesh>::const_iterator sit = segmentation.segments.begin(); sit != segmentation.segments.end(); ++sit)
         {
-          LoggingStack stack( string("Segment ") + boost::lexical_cast<string>(highest_segment_id) );
+          LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
 
           tetgenio & tmp = (tetgenio&)(*sit);
           tetgen::output_mesh tmp_mesh;

@@ -92,7 +92,7 @@ namespace viennamesh
 
         for ( std::list<triangle::input_mesh>::const_iterator sit = segmentation.segments.begin(); sit != segmentation.segments.end(); ++sit)
         {
-          LoggingStack stack( string("Segment ") + boost::lexical_cast<string>(highest_segment_id) );
+          LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
 
           triangulateio tmp = sit->triangle_mesh;
           triangle::output_mesh tmp_mesh;
