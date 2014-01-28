@@ -25,8 +25,9 @@ int main( int argc, char** argv )
   mesher->link_input( "seed_points", reader, "seed_points" );
   mesher->link_input( "hole_points", reader, "hole_points" );
 
-
+  mesher->set_input("use_logger", false);
   mesher->set_input("option_string", argv[3]);
+
   // linking the output from the mesher to the writer
   writer->link_input( "default", mesher, "default" );
 
