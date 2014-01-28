@@ -14,7 +14,9 @@
   #include <boost/bind.hpp>
 #endif
 
-#include <boost/lexical_cast.hpp>
+#include "viennamesh/utils/string_tools.hpp"
+
+using stringtools::lexical_cast;
 
 namespace viennamesh
 {
@@ -36,7 +38,6 @@ namespace viennamesh
   using boost::bind;
 #endif
 
-  using boost::lexical_cast;
   using std::string;
 
 
