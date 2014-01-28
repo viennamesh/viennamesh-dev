@@ -6,24 +6,84 @@
 
 namespace stringtools
 {
-  // from http://stackoverflow.com/questions/4452136/how-do-i-use-boostlexical-cast-and-stdboolalpha-i-e-boostlexical-cast-b
-  struct locale_bool
+  struct boolalpha_bool;
+
+  namespace detail
   {
-    bool data;
-    locale_bool() {}
-    locale_bool( bool data ) : data(data) {}
-    operator bool() const { return data; }
-    friend std::ostream & operator << ( std::ostream &out, locale_bool b )
+    template<typename DestinationT>
+    struct lexical_cast_impl
     {
-      out << std::boolalpha << b.data;
-      return out;
-    }
-    friend std::istream & operator >> ( std::istream &in, locale_bool &b )
+    public:
+      typedef DestinationT result_type;
+
+      template<typename SourceT>
+      lexical_cast_impl(SourceT const & src)
+      {
+        ss << src;
+      }
+
+      operator result_type()
+      {
+        result_type tmp;
+        ss >> tmp;
+        return tmp;
+      }
+
+    private:
+      std::stringstream ss;
+    };
+
+
+    // from http://stackoverflow.com/questions/4452136/how-do-i-use-boostlexical-cast-and-stdboolalpha-i-e-boostlexical-cast-b
+//     struct locale_bool
+//     {
+  //     bool data;
+  //     locale_bool() {}
+  //     locale_bool( bool data ) : data(data) {}
+  //     operator bool() const { return data; }
+  //     friend std::ostream & operator << ( std::ostream &out, locale_bool b )
+  //     {
+  //       out << std::boolalpha << b.data;
+  //       return out;
+  //     }
+  //     friend std::istream & operator >> ( std::istream &in, locale_bool &b )
+  //     {
+  //       in >> std::boolalpha >> b.data;
+  //       return in;
+  //     }
+//     };
+
+
+    template<>
+    struct lexical_cast_impl<boolalpha_bool>
     {
-      in >> std::boolalpha >> b.data;
-      return in;
-    }
-  };
+    public:
+      typedef bool result_type;
+
+      template<typename SourceT>
+      lexical_cast_impl(SourceT const & src)
+      {
+        ss << std::boolalpha << src;
+      }
+
+      operator result_type()
+      {
+        result_type tmp;
+        ss >> std::boolalpha >> tmp;
+        return tmp;
+      }
+
+    private:
+      std::stringstream ss;
+    };
+  }
+
+
+  template<typename DestinationT, typename SourceT>
+  typename detail::lexical_cast_impl<DestinationT>::result_type lexical_cast( SourceT const & src )
+  {
+    return detail::lexical_cast_impl<DestinationT>(src);
+  }
 
 
 
