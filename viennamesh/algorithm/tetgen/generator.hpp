@@ -1,6 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_TETGEN_GENERATOR_HPP
 #define VIENNAMESH_ALGORITHM_TETGEN_GENERATOR_HPP
 
+#include <cstring>
 #include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/algorithm/tetgen/mesh.hpp"
 #include "viennamesh/algorithm/viennagrid/extract_seed_points.hpp"

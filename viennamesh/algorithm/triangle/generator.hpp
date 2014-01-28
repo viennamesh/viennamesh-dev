@@ -1,6 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_TRIANGLE_GENERATOR_HPP
 #define VIENNAMESH_ALGORITHM_TRIANGLE_GENERATOR_HPP
 
+#include <cstring>
 #include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/algorithm/triangle/mesh.hpp"
 #include "viennamesh/algorithm/viennagrid/extract_seed_points.hpp"
@@ -92,7 +93,7 @@ namespace viennamesh
 
         for ( std::list<triangle::input_mesh>::const_iterator sit = segmentation.segments.begin(); sit != segmentation.segments.end(); ++sit)
         {
-          LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
+          LoggingStack stack( string("Segment ") + boost::lexical_cast<string>(highest_segment_id) );
 
           triangulateio tmp = sit->triangle_mesh;
           triangle::output_mesh tmp_mesh;
