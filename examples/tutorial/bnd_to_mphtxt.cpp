@@ -477,7 +477,7 @@ int main()
 //   mesher->reference_output( "default", tetrahedron_mesh );
 
   mesher->set_input("use_logger", false);
-  mesher->set_input("option_string", "zpVqO4/7x10000000");
+  mesher->set_input("option_string", "zpVq1.8/20O7/7x10000000");
 
 //   mesher->set_input( "cell_size", 1000000.0 );              // maximum cell size
 //   mesher->set_input( "max_radius_edge_ratio", 1e3 );  // maximum radius edge ratio
@@ -488,6 +488,14 @@ int main()
 //   mesher->set_input( "extract_segment_seed_points", false );
 
   mesher->run();
+
+  {
+    viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
+    writer->set_input( "filename", "../data/lado_test.poly" );
+    writer->link_input( "default", mesher, "default" );
+
+    writer->run();
+  }
 
 
 //   {
