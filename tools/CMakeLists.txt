@@ -1,4 +1,5 @@
-# add_executable(example1 src/example1.cpp ../external/triangle/triangle.c)
+add_executable(convert src/convert.cpp)
+target_link_libraries(convert viennamesh)
 
-add_executable(fld2vtu src/fld2vtu.cpp)
-target_link_libraries(fld2vtu ${Boost_LIBRARIES})
+add_executable(generate_tetgen src/generate_tetgen.cpp)
+target_link_libraries(generate_tetgen viennamesh)
