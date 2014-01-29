@@ -57,6 +57,10 @@ if(BUILD_MANUAL)
 endif()
 
 find_package(Boost COMPONENTS thread program_options)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
 
 FIND_PACKAGE(CGAL)
 IF(CGAL_FOUND)
@@ -93,7 +97,7 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 ################
 
 
-SET(LIBVIENNAMESH_SRC ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_reader.cpp ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_writer.cpp ${PROJECT_SOURCE_DIR}/viennamesh/utils/logger.cpp)
+SET(LIBVIENNAMESH_SRC ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/common.cpp ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_reader.cpp ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_writer.cpp ${PROJECT_SOURCE_DIR}/viennamesh/utils/logger.cpp)
 
 
 IF(BUILD_EXTERNAL_LIB_NETGEN)
@@ -167,9 +171,10 @@ if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif()
 
-# if(BUILD_TOOLS)
-#    add_subdirectory(tools)
-# endif()
+if(BUILD_TOOLS)
+   include_directories(${PROJECT_SOURCE_DIR}/external/tclap/include/)
+   add_subdirectory(tools)
+endif()
 
 if(BUILD_TESTING)
    INCLUDE(CTest)
