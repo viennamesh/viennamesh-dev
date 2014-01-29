@@ -27,6 +27,9 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> min_dihedral_angle("a","min_dihedral_angle", "Minimum dihedral angle", false, 0.0, "double");
     cmd.add( min_dihedral_angle );
 
+    TCLAP::SwitchArg dont_use_logger("","dont_use_logger","Don't use logger for Tetgen output", false);
+    cmd.add( dont_use_logger );
+
 
     TCLAP::ValueArg<std::string> output_filetype("o","output_filetype", "Output file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nvmesh - for Vienna vmesh files", false, "auto", "string");
     cmd.add( output_filetype );
@@ -67,6 +70,9 @@ int main(int argc, char **argv)
 
     if (min_dihedral_angle.isSet())
       mesher->set_input( "min_dihedral_angle", min_dihedral_angle.getValue() );
+
+    if (dont_use_logger.isSet() && dont_use_logger.getValue())
+      mesher->set_input( "use_logger", false );
 
 
     writer->link_input( "default", mesher, "default" );
