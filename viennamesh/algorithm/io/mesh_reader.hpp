@@ -2,6 +2,8 @@
 #define VIENNAMESH_ALGORITHM_IO_MESH_READER_HPP
 
 #include "viennamesh/core/algorithm.hpp"
+#include "viennamesh/algorithm/io/common.hpp"
+
 #include "pugixml/pugixml.hpp"
 
 namespace viennamesh
@@ -26,7 +28,7 @@ namespace viennamesh
 
       bool read_vmesh( string const & filename );
 
-      bool load( string const & filename );
+      bool load( string const & filename, FileType file_type );
 
     };
 

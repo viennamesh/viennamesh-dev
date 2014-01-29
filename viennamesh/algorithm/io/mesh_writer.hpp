@@ -2,7 +2,7 @@
 #define VIENNAMESH_ALGORITHM_IO_MESH_WRITER_HPP
 
 #include "viennamesh/core/algorithm.hpp"
-
+#include "viennamesh/algorithm/io/common.hpp"
 
 namespace viennamesh
 {
@@ -21,19 +21,19 @@ namespace viennamesh
       void write_vmesh( MeshT const & mesh,  SegmentationT const & segmentation, string const & filename );
 
       template<typename MeshT, typename ParameterHandleT>
-      bool write( ParameterHandleT const & mesh, string const & filename );
+      bool write( ParameterHandleT const & mesh, string const & filename, FileType file_type );
 
       template<typename MeshT, typename SegmentationT, typename ParameterHandleT>
-      bool write( ParameterHandleT const & mesh, string const & filename );
+      bool write( ParameterHandleT const & mesh, string const & filename, FileType file_type );
 
       template<typename TagT, int DimensionV>
-      bool generic_run_nonsegmented( const_parameter_handle const & mesh, string const & filename );
+      bool generic_run_nonsegmented( const_parameter_handle const & mesh, string const & filename, FileType file_type );
 
       template<typename TagT, int DimensionV>
-      bool generic_run_segmented( const_parameter_handle const & mesh, string const & filename );
+      bool generic_run_segmented( const_parameter_handle const & mesh, string const & filename, FileType file_type );
 
       template<typename TagT, int DimensionV>
-      bool generic_run( const_parameter_handle const & mesh, string const & filename );
+      bool generic_run( const_parameter_handle const & mesh, string const & filename, FileType file_type );
     };
 
   }
