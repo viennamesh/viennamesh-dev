@@ -16,6 +16,7 @@
 #else
 
   #include <unistd.h>
+#include <boost/concept_check.hpp>
 
 #endif
 
@@ -119,6 +120,7 @@ namespace viennautils
           bytesRead = read(m_pipe[READ], &(*buf.begin()), bufSize);
           while ( bytesRead > 0 )
           {
+            buf.resize(bytesRead);
             m_captured += buf;
             bytesRead = read(m_pipe[READ], &(*buf.begin()), bufSize);
           }
