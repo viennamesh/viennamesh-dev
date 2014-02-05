@@ -18,6 +18,7 @@ namespace viennamesh
   class base_algorithm;
 
   typedef shared_ptr<base_algorithm> algorithm_handle;
+  typedef shared_ptr<const base_algorithm> const_algorithm_handle;
 
 
 
@@ -138,6 +139,11 @@ namespace viennamesh
   {
   public:
     virtual ~base_algorithm() {}
+
+    algorithm_handle handle() { return shared_from_this(); }
+    const_algorithm_handle chandle() const { return shared_from_this(); }
+    const_algorithm_handle handle() const { return shared_from_this(); }
+
 
     // sets an input parameter
     template<typename TypeT>
