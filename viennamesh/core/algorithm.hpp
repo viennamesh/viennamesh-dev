@@ -119,7 +119,7 @@ namespace viennamesh
     bool is_native() const { return is_native_; }
 
     ValueT & operator()() { used_ = true; return native_handle(); }
-    ValueT const & operator()() const { used_ = true; return native_handle(); }
+    ValueT const & operator()() const { return native_handle(); }
 
   private:
     parameter_set * parameters;
