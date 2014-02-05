@@ -17,23 +17,26 @@ namespace viennamesh
       bool run_impl();
 
     private:
-      template<typename MeshT, typename SegmentationT>
-      void write_vmesh( MeshT const & mesh,  SegmentationT const & segmentation, string const & filename );
 
-      template<typename MeshT, typename ParameterHandleT>
-      bool write( ParameterHandleT const & mesh, string const & filename, FileType file_type );
 
-      template<typename MeshT, typename SegmentationT, typename ParameterHandleT>
-      bool write( ParameterHandleT const & mesh, string const & filename, FileType file_type );
+      template<typename WriterProxyT>
+      bool write_all( const_parameter_handle const & mesh, string const & filename,
+                      int geometric_dimension, string cell_type, bool is_segmented );
 
-      template<typename TagT, int DimensionV>
-      bool generic_run_nonsegmented( const_parameter_handle const & mesh, string const & filename, FileType file_type );
+      bool write_mphtxt( const_parameter_handle const & mesh, string const & filename,
+                         int geometric_dimension, string cell_type, bool is_segmented );
 
-      template<typename TagT, int DimensionV>
-      bool generic_run_segmented( const_parameter_handle const & mesh, string const & filename, FileType file_type );
 
-      template<typename TagT, int DimensionV>
-      bool generic_run( const_parameter_handle const & mesh, string const & filename, FileType file_type );
+      template<typename WriterProxyT, typename TagT, int DimensionV>
+      bool generic_write( const_parameter_handle const & mesh, string const & filename, bool is_segmented );
+
+      template<typename WriterProxyT, typename TagT, int DimensionV>
+      bool generic_nonsegmented_write( const_parameter_handle const & mesh, string const & filename );
+
+      template<typename WriterProxyT, typename TagT, int DimensionV>
+      bool generic_segmented_write( const_parameter_handle const & mesh, string const & filename );
+
+
     };
 
   }
