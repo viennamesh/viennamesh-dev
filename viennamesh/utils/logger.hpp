@@ -24,6 +24,9 @@
 #include <fstream>
 #include <iostream>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "viennamesh/utils/string_tools.hpp"
 #include "viennamesh/utils/timer.hpp"
 
@@ -221,6 +224,7 @@ namespace viennamesh
     LoggingLevels< std::map<std::string, int> > category_log_levels;
     LoggingLevels< int > local_log_levels;
   };
+
 
 
   template<typename OutputFormaterT>
@@ -581,6 +585,129 @@ namespace viennamesh
 
 
 
+
+
+
+  void * reader(void * data);
+
+  void * reader(void * data);
+
+  class StdCapture
+  {
+    friend void * reader(void * data);
+  public:
+
+      pthread_t readerThread;
+
+      StdCapture(): m_capturing(false), m_init(false), m_oldStdOut(0), m_oldStdErr(0)
+      {
+          m_pipe[READ] = 0;
+          m_pipe[WRITE] = 0;
+          if (pipe(m_pipe) == -1)
+              return;
+  #ifndef _WIN32
+          // Reading pipe has to be set to non-blocking
+          fcntl(m_pipe[READ], F_SETFL, fcntl(m_pipe[READ], F_GETFL) | O_NONBLOCK);
+  #endif
+
+          m_oldStdOut = dup(fileno(stdout));
+          m_oldStdErr = dup(fileno(stderr));
+          if (m_oldStdOut == -1 || m_oldStdErr == -1)
+              return;
+
+          m_init = true;
+      }
+
+      ~StdCapture()
+      {
+          if (m_capturing)
+          {
+              finish();
+          }
+          if (m_oldStdOut > 0)
+              close(m_oldStdOut);
+          if (m_oldStdErr > 0)
+              close(m_oldStdErr);
+          if (m_pipe[READ] > 0)
+              close(m_pipe[READ]);
+          if (m_pipe[WRITE] > 0)
+              close(m_pipe[WRITE]);
+      }
+
+
+      void start()
+      {
+          if (!m_init)
+              return;
+          if (m_capturing)
+              finish();
+          fflush(stdout);
+          fflush(stderr);
+          dup2(m_pipe[WRITE], fileno(stdout));
+          dup2(m_pipe[WRITE], fileno(stderr));
+
+          m_capturing = true;
+          thread_running = true;
+          pthread_create( &readerThread, NULL, &reader, (void*) (this));
+      }
+
+      bool finish()
+      {
+          if (!m_init)
+              return false;
+          if (!m_capturing)
+              return false;
+          fflush(stdout);
+          fflush(stderr);
+
+          thread_running = false;
+          pthread_join( readerThread, NULL );
+          m_capturing = false;
+
+          dup2(m_oldStdOut, fileno(stdout));
+          dup2(m_oldStdErr, fileno(stderr));
+
+          return true;
+      }
+
+      bool capturing() const { return m_capturing; }
+      int old_stdout() const { return m_oldStdOut; }
+
+  private:
+      enum PIPES { READ, WRITE };
+      int m_pipe[2];
+
+      bool thread_running;
+      bool m_capturing;
+      bool m_init;
+
+      int m_oldStdOut;
+      int m_oldStdErr;
+  };
+
+  StdCapture & std_capture();
+
+
+  template<typename OutputFormaterT>
+  struct StdOutCallback : public BaseCallback
+  {
+    StdOutCallback();
+
+    virtual std::string make(
+              Logger const & logger,
+              std::string const & tag_name,
+              std::string const & colored_tag_name,
+              int log_level,
+              std::string const & category,
+              std::string const & message) const
+    {
+      return formater.make(logger, tag_name, colored_tag_name, log_level, category, message);
+    }
+
+    void write(std::string const & message);
+
+    OutputFormaterT formater;
+  };
 
 
 }
