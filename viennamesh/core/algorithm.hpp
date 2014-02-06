@@ -8,7 +8,6 @@
 #include "viennamesh/core/basic_parameters.hpp"
 
 #include "viennamesh/utils/logger.hpp"
-#include "viennamesh/utils/std_capture.hpp"
 
 
 
