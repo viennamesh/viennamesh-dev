@@ -587,8 +587,9 @@ namespace viennamesh
 
 
 
-
-  void * reader(void * data);
+  // http://stackoverflow.com/questions/5419356/redirect-stdout-stderr-to-a-string
+  // http://stackoverflow.com/questions/5911147/how-to-redirect-printf-output-back-into-code
+  // http://ashishgrover.com/linux-multi-threading-fifos-or-named-pipes/
 
   void * reader(void * data);
 
