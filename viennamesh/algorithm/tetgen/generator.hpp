@@ -198,21 +198,14 @@ namespace viennamesh
         char * buffer = new char[options.str().length()+1];
         std::strcpy(buffer, options.str().c_str());
 
-        viennautils::StdCapture * capture;
+
         if (use_logger)
-        {
-          capture = new viennautils::StdCapture();
-          capture->start();
-        }
+          std_capture().start();
 
         tetrahedralize(buffer, &tmp, &output_mesh());
 
         if (use_logger)
-        {
-          capture->finish();
-          info(5) << capture->get() << std::endl;
-          delete capture;
-        }
+          std_capture().finish();
 
         delete[] buffer;
         delete[] tmp.regionlist;
