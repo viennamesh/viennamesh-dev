@@ -107,13 +107,14 @@ namespace viennamesh
           char * buffer = new char[options.length()];
           std::strcpy(buffer, options.c_str());
 
-          viennautils::StdCapture capture;
-          capture.start();
+
+//           if (use_logger)
+//             std_capture().start();
 
           triangulate( buffer, &tmp, &tmp_mesh.triangle_mesh, NULL);
 
-          capture.finish();
-          info(5) << capture.get() << std::endl;
+//           if (use_logger)
+//             std_capture().finish();
 
 
           viennagrid::triangular_2d_mesh viennagrid_mesh;
@@ -140,8 +141,17 @@ namespace viennamesh
         viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_required_input<InputMeshType>("default");
         output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>("default");
 
+        bool use_logger = true;
+        copy_input( "use_logger", use_logger );
+
         std::ostringstream options;
         options << "zp";
+
+        const_string_parameter_handle option_string = get_input<string>("option_string");
+        if (option_string)
+          options << option_string();
+        else
+          options << "zp";
 
         const_double_parameter_handle min_angle = get_input<double>("min_angle");
         if (min_angle)
@@ -255,19 +265,16 @@ namespace viennamesh
         }
 
 
-
-
-
         char * buffer = new char[options.str().length()];
         std::strcpy(buffer, options.str().c_str());
 
-        viennautils::StdCapture capture;
-        capture.start();
+        if (use_logger)
+          std_capture().start();
 
         triangulate( buffer, &tmp, &output_mesh().triangle_mesh, NULL);
 
-        capture.finish();
-        info(5) << capture.get() << std::endl;
+        if (use_logger)
+          std_capture().start();
 
         delete[] buffer;
         if (!hole_points.empty())
