@@ -11,7 +11,7 @@
 
 #include "triangle.h"
 
-extern int (*triangle_okay)(REAL * triorg, REAL * tridest, REAL * triapex, REAL area);
+extern int (*should_triangle_be_refined)(REAL * triorg, REAL * tridest, REAL * triapex, REAL area);
 
 
 #endif
