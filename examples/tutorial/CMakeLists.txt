@@ -15,8 +15,8 @@ target_link_libraries(tetgen_mesher viennamesh)
 add_executable(tetgen_mesher_with_seedpoints tetgen_mesher_with_seedpoints.cpp)
 target_link_libraries(tetgen_mesher_with_seedpoints viennamesh)
 
-add_executable(extract_hull extract_hull.cpp)
-target_link_libraries(extract_hull viennamesh)
+# add_executable(extract_hull extract_hull.cpp)
+# target_link_libraries(extract_hull viennamesh)
 
 add_executable(reference_parameter reference_parameter.cpp)
 target_link_libraries(reference_parameter viennamesh)
@@ -50,6 +50,9 @@ target_link_libraries(bnd_to_vtk viennamesh)
 
 add_executable(tetgen_seedpoints_3segments tetgen_seedpoints_3segments.cpp)
 target_link_libraries(tetgen_seedpoints_3segments viennamesh)
+
+add_executable(mesh_lado mesh_lado.cpp)
+target_link_libraries(mesh_lado viennamesh)
 
 # find_package(CGAL QUIET COMPONENTS Core )
 # set( CGAL_LIBS CGAL CGAL_Core ${Boost_LIBRARIES} gmp mpfr )
