@@ -121,14 +121,19 @@ namespace viennamesh
           info(5) << "Matrix size is " << matrix.size() << std::endl;
           info(5) << "Geometric desination size is " << destination_dimension << std::endl;
 
-          if (destination_dimension == 1)
-            generic_run_impl<1>(input_mesh().mesh, input_mesh().segmentation, matrix);
-          else if (destination_dimension == 2)
-            generic_run_impl<2>(input_mesh().mesh, input_mesh().segmentation, matrix);
-          else if (destination_dimension == 3)
-            generic_run_impl<3>(input_mesh().mesh, input_mesh().segmentation, matrix);
-          else
+          if (destination_dimension != viennagrid::result_of::geometric_dimension<MeshT>::value)
             return false;
+
+          generic_run_impl< viennagrid::result_of::geometric_dimension<MeshT>::value >(input_mesh().mesh, input_mesh().segmentation, matrix);
+
+//           if (destination_dimension == 1)
+//             generic_run_impl<1>(input_mesh().mesh, input_mesh().segmentation, matrix);
+//           else if (destination_dimension == 2)
+//             generic_run_impl<2>(input_mesh().mesh, input_mesh().segmentation, matrix);
+//           else if (destination_dimension == 3)
+//             generic_run_impl<3>(input_mesh().mesh, input_mesh().segmentation, matrix);
+//           else
+//             return false;
 
           return true;
         }
@@ -144,6 +149,12 @@ namespace viennamesh
           return true;
 
         if (generic_run<viennagrid::line_3d_mesh, viennagrid::line_3d_segmentation>( matrix() ))
+          return true;
+
+        if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>( matrix() ))
+          return true;
+
+        if (generic_run<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>( matrix() ))
           return true;
 
 
