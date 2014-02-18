@@ -3433,74 +3433,10 @@ bool tetgenbehavior::parse_commandline(int argc, char **argv)
     }
   }
 
-  if (nobisect && (!plc && !refine)) { // -Y
-    plc = 1; // Default -p option.
-  }
-  if (quality && (!plc && !refine)) { // -q
-    plc = 1; // Default -p option.
-  }
-  if (diagnose && !plc) { // -d
-    plc = 1;
-  }
-  if (refine && !quality) { // -r only
-    // Reconstruct a mesh, no mesh optimization.
-    optlevel = 0;
-  }
-  if (insertaddpoints && (optlevel == 0)) { // with -i option
-    optlevel = 2;
-  }
-  if (coarsen && (optlevel == 0)) { // with -R option
-    optlevel = 2;
-  }
-
   // Detect improper combinations of switches.
   if ((refine || plc) && weighted) {
     printf("Error:  Switches -w cannot use together with -p or -r.\n");
     return false;
-  }
-
-  if (convex) { // -c
-    if (plc && !regionattrib) {
-      // -A (region attribute) is needed for marking exterior tets (-1).
-      regionattrib = 1;
-    }
-  }
-
-  // Note: -A must not used together with -r option.
-  // Be careful not to add an extra attribute to each element unless the
-  //   input supports it (PLC in, but not refining a preexisting mesh).
-  if (refine || !plc) {
-    regionattrib = 0;
-  }
-  // Be careful not to allocate space for element area constraints that
-  //   will never be assigned any value (other than the default -1.0).
-  if (!refine && !plc) {
-    varvolume = 0;
-  }
-  // If '-a' or '-aa' is in use, enable '-q' option too.
-  if (fixedvolume || varvolume) {
-    if (quality == 0) {
-      quality = 1;
-      if (!plc && !refine) {
-        plc = 1; // enable -p.
-      }
-    }
-  }
-  // No user-specified dihedral angle bound. Use default ones.
-  if (!quality) {
-    if (optmaxdihedral < 179.0) {
-      if (nobisect) {  // with -Y option
-        optmaxdihedral = 179.0;
-      } else { // -p only
-        optmaxdihedral = 179.999;
-      }
-    }
-    if (optminsmtdihed < 179.999) {
-      optminsmtdihed = 179.999;
-    }
-    if (optminslidihed < 179.999) {
-      optminslidihed = 179.999;
-    }
   }
 
   increment = 0;
@@ -3544,6 +3480,75 @@ bool tetgenbehavior::parse_commandline(int argc, char **argv)
 
   return true;
 }
+
+void tetgenbehavior::init()
+{
+  if (nobisect && (!plc && !refine)) { // -Y
+    plc = 1; // Default -p option.
+  }
+  if (quality && (!plc && !refine)) { // -q
+    plc = 1; // Default -p option.
+  }
+  if (diagnose && !plc) { // -d
+    plc = 1;
+  }
+  if (refine && !quality) { // -r only
+    // Reconstruct a mesh, no mesh optimization.
+    optlevel = 0;
+  }
+  if (insertaddpoints && (optlevel == 0)) { // with -i option
+    optlevel = 2;
+  }
+  if (coarsen && (optlevel == 0)) { // with -R option
+    optlevel = 2;
+  }
+
+  if (convex) { // -c
+    if (plc && !regionattrib) {
+      // -A (region attribute) is needed for marking exterior tets (-1).
+      regionattrib = 1;
+    }
+  }
+
+  // Note: -A must not used together with -r option.
+  // Be careful not to add an extra attribute to each element unless the
+  //   input supports it (PLC in, but not refining a preexisting mesh).
+  if (refine || !plc) {
+    regionattrib = 0;
+  }
+  // Be careful not to allocate space for element area constraints that
+  //   will never be assigned any value (other than the default -1.0).
+  if (!refine && !plc) {
+    varvolume = 0;
+  }
+  // If '-a' or '-aa' is in use, enable '-q' option too.
+  if (fixedvolume || varvolume) {
+    if (quality == 0) {
+//       quality = 1;
+      if (!plc && !refine) {
+        plc = 1; // enable -p.
+      }
+    }
+  }
+  // No user-specified dihedral angle bound. Use default ones.
+  if (!quality) {
+    if (optmaxdihedral < 179.0) {
+      if (nobisect) {  // with -Y option
+        optmaxdihedral = 179.0;
+      } else { // -p only
+        optmaxdihedral = 179.999;
+      }
+    }
+    if (optminsmtdihed < 179.999) {
+      optminsmtdihed = 179.999;
+    }
+    if (optminslidihed < 179.999) {
+      optminslidihed = 179.999;
+    }
+  }
+}
+
+
 
 ////                                                                       ////
 ////                                                                       ////
@@ -24189,47 +24194,50 @@ int tetgenmesh::checkseg4split(face *chkseg, point& encpt, int& qflag)
   }
 
 
-  // Second check if it is encroached.
-  // Comment: There may exist more than one encroaching points of this segment.
-  //   The 'encpt' returns the one which is closet to it.
-  triface searchtet, spintet;
-  point eapex;
-  REAL d, diff, smdist = 0;
-  int t1ver;
+  if (b->quality)
+  {
+    // Second check if it is encroached.
+    // Comment: There may exist more than one encroaching points of this segment.
+    //   The 'encpt' returns the one which is closet to it.
+    triface searchtet, spintet;
+    point eapex;
+    REAL d, diff, smdist = 0;
+    int t1ver;
 
-  sstpivot1(*chkseg, searchtet);
-  spintet = searchtet;
-  while (1) {
-    eapex = apex(spintet);
-    if (eapex != dummypoint) {
-      d = distance(ccent, eapex);
-      diff = d - r;
-      if (fabs(diff) / r < b->epsilon) diff = 0.0; // Rounding.
-      if (diff < 0) {
-        // This segment is encroached by eapex.
-        if (useinsertradius) {
-          if (encpt == NULL) {
-            encpt = eapex;
-            smdist = d;
-          } else {
-            // Choose the closet encroaching point.
-            if (d < smdist) {
+    sstpivot1(*chkseg, searchtet);
+    spintet = searchtet;
+    while (1) {
+      eapex = apex(spintet);
+      if (eapex != dummypoint) {
+        d = distance(ccent, eapex);
+        diff = d - r;
+        if (fabs(diff) / r < b->epsilon) diff = 0.0; // Rounding.
+        if (diff < 0) {
+          // This segment is encroached by eapex.
+          if (useinsertradius) {
+            if (encpt == NULL) {
               encpt = eapex;
               smdist = d;
+            } else {
+              // Choose the closet encroaching point.
+              if (d < smdist) {
+                encpt = eapex;
+                smdist = d;
+              }
             }
+          } else {
+            encpt = eapex;
+            break;
           }
-        } else {
-          encpt = eapex;
-          break;
         }
       }
-    }
-    fnextself(spintet);
-    if (spintet.tet == searchtet.tet) break;
-  } // while (1)
+      fnextself(spintet);
+      if (spintet.tet == searchtet.tet) break;
+    } // while (1)
 
-  if (encpt != NULL) {
-    return 1;
+    if (encpt != NULL) {
+      return 1;
+    }
   }
 
   return 0; // No need to split it.
@@ -24625,29 +24633,32 @@ int tetgenmesh::checkfac4split(face *chkfac, point& encpt, int& qflag,
     }
   }
 
-  triface searchtet;
-  REAL smlen = 0;
+  if (b->quality)
+  {
+    triface searchtet;
+    REAL smlen = 0;
 
-  // Check if this subface is locally encroached.
-  for (i = 0; i < 2; i++) {
-    stpivot(*chkfac, searchtet);
-    if (!ishulltet(searchtet)) {
-      len = distance(oppo(searchtet), cent);
-      if ((fabs(len - rd) / rd) < b->epsilon) len = rd;// Rounding.
-      if (len < rd) {
-        if (smlen == 0) {
-          smlen = len;
-          encpt = oppo(searchtet);
-        } else {
-          if (len < smlen) {
+    // Check if this subface is locally encroached.
+    for (i = 0; i < 2; i++) {
+      stpivot(*chkfac, searchtet);
+      if (!ishulltet(searchtet)) {
+        len = distance(oppo(searchtet), cent);
+        if ((fabs(len - rd) / rd) < b->epsilon) len = rd;// Rounding.
+        if (len < rd) {
+          if (smlen == 0) {
             smlen = len;
             encpt = oppo(searchtet);
+          } else {
+            if (len < smlen) {
+              smlen = len;
+              encpt = oppo(searchtet);
+            }
           }
+          //return 1;
         }
-        //return 1;
       }
+      sesymself(*chkfac);
     }
-    sesymself(*chkfac);
   }
 
   return encpt != NULL; //return 0;
@@ -25023,20 +25034,23 @@ int tetgenmesh::checktet4split(triface *chktet, int &qflag, REAL *ccent)
     }
   }
 
-  if (in->tetunsuitable != NULL) {
-    // Execute the user-defined meshing sizing evaluation.
-    if ((*(in->tetunsuitable))(pa, pb, pc, pd, NULL, 0)) {
-      // Calculate the circumcenter of this tet.
-      rhs[0] = 0.5 * dot(vda, vda);
-      rhs[1] = 0.5 * dot(vdb, vdb);
-      rhs[2] = 0.5 * dot(vdc, vdc);
-      lu_solve(A, 3, indx, rhs, 0);
-      for (i = 0; i < 3; i++) ccent[i] = pd[i] + rhs[i];
-      return 1;
+  if (b->use_refinement_callback)
+  {
+    if (in->tetunsuitable != NULL) {
+      // Execute the user-defined meshing sizing evaluation.
+      if ((*(in->tetunsuitable))(pa, pb, pc, pd, NULL, 0)) {
+        // Calculate the circumcenter of this tet.
+        rhs[0] = 0.5 * dot(vda, vda);
+        rhs[1] = 0.5 * dot(vdb, vdb);
+        rhs[2] = 0.5 * dot(vdc, vdc);
+        lu_solve(A, 3, indx, rhs, 0);
+        for (i = 0; i < 3; i++) ccent[i] = pd[i] + rhs[i];
+        return 1;
+      }
     }
   }
 
-  if (useinsertradius) {
+  if (b->quality && useinsertradius) {
     // Do not split this tet if the shortest edge is shorter than the
     //   insertion radius of one of its endpoints.
     triface checkedge;
@@ -25089,7 +25103,7 @@ int tetgenmesh::checktet4split(triface *chktet, int &qflag, REAL *ccent)
   } // if (useinsertradius)
 
   // Check the radius-edge ratio. Set by -q#.
-  if (b->minratio > 0) {
+  if (b->quality && b->minratio > 0) {
     // Calculate the circumcenter and radius of this tet.
     rhs[0] = 0.5 * dot(vda, vda);
     rhs[1] = 0.5 * dot(vdb, vdb);
@@ -25121,7 +25135,7 @@ int tetgenmesh::checktet4split(triface *chktet, int &qflag, REAL *ccent)
   }
 
   // Check the minimum dihedral angle. Set by -qq#.
-  if (b->mindihedral > 0) {
+  if (b->quality && b->mindihedral > 0) {
     // Compute the 4 face normals (N[0], ..., N[3]).
     for (j = 0; j < 3; j++) {
       for (i = 0; i < 3; i++) N[j][i] = 0.0;
@@ -30838,6 +30852,8 @@ void tetgenmesh::outmesh2vtk(char* ofilename)
 void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
                     tetgenio *addin, tetgenio *bgmin)
 {
+  b->init();
+
   tetgenmesh m;
   clock_t tv[12], ts[5]; // Timing informations (defined in time.h)
   REAL cps = (REAL) CLOCKS_PER_SEC;
@@ -31022,7 +31038,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   }
 
-  if (b->quality) {
+  if (b->quality || b->fixedvolume || b->varvolume || b->use_refinement_callback) {
     m.delaunayrefinement();
   }
 
