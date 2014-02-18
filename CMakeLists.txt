@@ -136,7 +136,7 @@ endif(BUILD_EXTERNAL_LIB_NETGEN)
 
 IF(BUILD_EXTERNAL_LIB_TETGEN)
   include_directories(${PROJECT_SOURCE_DIR}/external/tetgen/)
-  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/tetgen/tetgen.cxx ${PROJECT_SOURCE_DIR}/external/tetgen/predicates.cxx)
+  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/tetgen/tetgen.cxx ${PROJECT_SOURCE_DIR}/external/tetgen/predicates.cxx ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/tetgen/generator.cpp)
   SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DTETLIBRARY")
 ENDIF(BUILD_EXTERNAL_LIB_TETGEN)
 
