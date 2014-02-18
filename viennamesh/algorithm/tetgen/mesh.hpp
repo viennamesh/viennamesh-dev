@@ -1,7 +1,9 @@
 #ifndef VIENNAMESH_ALGORITHM_TETGEN_MESH_HPP
 #define VIENNAMESH_ALGORITHM_TETGEN_MESH_HPP
 
-#define TETLIBRARY
+#ifndef TETLIBRARY
+  #define TETLIBRARY
+#endif
 #include "tetgen/tetgen.h"
 
 
@@ -51,6 +53,7 @@ namespace viennamesh
       facet.numberofholes = 0;
     }
 
+
     template<typename MeshSegmentT>
     void generic_convert(MeshSegmentT const & input, tetgen::input_mesh & output)
     {
@@ -65,7 +68,6 @@ namespace viennamesh
 
       typedef typename viennagrid::result_of::const_cell_range<ViennaGridMeshType>::type ConstCellRangeType;
       typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
-
 
       std::map<ConstVertexHandleType, int> vertex_handle_to_tetgen_index_map;
 
@@ -150,6 +152,8 @@ namespace viennamesh
 
 
 
+
+
     inline bool convert(viennagrid::brep_3d_mesh const & input,
                         viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> & output)
     {
@@ -173,7 +177,6 @@ namespace viennamesh
                           viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> & output)
     {
 //       std::cout << "Num of Lines in total " << viennagrid::lines(input.mesh).size() << std::endl;
-
       generic_convert( input.mesh, output.mesh );
       if (input.segmentation.size() <= 1)
         return;
