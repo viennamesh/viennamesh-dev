@@ -3521,7 +3521,7 @@ void tetgenbehavior::init()
   if (!refine && !plc) {
     varvolume = 0;
   }
-  // If '-a' or '-aa' is in use, enable '-q' option too.
+
   if (fixedvolume || varvolume) {
     if (quality == 0) {
 //       quality = 1;
