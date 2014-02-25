@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
   try
   {
-    TCLAP::CmdLine cmd("Generates a volume mesh out of a boundary representation geometry", ' ', "1.0");
+    TCLAP::CmdLine cmd("Uses the Tetgen algorithm to generate a volume mesh out of a boundary representation geometry", ' ', "1.0");
 
     TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is generate_tetgen.log)", false, "generate_tetgen.log", "string");
     cmd.add( log_filename );
@@ -73,12 +73,8 @@ int main(int argc, char **argv)
     if (sizing_function_filename.isSet())
     {
       viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::algorithm() );
-
       simple_mesher->reference_output( "default", simple_mesh() );
-
       simple_mesher->link_input( "default", reader, "default" );
-      simple_mesher->set_input( "option_string", "zpVx10000000" );
-
       simple_mesher->run();
 
       pugi::xml_document xml_element_size;
