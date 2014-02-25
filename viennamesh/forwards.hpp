@@ -133,6 +133,8 @@ namespace viennamesh
   }
 
 
+  typedef std::vector<double> dynamic_point;
+
   typedef result_of::point<1>::type point_1d;
   typedef result_of::point<2>::type point_2d;
   typedef result_of::point<3>::type point_3d;
