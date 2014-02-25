@@ -135,6 +135,31 @@ namespace stringtools
   }
 
 
+
+  inline void erase_all( std::string & str, std::string const & to_erase )
+  {
+    std::string::size_type pos;
+    while ( (pos = str.find(to_erase)) != std::string::npos)
+      str.erase(pos, to_erase.size());
+  }
+
+  template<typename NumericT>
+  std::vector<NumericT> vector_from_string( std::string str )
+  {
+    erase_all( str, "(" );
+    erase_all( str, ")" );
+
+    std::vector<NumericT> result;
+
+    std::list<std::string> elements = stringtools::split_string(str, ",");
+    for (std::list<std::string>::const_iterator eit = elements.begin(); eit != elements.end(); ++eit)
+      result.push_back( lexical_cast<NumericT>(*eit) );
+
+    return result;
+  }
+
+
+
   template<typename stream_type>
   inline std::string read_stream( stream_type & stream )
   {
