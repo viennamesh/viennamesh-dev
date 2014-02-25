@@ -21,6 +21,9 @@ target_link_libraries(tetgen_mesher_with_seedpoints viennamesh)
 add_executable(reference_parameter reference_parameter.cpp)
 target_link_libraries(reference_parameter viennamesh)
 
+add_executable(line_cut_example line_cut_example.cpp)
+target_link_libraries(line_cut_example viennamesh)
+
 add_executable(mesher1d mesher1d.cpp)
 target_link_libraries(mesher1d viennamesh)
 
