@@ -273,9 +273,24 @@ namespace viennamesh
 
           {
             pugi::xpath_node_set nodes = xml.select_nodes( "/VTKFile/UnstructuredGrid/Piece/Points/DataArray" );
-            if (!nodes.empty())
+            pugi::xpath_node_set piece = xml.select_nodes( "/VTKFile/UnstructuredGrid/Piece" );
+            if (!nodes.empty() && !piece.empty())
             {
-              geometric_dimension = atoi( nodes.first().node().attribute("NumberOfComponents").value() );
+              std::stringstream values_stream( nodes.first().node().text().as_string() );
+              int num_vertices = atoi( piece.first().node().attribute("NumberOfPoints").value() );
+
+              geometric_dimension = 0;
+              for (int i = 0; i < num_vertices; ++i)
+              {
+                for (int j = 0; j < 3; ++j)
+                {
+                  double tmp;
+                  values_stream >> tmp;
+                  if (tmp != 0.0)
+                    geometric_dimension = j+1;
+                }
+              }
+
               info(5) << "geometric dimension = " << geometric_dimension << std::endl;
             }
           }
