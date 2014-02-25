@@ -5,18 +5,12 @@
 #include "viennagrid/algorithm/distance.hpp"
 #include "viennagrid/algorithm/boundary.hpp"
 #include "viennagrid/algorithm/inclusion.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
 
 #include "pugixml/pugixml.hpp"
 
 namespace viennamesh
 {
-
-
-  template<typename PointT>
-  typename viennagrid::result_of::coord<PointT>::type determinant( PointT const & p0, PointT const & p1 )
-  {
-    return p0[0]*p1[1] - p0[1]*p1[0];
-  }
 
   template<typename ElementT, typename AccessorFieldT>
   typename viennagrid::result_of::coord<ElementT>::type gradient( ElementT const & element, AccessorFieldT const & accessor_field )
@@ -36,7 +30,7 @@ namespace viennamesh
     PointType p10 = p1-p0;
     PointType p20 = p2-p0;
 
-    NumericType det = determinant( p10, p20 );
+    NumericType det = viennagrid::determinant( p10, p20 );
 
     PointType M0;
     PointType M1;
@@ -213,9 +207,9 @@ namespace viennamesh
             PointType p1 = viennagrid::point( viennagrid::vertices(*cit)[1] );
             PointType p2 = viennagrid::point( viennagrid::vertices(*cit)[2] );
 
-            NumericType f0 = std::abs(determinant( p1-pt, p2-pt )) / 2.0;
-            NumericType f1 = std::abs(determinant( p0-pt, p2-pt )) / 2.0;
-            NumericType f2 = std::abs(determinant( p0-pt, p1-pt )) / 2.0;
+            NumericType f0 = std::abs(viennagrid::determinant( p1-pt, p2-pt )) / 2.0;
+            NumericType f1 = std::abs(viennagrid::determinant( p0-pt, p2-pt )) / 2.0;
+            NumericType f2 = std::abs(viennagrid::determinant( p0-pt, p1-pt )) / 2.0;
 
             NumericType s0 = field(viennagrid::vertices(*cit)[0]);
             NumericType s1 = field(viennagrid::vertices(*cit)[1]);
@@ -466,6 +460,8 @@ namespace viennamesh
 
       typedef NumericType result_type;
 
+
+      is_in_segments_functor( std::vector<SegmentT const *> const & segments_, BaseSizingFunctionHandleType const & function_) : segments(segments_), function(function_) {}
 
       is_in_segments_functor( BaseSizingFunctionHandleType const & function_ ) : function(function_) {}
 
@@ -848,7 +844,9 @@ namespace viennamesh
           double lower_to = lexical_cast<double>(node.child_value("lower_to"));
           double upper_to = lexical_cast<double>(node.child_value("upper_to"));
 
-          return SizingFunctionHandleType(new linear_interpolate_functor<PointType>( from_xml(node.child("source").first_child(), mesh, segmentation), lower, upper, lower_to, upper_to ));
+          SizingFunctionHandleType source = from_xml(node.child("source").first_child(), mesh, segmentation);
+
+          return SizingFunctionHandleType(new linear_interpolate_functor<PointType>(source, lower, upper, lower_to, upper_to ));
         }
 
         return SizingFunctionHandleType();
@@ -861,6 +859,17 @@ namespace viennamesh
           segments.push_back( &segmentation.get_segment( lexical_cast<SegmentIDType>(segment.text().as_string()) ) );
 
         return SizingFunctionHandleType( new distance_to_segment_boundaries_functor<viennagrid::line_tag, SegmentHandleType>(segments) );
+      }
+
+      if (name == "is_in_segments")
+      {
+        std::vector<SegmentHandleType const*> segments;
+        for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
+          segments.push_back( &segmentation.get_segment( lexical_cast<SegmentIDType>(segment.text().as_string()) ) );
+
+        SizingFunctionHandleType source = from_xml(node.child("source").first_child(), mesh, segmentation);
+
+        return SizingFunctionHandleType( new is_in_segments_functor<SegmentHandleType>(segments, source) );
       }
 
       return SizingFunctionHandleType();
