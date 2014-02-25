@@ -1,6 +1,9 @@
 add_executable(convert_mesh src/convert_mesh.cpp)
 target_link_libraries(convert_mesh viennamesh)
 
+add_executable(generate_triangle src/generate_triangle.cpp)
+target_link_libraries(generate_triangle viennamesh)
+
 add_executable(generate_tetgen src/generate_tetgen.cpp)
 target_link_libraries(generate_tetgen viennamesh)
 
@@ -9,3 +12,12 @@ target_link_libraries(extract_hull viennamesh)
 
 add_executable(transform_mesh src/transform_mesh.cpp)
 target_link_libraries(transform_mesh viennamesh)
+
+add_executable(project_mesh src/project_mesh.cpp)
+target_link_libraries(project_mesh viennamesh)
+
+add_executable(coarsen_linemesh src/coarsen_linemesh.cpp)
+target_link_libraries(coarsen_linemesh viennamesh)
+
+add_executable(hyperplane_clip src/hyperplane_clip.cpp)
+target_link_libraries(hyperplane_clip viennamesh)
