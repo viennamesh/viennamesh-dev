@@ -5,7 +5,9 @@
 
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/mesh/segmented_mesh.hpp"
+
 #include "viennamesh/core/parameter.hpp"
+#include "viennamesh/core/mesh_quantities.hpp"
 
 namespace viennamesh
 {
@@ -119,6 +121,46 @@ namespace viennamesh
       std::stringstream ss;
       ss << "viennagrid::mesh< cell type = " << CellTag::name() << ", geometric dimension = " << viennagrid::result_of::geometric_dimension<MeshType>::value << ">";
 
+      return ss.str();
+    }
+  };
+
+
+
+  template<typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
+  struct type_information< segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> >
+  {
+    typedef segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> SelfType;
+
+    static void init()
+    {
+      type_properties::get().set_property<SelfType>( "is_mesh", "false" );
+    }
+
+    static string name()
+    {
+      std::stringstream ss;
+      ss << "segmented_mesh_quantities" << std::endl;
+      return ss.str();
+    }
+  };
+
+
+
+  template<typename KeyT, typename ValueT>
+  struct type_information< mesh_quantities<KeyT, ValueT> >
+  {
+    typedef mesh_quantities<KeyT, ValueT> SelfType;
+
+    static void init()
+    {
+      type_properties::get().set_property<SelfType>( "is_mesh", "false" );
+    }
+
+    static string name()
+    {
+      std::stringstream ss;
+      ss << "mesh_quantities" << std::endl;
       return ss.str();
     }
   };
