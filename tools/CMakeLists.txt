@@ -21,3 +21,9 @@ target_link_libraries(coarsen_linemesh viennamesh)
 
 add_executable(hyperplane_clip src/hyperplane_clip.cpp)
 target_link_libraries(hyperplane_clip viennamesh)
+
+add_executable(merge_meshes src/merge_meshes.cpp)
+target_link_libraries(merge_meshes viennamesh)
+
+add_executable(map_segments src/map_segments.cpp)
+target_link_libraries(map_segments viennamesh)
