@@ -69,7 +69,7 @@ namespace viennamesh
 
       info(5) << "Extracting seed points from segments" << std::endl;
 
-      string options = "zp";
+      string options = "zpQ";
 
       int highest_segment_id = -1;
       for (seed_point_2d_container::iterator spit = seed_points.begin(); spit != seed_points.end(); ++spit)
@@ -132,7 +132,6 @@ namespace viennamesh
       copy_input( "use_logger", use_logger );
 
       std::ostringstream options;
-      options << "zp";
 
       const_string_parameter_handle option_string = get_input<string>("option_string");
       if (option_string)
