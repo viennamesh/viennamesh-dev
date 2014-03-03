@@ -1,11 +1,12 @@
 #include "viennamesh/algorithm/io/mesh_writer.hpp"
+#include "viennamesh/core/mesh_quantities.hpp"
 
 #include "viennagrid/config/default_configs.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/io/mphtxt_writer.hpp"
 
 #include "pugixml/pugixml.hpp"
-#include "common.hpp"
+
 
 
 namespace viennamesh
@@ -31,6 +32,17 @@ namespace viennamesh
                        algorithm_handle const & algorithm)
       {
         viennagrid::io::vtk_writer<MeshT, SegmentationT> writer;
+        return (writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename) == EXIT_SUCCESS);
+      }
+
+      template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
+      bool operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
+                       viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const & quantities,
+                       string const & filename,
+                       algorithm_handle const & algorithm)
+      {
+        viennagrid::io::vtk_writer<MeshT, SegmentationT> writer;
+        quantities.toWriter(writer, segmented_mesh.mesh);
         return (writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename) == EXIT_SUCCESS);
       }
     };
@@ -164,17 +176,68 @@ namespace viennamesh
 
         return true;
       }
+
+
+
+
+
+      template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
+      bool operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
+                       viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const & quantities,
+                       string const & filename,
+                       algorithm_handle const & algorithm)
+      {
+        typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+        typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainer;
+
+        typename result_of::const_parameter_handle<SeedPointContainer>::type seed_points = algorithm->get_input<SeedPointContainer>("seed_points");
+
+
+        string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
+
+        if (!vtk_writer_proxy()(segmented_mesh, quantities, filename, algorithm))
+          return false;
+
+        pugi::xml_document xml;
+
+        pugi::xml_node xml_mesh = xml.append_child("mesh");
+
+        add_xml_text_child(xml_mesh, "file", (filename_without_extension + (segmented_mesh.segmentation.size() > 1 ? "_main.pvd" : ".vtu")).c_str() );
+        add_xml_text_child(xml_mesh, "dimension", typename viennagrid::result_of::point<MeshT>::type().size() );
+        add_xml_text_child(xml_mesh, "vertex_count", viennagrid::vertices(segmented_mesh.mesh).size() );
+        add_xml_text_child(xml_mesh, "cell_count", viennagrid::cells(segmented_mesh.mesh).size() );
+        add_xml_text_child(xml_mesh, "segment_count", segmented_mesh.segmentation.size() );
+
+        pugi::xml_node xml_mesh_topology = xml_mesh.append_child("topology");
+        add_xml_text_child(xml_mesh_topology, "celltype", viennagrid::result_of::cell_tag<MeshT>::type::name() );
+
+        pugi::xml_node xml_mesh_segmentation = xml_mesh.append_child("segmentation");
+        for ( typename SegmentationT::const_iterator sit = segmented_mesh.segmentation.begin(); sit != segmented_mesh.segmentation.end(); ++sit )
+        {
+          pugi::xml_node xml_mesh_segment = xml_mesh_segmentation.append_child("segment");
+
+          add_xml_text_child(xml_mesh_segment, "id", sit->id() );
+          // TODO: determine vertex count
+      //           add_xml_text_child(xml_mesh_segment, "vertex_count", viennagrid::vertices(*sit).size());
+          add_xml_text_child(xml_mesh_segment, "cell_count", viennagrid::cells(*sit).size());
+
+          if (seed_points)
+          {
+            for (typename SeedPointContainer::const_iterator spit = seed_points().begin(); spit != seed_points().end(); ++spit)
+            {
+              if (spit->second == sit->id())
+              {
+                add_xml_text_child(xml_mesh_segment, "seed_point", spit->first );
+              }
+            }
+          }
+        }
+
+        xml.save_file( (filename_without_extension + ".vmesh").c_str() );
+
+        return true;
+      }
     };
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -199,143 +262,19 @@ namespace viennamesh
         viennagrid::io::mphtxt_writer writer;
         return (writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename) == EXIT_SUCCESS);
       }
+
+      template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
+      bool operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
+                       viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const & quantities,
+                       string const & filename,
+                       algorithm_handle const & algorithm)
+      {
+        viennagrid::io::mphtxt_writer writer;
+        return (writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename) == EXIT_SUCCESS);
+      }
     };
 
 
-
-
-
-
-
-
-
-
-
-
-
-//     template<typename MeshT, typename SegmentationT>
-//     void mesh_writer::write_vmesh( MeshT const & mesh,  SegmentationT const & segmentation, string const & filename )
-//     {
-//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-//       typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainer;
-//
-//       typename result_of::const_parameter_handle<SeedPointContainer>::type seed_points = get_input<SeedPointContainer>("seed_points");
-//
-//
-//       string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
-//
-//       viennagrid::io::vtk_writer<MeshT, SegmentationT> vtk_writer;
-//       vtk_writer( mesh, segmentation, filename_without_extension );
-//
-//       pugi::xml_document xml;
-//
-//       pugi::xml_node xml_mesh = xml.append_child("mesh");
-//
-//       add_xml_text_child(xml_mesh, "file", (filename_without_extension + (segmentation.size() > 1 ? "_main.pvd" : ".vtu")).c_str() );
-//       add_xml_text_child(xml_mesh, "dimension", typename viennagrid::result_of::point<MeshT>::type().size() );
-//       add_xml_text_child(xml_mesh, "vertex_count", viennagrid::vertices(mesh).size() );
-//       add_xml_text_child(xml_mesh, "cell_count", viennagrid::cells(mesh).size() );
-//       add_xml_text_child(xml_mesh, "segment_count", segmentation.size() );
-//
-//       pugi::xml_node xml_mesh_topology = xml_mesh.append_child("topology");
-//       add_xml_text_child(xml_mesh_topology, "celltype", viennagrid::result_of::cell_tag<MeshT>::type::name() );
-//
-//       pugi::xml_node xml_mesh_segmentation = xml_mesh.append_child("segmentation");
-//       for ( typename SegmentationT::const_iterator sit = segmentation.begin(); sit != segmentation.end(); ++sit )
-//       {
-//         pugi::xml_node xml_mesh_segment = xml_mesh_segmentation.append_child("segment");
-//
-//         add_xml_text_child(xml_mesh_segment, "id", sit->id() );
-//         // TODO: determine vertex count
-//     //           add_xml_text_child(xml_mesh_segment, "vertex_count", viennagrid::vertices(*sit).size());
-//         add_xml_text_child(xml_mesh_segment, "cell_count", viennagrid::cells(*sit).size());
-//
-//         if (seed_points)
-//         {
-//           for (typename SeedPointContainer::const_iterator spit = seed_points().begin(); spit != seed_points().end(); ++spit)
-//           {
-//             if (spit->second == sit->id())
-//             {
-//               add_xml_text_child(xml_mesh_segment, "seed_point", spit->first );
-//             }
-//           }
-//         }
-//       }
-//
-//       xml.save_file( (filename_without_extension + ".vmesh").c_str() );
-//     }
-
-
-
-/*
-    template<typename MeshT, typename ParameterHandleT>
-    bool mesh_writer::write( ParameterHandleT const & mesh, std::string const & filename, FileType file_type )
-    {
-      info(5) << "Found conversion to ViennaGrid mesh." << std::endl;
-
-      switch (file_type)
-      {
-        case VTK:
-        {
-          info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Writer" << std::endl;
-          viennagrid::io::vtk_writer<MeshT> vtk_writer;
-          vtk_writer( mesh(), filename.substr(0, filename.rfind(".")) );
-          return true;
-        }
-//         case COMSOL_MPHTXT:
-//         {
-//           info(5) << "Found .mphtxt extension, using ViennaGrid MPHTXT Writer" << std::endl;
-//           viennagrid::io::mphtxt_writer writer;
-//           writer( mesh(), filename );
-//           return true;
-//         }
-        default:
-        {
-          error(1) << "Unsupported extension: " << to_string(file_type) << std::endl;
-          return false;
-        }
-      }
-
-    }
-
-
-    template<typename MeshT, typename SegmentationT, typename ParameterHandleT>
-    bool mesh_writer::write( ParameterHandleT const & mesh, std::string const & filename, FileType file_type )
-    {
-      typedef viennagrid::segmented_mesh<MeshT, SegmentationT> WrappedMeshType;
-
-      info(5) << "Found conversion to ViennaGrid mesh." << std::endl;
-
-
-      switch (file_type)
-      {
-        case VTK:
-        {
-          info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Writer" << std::endl;
-          viennagrid::io::vtk_writer<MeshT, SegmentationT> vtk_writer;
-          vtk_writer( mesh().mesh, mesh().segmentation, filename.substr(0, filename.rfind(".")) );
-          return true;
-        }
-        case VMESH:
-        {
-          info(5) << "Found .vmesh extension, using vmesh writer" << std::endl;
-          write_vmesh( mesh().mesh, mesh().segmentation, filename );
-          return true;
-        }
-//         case COMSOL_MPHTXT:
-//         {
-//           info(5) << "Found .mphtxt extension, using ViennaGrid MPHTXT Writer" << std::endl;
-//           viennagrid::io::mphtxt_writer writer;
-//           writer( mesh().mesh, mesh().segmentation, filename );
-//           return true;
-//         }
-        default:
-        {
-          error(1) << "Unsupported extension: " << to_string(file_type) << std::endl;
-          return false;
-        }
-      }
-    }*/
 
 
 
@@ -384,21 +323,62 @@ namespace viennamesh
       typedef typename viennagrid::result_of::cell_only_segmentation<FullMeshType>::type CellOnlySegmentationOfFullMeshType;
       typedef typename viennagrid::result_of::cell_only_segmentation<ThinMeshType>::type CellOnlySegmentationOfThinMeshType;
 
+
+
+
+
+
+
+
+
+
       // full mesh, full segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >())
-        return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >(mesh)(), filename, handle());
+      {
+        typedef typename viennamesh::result_of::segmented_mesh_quantities<FullMeshType, FullSegmentationOfFullMeshType>::type SegmentedMeshQuantitiesType;
+        typename viennamesh::result_of::const_parameter_handle<SegmentedMeshQuantitiesType>::type quantities = get_input<SegmentedMeshQuantitiesType>("quantities");
+
+        if (quantities)
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >(mesh)(), quantities(), filename, handle());
+        else
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >(mesh)(), filename, handle());
+      }
 
       // full mesh, cell only segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >())
-        return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >(mesh)(), filename, handle());
+      {
+        typedef typename viennamesh::result_of::segmented_mesh_quantities<FullMeshType, CellOnlySegmentationOfFullMeshType>::type SegmentedMeshQuantitiesType;
+        typename viennamesh::result_of::const_parameter_handle<SegmentedMeshQuantitiesType>::type quantities = get_input<SegmentedMeshQuantitiesType>("quantities");
+
+        if (quantities)
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >(mesh)(), quantities(), filename, handle());
+        else
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >(mesh)(), filename, handle());
+      }
 
       // thin mesh, full segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >())
-        return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >(mesh)(), filename, handle());
+      {
+        typedef typename viennamesh::result_of::segmented_mesh_quantities<ThinMeshType, FullSegmentationOfThinMeshType>::type SegmentedMeshQuantitiesType;
+        typename viennamesh::result_of::const_parameter_handle<SegmentedMeshQuantitiesType>::type quantities = get_input<SegmentedMeshQuantitiesType>("quantities");
+
+        if (quantities)
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >(mesh)(), quantities(), filename, handle());
+        else
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >(mesh)(), filename, handle());
+      }
 
       // thin mesh, full segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >())
-        return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >(mesh)(), filename, handle());
+      {
+        typedef typename viennamesh::result_of::segmented_mesh_quantities<ThinMeshType, CellOnlySegmentationOfThinMeshType>::type SegmentedMeshQuantitiesType;
+        typename viennamesh::result_of::const_parameter_handle<SegmentedMeshQuantitiesType>::type quantities = get_input<SegmentedMeshQuantitiesType>("quantities");
+
+        if (quantities)
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >(mesh)(), quantities(), filename, handle());
+        else
+          return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >(mesh)(), filename, handle());
+      }
 
 
       typename result_of::const_parameter_handle< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >::type tmp = mesh->get_converted< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >();
@@ -476,33 +456,16 @@ namespace viennamesh
         return false;
 
       typedef viennamesh::result_of::full_config<viennagrid::tetrahedron_tag, 3>::type FullConfigType;
-//       typedef typename viennamesh::result_of::thin_config<viennagrid::tetrahedron_tag, 3>::type ThinConfigType;
 
       typedef viennagrid::mesh<FullConfigType> FullMeshType;
-//       typedef viennagrid::mesh<ThinConfigType> ThinMeshType;
 
       typedef viennagrid::result_of::segmentation<FullMeshType>::type FullSegmentationOfFullMeshType;
-//       typedef typename viennagrid::result_of::segmentation<ThinMeshType>::type FullSegmentationOfThinMeshType;
 
       typedef viennagrid::result_of::cell_only_segmentation<FullMeshType>::type CellOnlySegmentationOfFullMeshType;
-//       typedef typename viennagrid::result_of::cell_only_segmentation<ThinMeshType>::type CellOnlySegmentationOfThinMeshType;
 
       // full mesh, full segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >())
         return mphtxt_writer_proxy()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >(mesh)(), filename, handle());
-
-      // full mesh, cell only segmentation
-//       if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >())
-//         return mphtxt_writer_proxy()(dynamic_handle_cast< const viennagrid::segmented_mesh<FullMeshType, CellOnlySegmentationOfFullMeshType> >(mesh)(), filename, handle());
-
-      // thin mesh, full segmentation
-//       if (mesh->is_type< viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >())
-//         return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, FullSegmentationOfThinMeshType> >(mesh)(), filename, handle());
-
-      // thin mesh, full segmentation
-//       if (mesh->is_type< viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >())
-//         return WriterProxyT()(dynamic_handle_cast< const viennagrid::segmented_mesh<ThinMeshType, CellOnlySegmentationOfThinMeshType> >(mesh)(), filename, handle());
-
 
       result_of::const_parameter_handle< viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >::type tmp = mesh->get_converted< viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >();
 
