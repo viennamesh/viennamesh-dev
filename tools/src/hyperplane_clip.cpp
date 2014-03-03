@@ -45,19 +45,19 @@ int main(int argc, char **argv)
     reader->run();
 
 
-    std::vector<double> hyperplane_point = stringtools::vector_from_string<double>( hyperplane_point_string.getValue() );
-    std::vector<double> hyperplane_normal = stringtools::vector_from_string<double>( hyperplane_normal_string.getValue() );
+    viennamesh::dynamic_point hyperplane_point = stringtools::vector_from_string<double>( hyperplane_point_string.getValue() );
+    viennamesh::dynamic_point hyperplane_normal = stringtools::vector_from_string<double>( hyperplane_normal_string.getValue() );
 
 
-    viennamesh::algorithm_handle project( new viennamesh::directional_clip::algorithm() );
-    project->link_input( "default", reader, "default" );
-    project->set_input( "hyperplane_point", hyperplane_point );
-    project->set_input( "hyperplane_normal", hyperplane_normal );
-    project->run();
+    viennamesh::algorithm_handle clip( new viennamesh::directional_clip::algorithm() );
+    clip->link_input( "default", reader, "default" );
+    clip->set_input( "hyperplane_point", hyperplane_point );
+    clip->set_input( "hyperplane_normal", hyperplane_normal );
+    clip->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->link_input( "default", project, "default" );
+    writer->link_input( "default", clip, "default" );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );
