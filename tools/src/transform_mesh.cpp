@@ -18,8 +18,15 @@ int main(int argc, char **argv)
     cmd.add( output_filetype );
 
 
+    TCLAP::ValueArg<std::string> matrix_string("m","matrix", "Translate matrix", false, "", "string");
+    cmd.add( matrix_string );
+
     TCLAP::ValueArg<double> scale("s","scale", "Scale the mesh", false, 0.0, "double");
     cmd.add( scale );
+
+    TCLAP::ValueArg<std::string> translate_string("t","translate", "Translate the mesh", false, "", "string");
+    cmd.add( translate_string );
+
 
 
     TCLAP::UnlabeledValueArg<std::string> input_filename( "input-filename", "Input file name", true, "", "InputFile"  );
@@ -42,26 +49,39 @@ int main(int argc, char **argv)
 
     int dimension = lexical_cast<int>(reader->get_output("default")->get_property("geometric_dimension").first);
 
-    viennamesh::algorithm_handle transform( new viennamesh::linear_transform::algorithm() );
+    viennamesh::algorithm_handle transform( new viennamesh::affine_transform::algorithm() );
 
-    std::vector<double> matrix(dimension*dimension, 0.0);
+    viennamesh::dynamic_point matrix(dimension*dimension, 0.0);
+
     for (int i = 0; i < dimension; ++i)
       matrix[dimension*i+i] = 1.0;
 
-    if (scale.isSet())
+    if ( matrix_string.isSet() )
+    {
+      matrix = stringtools::vector_from_string<double>( matrix_string.getValue() );
+    }
+    else if (scale.isSet())
     {
       for (int i = 0; i < dimension*dimension; ++i)
         matrix[i] *= scale.getValue();
     }
 
+    viennamesh::dynamic_point translate( dimension, 0.0 );
+    if ( translate_string.isSet() )
+    {
+      translate = stringtools::vector_from_string<double>( translate_string.getValue() );
+    }
+
     transform->link_input( "default", reader, "default" );
     transform->set_input( "matrix", matrix );
+    transform->set_input( "translate", translate );
 
     transform->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
     writer->link_input( "default", transform, "default" );
+    writer->link_input( "quantities", reader, "quantities" );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );
