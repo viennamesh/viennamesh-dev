@@ -39,6 +39,7 @@ int main(int argc, char **argv)
     writer->link_input( "default", reader, "default" );
     writer->link_input( "seed_points", reader, "seed_points" );
     writer->link_input( "hole_points", reader, "hole_points" );
+    writer->link_input( "quantities", reader, "quantities" );
 
     writer->set_input( "filename", output_filename.getValue() );
 
