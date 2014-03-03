@@ -7,6 +7,8 @@
 #include "viennagrid/io/bnd_reader.hpp"
 #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
 
+#include "viennamesh/core/mesh_quantities.hpp"
+
 namespace viennamesh
 {
   namespace io
@@ -31,11 +33,19 @@ namespace viennamesh
       typedef typename viennamesh::result_of::full_config<CellTagT, GeometricDimensionV>::type ConfigType;
       typedef typename viennagrid::mesh<ConfigType> MeshType;
       typedef typename viennagrid::result_of::segmentation<MeshType>::type SegmentationType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationType>::type SegmentHandleType;
+      typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
 
-      output_parameter_proxy< viennagrid::segmented_mesh<MeshType, SegmentationType> > output_mesh = output_proxy< viennagrid::segmented_mesh<MeshType, SegmentationType> >("default");
+      typedef typename viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
+
+      output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>("default");
+      output_parameter_proxy<SegmentedMeshQuantitiesType> output_quantities = output_proxy<SegmentedMeshQuantitiesType>("quantities");
 
       viennagrid::io::vtk_reader<MeshType, SegmentationType> vtk_reader;
+
       vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
+      output_quantities().fromReader(vtk_reader, output_mesh().mesh, output_mesh().segmentation);
+
       return true;
     }
 
