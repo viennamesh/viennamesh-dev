@@ -6,6 +6,7 @@
 #include "viennagrid/algorithm/boundary.hpp"
 #include "viennagrid/algorithm/inclusion.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/io/vtk_reader.hpp"
 
 #include "pugixml/pugixml.hpp"
 
@@ -239,10 +240,52 @@ namespace viennamesh
 
 
 
-    template<typename MeshT, typename FieldT>
+
+    template<typename MeshT, typename SegmentationT>
     struct mesh_gradient_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
     {
-      mesh_gradient_functor( MeshT const & mesh_, FieldT const & field_ ) : mesh(mesh_), field(field_) {}
+      mesh_gradient_functor( string const & filename, string const & parameter_name ) : segmentation(mesh), values_field(values)
+      {
+        viennagrid::io::vtk_reader<MeshT, SegmentationT> reader;
+        viennagrid::io::add_scalar_data_on_vertices( reader, values_field, parameter_name );
+        reader( mesh, segmentation, filename );
+      }
+
+      typedef typename viennagrid::result_of::vertex<MeshT>::type VertexType;
+
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef NumericType result_type;
+
+      NumericType get( PointType const & pt ) const
+      {
+        typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
+        typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+
+        ConstCellRangeType cells(mesh);
+        for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+        {
+          if ( viennagrid::is_inside( *cit, pt ) )
+            return gradient( *cit, values_field );
+        }
+
+        return -1;
+      }
+
+      typedef std::vector<NumericType> ValuesContainerType;
+      typedef typename viennagrid::result_of::field<ValuesContainerType, VertexType>::type FieldType;
+
+      MeshT mesh;
+      SegmentationT segmentation;
+      ValuesContainerType values;
+      FieldType values_field;
+    };
+
+
+    template<typename MeshT, typename FieldT>
+    struct referenced_mesh_gradient_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
+    {
+      referenced_mesh_gradient_functor( MeshT const & mesh_, FieldT const & field_ ) : mesh(mesh_), field(field_) {}
 
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
@@ -268,9 +311,9 @@ namespace viennamesh
     };
 
     template<typename MeshT, typename FieldT>
-    shared_ptr< mesh_gradient_functor<MeshT, FieldT> > mesh_gradient( MeshT const & mesh, FieldT const & field )
+    shared_ptr< referenced_mesh_gradient_functor<MeshT, FieldT> > mesh_gradient( MeshT const & mesh, FieldT const & field )
     {
-      return shared_ptr< mesh_gradient_functor<MeshT, FieldT> >( new mesh_gradient_functor<MeshT, FieldT>(mesh, field) );
+      return shared_ptr< referenced_mesh_gradient_functor<MeshT, FieldT> >( new referenced_mesh_gradient_functor<MeshT, FieldT>(mesh, field) );
     }
 
 
@@ -310,6 +353,7 @@ namespace viennamesh
     struct distance_to_interface_functor : public base_sizing_function< typename viennagrid::result_of::point<SegmentT>::type >
     {
       distance_to_interface_functor( SegmentT const & segment0_, SegmentT const & segment1_ ) : segment0(&segment0_), segment1(&segment1_) {}
+      distance_to_interface_functor( SegmentT const * segment0_, SegmentT const * segment1_ ) : segment0(segment0_), segment1(segment1_) {}
 
       typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
@@ -798,7 +842,8 @@ namespace viennamesh
     shared_ptr< base_sizing_function< typename viennagrid::result_of::point<MeshT>::type > > from_xml(
           pugi::xml_node const & node,
           MeshT const & mesh,
-          SegmentationT const & segmentation)
+          SegmentationT const & segmentation,
+          string const & base_path = "")
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef shared_ptr< base_sizing_function<PointType> > SizingFunctionHandleType;
@@ -818,7 +863,7 @@ namespace viennamesh
       {
         std::vector<SizingFunctionHandleType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
-          functions.push_back( from_xml(source, mesh, segmentation) );
+          functions.push_back( from_xml(source.first_child(), mesh, segmentation) );
 
         return SizingFunctionHandleType( new min_functor<PointType>(functions) );
       }
@@ -861,6 +906,15 @@ namespace viennamesh
         return SizingFunctionHandleType( new distance_to_segment_boundaries_functor<viennagrid::line_tag, SegmentHandleType>(segments) );
       }
 
+      if (name == "distance_to_interface")
+      {
+        std::vector<SegmentHandleType const*> segments;
+        for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
+          segments.push_back( &segmentation.get_segment( lexical_cast<SegmentIDType>(segment.text().as_string()) ) );
+
+        return SizingFunctionHandleType( new distance_to_interface_functor<SegmentHandleType>(segments[0], segments[1]) );
+      }
+
       if (name == "is_in_segments")
       {
         std::vector<SegmentHandleType const*> segments;
@@ -870,6 +924,21 @@ namespace viennamesh
         SizingFunctionHandleType source = from_xml(node.child("source").first_child(), mesh, segmentation);
 
         return SizingFunctionHandleType( new is_in_segments_functor<SegmentHandleType>(segments, source) );
+      }
+
+      if (name == "mesh_gradient")
+      {
+        string mesh_file = node.child_value("mesh_file");
+        if (!base_path.empty())
+          mesh_file = base_path + "/" + mesh_file;
+
+        string parameter_name = node.child_value("parameter_name");
+
+        string transform_matrix = node.child_value("transform_matrix");
+        string translate = node.child_value("translate");
+
+
+        return SizingFunctionHandleType( new mesh_gradient_functor<MeshT, SegmentationT>(mesh_file, parameter_name) );
       }
 
       return SizingFunctionHandleType();
