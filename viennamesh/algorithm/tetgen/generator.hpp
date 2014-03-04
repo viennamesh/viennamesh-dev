@@ -17,6 +17,11 @@ namespace viennamesh
       string name() const { return "Tetgen 1.5 mesher"; }
 
       static sizing_function_3d sizing_function;
+      static bool using_sizing_function;
+
+      static double max_edge_ratio;
+      static bool using_max_edge_ratio;
+
       static bool should_tetrahedron_be_refined(REAL*, REAL*, REAL*, REAL*, REAL*, REAL);
 
       void extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points );

@@ -10,6 +10,9 @@ namespace viennamesh
   namespace tetgen
   {
     viennamesh::sizing_function_3d algorithm::sizing_function;
+    bool algorithm::using_sizing_function;
+    double algorithm::max_edge_ratio;
+    bool algorithm::using_max_edge_ratio;
 
     bool algorithm::should_tetrahedron_be_refined(REAL * tet_p0, REAL * tet_p1, REAL * tet_p2, REAL * tet_p3, REAL * , REAL)
     {
@@ -27,31 +30,49 @@ namespace viennamesh
 
       double max_len = std::max(std::max(std::max(d01, d02), std::max(d03, d12)), std::max(d13, d23));
 
-      point_3d center = (p0+p1+p2+p3)/4.0;
-
-
-      typedef viennagrid::static_array<double, 5> ContainerType;
-      ContainerType local_sizes;
-
-      local_sizes[0] = sizing_function( p0 );
-      local_sizes[1] = sizing_function( p1 );
-      local_sizes[2] = sizing_function( p2 );
-      local_sizes[3] = sizing_function( p3 );
-      local_sizes[4] = sizing_function(center);
-
-      double local_size = -1;
-      for (ContainerType::iterator it = local_sizes.begin(); it != local_sizes.end(); ++it)
+      if (using_max_edge_ratio)
       {
-        if (*it > 0)
-        {
-          if (local_size < 0)
-            local_size = *it;
-          else
-            local_size = std::min( local_size, *it );
-        }
+        double min_len = std::min(std::min(std::min(d01, d02), std::min(d03, d12)), std::min(d13, d23));
+
+        // http://saketsaurabh.in/blog/2009/11/radius-of-a-sphere-inscribed-in-a-general-tetrahedron/
+//         double volume = viennagrid::spanned_volume( p0, p1, p2, p3 );
+//         double surface = viennagrid::spanned_volume( p0, p1, p2 ) + viennagrid::spanned_volume( p0, p1, p3 ) + viennagrid::spanned_volume( p0, p2, p3 ) + viennagrid::spanned_volume( p1, p2, p3 );
+//         double inscribed_sphere_radius = volume / (3.0 * surface);
+
+        if (min_len / max_len < max_edge_ratio)
+          return true;
       }
 
-      return max_len > local_size;
+
+      if (using_sizing_function)
+      {
+        point_3d center = (p0+p1+p2+p3)/4.0;
+
+        typedef viennagrid::static_array<double, 5> ContainerType;
+        ContainerType local_sizes;
+
+        local_sizes[0] = sizing_function( p0 );
+        local_sizes[1] = sizing_function( p1 );
+        local_sizes[2] = sizing_function( p2 );
+        local_sizes[3] = sizing_function( p3 );
+        local_sizes[4] = sizing_function(center);
+
+        double local_size = -1;
+        for (ContainerType::iterator it = local_sizes.begin(); it != local_sizes.end(); ++it)
+        {
+          if (*it > 0)
+          {
+            if (local_size < 0)
+              local_size = *it;
+            else
+              local_size = std::min( local_size, *it );
+          }
+        }
+
+        return max_len > local_size;
+      }
+
+      return false;
     }
 
 
@@ -151,15 +172,20 @@ namespace viennamesh
 
       const_double_parameter_handle max_radius_edge_ratio = get_input<double>("max_radius_edge_ratio");
       const_double_parameter_handle min_dihedral_angle = get_input<double>("min_dihedral_angle");
+      const_double_parameter_handle max_edge_ratio = get_input<double>("max_edge_ratio");
 
+      using_max_edge_ratio = false;
+      using_sizing_function = false;
 
       tetgenio & tmp = (tetgenio&)input_mesh().mesh;
 
       if (sf)
       {
         sizing_function = sf();
+        using_sizing_function = true;
         options.use_refinement_callback = 1;
         tmp.tetunsuitable = should_tetrahedron_be_refined;
+
         info(1) << "Using sizing function" << std::endl;
       }
       else if (cell_size)
@@ -181,6 +207,16 @@ namespace viennamesh
         options.quality = 1;
         options.mindihedral = min_dihedral_angle();
         info(1) << "Using global minimum dihedral angle: " << min_dihedral_angle() << std::endl;
+      }
+
+      if (max_edge_ratio)
+      {
+        this->max_edge_ratio = max_edge_ratio();
+        using_max_edge_ratio = true;
+        options.use_refinement_callback = 1;
+        tmp.tetunsuitable = should_tetrahedron_be_refined;
+
+        info(1) << "Using global max edge ratio: " << max_edge_ratio() << std::endl;
       }
 
 

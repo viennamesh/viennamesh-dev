@@ -31,6 +31,9 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<double> min_dihedral_angle("a","min_dihedral_angle", "Minimum dihedral angle", false, 0.0, "double");
     cmd.add( min_dihedral_angle );
 
+    TCLAP::ValueArg<double> max_edge_ratio("e","max_edge_ratio", "Maximum edge ratio", false, 0.0, "double");
+    cmd.add( max_edge_ratio );
+
     TCLAP::SwitchArg dont_use_logger("","dont_use_logger","Don't use logger for Tetgen output", false);
     cmd.add( dont_use_logger );
 
@@ -103,6 +106,9 @@ int main(int argc, char **argv)
 
     if (min_dihedral_angle.isSet())
       mesher->set_input( "min_dihedral_angle", min_dihedral_angle.getValue() );
+
+    if (max_edge_ratio.isSet())
+      mesher->set_input( "max_edge_ratio", max_edge_ratio.getValue() );
 
     if (dont_use_logger.isSet() && dont_use_logger.getValue())
       mesher->set_input( "use_logger", false );
