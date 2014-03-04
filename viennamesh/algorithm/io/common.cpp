@@ -43,6 +43,9 @@ namespace viennamesh
       if ( extension_found(filename, "mphtxt") )
         return COMSOL_MPHTXT;
 
+      if ( extension_found(filename, "tess") )
+        return NEPER_TESS;
+
       return UNKNOWN;
     }
 
@@ -66,6 +69,8 @@ namespace viennamesh
         return SYNOPSIS_BND;
       if (str == "COMSOL_MPHTXT")
         return COMSOL_MPHTXT;
+      if (str == "NEPER_TESS")
+        return NEPER_TESS;
 
       return UNKNOWN;
     }
@@ -90,6 +95,8 @@ namespace viennamesh
           return "SYNOPSIS_BND";
         case COMSOL_MPHTXT:
           return "COMSOL_MPHTXT";
+        case NEPER_TESS:
+          return "NEPER_TESS";
 
         default:
           return "UNKNOWN";

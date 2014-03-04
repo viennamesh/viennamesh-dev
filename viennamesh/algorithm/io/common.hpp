@@ -16,7 +16,8 @@ namespace viennamesh
       NETGEN_MESH,
       GTS_DEVA,
       SYNOPSIS_BND,
-      COMSOL_MPHTXT
+      COMSOL_MPHTXT,
+      NEPER_TESS
     };
 
     FileType from_filename( string filename );

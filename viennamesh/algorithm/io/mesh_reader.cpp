@@ -5,6 +5,7 @@
 #include "viennagrid/io/netgen_reader.hpp"
 #include "viennagrid/io/tetgen_poly_reader.hpp"
 #include "viennagrid/io/bnd_reader.hpp"
+#include "viennagrid/io/neper_tess_reader.hpp"
 #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
 
 #include "viennamesh/core/mesh_quantities.hpp"
@@ -238,6 +239,33 @@ namespace viennamesh
 
           return false;
         }
+
+
+      case NEPER_TESS:
+        {
+          info(5) << "Found .tess extension, using ViennaGrid Neper tess Reader" << std::endl;
+          typedef viennagrid::brep_3d_mesh MeshType;
+
+          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<seed_point_3d_container> output_seed_points = output_proxy<seed_point_3d_container>("seed_points");
+
+          seed_point_3d_container seed_points;
+
+          viennagrid::io::neper_tess_reader reader;
+          reader(output_mesh(), filename, seed_points);
+
+          if (!seed_points.empty())
+          {
+            info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
+            output_seed_points() = seed_points;
+          }
+          else
+            unset_output("seed_points");
+
+
+          return true;
+        }
+
       case GTS_DEVA:
         {
           info(5) << "Found .deva extension, using ViennaMesh GTS deva Reader" << std::endl;
