@@ -34,7 +34,7 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         std::map<KeyT, ValueT>,
         typename viennagrid::result_of::element<MeshT, ElementTagT>::type,
-        viennagrid::base_id_unpack>::type get_field( MeshT const & mesh, string const & name )
+        viennagrid::base_id_unpack>::type get_field( string const & name )
     {
       return typename viennagrid::result_of::field<
         std::map<KeyT, ValueT>,
@@ -46,7 +46,7 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         const std::map<KeyT, ValueT>,
         typename viennagrid::result_of::element<MeshT, ElementTagT>::type,
-        viennagrid::base_id_unpack>::type get_field( MeshT const & mesh, string const & name ) const
+        viennagrid::base_id_unpack>::type get_field( string const & name ) const
     {
       typedef typename viennagrid::result_of::field<
         const std::map<KeyT, ValueT>,
@@ -106,8 +106,8 @@ namespace viennamesh
 
 
 
-    template<typename WriterT, typename MeshT>
-    void toWriter(WriterT & writer, MeshT const & mesh) const
+    template<typename MeshT, typename WriterT>
+    void toWriter(WriterT & writer) const
     {
       typedef typename viennagrid::result_of::cell_tag<MeshT>::type CellTag;
 
@@ -116,7 +116,7 @@ namespace viennamesh
         for (typename VertexQuantitesType::NamedQuantitiesType::const_iterator vqit = vsqit->second.quantities.begin(); vqit != vsqit->second.quantities.end(); ++vqit)
         {
           info(5) << "Found vertex scalar quantities on segment " << vsqit->first << ": " << vqit->first << std::endl;
-          writer.add_scalar_data_on_vertices( vsqit->first, vsqit->second.template get_field<viennagrid::vertex_tag>(mesh, vqit->first), vqit->first );
+          writer.add_scalar_data_on_vertices( vsqit->first, vsqit->second.template get_field<viennagrid::vertex_tag, MeshT>(vqit->first), vqit->first );
         }
       }
 
@@ -125,7 +125,7 @@ namespace viennamesh
         for (typename CellQuantitesType::NamedQuantitiesType::const_iterator vqit = vsqit->second.quantities.begin(); vqit != vsqit->second.quantities.end(); ++vqit)
         {
           info(5) << "Found cell scalar quantities on segment " << vsqit->first << ": " << vqit->first << std::endl;
-          writer.add_scalar_data_on_cells( vsqit->first, vsqit->second.template get_field<CellTag>(mesh, vqit->first), vqit->first );
+          writer.add_scalar_data_on_cells( vsqit->first, vsqit->second.template get_field<CellTag, MeshT>(vqit->first), vqit->first );
         }
       }
     }
