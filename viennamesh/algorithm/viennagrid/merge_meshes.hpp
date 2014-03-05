@@ -11,11 +11,6 @@ namespace viennamesh
 
   namespace merge_meshes
   {
-
-
-
-
-
     template<typename SrcMeshT, typename SrcSegmentationT,
              typename DstMeshT, typename DstSegmentationT>
     void merge_meshes( SrcMeshT const & src_mesh, SrcSegmentationT const & src_segmentation,
@@ -63,9 +58,6 @@ namespace viennamesh
       bool generic_run()
       {
         typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
-
-        typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
-        typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
         typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh0 = get_input<SegmentedMeshType>("input0_mesh");
         typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh1 = get_input<SegmentedMeshType>("input1_mesh");
