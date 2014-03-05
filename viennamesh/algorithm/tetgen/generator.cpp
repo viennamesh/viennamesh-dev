@@ -11,8 +11,12 @@ namespace viennamesh
   {
     viennamesh::sizing_function_3d algorithm::sizing_function;
     bool algorithm::using_sizing_function;
+
     double algorithm::max_edge_ratio;
     bool algorithm::using_max_edge_ratio;
+
+    double algorithm::max_inscribed_radius_edge_ratio;
+    bool algorithm::using_max_inscribed_radius_edge_ratio;
 
     bool algorithm::should_tetrahedron_be_refined(REAL * tet_p0, REAL * tet_p1, REAL * tet_p2, REAL * tet_p3, REAL * , REAL)
     {
@@ -34,14 +38,22 @@ namespace viennamesh
       {
         double min_len = std::min(std::min(std::min(d01, d02), std::min(d03, d12)), std::min(d13, d23));
 
-        // http://saketsaurabh.in/blog/2009/11/radius-of-a-sphere-inscribed-in-a-general-tetrahedron/
-//         double volume = viennagrid::spanned_volume( p0, p1, p2, p3 );
-//         double surface = viennagrid::spanned_volume( p0, p1, p2 ) + viennagrid::spanned_volume( p0, p1, p3 ) + viennagrid::spanned_volume( p0, p2, p3 ) + viennagrid::spanned_volume( p1, p2, p3 );
-//         double inscribed_sphere_radius = volume / (3.0 * surface);
-
         if (min_len / max_len < max_edge_ratio)
           return true;
       }
+
+
+      if (using_max_inscribed_radius_edge_ratio)
+      {
+        // http://saketsaurabh.in/blog/2009/11/radius-of-a-sphere-inscribed-in-a-general-tetrahedron/
+        double volume = viennagrid::spanned_volume( p0, p1, p2, p3 );
+        double surface = viennagrid::spanned_volume( p0, p1, p2 ) + viennagrid::spanned_volume( p0, p1, p3 ) + viennagrid::spanned_volume( p0, p2, p3 ) + viennagrid::spanned_volume( p1, p2, p3 );
+        double inscribed_sphere_radius = volume / (3.0 * surface);
+
+        if (inscribed_sphere_radius / max_len < max_inscribed_radius_edge_ratio)
+          return true;
+      }
+
 
 
       if (using_sizing_function)
@@ -87,7 +99,11 @@ namespace viennamesh
 
       info(5) << "Extracting seed points from segments" << std::endl;
 
-      string options = "zpQ";
+      tetgenbehavior options;
+      options.zeroindex = 1;
+      options.verbose = 0;
+      options.quiet = 1;
+      options.plc = 1;
 
       int highest_segment_id = -1;
       for (seed_point_3d_container::iterator spit = seed_points.begin(); spit != seed_points.end(); ++spit)
@@ -107,21 +123,10 @@ namespace viennamesh
           tmp.holelist = hole_points;
         }
 
-        char * buffer = new char[options.length()+1];
-        std::strcpy(buffer, options.c_str());
-
-//           viennautils::StdCapture capture;
-//           capture.start();
-
-        tetrahedralize(buffer, &tmp, &tmp_mesh);
-
-//           capture.finish();
-//           info(5) << capture.get() << std::endl;
-
+        tetrahedralize(&options, &tmp, &tmp_mesh);
 
         viennagrid::tetrahedral_3d_mesh viennagrid_mesh;
         viennamesh::tetgen::convert( tmp_mesh, viennagrid_mesh );
-
 
         unsigned int i = seed_points.size();
         viennamesh::extract_seed_points::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
@@ -130,7 +135,6 @@ namespace viennamesh
 
         tmp.holelist = NULL;
         tmp.numberofholes = 0;
-        delete[] buffer;
       }
     }
 
@@ -173,9 +177,12 @@ namespace viennamesh
       const_double_parameter_handle max_radius_edge_ratio = get_input<double>("max_radius_edge_ratio");
       const_double_parameter_handle min_dihedral_angle = get_input<double>("min_dihedral_angle");
       const_double_parameter_handle max_edge_ratio = get_input<double>("max_edge_ratio");
+      const_double_parameter_handle max_inscribed_radius_edge_ratio = get_input<double>("max_inscribed_radius_edge_ratio");
 
-      using_max_edge_ratio = false;
       using_sizing_function = false;
+      using_max_edge_ratio = false;
+      using_max_inscribed_radius_edge_ratio = false;
+
 
       tetgenio & tmp = (tetgenio&)input_mesh().mesh;
 
@@ -215,8 +222,16 @@ namespace viennamesh
         using_max_edge_ratio = true;
         options.use_refinement_callback = 1;
         tmp.tetunsuitable = should_tetrahedron_be_refined;
-
         info(1) << "Using global max edge ratio: " << max_edge_ratio() << std::endl;
+      }
+
+      if (max_inscribed_radius_edge_ratio)
+      {
+        this->max_inscribed_radius_edge_ratio = max_inscribed_radius_edge_ratio();
+        using_max_inscribed_radius_edge_ratio = true;
+        options.use_refinement_callback = 1;
+        tmp.tetunsuitable = should_tetrahedron_be_refined;
+        info(1) << "Using global max inscribed radius edge ratio: " << max_inscribed_radius_edge_ratio() << std::endl;
       }
 
 
