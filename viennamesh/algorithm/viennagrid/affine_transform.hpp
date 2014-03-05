@@ -37,29 +37,12 @@ namespace viennamesh
       }
     }
 
+
     class algorithm : public base_algorithm
     {
     public:
 
       string name() const { return "ViennaGrid Affine Transform"; }
-
-      template<unsigned int GeometricDimensionV, typename InputMeshT, typename InputSegmentationT>
-      void generic_run_impl( viennagrid::segmented_mesh<InputMeshT, InputSegmentationT> const & input_segmented_mesh,
-                             dynamic_point const & matrix,
-                             typename viennagrid::result_of::point<InputMeshT>::type const & translate )
-      {
-        typedef typename viennagrid::result_of::cell_tag<InputMeshT>::type CellTagType;
-        typedef typename viennamesh::result_of::full_config<CellTagType, GeometricDimensionV>::type OutputConfigType;
-        typedef viennagrid::mesh<OutputConfigType> OutputMeshType;
-        typedef typename viennagrid::result_of::segmentation<OutputMeshType>::type OutputSegmentationType;
-
-        typedef viennagrid::segmented_mesh<OutputMeshType, OutputSegmentationType> OutputSegmentedMeshType;
-
-        output_parameter_proxy<OutputSegmentedMeshType> output_segmented_mesh = output_proxy<OutputSegmentedMeshType>( "default" );
-
-        output_segmented_mesh() = input_segmented_mesh;
-        affine_transform( output_segmented_mesh().mesh, &matrix[0], translate );
-      }
 
       template<typename MeshT, typename SegmentationT>
       bool generic_run( dynamic_point const & matrix, dynamic_point const & base_translate )
@@ -67,13 +50,18 @@ namespace viennamesh
         typedef typename viennagrid::result_of::point<MeshT>::type PointType;
         typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 
-        PointType translate;
-        std::copy( base_translate.begin(), base_translate.end(), translate.begin() );
-
         typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh = get_input<SegmentedMeshType>("default");
         if (input_mesh)
         {
-          generic_run_impl< viennagrid::result_of::geometric_dimension<MeshT>::value >(input_mesh(), matrix, translate);
+          output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>( "default" );
+
+          PointType translate;
+          std::copy( base_translate.begin(), base_translate.end(), translate.begin() );
+
+          if (output_mesh != input_mesh)
+            output_mesh() = input_mesh();
+
+          affine_transform( output_mesh().mesh, &matrix[0], translate );
 
           return true;
         }
@@ -91,16 +79,10 @@ namespace viennamesh
         }
 
         viennamesh::result_of::const_parameter_handle<dynamic_point>::type matrix = get_required_input<dynamic_point>( "matrix" );
-        viennamesh::result_of::const_parameter_handle<dynamic_point>::type base_translate = get_required_input<dynamic_point>("translate");
+        viennamesh::result_of::const_parameter_handle<dynamic_point>::type base_translate = get_input<dynamic_point>("translate");
 
 
-        int mesh_geometric_dimension = lexical_cast<int>( mesh->get_property("geometric_dimension").first );
-
-        if (mesh_geometric_dimension != base_translate().size())
-        {
-          error(1) << "Dimension missmatch, mesh has geometric dimension " << mesh_geometric_dimension << " but translate vector has dimension " << base_translate().size() << std::endl;
-          return false;
-        }
+        unsigned int mesh_geometric_dimension = lexical_cast<unsigned int>( mesh->get_property("geometric_dimension").first );
 
         if (mesh_geometric_dimension*mesh_geometric_dimension != matrix().size())
         {
@@ -108,20 +90,32 @@ namespace viennamesh
           return false;
         }
 
+        dynamic_point translate(mesh_geometric_dimension, 0.0);
+        if (base_translate)
+        {
+          if (mesh_geometric_dimension != base_translate().size())
+          {
+            error(1) << "Dimension missmatch, mesh has geometric dimension " << mesh_geometric_dimension << " but translate vector has dimension " << base_translate().size() << std::endl;
+            return false;
+          }
 
-        if (generic_run<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>( matrix(), base_translate() ))
+          translate = base_translate();
+        }
+
+
+        if (generic_run<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>(matrix(), translate))
           return true;
 
-        if (generic_run<viennagrid::line_3d_mesh, viennagrid::line_3d_segmentation>( matrix(), base_translate() ))
+        if (generic_run<viennagrid::line_3d_mesh, viennagrid::line_3d_segmentation>(matrix(), translate))
           return true;
 
-        if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>( matrix(), base_translate() ))
+        if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(matrix(), translate))
           return true;
 
-        if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>( matrix(), base_translate() ))
+        if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(matrix(), translate))
           return true;
 
-        if (generic_run<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>( matrix(), base_translate() ))
+        if (generic_run<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>(matrix(), translate))
           return true;
 
 
