@@ -121,6 +121,20 @@ namespace viennamesh
     ValueT & operator()() { used_ = true; return native_handle(); }
     ValueT const & operator()() const { return native_handle(); }
 
+
+    bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph )
+    {
+      if (!is_native())
+        return false;
+
+      return ph == native_handle;
+    }
+
+    bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph )
+    {
+      return !(*this == ph);
+    }
+
   private:
     parameter_set * parameters;
     string name;
@@ -133,6 +147,14 @@ namespace viennamesh
   };
 
 
+  template<typename ValueT>
+  bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & oop )
+  { return oop == ph; }
+
+  template<typename ValueT>
+  bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & oop )
+  { return !(ph == oop); }
+
 
   class base_algorithm : public enable_shared_from_this<base_algorithm>
   {
@@ -141,17 +163,13 @@ namespace viennamesh
 
     algorithm_handle handle() { return shared_from_this(); }
     const_algorithm_handle chandle() const { return shared_from_this(); }
-    const_algorithm_handle handle() const { return shared_from_this(); }
+    const_algorithm_handle handle() const { return chandle(); }
 
 
     // sets an input parameter
     template<typename TypeT>
     void set_input( string const & name, TypeT const & value )
     { inputs.set( name, value ); }
-
-    // links an input parameter to an output parameter of another algorithm
-    void link_input( string const & name, algorithm_handle const & algorithm, string const & output_name )
-    { set_input( name, parameter_link_handle(new parameter_link( algorithm->outputs, output_name )) ); }
 
     // unsets an input parameter
     void unset_input( string const & name ) { inputs.unset(name); }
@@ -161,6 +179,8 @@ namespace viennamesh
     const_parameter_handle get_input( string const & name ) const
     { return inputs.get(name); }
 
+  protected:
+
     const_parameter_handle get_required_input( string const & name ) const
     {
       const_parameter_handle param = get_input(name);
@@ -169,10 +189,15 @@ namespace viennamesh
       return param;
     }
 
+  public:
+
     // queries an input parameter of special type
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get_input( string const & name ) const
     { return inputs.get<ValueT>(name); }
+
+
+  protected:
 
     // queries an input parameter of special type, throws input_parameter_not_found_exception if not found
     template<typename ValueT>
@@ -184,17 +209,27 @@ namespace viennamesh
       return param;
     }
 
+
+
     // copies input parameter of special type to value, only works if input is present and convertable, returns true if copy was performed
     template<typename ValueT>
     bool copy_input( string const & name, ValueT & value ) const
     { return inputs.copy_if_present(name, value); }
 
-
+  public:
 
     // references an output parameter to a specific value, doesn't take ownership, remembers pointer to value
     template<typename TypeT>
-    void reference_output( string const & name, TypeT & value )
+    void set_output( string const & name, TypeT & value )
     { outputs.set( name, make_reference_parameter(value) ); }
+
+    void set_output( string const & name, parameter_handle const & handle )
+    { outputs.set( name, parameter_handle( new parameter_handle_reference(handle) ) ); }
+
+    void set_output( string const & name, parameter_handle & handle )
+    { outputs.set( name, parameter_handle( new parameter_handle_reference(handle) ) ); }
+
+  protected:
 
     // gets a proxy for an output parameter, only way of setting an output parameter, used within an algorithm
     template<typename ValueT>
@@ -205,6 +240,7 @@ namespace viennamesh
       return proxy;
     }
 
+  public:
 
     // queries an output parameter
     const_parameter_handle get_output( string const & name ) const
