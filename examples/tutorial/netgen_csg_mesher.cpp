@@ -4,12 +4,8 @@
 
 int main()
 {
-
   // creating an algorithm using the Tetgen meshing library for meshing a hull
   viennamesh::algorithm_handle mesher( new viennamesh::netgen::csg_mesher() );
-
-  // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // Define the CSG string
   string csg_string =
@@ -43,14 +39,21 @@ int main()
                                                             // H .. Histogramm, pause
                                                             // t .. ignored
 
-  // linking the output from the mesher to the writer
-  writer->link_input( "default", mesher, "default" );
+  // start the algorithm
+  mesher->run();
 
+
+
+
+  // creating an algorithm for writing a mesh to a file
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
+
+  // linking the output from the mesher to the writer
+  writer->set_input( "default", mesher->get_output("default") );
 
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "cube_netgen_csg.vtu" );
 
-  // start the algorithms
-  mesher->run();
+  // start the algorithm
   writer->run();
 }

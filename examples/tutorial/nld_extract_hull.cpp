@@ -7,25 +7,31 @@ int main()
   // creating an algorithm for reading a mesh from a file
   viennamesh::algorithm_handle reader( new viennamesh::io::mesh_reader() );
 
+  // Setting the filename for the reader
+  reader->set_input( "filename", "/export/florian/work/projects/2013_11 ViennaSHE Yannick/mesh/ridiculously_fine_ortho_for_florian_out.devbz.vtu_main.pvd" );
+
+  // start the algorithm
+  reader->run();
+
+
   // creating a hull extraction algorithm
   viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull::algorithm() );
+
+  extract_hull->set_input( "default", reader->get_output("default") );
+
+  // start the algorithm
+  extract_hull->run();
+
 
   // creating an algorithm for writing a mesh to a file
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
+  writer->set_input( "default", extract_hull->get_output("default") );
 
-  // linking the output from the reader to the mesher
-  extract_hull->link_input( "default", reader, "default" );
-  writer->link_input( "default", extract_hull, "default" );
-
-
-  // Setting the filename for the reader and writer
-  reader->set_input( "filename", "/export/florian/work/projects/2013_11 ViennaSHE Yannick/mesh/ridiculously_fine_ortho_for_florian_out.devbz.vtu_main.pvd" );
+  // Setting the filename for writer
   writer->set_input( "filename", "nld_mosfet_hull.vtu" );
 
-  // start the algorithms
-  reader->run();
-  extract_hull->run();
+  // start the algorithm
   writer->run();
 
   typedef viennamesh::point_3d PointType;

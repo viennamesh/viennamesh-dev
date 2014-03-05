@@ -13,10 +13,10 @@ int main(int argc, char **argv)
     cmd.add( log_filename );
 
 
-    TCLAP::ValueArg<std::string> input_filetype("i","input_filetype", "Input file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nmesh - for Netgen .mesh files\npoly - for Tetgen .poly files\ndeva - for GTS deva files", false, "auto", "string");
+    TCLAP::ValueArg<std::string> input_filetype("","input_filetype", "Input file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nmesh - for Netgen .mesh files\npoly - for Tetgen .poly files\ndeva - for GTS deva files", false, "auto", "string");
     cmd.add( input_filetype );
 
-    TCLAP::ValueArg<std::string> output_filetype("o","output_filetype", "Output file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nvmesh - for Vienna vmesh files", false, "auto", "string");
+    TCLAP::ValueArg<std::string> output_filetype("","output_filetype", "Output file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nvmesh - for Vienna vmesh files", false, "auto", "string");
     cmd.add( output_filetype );
 
     TCLAP::ValueArg<std::string> option_string("s","option_string", "Option string for Tetgen", false, "", "string");
@@ -33,6 +33,9 @@ int main(int argc, char **argv)
 
     TCLAP::ValueArg<double> max_edge_ratio("e","max_edge_ratio", "Maximum edge ratio", false, 0.0, "double");
     cmd.add( max_edge_ratio );
+
+    TCLAP::ValueArg<double> max_inscribed_radius_edge_ratio("i","max_inscribed_radius_edge_ratio", "Maximum inscribed ratio edge ratio", false, 0.0, "double");
+    cmd.add( max_inscribed_radius_edge_ratio );
 
     TCLAP::SwitchArg dont_use_logger("","dont_use_logger","Don't use logger for Tetgen output", false);
     cmd.add( dont_use_logger );
@@ -76,8 +79,8 @@ int main(int argc, char **argv)
     if (sizing_function_filename.isSet())
     {
       viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::algorithm() );
-      simple_mesher->reference_output( "default", simple_mesh() );
-      simple_mesher->link_input( "default", reader, "default" );
+      simple_mesher->set_output( "default", simple_mesh() );
+      simple_mesher->set_input( "default", reader->get_output("default") );
       simple_mesher->run();
 
       pugi::xml_document xml_element_size;
@@ -91,9 +94,9 @@ int main(int argc, char **argv)
     }
 
 
-    mesher->link_input( "default", reader, "default" );
-    mesher->link_input( "seed_points", reader, "seed_points" );
-    mesher->link_input( "hole_points", reader, "hole_points" );
+    mesher->set_input( "default", reader->get_output("default") );
+    mesher->set_input( "seed_points", reader->get_output("seed_points") );
+    mesher->set_input( "hole_points", reader->get_output("hole_points") );
 
     if (option_string.isSet())
       mesher->set_input( "option_string", option_string.getValue() );
@@ -110,6 +113,9 @@ int main(int argc, char **argv)
     if (max_edge_ratio.isSet())
       mesher->set_input( "max_edge_ratio", max_edge_ratio.getValue() );
 
+    if (max_inscribed_radius_edge_ratio.isSet())
+      mesher->set_input( "max_inscribed_radius_edge_ratio", max_inscribed_radius_edge_ratio.getValue() );
+
     if (dont_use_logger.isSet() && dont_use_logger.getValue())
       mesher->set_input( "use_logger", false );
 
@@ -117,7 +123,7 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->link_input( "default", mesher, "default" );
+    writer->set_input( "default", mesher->get_output("default") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );

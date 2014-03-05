@@ -30,44 +30,39 @@ int main( int argc, char** argv )
 
   // creating an algorithm for reading a mesh from a file
   viennamesh::algorithm_handle reader( new viennamesh::io::mesh_reader() );
-  viennamesh::algorithm_handle coarsen_hull( new viennamesh::line_coarsening::algorithm() );
-  viennamesh::algorithm_handle laplace_smooth( new viennamesh::laplace_smooth::algorithm() );
-  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-
-
-  // linking the output from the reader to the mesher
-//   coarsen_hull->link_input( "default", reader, "default" );
-  laplace_smooth->link_input( "default", coarsen_hull, "default" );
-  writer->link_input( "default", coarsen_hull, "default" );
-
-
-  coarsen_hull->set_input( "max_angle", max_angle ); // 3.1
-
-  laplace_smooth->set_input( "lambda", lambda ); // 0.75
-  laplace_smooth->set_input( "max_distance", max_distance ); // 3e-8
-
-
 
   // Setting the filename for the reader and writer
   reader->set_input( "filename", std::string(argv[1]) );
 
-
-  // start the algorithms
+  // start the algorithm
   reader->run();
+
+
+  viennamesh::algorithm_handle coarsen_hull( new viennamesh::line_coarsening::algorithm() );
+  coarsen_hull->set_input( "max_angle", max_angle ); // 3.1
+
+  viennamesh::algorithm_handle laplace_smooth( new viennamesh::laplace_smooth::algorithm() );
+  laplace_smooth->set_input( "lambda", lambda ); // 0.75
+  laplace_smooth->set_input( "max_distance", max_distance ); // 3e-8
+
 
   coarsen_hull->set_input( "default", reader->get_output("default") );
   coarsen_hull->run();
 
-  coarsen_hull->link_input( "default", laplace_smooth, "default" );
 
   for (int i = 0; i < num_iterations; ++i)
   {
     std::stringstream ss;
     ss << output_filename << i << ".vtu";
 
+    laplace_smooth->set_input( "default", coarsen_hull->get_output("default") );
     laplace_smooth->run();
+
+    coarsen_hull->set_input( "default", laplace_smooth->get_output("default") );
     coarsen_hull->run();
 
+    viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
+    writer->set_input( "default", coarsen_hull->get_output("default") );
     writer->set_input( "filename", ss.str() );
     writer->run();
   }

@@ -51,13 +51,6 @@ typename viennagrid::result_of::plc_handle<MeshT>::type make_quad_plc(MeshT & me
 
 int main()
 {
-  // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
-
-  // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-
-
   // typedefing some needed type for creating the geometry
   typedef viennagrid::brep_3d_mesh GeometryMeshType;
   typedef viennagrid::result_of::segmentation<GeometryMeshType>::type GeometrySegmentationType;
@@ -169,6 +162,9 @@ int main()
   viennagrid::add( segment2, plcs[15] );
 
 
+  // creating an algorithm using the Tetgen meshing library for meshing a hull
+  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
+
   // set the input geometry
   mesher->set_input( "default", geometry_handle );
 
@@ -177,13 +173,20 @@ int main()
   mesher->set_input( "max_radius_edge_ratio", 1.5 );  // maximum radius edge ratio
   mesher->set_input( "min_dihedral_angle", 0.17 );     // minimum dihedral angle in radiant, 0.17 are about 10 degrees
 
+  // start the algorithm
+  mesher->run();
+
+
+
+  // creating an algorithm for writing a mesh to a file
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
+
   // linking the output from the mesher to the writer
-  writer->link_input( "default", mesher, "default" );
+  writer->set_input( "default", mesher->get_output("default") );
 
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "three_cubes.vtu" );
 
-  // start the algorithms
-  mesher->run();
+  // start the algorithm
   writer->run();
 }

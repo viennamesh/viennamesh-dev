@@ -4,13 +4,6 @@
 
 int main()
 {
-  // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::triangle::algorithm() );
-
-  // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-
-
   // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
   typedef viennagrid::line_2d_mesh GeometryMeshType;
   // Typedefing vertex handle and point type for geometry creation
@@ -57,6 +50,11 @@ int main()
   viennagrid::make_line( geometry, vtx[8], vtx[9] );
 
 
+
+
+  // creating an algorithm using the Tetgen meshing library for meshing a hull
+  viennamesh::algorithm_handle mesher( new viennamesh::triangle::algorithm() );
+
   // setting the created line geometry as input for the mesher
   mesher->set_input( "default", geometry );
 
@@ -77,14 +75,19 @@ int main()
   mesher->set_input( "delaunay", true  );     // we want a Delaunay triangulation
   mesher->set_input( "algorithm_type", "incremental_delaunay" );  // incremental Delaunay algorithm is used
 
+  // start the algorithm
+  mesher->run();
+
+
+
+  // creating an algorithm for writing a mesh to a file
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // linking the output from the mesher to the writer
-  writer->link_input( "default", mesher, "default" );
+  writer->set_input( "default", mesher->get_output("default") );
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "meshed_quads.vtu" );
 
-
-  // start the algorithms
-  mesher->run();
+  // start the algorithm
   writer->run();
 }

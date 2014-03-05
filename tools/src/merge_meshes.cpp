@@ -42,12 +42,12 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle merge_meshes( new viennamesh::merge_meshes::algorithm() );
-    merge_meshes->link_input( "input0_mesh", reader0, "default" );
-    merge_meshes->link_input( "input1_mesh", reader1, "default" );
+    merge_meshes->set_input( "input0_mesh", reader0->get_output("default") );
+    merge_meshes->set_input( "input1_mesh", reader1->get_output("default") );
     merge_meshes->run();
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->link_input( "default", merge_meshes, "default" );
+    writer->set_input( "default", merge_meshes->get_output("default") );
     writer->set_input( "filename", output_filename.getValue() );
 //     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
 //       writer->set_input( "file_type", output_filetype.getValue() );

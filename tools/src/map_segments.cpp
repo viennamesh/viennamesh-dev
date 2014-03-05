@@ -11,10 +11,10 @@ int main(int argc, char **argv)
     TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is convert.log)", false, "convert.log", "string");
     cmd.add( log_filename );
 
-    TCLAP::ValueArg<std::string> input_filetype("i","inputtype", "Input file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nmesh - for Netgen .mesh files\npoly - for Tetgen .poly files\ndeva - for GTS deva files", false, "auto", "string");
+    TCLAP::ValueArg<std::string> input_filetype("","inputtype", "Input file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nmesh - for Netgen .mesh files\npoly - for Tetgen .poly files\ndeva - for GTS deva files", false, "auto", "string");
     cmd.add( input_filetype );
 
-    TCLAP::ValueArg<std::string> output_filetype("o","outputtype", "Output file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nvmesh - for Vienna vmesh files", false, "auto", "string");
+    TCLAP::ValueArg<std::string> output_filetype("","outputtype", "Output file type. Can be\nauto - ViennaMesh automatically detects the file format (default)\nvtk - for VTK files\nvmesh - for Vienna vmesh files", false, "auto", "string");
     cmd.add( output_filetype );
 
 
@@ -66,14 +66,14 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle map_segments( new viennamesh::map_segments::algorithm() );
-    map_segments->link_input( "default", reader, "default" );
+    map_segments->set_input( "default", reader->get_output("default") );
     map_segments->set_input( "segment_mapping", segment_mapping );
     map_segments->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->link_input( "default", map_segments, "default" );
-    writer->link_input( "quantities", reader, "quantities" );
+    writer->set_input( "default", map_segments->get_output("default") );
+    writer->set_input( "quantities", reader->get_output("quantities") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );

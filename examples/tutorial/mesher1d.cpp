@@ -4,12 +4,6 @@
 
 int main()
 {
-  // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::mesher1d::algorithm() );
-
-  // creating an algorithm for writing a mesh to a file
-  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-
   // Typedefing the mesh type representing the 2D geometry; using just lines, segments are represented using seed points
   typedef viennagrid::brep_1d_mesh GeometryMeshType;
   typedef viennagrid::result_of::segmentation<GeometryMeshType>::type GeometrySegmentationType;
@@ -45,6 +39,9 @@ int main()
   viennagrid::add( segment1, vtx[5] );
 
 
+  // creating an algorithm using the Tetgen meshing library for meshing a hull
+  viennamesh::algorithm_handle mesher( new viennamesh::mesher1d::algorithm() );
+
   // setting the created line geometry as input for the mesher
   mesher->set_input( "default", geometry_handle );
 
@@ -73,13 +70,19 @@ int main()
 
   mesher->set_input( "relative_min_geometry_point_distance", 1e-10 );   // relative minimal distance between 2 points of the input geometry. If two points are closer than (max(points) - min(points)) * relative_min_geometry_point_distance one is discarded. If absolute_min_geometry_point_distance is set this parameter is ignored.
 
+  // start the algorithm
+  mesher->run();
+
+
+  // creating an algorithm for writing a mesh to a file
+  viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
+
   // linking the output from the mesher to the writer
-  writer->link_input( "default", mesher, "default" );
+  writer->set_input( "default", mesher->get_output("default") );
+
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "mesh_line.vtu" );
 
-
-  // start the algorithms
-  mesher->run();
+  // start the algorithm
   writer->run();
 }
