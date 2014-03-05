@@ -24,7 +24,7 @@ namespace viennamesh
                       int geometric_dimension, string cell_type, bool is_segmented );
 
       bool write_mphtxt( const_parameter_handle const & mesh, string const & filename,
-                         int geometric_dimension, string cell_type, bool is_segmented );
+                         int geometric_dimension, string cell_type );
 
 
       template<typename WriterProxyT, typename TagT, int DimensionV>

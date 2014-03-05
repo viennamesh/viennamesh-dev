@@ -138,6 +138,8 @@ namespace viennamesh
     {
       string path = stringtools::extract_path( filename );
 
+      info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
+
 //       parameter_handle result;
       switch (file_type)
       {
