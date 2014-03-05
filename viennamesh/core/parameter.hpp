@@ -39,7 +39,6 @@ namespace viennamesh
     parameter_handle_t( shared_ptr<ObjectT> const & ptr ) : shared_ptr<ObjectT>(ptr) {}
 
     explicit parameter_handle_t( ObjectT * ptr ) : shared_ptr<ObjectT>(ptr) {}
-
   };
 
   template<typename ValueT>
@@ -158,8 +157,6 @@ namespace viennamesh
   {
     return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(&value) );
   }
-
-
 
   class type_properties
   {
@@ -473,7 +470,6 @@ namespace viennamesh
 
     virtual parameter_handle unpack() = 0;
     virtual const_parameter_handle unpack() const = 0;
-    virtual bool is_link() const = 0;
     virtual bool is_reference() const = 0;
     virtual string type_name() const = 0;
 
@@ -552,16 +548,13 @@ namespace viennamesh
   public:
     typedef ValueT value_type;
 
-    parameter_wrapper() : value_ptr_(NULL) { static_init(); }
-    parameter_wrapper(value_type const & val) :
-      value_(val), value_ptr_(NULL) { static_init(); }
-    parameter_wrapper(value_type * val_ptr) :
-      value_ptr_(val_ptr) { static_init(); }
+    parameter_wrapper() { static_init(); clear(); }
+    parameter_wrapper(value_type const & val) { static_init(); set(val); }
+    parameter_wrapper(value_type * val_ref) { static_init(); set(val_ref);}
 
     parameter_handle unpack() { return shared_from_this(); }
     const_parameter_handle unpack() const { return shared_from_this(); }
 
-    bool is_link() const { return false; }
     bool is_reference() const { return value_ptr_; }
 
     string type_name() const { return type_information<ValueT>::name(); }
@@ -577,10 +570,11 @@ namespace viennamesh
       }
     }
 
-    void set_ptr( ValueT * val_ptr ) { value_ptr_ = val_ptr; }
-    void set( ValueT const & val ) { value_ptr_ = NULL; value_ = val; }
-
   private:
+
+    void clear() { value_ptr_ = NULL; }
+    void set( ValueT * val_ref ) { clear(); value_ptr_ = val_ref; }
+    void set( ValueT const & val ) { clear(); value_ = val; }
 
     template<typename TypeT>
     friend class parameter_handle_t;
@@ -593,6 +587,26 @@ namespace viennamesh
 
     ValueT value_;
     ValueT * value_ptr_;
+  };
+
+
+
+  class parameter_handle_reference : public base_parameter
+  {
+  public:
+
+    parameter_handle_reference() {}
+    parameter_handle_reference(parameter_handle const & handle_reference_) : handle_reference(handle_reference_) {}
+
+    parameter_handle unpack() { return handle_reference; }
+    const_parameter_handle unpack() const { return handle_reference; }
+
+    bool is_reference() const { return true; }
+
+    string type_name() const { return "parameter_handle_reference"; }
+
+  private:
+    parameter_handle handle_reference;
   };
 
 
@@ -705,58 +719,6 @@ namespace viennamesh
   }
 
 
-
-  class parameter_set;
-  class const_parameter_set;
-
-
-  class parameter_link : public base_parameter
-  {
-  public:
-
-    parameter_link(parameter_set & para_set, string const & para_name) : parameter_set_(para_set), parameter_name_(para_name)
-    {}
-
-    parameter_handle unpack();
-    const_parameter_handle unpack() const;
-    bool is_link() const { return true; }
-    bool is_reference() const { return false; }
-    string type_name() const { return "parameter_link"; }
-
-  private:
-
-    parameter_set & parameter_set_;
-    string          parameter_name_;
-  };
-
-  class const_parameter_link : public base_parameter
-  {
-  public:
-
-    const_parameter_link(const_parameter_set const & para_set, string const & para_name) : parameter_set_(para_set), parameter_name_(para_name) {}
-
-    parameter_handle unpack();
-    const_parameter_handle unpack() const;
-    bool is_link() const { return true; }
-    bool is_reference() const { return false; }
-    string type_name() const { return "const_parameter_link"; }
-
-  private:
-
-    const_parameter_set const & parameter_set_;
-    string parameter_name_;
-  };
-
-//   typedef shared_ptr<parameter_link> parameter_link_handle;
-//   typedef shared_ptr<const_parameter_link> const_parameter_link_handle;
-
-//   typedef result_of::parameter_handle<parameter_link>::type parameter_link_handle;
-//   typedef result_of::const_parameter_handle<parameter_link>::type const_parameter_link_handle;
-
-  typedef parameter_handle_t<parameter_link> parameter_link_handle;
-  typedef parameter_handle_t<const_parameter_link> const_parameter_link_handle;
-
-
   class parameter_set
   {
   public:
@@ -765,51 +727,28 @@ namespace viennamesh
 
     void set( string const & name, const_parameter_handle const & parameter ); // not supported
     void set( string const & name, parameter_handle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
-
-    void set( string const & name, const_parameter_link_handle const & parameter ); // not supported
-    void set( string const & name, parameter_link_handle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
+    { internal_set(name, parameter); }
 
     template<typename ValueT>
     void set( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter ); // not supported
 
     template<typename ValueT>
     void set( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
+    { internal_set(name, parameter); }
 
     template<typename ValueT>
     void set( string const & name, ValueT const & value )
-    {
-      set( name, make_parameter(value) );
-    }
+    { set( name, make_parameter(value) ); }
 
     void set( string const & name, char const * value )
-    {
-      set( name, make_parameter( string(value) ) );
-    }
+    { set( name, make_parameter( string(value) ) ); }
 
     void set( string const & name, char * value )
-    {
-      set( name, make_parameter( string(value) ) );
-    }
-
-
+    { set( name, make_parameter( string(value) ) ); }
 
 
     void unset( string const & name )
-    {
-      parameters.erase(name);
-    }
+    { parameters.erase(name); }
 
     const_parameter_handle get( string const & name ) const
     {
@@ -854,9 +793,7 @@ namespace viennamesh
     }
 
     parameter_handle & get_create( string const & name )
-    {
-      return parameters[name];
-    }
+    { return parameters[name]; }
 
     template<typename ValueT>
     bool copy_if_present( string const & name, ValueT & target ) const
@@ -886,6 +823,14 @@ namespace viennamesh
     }
 
   private:
+    void internal_set( string const & name, parameter_handle const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+      else
+        unset(name);
+    }
+
     ParameterMapType parameters;
   };
 
@@ -897,63 +842,32 @@ namespace viennamesh
     typedef std::map<string, const_parameter_handle> ParameterMapType;
 
     void set( string const & name, const_parameter_handle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
+    { internal_set(name, parameter); }
 
     void set( string const & name, parameter_handle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
-
-    void set( string const & name, const_parameter_link_handle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
-
-    void set( string const & name, parameter_link_handle const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
+    { internal_set(name, parameter); }
 
     template<typename ValueT>
     void set( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
+    { internal_set(name, parameter); }
 
     template<typename ValueT>
     void set( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
-    {
-      if (parameter)
-        parameters[name] = parameter;
-    }
+    { internal_set(name, parameter); }
 
     template<typename ValueT>
     void set( string const & name, ValueT const & value )
-    {
-      set( name, make_parameter(value) );
-    }
+    { set( name, make_parameter(value) ); }
 
     void set( string const & name, char const * value )
-    {
-      set( name, make_parameter( string(value) ) );
-    }
+    { set( name, make_parameter( string(value) ) ); }
 
     void set( string const & name, char * value )
-    {
-      set( name, make_parameter( string(value) ) );
-    }
+    { set( name, make_parameter( string(value) ) ); }
+
 
     void unset( string const & name )
-    {
-      parameters.erase(name);
-    }
+    { parameters.erase(name); }
 
     const_parameter_handle get( string const & name ) const
     {
@@ -977,9 +891,7 @@ namespace viennamesh
     }
 
     const_parameter_handle & get_create( string const & name )
-    {
-      return parameters[name];
-    }
+    { return parameters[name]; }
 
     template<typename ValueT>
     bool copy_if_present( string const & name, ValueT & target ) const
@@ -997,23 +909,17 @@ namespace viennamesh
     { parameters.clear(); }
 
   private:
+
+    void internal_set( string const & name, const_parameter_handle const & parameter )
+    {
+      if (parameter)
+        parameters[name] = parameter;
+      else
+        unset(name);
+    }
+
     ParameterMapType parameters;
   };
-
-
-  inline parameter_handle parameter_link::unpack()
-  { return parameter_set_.get(parameter_name_); }
-
-  inline const_parameter_handle parameter_link::unpack() const
-  { return parameter_set_.get(parameter_name_); }
-
-
-  inline parameter_handle const_parameter_link::unpack()
-  { return parameter_handle(); }
-
-  inline const_parameter_handle const_parameter_link::unpack() const
-  { return parameter_set_.get(parameter_name_); }
-
 
 }
 
