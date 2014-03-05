@@ -16,6 +16,7 @@ namespace viennamesh
   {
 
     // http://en.wikipedia.org/wiki/Laplacian_smoothing
+    // http://graphics.stanford.edu/courses/cs468-12-spring/LectureSlides/06_smoothing.pdf
     template<typename MeshT, typename NumericT>
     void smooth( MeshT & mesh, NumericT lambda, NumericT max_distance )
     {
