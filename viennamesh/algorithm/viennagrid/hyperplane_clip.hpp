@@ -48,7 +48,7 @@ namespace viennamesh
       // check how many points lay on the clip hyperplane
       bool on_clip_plane[3];
       int on_clip_plane_count = 0;
-      for (int i = 0; i < vertices.size(); ++i)
+      for (unsigned int i = 0; i < vertices.size(); ++i)
       {
         on_clip_plane[i] = on_hyperplane( hyperplane_point, hyperplane_normal, viennagrid::point(vertices[i]) );
         if (on_clip_plane[i])
@@ -83,7 +83,7 @@ namespace viennamesh
       // count elements which lay on the the clip side
       bool on_clip_side[3];
       int clip_vertex_count = 0;
-      for (int i = 0; i < vertices.size(); ++i)
+      for (unsigned int i = 0; i < vertices.size(); ++i)
       {
         on_clip_side[i] = on_positive_hyperplane_side(hyperplane_point, hyperplane_normal, viennagrid::point(vertices[i]));
         if (on_clip_side[i])
@@ -275,8 +275,7 @@ namespace viennamesh
           for (ConstVertexOnCellIteratorType vcit = vertices.begin(); vcit != vertices.end(); ++vcit)
             vertex_handles.push_back( vertex_map(*vcit) );
 
-          DstMeshCellHandleType new_cell = viennagrid::make_cell(dst_mesh,
-                                                                 vertex_handles.begin(), vertex_handles.end());
+          viennagrid::make_cell(dst_mesh, vertex_handles.begin(), vertex_handles.end());
         }
 
         if (vertices_on_preserve_side && vertices_on_clip_side)
@@ -352,7 +351,7 @@ namespace viennamesh
         viennamesh::result_of::const_parameter_handle<dynamic_point>::type base_hyperplane_normal = get_required_input<dynamic_point>("hyperplane_normal");
 
 
-        int mesh_geometric_dimension = lexical_cast<int>( mesh->get_property("geometric_dimension").first );
+        unsigned int mesh_geometric_dimension = lexical_cast<unsigned int>( mesh->get_property("geometric_dimension").first );
 
         if (mesh_geometric_dimension != base_hyperplane_point().size())
         {
