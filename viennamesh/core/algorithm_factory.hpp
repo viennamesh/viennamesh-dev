@@ -1,37 +1,29 @@
 #ifndef VIENNAMESH_CORE_ALGORITHM_FACTORY_HPP
 #define VIENNAMESH_CORE_ALGORITHM_FACTORY_HPP
 
-#include "viennamesh/core/dynamic_algorithm.hpp"
+#include "viennamesh/core/algorithm.hpp"
 
 
 namespace viennamesh
 {
 
-  struct ParameterInfo
-  {
-    string name;
-    bool required;
-    string type;
-    string description;
-  };
 
-
-  class BaseAlgorithmInformation : public enable_shared_from_this<BaseAlgorithmInformation>
+  class base_algorithm_information : public enable_shared_from_this<base_algorithm_information>
   {
   public:
 
-    virtual ~BaseAlgorithmInformation() {}
+    virtual ~base_algorithm_information() {}
 
-    virtual AlgorithmHandle create() const = 0;
+    virtual algorithm_handle create() const = 0;
     virtual string name() const = 0;
     virtual std::map<string, string> const & features() const = 0;
   };
 
   template<typename AlgorithmT>
-  class AlgorithmInformation : public BaseAlgorithmInformation
+  class algorithm_information : public base_algorithm_information
   {
   public:
-    AlgorithmHandle create() const { return AlgorithmHandle( new AlgorithmT() ); }
+    algorithm_handle create() const { return algorithm_handle( new AlgorithmT() ); }
     string name() const { return AlgorithmT::name(); }
     std::map<string, string> const & features() const { return feature_map(); }
 
@@ -46,17 +38,16 @@ namespace viennamesh
   template<typename AlgorithmT>
   void set_feature( string const & feature_key, string const & feature_value )
   {
-    AlgorithmInformation<AlgorithmT>::feature_map()[feature_key] = feature_value;
+    algorithm_information<AlgorithmT>::feature_map()[feature_key] = feature_value;
   }
 
 
-  typedef shared_ptr<BaseAlgorithmInformation> AlgorithmInformationHandle;
+  typedef shared_ptr<base_algorithm_information> AlgorithmInformationHandle;
 
 
-  class AlgorithmFactory
+  class algorithm_factory_t
   {
   public:
-
 
     template<typename AlgorithmT>
     void register_algorithm()
@@ -67,10 +58,8 @@ namespace viennamesh
       if (it != algorithms.end())
         return;
 
-      algorithms.insert( std::make_pair(algorithm_name, AlgorithmInformationHandle( new AlgorithmInformation<AlgorithmT>())) );
+      algorithms.insert( std::make_pair(algorithm_name, AlgorithmInformationHandle( new algorithm_information<AlgorithmT>())) );
     }
-
-
 
     std::list<AlgorithmInformationHandle> matching_algorithms( string const & expression ) const
     {
@@ -90,19 +79,19 @@ namespace viennamesh
       return result;
     }
 
-    AlgorithmHandle create_from_name(string const & algorithm_name) const
+    algorithm_handle create_from_name(string const & algorithm_name) const
     {
       std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_name);
       if (it == algorithms.end())
-        return AlgorithmHandle();
+        return algorithm_handle();
       return it->second->create();
     }
 
-    AlgorithmHandle create_from_expression(string const & expression) const
+    algorithm_handle create_from_expression(string const & expression) const
     {
       std::list<AlgorithmInformationHandle> algos = matching_algorithms(expression);
       if (algos.empty())
-        return AlgorithmHandle();
+        return algorithm_handle();
       return algos.front()->create();
     }
 
@@ -113,7 +102,7 @@ namespace viennamesh
 
   };
 
-
+  algorithm_factory_t & algorithm_factory();
 }
 
 
