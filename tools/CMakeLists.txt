@@ -27,3 +27,6 @@ target_link_libraries(merge_meshes viennamesh)
 
 add_executable(map_segments src/map_segments.cpp)
 target_link_libraries(map_segments viennamesh)
+
+add_executable(vmesh src/vmesh.cpp)
+target_link_libraries(vmesh viennamesh)
