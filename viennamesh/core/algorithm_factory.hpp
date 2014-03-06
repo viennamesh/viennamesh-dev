@@ -15,7 +15,7 @@ namespace viennamesh
     virtual ~base_algorithm_information() {}
 
     virtual algorithm_handle create() const = 0;
-    virtual string name() const = 0;
+    virtual string const & name() const = 0;
     virtual std::map<string, string> const & features() const = 0;
   };
 
@@ -23,8 +23,10 @@ namespace viennamesh
   class algorithm_information : public base_algorithm_information
   {
   public:
+    algorithm_information(string const & algorithm_name_) : algorithm_name(algorithm_name_) {}
+
     algorithm_handle create() const { return algorithm_handle( new AlgorithmT() ); }
-    string name() const { return AlgorithmT::name(); }
+    string const & name() const { return algorithm_name; }
     std::map<string, string> const & features() const { return feature_map(); }
 
     static std::map<string, string> & feature_map()
@@ -32,6 +34,8 @@ namespace viennamesh
       static std::map<string, string> feature_map_;
       return feature_map_;
     }
+
+    string algorithm_name;
   };
 
 
@@ -49,16 +53,16 @@ namespace viennamesh
   {
   public:
 
-    template<typename AlgorithmT>
-    void register_algorithm()
-    {
-      string algorithm_name = AlgorithmT::name();
+    algorithm_factory_t();
 
+    template<typename AlgorithmT>
+    void register_algorithm(string const & algorithm_name)
+    {
       std::map<string, AlgorithmInformationHandle>::iterator it = algorithms.find(algorithm_name);
       if (it != algorithms.end())
         return;
 
-      algorithms.insert( std::make_pair(algorithm_name, AlgorithmInformationHandle( new algorithm_information<AlgorithmT>())) );
+      algorithms.insert( std::make_pair(algorithm_name, AlgorithmInformationHandle( new algorithm_information<AlgorithmT>(algorithm_name))) );
     }
 
     std::list<AlgorithmInformationHandle> matching_algorithms( string const & expression ) const
@@ -102,7 +106,26 @@ namespace viennamesh
 
   };
 
+
+
+
+
   algorithm_factory_t & algorithm_factory();
+
+  template<typename AlgorithmT>
+  class register_algorithm_handle
+  {
+  public:
+
+    register_algorithm_handle(string const & algorithm_name)
+    {
+      algorithm_factory().register_algorithm<AlgorithmT>(algorithm_name);
+    }
+
+  private:
+  };
+
+
 }
 
 
