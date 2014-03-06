@@ -136,27 +136,19 @@ namespace viennamesh
 
   template<typename ValueT, typename SourceT>
   typename result_of::parameter_handle<ValueT>::type dynamic_handle_cast( shared_ptr<SourceT> const & ptr )
-  {
-    return detail::dynamic_handle_cast_impl<ValueT, SourceT>::cast(ptr);
-  }
+  { return detail::dynamic_handle_cast_impl<ValueT, SourceT>::cast(ptr); }
 
   template<typename ValueT>
   typename result_of::parameter_handle<ValueT>::type make_parameter()
-  {
-    return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>() );
-  }
+  { return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>() ); }
 
   template<typename ValueT>
   typename result_of::parameter_handle<ValueT>::type make_parameter( ValueT const & value )
-  {
-    return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(value) );
-  }
+  { return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(value) ); }
 
   template<typename ValueT>
   typename result_of::parameter_handle<ValueT>::type make_reference_parameter( ValueT & value )
-  {
-    return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(&value) );
-  }
+  { return typename result_of::parameter_handle<ValueT>::type( new parameter_wrapper<ValueT>(&value) ); }
 
   class type_properties
   {
