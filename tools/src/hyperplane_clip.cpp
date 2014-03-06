@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     viennamesh::dynamic_point hyperplane_normal = stringtools::vector_from_string<double>( hyperplane_normal_string.getValue() );
 
 
-    viennamesh::algorithm_handle clip( new viennamesh::directional_clip::algorithm() );
+    viennamesh::algorithm_handle clip( new viennamesh::hyperplane_clip::algorithm() );
     clip->set_input( "default", reader->get_output("default") );
     clip->set_input( "hyperplane_point", hyperplane_point );
     clip->set_input( "hyperplane_normal", hyperplane_normal );

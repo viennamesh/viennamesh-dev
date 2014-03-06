@@ -9,7 +9,7 @@
 
 namespace viennamesh
 {
-  namespace directional_clip
+  namespace hyperplane_clip
   {
 
 
