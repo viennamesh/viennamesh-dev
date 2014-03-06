@@ -155,6 +155,7 @@ namespace viennamesh
   bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & oop )
   { return !(ph == oop); }
 
+  class parameter_link;
 
   class base_algorithm : public enable_shared_from_this<base_algorithm>
   {
@@ -169,7 +170,28 @@ namespace viennamesh
     // sets an input parameter
     template<typename TypeT>
     void set_input( string const & name, TypeT const & value )
-    { inputs.set( name, value ); }
+    { inputs.set( name, static_cast<parameter_handle const &>(make_parameter(value)) ); }
+
+    template<typename ValueT>
+    void set_input( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter )
+    { inputs.set(name, static_cast<const_parameter_handle const &>(parameter)); }
+
+    template<typename ValueT>
+    void set_input( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
+    { inputs.set(name, static_cast<parameter_handle const &>(parameter)); }
+
+    void set_input( string const & name, parameter_handle_t<parameter_link> const & parameter )
+    { inputs.set(name, static_cast<parameter_handle const &>(parameter)); }
+
+    void set_input( string const & name, char const * value )
+    { set_input( name, make_parameter( string(value) ) ); }
+
+    void set_input( string const & name, char * value )
+    { set_input( name, make_parameter( string(value) ) ); }
+
+
+
+
 
     // unsets an input parameter
     void unset_input( string const & name ) { inputs.unset(name); }
@@ -281,6 +303,7 @@ namespace viennamesh
       }
       catch ( algorithm_exception const & ex )
       {
+        error(1) << "Algorithm failed!" << std::endl;
         error(1) << ex.what() << std::endl;
         return false;
       }
@@ -319,9 +342,9 @@ namespace viennamesh
 
 
 
-  inline shared_ptr<parameter_link> make_parameter_link( algorithm_handle const & algorithm, string const & para_name )
+  inline parameter_handle_t<parameter_link> make_parameter_link( algorithm_handle const & algorithm, string const & para_name )
   {
-    return shared_ptr<parameter_link>( new parameter_link(algorithm, para_name) );
+    return parameter_handle_t<parameter_link>( new parameter_link(algorithm, para_name) );
   }
 
 
