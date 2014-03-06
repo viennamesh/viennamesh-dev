@@ -1,6 +1,5 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
 #include "viennamesh/core/algorithm_pipeline.hpp"
+#include "viennamesh/core/algorithm_factory.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -9,7 +8,7 @@ int main(int argc, char **argv)
   {
     TCLAP::CmdLine cmd("Extracts a hull of a mesh", ' ', "1.0");
 
-    TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is convert.log)", false, "convert.log", "string");
+    TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is convert.log)", false, "vmesh.log", "string");
     cmd.add( log_filename );
 
 
@@ -24,8 +23,8 @@ int main(int argc, char **argv)
 
 
     pugi::xml_document pipeline_xml;
-    pipeline_xml.load_file( pipeline_filename.getValue().c_str() );
-
+    if (!pipeline_xml.load_file( pipeline_filename.getValue().c_str() ))
+      return 0;
 
     viennamesh::algorithm_pipeline pipeline;
     pipeline.from_xml( pipeline_xml );
