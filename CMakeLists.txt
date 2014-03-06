@@ -25,9 +25,9 @@ include(ViennaMeshCommon)
 
 # User options
 ##############
-option(BUILD_EXTERNAL_LIB_TRIANGLE "Build the Triangle library" ON)
-option(BUILD_EXTERNAL_LIB_TETGEN "Build the Tetgen library" ON)
-option(BUILD_EXTERNAL_LIB_NETGEN "Build the Netgen library" ON)
+option(WITH_TRIANGLE "Build the Triangle library" ON)
+option(WITH_TETGEN "Build the Tetgen library" ON)
+option(WITH_NETGEN "Build the Netgen library" ON)
 
 option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
 
@@ -97,71 +97,60 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 ################
 
 
-SET(LIBVIENNAMESH_SRC ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/common.cpp ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_reader.cpp ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/io/mesh_writer.cpp ${PROJECT_SOURCE_DIR}/viennamesh/utils/logger.cpp)
-
-
-IF(BUILD_EXTERNAL_LIB_NETGEN)
-  file(GLOB NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/*.cpp")
-  list(REMOVE_ITEM NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/csgpkg.cpp")
-  list(REMOVE_ITEM NETGEN_CSG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/csg/vscsg.cpp")
-
-  file(GLOB NETGEN_GENERAL_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/general/*.cpp")
-
-  file(GLOB NETGEN_GEOM2D_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/geom2d/*.cpp")
-  list(REMOVE_ITEM NETGEN_GEOM2D_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/geom2d/vsgeom2d.cpp")
-  list(REMOVE_ITEM NETGEN_GEOM2D_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/geom2d/geom2dpkg.cpp")
-
-  file(GLOB NETGEN_GPRIM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/gprim/*.cpp")
-  file(GLOB NETGEN_INTERFACE_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/interface/*.cpp")
-  file(GLOB NETGEN_LINALG_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/linalg/*.cpp")
-  file(GLOB NETGEN_MESHING_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/meshing/*.cpp")
-
-  file(GLOB NETGEN_STLGEOM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/stlgeom/*.cpp")
-  list(REMOVE_ITEM NETGEN_STLGEOM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/stlgeom/vsstl.cpp")
-  list(REMOVE_ITEM NETGEN_STLGEOM_SRC "${PROJECT_SOURCE_DIR}/external/netgen/libsrc/stlgeom/stlpkg.cpp")
-
-  SET(NETGEN_SRC ${NETGEN_CSG_SRC} ${NETGEN_GENERAL_SRC} ${NETGEN_GEOM2D_SRC} ${NETGEN_GPRIM_SRC} ${NETGEN_INTERFACE_SRC} ${NETGEN_LINALG_SRC} ${NETGEN_MESHING_SRC} ${NETGEN_STLGEOM_SRC} ${PROJECT_SOURCE_DIR}/external/netgen/nglib/nglib.cpp)
-
-
-  SET(NETGEN_COMPILE_FLAGS "-DPACKAGE_VERSION=5.1")
-  include_directories(${PROJECT_SOURCE_DIR}/external/netgen/libsrc/include)
-
-  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${NETGEN_SRC})
-  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} ${NETGEN_COMPILE_FLAGS}")
-
-  set(THREADS_REQUIRED_FOR_LIB_VIENNAMESH TRUE)
-  set(ZLIB_REQUIRED_FOR_LIB_VIENNAMESH TRUE)
-endif(BUILD_EXTERNAL_LIB_NETGEN)
-
-
-IF(BUILD_EXTERNAL_LIB_TETGEN)
-  include_directories(${PROJECT_SOURCE_DIR}/external/tetgen/)
-  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/tetgen/tetgen.cxx ${PROJECT_SOURCE_DIR}/external/tetgen/predicates.cxx ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/tetgen/generator.cpp)
-  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DTETLIBRARY")
-ENDIF(BUILD_EXTERNAL_LIB_TETGEN)
-
-IF(BUILD_EXTERNAL_LIB_TRIANGLE)
-  include_directories(${PROJECT_SOURCE_DIR}/external/triangle/)
-  SET(LIBVIENNAMESH_SRC ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/triangle/triangle.c ${LIBVIENNAMESH_SRC} ${PROJECT_SOURCE_DIR}/external/triangle/triangle_interface.c ${PROJECT_SOURCE_DIR}/viennamesh/algorithm/triangle/generator.cpp)
-  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DTRILIBRARY -DANSI_DECLARATORS -DEXTERNAL_TEST")
-ENDIF(BUILD_EXTERNAL_LIB_TRIANGLE)
-
-ADD_LIBRARY(viennamesh ${LIBVIENNAMESH_SRC})
 IF(NOT BUILD_SHARED_LIBS)
   SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
 ENDIF(NOT BUILD_SHARED_LIBS)
-SET_TARGET_PROPERTIES(viennamesh PROPERTIES COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
+
+set(VIENNAMESH_LIBS viennamesh-core)
+
+set(EXTERNAL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/)
+set(VIENNAMESH_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/)
+
+IF(WITH_NETGEN)
+  set(NETGEN_SOURCE_DIR ${EXTERNAL_SOURCE_DIR}/netgen/)
+ENDIF(WITH_NETGEN)
+
+IF(WITH_TETGEN)
+  set(TETGEN_SOURCE_DIR ${EXTERNAL_SOURCE_DIR}/tetgen/)
+ENDIF(WITH_TETGEN)
+
+IF(WITH_TRIANGLE)
+  set(TRIANGLE_SOURCE_DIR ${EXTERNAL_SOURCE_DIR}/triangle/)
+ENDIF(WITH_TRIANGLE)
 
 
-IF (DEFINED THREADS_REQUIRED_FOR_LIB_VIENNAMESH)
-  find_package (Threads REQUIRED)
-  target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
-ENDIF()
+IF(NOT BUILD_SHARED_LIBS)
+  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
+ENDIF(NOT BUILD_SHARED_LIBS)
+
+
+add_subdirectory(src)
+add_subdirectory(external)
+
+
+ADD_LIBRARY(viennamesh ${VIENNAMESH_SOURCE_DIR}/viennamesh/core.cpp)
+target_link_libraries(viennamesh viennamesh-core)
+
+find_package (Threads REQUIRED)
+target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
 
 IF (DEFINED ZLIB_REQUIRED_FOR_LIB_VIENNAMESH)
   find_package(ZLIB REQUIRED)
   target_link_libraries(viennamesh ${ZLIB_LIBRARIES})
 ENDIF()
+
+
+IF(WITH_NETGEN)
+  target_link_libraries(viennamesh viennamesh-netgen)
+ENDIF(WITH_NETGEN)
+
+IF(WITH_TETGEN)
+  target_link_libraries(viennamesh viennamesh-tetgen)
+ENDIF(WITH_TETGEN)
+
+IF(WITH_TRIANGLE)
+  target_link_libraries(viennamesh viennamesh-triangle)
+ENDIF(WITH_TRIANGLE)
 
 
 # Subdirectories
