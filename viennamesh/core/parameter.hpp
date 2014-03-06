@@ -717,27 +717,8 @@ namespace viennamesh
 
     typedef std::map<string, parameter_handle> ParameterMapType;
 
-    void set( string const & name, const_parameter_handle const & parameter ); // not supported
     void set( string const & name, parameter_handle const & parameter )
     { internal_set(name, parameter); }
-
-    template<typename ValueT>
-    void set( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter ); // not supported
-
-    template<typename ValueT>
-    void set( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
-    { internal_set(name, parameter); }
-
-    template<typename ValueT>
-    void set( string const & name, ValueT const & value )
-    { set( name, make_parameter(value) ); }
-
-    void set( string const & name, char const * value )
-    { set( name, make_parameter( string(value) ) ); }
-
-    void set( string const & name, char * value )
-    { set( name, make_parameter( string(value) ) ); }
-
 
     void unset( string const & name )
     { parameters.erase(name); }
@@ -838,25 +819,6 @@ namespace viennamesh
 
     void set( string const & name, parameter_handle const & parameter )
     { internal_set(name, parameter); }
-
-    template<typename ValueT>
-    void set( string const & name, parameter_handle_t< const parameter_wrapper<ValueT> > const & parameter )
-    { internal_set(name, parameter); }
-
-    template<typename ValueT>
-    void set( string const & name, parameter_handle_t< parameter_wrapper<ValueT> > const & parameter )
-    { internal_set(name, parameter); }
-
-    template<typename ValueT>
-    void set( string const & name, ValueT const & value )
-    { set( name, make_parameter(value) ); }
-
-    void set( string const & name, char const * value )
-    { set( name, make_parameter( string(value) ) ); }
-
-    void set( string const & name, char * value )
-    { set( name, make_parameter( string(value) ) ); }
-
 
     void unset( string const & name )
     { parameters.erase(name); }
