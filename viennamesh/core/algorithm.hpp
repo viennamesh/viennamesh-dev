@@ -298,6 +298,41 @@ namespace viennamesh
     const_parameter_set inputs;
     parameter_set outputs;
   };
+
+
+  class parameter_link : public base_parameter
+  {
+  public:
+
+    parameter_link(algorithm_handle const & algorithm, string const & para_name) : algorithm_(algorithm), parameter_name_(para_name) {}
+
+    parameter_handle unpack() { return algorithm_->get_output(parameter_name_); }
+    const_parameter_handle unpack() const { return algorithm_->get_output(parameter_name_); }
+    bool is_reference() const { return false; }
+    string type_name() const { return "parameter_link"; }
+
+  private:
+
+    algorithm_handle algorithm_;
+    string parameter_name_;
+  };
+
+
+
+  inline shared_ptr<parameter_link> make_parameter_link( algorithm_handle const & algorithm, string const & para_name )
+  {
+    return shared_ptr<parameter_link>( new parameter_link(algorithm, para_name) );
+  }
+
+
+
+
+
+
+
+
+
+
 }
 
 #endif
