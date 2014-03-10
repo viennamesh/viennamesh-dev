@@ -1,14 +1,11 @@
 #ifndef VIENNAMESH_CORE_ALGORITHM_HPP
 #define VIENNAMESH_CORE_ALGORITHM_HPP
 
-#include <exception>
-#include "viennagrid/mesh/element_creation.hpp"
-
 #include "viennamesh/core/parameter.hpp"
 #include "viennamesh/core/basic_parameters.hpp"
 
 #include "viennamesh/utils/logger.hpp"
-
+#include "viennamesh/core/exceptions.hpp"
 
 
 namespace viennamesh
@@ -18,52 +15,6 @@ namespace viennamesh
 
   typedef shared_ptr<base_algorithm> algorithm_handle;
   typedef shared_ptr<const base_algorithm> const_algorithm_handle;
-
-
-
-  class algorithm_exception : public std::exception
-  {
-  public:
-    virtual ~algorithm_exception() throw() {}
-  };
-
-
-  class input_parameter_not_found_exception : public algorithm_exception
-  {
-  public:
-
-    input_parameter_not_found_exception(string const & parameter_name) : parameter_name_(parameter_name) {}
-
-    virtual ~input_parameter_not_found_exception() throw() {}
-    virtual const char* what() const throw()
-    {
-      std::stringstream ss;
-      ss << "Input parameter '" << parameter_name_ << "' is missing or of non-convertable type";
-      return ss.str().c_str();
-    }
-
-  private:
-    string parameter_name_;
-  };
-
-
-  class output_not_convertable_to_referenced_value_exception : public algorithm_exception
-  {
-  public:
-
-    output_not_convertable_to_referenced_value_exception(string const & parameter_name) : parameter_name_(parameter_name) {}
-
-    virtual ~output_not_convertable_to_referenced_value_exception() throw() {}
-    virtual const char* what() const throw()
-    {
-      std::stringstream ss;
-      ss << "Output parameter '" << parameter_name_ << "' is not convertable to referenced value";
-      return ss.str().c_str();
-    }
-
-  private:
-    string parameter_name_;
-  };
 
 
 
@@ -156,6 +107,20 @@ namespace viennamesh
   { return !(ph == oop); }
 
   class parameter_link;
+
+
+
+
+
+  struct parameter_information
+  {
+    string name;
+    string type;
+    string information;
+  };
+
+
+
 
   class base_algorithm : public enable_shared_from_this<base_algorithm>
   {
@@ -309,14 +274,35 @@ namespace viennamesh
       }
     }
 
+
+//     string default_output_mesh_name() const { return default_output_name("mesh"); }
+
     // returns the algorithm name
     virtual string name() const = 0;
 
   protected:
 
+//     string default_output_name( string const & parameter_type ) const
+//     {
+//       std::map<string, string>::const_iterator opit = default_output_parameter_names.find( parameter_type );
+//       if (opit != default_output_parameter_names.end())
+//         return opit->second;
+//       return "";
+//     }
+//
+//     void set_default_output_name( string const & parameter_type, string const & parameter_name )
+//     {  default_output_parameter_names[parameter_type] = parameter_name; }
+//
+//     void set_default_output_mesh_name( string const & parameter_name )
+//     { set_default_output_name("mesh", parameter_name); }
+
+//     virtual bool init() = 0;
     virtual bool run_impl() = 0;
 
   private:
+
+
+//     std::map<string, string> default_output_parameter_names;
 
     const_parameter_set inputs;
     parameter_set outputs;
