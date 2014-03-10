@@ -1,6 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_VIENNAGRID_EXTRACT_HULL_HPP
 #define VIENNAMESH_ALGORITHM_VIENNAGRID_EXTRACT_HULL_HPP
 
+#include "viennagrid/mesh/element_creation.hpp"
 #include "viennagrid/algorithm/centroid.hpp"
 #include "viennagrid/algorithm/boundary.hpp"
 
@@ -16,7 +17,7 @@ namespace viennamesh
 
     template<typename HullTypeOrTagT, typename VolumeMeshT, typename HullMeshT>
     void extract_hull( VolumeMeshT const & volume_mesh,
-                        HullMeshT & hull_mesh)
+                       HullMeshT & hull_mesh)
     {
       viennagrid::clear(hull_mesh);
 
@@ -52,9 +53,9 @@ namespace viennamesh
 
     template<typename HullTypeOrTagT, typename VolumeMeshT, typename VolumeSegmentationT, typename HullMeshT, typename HullSegmentationT>
     void extract_hull( VolumeMeshT const & volume_mesh,
-                        VolumeSegmentationT const & volume_segmentation,
-                        HullMeshT & hull_mesh,
-                        HullSegmentationT & hull_segmentation )
+                       VolumeSegmentationT const & volume_segmentation,
+                       HullMeshT & hull_mesh,
+                       HullSegmentationT & hull_segmentation )
     {
       typedef typename viennagrid::result_of::element_tag<HullTypeOrTagT>::type HullTagType;
 
