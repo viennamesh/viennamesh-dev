@@ -481,7 +481,7 @@ namespace viennamesh
       const_parameter_handle mesh = get_required_input("default");
       const_string_parameter_handle filename = get_required_input<string>("filename");
 
-      info(1) << "Writing mesh to file \"" << filename << "\"" << std::endl;
+      info(1) << "Writing mesh to file \"" << filename() << "\"" << std::endl;
 
       FileType file_type;
       const_string_parameter_handle file_type_param = get_input<string>("file_type");
