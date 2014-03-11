@@ -444,7 +444,7 @@ namespace viennamesh
         return generic_write<WriterProxyT, viennagrid::hexahedron_tag, 3>( mesh, filename, is_segmented );
 
 
-      error(1) << "Input mesh \"" << mesh->type_name() << "\"is not convertable to any supported ViennaGrid mesh." << std::endl;
+      error(1) << "Input mesh \"" << mesh->type_name() << "\" is not convertable to any supported ViennaGrid mesh." << std::endl;
 
       return false;
     }
