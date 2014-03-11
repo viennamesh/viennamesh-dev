@@ -27,8 +27,8 @@ int main(int argc, char **argv)
       return 0;
 
     viennamesh::algorithm_pipeline pipeline;
-    pipeline.from_xml( pipeline_xml );
-
+    if (!pipeline.from_xml( pipeline_xml ))
+      return 0;
 
     pipeline.run();
   }
