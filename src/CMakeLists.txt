@@ -7,8 +7,7 @@ SET(LIBVIENNAMESH_SRC
     ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/algorithm.cpp
     ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/algorithm_factory.cpp
     ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/algorithm_pipeline.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/parameter.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/types.cpp)
+    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/parameter.cpp)
 
 IF(WITH_TETGEN)
   SET(LIBVIENNAMESH_SRC
