@@ -20,7 +20,9 @@ namespace viennamesh
         const_string_parameter_handle csg_string = get_required_input<string>("default");
         output_parameter_proxy<netgen::output_mesh> output_mesh = output_proxy<netgen::output_mesh>("default");
 
-        std::cout << csg_string() << std::endl;
+//         std::cout << csg_string() << std::endl;
+
+        std_capture().start();
 
         std::istringstream csg_stream(csg_string());
         ::netgen::CSGeometry * geom = ::netgen::ParseCSG( csg_stream );
@@ -46,6 +48,8 @@ namespace viennamesh
         geom->GenerateMesh(output_mesh().mesh, mesh_parameters, 1, 5);
 
         delete geom;
+
+        std_capture().finish();
 
         return true;
       }
