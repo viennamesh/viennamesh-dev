@@ -25,7 +25,7 @@ namespace viennamesh
 
     if (!algorithm)
     {
-      error(1) << "Algorithm creation from factory failed" << std::endl;
+      error(1) << "Algorithm \"" << algorithm_type << "\" creation from factory failed" << std::endl;
       return false;
     }
 
