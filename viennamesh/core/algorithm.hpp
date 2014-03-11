@@ -17,9 +17,6 @@ namespace viennamesh
   typedef shared_ptr<const base_algorithm> const_algorithm_handle;
 
 
-
-
-
   template<typename ValueT>
   class output_parameter_proxy
   {
@@ -108,17 +105,7 @@ namespace viennamesh
 
   class parameter_link;
 
-
-
-
-
-  struct parameter_information
-  {
-    string name;
-    string type;
-    string information;
-  };
-
+  parameter_handle_t<parameter_link> make_parameter_link(algorithm_handle const & algorithm, string const & para_name);
 
 
 
@@ -130,6 +117,15 @@ namespace viennamesh
     algorithm_handle handle() { return shared_from_this(); }
     const_algorithm_handle chandle() const { return shared_from_this(); }
     const_algorithm_handle handle() const { return chandle(); }
+
+
+
+
+    void set_default_source_algorithm( algorithm_handle const & default_source_algorithm_ )
+    { default_source_algorithm = default_source_algorithm_; }
+
+    void unset_default_source_algorithm()
+    { default_source_algorithm = algorithm_handle(); }
 
 
     // sets an input parameter
@@ -160,8 +156,8 @@ namespace viennamesh
     void set_input( string const & name, char * value )
     { set_input( name, make_parameter( string(value) ) ); }
 
-
-
+    void link_input( string const & name, algorithm_handle const & source_algorithm, string const & source_name )
+    { set_input( name, make_parameter_link(source_algorithm, source_name) ); }
 
 
     // unsets an input parameter
@@ -170,7 +166,17 @@ namespace viennamesh
 
     // queries an input parameter
     const_parameter_handle get_input( string const & name ) const
-    { return inputs.get(name); }
+    {
+      const_parameter_handle parameter = inputs.get(name);
+
+      if (parameter)
+        return parameter;
+
+      if (default_source_algorithm)
+        return default_source_algorithm->get_output(name);
+
+      return const_parameter_handle();
+    }
 
   protected:
 
@@ -187,7 +193,17 @@ namespace viennamesh
     // queries an input parameter of special type
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get_input( string const & name ) const
-    { return inputs.get<ValueT>(name); }
+    {
+      const_parameter_handle parameter = get_input(name);
+      if (!parameter) return typename result_of::const_parameter_handle<ValueT>::type();
+
+      typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(parameter);
+
+      if (result)
+        return result;
+
+      return parameter->template get_converted<ValueT>();
+    }
 
 
   protected:
@@ -196,10 +212,10 @@ namespace viennamesh
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get_required_input( string const & name ) const
     {
-      typename result_of::const_parameter_handle<ValueT>::type param = get_input<ValueT>(name);
-      if (!param)
+      typename result_of::const_parameter_handle<ValueT>::type parameter = get_input<ValueT>(name);
+      if (!parameter)
         throw input_parameter_not_found_exception(name);
-      return param;
+      return parameter;
     }
 
 
@@ -258,57 +274,19 @@ namespace viennamesh
     void clear_outputs() { outputs.clear(); } // TODO needed?
 
     // runs the algorithm
-    bool run()
-    {
-      LoggingStack stack( string("Algoritm: ") + name() );
-      outputs.clear_non_references();
-
-      try
-      {
-        bool success = run_impl();
-
-        if (!success)
-          error(1) << "Algorithm failed" << std::endl;
-
-        return success;
-      }
-      catch ( algorithm_exception const & ex )
-      {
-        error(1) << "Algorithm failed!" << std::endl;
-        error(1) << ex.what() << std::endl;
-        return false;
-      }
-    }
-
-
-//     string default_output_mesh_name() const { return default_output_name("mesh"); }
+    bool run();
 
     // returns the algorithm name
     virtual string name() const = 0;
 
   protected:
 
-//     string default_output_name( string const & parameter_type ) const
-//     {
-//       std::map<string, string>::const_iterator opit = default_output_parameter_names.find( parameter_type );
-//       if (opit != default_output_parameter_names.end())
-//         return opit->second;
-//       return "";
-//     }
-//
-//     void set_default_output_name( string const & parameter_type, string const & parameter_name )
-//     {  default_output_parameter_names[parameter_type] = parameter_name; }
-//
-//     void set_default_output_mesh_name( string const & parameter_name )
-//     { set_default_output_name("mesh", parameter_name); }
-
 //     virtual bool init() = 0;
     virtual bool run_impl() = 0;
 
   private:
 
-
-//     std::map<string, string> default_output_parameter_names;
+    algorithm_handle default_source_algorithm;
 
     const_parameter_set inputs;
     parameter_set outputs;
@@ -331,21 +309,6 @@ namespace viennamesh
     algorithm_handle algorithm_;
     string parameter_name_;
   };
-
-
-
-  inline parameter_handle_t<parameter_link> make_parameter_link( algorithm_handle const & algorithm, string const & para_name )
-  {
-    return parameter_handle_t<parameter_link>( new parameter_link(algorithm, para_name) );
-  }
-
-
-
-
-
-
-
-
 
 
 }
