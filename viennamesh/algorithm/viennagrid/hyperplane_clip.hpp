@@ -1,6 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_VIENNAGRID_DIRECTIONAL_CLIP_HPP
 #define VIENNAMESH_ALGORITHM_VIENNAGRID_DIRECTIONAL_CLIP_HPP
 
+#include "viennagrid/algorithm/volume.hpp"
 #include "viennagrid/algorithm/centroid.hpp"
 #include "viennagrid/algorithm/refine.hpp"
 
@@ -9,13 +10,14 @@
 
 namespace viennamesh
 {
+
   namespace hyperplane_clip
   {
 
     template<typename PointT>
     bool on_positive_hyperplane_side( PointT const & hyperplane_point, PointT const & hyperplane_normal, PointT const & to_test )
     {
-      return viennagrid::inner_prod( hyperplane_normal, to_test-hyperplane_point ) > -1e-6 * viennagrid::norm_2(to_test-hyperplane_point);
+      return viennagrid::inner_prod( hyperplane_normal, to_test-hyperplane_point ) > 1e-8 * viennagrid::norm_2(to_test-hyperplane_point);
     }
 
     template<typename PointT>
@@ -40,23 +42,28 @@ namespace viennamesh
 
 
 
-
     template<typename SrcMeshT, typename DstMeshT, typename PointT, typename LineRefinementTagContainerT, typename LineRefinementVertexHandleContainerT>
     void mark_edges_to_refine(SrcMeshT const & src_mesh, DstMeshT & dst_mesh,
                               PointT const & hyperplane_point, PointT const & hyperplane_normal,
                               LineRefinementTagContainerT & line_refinement_tag_accessor,
                               LineRefinementVertexHandleContainerT & line_refinement_vertex_handle_accessor)
     {
+      typedef typename viennagrid::result_of::coord<SrcMeshT>::type NumericType;
       typedef typename viennagrid::result_of::const_line_range<SrcMeshT>::type ConstLineRangeType;
       typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
 
       ConstLineRangeType lines(src_mesh);
       for (ConstLineIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
       {
-        bool point0_on_clip_side = on_positive_hyperplane_side( hyperplane_point, hyperplane_normal, viennagrid::point( viennagrid::vertices(*lit)[0] ) );
-        bool point1_on_clip_side = on_positive_hyperplane_side( hyperplane_point, hyperplane_normal, viennagrid::point( viennagrid::vertices(*lit)[1] ) );
+        NumericType distance0 = viennagrid::inner_prod( hyperplane_normal, viennagrid::point( viennagrid::vertices(*lit)[0] )-hyperplane_point );
+        NumericType distance1 = viennagrid::inner_prod( hyperplane_normal, viennagrid::point( viennagrid::vertices(*lit)[1] )-hyperplane_point );
 
-        if (point0_on_clip_side != point1_on_clip_side)
+        NumericType tolerance = 1e-8 * viennagrid::volume(*lit);
+
+        if (distance0 > distance1)
+          std::swap(distance0, distance1);
+
+        if (distance0 < -tolerance && distance1 > tolerance)
         {
           line_refinement_tag_accessor(*lit) = true;
 
