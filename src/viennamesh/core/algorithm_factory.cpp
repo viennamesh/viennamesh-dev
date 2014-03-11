@@ -22,9 +22,9 @@ namespace viennamesh
     register_algorithm<viennamesh::extract_hull::algorithm>("extract_hull");
     register_algorithm<viennamesh::hyperplane_clip::algorithm>("hyperplane_clip");
 
-    register_algorithm<viennamesh::hyperplane_clip::algorithm>("map_segments");
-    register_algorithm<viennamesh::hyperplane_clip::algorithm>("merge_segments");
-    register_algorithm<viennamesh::hyperplane_clip::algorithm>("line_coarsening");
+    register_algorithm<viennamesh::map_segments::algorithm>("map_segments");
+    register_algorithm<viennamesh::merge_meshes::algorithm>("merge_meshes");
+    register_algorithm<viennamesh::line_coarsening::algorithm>("line_coarsening");
   }
 
 
