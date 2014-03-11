@@ -31,7 +31,7 @@ namespace viennamesh
 
 
     template<typename MeshT>
-    static bool convert(netgen::output_mesh const & input, MeshT & output)
+    bool convert(netgen::output_mesh const & input, MeshT & output)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
@@ -40,8 +40,8 @@ namespace viennamesh
       int num_points = input.mesh->GetNP();
       int num_tets = input.mesh->GetNE();
 
-      std::cout << "Num Points: " << num_points << std::endl;
-      std::cout << "Num Tets: " << num_tets << std::endl;
+//       std::cout << "Num Points: " << num_points << std::endl;
+//       std::cout << "Num Tets: " << num_tets << std::endl;
 
       std::vector<VertexHandleType> vertex_handles( num_points );
 
@@ -79,8 +79,8 @@ namespace viennamesh
       int num_points = input.mesh->GetNP();
       int num_tets = input.mesh->GetNE();
 
-      std::cout << "Num Points: " << num_points << std::endl;
-      std::cout << "Num Tets: " << num_tets << std::endl;
+//       std::cout << "Num Points: " << num_points << std::endl;
+//       std::cout << "Num Tets: " << num_tets << std::endl;
 
       std::vector<VertexHandleType> vertex_handles( num_points );
 
