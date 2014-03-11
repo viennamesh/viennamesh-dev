@@ -133,6 +133,12 @@ namespace viennamesh
 
 
     // sets an input parameter
+    void set_input( string const & name, const_parameter_handle const & parameter )
+    { inputs.set(name, parameter); }
+
+    void set_input( string const & name, parameter_handle const & parameter )
+    { inputs.set(name, parameter); }
+
     template<typename TypeT>
     void set_input( string const & name, TypeT const & value )
     { inputs.set( name, static_cast<parameter_handle const &>(make_parameter(value)) ); }
