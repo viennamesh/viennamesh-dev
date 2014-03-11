@@ -101,35 +101,25 @@ IF(NOT BUILD_SHARED_LIBS)
   SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
 ENDIF(NOT BUILD_SHARED_LIBS)
 
-set(VIENNAMESH_LIBS viennamesh-core)
 
 set(EXTERNAL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/)
 set(VIENNAMESH_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/)
 
-IF(WITH_NETGEN)
-  set(NETGEN_SOURCE_DIR ${EXTERNAL_SOURCE_DIR}/netgen/)
-ENDIF(WITH_NETGEN)
-
-IF(WITH_TETGEN)
-  set(TETGEN_SOURCE_DIR ${EXTERNAL_SOURCE_DIR}/tetgen/)
-ENDIF(WITH_TETGEN)
-
-IF(WITH_TRIANGLE)
-  set(TRIANGLE_SOURCE_DIR ${EXTERNAL_SOURCE_DIR}/triangle/)
-ENDIF(WITH_TRIANGLE)
+ADD_LIBRARY(viennamesh ${VIENNAMESH_SOURCE_DIR}/viennamesh/core.cpp)
 
 
 IF(NOT BUILD_SHARED_LIBS)
   SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
 ENDIF(NOT BUILD_SHARED_LIBS)
 
+add_subdirectory(external)
+include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
 
 add_subdirectory(src)
-add_subdirectory(external)
 
-
-ADD_LIBRARY(viennamesh ${VIENNAMESH_SOURCE_DIR}/viennamesh/core.cpp)
 target_link_libraries(viennamesh viennamesh-core)
+target_link_libraries(viennamesh ${VIENNAMESH_EXTERNAL_LIBRARIES})
+
 
 find_package (Threads REQUIRED)
 target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
@@ -140,17 +130,6 @@ IF (DEFINED ZLIB_REQUIRED_FOR_LIB_VIENNAMESH)
 ENDIF()
 
 
-IF(WITH_NETGEN)
-  target_link_libraries(viennamesh viennamesh-netgen)
-ENDIF(WITH_NETGEN)
-
-IF(WITH_TETGEN)
-  target_link_libraries(viennamesh viennamesh-tetgen)
-ENDIF(WITH_TETGEN)
-
-IF(WITH_TRIANGLE)
-  target_link_libraries(viennamesh viennamesh-triangle)
-ENDIF(WITH_TRIANGLE)
 
 
 # Subdirectories
