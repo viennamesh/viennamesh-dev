@@ -29,6 +29,22 @@ namespace viennamesh
       return false;
     }
 
+    pugi::xml_node default_source_algorithm_node = algorithm_node.child("default_source");
+    if (default_source_algorithm_node)
+    {
+      string default_source_algorithm = default_source_algorithm_node.text().as_string();
+
+      std::map<string, algorithm_handle>::iterator ait = algorithms.find( default_source_algorithm );
+      if (ait == algorithms.end())
+      {
+        error(1) << "Default source algorithm \"" << default_source_algorithm << "\" was not found" << std::endl;
+        return false;
+      }
+
+      algorithm->set_default_source_algorithm( ait->second );
+    }
+
+
     for (pugi::xml_node paramater_node = algorithm_node.child("parameter");
           paramater_node;
           paramater_node = paramater_node.next_sibling("parameter"))
@@ -82,7 +98,7 @@ namespace viennamesh
           return false;
         }
 
-        algorithm->set_input( parameter_name, make_parameter_link(ait->second, source_parameter_name) );
+        algorithm->link_input( parameter_name, ait->second, source_parameter_name );
       }
       else
       {
