@@ -3,7 +3,6 @@
 
 #include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/algorithm/io/common.hpp"
-
 #include "pugixml/pugixml.hpp"
 
 namespace viennamesh
