@@ -24,6 +24,7 @@ set(EXAMPLES_TESTDATA
    data/half-trigate_main.pvd
 
    data/pipeline.xml
+   data/netgen_csg_pipeline.xml
    )
 foreach(f IN LISTS EXAMPLES_TESTDATA)
    configure_file(${f} "${CMAKE_CURRENT_BINARY_DIR}/${f}" COPYONLY)
