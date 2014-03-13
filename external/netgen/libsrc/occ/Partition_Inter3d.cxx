@@ -3,23 +3,23 @@
 //  GEOM PARTITION : partition algorithm
 //
 //  Copyright (C) 2003  OPEN CASCADE, EADS/CCR, LIP6, CEA/DEN,
-//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS 
-// 
-//  This library is free software; you can redistribute it and/or 
-//  modify it under the terms of the GNU Lesser General Public 
-//  License as published by the Free Software Foundation; either 
-//  version 2.1 of the License. 
-// 
-//  This library is distributed in the hope that it will be useful, 
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of 
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-//  Lesser General Public License for more details. 
-// 
-//  You should have received a copy of the GNU Lesser General Public 
-//  License along with this library; if not, write to the Free Software 
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA 
-// 
-//  See http://www.opencascade.org/SALOME/ or email : webmaster.salome@opencascade.org 
+//  CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2.1 of the License.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+//
+//  See http://www.opencascade.org/SALOME/ or email : webmaster.salome@opencascade.org
 //
 //
 //
@@ -90,7 +90,7 @@
 
 //=======================================================================
 //function : Partition_Inter3d
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 Partition_Inter3d::Partition_Inter3d()
@@ -98,7 +98,7 @@ Partition_Inter3d::Partition_Inter3d()
 }
 //=======================================================================
 //function : Partition_Inter3d
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 Partition_Inter3d::Partition_Inter3d(const Handle(BRepAlgo_AsDes)& AsDes)
@@ -117,7 +117,7 @@ void Partition_Inter3d::CompletPart3d(const TopTools_ListOfShape& SetOfFaces1,
 {
   if (myAsDes.IsNull())
     myAsDes = new BRepAlgo_AsDes;
-  
+
   TopTools_ListIteratorOfListOfShape it;
 
   //---------------------------------------------------------------
@@ -129,13 +129,13 @@ void Partition_Inter3d::CompletPart3d(const TopTools_ListOfShape& SetOfFaces1,
   B.MakeCompound(CompOS);
   for (it.Initialize(SetOfFaces1); it.More(); it.Next())
     B.Add(CompOS, it.Value());
-    
+
   TopOpeBRepTool_BoxSort BOS;
   BOS.AddBoxesMakeCOB(CompOS,TopAbs_FACE);
 
   for (it.Initialize(SetOfFaces1); it.More(); it.Next()) {
     TopoDS_Face F1 = TopoDS::Face(it.Value());
-    
+
     // avoid intersecting faces of one shape
     TopoDS_Shape S1;
     if (FaceShapeMap.IsBound(F1)) S1 = FaceShapeMap.Find(F1);
@@ -143,7 +143,7 @@ void Partition_Inter3d::CompletPart3d(const TopTools_ListOfShape& SetOfFaces1,
     // to filter faces sharing an edge
     TopTools_IndexedMapOfShape EM;
     TopExp::MapShapes( F1, TopAbs_EDGE, EM);
-    
+
     TColStd_ListIteratorOfListOfInteger itLI = BOS.Compare(F1);
     for (; itLI.More(); itLI.Next()) {
       TopoDS_Face F2 = TopoDS::Face(BOS.TouchedShape(itLI));
@@ -173,7 +173,7 @@ void Partition_Inter3d::CompletPart3d(const TopTools_ListOfShape& SetOfFaces1,
 
       F1.Orientation(TopAbs_FORWARD);
       F2.Orientation(TopAbs_FORWARD);
-      FacesPartition(F1,F2);	  
+      FacesPartition(F1,F2);
     }
 
     // mark as modified a face which has at least one new edge
@@ -191,7 +191,7 @@ void Partition_Inter3d::CompletPart3d(const TopTools_ListOfShape& SetOfFaces1,
 
 //=======================================================================
 //function : PutInBounds
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 static void PutInBounds (const TopoDS_Face&          F,
@@ -243,7 +243,7 @@ static void PutInBounds (const TopoDS_Face&          F,
       Standard_Integer i, nbExt = anExtPS.NbExt();
       Extrema_POnSurf aPOnSurf;
       for (i = 1; i <= nbExt; ++i )
-	if (anExtPS.Value( i ) <= TolE)               // V6.3
+	if (anExtPS.SquareDistance( i ) <= TolE)               // V6.3
 	  // if (anExtPS.SquareDistance( i ) <= TolE)   // V6.5
 	  {
           aPOnSurf = anExtPS.Point( i );
@@ -325,7 +325,7 @@ static void PutInBounds (const TopoDS_Face&          F,
 
 //=======================================================================
 //function : Inter3D
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
@@ -333,7 +333,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
 				TopTools_ListOfShape& L)
 {
   BRep_Builder B;
-  
+
   // fill the data Structure
   Handle(TopOpeBRepDS_HDataStructure) DatStr = new TopOpeBRepDS_HDataStructure();
   TopOpeBRep_DSFiller DSFiller;
@@ -343,7 +343,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
   // compute BSpline of degree 1 on intersection curves.
   Standard_Real tol3dAPPROX = 1e-7;
   Standard_Real tol2dAPPROX = 1e-7;
-  TopOpeBRepTool_GeomTool GT2 (TopOpeBRepTool_APPROX);  
+  TopOpeBRepTool_GeomTool GT2 (TopOpeBRepTool_APPROX);
   GT2.SetTolerances(tol3dAPPROX,tol2dAPPROX);
   TopOpeBRepDS_BuildTool  BT(GT2);
 
@@ -354,7 +354,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
   // ===============
   // Store new edges
   // ===============
-  
+
   L.Clear();
   TopOpeBRepDS_CurveExplorer cex(DatStr->DS());
   for (; cex.More(); cex.Next()) {
@@ -362,19 +362,19 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
     Standard_Integer ic = cex.Index();
     Handle(Geom2d_Curve) pc1 = CDS.Curve1();
     Handle(Geom2d_Curve) pc2 = CDS.Curve2();
-    
+
     TopTools_ListIteratorOfListOfShape itLE = TopB.NewEdges(ic);
     while (itLE.More()) {
       TopoDS_Edge E = TopoDS::Edge(itLE.Value());
-      
+
       PutInBounds (F1,E,pc1);
       PutInBounds (F2,E,pc2);
-      
+
       B.UpdateEdge (E,pc1,F1,0.);
       B.UpdateEdge (E,pc2,F2,0.);
-      
+
       L.Append (E);
-      
+
       itLE.Next();
       if (itLE.More()) {
 	pc1 = Handle(Geom2d_Curve)::DownCast(pc1->Copy());
@@ -384,7 +384,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
   }
 
   // ========================
-  // store same domain faces 
+  // store same domain faces
   // ========================
 
 
@@ -407,12 +407,12 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
   Standard_Integer j,i,nse = DS.NbSectionEdges();
   if (nse == 0) return;
 
-    
+
   TopoDS_Vertex V, sdeV1, sdeV2;
   TopTools_MapOfShape MV;
   TopTools_ListOfShape LSE; // list of section edges
   TopoDS_Face dummyF;
-  
+
   for (i = 1; i <= nse; i++)
   {
     const TopoDS_Edge & se = DS.SectionEdge(i);
@@ -422,7 +422,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
 
     // add vertices where section edges interferes with other
     // edges as its descendant in myAsDes
-    
+
     TopoDS_Edge sde, oe; // same domain, other edge
     if (DatStr->HasSameDomain(se)) {
       sde = TopoDS::Edge( DatStr->SameDomain(se).Value() );
@@ -472,7 +472,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
 
   // add section edge to the face it intersects and find
   // splits ON that do not have same domain pair
-  
+
   TopB.SplitSectionEdges(); // let TopB find ON splits
 
   TopTools_MapOfShape SPM; // map of ON splits
@@ -543,7 +543,7 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
   }
 
   // store vertices of ON splits and bind section edges to faces
-  
+
   for (itLSE.Initialize (LSE); itLSE.More(); itLSE.Next())
   {
     const TopoDS_Shape& se = itLSE.Value();
@@ -558,12 +558,12 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
     {
       if (!SPM.Contains( itSP.Value() ))
 	continue;
-      
+
       const TopoDS_Edge& S = TopoDS::Edge ( itSP.Value());
 
       added = Standard_True;
       mySectionEdgesAD->Add( F, se );
-      
+
       TopoDS_Vertex VS[2];
       TopExp::Vertices (S, VS[0], VS[1]);
       for (j=0; j<2; ++j)
@@ -599,14 +599,14 @@ void Partition_Inter3d::Inter3D(const TopoDS_Face& F1,
     }
     if (!added)
       mySectionEdgesAD->Add( F, se );
-    
+
     myNewEdges.Add( se );
   }
 }
 
 //=======================================================================
 //function : FacesPartition
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 void Partition_Inter3d::FacesPartition(const TopoDS_Face& F1,
@@ -616,16 +616,16 @@ void Partition_Inter3d::FacesPartition(const TopoDS_Face& F1,
   TopTools_ListOfShape LInt;
 
   Inter3D (F1,F2,LInt);
-  
+
   StorePart3d (F1,F2,LInt);
 }
 
 //=======================================================================
 //function : SetDone
-//purpose  : 
+//purpose  :
 //=======================================================================
 
-void Partition_Inter3d::SetDone(const TopoDS_Face& F1, 
+void Partition_Inter3d::SetDone(const TopoDS_Face& F1,
 				const TopoDS_Face& F2)
 {
   if (!myDone.IsBound(F1)) {
@@ -642,13 +642,13 @@ void Partition_Inter3d::SetDone(const TopoDS_Face& F1,
 
 //=======================================================================
 //function : IsDone
-//purpose  : 
+//purpose  :
 //=======================================================================
 
-Standard_Boolean Partition_Inter3d::IsDone(const TopoDS_Face& F1, 
-					   const TopoDS_Face& F2) 
+Standard_Boolean Partition_Inter3d::IsDone(const TopoDS_Face& F1,
+					   const TopoDS_Face& F2)
 
-  const 
+  const
 {
   if (myDone.IsBound(F1)) {
     TopTools_ListIteratorOfListOfShape it (myDone(F1));
@@ -661,11 +661,11 @@ Standard_Boolean Partition_Inter3d::IsDone(const TopoDS_Face& F1,
 
 //=======================================================================
 //function : StorePart3d
-//purpose  : 
+//purpose  :
 //=======================================================================
 
-void Partition_Inter3d::StorePart3d(const TopoDS_Face& F1, 
-				    const TopoDS_Face& F2, 
+void Partition_Inter3d::StorePart3d(const TopoDS_Face& F1,
+				    const TopoDS_Face& F2,
 				    const TopTools_ListOfShape& LInt)
 {
   if (!LInt.IsEmpty()) {
@@ -680,7 +680,7 @@ void Partition_Inter3d::StorePart3d(const TopoDS_Face& F1,
       BRep_Builder B;
       B.SameParameter(E,Standard_False);
       BRepLib::SameParameter(E,1.0e-7);
-      
+
       myNewEdges.Add(E);
     }
   }
@@ -689,7 +689,7 @@ void Partition_Inter3d::StorePart3d(const TopoDS_Face& F1,
 
 //=======================================================================
 //function : TouchedFaces
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 TopTools_MapOfShape& Partition_Inter3d::TouchedFaces()
@@ -699,27 +699,27 @@ TopTools_MapOfShape& Partition_Inter3d::TouchedFaces()
 
 //=======================================================================
 //function : AsDes
-//purpose  : 
+//purpose  :
 //=======================================================================
 
-Handle(BRepAlgo_AsDes) Partition_Inter3d::AsDes() const 
+Handle(BRepAlgo_AsDes) Partition_Inter3d::AsDes() const
 {
   return myAsDes;
 }
 
 //=======================================================================
 //function : NewEdges
-//purpose  : 
+//purpose  :
 //=======================================================================
 
-TopTools_MapOfShape& Partition_Inter3d::NewEdges() 
+TopTools_MapOfShape& Partition_Inter3d::NewEdges()
 {
   return myNewEdges;
 }
 
 //=======================================================================
 //function : Affiche
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 void Partition_Inter3d::Affiche(const TopTools_ListOfShape& SetOfFaces) const
@@ -741,7 +741,7 @@ void Partition_Inter3d::Affiche(const TopTools_ListOfShape& SetOfFaces) const
       const TopoDS_Shape& SS = itaList.Value();
       i++;
       sprintf(PSection,"section_%d",i);
-      DBRep::Set(section,SS);  
+      DBRep::Set(section,SS);
     }
   }
 #endif
@@ -749,7 +749,7 @@ void Partition_Inter3d::Affiche(const TopTools_ListOfShape& SetOfFaces) const
 
 //=======================================================================
 //function : SameDomain
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 const TopTools_ListOfShape& Partition_Inter3d::SameDomain(const TopoDS_Face& F) const
@@ -781,7 +781,7 @@ Standard_Boolean Partition_Inter3d::IsSameDomainF(const TopoDS_Shape& F1,
 {
   if (mySameDomainFM.IsBound( F1 )) {
     TopTools_ListIteratorOfListOfShape it (mySameDomainFM( F1 ));
-    for (; it.More(); it.Next()) 
+    for (; it.More(); it.Next())
       if (F2.IsSame( it.Value()))
 	return Standard_True;
   }
@@ -819,14 +819,14 @@ TopoDS_Vertex Partition_Inter3d::ReplaceSameDomainV(const TopoDS_Vertex& V,
     }
     else
       B.UpdateVertex (SDV, BRep_Tool::Parameter(V,E), E, tol);
-      
+
   }
   return SDV;
 }
 
 //=======================================================================
 //function : SectionEdgesAD
-//purpose  : 
+//purpose  :
 //=======================================================================
 
 Handle(BRepAlgo_AsDes) Partition_Inter3d::SectionEdgesAD() const
@@ -888,10 +888,10 @@ Standard_Boolean
 
     TopoDS_Vertex V1, V2;
     TopExp::Vertices( OldE, V1, V2);
-    
+
     if ( V1.IsSame(V2) &&
 	(V1.IsSame(V3) || V1.IsSame(V4)) ) {
-      // closed old edge; use the split for the test 
+      // closed old edge; use the split for the test
       itE.Next();
       if (!itE.More()) break;
       const TopoDS_Edge& split = TopoDS::Edge( itE.Value() );
