@@ -28,6 +28,7 @@ include(ViennaMeshCommon)
 option(WITH_TRIANGLE "Build the Triangle library" ON)
 option(WITH_TETGEN "Build the Tetgen library" ON)
 option(WITH_NETGEN "Build the Netgen library" ON)
+option(NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" ON)
 
 option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
 
@@ -96,7 +97,6 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 # libviennamesh
 ################
 
-
 IF(NOT BUILD_SHARED_LIBS)
   SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
 ENDIF(NOT BUILD_SHARED_LIBS)
@@ -107,13 +107,9 @@ set(VIENNAMESH_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/)
 
 ADD_LIBRARY(viennamesh ${VIENNAMESH_SOURCE_DIR}/viennamesh/core.cpp)
 
-
-IF(NOT BUILD_SHARED_LIBS)
-  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
-ENDIF(NOT BUILD_SHARED_LIBS)
-
 add_subdirectory(external)
 include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
+message( "BLABLA ${LIBVIENNAMESH_COMPILE_FLAGS}" )
 
 add_subdirectory(src)
 
