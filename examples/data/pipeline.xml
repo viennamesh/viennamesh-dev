@@ -1,4 +1,4 @@
-<algorithm type="mesh_reader" name="input">
+<algorithm type="mesh_reader" category="mesh" name="input">
 <!--   <parameter name="filename" type="string">cube_with_tunnel.poly</parameter> -->
   <parameter name="filename" type="string">big_and_small_cube.poly</parameter>
 </algorithm>
