@@ -17,9 +17,21 @@ namespace viennamesh
     register_algorithm<viennamesh::io::string_reader>("string_reader");
     register_algorithm<viennamesh::io::mesh_writer>("mesh_writer");
 
+#ifdef WITH_TRIANGLE
     register_algorithm<viennamesh::triangle::algorithm>("generate_triangle");
+#endif
+
+#ifdef WITH_TETGEN
     register_algorithm<viennamesh::tetgen::algorithm>("generate_tetgen");
+#endif
+
+#ifdef WITH_NETGEN
     register_algorithm<viennamesh::netgen::csg_mesher>("netgen_csg");
+#ifdef NETGEN_WITH_OPENCASCADE
+    register_algorithm<viennamesh::netgen::occ_mesher>("netgen_occ");
+#endif
+#endif
+
 
     register_algorithm<viennamesh::affine_transform::algorithm>("affine_transform");
     register_algorithm<viennamesh::extract_hull::algorithm>("extract_hull");
