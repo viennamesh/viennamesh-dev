@@ -22,37 +22,37 @@ namespace viennamesh
       FMap.Assign( geometry->fmap );
       if (!FMap.Extent())
       {
-        std::cout << "Error retrieving Face map...." << endl;
+        std::cout << "Error retrieving Face map... (OpenCascade error)" << endl;
         return false;
       }
 
-//       cout << "Successfully extracted the Face Map....:" << FMap.Extent() << endl;
-
-//         for(int i = 1; i <= FMap.Extent(); i++)
-//         {
-//             TopoDS_Face OCCface;
-//             OCCface = TopoDS::Face(FMap.FindKey(i));
-//
-//             GProp_GProps faceProps;
-//             BRepGProp::SurfaceProperties(OCCface,faceProps);
-//
-//             cout << "Index: " << i
-//                 << " :: Area: " << faceProps.Mass()
-//                 << " :: Hash: " << OCCface.HashCode(1e+6)
-//                 << endl;
-//         }
-
       ::netgen::MeshingParameters mp;
-      mp.uselocalh = 1;
+
+      mp.elementorder = 0;
+      mp.quad = 0;
+      mp.inverttets = 0;
+      mp.inverttrigs = 0;
+
+      viennamesh::result_of::const_parameter_handle<double>::type cell_size = get_input<double>("cell_size");
+      if (cell_size)
+      {
+        mp.uselocalh = 1;
+        mp.maxh = cell_size();
+      }
+
       mp.curvaturesafety = 2.0;
-      mp.segmentsperedge = 2.0;
-//         mp.elementsperedge = 2.0;
-//         mp.elementspercurve = 2.0;
-      mp.maxh = 0.5;
-      mp.grading = 0.2;
-//         mp.closeedgeenable = 0;
-//         mp.closeedgefact = 1.0;
-//         mp.optsurfmeshenable = 1;
+      copy_input( "curvature_safety_factor", mp.curvaturesafety );
+
+      mp.segmentsperedge = 1.0;
+      copy_input( "segments_per_edge", mp.segmentsperedge );
+
+      mp.grading = 0.3;
+      copy_input( "grading", mp.grading );
+
+//       mp.Print(std::cout);
+
+
+      int perfstepsend = 6;
 
       output_mesh().mesh->geomtype = ::netgen::Mesh::GEOM_OCC;
       ::netgen::occparam.resthcloseedgeenable = 0; //mp.closeedgeenable;
@@ -65,21 +65,15 @@ namespace viennamesh
 
 
       ::netgen::OCCFindEdges(*geometry, *output_mesh().mesh);
-      int perfstepsend = 4;
+
       ::netgen::OCCMeshSurface(*geometry, *output_mesh().mesh, perfstepsend);
       output_mesh().mesh->CalcSurfacesOfNode();
 
       ::netgen::MeshVolume(mp, *output_mesh().mesh);
       ::netgen::RemoveIllegalElements( *output_mesh().mesh );
+      ::netgen::MeshQuality3d( *output_mesh().mesh );
+
       ::netgen::OptimizeVolume(mp, *output_mesh().mesh );
-
-//         Ng_OCC_GenerateSurfaceMesh (geometry, mesh, &mesh_parameters);
-//         Ng_GenerateVolumeMesh(mesh, &mesh_parameters);
-
-//         Ng_SaveMesh(mesh, "test.mesh");
-//         Ng_DeleteMesh(mesh);
-
-//         Ng_Exit();
 
       return true;
     }
