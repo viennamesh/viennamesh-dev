@@ -4,9 +4,18 @@
 #include "viennagrid/config/default_configs.hpp"
 
 #if __cplusplus > 199711L
+  #define VIENNAMESH_USES_CPP11
+#else
+  #define VIENNAMESH_USES_BOOST
+#endif
+
+
+#ifdef VIENNAMESH_USES_CPP11
   #include <functional>
   #include <memory>
-#else
+#endif
+
+#ifdef VIENNAMESH_USES_BOOST
   #include <boost/shared_ptr.hpp>
   #include <boost/enable_shared_from_this.hpp>
 
@@ -20,7 +29,7 @@ using stringtools::lexical_cast;
 
 namespace viennamesh
 {
-#if __cplusplus > 199711L
+#ifdef VIENNAMESH_USES_CPP11
   using std::shared_ptr;
   using std::enable_shared_from_this;
   using std::dynamic_pointer_cast;
@@ -28,7 +37,10 @@ namespace viennamesh
 
   using std::function;
   using std::bind;
-#else
+#endif
+
+
+#ifdef VIENNAMESH_USES_BOOST
   using boost::shared_ptr;
   using boost::enable_shared_from_this;
   using boost::dynamic_pointer_cast;
