@@ -70,6 +70,19 @@ namespace viennamesh
 
       typedef typename viennagrid::result_of::segment_handle<HullSegmentationT>::type      HullSegmentHandleType;
 
+
+      typedef typename viennagrid::result_of::element<VolumeSegmentHandleType, HullTagType>::type    VolumeHullElementType;
+      typedef typename viennagrid::result_of::element<HullSegmentHandleType, HullTagType>::type     HullCellElementType;
+
+      typedef typename viennagrid::result_of::id<VolumeHullElementType>::type VolumeHullElementIDType;
+      typedef typename viennagrid::result_of::handle<HullSegmentHandleType, HullTagType>::type HullCellElementHandleType;
+
+      typedef typename viennagrid::result_of::vertex_id<VolumeMeshT>::type VolumeVertexIDType;
+      typedef typename viennagrid::result_of::vertex_handle<HullSegmentHandleType>::type HullVertexHandleType;
+
+      std::map< VolumeVertexIDType, HullVertexHandleType > vertex_map;
+      std::map< VolumeHullElementIDType, HullCellElementHandleType > hull_element_map;
+
       for (typename VolumeSegmentationT::const_iterator sit = volume_segmentation.begin(); sit != volume_segmentation.end(); ++sit)
       {
         VolumeSegmentHandleType const & volume_segment = *sit;
@@ -77,18 +90,6 @@ namespace viennamesh
 
         typedef typename viennagrid::result_of::const_element_range<VolumeSegmentHandleType, HullTagType>::type    HullRangeType;
         typedef typename viennagrid::result_of::iterator<HullRangeType>::type                                   HullRangeIterator;
-
-        typedef typename viennagrid::result_of::element<VolumeSegmentHandleType, HullTagType>::type    VolumeHullElementType;
-        typedef typename viennagrid::result_of::element<HullSegmentHandleType, HullTagType>::type     HullCellElementType;
-
-        typedef typename viennagrid::result_of::id<VolumeHullElementType>::type VolumeHullElementIDType;
-        typedef typename viennagrid::result_of::handle<HullSegmentHandleType, HullTagType>::type HullCellElementHandleType;
-
-        typedef typename viennagrid::result_of::vertex_id<VolumeMeshT>::type VolumeVertexIDType;
-        typedef typename viennagrid::result_of::vertex_handle<HullSegmentHandleType>::type HullVertexHandleType;
-
-        std::map< VolumeVertexIDType, HullVertexHandleType > vertex_map;
-        std::map< VolumeHullElementIDType, HullCellElementHandleType > hull_element_map;
 
         HullRangeType hull_elements( volume_segment );
         for (HullRangeIterator hit = hull_elements.begin(); hit != hull_elements.end(); ++hit)
