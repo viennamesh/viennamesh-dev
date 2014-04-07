@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -65,7 +64,7 @@ int main(int argc, char **argv)
     }
 
 
-    viennamesh::algorithm_handle map_segments( new viennamesh::map_segments::algorithm() );
+    viennamesh::algorithm_handle map_segments( new viennamesh::map_segments() );
     map_segments->set_input( "default", reader->get_output("default") );
     map_segments->set_input( "segment_mapping", segment_mapping );
     map_segments->run();

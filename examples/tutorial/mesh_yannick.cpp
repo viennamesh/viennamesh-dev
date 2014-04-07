@@ -1,6 +1,4 @@
-#include "viennamesh/algorithm/viennagrid.hpp"
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/triangle.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 #include "viennagrid/io/vtk_reader.hpp"
 #include "viennagrid/io/vtk_writer.hpp"

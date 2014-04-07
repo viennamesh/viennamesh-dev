@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -41,7 +40,7 @@ int main(int argc, char **argv)
     reader1->run();
 
 
-    viennamesh::algorithm_handle merge_meshes( new viennamesh::merge_meshes::algorithm() );
+    viennamesh::algorithm_handle merge_meshes( new viennamesh::merge_meshes() );
     merge_meshes->set_input( "input0_mesh", reader0->get_output("default") );
     merge_meshes->set_input( "input1_mesh", reader1->get_output("default") );
     merge_meshes->run();

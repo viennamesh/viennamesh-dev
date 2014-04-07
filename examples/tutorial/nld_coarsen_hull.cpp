@@ -1,7 +1,6 @@
 #include <sstream>
 
-#include "viennamesh/algorithm/viennagrid.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 
 int main( int argc, char** argv )
@@ -38,10 +37,10 @@ int main( int argc, char** argv )
   reader->run();
 
 
-  viennamesh::algorithm_handle coarsen_hull( new viennamesh::line_coarsening::algorithm() );
+  viennamesh::algorithm_handle coarsen_hull( new viennamesh::line_coarsening() );
   coarsen_hull->set_input( "max_angle", max_angle ); // 3.1
 
-  viennamesh::algorithm_handle laplace_smooth( new viennamesh::laplace_smooth::algorithm() );
+  viennamesh::algorithm_handle laplace_smooth( new viennamesh::laplace_smooth() );
   laplace_smooth->set_input( "lambda", lambda ); // 0.75
   laplace_smooth->set_input( "max_distance", max_distance ); // 3e-8
 

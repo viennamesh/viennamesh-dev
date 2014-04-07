@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -40,7 +39,7 @@ int main(int argc, char **argv)
     reader->run();
 
 
-    viennamesh::algorithm_handle project( new viennamesh::line_coarsening::algorithm() );
+    viennamesh::algorithm_handle project( new viennamesh::line_coarsening() );
     project->set_input( "default", reader->get_output("default") );
     if (angle.isSet())
       project->set_input( "angle", angle.getValue() );

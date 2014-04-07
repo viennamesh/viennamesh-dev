@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include <tclap/CmdLine.h>
 
 
@@ -49,7 +48,7 @@ int main(int argc, char **argv)
     viennamesh::dynamic_point hyperplane_normal = stringtools::vector_from_string<double>( hyperplane_normal_string.getValue() );
 
 
-    viennamesh::algorithm_handle clip( new viennamesh::hyperplane_clip::algorithm() );
+    viennamesh::algorithm_handle clip( new viennamesh::hyperplane_clip() );
     clip->set_input( "default", reader->get_output("default") );
     clip->set_input( "hyperplane_point", hyperplane_point );
     clip->set_input( "hyperplane_normal", hyperplane_normal );

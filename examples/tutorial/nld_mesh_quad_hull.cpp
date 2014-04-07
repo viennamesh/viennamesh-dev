@@ -1,6 +1,4 @@
-#include "viennamesh/algorithm/triangle.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 
 int main( int argc, char** argv )

@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/tetgen.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include "viennamesh/utils/memory_capture.hpp"
 
 

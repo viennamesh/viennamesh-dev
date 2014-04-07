@@ -1,24 +1,26 @@
-#include "viennamesh/algorithm/tetgen/generator.hpp"
+#ifdef VIENNAMESH_WITH_TETGEN
+
+#include "viennamesh/algorithm/tetgen/tetgen_mesh_generator.hpp"
 
 #include <cstring>
 #include "viennagrid/algorithm/distance.hpp"
-#include "viennamesh/algorithm/viennagrid/extract_seed_points.hpp"
+#include "viennagrid/algorithm/extract_seed_points.hpp"
 
 
 namespace viennamesh
 {
   namespace tetgen
   {
-    viennamesh::sizing_function_3d algorithm::sizing_function;
-    bool algorithm::using_sizing_function;
+    viennamesh::sizing_function_3d mesh_generator::sizing_function;
+    bool mesh_generator::using_sizing_function;
 
-    double algorithm::max_edge_ratio;
-    bool algorithm::using_max_edge_ratio;
+    double mesh_generator::max_edge_ratio;
+    bool mesh_generator::using_max_edge_ratio;
 
-    double algorithm::max_inscribed_radius_edge_ratio;
-    bool algorithm::using_max_inscribed_radius_edge_ratio;
+    double mesh_generator::max_inscribed_radius_edge_ratio;
+    bool mesh_generator::using_max_inscribed_radius_edge_ratio;
 
-    bool algorithm::should_tetrahedron_be_refined(REAL * tet_p0, REAL * tet_p1, REAL * tet_p2, REAL * tet_p3, REAL * , REAL)
+    bool mesh_generator::should_tetrahedron_be_refined(REAL * tet_p0, REAL * tet_p1, REAL * tet_p2, REAL * tet_p3, REAL * , REAL)
     {
       point_3d p0( tet_p0[0], tet_p0[1], tet_p0[2]);
       point_3d p1( tet_p1[0], tet_p1[1], tet_p1[2]);
@@ -90,7 +92,7 @@ namespace viennamesh
 
 
 
-    void algorithm::extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points )
+    void mesh_generator::extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points )
     {
       if (segmentation.segments.empty())
         return;
@@ -129,7 +131,7 @@ namespace viennamesh
         viennamesh::tetgen::convert( tmp_mesh, viennagrid_mesh );
 
         unsigned int i = seed_points.size();
-        viennamesh::extract_seed_points::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
+        viennagrid::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
         for (; i < seed_points.size(); ++i)
           info(5) << "Found seed point: " << seed_points[i].first << std::endl;
 
@@ -139,7 +141,7 @@ namespace viennamesh
     }
 
 
-    bool algorithm::run_impl()
+    bool mesh_generator::run_impl()
     {
       typedef viennagrid::segmented_mesh< tetgen::input_mesh, tetgen::input_segmentation > InputMeshType;
       typedef tetgen::output_mesh OutputMeshType;
@@ -367,3 +369,5 @@ namespace viennamesh
     }
   }
 }
+
+#endif

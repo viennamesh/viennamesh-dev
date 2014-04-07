@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-
+#include "viennamesh/viennamesh.hpp"
 
 int main()
 {

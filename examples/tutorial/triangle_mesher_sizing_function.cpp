@@ -1,6 +1,4 @@
-#include "viennamesh/algorithm/triangle.hpp"
-#include "viennamesh/algorithm/io.hpp"
-
+#include "viennamesh/viennamesh.hpp"
 
 
 double my_sizing( viennamesh::point_2d const & pt )
@@ -88,7 +86,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::triangle::algorithm() );
+  viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
 
   viennamesh::sizing_function_2d sizing_function = my_sizing;
   mesher->set_input( "sizing_function", sizing_function );

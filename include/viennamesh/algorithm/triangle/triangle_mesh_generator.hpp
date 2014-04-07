@@ -1,16 +1,15 @@
-#ifndef VIENNAMESH_ALGORITHM_TRIANGLE_GENERATOR_HPP
-#define VIENNAMESH_ALGORITHM_TRIANGLE_GENERATOR_HPP
+#ifndef VIENNAMESH_ALGORITHM_TRIANGLE_MESH_GENERATOR_HPP
+#define VIENNAMESH_ALGORITHM_TRIANGLE_MESH_GENERATOR_HPP
 
 #include <cstring>
 #include "viennamesh/core/algorithm.hpp"
-#include "viennamesh/algorithm/triangle/mesh.hpp"
-#include "viennamesh/algorithm/viennagrid/extract_seed_points.hpp"
+#include "viennamesh/algorithm/triangle/triangle_mesh.hpp"
 
 namespace viennamesh
 {
   namespace triangle
   {
-    class algorithm : public base_algorithm
+    class mesh_generator : public base_algorithm
     {
     public:
 

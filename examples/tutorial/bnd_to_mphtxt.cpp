@@ -5,8 +5,7 @@
 #include "viennagrid/io/mphtxt_writer.hpp"
 #include "viennagrid/mesh/element_creation.hpp"
 
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/tetgen.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 #include "viennamesh/algorithm/viennagrid/extract_plc.hpp"
 #include "viennamesh/algorithm/viennagrid/extract_seed_points.hpp"

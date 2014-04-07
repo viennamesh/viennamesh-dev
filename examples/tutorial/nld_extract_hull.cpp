@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/viennagrid.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 
 int main()
@@ -15,7 +14,7 @@ int main()
 
 
   // creating a hull extraction algorithm
-  viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull::algorithm() );
+  viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull() );
 
   extract_hull->set_input( "default", reader->get_output("default") );
 

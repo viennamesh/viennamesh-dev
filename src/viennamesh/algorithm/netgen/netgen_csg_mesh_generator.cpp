@@ -1,11 +1,13 @@
-#include "viennamesh/algorithm/netgen/csg_generator.hpp"
-#include "viennamesh/algorithm/netgen/mesh.hpp"
+#ifdef VIENNAMESH_WITH_NETGEN
+
+#include "viennamesh/algorithm/netgen/netgen_csg_mesh_generator.hpp"
+#include "viennamesh/algorithm/netgen/netgen_mesh.hpp"
 
 namespace viennamesh
 {
   namespace netgen
   {
-    bool csg_mesher::run_impl()
+    bool csg_mesh_generator::run_impl()
     {
       const_string_parameter_handle csg_string = get_required_input<string>("default");
       output_parameter_proxy<netgen::output_mesh> output_mesh = output_proxy<netgen::output_mesh>("default");
@@ -45,3 +47,5 @@ namespace viennamesh
     }
   }
 }
+
+#endif

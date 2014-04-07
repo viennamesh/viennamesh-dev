@@ -1,6 +1,4 @@
-#include "viennamesh/algorithm/tetgen.hpp"
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include "viennamesh/core/sizing_function.hpp"
 
 #include "viennagrid/io/vtk_writer.hpp"

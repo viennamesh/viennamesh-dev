@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/triangle.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 
 int main()
@@ -53,7 +52,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::triangle::algorithm() );
+  viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
 
   // setting the created line geometry as input for the mesher
   mesher->set_input( "default", geometry );

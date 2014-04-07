@@ -1,6 +1,7 @@
-#include "viennamesh/algorithm/netgen/occ_generator.hpp"
+#if defined(VIENNAMESH_WITH_NETGEN) && defined(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
 
-#include "viennamesh/algorithm/netgen/mesh.hpp"
+#include "viennamesh/algorithm/netgen/netgen_occ_mesh_generator.hpp"
+#include "viennamesh/algorithm/netgen/netgen_mesh.hpp"
 
 #define OCCGEOMETRY
 #include "netgen/libsrc/occ/occgeom.hpp"
@@ -10,7 +11,7 @@ namespace viennamesh
 {
   namespace netgen
   {
-    bool occ_mesher::run_impl()
+    bool occ_mesh_generator::run_impl()
     {
       const_string_parameter_handle filename = get_required_input<string>("default");
       output_parameter_proxy<netgen::output_mesh> output_mesh = output_proxy<netgen::output_mesh>("default");
@@ -79,3 +80,5 @@ namespace viennamesh
     }
   }
 }
+
+#endif

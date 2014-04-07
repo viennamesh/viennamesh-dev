@@ -25,14 +25,15 @@ include(ViennaMeshCommon)
 
 # User options
 ##############
-option(WITH_TRIANGLE "Build the Triangle library" ON)
-option(WITH_TETGEN "Build the Tetgen library" ON)
-option(WITH_NETGEN "Build the Netgen library" ON)
-option(NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" ON)
+option(VIENNAMESH_WITH_TRIANGLE "Build the Triangle library" ON)
+option(VIENNAMESH_WITH_TETGEN "Build the Tetgen library" ON)
+option(VIENNAMESH_WITH_NETGEN "Build the Netgen library" ON)
+option(VIENNAMESH_NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" ON)
+
 option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" ON)
-
+option(BUILD_EXAMPLES "Build the ViennaMesh examples" ON)
+option(BUILD_TOOLS "Build the ViennaMesh tools" ON)
 option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
-
 option(BUILD_MANUAL "Build the PDF manual" OFF)
 
 cmake_dependent_option(ENABLE_DIST "Enable the the distribution tarball target" ON "BUILD_DOXYGEN_DOCS;BUILD_MANUAL" OFF)
@@ -107,24 +108,10 @@ ENDIF(NOT BUILD_SHARED_LIBS)
 set(EXTERNAL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/)
 set(VIENNAMESH_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/)
 
-ADD_LIBRARY(viennamesh ${VIENNAMESH_SOURCE_DIR}/viennamesh/core.cpp)
-
 add_subdirectory(external)
 include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
 
 add_subdirectory(src)
-
-target_link_libraries(viennamesh viennamesh-core)
-target_link_libraries(viennamesh ${VIENNAMESH_EXTERNAL_LIBRARIES})
-
-
-find_package (Threads REQUIRED)
-target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
-
-IF (DEFINED ZLIB_REQUIRED_FOR_LIB_VIENNAMESH)
-  find_package(ZLIB REQUIRED)
-  target_link_libraries(viennamesh ${ZLIB_LIBRARIES})
-ENDIF()
 
 
 # Python Layer

@@ -1,11 +1,11 @@
 #include "viennamesh/core/algorithm_factory.hpp"
 
 
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/triangle.hpp"
-#include "viennamesh/algorithm/tetgen.hpp"
-#include "viennamesh/algorithm/netgen.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/algorithm/all.hpp"
+// #include "viennamesh/algorithm/triangle.hpp"
+// #include "viennamesh/algorithm/tetgen.hpp"
+// #include "viennamesh/algorithm/netgen.hpp"
+// #include "viennamesh/algorithm/viennagrid.hpp"
 
 
 namespace viennamesh
@@ -18,28 +18,30 @@ namespace viennamesh
     register_algorithm<viennamesh::io::mesh_writer>("mesh_writer");
 
 #ifdef WITH_TRIANGLE
-    register_algorithm<viennamesh::triangle::algorithm>("generate_triangle");
+    register_algorithm<viennamesh::triangle::mesh_generator>("triangle_mesh_generator");
 #endif
 
 #ifdef WITH_TETGEN
-    register_algorithm<viennamesh::tetgen::algorithm>("generate_tetgen");
+    register_algorithm<viennamesh::tetgen::mesh_generator>("tetgen_mesh_generator");
 #endif
 
 #ifdef WITH_NETGEN
-    register_algorithm<viennamesh::netgen::csg_mesher>("netgen_csg");
+    register_algorithm<viennamesh::netgen::csg_mesh_generator>("netgen_csg_mesh_generator");
 #ifdef NETGEN_WITH_OPENCASCADE
-    register_algorithm<viennamesh::netgen::occ_mesher>("netgen_occ");
+    register_algorithm<viennamesh::netgen::occ_mesh_generator>("netgen_occ_mesh_generator");
 #endif
 #endif
 
 
-    register_algorithm<viennamesh::affine_transform::algorithm>("affine_transform");
-    register_algorithm<viennamesh::extract_hull::algorithm>("extract_hull");
-    register_algorithm<viennamesh::hyperplane_clip::algorithm>("hyperplane_clip");
+    register_algorithm<viennamesh::line_mesh_generator>("line_mesh_generator");
 
-    register_algorithm<viennamesh::map_segments::algorithm>("map_segments");
-    register_algorithm<viennamesh::merge_meshes::algorithm>("merge_meshes");
-    register_algorithm<viennamesh::line_coarsening::algorithm>("line_coarsening");
+    register_algorithm<viennamesh::affine_transform>("affine_transform");
+    register_algorithm<viennamesh::extract_hull>("extract_hull");
+    register_algorithm<viennamesh::hyperplane_clip>("hyperplane_clip");
+
+    register_algorithm<viennamesh::map_segments>("map_segments");
+    register_algorithm<viennamesh::merge_meshes>("merge_meshes");
+    register_algorithm<viennamesh::line_coarsening>("line_coarsening");
   }
 
 

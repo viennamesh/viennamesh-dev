@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -49,7 +48,7 @@ int main(int argc, char **argv)
 
     int dimension = lexical_cast<int>(reader->get_output("default")->get_property("geometric_dimension").first);
 
-    viennamesh::algorithm_handle transform( new viennamesh::affine_transform::algorithm() );
+    viennamesh::algorithm_handle transform( new viennamesh::affine_transform() );
 
     viennamesh::dynamic_point matrix(dimension*dimension, 0.0);
 

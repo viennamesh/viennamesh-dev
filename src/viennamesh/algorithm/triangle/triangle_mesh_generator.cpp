@@ -1,13 +1,15 @@
-#include "viennamesh/algorithm/triangle/generator.hpp"
+#ifdef VIENNAMESH_WITH_TRIANGLE
 
+#include "viennamesh/algorithm/triangle/triangle_mesh_generator.hpp"
+#include "viennagrid/algorithm/extract_seed_points.hpp"
 
 namespace viennamesh
 {
   namespace triangle
   {
-    viennamesh::sizing_function_2d algorithm::sizing_function;
+    viennamesh::sizing_function_2d mesh_generator::sizing_function;
 
-    int algorithm::should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double)
+    int mesh_generator::should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double)
     {
       REAL dxoa, dxda, dxod;
       REAL dyoa, dyda, dyod;
@@ -59,7 +61,7 @@ namespace viennamesh
 
 
 
-    void algorithm::extract_seed_points( triangle::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points )
+    void mesh_generator::extract_seed_points( triangle::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points )
     {
       if (segmentation.segments.empty())
         return;
@@ -107,7 +109,7 @@ namespace viennamesh
 
         unsigned int i = seed_points.size();
 
-        viennamesh::extract_seed_points::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
+        viennagrid::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
 
         for (; i < seed_points.size(); ++i)
           info(5) << "Found seed point: " << seed_points[i].first << std::endl;
@@ -119,7 +121,7 @@ namespace viennamesh
 
 
 
-    bool algorithm::run_impl()
+    bool mesh_generator::run_impl()
     {
       typedef viennagrid::segmented_mesh< triangle::input_mesh, triangle::input_segmentation > InputMeshType;
       typedef triangle::output_mesh OutputMeshType;
@@ -274,3 +276,5 @@ namespace viennamesh
 
   }
 }
+
+#endif

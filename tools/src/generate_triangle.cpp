@@ -1,6 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/triangle.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include "viennamesh/core/sizing_function.hpp"
 #include <tclap/CmdLine.h>
 
@@ -59,7 +57,7 @@ int main(int argc, char **argv)
 
 
 
-    viennamesh::algorithm_handle mesher( new viennamesh::triangle::algorithm() );
+    viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
 
     typedef viennagrid::triangular_2d_mesh MeshType;
     typedef viennagrid::triangular_2d_segmentation SegmentationType;
@@ -74,7 +72,7 @@ int main(int argc, char **argv)
 
     if (sizing_function_filename.isSet())
     {
-      viennamesh::algorithm_handle simple_mesher( new viennamesh::triangle::algorithm() );
+      viennamesh::algorithm_handle simple_mesher( new viennamesh::triangle::mesh_generator() );
       simple_mesher->set_output( "default", simple_mesh() );
       simple_mesher->set_input( "default", reader->get_output("default") );
       simple_mesher->run();

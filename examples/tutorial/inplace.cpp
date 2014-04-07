@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/viennagrid.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 
 
@@ -10,7 +9,7 @@ int main()
   reader->run();
 
 
-  viennamesh::algorithm_handle transform( new viennamesh::affine_transform::algorithm() );
+  viennamesh::algorithm_handle transform( new viennamesh::affine_transform() );
 
   viennamesh::dynamic_point matrix(9, 0.0);
 

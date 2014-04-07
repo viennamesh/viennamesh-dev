@@ -1,16 +1,16 @@
-#ifndef VIENNAMESH_ALGORITHM_TETGEN_GENERATOR_HPP
-#define VIENNAMESH_ALGORITHM_TETGEN_GENERATOR_HPP
+#ifndef VIENNAMESH_ALGORITHM_TETGEN_MESH_GENERATOR_HPP
+#define VIENNAMESH_ALGORITHM_TETGEN_MESH_GENERATOR_HPP
 
 
 #include "viennamesh/core/algorithm.hpp"
-#include "viennamesh/algorithm/tetgen/mesh.hpp"
+#include "viennamesh/algorithm/tetgen/tetgen_mesh.hpp"
 
 
 namespace viennamesh
 {
   namespace tetgen
   {
-    class algorithm : public base_algorithm
+    class mesh_generator : public base_algorithm
     {
     public:
 

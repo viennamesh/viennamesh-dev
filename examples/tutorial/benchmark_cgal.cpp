@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/cgal.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include "viennamesh/utils/memory_capture.hpp"
 
 

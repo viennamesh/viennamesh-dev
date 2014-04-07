@@ -1,11 +1,10 @@
-#include "viennamesh/algorithm/netgen.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 
 int main()
 {
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::netgen::csg_mesher() );
+  viennamesh::algorithm_handle mesher( new viennamesh::netgen::csg_mesh_generator() );
 
   // Define the CSG string
   std::string csg_string =

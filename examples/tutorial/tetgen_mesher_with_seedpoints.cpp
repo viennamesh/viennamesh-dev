@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/tetgen.hpp"
-#include "viennamesh/algorithm/io.hpp"
+#include "viennamesh/viennamesh.hpp"
 
 
 int main()
@@ -91,7 +90,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
+  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
 
   // set the input geometry and seed points
   mesher->set_input( "default", geometry_handle );

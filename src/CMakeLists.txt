@@ -1,36 +1,31 @@
-SET(LIBVIENNAMESH_SRC
-    ${LIBVIENNAMESH_SRC}
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/io/common.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/io/mesh_reader.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/io/mesh_writer.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/utils/logger.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/algorithm.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/algorithm_factory.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/algorithm_pipeline.cpp
-    ${VIENNAMESH_SOURCE_DIR}/viennamesh/core/parameter.cpp)
+IF(VIENNAMESH_WITH_NETGEN)
+  add_definitions( -DVIENNAMESH_WITH_NETGEN )
+  IF (VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+    add_definitions( -DVIENNAMESH_NETGEN_WITH_OPENCASCADE )
+  ENDIF(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+ENDIf(VIENNAMESH_WITH_NETGEN)
 
-IF(WITH_NETGEN)
-  SET(LIBVIENNAMESH_SRC
-      ${LIBVIENNAMESH_SRC}
-      ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/netgen/csg_generator.cpp)
-  if (NETGEN_WITH_OPENCASCADE)
-    SET(LIBVIENNAMESH_SRC
-        ${LIBVIENNAMESH_SRC}
-        ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/netgen/occ_generator.cpp)
-  endif(NETGEN_WITH_OPENCASCADE)
-ENDIF(WITH_NETGEN)
+IF (VIENNAMESH_WITH_TETGEN)
+  add_definitions( -DVIENNAMESH_WITH_TETGEN )
+ENDIF(VIENNAMESH_WITH_TETGEN)
 
-IF(WITH_TETGEN)
-  SET(LIBVIENNAMESH_SRC
-      ${LIBVIENNAMESH_SRC}
-      ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/tetgen/generator.cpp)
-ENDIF(WITH_TETGEN)
+IF (VIENNAMESH_WITH_TRIANGLE)
+  add_definitions( -DVIENNAMESH_WITH_TRIANGLE )
+ENDIF(VIENNAMESH_WITH_TRIANGLE)
 
-IF(WITH_TRIANGLE)
-  SET(LIBVIENNAMESH_SRC
-      ${LIBVIENNAMESH_SRC}
-      ${VIENNAMESH_SOURCE_DIR}/viennamesh/algorithm/triangle/generator.cpp)
-ENDIF(WITH_TRIANGLE)
 
-ADD_LIBRARY(viennamesh-core ${LIBVIENNAMESH_SRC})
-SET_TARGET_PROPERTIES(viennamesh-core PROPERTIES COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
+FILE(GLOB_RECURSE LIBVIENNAMESH_SRC *.cpp)
+
+
+ADD_LIBRARY(viennamesh ${LIBVIENNAMESH_SRC})
+SET_TARGET_PROPERTIES(viennamesh PROPERTIES COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
+
+target_link_libraries(viennamesh ${VIENNAMESH_EXTERNAL_LIBRARIES})
+
+find_package (Threads REQUIRED)
+target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
+
+IF (DEFINED ZLIB_REQUIRED_FOR_LIB_VIENNAMESH)
+  find_package(ZLIB REQUIRED)
+  target_link_libraries(viennamesh ${ZLIB_LIBRARIES})
+ENDIF()

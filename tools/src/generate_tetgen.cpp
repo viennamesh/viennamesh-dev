@@ -1,5 +1,4 @@
-#include "viennamesh/algorithm/io.hpp"
-#include "viennamesh/algorithm/tetgen.hpp"
+#include "viennamesh/viennamesh.hpp"
 #include "viennamesh/core/sizing_function.hpp"
 #include <tclap/CmdLine.h>
 
@@ -63,7 +62,7 @@ int main(int argc, char **argv)
     reader->run();
 
 
-    viennamesh::algorithm_handle mesher( new viennamesh::tetgen::algorithm() );
+    viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
 
     typedef viennagrid::tetrahedral_3d_mesh MeshType;
     typedef viennagrid::tetrahedral_3d_segmentation SegmentationType;
@@ -78,7 +77,7 @@ int main(int argc, char **argv)
 
     if (sizing_function_filename.isSet())
     {
-      viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::algorithm() );
+      viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::mesh_generator() );
       simple_mesher->set_output( "default", simple_mesh() );
       simple_mesher->set_input( "default", reader->get_output("default") );
       simple_mesher->run();
