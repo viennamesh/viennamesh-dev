@@ -8,7 +8,7 @@ int main()
   viennamesh::algorithm_handle mesher( new viennamesh::netgen::csg_mesher() );
 
   // Define the CSG string
-  string csg_string =
+  std::string csg_string =
   "algebraic3d \n"
   "solid cube = plane (0, 0, 0; 0, 0, -1) \n"
   "       and plane (0, 0, 0; 0, -1, 0) \n"
