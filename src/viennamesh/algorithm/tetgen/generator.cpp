@@ -172,6 +172,8 @@ namespace viennamesh
 
       const_double_parameter_handle cell_size = get_input<double>("cell_size");
 
+//       const_parameter_handle sf = get_input("sizing_function");
+
       viennamesh::result_of::const_parameter_handle<sizing_function_3d>::type sf = get_input<sizing_function_3d>("sizing_function");
 
       const_double_parameter_handle max_radius_edge_ratio = get_input<double>("max_radius_edge_ratio");
@@ -186,8 +188,31 @@ namespace viennamesh
 
       tetgenio & tmp = (tetgenio&)input_mesh().mesh;
 
+//       typedef viennagrid::segmented_mesh<viennagrid::thin_tetrahedral_3d_mesh, viennagrid::thin_tetrahedral_3d_mesh> OutputSegmentedMeshType;
+//       viennamesh::result_of::parameter_handle<OutputSegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<OutputSegmentedMeshType>();
+
       if (sf)
       {
+//         if (sf->is_type<sizing_function_3d>())
+//           sizing_function = sf();
+//         else if (sf->is_type<std::string>())
+//         {
+//           const_string_parameter_handle sf_code = dynamic_handle_cast<const std::string>(sf);
+//
+//
+//           viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::algorithm() );
+//           simple_mesher->set_output( "default", simple_mesh() );
+//           simple_mesher->set_input( "default", input_mesh() );
+//           simple_mesher->run();
+//
+//           pugi::xml_document xml_element_size;
+//           xml_element_size.load( sf_code() );
+//
+//           function = viennamesh::sizing_function::from_xml(xml_element_size.first_child(), simple_mesh().mesh, simple_mesh().segmentation);
+//
+//           sizing_function = viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function_3d>, function, _1);
+//         }
+
         sizing_function = sf();
         using_sizing_function = true;
         options.use_refinement_callback = 1;
