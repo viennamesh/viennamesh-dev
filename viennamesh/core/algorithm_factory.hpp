@@ -65,7 +65,7 @@ namespace viennamesh
       algorithms.insert( std::make_pair(algorithm_name, AlgorithmInformationHandle( new algorithm_information<AlgorithmT>(algorithm_name))) );
     }
 
-    std::list<AlgorithmInformationHandle> matching_algorithms( string const & expression ) const
+    std::list<AlgorithmInformationHandle> matching_algorithms( std::string const & expression ) const
     {
       std::list<AlgorithmInformationHandle> result;
 
@@ -83,7 +83,7 @@ namespace viennamesh
       return result;
     }
 
-    algorithm_handle create_from_name(string const & algorithm_name) const
+    algorithm_handle create_from_name(std::string const & algorithm_name) const
     {
       std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_name);
       if (it == algorithms.end())
@@ -91,7 +91,7 @@ namespace viennamesh
       return it->second->create();
     }
 
-    algorithm_handle create_from_expression(string const & expression) const
+    algorithm_handle create_from_expression(std::string const & expression) const
     {
       std::list<AlgorithmInformationHandle> algos = matching_algorithms(expression);
       if (algos.empty())
