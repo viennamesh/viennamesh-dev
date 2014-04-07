@@ -8,12 +8,12 @@
 
 %{
   #include <boost/shared_ptr.hpp>
-  #include "../viennamesh/forwards.hpp"
-  #include "../viennamesh/core/algorithm.hpp"
-  #include "../viennamesh/core/algorithm_factory.hpp"
+  #include "../include/viennamesh/forwards.hpp"
+  #include "../include/viennamesh/core/algorithm.hpp"
+  #include "../include/viennamesh/core/algorithm_factory.hpp"
 
   using namespace viennamesh;
 %}
 
-%include "../viennamesh/core/algorithm.hpp"
-%include "../viennamesh/core/algorithm_factory.hpp"
+%include "../include/viennamesh/core/algorithm.hpp"
+%include "../include/viennamesh/core/algorithm_factory.hpp"

@@ -93,7 +93,8 @@ message( STATUS "RELEASE FLAGS = ${CMAKE_CXX_FLAGS_RELEASE}" )
 message( STATUS "DEBUG FLAGS = ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 
-include_directories(BEFORE ${PROJECT_SOURCE_DIR})
+# include_directories(BEFORE ${PROJECT_SOURCE_DIR})
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/include)
 
 # libviennamesh
 ################
@@ -110,7 +111,6 @@ ADD_LIBRARY(viennamesh ${VIENNAMESH_SOURCE_DIR}/viennamesh/core.cpp)
 
 add_subdirectory(external)
 include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
-message( "BLABLA ${LIBVIENNAMESH_COMPILE_FLAGS}" )
 
 add_subdirectory(src)
 
