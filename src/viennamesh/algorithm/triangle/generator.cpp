@@ -50,9 +50,8 @@ namespace viennamesh
             local_size = std::min( local_size, local_sizes[i] );
         }
       }
-      local_size *= local_size;
 
-      if (local_size > 0 && maxlen > local_size)
+      if (local_size > 0 && maxlen > local_size*local_size)
         return 1;
       else
         return 0;
