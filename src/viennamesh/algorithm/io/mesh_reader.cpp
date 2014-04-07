@@ -327,7 +327,7 @@ namespace viennamesh
                   double tmp;
                   values_stream >> tmp;
                   if (tmp != 0.0)
-                    geometric_dimension = j+1;
+                    geometric_dimension = std::max(geometric_dimension, j+1);
                 }
               }
 
