@@ -1,4 +1,8 @@
 
+add_executable(make_mosfet make_mosfet.cpp)
+target_link_libraries(make_mosfet viennamesh)
+
+
 
 add_executable(triangle_mesher triangle_mesher.cpp)
 target_link_libraries(triangle_mesher viennamesh)
