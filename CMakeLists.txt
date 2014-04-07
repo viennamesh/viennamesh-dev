@@ -29,6 +29,7 @@ option(WITH_TRIANGLE "Build the Triangle library" ON)
 option(WITH_TETGEN "Build the Tetgen library" ON)
 option(WITH_NETGEN "Build the Netgen library" ON)
 option(NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" ON)
+option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" ON)
 
 option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
 
@@ -125,6 +126,13 @@ IF (DEFINED ZLIB_REQUIRED_FOR_LIB_VIENNAMESH)
   target_link_libraries(viennamesh ${ZLIB_LIBRARIES})
 ENDIF()
 
+
+# Python Layer
+################
+
+if (BUILD_PYVIENNAMESH)
+  add_subdirectory(pyviennamesh)
+endif()
 
 
 
