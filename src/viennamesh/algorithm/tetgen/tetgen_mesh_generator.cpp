@@ -12,16 +12,16 @@ namespace viennamesh
 {
   namespace tetgen
   {
-    viennamesh::sizing_function_3d mesh_generator::sizing_function;
-    bool mesh_generator::using_sizing_function;
+    viennamesh::sizing_function_3d sizing_function;
+    bool using_sizing_function;
 
-    double mesh_generator::max_edge_ratio;
-    bool mesh_generator::using_max_edge_ratio;
+    double max_edge_ratio;
+    bool using_max_edge_ratio;
 
-    double mesh_generator::max_inscribed_radius_edge_ratio;
-    bool mesh_generator::using_max_inscribed_radius_edge_ratio;
+    double max_inscribed_radius_edge_ratio;
+    bool using_max_inscribed_radius_edge_ratio;
 
-    bool mesh_generator::should_tetrahedron_be_refined(double * tet_p0, double * tet_p1, double * tet_p2, double * tet_p3, double * , double)
+    bool should_tetrahedron_be_refined(double * tet_p0, double * tet_p1, double * tet_p2, double * tet_p3, double * , double)
     {
       point_3d p0( tet_p0[0], tet_p0[1], tet_p0[2]);
       point_3d p1( tet_p1[0], tet_p1[1], tet_p1[2]);
@@ -89,9 +89,6 @@ namespace viennamesh
 
       return false;
     }
-
-
-
 
     void extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points )
     {
@@ -246,7 +243,7 @@ namespace viennamesh
 
       if (max_edge_ratio)
       {
-        this->max_edge_ratio = max_edge_ratio();
+        viennamesh::tetgen::max_edge_ratio = max_edge_ratio();
         using_max_edge_ratio = true;
         options.use_refinement_callback = 1;
         tmp.tetunsuitable = should_tetrahedron_be_refined;
@@ -255,7 +252,7 @@ namespace viennamesh
 
       if (max_inscribed_radius_edge_ratio)
       {
-        this->max_inscribed_radius_edge_ratio = max_inscribed_radius_edge_ratio();
+        viennamesh::tetgen::max_inscribed_radius_edge_ratio = max_inscribed_radius_edge_ratio();
         using_max_inscribed_radius_edge_ratio = true;
         options.use_refinement_callback = 1;
         tmp.tetunsuitable = should_tetrahedron_be_refined;

@@ -8,9 +8,9 @@ namespace viennamesh
 {
   namespace triangle
   {
-    viennamesh::sizing_function_2d mesh_generator::sizing_function;
+    viennamesh::sizing_function_2d sizing_function;
 
-    int mesh_generator::should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double)
+    int should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double)
     {
       REAL dxoa, dxda, dxod;
       REAL dyoa, dyda, dyod;
@@ -265,9 +265,9 @@ namespace viennamesh
         std_capture().start();
 
       delete[] buffer;
-      if (!hole_points.empty())
-        free(tmp_regionlist);
       if (!seed_points.empty())
+        free(tmp_regionlist);
+      if (!hole_points.empty())
         free(tmp_holelist);
 
       return true;
