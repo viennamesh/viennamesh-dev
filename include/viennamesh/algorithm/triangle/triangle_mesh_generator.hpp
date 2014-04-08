@@ -17,8 +17,6 @@ namespace viennamesh
       static int should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double);
 
       bool run_impl();
-
-    private:
     };
   }
 }

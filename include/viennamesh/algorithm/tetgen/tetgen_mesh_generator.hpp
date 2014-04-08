@@ -1,9 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_TETGEN_MESH_GENERATOR_HPP
 #define VIENNAMESH_ALGORITHM_TETGEN_MESH_GENERATOR_HPP
 
-
 #include "viennamesh/core/algorithm.hpp"
-
 
 namespace viennamesh
 {
@@ -27,8 +25,6 @@ namespace viennamesh
       static bool should_tetrahedron_be_refined(double*, double*, double*, double*, double*, double);
 
       bool run_impl();
-
-    private:
     };
   }
 
