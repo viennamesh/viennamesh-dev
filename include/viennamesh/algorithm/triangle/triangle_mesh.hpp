@@ -1,6 +1,14 @@
 #ifndef VIENNAMESH_ALGORITHM_TRIANGLE_MESH_HPP
 #define VIENNAMESH_ALGORITHM_TRIANGLE_MESH_HPP
 
+#include <cstring>
+#include <cstdlib>
+#include <list>
+
+#include "viennagrid/config/default_configs.hpp"
+#include "viennagrid/mesh/segmented_mesh.hpp"
+#include "viennamesh/core/parameter.hpp"
+
 extern "C"
 {
   #include "triangle/triangle_interface.h"

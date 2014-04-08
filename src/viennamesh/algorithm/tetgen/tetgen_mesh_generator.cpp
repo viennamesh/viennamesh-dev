@@ -1,5 +1,6 @@
 #ifdef VIENNAMESH_WITH_TETGEN
 
+#include "viennamesh/algorithm/tetgen/tetgen_mesh.hpp"
 #include "viennamesh/algorithm/tetgen/tetgen_mesh_generator.hpp"
 
 #include <cstring>
@@ -20,7 +21,7 @@ namespace viennamesh
     double mesh_generator::max_inscribed_radius_edge_ratio;
     bool mesh_generator::using_max_inscribed_radius_edge_ratio;
 
-    bool mesh_generator::should_tetrahedron_be_refined(REAL * tet_p0, REAL * tet_p1, REAL * tet_p2, REAL * tet_p3, REAL * , REAL)
+    bool mesh_generator::should_tetrahedron_be_refined(double * tet_p0, double * tet_p1, double * tet_p2, double * tet_p3, double * , double)
     {
       point_3d p0( tet_p0[0], tet_p0[1], tet_p0[2]);
       point_3d p1( tet_p1[0], tet_p1[1], tet_p1[2]);
@@ -92,7 +93,7 @@ namespace viennamesh
 
 
 
-    void mesh_generator::extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points )
+    void extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points )
     {
       if (segmentation.segments.empty())
         return;

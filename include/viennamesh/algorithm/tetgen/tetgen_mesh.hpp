@@ -1,11 +1,16 @@
 #ifndef VIENNAMESH_ALGORITHM_TETGEN_MESH_HPP
 #define VIENNAMESH_ALGORITHM_TETGEN_MESH_HPP
 
+#include <list>
+
+#include "viennagrid/config/default_configs.hpp"
+#include "viennagrid/mesh/segmented_mesh.hpp"
+#include "viennamesh/core/parameter.hpp"
+
 #ifndef TETLIBRARY
   #define TETLIBRARY
 #endif
 #include "tetgen/tetgen.h"
-
 
 
 namespace viennamesh

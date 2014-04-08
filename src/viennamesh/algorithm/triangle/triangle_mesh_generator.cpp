@@ -1,5 +1,6 @@
 #ifdef VIENNAMESH_WITH_TRIANGLE
 
+#include "viennamesh/algorithm/triangle/triangle_mesh.hpp"
 #include "viennamesh/algorithm/triangle/triangle_mesh_generator.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
 
@@ -61,7 +62,7 @@ namespace viennamesh
 
 
 
-    void mesh_generator::extract_seed_points( triangle::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points )
+    void extract_seed_points( triangle::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points )
     {
       if (segmentation.segments.empty())
         return;

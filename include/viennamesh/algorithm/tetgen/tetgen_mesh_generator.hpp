@@ -3,7 +3,6 @@
 
 
 #include "viennamesh/core/algorithm.hpp"
-#include "viennamesh/algorithm/tetgen/tetgen_mesh.hpp"
 
 
 namespace viennamesh
@@ -25,9 +24,7 @@ namespace viennamesh
       static double max_inscribed_radius_edge_ratio;
       static bool using_max_inscribed_radius_edge_ratio;
 
-      static bool should_tetrahedron_be_refined(REAL*, REAL*, REAL*, REAL*, REAL*, REAL);
-
-      void extract_seed_points( tetgen::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_3d_container & seed_points );
+      static bool should_tetrahedron_be_refined(double*, double*, double*, double*, double*, double);
 
       bool run_impl();
 

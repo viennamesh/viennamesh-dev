@@ -10,7 +10,6 @@
 
 namespace viennamesh
 {
-
   class base_algorithm;
 
 #ifdef VIENNAMESH_USES_BOOST
@@ -306,7 +305,6 @@ namespace viennamesh
 
   protected:
 
-//     virtual bool init() = 0;
     virtual bool run_impl() = 0;
 
   private:
