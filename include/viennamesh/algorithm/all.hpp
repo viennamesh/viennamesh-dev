@@ -17,11 +17,12 @@
 #include "viennamesh/algorithm/merge_meshes.hpp"
 #include "viennamesh/algorithm/project_mesh.hpp"
 
-// Tetgen algorithms
-#include "viennamesh/algorithm/tetgen/tetgen_mesh_generator.hpp"
-
 // Triangle algorithms
 #include "viennamesh/algorithm/triangle/triangle_mesh_generator.hpp"
+#include "viennamesh/algorithm/triangle/triangle_hull_mesh_generator.hpp"
+
+// Tetgen algorithms
+#include "viennamesh/algorithm/tetgen/tetgen_mesh_generator.hpp"
 
 // Netgen algorithms
 #include "viennamesh/algorithm/netgen/netgen_csg_mesh_generator.hpp"

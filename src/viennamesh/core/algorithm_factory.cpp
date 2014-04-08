@@ -12,6 +12,7 @@ namespace viennamesh
 
 #ifdef VIENNAMESH_WITH_TRIANGLE
     register_algorithm<viennamesh::triangle::mesh_generator>("triangle_mesh_generator");
+    register_algorithm<viennamesh::triangle::hull_mesh_generator>("triangle_hull_mesh_generator");
 #endif
 
 #ifdef VIENNAMESH_WITH_TETGEN
