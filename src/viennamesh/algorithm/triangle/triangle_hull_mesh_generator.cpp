@@ -25,7 +25,7 @@ namespace viennamesh
       if (option_string)
         options << option_string();
       else
-        options << "zp";
+        options << "zpQ";
 
       output_mesh().cells.resize( input_mesh().cells.size() );
       output_mesh().vertex_points_3d = input_mesh().vertex_points_3d;
