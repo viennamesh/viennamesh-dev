@@ -86,22 +86,15 @@ namespace viennamesh
       lowest_plc_id++;
     }
 
-    typedef typename viennagrid::result_of::line<MeshT>::type LineType;
     typedef typename viennagrid::result_of::const_line_range<MeshT>::type ConstLineRangeType;
     typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
     typedef typename viennagrid::result_of::line_id<MeshT>::type LineIDType;
-    std::vector<bool> line_used_container( viennagrid::lines(mesh).size() );
-    typename viennagrid::result_of::accessor< std::vector<bool>, LineType >::type line_used(line_used_container);
-
-    std::vector<int> line_use_count_container( viennagrid::lines(mesh).size() );
+    typedef typename viennagrid::result_of::line_handle<OutputMeshT>::type LineHandleType;
 
     viennagrid::vertex_copy_map<MeshT, OutputMeshT> vertex_map(output_mesh);
-    typedef typename viennagrid::result_of::line_handle<OutputMeshT>::type LineHandleType;
-    typedef typename viennagrid::result_of::const_line_handle<MeshT>::type ConstLineHandleType;
 
     std::map<LineIDType,LineHandleType> line_map;
 
-    std::cout << "Num PLCs " << lowest_plc_id << std::endl;
     for (int i = 0; i < lowest_plc_id; ++i)
     {
       std::vector<LineHandleType> plc_line_handles;
@@ -139,7 +132,6 @@ namespace viennamesh
         }
       }
 
-      std::cout << "PLC " << i << " has " << plc_line_handles.size() << " lines" << std::endl;
       viennagrid::make_plc(output_mesh, plc_line_handles.begin(), plc_line_handles.end());
     }
   }
@@ -249,12 +241,8 @@ namespace viennamesh
           new_plc_line_handles.push_back( new_line_handles[line_to_new_line_index(*locit)] );
       }
 
-
       viennagrid::make_plc(output_mesh, new_plc_line_handles.begin(), new_plc_line_handles.end() );
-
-
-//       for (std::set<int>::iterator iit = used_lines_indices.begin(); iit != used_lines_indices.end(); ++iit)
-
+      //TODO copy loose points and hole points
     }
   }
 
