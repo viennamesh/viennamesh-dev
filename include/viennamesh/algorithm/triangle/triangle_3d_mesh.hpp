@@ -18,9 +18,6 @@ namespace viennamesh
     {
       TriangleMeshT plc;
 
-//       point_3d center;
-//       viennagrid::static_array<point_3d, 2> projection_matrix;
-
       std::vector<point_2d> hole_points_2d;
 
       std::vector<int> vertex_ids;
@@ -44,28 +41,6 @@ namespace viennamesh
 
     typedef mesh_3d<input_cell_3d> input_mesh_3d;
     typedef mesh_3d<output_cell_3d> output_mesh_3d;
-
-//     class input_mesh_3d
-//     {
-//     public:
-//       input_mesh_3d() : is_segmented(false) {}
-//
-//       typedef std::deque<input_cell_3d> CellContainerType;
-//       CellContainerType cells;
-//       bool is_segmented;
-//     };
-//
-//     class output_mesh_3d
-//     {
-//     public:
-//       input_mesh_3d() : is_segmented(false) {}
-//
-//       typedef std::deque<output_cell_3d> CellContainerType;
-//       CellContainerType cells;
-//       bool is_segmented;
-//     };
-
-
 
 
 
