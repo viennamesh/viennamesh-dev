@@ -1,33 +1,9 @@
 #include "viennamesh/algorithm/affine_transform.hpp"
 
+#include "viennagrid/algorithm/geometric_transform.hpp"
+
 namespace viennamesh
 {
-  template<typename MeshT>
-  void affine_transform_impl( MeshT & mesh,
-                          typename viennagrid::result_of::coord<MeshT>::type const * matrix,
-                          typename viennagrid::result_of::point<MeshT>::type const & translate )
-  {
-    typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-    typedef typename viennagrid::result_of::vertex_range<MeshT>::type InputVertexRangeType;
-    typedef typename viennagrid::result_of::iterator<InputVertexRangeType>::type InputVertexIteratorType;
-
-    InputVertexRangeType vertices(mesh);
-    for (InputVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-    {
-      PointType in_point = viennagrid::point(*vit);
-      PointType out_point = translate;
-      for (unsigned int row = 0; row != out_point.size(); ++row)
-      {
-        out_point[row] = 0;
-        for (unsigned int column = 0; column != in_point.size(); ++column)
-          out_point[row] += in_point[column] * matrix[ row*in_point.size() + column ];
-      }
-
-      viennagrid::point(*vit) = out_point;
-    }
-  }
-
-
   template<typename MeshT, typename SegmentationT>
   bool affine_transform::generic_run( dynamic_point const & matrix, dynamic_point const & base_translate )
   {
@@ -45,7 +21,7 @@ namespace viennamesh
       if (output_mesh != input_mesh)
         output_mesh() = input_mesh();
 
-      affine_transform_impl( output_mesh().mesh, &matrix[0], translate );
+      viennagrid::affine_transform( output_mesh().mesh, &matrix[0], translate );
 
       return true;
     }
