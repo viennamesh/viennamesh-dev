@@ -31,6 +31,7 @@ namespace viennamesh
 
     register_algorithm<viennamesh::affine_transform>("affine_transform");
     register_algorithm<viennamesh::extract_hull>("extract_hull");
+    register_algorithm<viennamesh::extract_plc>("extract_plc");
     register_algorithm<viennamesh::hyperplane_clip>("hyperplane_clip");
 
     register_algorithm<viennamesh::map_segments>("map_segments");

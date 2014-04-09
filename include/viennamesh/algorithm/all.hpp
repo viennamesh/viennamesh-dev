@@ -9,6 +9,7 @@
 // ViennaMesh/ViennaGrid algorithms
 #include "viennamesh/algorithm/affine_transform.hpp"
 #include "viennamesh/algorithm/extract_hull.hpp"
+#include "viennamesh/algorithm/extract_plc_geometry.hpp"
 #include "viennamesh/algorithm/hyperplane_clip.hpp"
 #include "viennamesh/algorithm/laplace_smooth.hpp"
 #include "viennamesh/algorithm/line_coarsening.hpp"
