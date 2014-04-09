@@ -1,148 +1,10 @@
 #include "viennamesh/algorithm/extract_hull.hpp"
 
-#include "viennagrid/mesh/element_creation.hpp"
-#include "viennagrid/algorithm/centroid.hpp"
-#include "viennagrid/algorithm/boundary.hpp"
+#include "viennagrid/algorithm/extract_hull.hpp"
+#include "viennagrid/algorithm/extract_seed_points.hpp"
 
 namespace viennamesh
 {
-
-  template<typename HullTypeOrTagT, typename VolumeMeshT, typename HullMeshT>
-  void extract_hull_impl( VolumeMeshT const & volume_mesh,
-                      HullMeshT & hull_mesh)
-  {
-    viennagrid::clear(hull_mesh);
-
-    typedef typename viennagrid::result_of::point<VolumeMeshT>::type            VolumePointType;
-
-    typedef typename viennagrid::result_of::const_element_range<VolumeMeshT, HullTypeOrTagT>::type    HullRangeType;
-    typedef typename viennagrid::result_of::iterator<HullRangeType>::type                                   HullRangeIterator;
-
-    typedef typename viennagrid::result_of::element<VolumeMeshT, HullTypeOrTagT>::type    VolumeHullElement;
-    typedef typename viennagrid::result_of::element<HullMeshT, HullTypeOrTagT>::type      HullHullElement;
-
-    HullRangeType hull_elements( volume_mesh );
-    for (HullRangeIterator hit = hull_elements.begin(); hit != hull_elements.end(); ++hit)
-    {
-      VolumeHullElement const & hull_element = *hit;
-
-      if ( viennagrid::is_boundary( volume_mesh, hull_element ) )
-      {
-        typedef typename viennagrid::result_of::vertex_handle<HullMeshT>::type HullVertexHandleType;
-
-        std::vector<HullVertexHandleType> vertices;
-        vertices.resize( viennagrid::vertices(hull_element).size() );
-
-        for (std::size_t i = 0; i < viennagrid::vertices(hull_element).size(); ++i)
-          vertices[i] = viennagrid::make_unique_vertex( hull_mesh, viennagrid::point(volume_mesh, viennagrid::vertices(hull_element)[i]) );
-
-        viennagrid::make_element<HullHullElement>( hull_mesh, vertices.begin(), vertices.end() );
-      }
-    }
-  }
-
-
-
-  template<typename HullTypeOrTagT, typename VolumeMeshT, typename VolumeSegmentationT, typename HullMeshT, typename HullSegmentationT>
-  void extract_hull_impl( VolumeMeshT const & volume_mesh,
-                      VolumeSegmentationT const & volume_segmentation,
-                      HullMeshT & hull_mesh,
-                      HullSegmentationT & hull_segmentation )
-  {
-    typedef typename viennagrid::result_of::element_tag<HullTypeOrTagT>::type HullTagType;
-
-    viennagrid::clear(hull_mesh);
-    viennagrid::clear(hull_segmentation);
-
-    if (volume_segmentation.size() <= 1)
-      extract_hull_impl<HullTagType>(volume_mesh, hull_segmentation.make_segment() );
-
-    typedef typename viennagrid::result_of::segment_handle<VolumeSegmentationT>::type    VolumeSegmentHandleType;
-    typedef typename viennagrid::result_of::point<VolumeMeshT>::type            VolumePointType;
-
-    typedef typename viennagrid::result_of::segment_handle<HullSegmentationT>::type      HullSegmentHandleType;
-
-
-    typedef typename viennagrid::result_of::element<VolumeSegmentHandleType, HullTagType>::type    VolumeHullElementType;
-    typedef typename viennagrid::result_of::element<HullSegmentHandleType, HullTagType>::type     HullCellElementType;
-
-    typedef typename viennagrid::result_of::id<VolumeHullElementType>::type VolumeHullElementIDType;
-    typedef typename viennagrid::result_of::handle<HullSegmentHandleType, HullTagType>::type HullCellElementHandleType;
-
-    typedef typename viennagrid::result_of::vertex_id<VolumeMeshT>::type VolumeVertexIDType;
-    typedef typename viennagrid::result_of::vertex_handle<HullSegmentHandleType>::type HullVertexHandleType;
-
-    std::map< VolumeVertexIDType, HullVertexHandleType > vertex_map;
-    std::map< VolumeHullElementIDType, HullCellElementHandleType > hull_element_map;
-
-    for (typename VolumeSegmentationT::const_iterator sit = volume_segmentation.begin(); sit != volume_segmentation.end(); ++sit)
-    {
-      VolumeSegmentHandleType const & volume_segment = *sit;
-      HullSegmentHandleType & hull_segment = hull_segmentation( volume_segment.id() );
-
-      typedef typename viennagrid::result_of::const_element_range<VolumeSegmentHandleType, HullTagType>::type    HullRangeType;
-      typedef typename viennagrid::result_of::iterator<HullRangeType>::type                                   HullRangeIterator;
-
-      HullRangeType hull_elements( volume_segment );
-      for (HullRangeIterator hit = hull_elements.begin(); hit != hull_elements.end(); ++hit)
-      {
-        VolumeHullElementType const & hull_element = *hit;
-
-        if ( viennagrid::is_boundary( volume_segment, hull_element ) )
-        {
-          typename std::map< VolumeHullElementIDType, HullCellElementHandleType >::iterator hemit = hull_element_map.find( hit->id() );
-          if ( hemit != hull_element_map.end() )
-          {
-            viennagrid::add( hull_segment, viennagrid::dereference_handle(hull_segment, hemit->second) );
-          }
-          else
-          {
-            typedef typename viennagrid::result_of::const_vertex_range<VolumeHullElementType>::type ConstVertexOnHullElementRangeType;
-            typedef typename viennagrid::result_of::iterator<ConstVertexOnHullElementRangeType>::type ConstVertexOnHullElementIteratorType;
-
-            ConstVertexOnHullElementRangeType vertices_on_hull_element( hull_element );
-            std::vector<HullVertexHandleType> vertex_handles;
-
-            for (ConstVertexOnHullElementIteratorType vit = vertices_on_hull_element.begin(); vit != vertices_on_hull_element.end(); ++vit)
-            {
-              typename std::map< VolumeVertexIDType, HullVertexHandleType >::iterator vmit = vertex_map.find( vit->id() );
-              if (vmit != vertex_map.end())
-                vertex_handles.push_back( vmit->second );
-              else
-              {
-                vertex_handles.push_back( viennagrid::make_vertex( hull_mesh, viennagrid::point(*vit) ) );
-                vertex_map[ vit->id() ] = vertex_handles.back();
-              }
-            }
-
-            hull_element_map[hit->id()] = viennagrid::make_element<HullCellElementType>( hull_segment, vertex_handles.begin(), vertex_handles.end() );
-          }
-        }
-      }
-    }
-  }
-
-
-
-
-  template<typename SegmentationT, typename SeedPointContainerT>
-  void extract_seed_points( SegmentationT const & segmentation, SeedPointContainerT & seed_points )
-  {
-    typedef typename viennagrid::result_of::cell_tag<SegmentationT>::type CellTag;
-    typedef typename viennagrid::result_of::point<SegmentationT>::type point_type;
-
-    for (typename SegmentationT::const_iterator it = segmentation.begin(); it != segmentation.end(); ++it)
-    {
-      if (!viennagrid::elements<CellTag>(*it).empty())
-      {
-        point_type centroid = viennagrid::centroid( viennagrid::elements<CellTag>(*it)[0] );
-        seed_points.push_back( std::make_pair(centroid, it->id()) );
-      }
-    }
-  }
-
-
-
   template<typename MeshT, typename SegmentationT>
   bool extract_hull::generic_run()
   {
@@ -160,17 +22,31 @@ namespace viennamesh
     typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
-    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh = get_input<SegmentedMeshType>("default");
-    if (input_mesh)
     {
-      output_parameter_proxy<SegmentedFacetMeshType> output_mesh = output_proxy<SegmentedFacetMeshType>( "default" );
-      output_parameter_proxy<SeedPointContainerType> seed_points = output_proxy<SeedPointContainerType>( "seed_points" );
+      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh = get_input<SegmentedMeshType>("default");
+      if (input_mesh)
+      {
+        output_parameter_proxy<SegmentedFacetMeshType> output_mesh = output_proxy<SegmentedFacetMeshType>( "default" );
+        output_parameter_proxy<SeedPointContainerType> seed_points = output_proxy<SeedPointContainerType>( "seed_points" );
 
-      extract_hull_impl<FacetTagType>(input_mesh().mesh, input_mesh().segmentation,
-                                                output_mesh().mesh, output_mesh().segmentation);
-      extract_seed_points( input_mesh().segmentation, seed_points() );
+        viennagrid::extract_hull(input_mesh().mesh, input_mesh().segmentation,
+                                                  output_mesh().mesh, output_mesh().segmentation);
+        viennagrid::extract_seed_points( input_mesh().mesh, input_mesh().segmentation, seed_points() );
 
-      return true;
+        return true;
+      }
+    }
+
+    {
+      typename viennamesh::result_of::const_parameter_handle<MeshT>::type input_mesh = get_input<MeshT>("default");
+      if (input_mesh)
+      {
+        output_parameter_proxy<FacetMeshType> output_mesh = output_proxy<FacetMeshType>( "default" );
+
+        viennagrid::extract_hull(input_mesh(), output_mesh());
+
+        return true;
+      }
     }
 
     return false;
