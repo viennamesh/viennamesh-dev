@@ -1,0 +1,41 @@
+<algorithm type="mesh_reader" category="mesh" name="input">
+  <parameter name="filename" type="string">../data/big_and_small_cube.poly</parameter>
+</algorithm>
+
+<algorithm type="tetgen_mesh_generator" name="mesher">
+  <default_source>input</default_source>
+
+  <parameter type="double" name="cell_size">10.0</parameter>
+</algorithm>
+
+<algorithm type="extract_hull" name="hull">
+  <default_source>mesher</default_source>
+</algorithm>
+
+<algorithm type="extract_plc" name="plc">
+  <default_source>hull</default_source>
+</algorithm>
+
+<algorithm type="triangle_hull_mesh_generator" name="hull_remesher">
+  <default_source>plc</default_source>
+</algorithm>
+
+<algorithm type="tetgen_mesh_generator" name="remesher">
+  <default_source>plc</default_source>
+  <parameter name="seed_points" type="dynamic">hull/seed_points</parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output1">
+  <default_source>hull</default_source>
+  <parameter name="filename" type="string">hull.vtu</parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output2">
+  <default_source>remesher</default_source>
+  <parameter name="filename" type="string">remeshed_volume.vtu</parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output3">
+  <default_source>hull_remesher</default_source>
+  <parameter name="filename" type="string">remeshed_hull.vtu</parameter>
+</algorithm>

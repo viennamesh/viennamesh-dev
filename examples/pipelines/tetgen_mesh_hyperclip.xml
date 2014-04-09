@@ -1,9 +1,9 @@
 <algorithm type="mesh_reader" category="mesh" name="input">
 <!--   <parameter name="filename" type="string">cube_with_tunnel.poly</parameter> -->
-  <parameter name="filename" type="string">big_and_small_cube.poly</parameter>
+  <parameter name="filename" type="string">../data/big_and_small_cube.poly</parameter>
 </algorithm>
 
-<algorithm type="generate_tetgen" name="mesher">
+<algorithm type="tetgen_mesh_generator" name="mesher">
   <default_source>input</default_source>
 <!--   <parameter name="default" type="dynamic">input/default</parameter> -->
 <!--   <parameter name="seed_points" type="dynamic">input/seed_points</parameter> -->
