@@ -1,5 +1,5 @@
 #include "viennagrid/config/default_configs.hpp"
-#include "viennagrid/config/default_configs.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
 
 int main(int argc, char* argv[])
