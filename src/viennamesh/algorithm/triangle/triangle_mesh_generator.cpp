@@ -108,12 +108,20 @@ namespace viennamesh
         viennamesh::triangle::convert( tmp_mesh, viennagrid_mesh );
 
 
-        unsigned int i = seed_points.size();
 
-        viennagrid::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
+        std::vector<point_2d> local_seed_points;
+        viennagrid::extract_seed_points( viennagrid_mesh, local_seed_points );
+        for (unsigned int i = 0; i < local_seed_points.size(); ++i)
+        {
+          info(5) << "Found seed point: " << local_seed_points[i] << std::endl;
+          seed_points.push_back( std::make_pair(local_seed_points[i], highest_segment_id) );
+        }
+        highest_segment_id++;
 
-        for (; i < seed_points.size(); ++i)
-          info(5) << "Found seed point: " << seed_points[i].first << std::endl;
+//       unsigned int i = seed_points.size();
+//       viennagrid::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
+//       for (; i < seed_points.size(); ++i)
+//         info(5) << "Found seed point: " << seed_points[i].first << std::endl;
 
         tmp.holelist = NULL;
       }
