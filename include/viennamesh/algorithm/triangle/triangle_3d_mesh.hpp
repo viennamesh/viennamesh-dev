@@ -50,6 +50,7 @@ namespace viennamesh
     template<typename CellT>
     void generic_convert_3d_plc(CellT const & input, triangle::input_cell_3d & output)
     {
+      typedef typename viennagrid::result_of::point<CellT>::type PointType;
       typedef typename viennagrid::result_of::const_vertex_handle<CellT>::type ConstVertexHandleType;
 
       typedef typename viennagrid::result_of::const_vertex_range<CellT>::type ConstVertexRangeType;
@@ -71,12 +72,9 @@ namespace viennamesh
       for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++index)
         plc_points_3d[index] = viennagrid::point(*vit);
 
-      point_3d center;
-      viennagrid::static_array<point_3d, 2> projection_matrix;
-
-      viennagrid::projection_matrix( plc_points_3d.begin(), plc_points_3d.end(), 1e-6, center, projection_matrix.begin() );
-
-      viennagrid::project( plc_points_3d.begin(), plc_points_3d.end(), plc_points_2d.begin(), center, projection_matrix.begin(), projection_matrix.end() );
+      viennagrid::plane_to_2d_projector<PointType> projection_functor;
+      projection_functor.init( plc_points_3d.begin(), plc_points_3d.end(), 1e-6 );
+      projection_functor.project( plc_points_3d.begin(), plc_points_3d.end(), plc_points_2d.begin() );
 
 
       output.vertex_ids.resize(vertices.size());
@@ -92,10 +90,9 @@ namespace viennamesh
         output.vertex_ids[index] = vit->id().get();
       }
 
-
       std::vector<point_3d> const & hole_points_3d = viennagrid::hole_points(input);
       output.hole_points_2d.resize(hole_points_3d.size());
-      viennagrid::project( hole_points_3d.begin(), hole_points_3d.end(), output.hole_points_2d.begin(), center, projection_matrix.begin(), projection_matrix.end() );
+      projection_functor.project( hole_points_3d.begin(), hole_points_3d.end(), output.hole_points_2d.begin() );
 
       ConstLineRangeType lines(input);
       output.plc.init_segments( lines.size() );
