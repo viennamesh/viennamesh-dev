@@ -118,11 +118,6 @@ namespace viennamesh
         }
         highest_segment_id++;
 
-//       unsigned int i = seed_points.size();
-//       viennagrid::extract_seed_points( viennagrid_mesh, seed_points, highest_segment_id++ );
-//       for (; i < seed_points.size(); ++i)
-//         info(5) << "Found seed point: " << seed_points[i].first << std::endl;
-
         tmp.holelist = NULL;
       }
     }
