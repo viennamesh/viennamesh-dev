@@ -252,10 +252,11 @@ namespace viennamesh
 
 
    extract_plc::extract_plc() :
-    input_mesh(*this, "input_mesh"),
+    input_mesh(*this, "mesh"),
     output_mesh(*this, "mesh") {}
 
   string extract_plc::name() const { return "ViennaGrid Extract PLC geometry"; }
+  string extract_plc::id() const { return "extract_plc"; }
 
 
   bool extract_plc::run_impl()

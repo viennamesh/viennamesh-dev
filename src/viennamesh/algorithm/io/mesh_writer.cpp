@@ -360,6 +360,7 @@ namespace viennamesh
       quantities(*this, "quantities") {}
 
     string mesh_writer::name() const { return "ViennaGrid Mesh Writer"; }
+    string mesh_writer::id() const { return "mesh_writer"; }
 
 
 

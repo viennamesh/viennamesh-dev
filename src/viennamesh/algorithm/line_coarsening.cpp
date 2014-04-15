@@ -111,6 +111,7 @@ namespace viennamesh
     output_mesh(*this, "mesh") {}
 
   string line_coarsening::name() const { return "ViennaGrid Line Coarsing"; }
+  string line_coarsening::id() const { return "line_coarsening"; }
 
   template<typename MeshT, typename SegmentationT>
   bool line_coarsening::generic_run()

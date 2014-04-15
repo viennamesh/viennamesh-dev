@@ -159,6 +159,7 @@ namespace viennamesh
       output_mesh(*this, "mesh") {}
 
     string mesh_generator::name() const { return "Tetgen 1.5 mesher"; }
+    string mesh_generator::id() const { return "tetgen_mesh_generator"; }
 
 
     bool mesh_generator::run_impl()

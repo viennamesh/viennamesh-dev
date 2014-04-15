@@ -33,18 +33,16 @@ namespace viennamesh
     }
   }
 
-
-
   void base_algorithm::register_input_parameter( base_parameter_interface & input_parameter )
   {
     if ( !input_parameters.insert(std::make_pair(input_parameter.name(), &input_parameter)).second )
-      error(1) << "Input parameter \"" << input_parameter.name() << "\" registered twice" << std::endl;
+      error(1) << "Input parameter \"" << input_parameter.name() << "\" of algorithm \"" << name() << "\" registered twice. This is a bug, please report!" << std::endl;
   }
 
   void base_algorithm::register_output_parameter( base_parameter_interface & output_parameter )
   {
     if ( !output_parameters.insert(std::make_pair(output_parameter.name(), &output_parameter)).second )
-      error(1) << "Output parameter \"" << output_parameter.name() << "\" registered twice" << std::endl;
+      error(1) << "Output parameter \"" << output_parameter.name() << "\" of algorithm \"" << name() << "\" registered twice. This is a bug, please report!" << std::endl;
   }
 
   bool base_algorithm::is_input_registered(std::string const & name) const

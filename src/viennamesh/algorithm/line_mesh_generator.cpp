@@ -199,6 +199,7 @@ namespace viennamesh
     output_mesh(*this, "mesh") {}
 
   string line_mesh_generator::name() const { return "ViennaGrid 1D line mesher"; }
+  string line_mesh_generator::id() const { return "line_mesh_generator"; }
 
 
 

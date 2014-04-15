@@ -10,9 +10,11 @@ namespace viennamesh
     class string_reader : public base_algorithm
     {
     public:
-
       string_reader();
+
       string name() const;
+      string id() const;
+
       bool run_impl();
 
     private:

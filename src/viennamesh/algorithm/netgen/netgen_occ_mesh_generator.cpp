@@ -20,6 +20,7 @@ namespace viennamesh
       output_mesh(*this, "mesh") {}
 
     string occ_mesh_generator::name() const { return "Netgen 5.1 OpenCascade mesher"; }
+    string occ_mesh_generator::id() const { return "netgen_occ_mesh_generator"; }
 
     bool occ_mesh_generator::run_impl()
     {

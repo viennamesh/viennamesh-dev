@@ -9,7 +9,9 @@ namespace viennamesh
   {
   public:
     line_coarsening();
+
     string name() const;
+    string id() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run();

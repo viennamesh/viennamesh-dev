@@ -61,6 +61,7 @@ namespace viennamesh
       output_hole_points(*this, "hole_points") {}
 
     string mesh_reader::name() const { return "ViennaGrid Mesh Reader"; }
+    string mesh_reader::id() const { return "mesh_reader"; }
 
 
     template<int GeometricDimensionV>

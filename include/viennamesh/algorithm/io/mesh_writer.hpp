@@ -17,6 +17,7 @@ namespace viennamesh
 
       mesh_writer();
       string name() const;
+      string id() const;
       bool run_impl();
 
     private:

@@ -9,6 +9,7 @@ namespace viennamesh
       output_string(*this, "string") {}
 
     string string_reader::name() const { return "ViennaGrid String Reader"; }
+    string string_reader::id() const { return "string_reader"; }
 
     bool string_reader::run_impl()
     {

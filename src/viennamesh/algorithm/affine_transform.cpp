@@ -11,6 +11,7 @@ namespace viennamesh
     output_mesh(*this, "mesh") {}
 
   string affine_transform::name() const { return "ViennaGrid Affine Transform"; }
+  string affine_transform::id() const { return "affine_transform"; }
 
   template<typename MeshT, typename SegmentationT>
   bool affine_transform::generic_run( dynamic_point const & matrix, dynamic_point const & base_translate )

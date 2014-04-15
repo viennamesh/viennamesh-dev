@@ -9,7 +9,9 @@ namespace viennamesh
   {
   public:
     line_mesh_generator();
+
     string name() const;
+    string id() const;
 
     template<typename GeometrySegmentationT>
     void extract_seed_points( GeometrySegmentationT const & segmentation, point_1d_container const & hole_points,

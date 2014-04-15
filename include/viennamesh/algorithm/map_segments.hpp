@@ -11,6 +11,7 @@ namespace viennamesh
     map_segments();
 
     string name() const;
+    string id() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run( std::map<int, int> const & segment_mapping );

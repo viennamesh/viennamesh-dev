@@ -9,7 +9,9 @@ namespace viennamesh
   {
   public:
     affine_transform();
+
     string name() const;
+    string id() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run( dynamic_point const & matrix, dynamic_point const & base_translate );

@@ -12,6 +12,7 @@ namespace viennamesh
     output_seed_points(*this, "seed_points") {}
 
   string extract_hull::name() const { return "ViennaGrid Extract Hull"; }
+  string extract_hull::id() const { return "extract_hull"; }
 
   template<typename MeshT, typename SegmentationT>
   bool extract_hull::generic_run()

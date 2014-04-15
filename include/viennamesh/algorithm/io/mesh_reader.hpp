@@ -15,6 +15,8 @@ namespace viennamesh
       mesh_reader();
 
       string name() const;
+      string id() const;
+
       bool run_impl();
 
     private:

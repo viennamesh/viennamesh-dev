@@ -47,6 +47,7 @@ namespace viennamesh
     output_mesh(*this, "mesh") {}
 
   string merge_meshes::name() const { return "ViennaGrid Merge Meshes"; }
+  string merge_meshes::id() const { return "merge_meshes"; }
 
   template<typename MeshT, typename SegmentationT>
   bool merge_meshes::generic_run()

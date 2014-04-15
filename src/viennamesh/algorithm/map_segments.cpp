@@ -46,12 +46,13 @@ namespace viennamesh
 
 
 
-    map_segments::map_segments() :
-      input_mesh(*this, "mesh"),
-      segment_mapping(*this, "segment_mapping"),
-      output_mesh(*this, "mesh") {}
+  map_segments::map_segments() :
+    input_mesh(*this, "mesh"),
+    segment_mapping(*this, "segment_mapping"),
+    output_mesh(*this, "mesh") {}
 
-    string map_segments::name() const { return "ViennaGrid Map Segments"; }
+  string map_segments::name() const { return "ViennaGrid Map Segments"; }
+  string map_segments::id() const { return "map_segments"; }
 
 
 

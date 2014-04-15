@@ -13,6 +13,7 @@ namespace viennamesh
       output_mesh(*this, "mesh") {}
 
     string hull_mesh_generator::name() const { return "Triangle 1.6 hull mesher"; }
+    string hull_mesh_generator::id() const { return "triangle_hull_mesh_generator"; }
 
 
     bool hull_mesh_generator::run_impl()

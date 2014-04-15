@@ -79,6 +79,7 @@ namespace viennamesh
     output_mesh(*this, "mesh") {}
 
   string project_mesh::name() const { return "ViennaGrid Project"; }
+  string project_mesh::id() const { return "project_mesh"; }
 
 
   template<typename InputMeshT, typename InputSegmentationT, typename OutputMeshT, typename OutputSegmentationT>

@@ -18,6 +18,7 @@ namespace viennamesh
       output_mesh(*this, "mesh") {}
 
     string csg_mesh_generator::name() const { return "Netgen 5.1 CSG mesher"; }
+    string csg_mesh_generator::id() const { return "netgen_csg_mesh_generator"; }
 
     bool csg_mesh_generator::run_impl()
     {

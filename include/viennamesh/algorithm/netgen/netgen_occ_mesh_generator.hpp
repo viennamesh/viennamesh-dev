@@ -13,6 +13,8 @@ namespace viennamesh
       occ_mesh_generator();
 
       string name() const;
+      string id() const;
+
       bool run_impl();
 
     private:

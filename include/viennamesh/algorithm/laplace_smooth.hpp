@@ -11,6 +11,7 @@ namespace viennamesh
     laplace_smooth();
 
     string name() const;
+    string id() const;
 
     template<typename MeshT>
     bool generic_run();

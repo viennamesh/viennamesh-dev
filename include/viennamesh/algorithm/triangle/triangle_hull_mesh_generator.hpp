@@ -14,6 +14,7 @@ namespace viennamesh
       hull_mesh_generator();
 
       string name() const;
+      string id() const;
 
       bool run_impl();
 

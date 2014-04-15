@@ -132,6 +132,7 @@ namespace viennamesh
       output_mesh(*this, "mesh") {}
 
     string mesh_generator::name() const { return "Triangle 1.6 mesher"; }
+    string mesh_generator::id() const { return "triangle_mesh_generator"; }
 
 
     bool mesh_generator::run_impl()

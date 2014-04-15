@@ -48,6 +48,7 @@ namespace viennamesh
     output_mesh(*this, "mesh") {}
 
   string hyperplane_clip::name() const { return "ViennaGrid Hyperplane Clip"; }
+  string hyperplane_clip::id() const { return "hyperplane_clip"; }
 
 
   template<typename MeshT, typename SegmentationT>
