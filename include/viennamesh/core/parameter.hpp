@@ -66,6 +66,18 @@ namespace viennamesh
     parameter_handle_t( shared_ptr<ObjectType> const & ptr ) : shared_ptr<ObjectType>(ptr) {}
     parameter_handle_t( shared_ptr<NonConstObjectType> const & ptr ) : shared_ptr<ObjectType>(ptr) {}
 
+    parameter_handle_t & operator=( parameter_handle_t<ObjectType> const & ptr )
+    {
+      shared_ptr<const parameter_wrapper<ValueT> >::operator=(ptr);
+      return *this;
+    }
+    parameter_handle_t & operator=( parameter_handle_t<NonConstObjectType> const & ptr )
+    {
+      shared_ptr<const parameter_wrapper<ValueT> >::operator=(ptr);
+      return *this;
+    }
+
+
     explicit parameter_handle_t( ObjectType * ptr ) : shared_ptr<ObjectType>(ptr) {}
 
     ValueT const & operator()() { return (*this)->value(); }
