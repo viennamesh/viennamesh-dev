@@ -8,7 +8,7 @@ int main()
 
 
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-  writer->set_input( "default", reader->get_output("default") );
+  writer->set_default_source(reader);
   writer->set_input( "filename", "deva_test.vmesh" );
   writer->run();
 }

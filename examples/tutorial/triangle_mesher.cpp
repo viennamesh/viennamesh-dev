@@ -80,7 +80,7 @@ int main()
   viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
 
   // setting the created line geometry as input for the mesher
-  mesher->set_input( "default", geometry_handle );
+  mesher->set_input( "mesh", geometry_handle );
 
   // creating the hole points and set it as input for the mesher
   viennamesh::point_2d_container hole_points;
@@ -101,7 +101,8 @@ int main()
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // linking the output from the mesher to the writer
-  writer->set_input( "default", mesher->get_output("default") );
+  writer->set_default_source(mesher);
+
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "meshed_quads.vtu" );
 

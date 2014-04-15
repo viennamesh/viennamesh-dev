@@ -165,7 +165,7 @@ int main()
   viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
 
   // set the input geometry
-  mesher->set_input( "default", geometry_handle );
+  mesher->set_input( "mesh", geometry_handle );
 
   // setting the mesher paramters
   mesher->set_input( "cell_size", 1.0 );              // maximum cell size
@@ -181,7 +181,7 @@ int main()
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // linking the output from the mesher to the writer
-  writer->set_input( "default", mesher->get_output("default") );
+  writer->set_default_source(mesher);
 
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "three_cubes.vtu" );

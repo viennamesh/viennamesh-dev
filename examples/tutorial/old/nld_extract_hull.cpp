@@ -15,8 +15,7 @@ int main()
 
   // creating a hull extraction algorithm
   viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull() );
-
-  extract_hull->set_input( "default", reader->get_output("default") );
+  extract_hull->set_default_source(reader);
 
   // start the algorithm
   extract_hull->run();
@@ -24,8 +23,7 @@ int main()
 
   // creating an algorithm for writing a mesh to a file
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-
-  writer->set_input( "default", extract_hull->get_output("default") );
+  writer->set_default_source(extract_hull);
 
   // Setting the filename for writer
   writer->set_input( "filename", "nld_mosfet_hull.vtu" );

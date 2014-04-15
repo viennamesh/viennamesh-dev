@@ -45,7 +45,7 @@ int main( int argc, char** argv )
   laplace_smooth->set_input( "max_distance", max_distance ); // 3e-8
 
 
-  coarsen_hull->set_input( "default", reader->get_output("default") );
+  coarsen_hull->set_input( "mesh", reader->get_output("mesh") );
   coarsen_hull->run();
 
 
@@ -54,14 +54,14 @@ int main( int argc, char** argv )
     std::stringstream ss;
     ss << output_filename << i << ".vtu";
 
-    laplace_smooth->set_input( "default", coarsen_hull->get_output("default") );
+    laplace_smooth->set_input( "mesh", coarsen_hull->get_output("mesh") );
     laplace_smooth->run();
 
-    coarsen_hull->set_input( "default", laplace_smooth->get_output("default") );
+    coarsen_hull->set_input( "mesh", laplace_smooth->get_output("mesh") );
     coarsen_hull->run();
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", coarsen_hull->get_output("default") );
+    writer->set_input( "mesh", coarsen_hull->get_output("mesh") );
     writer->set_input( "filename", ss.str() );
     writer->run();
   }

@@ -31,14 +31,10 @@ int main()
   reader->run();
 
   // linking the output from the reader to the mesher
-  mesher->set_input( "default", reader->get_output("default") );
-  mesher->set_input( "seed_points", reader->get_output("seed_points") );
-  mesher->set_input( "hole_points", reader->get_output("hole_points") );
-
+  mesher->set_default_source(reader);
   mesher->run();
 
-  writer->set_input( "default", mesher->get_output("default") );
-
+  writer->set_default_source(mesher);
   writer->run();
 
 
@@ -50,14 +46,12 @@ int main()
   reader->run();
 
   // linking the output from the reader to the mesher
-  mesher->set_input( "default", reader->get_output("default") );
-  mesher->set_input( "seed_points", reader->get_output("seed_points") );
-  mesher->set_input( "hole_points", reader->get_output("hole_points") );
+//   mesher->set_input( "default", reader->get_output("default") );
+//   mesher->set_input( "seed_points", reader->get_output("seed_points") );
+//   mesher->set_input( "hole_points", reader->get_output("hole_points") );
 
   mesher->run();
-
-  writer->set_input( "default", mesher->get_output("default") );
-
+//   writer->set_input( "default", mesher->get_output("default") );
   writer->run();
 
 
@@ -69,14 +63,12 @@ int main()
   reader->run();
 
   // linking the output from the reader to the mesher
-  mesher->set_input( "default", reader->get_output("default") );
-  mesher->set_input( "seed_points", reader->get_output("seed_points") );
-  mesher->set_input( "hole_points", reader->get_output("hole_points") );
+//   mesher->set_input( "default", reader->get_output("default") );
+//   mesher->set_input( "seed_points", reader->get_output("seed_points") );
+//   mesher->set_input( "hole_points", reader->get_output("hole_points") );
 
   mesher->run();
-
-  writer->set_input( "default", mesher->get_output("default") );
-
+//   writer->set_input( "default", mesher->get_output("default") );
   writer->run();
 
 }

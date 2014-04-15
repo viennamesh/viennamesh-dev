@@ -93,7 +93,7 @@ int main()
   viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
 
   // set the input geometry and seed points
-  mesher->set_input( "default", geometry_handle );
+  mesher->set_input( "mesh", geometry_handle );
   viennamesh::seed_point_3d_container seed_points;
   seed_points.push_back( std::make_pair( PointType(s/2, s/2, s/2), 0 ) );
 
@@ -113,10 +113,10 @@ int main()
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // linking the output from the mesher to the writer
-  writer->set_input( "default", mesher->get_output("default") );
+  writer->set_default_source(mesher);
 
   // Setting the filename for the reader and writer
-  writer->set_input( "filename", "big_and_small_cube.vtu" );
+  writer->set_input( "filename", "one_cube.vtu" );
 
   // start the algorithm
   writer->run();

@@ -19,7 +19,7 @@ int main()
 
 
   // setting the mesher paramters
-  mesher->set_input( "default", csg_string );               // the CSG string
+  mesher->set_input( "csg", csg_string );               // the CSG string
 
   mesher->set_input( "delaunay", true );                    // use delaunay meshing
   mesher->set_input( "cell_size", 0.1 );                    // set the cell size
@@ -48,7 +48,7 @@ int main()
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
   // linking the output from the mesher to the writer
-  writer->set_input( "default", mesher->get_output("default") );
+  writer->set_default_source(mesher);
 
   // Setting the filename for the reader and writer
   writer->set_input( "filename", "cube_netgen_csg.vtu" );

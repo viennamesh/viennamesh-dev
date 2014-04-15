@@ -20,9 +20,7 @@ int main()
   viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> mesh;
 
   // linking the output from the reader to the mesher
-  mesher->set_input( "default", reader->get_output("default") );
-  mesher->set_input( "seed_points", reader->get_output("seed_points") );
-  mesher->set_input( "hole_points", reader->get_output("hole_points") );
+  mesher->set_default_source(reader);
 
   // setting the mesher paramters
   mesher->set_input( "cell_size", 1.0 );              // maximum cell size
@@ -30,7 +28,7 @@ int main()
   mesher->set_input( "min_dihedral_angle", 0.17 );     // minimum dihedral angle in radiant, 0.17 are about 10 degrees
 
 
-  mesher->set_output( "default", mesh );
+  mesher->set_output( "mesh", mesh );
 
   // start the algorithm
   mesher->run();
