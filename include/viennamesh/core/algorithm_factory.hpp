@@ -56,49 +56,12 @@ namespace viennamesh
     algorithm_factory_t();
 
     template<typename AlgorithmT>
-    void register_algorithm(string const & algorithm_name)
-    {
-      std::map<string, AlgorithmInformationHandle>::iterator it = algorithms.find(algorithm_name);
-      if (it != algorithms.end())
-        return;
+    void register_algorithm();
 
-      algorithms.insert( std::make_pair(algorithm_name, AlgorithmInformationHandle( new algorithm_information<AlgorithmT>(algorithm_name))) );
-    }
+    std::list<AlgorithmInformationHandle> matching_algorithms( std::string const & expression ) const;
 
-    std::list<AlgorithmInformationHandle> matching_algorithms( std::string const & expression ) const
-    {
-      std::list<AlgorithmInformationHandle> result;
-
-      string feature_key = expression.substr(0, expression.find("=="));
-      string feature_value = expression.substr(expression.find("==")+2);
-
-      for (std::map<string, AlgorithmInformationHandle>::const_iterator ait = algorithms.begin(); ait != algorithms.end(); ++ait)
-      {
-        std::map<string, string> const & features = ait->second->features();
-        std::map<string, string>::const_iterator fit = features.find(feature_key);
-        if ((fit != features.end()) && (fit->second == feature_value))
-          result.push_back(ait->second);
-      }
-
-      return result;
-    }
-
-    algorithm_handle create_from_name(std::string const & algorithm_name) const
-    {
-      std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_name);
-      if (it == algorithms.end())
-        return algorithm_handle();
-      return it->second->create();
-    }
-
-    algorithm_handle create_from_expression(std::string const & expression) const
-    {
-      std::list<AlgorithmInformationHandle> algos = matching_algorithms(expression);
-      if (algos.empty())
-        return algorithm_handle();
-      return algos.front()->create();
-    }
-
+    algorithm_handle create_from_name(std::string const & algorithm_name) const;
+    algorithm_handle create_from_expression(std::string const & expression) const;
 
   private:
 
