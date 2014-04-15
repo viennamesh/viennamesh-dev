@@ -10,11 +10,19 @@ namespace viennamesh
     class occ_mesh_generator : public base_algorithm
     {
     public:
+      occ_mesh_generator();
 
-      string name() const { return "Netgen 5.1 OpenCascade mesher"; }
+      string name() const;
       bool run_impl();
 
     private:
+      required_input_parameter_interface<string>         input_geometry_filename;
+      optional_input_parameter_interface<double>         cell_size;
+      default_input_parameter_interface<double>          curvature_safety_factor;
+      default_input_parameter_interface<double>          segments_per_edge;
+      default_input_parameter_interface<double>          grading;
+
+      output_parameter_interface                         output_mesh;
     };
   }
 

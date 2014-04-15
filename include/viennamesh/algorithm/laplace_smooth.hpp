@@ -8,11 +8,20 @@ namespace viennamesh
   class laplace_smooth : public base_algorithm
   {
   public:
-    string name() const { return "ViennaGrid Laplace Smoothing"; }
+    laplace_smooth();
+
+    string name() const;
 
     template<typename MeshT>
     bool generic_run();
     bool run_impl();
+
+  private:
+    dynamic_required_input_parameter_interface  input_mesh;
+    default_input_parameter_interface<double>   lambda;
+    default_input_parameter_interface<double>   max_distance;
+
+    output_parameter_interface                  output_mesh;
   };
 }
 

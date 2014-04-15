@@ -39,6 +39,17 @@ namespace viennamesh
 
 
 
+
+
+  hyperplane_clip::hyperplane_clip() :
+    input_mesh(*this, "mesh"),
+    hyperplane_point(*this, "hyperplane_point"),
+    hyperplane_normal(*this, "hyperplane_normal"),
+    output_mesh(*this, "mesh") {}
+
+  string hyperplane_clip::name() const { return "ViennaGrid Hyperplane Clip"; }
+
+
   template<typename MeshT, typename SegmentationT>
   bool hyperplane_clip::generic_run( dynamic_point const & base_hyperplane_point, dynamic_point const & base_hyperplane_normal )
   {
@@ -54,18 +65,18 @@ namespace viennamesh
     std::copy( base_hyperplane_normal.begin(), base_hyperplane_normal.end(), hyperplane_normal.begin() );
 
     {
-      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh = get_input<SegmentedMeshType>("default");
-      if (input_mesh)
+      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp = input_mesh.get<SegmentedMeshType>();
+      if (imp)
       {
-        output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>( "default" );
+        output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
         SegmentedMeshType tmp;
 
-        viennagrid::hyperplane_refine(input_mesh().mesh, input_mesh().segmentation,
+        viennagrid::hyperplane_refine(imp().mesh, imp().segmentation,
                         tmp.mesh, tmp.segmentation,
                         hyperplane_point, hyperplane_normal, 1e-8 );
 
         viennagrid::copy( tmp.mesh, tmp.segmentation,
-                          output_mesh().mesh, output_mesh().segmentation,
+                          omp().mesh, omp().segmentation,
                           on_positive_hyperplane_side_functor<PointType, double>(hyperplane_point, -hyperplane_normal, 1e-8) );
 
         return true;
@@ -73,14 +84,14 @@ namespace viennamesh
     }
 
     {
-      typename viennamesh::result_of::const_parameter_handle<MeshT>::type input_mesh = get_input<MeshT>("default");
-      if (input_mesh)
+      typename viennamesh::result_of::const_parameter_handle<MeshT>::type imp = input_mesh.get<MeshT>();
+      if (imp)
       {
-        output_parameter_proxy<MeshT> output_mesh = output_proxy<MeshT>( "default" );
+        output_parameter_proxy<MeshT> omp(output_mesh);
         MeshT tmp;
 
-        viennagrid::hyperplane_refine(input_mesh(), tmp, hyperplane_point, hyperplane_normal, 1e-8 );
-        viennagrid::copy( tmp, output_mesh(),
+        viennagrid::hyperplane_refine(imp(), tmp, hyperplane_point, hyperplane_normal, 1e-8 );
+        viennagrid::copy( tmp, omp(),
                           on_positive_hyperplane_side_functor<PointType, double>(hyperplane_point, -hyperplane_normal, 1e-8) );
 
         return true;
@@ -92,39 +103,30 @@ namespace viennamesh
 
   bool hyperplane_clip::run_impl()
   {
-    viennamesh::const_parameter_handle mesh = get_input("default");
-    if (!mesh)
-    {
-      error(1) << "Input Parameter 'default' (type: mesh) is missing" << std::endl;
-      return false;
-    }
-
-    viennamesh::result_of::const_parameter_handle<dynamic_point>::type base_hyperplane_point = get_required_input<dynamic_point>("hyperplane_point");
-    viennamesh::result_of::const_parameter_handle<dynamic_point>::type base_hyperplane_normal = get_required_input<dynamic_point>("hyperplane_normal");
-
+    viennamesh::const_parameter_handle mesh = input_mesh.get();
 
     unsigned int mesh_geometric_dimension = lexical_cast<unsigned int>( mesh->get_property("geometric_dimension").first );
 
-    if (mesh_geometric_dimension != base_hyperplane_point().size())
+    if (mesh_geometric_dimension != hyperplane_point().size())
     {
-      error(1) << "Dimension missmatch, mesh has geometric dimension " << mesh_geometric_dimension << " but hyperplane point has dimension " << base_hyperplane_point().size() << std::endl;
+      error(1) << "Dimension missmatch, mesh has geometric dimension " << mesh_geometric_dimension << " but hyperplane point has dimension " << hyperplane_point().size() << std::endl;
       return false;
     }
 
-    if (mesh_geometric_dimension != base_hyperplane_normal().size())
+    if (mesh_geometric_dimension != hyperplane_normal().size())
     {
-      error(1) << "Dimension missmatch, mesh has geometric dimension " << mesh_geometric_dimension << " but hyperplane normal has dimension " << base_hyperplane_normal().size() << std::endl;
+      error(1) << "Dimension missmatch, mesh has geometric dimension " << mesh_geometric_dimension << " but hyperplane normal has dimension " << hyperplane_normal().size() << std::endl;
       return false;
     }
 
 
-    if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(base_hyperplane_point(), base_hyperplane_normal()))
+    if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(hyperplane_point(), hyperplane_normal()))
       return true;
 
-    if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(base_hyperplane_point(), base_hyperplane_normal()))
+    if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(hyperplane_point(), hyperplane_normal()))
       return true;
 
-    if (generic_run<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>(base_hyperplane_point(), base_hyperplane_normal()))
+    if (generic_run<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>(hyperplane_point(), hyperplane_normal()))
       return true;
 
 

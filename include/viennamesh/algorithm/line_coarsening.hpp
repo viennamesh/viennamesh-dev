@@ -8,11 +8,18 @@ namespace viennamesh
   class line_coarsening : public base_algorithm
   {
   public:
-    string name() const { return "ViennaGrid Line Coarsing"; }
+    line_coarsening();
+    string name() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run();
     bool run_impl();
+
+  private:
+    dynamic_required_input_parameter_interface      input_mesh;
+    default_input_parameter_interface<double>       angle;
+
+    output_parameter_interface                      output_mesh;
   };
 }
 

@@ -105,6 +105,13 @@ namespace viennamesh
   }
 
 
+  line_coarsening::line_coarsening() :
+    input_mesh(*this, "mesh"),
+    angle(*this, "angle", 2.5),
+    output_mesh(*this, "mesh") {}
+
+  string line_coarsening::name() const { return "ViennaGrid Line Coarsing"; }
+
   template<typename MeshT, typename SegmentationT>
   bool line_coarsening::generic_run()
   {
@@ -113,17 +120,16 @@ namespace viennamesh
     typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
-    double angle = 2.5;
-    copy_input( "angle", angle );
-
     {
-      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh = get_input<SegmentedMeshType>("default");
-      if (input_mesh)
+      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp = input_mesh.get<SegmentedMeshType>();
+      if (imp)
       {
-        output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>( "default" );
+        output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-        output_mesh() = input_mesh();
-        coarsen(output_mesh().mesh, output_mesh().segmentation, angle);
+        if (omp != imp)
+          omp() = imp();
+
+        coarsen(omp().mesh, omp().segmentation, angle());
 
         return true;
       }

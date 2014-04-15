@@ -54,26 +54,29 @@ namespace viennamesh
     }
   }
 
+  laplace_smooth::laplace_smooth() :
+    input_mesh(*this, "mesh"),
+    lambda(*this, "lambda", 0.5),
+    max_distance(*this, "max_distance", -1),
+    output_mesh(*this, "mesh") {}
+
+  string laplace_smooth::name() const { return "ViennaGrid Laplace Smoothing"; }
+
   template<typename MeshT>
   bool laplace_smooth::generic_run()
   {
-//         typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
-
     typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
-    double lambda = 0.5;
-    copy_input( "lambda", lambda );
-
-    double max_distance = -1;
-    copy_input( "max_distance", max_distance );
-
-    typename viennamesh::result_of::const_parameter_handle<MeshT>::type input_mesh = get_input<MeshT>("default");
-    if (input_mesh)
+    typename viennamesh::result_of::const_parameter_handle<MeshT>::type imp = input_mesh.get<MeshT>();
+    if (imp)
     {
-      output_parameter_proxy<MeshT> output_mesh = output_proxy<MeshT>( "default" );
-      output_mesh() = input_mesh();
-      laplace_smooth_impl(output_mesh(), lambda, max_distance);
+      output_parameter_proxy<MeshT> omp(output_mesh);
+
+      if (omp != imp)
+        omp() = imp();
+
+      laplace_smooth_impl(omp(), lambda(), max_distance());
 
       return true;
     }

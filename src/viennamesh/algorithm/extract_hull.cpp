@@ -5,6 +5,14 @@
 
 namespace viennamesh
 {
+
+  extract_hull::extract_hull() :
+    input_mesh(*this, "mesh"),
+    output_mesh(*this, "mesh"),
+    output_seed_points(*this, "seed_points") {}
+
+  string extract_hull::name() const { return "ViennaGrid Extract Hull"; }
+
   template<typename MeshT, typename SegmentationT>
   bool extract_hull::generic_run()
   {
@@ -23,27 +31,26 @@ namespace viennamesh
     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
     {
-      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh = get_input<SegmentedMeshType>("default");
-      if (input_mesh)
+      typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp = input_mesh.get<SegmentedMeshType>();
+      if (imp)
       {
-        output_parameter_proxy<SegmentedFacetMeshType> output_mesh = output_proxy<SegmentedFacetMeshType>( "default" );
-        output_parameter_proxy<SeedPointContainerType> seed_points = output_proxy<SeedPointContainerType>( "seed_points" );
+        output_parameter_proxy<SegmentedFacetMeshType> omp(output_mesh);
+        output_parameter_proxy<SeedPointContainerType> ospp(output_seed_points);
 
-        viennagrid::extract_hull(input_mesh().mesh, input_mesh().segmentation,
-                                                  output_mesh().mesh, output_mesh().segmentation);
-        viennagrid::extract_seed_points( input_mesh().mesh, input_mesh().segmentation, seed_points() );
+        viennagrid::extract_hull(imp().mesh, imp().segmentation, omp().mesh, omp().segmentation);
+        viennagrid::extract_seed_points( imp().mesh, imp().segmentation, ospp() );
 
         return true;
       }
     }
 
     {
-      typename viennamesh::result_of::const_parameter_handle<MeshT>::type input_mesh = get_input<MeshT>("default");
-      if (input_mesh)
+      typename viennamesh::result_of::const_parameter_handle<MeshT>::type imp = input_mesh.get<MeshT>();
+      if (imp)
       {
-        output_parameter_proxy<FacetMeshType> output_mesh = output_proxy<FacetMeshType>( "default" );
+        output_parameter_proxy<FacetMeshType> omp(output_mesh);
 
-        viennagrid::extract_hull(input_mesh(), output_mesh());
+        viennagrid::extract_hull(imp(), omp());
 
         return true;
       }

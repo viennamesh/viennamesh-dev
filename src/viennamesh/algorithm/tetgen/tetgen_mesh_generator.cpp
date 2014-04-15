@@ -12,7 +12,7 @@ namespace viennamesh
 {
   namespace tetgen
   {
-    viennamesh::sizing_function_3d sizing_function;
+    viennamesh::sizing_function_3d tetgen_sizing_function;
     bool using_sizing_function;
 
     double max_edge_ratio;
@@ -66,11 +66,11 @@ namespace viennamesh
         typedef viennagrid::static_array<double, 5> ContainerType;
         ContainerType local_sizes;
 
-        local_sizes[0] = sizing_function( p0 );
-        local_sizes[1] = sizing_function( p1 );
-        local_sizes[2] = sizing_function( p2 );
-        local_sizes[3] = sizing_function( p3 );
-        local_sizes[4] = sizing_function(center);
+        local_sizes[0] = tetgen_sizing_function( p0 );
+        local_sizes[1] = tetgen_sizing_function( p1 );
+        local_sizes[2] = tetgen_sizing_function( p2 );
+        local_sizes[3] = tetgen_sizing_function( p3 );
+        local_sizes[4] = tetgen_sizing_function(center);
 
         double local_size = -1;
         for (ContainerType::iterator it = local_sizes.begin(); it != local_sizes.end(); ++it)
@@ -144,22 +144,32 @@ namespace viennamesh
     }
 
 
+    mesh_generator::mesh_generator() :
+      input_mesh(*this, "mesh"),
+      input_seed_points(*this, "seed_points"),
+      input_hole_points(*this, "hole_points"),
+      sizing_function(*this, "sizing_function"),
+      cell_size(*this, "cell_size"),
+      max_radius_edge_ratio(*this, "max_radius_edge_ratio"),
+      min_dihedral_angle(*this, "min_dihedral_angle"),
+      max_edge_ratio(*this, "max_edge_ratio"),
+      max_inscribed_radius_edge_ratio(*this, "max_inscribed_radius_edge_ratio"),
+      extract_segment_seed_points(*this, "extract_segment_seed_points", true),
+      option_string(*this, "option_string"),
+      output_mesh(*this, "mesh") {}
+
+    string mesh_generator::name() const { return "Tetgen 1.5 mesher"; }
+
+
     bool mesh_generator::run_impl()
     {
-      typedef viennagrid::segmented_mesh< tetgen::input_mesh, tetgen::input_segmentation > InputMeshType;
       typedef tetgen::output_mesh OutputMeshType;
-
-      viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_required_input<InputMeshType>("default");
-      output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>("default");
-
-      bool use_logger = true;
-      copy_input( "use_logger", use_logger );
+      output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
 
       tetgenbehavior options;
 
-      const_string_parameter_handle option_string = get_input<string>("option_string");
-      if (option_string)
+      if (option_string.valid())
       {
         options.parse_commandline( const_cast<char*>(option_string().c_str()) );
       }
@@ -175,28 +185,15 @@ namespace viennamesh
         options.plc = 1;
       }
 
-      const_double_parameter_handle cell_size = get_input<double>("cell_size");
-
-//       const_parameter_handle sf = get_input("sizing_function");
-
-      viennamesh::result_of::const_parameter_handle<sizing_function_3d>::type sf = get_input<sizing_function_3d>("sizing_function");
-
-      const_double_parameter_handle max_radius_edge_ratio = get_input<double>("max_radius_edge_ratio");
-      const_double_parameter_handle min_dihedral_angle = get_input<double>("min_dihedral_angle");
-      const_double_parameter_handle max_edge_ratio = get_input<double>("max_edge_ratio");
-      const_double_parameter_handle max_inscribed_radius_edge_ratio = get_input<double>("max_inscribed_radius_edge_ratio");
-
       using_sizing_function = false;
       using_max_edge_ratio = false;
       using_max_inscribed_radius_edge_ratio = false;
 
 
-      tetgenio & tmp = (tetgenio&)input_mesh().mesh;
+//       tetgenio * bla = (tetgenio*)(&(input_mesh().mesh));
+      tetgenio & tmp = (tetgenio&)(input_mesh().mesh);
 
-//       typedef viennagrid::segmented_mesh<viennagrid::thin_tetrahedral_3d_mesh, viennagrid::thin_tetrahedral_3d_mesh> OutputSegmentedMeshType;
-//       viennamesh::result_of::parameter_handle<OutputSegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<OutputSegmentedMeshType>();
-
-      if (sf)
+      if (sizing_function.valid())
       {
 //         if (sf->is_type<sizing_function_3d>())
 //           sizing_function = sf();
@@ -218,35 +215,35 @@ namespace viennamesh
 //           sizing_function = viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function_3d>, function, _1);
 //         }
 
-        sizing_function = sf();
+        tetgen_sizing_function = sizing_function();
         using_sizing_function = true;
         options.use_refinement_callback = 1;
         tmp.tetunsuitable = should_tetrahedron_be_refined;
 
         info(1) << "Using sizing function" << std::endl;
       }
-      else if (cell_size)
+      else if (cell_size.valid())
       {
         options.fixedvolume = 1;
         options.maxvolume = cell_size();
         info(1) << "Using global maximum cell size: " << cell_size() << std::endl;
       }
 
-      if (max_radius_edge_ratio)
+      if (max_radius_edge_ratio.valid())
       {
         options.quality = 1;
         options.minratio = max_radius_edge_ratio();
         info(1) << "Using global maximum radius edge ratio: " << max_radius_edge_ratio() << std::endl;
       }
 
-      if (min_dihedral_angle)
+      if (min_dihedral_angle.valid())
       {
         options.quality = 1;
         options.mindihedral = min_dihedral_angle();
         info(1) << "Using global minimum dihedral angle: " << min_dihedral_angle() << std::endl;
       }
 
-      if (max_edge_ratio)
+      if (max_edge_ratio.valid())
       {
         viennamesh::tetgen::max_edge_ratio = max_edge_ratio();
         using_max_edge_ratio = true;
@@ -255,7 +252,7 @@ namespace viennamesh
         info(1) << "Using global max edge ratio: " << max_edge_ratio() << std::endl;
       }
 
-      if (max_inscribed_radius_edge_ratio)
+      if (max_inscribed_radius_edge_ratio.valid())
       {
         viennamesh::tetgen::max_inscribed_radius_edge_ratio = max_inscribed_radius_edge_ratio();
         using_max_inscribed_radius_edge_ratio = true;
@@ -279,23 +276,19 @@ namespace viennamesh
 
       seed_point_3d_container seed_points;
 
-      typedef viennamesh::result_of::const_parameter_handle<seed_point_3d_container>::type ConstSeedPointContainerHandle;
-      ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_3d_container>("seed_points");
-      if (seed_points_handle && !seed_points_handle().empty())
+      if (input_seed_points.valid() && !input_seed_points().empty())
       {
         info(5) << "Found seed points" << std::endl;
-        seed_points = seed_points_handle();
+        seed_points = input_seed_points();
       }
 
 
       point_3d_container hole_points;
 
-      typedef viennamesh::result_of::const_parameter_handle<point_3d_container>::type ConstPointContainerHandle;
-      ConstPointContainerHandle hole_points_handle = get_input<point_3d_container>("hole_points");
-      if (hole_points_handle && !hole_points_handle().empty())
+      if (input_hole_points.valid() && !input_hole_points().empty())
       {
         info(5) << "Found hole points" << std::endl;
-        hole_points = hole_points_handle();
+        hole_points = input_hole_points();
       }
 
       if (!hole_points.empty())
@@ -316,10 +309,7 @@ namespace viennamesh
 
 
 
-
-      bool extract_segment_seed_points = true;
-      copy_input( "extract_segment_seed_points", extract_segment_seed_points );
-      if (extract_segment_seed_points)
+      if (extract_segment_seed_points())
       {
         extract_seed_points( input_mesh().segmentation, tmp.numberofholes, tmp.holelist, seed_points );
       }
@@ -347,14 +337,10 @@ namespace viennamesh
 
 //       info(1) << "Tetgen option string: \"" <<  options.str() << "\"" << std::endl;
 
-      if (use_logger)
-        std_capture().start();
-
+      std_capture().start();
       options.init();
-      tetrahedralize(&options, &tmp, &output_mesh());
-
-      if (use_logger)
-        std_capture().finish();
+      tetrahedralize(&options, &tmp, &omp());
+      std_capture().finish();
 
       delete[] tmp.regionlist;
       delete[] tmp.holelist;
@@ -365,7 +351,7 @@ namespace viennamesh
       tmp.numberofholes = old_numberofholes;
       tmp.holelist = old_holelist;
 
-      if (sf)
+      if (sizing_function.valid())
         tmp.tetunsuitable = NULL;
 
       return true;

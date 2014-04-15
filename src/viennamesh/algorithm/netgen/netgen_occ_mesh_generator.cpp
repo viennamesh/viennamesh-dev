@@ -11,12 +11,21 @@ namespace viennamesh
 {
   namespace netgen
   {
+    occ_mesh_generator::occ_mesh_generator() :
+      input_geometry_filename(*this, "filename"),
+      cell_size(*this, "cell_size"),
+      curvature_safety_factor(*this, "curvature_safety_factor", 2.0),
+      segments_per_edge(*this, "segments_per_edge", 1.0),
+      grading(*this, "grading", 0.3),
+      output_mesh(*this, "mesh") {}
+
+    string occ_mesh_generator::name() const { return "Netgen 5.1 OpenCascade mesher"; }
+
     bool occ_mesh_generator::run_impl()
     {
-      const_string_parameter_handle filename = get_required_input<string>("default");
-      output_parameter_proxy<netgen::output_mesh> output_mesh = output_proxy<netgen::output_mesh>("default");
+      output_parameter_proxy<netgen::output_mesh> omp(output_mesh);
 
-      ::netgen::OCCGeometry * geometry = ::netgen::LoadOCC_STEP( filename().c_str() );
+      ::netgen::OCCGeometry * geometry = ::netgen::LoadOCC_STEP( input_geometry_filename().c_str() );
 
       // http://sourceforge.net/p/netgen-mesher/discussion/905307/thread/7176bc7d/
       TopTools_IndexedMapOfShape FMap;
@@ -34,47 +43,39 @@ namespace viennamesh
       mp.inverttets = 0;
       mp.inverttrigs = 0;
 
-      viennamesh::result_of::const_parameter_handle<double>::type cell_size = get_input<double>("cell_size");
-      if (cell_size)
+      if (cell_size.valid())
       {
         mp.uselocalh = 1;
         mp.maxh = cell_size();
       }
 
-      mp.curvaturesafety = 2.0;
-      copy_input( "curvature_safety_factor", mp.curvaturesafety );
 
-      mp.segmentsperedge = 1.0;
-      copy_input( "segments_per_edge", mp.segmentsperedge );
-
-      mp.grading = 0.3;
-      copy_input( "grading", mp.grading );
-
-//       mp.Print(std::cout);
-
+      mp.curvaturesafety = curvature_safety_factor();
+      mp.segmentsperedge = segments_per_edge();
+      mp.grading = grading();
 
       int perfstepsend = 6;
 
-      output_mesh().mesh->geomtype = ::netgen::Mesh::GEOM_OCC;
+      omp().mesh->geomtype = ::netgen::Mesh::GEOM_OCC;
       ::netgen::occparam.resthcloseedgeenable = 0; //mp.closeedgeenable;
       ::netgen::occparam.resthcloseedgefac = 1.0; //mp.closeedgefact;
 
       ::netgen::mparam = mp;
 
-      output_mesh().mesh->DeleteMesh();
-      ::netgen::OCCSetLocalMeshSize( *geometry, *output_mesh().mesh );
+      omp().mesh->DeleteMesh();
+      ::netgen::OCCSetLocalMeshSize( *geometry, *omp().mesh );
 
 
-      ::netgen::OCCFindEdges(*geometry, *output_mesh().mesh);
+      ::netgen::OCCFindEdges(*geometry, *omp().mesh);
 
-      ::netgen::OCCMeshSurface(*geometry, *output_mesh().mesh, perfstepsend);
-      output_mesh().mesh->CalcSurfacesOfNode();
+      ::netgen::OCCMeshSurface(*geometry, *omp().mesh, perfstepsend);
+      omp().mesh->CalcSurfacesOfNode();
 
-      ::netgen::MeshVolume(mp, *output_mesh().mesh);
-      ::netgen::RemoveIllegalElements( *output_mesh().mesh );
-      ::netgen::MeshQuality3d( *output_mesh().mesh );
+      ::netgen::MeshVolume(mp, *omp().mesh);
+      ::netgen::RemoveIllegalElements( *omp().mesh );
+      ::netgen::MeshQuality3d( *omp().mesh );
 
-      ::netgen::OptimizeVolume(mp, *output_mesh().mesh );
+      ::netgen::OptimizeVolume(mp, *omp().mesh );
 
       return true;
     }

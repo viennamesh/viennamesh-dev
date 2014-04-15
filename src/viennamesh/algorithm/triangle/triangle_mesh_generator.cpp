@@ -8,7 +8,7 @@ namespace viennamesh
 {
   namespace triangle
   {
-    viennamesh::sizing_function_2d sizing_function;
+    viennamesh::sizing_function_2d triangle_sizing_function;
 
     int should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double)
     {
@@ -37,10 +37,10 @@ namespace viennamesh
 
       viennagrid::static_array<double, 4> local_sizes;
 
-      local_sizes[0] = sizing_function( point_2d(triorg[0], triorg[1]) );
-      local_sizes[1] = sizing_function( point_2d(tridest[0], tridest[1]) );
-      local_sizes[2] = sizing_function( point_2d(triapex[0], triapex[1]) );
-      local_sizes[3] = sizing_function(pt);
+      local_sizes[0] = triangle_sizing_function( point_2d(triorg[0], triorg[1]) );
+      local_sizes[1] = triangle_sizing_function( point_2d(tridest[0], tridest[1]) );
+      local_sizes[2] = triangle_sizing_function( point_2d(triapex[0], triapex[1]) );
+      local_sizes[3] = triangle_sizing_function(pt);
 
       double local_size = -1;
       for (int i = 0; i < 4; ++i)
@@ -95,14 +95,7 @@ namespace viennamesh
         std::strcpy(buffer, options.c_str());
 
 
-//           if (use_logger)
-//             std_capture().start();
-
         triangulate( buffer, &tmp, &tmp_mesh.triangle_mesh, NULL);
-
-//           if (use_logger)
-//             std_capture().finish();
-
 
         viennagrid::triangular_2d_mesh viennagrid_mesh;
         viennamesh::triangle::convert( tmp_mesh, viennagrid_mesh );
@@ -125,41 +118,44 @@ namespace viennamesh
 
 
 
+    mesh_generator::mesh_generator() :
+      input_mesh(*this, "mesh"),
+      input_seed_points(*this, "seed_points"),
+      input_hole_points(*this, "hole_points"),
+      sizing_function(*this, "sizing_function"),
+      cell_size(*this, "cell_size"),
+      min_angle(*this, "min_angle"),
+      delaunay(*this, "delaunay", true),
+      algorithm_type(*this, "algorithm_type"),
+      extract_segment_seed_points(*this, "extract_segment_seed_points", true),
+      option_string(*this, "option_string"),
+      output_mesh(*this, "mesh") {}
+
+    string mesh_generator::name() const { return "Triangle 1.6 mesher"; }
+
+
     bool mesh_generator::run_impl()
     {
-      typedef viennagrid::segmented_mesh< triangle::input_mesh, triangle::input_segmentation > InputMeshType;
       typedef triangle::output_mesh OutputMeshType;
-
-      viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_required_input<InputMeshType>("default");
-      output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>("default");
-
-      bool use_logger = true;
-      copy_input( "use_logger", use_logger );
+      output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
       std::ostringstream options;
 
-      const_string_parameter_handle option_string = get_input<string>("option_string");
-      if (option_string)
+      if (option_string.valid())
         options << option_string();
       else
         options << "zp";
 
-      const_double_parameter_handle min_angle = get_input<double>("min_angle");
-      if (min_angle)
+      if (min_angle.valid())
         options << "q" << min_angle() / M_PI * 180.0;
 
-
-      const_double_parameter_handle cell_size = get_input<double>("cell_size");
-      if (cell_size)
+      if (cell_size.valid())
         options << "a" << cell_size();
 
-      const_bool_parameter_handle delaunay = get_input<bool>("delaunay");
-      if (delaunay && delaunay())
+      if (delaunay())
         options << "D";
 
-
-      const_string_parameter_handle algorithm_type = get_input<string>("algorithm_type");
-      if (algorithm_type)
+      if (algorithm_type.valid())
       {
         if (algorithm_type() == "incremental_delaunay")
           options << "i";
@@ -185,22 +181,18 @@ namespace viennamesh
 
       seed_point_2d_container seed_points;
 
-      typedef viennamesh::result_of::const_parameter_handle<seed_point_2d_container>::type ConstSeedPointContainerHandle;
-      ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_2d_container>("seed_points");
-      if (seed_points_handle && !seed_points_handle().empty())
+      if (input_seed_points.valid() && !input_seed_points().empty())
       {
         info(5) << "Found input seed points" << std::endl;
-        seed_points = seed_points_handle();
+        seed_points = input_seed_points();
       }
 
       point_2d_container hole_points;
 
-      typedef viennamesh::result_of::const_parameter_handle<point_2d_container>::type ConstPointContainerHandle;
-      ConstPointContainerHandle hole_points_handle = get_input<point_2d_container>("hole_points");
-      if (hole_points_handle && !hole_points_handle().empty())
+      if (input_hole_points.valid() && !input_hole_points().empty())
       {
         info(5) << "Found hole points" << std::endl;
-        hole_points = hole_points_handle();
+        hole_points = input_hole_points();
       }
 
       if (!hole_points.empty())
@@ -219,11 +211,7 @@ namespace viennamesh
       }
 
 
-
-
-      bool extract_segment_seed_points = true;
-      copy_input( "extract_segment_seed_points", extract_segment_seed_points );
-      if (extract_segment_seed_points)
+      if (extract_segment_seed_points())
       {
         extract_seed_points( input_mesh().segmentation, tmp.numberofholes, tmp.holelist, seed_points );
       }
@@ -247,10 +235,9 @@ namespace viennamesh
         options << "A";
       }
 
-      viennamesh::result_of::const_parameter_handle<sizing_function_2d>::type sf = get_input<sizing_function_2d>("sizing_function");
-      if (sf)
+      if (sizing_function.valid())
       {
-        sizing_function = sf();
+        triangle_sizing_function = sizing_function();
         options << "u";
         ::should_triangle_be_refined = should_triangle_be_refined;
       }
@@ -259,13 +246,9 @@ namespace viennamesh
       char * buffer = new char[options.str().length()];
       std::strcpy(buffer, options.str().c_str());
 
-      if (use_logger)
-        std_capture().start();
-
-      triangulate( buffer, &tmp, &output_mesh().triangle_mesh, NULL);
-
-      if (use_logger)
-        std_capture().start();
+      std_capture().start();
+      triangulate( buffer, &tmp, &omp().triangle_mesh, NULL);
+      std_capture().start();
 
       delete[] buffer;
       if (!seed_points.empty())

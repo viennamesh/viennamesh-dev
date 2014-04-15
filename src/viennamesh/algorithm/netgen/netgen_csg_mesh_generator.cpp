@@ -7,37 +7,39 @@ namespace viennamesh
 {
   namespace netgen
   {
+    csg_mesh_generator::csg_mesh_generator() :
+      input_csg_source(*this, "csg"),
+      relative_find_identic_surface_eps(*this, "relative_find_identic_surface_eps", 1e-8),
+      cell_size(*this, "cell_size", 1e10),
+      grading(*this, "grading", 0.3),
+      optimization_steps(*this, "optimization_steps", 3),
+      delaunay(*this, "delaunay", true),
+      optimize_string(*this, "optimize_string"),
+      output_mesh(*this, "mesh") {}
+
+    string csg_mesh_generator::name() const { return "Netgen 5.1 CSG mesher"; }
+
     bool csg_mesh_generator::run_impl()
     {
-      const_string_parameter_handle csg_string = get_required_input<string>("default");
-      output_parameter_proxy<netgen::output_mesh> output_mesh = output_proxy<netgen::output_mesh>("default");
-
-//         std::cout << csg_string() << std::endl;
+      output_parameter_proxy<netgen::output_mesh> output(output_mesh);
 
       std_capture().start();
 
-      std::istringstream csg_stream(csg_string());
+      std::istringstream csg_stream(input_csg_source());
       ::netgen::CSGeometry * geom = ::netgen::ParseCSG( csg_stream );
 
-      double relative_find_identic_surface_eps = 1e-8;
-      copy_input( "relative_find_identic_surface_eps", relative_find_identic_surface_eps );
-
-      geom->FindIdenticSurfaces(relative_find_identic_surface_eps * geom->MaxSize());
+      geom->FindIdenticSurfaces(relative_find_identic_surface_eps() * geom->MaxSize());
       ::netgen::MeshingParameters mesh_parameters;
 
-      copy_input( "cell_size", mesh_parameters.maxh );
-      copy_input( "grading", mesh_parameters.grading );
-      copy_input( "optimization_steps", mesh_parameters.optsteps3d );
+      mesh_parameters.maxh = cell_size();
+      mesh_parameters.grading = grading();
+      mesh_parameters.optsteps3d = optimization_steps();
+      mesh_parameters.delaunay = delaunay();
 
-      const_bool_parameter_handle delaunay = get_input<bool>( "delaunay" );
-      if (delaunay)
-        mesh_parameters.delaunay = delaunay();
-
-      const_string_parameter_handle optimize_string = get_input<string>( "optimize_string" );
-      if (optimize_string)
+      if (optimize_string.valid())
         mesh_parameters.optimize3d = optimize_string().c_str();
 
-      geom->GenerateMesh(output_mesh().mesh, mesh_parameters, 1, 5);
+      geom->GenerateMesh(output().mesh, mesh_parameters, 1, 5);
 
       delete geom;
 

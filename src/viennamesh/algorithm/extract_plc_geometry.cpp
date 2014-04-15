@@ -247,22 +247,31 @@ namespace viennamesh
   }
 
 
+
+
+
+
+   extract_plc::extract_plc() :
+    input_mesh(*this, "input_mesh"),
+    output_mesh(*this, "mesh") {}
+
+  string extract_plc::name() const { return "ViennaGrid Extract PLC geometry"; }
+
+
   bool extract_plc::run_impl()
   {
     typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> InputMeshType;
     typedef viennagrid::plc_3d_mesh OutputMeshType;
 
-    viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_input<InputMeshType>("default");
+    viennamesh::result_of::const_parameter_handle<InputMeshType>::type imp = input_mesh.get<InputMeshType>();
 
-    if (input_mesh)
+    if (imp)
     {
-//       std::cout << "DID IT" << std::endl;
-
-      output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>( "default" );
+      output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
       OutputMeshType tmp;
-      extract_plcs(input_mesh().mesh, input_mesh().segmentation, tmp);
-      coarsen_plc_mesh(tmp, output_mesh());
+      extract_plcs(imp().mesh, imp().segmentation, tmp);
+      coarsen_plc_mesh(tmp, omp());
 
       return true;
     }

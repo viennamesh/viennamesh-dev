@@ -8,28 +8,24 @@ namespace viennamesh
 {
   namespace triangle
   {
+    hull_mesh_generator::hull_mesh_generator() :
+      input_mesh(*this, "mesh"),
+      output_mesh(*this, "mesh") {}
+
+    string hull_mesh_generator::name() const { return "Triangle 1.6 hull mesher"; }
+
+
     bool hull_mesh_generator::run_impl()
     {
-      typedef triangle::input_mesh_3d InputMeshType;
       typedef triangle::output_mesh_3d OutputMeshType;
-
-      viennamesh::result_of::const_parameter_handle<InputMeshType>::type input_mesh = get_required_input<InputMeshType>("default");
-      output_parameter_proxy<OutputMeshType> output_mesh = output_proxy<OutputMeshType>("default");
-
-      bool use_logger = true;
-      copy_input( "use_logger", use_logger );
+      output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
       std::ostringstream options;
+      options << "zpQ";
 
-      const_string_parameter_handle option_string = get_input<string>("option_string");
-      if (option_string)
-        options << option_string();
-      else
-        options << "zpQ";
-
-      output_mesh().cells.resize( input_mesh().cells.size() );
-      output_mesh().vertex_points_3d = input_mesh().vertex_points_3d;
-      output_mesh().is_segmented = input_mesh().is_segmented;
+      omp().cells.resize( input_mesh().cells.size() );
+      omp().vertex_points_3d = input_mesh().vertex_points_3d;
+      omp().is_segmented = input_mesh().is_segmented;
 
       for (unsigned int i = 0; i < input_mesh().cells.size(); ++i)
       {
@@ -56,15 +52,12 @@ namespace viennamesh
         char * buffer = new char[options.str().length()];
         std::strcpy(buffer, options.str().c_str());
 
-        if (use_logger)
-          std_capture().start();
+        std_capture().start();
+        triangulate( buffer, &tmp, &omp().cells[i].plc.triangle_mesh, NULL);
+        std_capture().start();
 
-        triangulate( buffer, &tmp, &output_mesh().cells[i].plc.triangle_mesh, NULL);
-        output_mesh().cells[i].vertex_ids = input_mesh().cells[i].vertex_ids;
-        output_mesh().cells[i].segment_ids = input_mesh().cells[i].segment_ids;
-
-        if (use_logger)
-          std_capture().start();
+        omp().cells[i].vertex_ids = input_mesh().cells[i].vertex_ids;
+        omp().cells[i].segment_ids = input_mesh().cells[i].segment_ids;
 
         delete[] buffer;
         if (!hole_points_2d.empty())

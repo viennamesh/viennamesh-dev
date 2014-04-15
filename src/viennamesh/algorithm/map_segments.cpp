@@ -45,6 +45,16 @@ namespace viennamesh
   }
 
 
+
+    map_segments::map_segments() :
+      input_mesh(*this, "mesh"),
+      segment_mapping(*this, "segment_mapping"),
+      output_mesh(*this, "mesh") {}
+
+    string map_segments::name() const { return "ViennaGrid Map Segments"; }
+
+
+
   template<typename MeshT, typename SegmentationT>
   bool map_segments::generic_run( std::map<int, int> const & segment_mapping )
   {
@@ -53,12 +63,12 @@ namespace viennamesh
     typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
-    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type mesh = get_input<SegmentedMeshType>("default");
+    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp = input_mesh.get<SegmentedMeshType>();
 
-    if (mesh)
+    if (imp)
     {
-      output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>( "default" );
-      map_segments_impl( mesh().mesh, mesh().segmentation, output_mesh().mesh, output_mesh().segmentation, segment_mapping );
+      output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
+      map_segments_impl( imp().mesh, imp().segmentation, omp().mesh, omp().segmentation, segment_mapping );
 
       return true;
     }
@@ -68,8 +78,6 @@ namespace viennamesh
 
   bool map_segments::run_impl()
   {
-    viennamesh::result_of::const_parameter_handle< std::map<int, int> >::type segment_mapping = get_required_input< std::map<int, int> >( "segment_mapping" );
-
     if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>(segment_mapping()))
       return true;
     if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>(segment_mapping()))

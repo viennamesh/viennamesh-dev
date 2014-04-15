@@ -8,11 +8,19 @@ namespace viennamesh
   class affine_transform : public base_algorithm
   {
   public:
-    string name() const { return "ViennaGrid Affine Transform"; }
+    affine_transform();
+    string name() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run( dynamic_point const & matrix, dynamic_point const & base_translate );
     bool run_impl();
+
+  private:
+    dynamic_required_input_parameter_interface               input_mesh;
+    required_input_parameter_interface<dynamic_point>        matrix;
+    optional_input_parameter_interface<dynamic_point>        translate;
+
+    output_parameter_interface                               output_mesh;
   };
 }
 

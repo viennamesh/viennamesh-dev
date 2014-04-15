@@ -40,20 +40,28 @@ namespace viennamesh
   }
 
 
+
+  merge_meshes::merge_meshes() :
+    input_mesh0(*this, "mesh0"),
+    input_mesh1(*this, "mesh1"),
+    output_mesh(*this, "mesh") {}
+
+  string merge_meshes::name() const { return "ViennaGrid Merge Meshes"; }
+
   template<typename MeshT, typename SegmentationT>
   bool merge_meshes::generic_run()
   {
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 
-    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh0 = get_input<SegmentedMeshType>("input0_mesh");
-    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type input_mesh1 = get_input<SegmentedMeshType>("input1_mesh");
+    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp0 = input_mesh0.get<SegmentedMeshType>();
+    typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp1 = input_mesh1.get<SegmentedMeshType>();
 
-    if (input_mesh0 && input_mesh1)
+    if (imp0 && imp1)
     {
-      output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>( "default" );
+      output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-      merge_meshes_impl( input_mesh0().mesh, input_mesh0().segmentation, output_mesh().mesh, output_mesh().segmentation );
-      merge_meshes_impl( input_mesh1().mesh, input_mesh1().segmentation, output_mesh().mesh, output_mesh().segmentation );
+      merge_meshes_impl( imp0().mesh, imp0().segmentation, omp().mesh, omp().segmentation );
+      merge_meshes_impl( imp1().mesh, imp1().segmentation, omp().mesh, omp().segmentation );
 
       return true;
     }

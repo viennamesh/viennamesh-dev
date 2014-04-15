@@ -8,11 +8,19 @@ namespace viennamesh
   class extract_hull : public base_algorithm
   {
   public:
-    string name() const { return "ViennaGrid Extract Hull"; }
+    extract_hull();
+
+    string name() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run();
     bool run_impl();
+
+  private:
+    dynamic_required_input_parameter_interface      input_mesh;
+
+    output_parameter_interface                      output_mesh;
+    output_parameter_interface                      output_seed_points;
   };
 }
 

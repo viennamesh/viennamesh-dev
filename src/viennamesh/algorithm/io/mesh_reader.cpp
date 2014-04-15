@@ -39,18 +39,28 @@ namespace viennamesh
 
       typedef typename viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
 
-      output_parameter_proxy<SegmentedMeshType> output_mesh = output_proxy<SegmentedMeshType>("default");
-      output_parameter_proxy<SegmentedMeshQuantitiesType> output_quantities = output_proxy<SegmentedMeshQuantitiesType>("quantities");
+      output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
+      output_parameter_proxy<SegmentedMeshQuantitiesType> oqp(output_quantities);
 
       viennagrid::io::vtk_reader<MeshType, SegmentationType> vtk_reader;
 
-      vtk_reader(output_mesh().mesh, output_mesh().segmentation, filename);
-      output_quantities().fromReader(vtk_reader, output_mesh().mesh, output_mesh().segmentation);
+      vtk_reader(omp().mesh, omp().segmentation, filename);
+      oqp().fromReader(vtk_reader, omp().mesh, omp().segmentation);
 
       return true;
     }
 
 
+
+    mesh_reader::mesh_reader() :
+      filename(*this, "filename"),
+      file_type(*this, "file_type"),
+      output_mesh(*this, "mesh"),
+      output_quantities(*this, "quantities"),
+      output_seed_points(*this, "seed_points"),
+      output_hole_points(*this, "hole_points") {}
+
+    string mesh_reader::name() const { return "ViennaGrid Mesh Reader"; }
 
 
     template<int GeometricDimensionV>
@@ -59,7 +69,7 @@ namespace viennamesh
       typedef typename viennamesh::result_of::point<GeometricDimensionV>::type PointType;
       typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
-      output_parameter_proxy<SeedPointContainerType> output_seed_points = output_proxy<SeedPointContainerType>("seed_points");
+      output_parameter_proxy<SeedPointContainerType> ospp(output_seed_points);
 
       pugi::xpath_node_set xml_segments = xml.select_nodes( "/mesh/segment" );
       for (pugi::xpath_node_set::const_iterator xsit = xml_segments.begin(); xsit != xml_segments.end(); ++xsit)
@@ -81,7 +91,7 @@ namespace viennamesh
 
           info(5) << "Found seed point for segment " << segment_id << ": " << point << std::endl;
 
-          output_seed_points().push_back( std::make_pair(point, segment_id) );
+          ospp().push_back( std::make_pair(point, segment_id) );
         }
       }
 
@@ -148,10 +158,10 @@ namespace viennamesh
           info(5) << "Found .bnd extension, using ViennaGrid BND Reader" << std::endl;
           typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> MeshType;
 
-          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<MeshType> omp(output_mesh);
 
           viennagrid::io::bnd_reader reader;
-          reader(output_mesh().mesh, output_mesh().segmentation, filename);
+          reader(omp().mesh, omp().segmentation, filename);
 
           return true;
         }
@@ -160,10 +170,10 @@ namespace viennamesh
           info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
           typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
 
-          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<MeshType> omp(output_mesh);
 
           viennagrid::io::netgen_reader reader;
-          reader(output_mesh().mesh, output_mesh().segmentation, filename);
+          reader(omp().mesh, omp().segmentation, filename);
 
           return true;
         }
@@ -177,20 +187,20 @@ namespace viennamesh
           {
             typedef viennagrid::brep_3d_mesh MeshType;
 
-            output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
-            output_parameter_proxy<point_3d_container> output_hole_points = output_proxy<point_3d_container>("hole_points");
-            output_parameter_proxy<seed_point_3d_container> output_seed_points = output_proxy<seed_point_3d_container>("seed_points");
+            output_parameter_proxy<MeshType> omp(output_mesh);
+            output_parameter_proxy<point_3d_container> ohpp(output_hole_points);
+            output_parameter_proxy<seed_point_3d_container> ospp(output_seed_points);
 
             point_3d_container hole_points;
             seed_point_3d_container seed_points;
 
-            output_mesh().clear();
-            reader(output_mesh(), filename, hole_points, seed_points);
+            omp().clear();
+            reader(omp(), filename, hole_points, seed_points);
 
             if (!hole_points.empty())
             {
               info(1) << "Found hole points (" << hole_points.size() << ")" << std::endl;
-              output_hole_points() = hole_points;
+              ohpp() = hole_points;
             }
             else
               unset_output("hole_points");
@@ -199,7 +209,7 @@ namespace viennamesh
             if (!seed_points.empty())
             {
               info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
-              output_seed_points() = seed_points;
+              ospp() = seed_points;
             }
             else
               unset_output("seed_points");
@@ -248,18 +258,18 @@ namespace viennamesh
           info(5) << "Found .tess extension, using ViennaGrid Neper tess Reader" << std::endl;
           typedef viennagrid::brep_3d_mesh MeshType;
 
-          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
-          output_parameter_proxy<seed_point_3d_container> output_seed_points = output_proxy<seed_point_3d_container>("seed_points");
+          output_parameter_proxy<MeshType> omp(output_mesh);
+          output_parameter_proxy<seed_point_3d_container> ospp(output_seed_points);
 
           seed_point_3d_container seed_points;
 
           viennagrid::io::neper_tess_reader reader;
-          reader(output_mesh(), filename, seed_points);
+          reader(omp(), filename, seed_points);
 
           if (!seed_points.empty())
           {
             info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
-            output_seed_points() = seed_points;
+            ospp() = seed_points;
           }
           else
             unset_output("seed_points");
@@ -273,10 +283,10 @@ namespace viennamesh
           info(5) << "Found .deva extension, using ViennaMesh GTS deva Reader" << std::endl;
           typedef viennagrid::segmented_mesh<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation> MeshType;
 
-          output_parameter_proxy<MeshType> output_mesh = output_proxy<MeshType>("default");
+          output_parameter_proxy<MeshType> omp(output_mesh);
 
           gts_deva_geometry_reader reader;
-          reader(output_mesh().mesh, output_mesh().segmentation, filename);
+          reader(omp().mesh, omp().segmentation, filename);
 
           return true;
         }
@@ -384,18 +394,15 @@ namespace viennamesh
 
     bool mesh_reader::run_impl()
     {
-      const_string_parameter_handle param = get_required_input<string>("filename");
-
-      FileType file_type;
-      const_string_parameter_handle file_type_param = get_input<string>("file_type");
-      if (file_type_param)
-        file_type = from_string( file_type_param() );
+      FileType ft;
+      if (file_type.valid())
+        ft = from_string( file_type() );
       else
-        file_type = from_filename( param() );
+        ft = from_filename( filename() );
 
-      info(1) << "Using file type " << to_string(file_type) << std::endl;
+      info(1) << "Using file type " << to_string(ft) << std::endl;
 
-      return load(param(), file_type);
+      return load(filename(), ft);
     }
 
   }

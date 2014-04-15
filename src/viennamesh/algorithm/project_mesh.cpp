@@ -72,6 +72,15 @@ namespace viennamesh
   }
 
 
+
+  project_mesh::project_mesh() :
+    input_mesh(*this, "mesh"),
+    target_dimension(*this, "target_dimension"),
+    output_mesh(*this, "mesh") {}
+
+  string project_mesh::name() const { return "ViennaGrid Project"; }
+
+
   template<typename InputMeshT, typename InputSegmentationT, typename OutputMeshT, typename OutputSegmentationT>
   bool project_mesh::generic_run( int target_dimension )
   {
@@ -79,14 +88,14 @@ namespace viennamesh
       return false;
 
     typedef viennagrid::segmented_mesh<InputMeshT, InputSegmentationT> InputSegmentedMeshType;
-    typename viennamesh::result_of::const_parameter_handle<InputSegmentedMeshType>::type input_mesh = get_input<InputSegmentedMeshType>("default");
-    if (input_mesh)
+    typename viennamesh::result_of::const_parameter_handle<InputSegmentedMeshType>::type imp = input_mesh.get<InputSegmentedMeshType>();
+    if (imp)
     {
       typedef viennagrid::segmented_mesh<OutputMeshT, OutputSegmentationT> OutputSegmentedMeshType;
 
-      output_parameter_proxy<OutputSegmentedMeshType> output_mesh = output_proxy<OutputSegmentedMeshType>( "default" );
+      output_parameter_proxy<OutputSegmentedMeshType> omp(output_mesh);
 
-      project_mesh_impl( input_mesh().mesh, input_mesh().segmentation, output_mesh().mesh, output_mesh().segmentation );
+      project_mesh_impl( imp().mesh, imp().segmentation, omp().mesh, omp().segmentation );
       return true;
     }
 
@@ -96,8 +105,6 @@ namespace viennamesh
 
   bool project_mesh::run_impl()
   {
-    viennamesh::result_of::const_parameter_handle<int>::type target_dimension = get_required_input<int>( "target_dimension" );
-
     if (generic_run<viennagrid::line_3d_mesh, viennagrid::line_3d_segmentation,
                     viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation>( target_dimension() ))
       return true;

@@ -10,11 +10,21 @@ namespace viennamesh
     class csg_mesh_generator : public base_algorithm
     {
     public:
+      csg_mesh_generator();
 
-      string name() const { return "Netgen 5.1 CSG mesher"; }
+      string name() const;
       bool run_impl();
 
     private:
+      required_input_parameter_interface<string>        input_csg_source;
+      default_input_parameter_interface<double>         relative_find_identic_surface_eps;
+      default_input_parameter_interface<double>         cell_size;
+      default_input_parameter_interface<double>         grading;
+      default_input_parameter_interface<int>            optimization_steps;
+      default_input_parameter_interface<bool>           delaunay;
+      optional_input_parameter_interface<string>        optimize_string;
+
+      output_parameter_interface                        output_mesh;
     };
   }
 

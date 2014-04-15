@@ -11,12 +11,23 @@ namespace viennamesh
 
     class mesh_writer : public base_algorithm
     {
+      friend struct vmesh_writer_proxy;
+
     public:
 
-      string name() const { return "ViennaGrid Mesh Writer"; }
+      mesh_writer();
+      string name() const;
       bool run_impl();
 
     private:
+
+      dynamic_required_input_parameter_interface                    input_mesh;
+      required_input_parameter_interface<string>                    filename;
+      optional_input_parameter_interface<string>                    file_type;
+      dynamic_optional_input_parameter_interface                    input_seed_points;
+//       optional_input_parameter_interface<point_1d_container>        input_hole_points;
+      dynamic_optional_input_parameter_interface                    quantities;
+
 
 
       template<typename WriterProxyT>

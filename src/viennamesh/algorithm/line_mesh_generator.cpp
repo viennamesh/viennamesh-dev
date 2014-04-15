@@ -187,6 +187,20 @@ namespace viennamesh
 
 
 
+  line_mesh_generator::line_mesh_generator() :
+    input_mesh(*this, "mesh"),
+    input_seed_points(*this, "seed_points"),
+    input_hole_points(*this, "hole_points"),
+    cell_size(*this, "cell_size", -1.0),
+    use_different_segment_ids_for_unknown_segments(*this, "use_different_segment_ids_for_unknown_segments", false),
+    extract_segment_seed_points(*this, "extract_segment_seed_points", true),
+    relative_min_geometry_point_distance(*this, "relative_min_geometry_point_distance", 1e-10),
+    absolute_min_geometry_point_distance(*this, "absolute_min_geometry_point_distance"),
+    output_mesh(*this, "mesh") {}
+
+  string line_mesh_generator::name() const { return "ViennaGrid 1D line mesher"; }
+
+
 
   template<typename GeometrySegmentationT>
   void line_mesh_generator::extract_seed_points( GeometrySegmentationT const & segmentation, point_1d_container const & hole_points,
@@ -243,7 +257,7 @@ namespace viennamesh
     GeometrySegmentationT const * geometry_segmentation = NULL;
 
     // query input parameters
-    SegmentedGeometryHandleType segmented_geometry_handle = get_input<SegmentedGeometryType>("default");
+    SegmentedGeometryHandleType segmented_geometry_handle = input_mesh.get<SegmentedGeometryType>();
     if (segmented_geometry_handle)
     {
       geometry = &(segmented_geometry_handle().mesh);
@@ -251,7 +265,7 @@ namespace viennamesh
     }
     else
     {
-      GeometryHandleType geometry_handle = get_input<GeometryT>("default");
+      GeometryHandleType geometry_handle = input_mesh.get<GeometryT>();
       if (!geometry_handle)
         return false;
 
@@ -260,41 +274,29 @@ namespace viennamesh
 
 
     // query possible output parameters: mesh and segmented mesh
-    output_parameter_proxy<OutputSegmentedMesh> output_segmented_mesh = output_proxy<OutputSegmentedMesh>("default");
+    output_parameter_proxy<OutputSegmentedMesh> omp(output_mesh);
 
-    // query cell size input parameter
-    double cell_size = -1.0;
-    copy_input( "cell_size", cell_size );
-    info(10) << "Using cell size: " << cell_size << std::endl;
-
-    bool use_different_segment_ids_for_unknown_segments = false;
-    copy_input( "use_different_segment_ids_for_unknown_segments", use_different_segment_ids_for_unknown_segments );
-    info(10) << "Using different segment IDs for unknown segments: " << cell_size << std::endl;
+    info(10) << "Using cell size: " << cell_size() << std::endl;
+    info(10) << "Using different segment IDs for unknown segments: " << std::boolalpha << use_different_segment_ids_for_unknown_segments() << std::endl;
 
     // query seed points input parameter
     seed_point_1d_container seed_points;
-    typedef viennamesh::result_of::const_parameter_handle<seed_point_1d_container>::type ConstSeedPointContainerHandle;
-    ConstSeedPointContainerHandle seed_points_handle = get_input<seed_point_1d_container>("seed_points");
-    if (seed_points_handle && !seed_points_handle().empty())
+    if (input_seed_points.valid() && !input_seed_points().empty())
     {
       info(10) << "Found seed points -> enabling make_segmented_mesh" << std::endl;
-      seed_points = seed_points_handle();
+      seed_points = input_seed_points();
     }
 
     // query hole points input parameter
     point_1d_container hole_points;
-    typedef viennamesh::result_of::const_parameter_handle<point_1d_container>::type ConstPointContainerHandle;
-    ConstPointContainerHandle hole_points_handle = get_input<point_1d_container>("hole_points");
-    if (hole_points_handle && !hole_points_handle().empty())
+    if (input_hole_points.valid() && !input_hole_points().empty())
     {
       info(10) << "Found hole points" << std::endl;
-      hole_points = hole_points_handle();
+      hole_points = input_hole_points();
     }
 
 
-    bool extract_segment_seed_points = true;
-    copy_input( "extract_segment_seed_points", extract_segment_seed_points );
-    if (extract_segment_seed_points && geometry_segmentation && geometry_segmentation->size() >= 1)
+    if (extract_segment_seed_points() && geometry_segmentation && geometry_segmentation->size() >= 1)
     {
       extract_seed_points( *geometry_segmentation, hole_points, seed_points );
     }
@@ -302,8 +304,8 @@ namespace viennamesh
 
 
     // decide, if mesh or segmented mesh is used (seed points available?)
-    OutputMeshT & mesh = output_segmented_mesh().mesh;
-    OutputSegmentationT & segmentation = output_segmented_mesh().segmentation;
+    OutputMeshT & mesh = omp().mesh;
+    OutputSegmentationT & segmentation = omp().segmentation;
 
     // copy and sort vertices
     ConstVertexRangeType vertices( *geometry );
@@ -314,17 +316,14 @@ namespace viennamesh
 
 
     // query and determine minimal line length
-    double relative_min_geometry_point_distance = 1e-10;
-    copy_input( "relative_min_geometry_point_distance", relative_min_geometry_point_distance );
-
-    double absolute_min_geometry_point_distance =
+    double min_distance =
       (viennagrid::point(*geometry, sorted_geometry_points.back())[0] -
-      viennagrid::point(*geometry, sorted_geometry_points.front())[0]) * relative_min_geometry_point_distance;
-    copy_input( "absolute_min_geometry_point_distance", absolute_min_geometry_point_distance );
+      viennagrid::point(*geometry, sorted_geometry_points.front())[0]) * relative_min_geometry_point_distance();
 
+    if (absolute_min_geometry_point_distance.valid())
+      min_distance = absolute_min_geometry_point_distance();
 
-
-    detail::generate_line_mesh( *geometry, mesh, segmentation, cell_size, use_different_segment_ids_for_unknown_segments, absolute_min_geometry_point_distance, seed_points, hole_points );
+    detail::generate_line_mesh( *geometry, mesh, segmentation, cell_size(), use_different_segment_ids_for_unknown_segments(), min_distance, seed_points, hole_points );
 
     return true;
   }
