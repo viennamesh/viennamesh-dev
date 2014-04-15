@@ -13,6 +13,9 @@ namespace viennamesh
     LoggingStack stack( string("Algoritm: ") + name() );
     outputs.clear_non_references();
 
+    for (RegisteredParameterMapType::iterator ipit = input_parameters.begin(); ipit != input_parameters.end(); ++ipit)
+      (*ipit).second->reset();
+
     try
     {
       bool success = run_impl();
@@ -31,5 +34,27 @@ namespace viennamesh
   }
 
 
+
+  void base_algorithm::register_input_parameter( base_parameter_interface & input_parameter )
+  {
+    if ( !input_parameters.insert(std::make_pair(input_parameter.name(), &input_parameter)).second )
+      error(1) << "Input parameter \"" << input_parameter.name() << "\" registered twice" << std::endl;
+  }
+
+  void base_algorithm::register_output_parameter( base_parameter_interface & output_parameter )
+  {
+    if ( !output_parameters.insert(std::make_pair(output_parameter.name(), &output_parameter)).second )
+      error(1) << "Output parameter \"" << output_parameter.name() << "\" registered twice" << std::endl;
+  }
+
+  bool base_algorithm::is_input_registered(std::string const & name) const
+  {
+    return input_parameters.find(name) != input_parameters.end();
+  }
+
+  bool base_algorithm::is_output_registered(std::string const & name) const
+  {
+    return output_parameters.find(name) != output_parameters.end();
+  }
 
 }
