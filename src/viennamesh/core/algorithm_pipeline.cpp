@@ -41,7 +41,7 @@ namespace viennamesh
         return false;
       }
 
-      algorithm->set_default_source_algorithm( ait->second );
+      algorithm->set_default_source( ait->second );
     }
 
 
