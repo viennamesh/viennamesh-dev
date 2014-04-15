@@ -135,9 +135,6 @@ namespace viennamesh
       inputs.unset(name);
     }
 
-
-
-
   private:
     // queries an input parameter
     const_parameter_handle get_input( std::string const & name ) const
@@ -209,20 +206,6 @@ namespace viennamesh
     void set_output( std::string const & name, parameter_handle & handle )
     { outputs.set( name, parameter_handle( new parameter_handle_reference(handle) ) ); }
 
-  protected:
-
-    // gets a proxy for an output parameter, only way of setting an output parameter, used within an algorithm
-//     template<typename ValueT>
-//     output_parameter_proxy<ValueT> output_proxy( std::string const & name )
-//     {
-//       if (!is_output_registered(name))
-//         warning(1) << "Output parameter \"" << name << "\" is used but was not registered" << std::endl;
-//
-//       output_parameter_proxy<ValueT> proxy;
-//       proxy.init(outputs, name);
-//       return proxy;
-//     }
-
   public:
 
     // queries an output parameter
@@ -244,14 +227,18 @@ namespace viennamesh
     // unsets an output parameter
     void unset_output( string const & name ) { outputs.unset(name); } // TODO needed?
 
-    // clears all output parameters
-    void clear_outputs() { outputs.clear(); } // TODO needed?
+//     // clears all output parameters
+//     void clear_outputs() { outputs.clear(); } // TODO needed?
 
     // runs the algorithm
     bool run();
 
     // returns the algorithm name
     virtual string name() const = 0;
+    virtual string id() const = 0;
+//     virtual string type() const = 0;
+//     virtual string category() const = 0;
+//     virtual string description() const = 0;
 
   protected:
 
