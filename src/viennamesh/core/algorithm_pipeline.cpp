@@ -13,19 +13,19 @@ namespace viennamesh
     }
     string algorithm_name = algorithm_name_attribute.as_string();
 
-    pugi::xml_attribute algorithm_type_attribute = algorithm_node.attribute("type");
-    if ( algorithm_type_attribute.empty() )
+    pugi::xml_attribute algorithm_id_attribute = algorithm_node.attribute("id");
+    if ( algorithm_id_attribute.empty() )
     {
-      error(1) << "Algorithm \"" << algorithm_name << "\" has no type attribute" << std::endl;
+      error(1) << "Algorithm \"" << algorithm_name << "\" has no id attribute" << std::endl;
       return false;
     }
-    string algorithm_type = algorithm_type_attribute.as_string();
+    string algorithm_id = algorithm_id_attribute.as_string();
 
-    algorithm_handle algorithm = viennamesh::algorithm_factory().create_from_name( algorithm_type );
+    algorithm_handle algorithm = viennamesh::algorithm_factory().create_by_id( algorithm_id );
 
     if (!algorithm)
     {
-      error(1) << "Algorithm \"" << algorithm_type << "\" creation from factory failed" << std::endl;
+      error(1) << "Algorithm with id \"" << algorithm_id << "\" creation from factory failed" << std::endl;
       return false;
     }
 
@@ -114,7 +114,7 @@ namespace viennamesh
 
     if (!result.second)
     {
-      error(1) << "Duplicated algorithm with \"" << algorithm_name << "\" and type \"" << algorithm_type << std::endl;
+      error(1) << "Duplicated algorithm with \"" << algorithm_name << "\" and id \"" << algorithm_id << std::endl;
       return false;
     }
 
