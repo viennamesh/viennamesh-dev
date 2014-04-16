@@ -1,4 +1,4 @@
-<algorithm type="netgen_csg_mesh_generator" name="mesher">
+<algorithm id="netgen_csg_mesh_generator" name="mesher">
   <parameter type="string" name="default">
     algebraic3d
     solid cube = orthobrick (0, 0, 0; 1, 10, 1);
@@ -6,7 +6,7 @@
   </parameter>
 </algorithm>
 
-<algorithm type="mesh_writer" name="output">
+<algorithm id="mesh_writer" name="output">
   <default_source>mesher</default_source>
   <parameter name="filename" type="string">blub.vtu</parameter>
 </algorithm>
