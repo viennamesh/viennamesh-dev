@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     reader->run();
 
 
-    int dimension = lexical_cast<int>(reader->get_output("default")->get_property("geometric_dimension").first);
+    int dimension = lexical_cast<int>(reader->get_output("mesh")->get_property("geometric_dimension").first);
 
     viennamesh::algorithm_handle transform( new viennamesh::affine_transform() );
 
@@ -71,8 +71,8 @@ int main(int argc, char **argv)
       translate = stringtools::vector_from_string<double>( translate_string.getValue() );
     }
 
-    transform->set_input( "default", reader->get_output("default") );
-    transform->set_output( "default", reader->get_output("default") );
+    transform->set_input( "mesh", reader->get_output("mesh") );
+    transform->set_output( "mesh", reader->get_output("mesh") );
     transform->set_input( "matrix", matrix );
     transform->set_input( "translate", translate );
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", transform->get_output("default") );
+    writer->set_input( "mesh", transform->get_output("mesh") );
     writer->set_input( "quantities", reader->get_output("quantities") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))

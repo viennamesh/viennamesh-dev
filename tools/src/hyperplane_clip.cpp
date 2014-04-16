@@ -49,14 +49,14 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle clip( new viennamesh::hyperplane_clip() );
-    clip->set_input( "default", reader->get_output("default") );
+    clip->set_input( "mesh", reader->get_output("mesh") );
     clip->set_input( "hyperplane_point", hyperplane_point );
     clip->set_input( "hyperplane_normal", hyperplane_normal );
     clip->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", clip->get_output("default") );
+    writer->set_input( "mesh", clip->get_output("mesh") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );

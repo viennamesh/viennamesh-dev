@@ -78,8 +78,8 @@ int main(int argc, char **argv)
     if (sizing_function_filename.isSet())
     {
       viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::mesh_generator() );
-      simple_mesher->set_output( "default", simple_mesh() );
-      simple_mesher->set_input( "default", reader->get_output("default") );
+      simple_mesher->set_output( "mesh", simple_mesh() );
+      simple_mesher->set_input( "mesh", reader->get_output("mesh") );
       simple_mesher->run();
 
       pugi::xml_document xml_element_size;
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     }
 
 
-    mesher->set_input( "default", reader->get_output("default") );
+    mesher->set_input( "mesh", reader->get_output("mesh") );
     mesher->set_input( "seed_points", reader->get_output("seed_points") );
     mesher->set_input( "hole_points", reader->get_output("hole_points") );
 
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", mesher->get_output("default") );
+    writer->set_input( "mesh", mesher->get_output("mesh") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );

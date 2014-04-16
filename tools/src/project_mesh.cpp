@@ -40,13 +40,14 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle project( new viennamesh::project_mesh() );
-    project->set_input( "default", reader->get_output("default") );
+    project->set_input( "mesh", reader->get_output("mesh") );
     project->set_input( "target_dimension", target_dimension.getValue() );
     project->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", project->get_output("default") );
+    writer->set_input( "mesh", project->get_output("mesh") );
+    writer->set_input( "quantities", reader->get_output("quantities") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
       writer->set_input( "file_type", output_filetype.getValue() );

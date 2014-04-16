@@ -35,12 +35,12 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle extractor( new viennamesh::extract_hull() );
-    extractor->set_input( "default", reader->get_output("default") );
+    extractor->set_input( "mesh", reader->get_output("mesh") );
     extractor->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", extractor->get_output("default") );
+    writer->set_input( "mesh", extractor->get_output("mesh") );
     writer->set_input( "seed_points", extractor->get_output("seed_points") );
     writer->set_input( "hole_points", extractor->get_output("hole_points") );
     writer->set_input( "filename", output_filename.getValue() );

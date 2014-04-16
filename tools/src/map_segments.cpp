@@ -65,13 +65,13 @@ int main(int argc, char **argv)
 
 
     viennamesh::algorithm_handle map_segments( new viennamesh::map_segments() );
-    map_segments->set_input( "default", reader->get_output("default") );
+    map_segments->set_input( "mesh", reader->get_output("mesh") );
     map_segments->set_input( "segment_mapping", segment_mapping );
     map_segments->run();
 
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-    writer->set_input( "default", map_segments->get_output("default") );
+    writer->set_input( "mesh", map_segments->get_output("mesh") );
     writer->set_input( "quantities", reader->get_output("quantities") );
     writer->set_input( "filename", output_filename.getValue() );
     if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))

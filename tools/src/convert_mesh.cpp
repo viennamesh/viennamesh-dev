@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
     viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
 
-    writer->set_input( "default", reader->get_output("default") );
+    writer->set_input( "mesh", reader->get_output("mesh") );
     writer->set_input( "seed_points", reader->get_output("seed_points") );
     writer->set_input( "hole_points", reader->get_output("hole_points") );
     writer->set_input( "quantities", reader->get_output("quantities") );
