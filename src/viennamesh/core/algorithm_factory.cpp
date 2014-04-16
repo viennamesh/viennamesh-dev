@@ -5,6 +5,40 @@
 namespace viennamesh
 {
 
+  algorithm_factory_t::algorithm_factory_t()
+  {
+    register_algorithm<viennamesh::io::mesh_reader>();
+    register_algorithm<viennamesh::io::string_reader>();
+    register_algorithm<viennamesh::io::mesh_writer>();
+
+#ifdef VIENNAMESH_WITH_TRIANGLE
+    register_algorithm<viennamesh::triangle::mesh_generator>();
+    register_algorithm<viennamesh::triangle::hull_mesh_generator>();
+#endif
+
+#ifdef VIENNAMESH_WITH_TETGEN
+    register_algorithm<viennamesh::tetgen::mesh_generator>();
+#endif
+
+#ifdef VIENNAMESH_WITH_NETGEN
+    register_algorithm<viennamesh::netgen::csg_mesh_generator>();
+  #ifdef VIENNAMESH_NETGEN_WITH_OPENCASCADE
+    register_algorithm<viennamesh::netgen::occ_mesh_generator>();
+  #endif
+#endif
+
+    register_algorithm<viennamesh::line_mesh_generator>();
+
+    register_algorithm<viennamesh::affine_transform>();
+    register_algorithm<viennamesh::extract_hull>();
+    register_algorithm<viennamesh::extract_plc>();
+    register_algorithm<viennamesh::hyperplane_clip>();
+
+    register_algorithm<viennamesh::map_segments>();
+    register_algorithm<viennamesh::merge_meshes>();
+    register_algorithm<viennamesh::line_coarsening>();
+  }
+
   template<typename AlgorithmT>
   void algorithm_factory_t::register_algorithm() //string const & algorithm_name)
   {
@@ -22,6 +56,14 @@ namespace viennamesh
     }
 
     algorithms.insert( std::make_pair(algo.id(), AlgorithmInformationHandle( new algorithm_information<AlgorithmT>())) );
+  }
+
+  algorithm_handle algorithm_factory_t::create_by_id(std::string const & algorithm_id) const
+  {
+    std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_id);
+    if (it == algorithms.end())
+      return algorithm_handle();
+    return it->second->create();
   }
 
 
@@ -43,14 +85,6 @@ namespace viennamesh
 //     return result;
 //   }
 
-  algorithm_handle algorithm_factory_t::create_by_id(std::string const & algorithm_id) const
-  {
-    std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_id);
-    if (it == algorithms.end())
-      return algorithm_handle();
-    return it->second->create();
-  }
-
 //   algorithm_handle algorithm_factory_t::create_by_expression(std::string const & expression) const
 //   {
 //     std::list<AlgorithmInformationHandle> algos = matching_algorithms(expression);
@@ -58,42 +92,6 @@ namespace viennamesh
 //       return algorithm_handle();
 //     return algos.front()->create();
 //   }
-
-
-  algorithm_factory_t::algorithm_factory_t()
-  {
-    register_algorithm<viennamesh::io::mesh_reader>();
-    register_algorithm<viennamesh::io::string_reader>();
-    register_algorithm<viennamesh::io::mesh_writer>();
-
-#ifdef VIENNAMESH_WITH_TRIANGLE
-    register_algorithm<viennamesh::triangle::mesh_generator>();
-    register_algorithm<viennamesh::triangle::hull_mesh_generator>();
-#endif
-
-#ifdef VIENNAMESH_WITH_TETGEN
-    register_algorithm<viennamesh::tetgen::mesh_generator>();
-#endif
-
-#ifdef VIENNAMESH_WITH_NETGEN
-    register_algorithm<viennamesh::netgen::csg_mesh_generator>();
-#ifdef VIENNAMESH_NETGEN_WITH_OPENCASCADE
-    register_algorithm<viennamesh::netgen::occ_mesh_generator>();
-#endif
-#endif
-
-
-    register_algorithm<viennamesh::line_mesh_generator>();
-
-    register_algorithm<viennamesh::affine_transform>();
-    register_algorithm<viennamesh::extract_hull>();
-    register_algorithm<viennamesh::extract_plc>();
-    register_algorithm<viennamesh::hyperplane_clip>();
-
-    register_algorithm<viennamesh::map_segments>();
-    register_algorithm<viennamesh::merge_meshes>();
-    register_algorithm<viennamesh::line_coarsening>();
-  }
 
 
   algorithm_factory_t & algorithm_factory()

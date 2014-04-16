@@ -18,8 +18,6 @@ namespace viennamesh
 
     virtual string id() const = 0;
     virtual string type_string() const = 0;
-
-//     virtual std::map<string, string> const & features() const = 0;
   };
 
   template<typename AlgorithmT>
@@ -32,13 +30,6 @@ namespace viennamesh
 
     string id() const { return algorithm.id(); }
     string type_string() const { return typeid(algorithm).name(); }
-
-//     std::map<string, string> const & features() const { return feature_map(); }
-//     static std::map<string, string> & feature_map()
-//     {
-//       static std::map<string, string> feature_map_;
-//       return feature_map_;
-//     }
 
   private:
     AlgorithmT algorithm;
@@ -74,24 +65,24 @@ namespace viennamesh
     std::map<string, AlgorithmInformationHandle> algorithms;
   };
 
-
-
-
-
   algorithm_factory_t & algorithm_factory();
 
-  template<typename AlgorithmT>
-  class register_algorithm_handle
-  {
-  public:
 
-    register_algorithm_handle(string const & algorithm_name)
-    {
-      algorithm_factory().register_algorithm<AlgorithmT>(algorithm_name);
-    }
 
-  private:
-  };
+//   Does not work due to compile unit issues in libraries
+//
+//   template<typename AlgorithmT>
+//   class register_algorithm_handle
+//   {
+//   public:
+//
+//     register_algorithm_handle()
+//     {
+//       algorithm_factory().register_algorithm<AlgorithmT>();
+//     }
+//
+//   private:
+//   };
 
 
 }
