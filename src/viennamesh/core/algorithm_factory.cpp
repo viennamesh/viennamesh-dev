@@ -12,45 +12,52 @@ namespace viennamesh
 
     std::map<string, AlgorithmInformationHandle>::iterator it = algorithms.find(algo.id());
     if (it != algorithms.end())
-      return;
-
-    algorithms.insert( std::make_pair(algo.id(), AlgorithmInformationHandle( new algorithm_information<AlgorithmT>(algo.id()))) );
-  }
-
-
-  std::list<AlgorithmInformationHandle> algorithm_factory_t::matching_algorithms( std::string const & expression ) const
-  {
-    std::list<AlgorithmInformationHandle> result;
-
-    string feature_key = expression.substr(0, expression.find("=="));
-    string feature_value = expression.substr(expression.find("==")+2);
-
-    for (std::map<string, AlgorithmInformationHandle>::const_iterator ait = algorithms.begin(); ait != algorithms.end(); ++ait)
     {
-      std::map<string, string> const & features = ait->second->features();
-      std::map<string, string>::const_iterator fit = features.find(feature_key);
-      if ((fit != features.end()) && (fit->second == feature_value))
-        result.push_back(ait->second);
+      if (it->second->type_string() != typeid(AlgorithmT).name())
+      {
+        error(1) << "Algorithm id " << algo.id() << " is used multiple time with different algorithms" << std::endl;
+        exit(-1);
+      }
+      return;
     }
 
-    return result;
+    algorithms.insert( std::make_pair(algo.id(), AlgorithmInformationHandle( new algorithm_information<AlgorithmT>())) );
   }
 
-  algorithm_handle algorithm_factory_t::create_from_name(std::string const & algorithm_name) const
+
+//   std::list<AlgorithmInformationHandle> algorithm_factory_t::matching_algorithms( std::string const & expression ) const
+//   {
+//     std::list<AlgorithmInformationHandle> result;
+//
+//     string feature_key = expression.substr(0, expression.find("=="));
+//     string feature_value = expression.substr(expression.find("==")+2);
+//
+//     for (std::map<string, AlgorithmInformationHandle>::const_iterator ait = algorithms.begin(); ait != algorithms.end(); ++ait)
+//     {
+//       std::map<string, string> const & features = ait->second->features();
+//       std::map<string, string>::const_iterator fit = features.find(feature_key);
+//       if ((fit != features.end()) && (fit->second == feature_value))
+//         result.push_back(ait->second);
+//     }
+//
+//     return result;
+//   }
+
+  algorithm_handle algorithm_factory_t::create_by_id(std::string const & algorithm_id) const
   {
-    std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_name);
+    std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_id);
     if (it == algorithms.end())
       return algorithm_handle();
     return it->second->create();
   }
 
-  algorithm_handle algorithm_factory_t::create_from_expression(std::string const & expression) const
-  {
-    std::list<AlgorithmInformationHandle> algos = matching_algorithms(expression);
-    if (algos.empty())
-      return algorithm_handle();
-    return algos.front()->create();
-  }
+//   algorithm_handle algorithm_factory_t::create_by_expression(std::string const & expression) const
+//   {
+//     std::list<AlgorithmInformationHandle> algos = matching_algorithms(expression);
+//     if (algos.empty())
+//       return algorithm_handle();
+//     return algos.front()->create();
+//   }
 
 
   algorithm_factory_t::algorithm_factory_t()

@@ -15,27 +15,33 @@ namespace viennamesh
     virtual ~base_algorithm_information() {}
 
     virtual algorithm_handle create() const = 0;
-    virtual string const & name() const = 0;
-    virtual std::map<string, string> const & features() const = 0;
+
+    virtual string id() const = 0;
+    virtual string type_string() const = 0;
+
+//     virtual std::map<string, string> const & features() const = 0;
   };
 
   template<typename AlgorithmT>
   class algorithm_information : public base_algorithm_information
   {
   public:
-    algorithm_information(string const & algorithm_name_) : algorithm_name(algorithm_name_) {}
+    algorithm_information() {}
 
     algorithm_handle create() const { return algorithm_handle( new AlgorithmT() ); }
-    string const & name() const { return algorithm_name; }
-    std::map<string, string> const & features() const { return feature_map(); }
 
-    static std::map<string, string> & feature_map()
-    {
-      static std::map<string, string> feature_map_;
-      return feature_map_;
-    }
+    string id() const { return algorithm.id(); }
+    string type_string() const { return typeid(algorithm).name(); }
 
-    string algorithm_name;
+//     std::map<string, string> const & features() const { return feature_map(); }
+//     static std::map<string, string> & feature_map()
+//     {
+//       static std::map<string, string> feature_map_;
+//       return feature_map_;
+//     }
+
+  private:
+    AlgorithmT algorithm;
   };
 
 
@@ -55,18 +61,17 @@ namespace viennamesh
 
     algorithm_factory_t();
 
-    template<typename AlgorithmT>
-    void register_algorithm();
+    algorithm_handle create_by_id(std::string const & algorithm_id) const;
 
-    std::list<AlgorithmInformationHandle> matching_algorithms( std::string const & expression ) const;
-
-    algorithm_handle create_from_name(std::string const & algorithm_name) const;
-    algorithm_handle create_from_expression(std::string const & expression) const;
+//     std::list<AlgorithmInformationHandle> matching_algorithms( std::string const & expression ) const;
+//     algorithm_handle create_by_expression(std::string const & expression) const;
 
   private:
 
-    std::map<string, AlgorithmInformationHandle> algorithms;
+    template<typename AlgorithmT>
+    void register_algorithm();
 
+    std::map<string, AlgorithmInformationHandle> algorithms;
   };
 
 
