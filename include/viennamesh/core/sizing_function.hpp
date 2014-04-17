@@ -158,6 +158,7 @@ namespace viennamesh
     {
     public:
 
+//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
 
       typedef PointT point_type;
@@ -171,6 +172,7 @@ namespace viennamesh
     private:
     };
 
+
     typedef base_sizing_function<point_1d> base_sizing_function_1d;
     typedef base_sizing_function<point_2d> base_sizing_function_2d;
     typedef base_sizing_function<point_3d> base_sizing_function_3d;
@@ -179,70 +181,74 @@ namespace viennamesh
     typedef shared_ptr<base_sizing_function_2d> sizing_function_2d_handle;
     typedef shared_ptr<base_sizing_function_3d> sizing_function_3d_handle;
 
+  }
 
-
-
-
-
-
-    template<typename MeshT, typename FieldT>
-    struct mesh_interpolate_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
+  namespace result_of
+  {
+    template<typename MeshT>
+    struct sizing_function_handle
     {
-      mesh_interpolate_functor( MeshT const & mesh_, FieldT const & field_ ) : mesh(mesh_), field(field_) {}
-
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
-      typedef NumericType result_type;
-
-      NumericType get( PointType const & pt ) const
-      {
-        typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
-        typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
-
-        ConstCellRangeType cells(mesh);
-        for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
-        {
-          if ( viennagrid::is_inside( *cit, pt ) )
-          {
-            PointType p0 = viennagrid::point( viennagrid::vertices(*cit)[0] );
-            PointType p1 = viennagrid::point( viennagrid::vertices(*cit)[1] );
-            PointType p2 = viennagrid::point( viennagrid::vertices(*cit)[2] );
-
-            NumericType f0 = std::abs(viennagrid::determinant( p1-pt, p2-pt )) / 2.0;
-            NumericType f1 = std::abs(viennagrid::determinant( p0-pt, p2-pt )) / 2.0;
-            NumericType f2 = std::abs(viennagrid::determinant( p0-pt, p1-pt )) / 2.0;
-
-            NumericType s0 = field(viennagrid::vertices(*cit)[0]);
-            NumericType s1 = field(viennagrid::vertices(*cit)[1]);
-            NumericType s2 = field(viennagrid::vertices(*cit)[2]);
-
-            NumericType val = (s0*f0 + s1*f1 + s2*f2) / (f0 + f1 + f2);
-
-            return val;
-          }
-        }
-
-        return -1;
-      }
-
-      MeshT const & mesh;
-      FieldT const & field;
+      typedef shared_ptr< viennamesh::sizing_function::base_sizing_function<PointType> > type;
     };
+  }
 
-
-    template<typename MeshT, typename FieldT>
-    shared_ptr< mesh_interpolate_functor<MeshT, FieldT> > mesh_interpolate( MeshT const & mesh, FieldT const & field )
-    {
-      return shared_ptr< mesh_interpolate_functor<MeshT, FieldT> >( new mesh_interpolate_functor<MeshT, FieldT>(mesh, field) );
-    }
+  namespace sizing_function
+  {
 
 
 
 
+
+
+
+//     template<typename MeshT, typename SegmentationT, typename FieldT>
+//     struct mesh_interpolate_functor : public base_sizing_function<MeshT, SegmentationT>
+//     {
+//       mesh_interpolate_functor( MeshT const & mesh_, FieldT const & field_ ) : mesh(mesh_), field(field_) {}
+//
+//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+//       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+//       typedef NumericType result_type;
+//
+//       NumericType get( PointType const & pt ) const
+//       {
+//         typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
+//         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+//
+//         ConstCellRangeType cells(mesh);
+//         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+//         {
+//           if ( viennagrid::is_inside( *cit, pt ) )
+//           {
+//             PointType p0 = viennagrid::point( viennagrid::vertices(*cit)[0] );
+//             PointType p1 = viennagrid::point( viennagrid::vertices(*cit)[1] );
+//             PointType p2 = viennagrid::point( viennagrid::vertices(*cit)[2] );
+//
+//             NumericType f0 = std::abs(viennagrid::determinant( p1-pt, p2-pt )) / 2.0;
+//             NumericType f1 = std::abs(viennagrid::determinant( p0-pt, p2-pt )) / 2.0;
+//             NumericType f2 = std::abs(viennagrid::determinant( p0-pt, p1-pt )) / 2.0;
+//
+//             NumericType s0 = field(viennagrid::vertices(*cit)[0]);
+//             NumericType s1 = field(viennagrid::vertices(*cit)[1]);
+//             NumericType s2 = field(viennagrid::vertices(*cit)[2]);
+//
+//             NumericType val = (s0*f0 + s1*f1 + s2*f2) / (f0 + f1 + f2);
+//
+//             return val;
+//           }
+//         }
+//
+//         return -1;
+//       }
+//
+//       MeshT const & mesh;
+//       FieldT const & field;
+//     };
 
 
     template<typename MeshT, typename SegmentationT>
-    struct mesh_gradient_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
+    struct mesh_gradient_functor : public base_sizing_function<typename viennagrid::result_of::point<MeshT>::type>
     {
       mesh_gradient_functor( string const & filename, string const & parameter_name ) : segmentation(mesh), values_field(values)
       {
@@ -282,10 +288,76 @@ namespace viennamesh
     };
 
 
-    template<typename MeshT, typename FieldT>
-    struct referenced_mesh_gradient_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
+//     template<typename MeshT, typename SegmentationT, typename FieldT>
+//     struct referenced_mesh_gradient_functor : public base_sizing_function<MeshT, SegmentationT>
+//     {
+//       referenced_mesh_gradient_functor( MeshT const & mesh_, FieldT const & field_ ) : mesh(mesh_), field(field_) {}
+//
+//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+//       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+//       typedef NumericType result_type;
+//
+//       NumericType get( PointType const & pt ) const
+//       {
+//         typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
+//         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+//
+//         ConstCellRangeType cells(mesh);
+//         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+//         {
+//           if ( viennagrid::is_inside( *cit, pt ) )
+//             return gradient( *cit, field );
+//         }
+//
+//         return -1;
+//       }
+//
+//       MeshT const & mesh;
+//       FieldT const & field;
+//     };
+
+
+
+
+
+
+
+
+
+//     template<typename MeshT, typename SegmentationT>
+//     struct distance_to_segment_functor : public base_sizing_function<MeshT, SegmentationT>
+//     {
+//       typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentType;
+//
+//       distance_to_segment_functor( SegmentType const & segment_ ) : segment(&segment_) {}
+//
+//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+//       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+//
+//       NumericType get( PointType const & pt ) const
+//       {
+//         return viennagrid::boundary_distance( pt, *segment );
+//       }
+//
+//       SegmentType const * segment;
+//     };
+
+
+
+
+
+
+    template<typename MeshT, typename SegmentationT>
+    struct distance_to_interface_functor :
+        public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
     {
-      referenced_mesh_gradient_functor( MeshT const & mesh_, FieldT const & field_ ) : mesh(mesh_), field(field_) {}
+      typedef typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type ConstMeshParameterType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentType;
+
+      distance_to_interface_functor( ConstMeshParameterType const & mesh_,
+                                     std::string const & segment0_name_,
+                                     std::string const & segment1_name_ ) :
+                                     mesh(mesh_), segment0_name(segment0_name_), segment1_name(segment1_name_) {}
 
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
@@ -293,115 +365,55 @@ namespace viennamesh
 
       NumericType get( PointType const & pt ) const
       {
-        typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
-        typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+//         std::cout << "Mesh has " << mesh().segmentation.size() << " segments" << std::endl;
+//         for (typename SegmentationT::const_iterator sit = mesh().segmentation.begin(); sit != mesh().segmentation.end(); ++sit)
+//           std::cout << "   Segment with id " << (*sit).id() << " has name \"" << (*sit).name() << "\"" << std::endl;
+//
+//         std::cout << "Segment " << segment0_name << " has id " << mesh().segmentation(segment0_name).id() << " and name " << mesh().segmentation(segment0_name).name() << std::endl;
+//         std::cout << "Segment " << segment1_name << " has id " << mesh().segmentation(segment1_name).id() << " and name " << mesh().segmentation(segment1_name).name() << std::endl;
 
-        ConstCellRangeType cells(mesh);
-        for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
-        {
-          if ( viennagrid::is_inside( *cit, pt ) )
-            return gradient( *cit, field );
-        }
-
-        return -1;
+        typedef typename viennagrid::result_of::facet_tag<SegmentType>::type FacetTag;
+        return distance_to_interface<FacetTag>( pt,
+                                                mesh().segmentation(segment0_name),
+                                                mesh().segmentation(segment1_name) );
       }
 
-      MeshT const & mesh;
-      FieldT const & field;
+      ConstMeshParameterType mesh;
+      std::string segment0_name;
+      std::string segment1_name;
     };
 
-    template<typename MeshT, typename FieldT>
-    shared_ptr< referenced_mesh_gradient_functor<MeshT, FieldT> > mesh_gradient( MeshT const & mesh, FieldT const & field )
+
+
+
+    template<typename ElementTagT, typename MeshT, typename SegmentationT>
+    struct distance_to_segment_boundaries_functor :
+        public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
     {
-      return shared_ptr< referenced_mesh_gradient_functor<MeshT, FieldT> >( new referenced_mesh_gradient_functor<MeshT, FieldT>(mesh, field) );
-    }
+      typedef typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type ConstMeshParameterType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentType;
 
-
-
-
-
-
-
-
-    template<typename SegmentT>
-    struct distance_to_segment_functor : public base_sizing_function< typename viennagrid::result_of::point<SegmentT>::type >
-    {
-      distance_to_segment_functor( SegmentT const & segment_ ) : segment(&segment_) {}
-
-      typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
-
-      NumericType get( PointType const & pt ) const
+      distance_to_segment_boundaries_functor( ConstMeshParameterType const & mesh_,
+                                              std::vector<std::string> const & segment_names ) : mesh(mesh_)
       {
-        return viennagrid::boundary_distance( pt, *segment );
-      }
-
-      SegmentT const * segment;
-    };
-
-    template<typename SegmentT>
-    shared_ptr< distance_to_segment_functor<SegmentT> > mesh_gradient( SegmentT const & segment )
-    {
-      return shared_ptr< distance_to_segment_functor<SegmentT> >( new distance_to_segment_functor<SegmentT>(segment) );
-    }
-
-
-
-
-
-    template<typename SegmentT>
-    struct distance_to_interface_functor : public base_sizing_function< typename viennagrid::result_of::point<SegmentT>::type >
-    {
-      distance_to_interface_functor( SegmentT const & segment0_, SegmentT const & segment1_ ) : segment0(&segment0_), segment1(&segment1_) {}
-      distance_to_interface_functor( SegmentT const * segment0_, SegmentT const * segment1_ ) : segment0(segment0_), segment1(segment1_) {}
-
-      typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
-      typedef NumericType result_type;
-
-      NumericType get( PointType const & pt ) const
-      {
-        typedef typename viennagrid::result_of::facet_tag<SegmentT>::type FacetTag;
-        return distance_to_interface<FacetTag>( pt, *segment0, *segment1 );
-      }
-
-      SegmentT const * segment0;
-      SegmentT const * segment1;
-    };
-
-    template<typename SegmentT>
-    shared_ptr< distance_to_interface_functor<SegmentT> > distance_to_interface( SegmentT const & segment0, SegmentT const & segment1 )
-    {
-      return shared_ptr< distance_to_interface_functor<SegmentT> >( new distance_to_interface_functor<SegmentT>(segment0, segment1) );
-    }
-
-
-    template<typename ElementTagT, typename SegmentT>
-    struct distance_to_segment_boundaries_functor : public base_sizing_function< typename viennagrid::result_of::point<SegmentT>::type >
-    {
-      distance_to_segment_boundaries_functor( std::vector<SegmentT const *> segments )
-      {
-        typedef std::vector<SegmentT const *> SegmentPointerContainerType;
-        typedef typename viennagrid::result_of::const_element_range<SegmentT, ElementTagT>::type ConstElementRangeType;
+        typedef typename viennagrid::result_of::const_element_range<SegmentType, ElementTagT>::type ConstElementRangeType;
         typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
 
-        if (segments.empty())
+        if (segment_names.empty())
           return;
 
-        typename SegmentPointerContainerType::const_iterator seg_it = segments.begin();
+        std::vector<std::string>::const_iterator seg_it = segment_names.begin();
+        ConstElementRangeType elements( mesh().segmentation(*seg_it++) );
 
-        mesh = & ( (*seg_it)->mesh());
-
-        ConstElementRangeType elements(**seg_it++);
         if (elements.empty())
           return;
 
         for (ConstElementIteratorType fit = elements.begin(); fit != elements.end(); ++fit)
         {
           bool is_on_all_boundaries = true;
-          for (typename SegmentPointerContainerType::const_iterator sit = seg_it; sit != segments.end(); ++sit)
+          for (std::vector<std::string>::const_iterator sit = seg_it; sit != segment_names.end(); ++sit)
           {
-            if (!is_boundary(**sit, *fit))
+            if (!is_boundary(mesh().segmentation(*sit), *fit))
             {
               is_on_all_boundaries = false;
               break;
@@ -413,11 +425,11 @@ namespace viennamesh
         }
       }
 
-      typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
+      typedef typename viennagrid::result_of::point<SegmentType>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
       typedef NumericType result_type;
 
-      typedef typename SegmentT::mesh_type MeshType;
+      typedef typename SegmentType::mesh_type MeshType;
       typedef typename viennagrid::result_of::const_handle<MeshType, ElementTagT>::type ConstElementHandleType;
       typedef std::vector<ConstElementHandleType> BoundaryElementHandleContainer;
 
@@ -427,7 +439,7 @@ namespace viennamesh
 
         for (typename BoundaryElementHandleContainer::const_iterator beit = boundary_handles.begin(); beit != boundary_handles.end(); ++beit)
         {
-          NumericType current_distance = viennagrid::distance(pt, viennagrid::dereference_handle(*mesh, *beit));
+          NumericType current_distance = viennagrid::distance(pt, viennagrid::dereference_handle(mesh().mesh, *beit));
 
           if (min_distance < 0)
             min_distance = current_distance;
@@ -439,22 +451,9 @@ namespace viennamesh
       }
 
 
-      MeshType const * mesh;
+      ConstMeshParameterType mesh;
       BoundaryElementHandleContainer boundary_handles;
     };
-
-    template<typename ElementTypeOrTagT, typename SegmentT>
-    shared_ptr< distance_to_segment_boundaries_functor<typename viennagrid::result_of::element_tag<ElementTypeOrTagT>::type, SegmentT> > distance_to_segment_boundaries( SegmentT const & segment0, SegmentT const & segment1, SegmentT const & segment2 )
-    {
-      typedef typename viennagrid::result_of::element_tag<ElementTypeOrTagT>::type ElementTag;
-      std::vector<SegmentT const *> segments;
-
-      segments.push_back(&segment0);
-      segments.push_back(&segment1);
-      segments.push_back(&segment2);
-
-      return shared_ptr< distance_to_segment_boundaries_functor<ElementTag, SegmentT> >( new distance_to_segment_boundaries_functor<ElementTag, SegmentT>(segments) );
-    }
 
 
 
@@ -492,10 +491,13 @@ namespace viennamesh
 
 
 
-    template<typename SegmentT>
-    struct is_in_segments_functor : public base_sizing_function<typename viennagrid::result_of::point<SegmentT>::type>
+    template<typename MeshT, typename SegmentationT>
+    struct is_in_segments_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
     {
-      typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
+      typedef typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type ConstMeshParameterType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentType;
+
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
       typedef typename viennamesh::result_of::sizing_function<PointType>::type SizingFunctionType;
 
@@ -505,29 +507,19 @@ namespace viennamesh
       typedef NumericType result_type;
 
 
-      is_in_segments_functor( std::vector<SegmentT const *> const & segments_, BaseSizingFunctionHandleType const & function_) : segments(segments_), function(function_) {}
-
-      is_in_segments_functor( BaseSizingFunctionHandleType const & function_ ) : function(function_) {}
-
-      is_in_segments_functor( BaseSizingFunctionHandleType const & function_, SegmentT const & segment0_ ) : function(function_)
-      {
-        segments.push_back(&segment0_);
-      }
-
-      is_in_segments_functor( BaseSizingFunctionHandleType const & function_, SegmentT const & segment0_, SegmentT const & segment1_ ) : function(function_)
-      {
-        segments.push_back(&segment0_);
-        segments.push_back(&segment1_);
-      }
+      is_in_segments_functor( ConstMeshParameterType mesh_,
+                              std::vector<std::string> const & segment_names_,
+                              BaseSizingFunctionHandleType const & function_) :
+                              mesh(mesh_), segment_names(segment_names_), function(function_) {}
 
       NumericType get( PointType const & pt ) const
       {
-        typedef typename viennagrid::result_of::const_cell_range<SegmentT>::type ConstCellRangeType;
+        typedef typename viennagrid::result_of::const_cell_range<SegmentType>::type ConstCellRangeType;
         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
-        for (unsigned int i = 0; i < segments.size(); ++i)
+        for (unsigned int i = 0; i < segment_names.size(); ++i)
         {
-          ConstCellRangeType cells(*segments[i]);
+          ConstCellRangeType cells( mesh().segmentation(segment_names[i]) );
           for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
           {
             if ( viennagrid::is_inside( *cit, pt ) )
@@ -538,21 +530,12 @@ namespace viennamesh
         return -1;
       }
 
-      std::vector<SegmentT const *> segments;
+      ConstMeshParameterType mesh;
+      std::vector<std::string> segment_names;
+
       BaseSizingFunctionHandleType function;
     };
 
-    template<typename FunctionHandleT, typename SegmentT>
-    shared_ptr< is_in_segments_functor<SegmentT> > is_in_segments( FunctionHandleT const & function, SegmentT const & segment0 )
-    {
-      return shared_ptr< is_in_segments_functor<SegmentT> >( new is_in_segments_functor<SegmentT>(function, segment0) );
-    }
-
-    template<typename FunctionHandleT, typename SegmentT>
-    shared_ptr< is_in_segments_functor<SegmentT> > is_in_segments( FunctionHandleT const & function, SegmentT const & segment0, SegmentT const & segment1 )
-    {
-      return shared_ptr< is_in_segments_functor<SegmentT> >( new is_in_segments_functor<SegmentT>(function, segment0, segment1) );
-    }
 
 
 
@@ -562,72 +545,38 @@ namespace viennamesh
 
 
 
-    template<typename SegmentT>
-    struct is_near_double_interface_functor : public base_sizing_function<typename viennagrid::result_of::point<SegmentT>::type>
-    {
-      typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
-      typedef typename viennamesh::result_of::sizing_function<PointType>::type SizingFunctionType;
-
-      typedef base_sizing_function<PointType> BaseSizingFunctionType;
-      typedef shared_ptr<BaseSizingFunctionType> BaseSizingFunctionHandleType;
-
-      is_near_double_interface_functor( BaseSizingFunctionHandleType const & function_, SegmentT const & segment0_, SegmentT const & segment1_, NumericType max_distance_between_interfaces_ ) : segment0(&segment0_), segment1(&segment1_), function(function_), max_distance_between_interfaces(max_distance_between_interfaces_) {}
-
-      typedef NumericType result_type;
-
-      NumericType get( PointType const & pt ) const
-      {
-        NumericType distance_segment0 = viennagrid::boundary_distance( *segment0, pt );
-        NumericType distance_segment1 = viennagrid::boundary_distance( *segment1, pt );
-
-        if ( distance_segment0 + distance_segment1 < max_distance_between_interfaces )
-          return function->get(pt);
-
-        return -1;
-      }
-
-      SegmentT const * segment0;
-      SegmentT const * segment1;
-      BaseSizingFunctionHandleType function;
-      NumericType max_distance_between_interfaces;
-    };
-
-    template<typename FunctionHandleT, typename SegmentT>
-    shared_ptr< is_near_double_interface_functor<SegmentT> > is_near_double_interface( FunctionHandleT const & function, SegmentT const & segment0, SegmentT const & segment1, double max_distance_between_interfaces )
-    {
-      return shared_ptr< is_near_double_interface_functor<SegmentT> >( new is_near_double_interface_functor<SegmentT>(function, segment0, segment1, max_distance_between_interfaces) );
-    }
-
-
-/*
-
-    template<typename SegmentT>
-    struct distance_to_double_interface
-    {
-      distance_to_double_interface( SegmentT const & segment0_, SegmentT const & segment1_, double max_distance_between_segments_) : segment0(&segment0_), segment1(&segment1_), max_distance_between_segments(max_distance_between_segments_) {}
-
-      typedef typename viennagrid::result_of::point<SegmentT>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
-
-      NumericType operator() ( PointType const & pt ) const
-      {
-        std::pair<PointType, PointType> closest_points_segment0 = viennagrid::closest_points_on_boundary( *segment0, pt );
-        std::pair<PointType, PointType> closest_points_segment1 = viennagrid::closest_points_on_boundary( *segment1, pt );
-
-        NumericType distance_between_segments = viennagrid::norm_2( closest_points_segment1.second - closest_points_segment0.second );
-
-        if (distance_between_segments < max_distance_between_segments)
-          return -1;
-
-        return viennagrid::norm_2( pt - (closest_points_segment1.second+closest_points_segment0.second)/2.0 );
-      }
-
-      SegmentT const * segment0;
-      SegmentT const * segment1;
-
-      NumericType max_distance_between_segments;
-    };*/
+//     template<typename MeshT, typename SegmentationT>
+//     struct is_near_double_interface_functor : public base_sizing_function< typename viennagrid::result_of::point<MeshT>::type >
+//     {
+//       typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentType;
+//
+//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+//       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+//       typedef typename viennamesh::result_of::sizing_function<PointType>::type SizingFunctionType;
+//
+//       typedef base_sizing_function<MeshT, SegmentationT> BaseSizingFunctionType;
+//       typedef shared_ptr<BaseSizingFunctionType> BaseSizingFunctionHandleType;
+//
+//       is_near_double_interface_functor( BaseSizingFunctionHandleType const & function_, SegmentType const & segment0_, SegmentType const & segment1_, NumericType max_distance_between_interfaces_ ) : segment0(&segment0_), segment1(&segment1_), function(function_), max_distance_between_interfaces(max_distance_between_interfaces_) {}
+//
+//       typedef NumericType result_type;
+//
+//       NumericType get( PointType const & pt ) const
+//       {
+//         NumericType distance_segment0 = viennagrid::boundary_distance( *segment0, pt );
+//         NumericType distance_segment1 = viennagrid::boundary_distance( *segment1, pt );
+//
+//         if ( distance_segment0 + distance_segment1 < max_distance_between_interfaces )
+//           return function->get(pt);
+//
+//         return -1;
+//       }
+//
+//       SegmentType const * segment0;
+//       SegmentType const * segment1;
+//       BaseSizingFunctionHandleType function;
+//       NumericType max_distance_between_interfaces;
+//     };
 
 
 
@@ -644,12 +593,6 @@ namespace viennamesh
       typedef std::vector<BaseSizingFunctionHandleType> BaseSizingFunctionHandleContainerType;
 
       min_functor(BaseSizingFunctionHandleContainerType const & functions_) : functions(functions_) {}
-
-      min_functor(BaseSizingFunctionHandleType const & function1_, BaseSizingFunctionHandleType const & function2_)
-      {
-        functions.push_back(function1_);
-        functions.push_back(function2_);
-      }
 
       NumericType get( PointT const & pt ) const
       {
@@ -673,12 +616,6 @@ namespace viennamesh
       BaseSizingFunctionHandleContainerType functions;
     };
 
-    template<typename SizingFunction1T, typename SizingFunction2T>
-    shared_ptr< base_sizing_function<typename SizingFunction1T::point_type> > min( shared_ptr<SizingFunction1T> const & function1, shared_ptr<SizingFunction2T> const & function2 )
-    {
-      return shared_ptr< min_functor<typename SizingFunction1T::point_type> >( new min_functor<typename SizingFunction1T::point_type>(function1, function2) );
-    }
-
 
 
     template<typename PointT>
@@ -693,12 +630,6 @@ namespace viennamesh
       typedef std::vector<BaseSizingFunctionHandleType> BaseSizingFunctionHandleContainerType;
 
       max_functor(BaseSizingFunctionHandleContainerType const & functions_) : functions(functions_) {}
-
-      max_functor(BaseSizingFunctionHandleType const & function1_, BaseSizingFunctionHandleType const & function2_)
-      {
-        functions.push_back(function1_);
-        functions.push_back(function2_);
-      }
 
       NumericType get( PointT const & pt ) const
       {
@@ -724,21 +655,6 @@ namespace viennamesh
 
 
 
-//     template<typename PointT>
-//     struct max
-//     {
-//       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
-//       typedef typename viennamesh::result_of::sizing_function<PointT>::type SizingFunctionType;
-//
-//       template<typename Functor1T, typename Functor2T>
-//       max(Functor1T const & functor1_, Functor2T const & functor2_) : function1(viennamesh::bind(functor1_, _1)), function2(viennamesh::bind(functor2_, _1)) {}
-//
-//       NumericType operator() ( PointT const & pt ) const
-//       { return std::max( function1(pt), function2(pt) ); }
-//
-//       SizingFunctionType function1;
-//       SizingFunctionType function2;
-//     };
 
     template<typename PointT>
     struct constant_functor : public base_sizing_function<PointT>
@@ -754,35 +670,6 @@ namespace viennamesh
       NumericType value;
     };
 
-    template<typename PointT>
-    shared_ptr< base_sizing_function<PointT> > constant( typename viennagrid::result_of::coord<PointT>::type value )
-    {
-      return shared_ptr< constant_functor<PointT> >( new constant_functor<PointT>(value) );
-    }
-
-
-//     template<typename PointT>
-//     struct map_to_valid
-//     {
-//       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
-//       typedef typename viennamesh::result_of::sizing_function<PointT>::type SizingFunctionType;
-//
-//       template<typename FunctorT>
-//       map_to_valid(FunctorT const & functor_, NumericType min_value_, NumericType max_value_) : function(viennamesh::bind(functor_, _1)), min_value(min_value_), max_value(max_value_) {}
-//
-//       NumericType operator() ( PointT const & pt ) const
-//       {
-//         NumericType tmp = function1(pt);
-//         if (tmp <= 0)
-//           return max_value;
-//         return std::max(tmp, min_value);
-//       }
-//
-//       SizingFunctionType function;
-//
-//       NumericType min_value;
-//       NumericType max_value;
-//     };
 
 
     template<typename PointT>
@@ -820,17 +707,7 @@ namespace viennamesh
     };
 
 
-    template<typename SizingFunctionT>
-    shared_ptr< base_sizing_function< typename SizingFunctionT::point_type > > linear_interpolate(
-          shared_ptr<SizingFunctionT> const & function,
-          typename viennagrid::result_of::coord<typename SizingFunctionT::point_type>::type lower,
-          typename viennagrid::result_of::coord<typename SizingFunctionT::point_type>::type upper,
-          typename viennagrid::result_of::coord<typename SizingFunctionT::point_type>::type lower_to,
-          typename viennagrid::result_of::coord<typename SizingFunctionT::point_type>::type upper_to )
-    {
-      typedef typename SizingFunctionT::point_type PointType;
-      return shared_ptr< linear_interpolate_functor<PointType> >( new linear_interpolate_functor<PointType>(function, lower, upper, lower_to, upper_to) );
-    }
+
 
 
 
@@ -839,14 +716,13 @@ namespace viennamesh
 
 
     template<typename MeshT, typename SegmentationT>
-    shared_ptr< base_sizing_function< typename viennagrid::result_of::point<MeshT>::type > > from_xml(
+    typename result_of::sizing_function_handle<MeshT>::type from_xml(
           pugi::xml_node const & node,
-          MeshT const & mesh,
-          SegmentationT const & segmentation,
+          typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type const & mesh,
           string const & base_path = "")
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-      typedef shared_ptr< base_sizing_function<PointType> > SizingFunctionHandleType;
+      typedef typename result_of::sizing_function_handle<MeshT>::type SizingFunctionHandleType;
 
       typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
       typedef typename viennagrid::result_of::segment_id<SegmentationT>::type SegmentIDType;
@@ -863,7 +739,7 @@ namespace viennamesh
       {
         std::vector<SizingFunctionHandleType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
-          functions.push_back( from_xml(source.first_child(), mesh, segmentation) );
+          functions.push_back( from_xml<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
 
         return SizingFunctionHandleType( new min_functor<PointType>(functions) );
       }
@@ -872,7 +748,7 @@ namespace viennamesh
       {
         std::vector<SizingFunctionHandleType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
-          functions.push_back( from_xml(source.first_child(), mesh, segmentation) );
+          functions.push_back( from_xml<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
 
         return SizingFunctionHandleType( new max_functor<PointType>(functions) );
       }
@@ -889,7 +765,7 @@ namespace viennamesh
           double lower_to = lexical_cast<double>(node.child_value("lower_to"));
           double upper_to = lexical_cast<double>(node.child_value("upper_to"));
 
-          SizingFunctionHandleType source = from_xml(node.child("source").first_child(), mesh, segmentation);
+          SizingFunctionHandleType source = from_xml<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
 
           return SizingFunctionHandleType(new linear_interpolate_functor<PointType>(source, lower, upper, lower_to, upper_to ));
         }
@@ -899,31 +775,31 @@ namespace viennamesh
 
       if (name == "distance_to_segment_boundaries")
       {
-        std::vector<SegmentHandleType const*> segments;
+        std::vector<std::string> segment_names;
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
-          segments.push_back( &segmentation.get_segment( lexical_cast<SegmentIDType>(segment.text().as_string()) ) );
+          segment_names.push_back( segment.text().as_string() );
 
-        return SizingFunctionHandleType( new distance_to_segment_boundaries_functor<viennagrid::line_tag, SegmentHandleType>(segments) );
+        return SizingFunctionHandleType( new distance_to_segment_boundaries_functor<viennagrid::line_tag, MeshT, SegmentationT>(mesh, segment_names) );
       }
 
       if (name == "distance_to_interface")
       {
-        std::vector<SegmentHandleType const*> segments;
+        std::vector<std::string> segment_names;
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
-          segments.push_back( &segmentation.get_segment( lexical_cast<SegmentIDType>(segment.text().as_string()) ) );
+          segment_names.push_back( segment.text().as_string() );
 
-        return SizingFunctionHandleType( new distance_to_interface_functor<SegmentHandleType>(segments[0], segments[1]) );
+        return SizingFunctionHandleType( new distance_to_interface_functor<MeshT, SegmentationT>(mesh, segment_names[0], segment_names[1]) );
       }
 
       if (name == "is_in_segments")
       {
-        std::vector<SegmentHandleType const*> segments;
+        std::vector<std::string> segment_names;
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
-          segments.push_back( &segmentation.get_segment( lexical_cast<SegmentIDType>(segment.text().as_string()) ) );
+          segment_names.push_back( segment.text().as_string() );
 
-        SizingFunctionHandleType source = from_xml(node.child("source").first_child(), mesh, segmentation);
+        SizingFunctionHandleType source = from_xml<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
 
-        return SizingFunctionHandleType( new is_in_segments_functor<SegmentHandleType>(segments, source) );
+        return SizingFunctionHandleType( new is_in_segments_functor<MeshT, SegmentationT>(mesh, segment_names, source) );
       }
 
       if (name == "mesh_gradient")
@@ -942,6 +818,18 @@ namespace viennamesh
       }
 
       return SizingFunctionHandleType();
+    }
+
+
+    template<typename MeshT, typename SegmentationT>
+    typename result_of::sizing_function_handle<MeshT>::type from_xmlstring(
+          string const & xml_string,
+          viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> > const & mesh,
+          string const & base_path = "")
+    {
+      pugi::xml_document sf_xml;
+      sf_xml.load( xml_string.c_str() );
+      return from_xml( sf_xml, mesh, base_path );
     }
 
   }

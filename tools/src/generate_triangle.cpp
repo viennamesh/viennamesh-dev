@@ -63,11 +63,12 @@ int main(int argc, char **argv)
     typedef viennagrid::triangular_2d_segmentation SegmentationType;
     typedef viennagrid::triangular_2d_segment_handle SegmentType;
 
+    typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
     viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
 
-    viennamesh::sizing_function::sizing_function_2d_handle function;
+    viennamesh::result_of::sizing_function_handle<MeshType>::type function_handle;
     viennamesh::sizing_function_2d sizing_function;
 
     if (sizing_function_filename.isSet())
@@ -80,9 +81,9 @@ int main(int argc, char **argv)
       pugi::xml_document xml_element_size;
       xml_element_size.load_file( sizing_function_filename.getValue().c_str() );
 
-      function = viennamesh::sizing_function::from_xml(xml_element_size.first_child(), simple_mesh().mesh, simple_mesh().segmentation);
+      function_handle = viennamesh::sizing_function::from_xml<MeshType, SegmentationType>(xml_element_size.first_child(), simple_mesh);
 
-      sizing_function = viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function_2d>, function, _1);
+      sizing_function = viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function<PointType> >, function_handle, _1);
 
       mesher->set_input( "sizing_function", sizing_function );
     }
