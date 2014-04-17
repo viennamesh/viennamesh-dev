@@ -21,6 +21,9 @@ target_link_libraries(tetgen_mesher_with_seedpoints viennamesh)
 add_executable(extract_hull_example extract_hull_example.cpp)
 target_link_libraries(extract_hull_example viennamesh)
 
+add_executable(extract_hull_holes extract_hull_holes.cpp)
+target_link_libraries(extract_hull_holes viennamesh)
+
 add_executable(reference_parameter reference_parameter.cpp)
 target_link_libraries(reference_parameter viennamesh)
 
