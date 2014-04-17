@@ -156,4 +156,12 @@ namespace viennamesh
     algorithms.clear();
   }
 
+
+  void algorithm_pipeline::set_base_path( std::string const & path )
+  {
+    for (AlgorithmMapType::iterator ait = algorithms.begin(); ait != algorithms.end(); ++ait)
+      (*ait).second->base_path() = path;
+  }
+
+
 }

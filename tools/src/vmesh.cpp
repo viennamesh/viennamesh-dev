@@ -21,7 +21,6 @@ int main(int argc, char **argv)
     viennamesh::logger().register_callback( new viennamesh::FileStreamCallback<viennamesh::FileStreamFormater>( log_filename.getValue() ) );
 
 
-
     pugi::xml_document pipeline_xml;
     if (!pipeline_xml.load_file( pipeline_filename.getValue().c_str() ))
       return 0;
@@ -29,6 +28,10 @@ int main(int argc, char **argv)
     viennamesh::algorithm_pipeline pipeline;
     if (!pipeline.from_xml( pipeline_xml ))
       return 0;
+
+    std::string path = stringtools::extract_path( pipeline_filename.getValue() );
+    if (!path.empty())
+      pipeline.set_base_path(path);
 
     pipeline.run();
   }

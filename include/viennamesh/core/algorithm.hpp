@@ -240,6 +240,9 @@ namespace viennamesh
 //     virtual string category() const = 0;
 //     virtual string description() const = 0;
 
+    std::string const & base_path() const { return base_path_; }
+    std::string & base_path() { return base_path_; }
+
   protected:
 
     virtual bool run_impl() = 0;
@@ -263,6 +266,8 @@ namespace viennamesh
 
     const_parameter_set inputs;
     parameter_set outputs;
+
+    std::string base_path_;
   };
 
 

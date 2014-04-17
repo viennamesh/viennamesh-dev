@@ -20,6 +20,8 @@ namespace viennamesh
 
     void clear();
 
+    void set_base_path( std::string const & path );
+
   private:
 
     AlgorithmMapType algorithms;
