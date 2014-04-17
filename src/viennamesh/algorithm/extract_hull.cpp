@@ -1,6 +1,7 @@
 #include "viennamesh/algorithm/extract_hull.hpp"
 
 #include "viennagrid/algorithm/extract_hull.hpp"
+#include "viennagrid/algorithm/extract_hole_points.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
 
 namespace viennamesh
@@ -9,7 +10,8 @@ namespace viennamesh
   extract_hull::extract_hull() :
     input_mesh(*this, "mesh"),
     output_mesh(*this, "mesh"),
-    output_seed_points(*this, "seed_points") {}
+    output_seed_points(*this, "seed_points"),
+    output_hole_points(*this, "hole_points") {}
 
   string extract_hull::name() const { return "ViennaGrid Extract Hull"; }
   string extract_hull::id() const { return "extract_hull"; }
@@ -30,6 +32,8 @@ namespace viennamesh
 
     typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
+    typedef typename viennamesh::result_of::point_container<PointType>::type HolePointContainerType;
+
 
     {
       typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp = input_mesh.get<SegmentedMeshType>();
@@ -37,9 +41,11 @@ namespace viennamesh
       {
         output_parameter_proxy<SegmentedFacetMeshType> omp(output_mesh);
         output_parameter_proxy<SeedPointContainerType> ospp(output_seed_points);
+        output_parameter_proxy<HolePointContainerType> ohpp(output_hole_points);
 
         viennagrid::extract_hull(imp().mesh, imp().segmentation, omp().mesh, omp().segmentation);
         viennagrid::extract_seed_points( imp().mesh, imp().segmentation, ospp() );
+        viennagrid::extract_hole_points( imp().mesh, ohpp() );
 
         return true;
       }
@@ -50,8 +56,10 @@ namespace viennamesh
       if (imp)
       {
         output_parameter_proxy<FacetMeshType> omp(output_mesh);
+        output_parameter_proxy<HolePointContainerType> ohpp(output_hole_points);
 
         viennagrid::extract_hull(imp(), omp());
+        viennagrid::extract_hole_points( imp(), ohpp() );
 
         return true;
       }
@@ -64,19 +72,19 @@ namespace viennamesh
   {
     if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>())
       return true;
-    if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>())
-      return true;
-
-    if (generic_run<viennagrid::quadrilateral_2d_mesh, viennagrid::quadrilateral_2d_segmentation>())
-      return true;
-    if (generic_run<viennagrid::quadrilateral_3d_mesh, viennagrid::quadrilateral_3d_segmentation>())
-      return true;
+//     if (generic_run<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation>())
+//       return true;
+//
+//     if (generic_run<viennagrid::quadrilateral_2d_mesh, viennagrid::quadrilateral_2d_segmentation>())
+//       return true;
+//     if (generic_run<viennagrid::quadrilateral_3d_mesh, viennagrid::quadrilateral_3d_segmentation>())
+//       return true;
 
     if (generic_run<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation>())
       return true;
 
-    if (generic_run<viennagrid::hexahedral_3d_mesh, viennagrid::hexahedral_3d_segmentation>())
-      return true;
+//     if (generic_run<viennagrid::hexahedral_3d_mesh, viennagrid::hexahedral_3d_segmentation>())
+//       return true;
 
 
     error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
