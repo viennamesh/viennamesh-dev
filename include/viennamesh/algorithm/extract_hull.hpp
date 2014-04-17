@@ -22,6 +22,7 @@ namespace viennamesh
 
     output_parameter_interface                      output_mesh;
     output_parameter_interface                      output_seed_points;
+    output_parameter_interface                      output_hole_points;
   };
 }
 
