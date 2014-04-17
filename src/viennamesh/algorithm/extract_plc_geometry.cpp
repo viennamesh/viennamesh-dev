@@ -1,8 +1,8 @@
 #include "viennamesh/algorithm/extract_plc_geometry.hpp"
+#include "viennamesh/algorithm/extract_hole_points.hpp"
 
 #include "viennagrid/algorithm/boundary.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
-#include "viennagrid/algorithm/extract_hole_points.hpp"
 #include "viennagrid/mesh/neighbor_iteration.hpp"
 
 namespace viennamesh

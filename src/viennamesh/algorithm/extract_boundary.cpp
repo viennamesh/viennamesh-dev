@@ -1,23 +1,25 @@
-#include "viennamesh/algorithm/extract_hull.hpp"
+#include "viennamesh/algorithm/extract_boundary.hpp"
+#include "viennamesh/algorithm/extract_hole_points.hpp"
 
-#include "viennagrid/algorithm/extract_hull.hpp"
-#include "viennagrid/algorithm/extract_hole_points.hpp"
+#include "viennagrid/algorithm/extract_boundary.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
+
+
 
 namespace viennamesh
 {
 
-  extract_hull::extract_hull() :
+  extract_boundary::extract_boundary() :
     input_mesh(*this, "mesh"),
     output_mesh(*this, "mesh"),
     output_seed_points(*this, "seed_points"),
     output_hole_points(*this, "hole_points") {}
 
-  string extract_hull::name() const { return "ViennaGrid Extract Hull"; }
-  string extract_hull::id() const { return "extract_hull"; }
+  string extract_boundary::name() const { return "ViennaGrid Extract Boundary"; }
+  string extract_boundary::id() const { return "extract_boundary"; }
 
   template<typename MeshT, typename SegmentationT>
-  bool extract_hull::generic_run()
+  bool extract_boundary::generic_run()
   {
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
     typedef typename viennagrid::result_of::facet_tag<MeshT>::type FacetTagType;
@@ -43,7 +45,7 @@ namespace viennamesh
         output_parameter_proxy<SeedPointContainerType> ospp(output_seed_points);
         output_parameter_proxy<HolePointContainerType> ohpp(output_hole_points);
 
-        viennagrid::extract_hull(imp().mesh, imp().segmentation, omp().mesh, omp().segmentation);
+        viennagrid::extract_boundary(imp().mesh, imp().segmentation, omp().mesh, omp().segmentation);
         viennagrid::extract_seed_points( imp().mesh, imp().segmentation, ospp() );
         viennagrid::extract_hole_points( imp().mesh, ohpp() );
 
@@ -58,7 +60,7 @@ namespace viennamesh
         output_parameter_proxy<FacetMeshType> omp(output_mesh);
         output_parameter_proxy<HolePointContainerType> ohpp(output_hole_points);
 
-        viennagrid::extract_hull(imp(), omp());
+        viennagrid::extract_boundary(imp(), omp());
         viennagrid::extract_hole_points( imp(), ohpp() );
 
         return true;
@@ -68,7 +70,7 @@ namespace viennamesh
     return false;
   }
 
-  bool extract_hull::run_impl()
+  bool extract_boundary::run_impl()
   {
     if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>())
       return true;

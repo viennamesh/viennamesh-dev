@@ -1,14 +1,14 @@
-#ifndef VIENNAMESH_ALGORITHM_VIENNAGRID_EXTRACT_HULL_HPP
-#define VIENNAMESH_ALGORITHM_VIENNAGRID_EXTRACT_HULL_HPP
+#ifndef VIENNAMESH_ALGORITHM_VIENNAGRID_EXTRACT_BOUNDARY_HPP
+#define VIENNAMESH_ALGORITHM_VIENNAGRID_EXTRACT_BOUNDARY_HPP
 
 #include "viennamesh/core/algorithm.hpp"
 
 namespace viennamesh
 {
-  class extract_hull : public base_algorithm
+  class extract_boundary : public base_algorithm
   {
   public:
-    extract_hull();
+    extract_boundary();
 
     string name() const;
     string id() const;

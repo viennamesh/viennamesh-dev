@@ -30,7 +30,7 @@ namespace viennamesh
     register_algorithm<viennamesh::line_mesh_generator>();
 
     register_algorithm<viennamesh::affine_transform>();
-    register_algorithm<viennamesh::extract_hull>();
+    register_algorithm<viennamesh::extract_boundary>();
     register_algorithm<viennamesh::extract_plc>();
     register_algorithm<viennamesh::hyperplane_clip>();
 
