@@ -1,5 +1,5 @@
 <algorithm id="mesh_reader" category="mesh" name="input">
-  <parameter name="filename" type="string">../data/big_and_small_cube.poly</parameter>
+  <parameter name="filename" type="string">../data/cube_with_tunnel.poly</parameter>
 </algorithm>
 
 <algorithm id="tetgen_mesh_generator" name="mesher">
@@ -8,12 +8,12 @@
   <parameter type="double" name="cell_size">10.0</parameter>
 </algorithm>
 
-<algorithm id="extract_hull" name="hull">
+<algorithm id="extract_boundary" name="boundary">
   <default_source>mesher</default_source>
 </algorithm>
 
 <algorithm id="extract_plc" name="plc">
-  <default_source>hull</default_source>
+  <default_source>boundary</default_source>
 </algorithm>
 
 <algorithm id="triangle_hull_mesh_generator" name="hull_remesher">
@@ -22,12 +22,13 @@
 
 <algorithm id="tetgen_mesh_generator" name="remesher">
   <default_source>plc</default_source>
-  <parameter name="seed_points" type="dynamic">hull/seed_points</parameter>
+  <parameter name="seed_points" type="dynamic">boundary/seed_points</parameter>
+  <parameter name="hole_points" type="dynamic">boundary/hole_points</parameter>
 </algorithm>
 
 <algorithm id="mesh_writer" name="output1">
-  <default_source>hull</default_source>
-  <parameter name="filename" type="string">hull.vtu</parameter>
+  <default_source>boundary</default_source>
+  <parameter name="filename" type="string">boundary.vtu</parameter>
 </algorithm>
 
 <algorithm id="mesh_writer" name="output2">
