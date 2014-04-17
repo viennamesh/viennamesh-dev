@@ -13,10 +13,20 @@ namespace viennamesh
 
     bool string_reader::run_impl()
     {
-      std::ifstream file( filename().c_str() );
+      string fn = filename();
+      if (!base_path().empty())
+      {
+        info(1) << "Using base path: " << base_path() << std::endl;
+        fn = base_path() + "/" + fn;
+      }
+
+      std::ifstream file( fn.c_str() );
 
       if (!file)
+      {
+        error(1) << "Error reading file \"" << fn << "\"" << std::endl;
         return false;
+      }
 
       output_parameter_proxy<string> op(output_string);
       op() = stringtools::read_stream(file);
