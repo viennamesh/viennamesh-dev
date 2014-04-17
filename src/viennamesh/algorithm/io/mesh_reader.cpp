@@ -403,7 +403,7 @@ namespace viennamesh
 
       info(1) << "Using file type " << to_string(ft) << std::endl;
 
-      if (!base_path().empy())
+      if (!base_path().empty())
       {
         info(1) << "Using base path: " << base_path() << std::endl;
         return load( base_path() + "/" + filename(), ft);
