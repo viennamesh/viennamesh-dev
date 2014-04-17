@@ -2,6 +2,7 @@
 
 #include "viennagrid/algorithm/boundary.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/extract_hole_points.hpp"
 #include "viennagrid/mesh/neighbor_iteration.hpp"
 
 namespace viennamesh
@@ -55,6 +56,7 @@ namespace viennamesh
     typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+    typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
 
     ConstCellRangeType cells(mesh);
 
@@ -97,6 +99,76 @@ namespace viennamesh
 
     for (int i = 0; i < lowest_plc_id; ++i)
     {
+      std::vector<point_3d> hole_points_3d;
+      {
+        // extract PLC hole points
+        typedef typename viennagrid::result_of::vertex_id<MeshT>::type VertexIDType;
+        std::map<VertexIDType, int> vertex_to_point_index;
+        std::vector<point_3d> plc_points_3d;
+
+        for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+        {
+          if (plc_ids(*cit) == i)
+          {
+            typedef typename viennagrid::result_of::const_vertex_range<CellType>::type VertexOnCellRangeType;
+            typedef typename viennagrid::result_of::iterator<VertexOnCellRangeType>::type VertexOnCellIteratorType;
+            VertexOnCellRangeType vertices_on_cells(*cit);
+            for (VertexOnCellIteratorType vcit = vertices_on_cells.begin(); vcit != vertices_on_cells.end(); ++vcit)
+            {
+              typename std::map<VertexIDType, int>::iterator it = vertex_to_point_index.find( (*vcit).id() );
+              if (it == vertex_to_point_index.end())
+              {
+                plc_points_3d.push_back( viennagrid::point(*vcit) );
+                vertex_to_point_index[(*vcit).id()] = plc_points_3d.size()-1;
+              }
+            }
+          }
+        }
+
+        std::vector<point_2d> plc_points_2d( plc_points_3d.size() );
+        viennagrid::plane_to_2d_projector<PointType> projection_functor;
+        projection_functor.init( plc_points_3d.begin(), plc_points_3d.end(), 1e-6 );
+        projection_functor.project( plc_points_3d.begin(), plc_points_3d.end(), plc_points_2d.begin() );
+
+
+
+        typedef viennagrid::triangular_2d_mesh Triangular2DMeshType;
+        typedef viennagrid::result_of::vertex_handle<Triangular2DMeshType>::type VertexHandle2DType;
+
+        Triangular2DMeshType mesh2d;
+        std::vector<VertexHandle2DType> vertex_handles_2d(plc_points_2d.size());
+        for (int j = 0; j < plc_points_2d.size(); ++j)
+          vertex_handles_2d[j] = viennagrid::make_vertex(mesh2d, plc_points_2d[j]);
+
+        for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+        {
+          if (plc_ids(*cit) == i)
+          {
+            viennagrid::make_triangle(
+              mesh2d,
+              vertex_handles_2d[ vertex_to_point_index[viennagrid::vertices(*cit)[0].id()] ],
+              vertex_handles_2d[ vertex_to_point_index[viennagrid::vertices(*cit)[1].id()] ],
+              vertex_handles_2d[ vertex_to_point_index[viennagrid::vertices(*cit)[2].id()] ]
+            );
+          }
+        }
+
+        std::vector<point_2d> hole_points_2d;
+        viennagrid::extract_hole_points( mesh2d, hole_points_2d );
+
+
+        projection_functor.unproject( hole_points_2d.begin(), hole_points_2d.end(), std::back_inserter(hole_points_3d) );
+
+//         for (int j = 0; j < hole_points_3d.size(); ++j)
+//           std::cout << "Found hole point! " << hole_points_3d[j] << std::endl;
+      }
+
+
+
+
+
+
+      // extract PLC lines
       std::vector<LineHandleType> plc_line_handles;
 
       ConstLineRangeType lines(mesh);
@@ -132,7 +204,10 @@ namespace viennamesh
         }
       }
 
-      viennagrid::make_plc(output_mesh, plc_line_handles.begin(), plc_line_handles.end());
+      typedef typename viennagrid::result_of::cell_handle<OutputMeshT>::type OutputCellHandleType;
+      OutputCellHandleType cell_handle = viennagrid::make_plc(output_mesh, plc_line_handles.begin(), plc_line_handles.end());
+      std::copy( hole_points_3d.begin(), hole_points_3d.end(),
+                 std::back_inserter(viennagrid::hole_points(viennagrid::dereference_handle(output_mesh, cell_handle))) );
     }
   }
 
@@ -241,7 +316,16 @@ namespace viennamesh
           new_plc_line_handles.push_back( new_line_handles[line_to_new_line_index(*locit)] );
       }
 
-      viennagrid::make_plc(output_mesh, new_plc_line_handles.begin(), new_plc_line_handles.end() );
+      typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
+      CellHandleType cell_handle = viennagrid::make_plc(output_mesh,
+                                                        new_plc_line_handles.begin(), new_plc_line_handles.end() );
+
+      viennagrid::hole_points(viennagrid::dereference_handle(output_mesh, cell_handle)) = viennagrid::hole_points(*cit);
+
+//       std::cout << "PLC" << std::endl;
+//       for (int i = 0; i < viennagrid::hole_points(*cit).size(); ++i)
+//         std::cout << "  " << viennagrid::hole_points(*cit)[i] << std::endl;
+
       //TODO copy loose points and hole points
     }
   }
