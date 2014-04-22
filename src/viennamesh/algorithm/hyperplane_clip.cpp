@@ -1,6 +1,6 @@
 #include "viennamesh/algorithm/hyperplane_clip.hpp"
 
-#include "viennagrid/algorithm/hyperplane_refine.hpp"
+#include "viennagrid/algorithm/refine.hpp"
 
 namespace viennamesh
 {
