@@ -18,7 +18,7 @@ namespace viennamesh
     template<typename CellTagT, unsigned int GeometricDimensionV>
     bool is_mesh_type( unsigned int vtk_cell_type, unsigned int geometric_dimension )
     {
-      return (viennagrid::io::ELEMENT_TAG_TO_VTK_TYPE<CellTagT>::value == vtk_cell_type) && (geometric_dimension == GeometricDimensionV);
+      return (viennagrid::io::detail::ELEMENT_TAG_TO_VTK_TYPE<CellTagT>::value == vtk_cell_type) && (geometric_dimension == GeometricDimensionV);
     }
 
     template<typename CellTagT, unsigned int GeometricDimensionV>
