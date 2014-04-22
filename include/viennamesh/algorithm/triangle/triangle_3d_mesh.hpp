@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include <list>
 
-#include "viennagrid/algorithm/geometry.hpp"
 #include "viennamesh/algorithm/triangle/triangle_mesh.hpp"
+#include "viennamesh/algorithm/plane_to_2d_projector.hpp"
 
 
 namespace viennamesh

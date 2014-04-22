@@ -1,5 +1,6 @@
 #include "viennamesh/algorithm/extract_plc_geometry.hpp"
 #include "viennamesh/algorithm/extract_hole_points.hpp"
+#include "viennamesh/algorithm/plane_to_2d_projector.hpp"
 
 #include "viennagrid/algorithm/boundary.hpp"
 #include "viennagrid/algorithm/geometry.hpp"
