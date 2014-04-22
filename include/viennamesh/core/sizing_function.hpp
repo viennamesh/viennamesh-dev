@@ -150,15 +150,11 @@ namespace viennamesh
       return sf->get(point);
     }
 
-
-
-
     template<typename PointT>
     class base_sizing_function
     {
     public:
 
-//       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
 
       typedef PointT point_type;
@@ -172,31 +168,21 @@ namespace viennamesh
     private:
     };
 
-
-    typedef base_sizing_function<point_1d> base_sizing_function_1d;
-    typedef base_sizing_function<point_2d> base_sizing_function_2d;
-    typedef base_sizing_function<point_3d> base_sizing_function_3d;
-
-    typedef shared_ptr<base_sizing_function_1d> sizing_function_1d_handle;
-    typedef shared_ptr<base_sizing_function_2d> sizing_function_2d_handle;
-    typedef shared_ptr<base_sizing_function_3d> sizing_function_3d_handle;
-
-  }
-
-  namespace result_of
-  {
-    template<typename MeshT>
-    struct sizing_function_handle
+    namespace result_of
     {
-      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-      typedef shared_ptr< viennamesh::sizing_function::base_sizing_function<PointType> > type;
-    };
-  }
+      template<typename MeshT>
+      struct sizing_function_handle
+      {
+        typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+        typedef shared_ptr< viennamesh::sizing_function::base_sizing_function<PointType> > type;
+      };
+    }
 
-  namespace sizing_function
-  {
-
-
+    template<typename PointT>
+    typename viennamesh::result_of::sizing_function<PointT>::type make_sizing_function( shared_ptr< viennamesh::sizing_function::base_sizing_function<PointT> > const & sfh)
+    {
+      return viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function<PointT> >, sfh, _1);
+    }
 
 
 
@@ -716,7 +702,8 @@ namespace viennamesh
 
 
     template<typename MeshT, typename SegmentationT>
-    typename result_of::sizing_function_handle<MeshT>::type from_xml(
+    typename result_of::sizing_function_handle<MeshT>::type
+    from_xml_impl(
           pugi::xml_node const & node,
           typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type const & mesh,
           string const & base_path = "")
@@ -739,7 +726,7 @@ namespace viennamesh
       {
         std::vector<SizingFunctionHandleType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
-          functions.push_back( from_xml<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
+          functions.push_back( from_xml_impl<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
 
         return SizingFunctionHandleType( new min_functor<PointType>(functions) );
       }
@@ -748,7 +735,7 @@ namespace viennamesh
       {
         std::vector<SizingFunctionHandleType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
-          functions.push_back( from_xml<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
+          functions.push_back( from_xml_impl<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
 
         return SizingFunctionHandleType( new max_functor<PointType>(functions) );
       }
@@ -765,7 +752,7 @@ namespace viennamesh
           double lower_to = lexical_cast<double>(node.child_value("lower_to"));
           double upper_to = lexical_cast<double>(node.child_value("upper_to"));
 
-          SizingFunctionHandleType source = from_xml<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
+          SizingFunctionHandleType source = from_xml_impl<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
 
           return SizingFunctionHandleType(new linear_interpolate_functor<PointType>(source, lower, upper, lower_to, upper_to ));
         }
@@ -797,7 +784,7 @@ namespace viennamesh
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
           segment_names.push_back( segment.text().as_string() );
 
-        SizingFunctionHandleType source = from_xml<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
+        SizingFunctionHandleType source = from_xml_impl<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
 
         return SizingFunctionHandleType( new is_in_segments_functor<MeshT, SegmentationT>(mesh, segment_names, source) );
       }
@@ -821,15 +808,37 @@ namespace viennamesh
     }
 
 
+
     template<typename MeshT, typename SegmentationT>
-    typename result_of::sizing_function_handle<MeshT>::type from_xmlstring(
+    typename viennamesh::result_of::sizing_function< typename viennagrid::result_of::point<MeshT>::type >::type
+    from_xml(
+          pugi::xml_node const & node,
+          typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type const & mesh,
+          string const & base_path = "")
+    {
+      return make_sizing_function( from_xml_impl<MeshT, SegmentationT>(node, mesh, base_path) );
+    }
+
+    template<typename MeshT, typename SegmentationT>
+    typename viennamesh::result_of::sizing_function< typename viennagrid::result_of::point<MeshT>::type >::type from_xmlstring(
           string const & xml_string,
-          viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> > const & mesh,
+          typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type const & mesh,
           string const & base_path = "")
     {
       pugi::xml_document sf_xml;
       sf_xml.load( xml_string.c_str() );
-      return from_xml( sf_xml, mesh, base_path );
+      return from_xml<MeshT, SegmentationT>( sf_xml.first_child(), mesh, base_path );
+    }
+
+    template<typename MeshT, typename SegmentationT>
+    typename viennamesh::result_of::sizing_function< typename viennagrid::result_of::point<MeshT>::type >::type from_xmlfile(
+          string const & xml_filename,
+          typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type const & mesh,
+          string const & base_path = "")
+    {
+      pugi::xml_document sf_xml;
+      sf_xml.load_file( xml_filename.c_str() );
+      return from_xml<MeshT, SegmentationT>( sf_xml.first_child(), mesh, base_path );
     }
 
   }

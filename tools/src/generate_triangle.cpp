@@ -59,33 +59,20 @@ int main(int argc, char **argv)
 
     viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
 
-    typedef viennagrid::triangular_2d_mesh MeshType;
-    typedef viennagrid::triangular_2d_segmentation SegmentationType;
-    typedef viennagrid::triangular_2d_segment_handle SegmentType;
-
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
-    viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
-
-
-    viennamesh::result_of::sizing_function_handle<MeshType>::type function_handle;
-    viennamesh::sizing_function_2d sizing_function;
-
     if (sizing_function_filename.isSet())
     {
+      typedef viennagrid::triangular_2d_mesh MeshType;
+      typedef viennagrid::triangular_2d_segmentation SegmentationType;
+
+      typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
+      viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
+
       viennamesh::algorithm_handle simple_mesher( new viennamesh::triangle::mesh_generator() );
       simple_mesher->set_output( "mesh", simple_mesh() );
       simple_mesher->set_input( "mesh", reader->get_output("mesh") );
       simple_mesher->run();
 
-      pugi::xml_document xml_element_size;
-      xml_element_size.load_file( sizing_function_filename.getValue().c_str() );
-
-      function_handle = viennamesh::sizing_function::from_xml<MeshType, SegmentationType>(xml_element_size.first_child(), simple_mesh);
-
-      sizing_function = viennamesh::bind(viennamesh::sizing_function::get<viennamesh::sizing_function::base_sizing_function<PointType> >, function_handle, _1);
-
-      mesher->set_input( "sizing_function", sizing_function );
+      mesher->set_input( "sizing_function", viennamesh::sizing_function::from_xmlfile<MeshType, SegmentationType>(sizing_function_filename.getValue(), simple_mesh) );
     }
 
 
