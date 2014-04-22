@@ -10,7 +10,7 @@ namespace viennamesh
   {
     viennamesh::sizing_function_2d triangle_sizing_function;
 
-    int should_triangle_be_refined(double * triorg, double * tridest, double * triapex, double)
+    int should_triangle_be_refined_function(double * triorg, double * tridest, double * triapex, double)
     {
       REAL dxoa, dxda, dxod;
       REAL dyoa, dyda, dyod;
@@ -114,6 +114,14 @@ namespace viennamesh
         tmp.holelist = NULL;
       }
     }
+
+//     sizing_function_2d_handle create_sizing_function(
+//       triangle::input_segmentation const & input_segmentation,
+//       viennamesh::result_of::parameter_handle<
+//         viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>
+//         >::type & sizing_function
+//       int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points
+//     )
 
 
 
@@ -240,7 +248,7 @@ namespace viennamesh
       {
         triangle_sizing_function = sizing_function();
         options << "u";
-        ::should_triangle_be_refined = should_triangle_be_refined;
+        should_triangle_be_refined = should_triangle_be_refined_function;
       }
 
 

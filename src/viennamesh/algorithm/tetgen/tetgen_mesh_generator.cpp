@@ -21,7 +21,7 @@ namespace viennamesh
     double max_inscribed_radius_edge_ratio;
     bool using_max_inscribed_radius_edge_ratio;
 
-    bool should_tetrahedron_be_refined(double * tet_p0, double * tet_p1, double * tet_p2, double * tet_p3, double * , double)
+    bool should_tetrahedron_be_refined_function(double * tet_p0, double * tet_p1, double * tet_p2, double * tet_p3, double * , double)
     {
       point_3d p0( tet_p0[0], tet_p0[1], tet_p0[2]);
       point_3d p1( tet_p1[0], tet_p1[1], tet_p1[2]);
@@ -219,7 +219,7 @@ namespace viennamesh
         tetgen_sizing_function = sizing_function();
         using_sizing_function = true;
         options.use_refinement_callback = 1;
-        tmp.tetunsuitable = should_tetrahedron_be_refined;
+        tmp.tetunsuitable = should_tetrahedron_be_refined_function;
 
         info(1) << "Using sizing function" << std::endl;
       }
@@ -249,7 +249,7 @@ namespace viennamesh
         viennamesh::tetgen::max_edge_ratio = max_edge_ratio();
         using_max_edge_ratio = true;
         options.use_refinement_callback = 1;
-        tmp.tetunsuitable = should_tetrahedron_be_refined;
+        tmp.tetunsuitable = should_tetrahedron_be_refined_function;
         info(1) << "Using global max edge ratio: " << max_edge_ratio() << std::endl;
       }
 
@@ -258,7 +258,7 @@ namespace viennamesh
         viennamesh::tetgen::max_inscribed_radius_edge_ratio = max_inscribed_radius_edge_ratio();
         using_max_inscribed_radius_edge_ratio = true;
         options.use_refinement_callback = 1;
-        tmp.tetunsuitable = should_tetrahedron_be_refined;
+        tmp.tetunsuitable = should_tetrahedron_be_refined_function;
         info(1) << "Using global max inscribed radius edge ratio: " << max_inscribed_radius_edge_ratio() << std::endl;
       }
 
