@@ -33,6 +33,7 @@ namespace viennamesh
     register_algorithm<viennamesh::extract_boundary>();
     register_algorithm<viennamesh::extract_plc>();
     register_algorithm<viennamesh::hyperplane_clip>();
+    register_algorithm<viennamesh::laplace_smooth>();
 
     register_algorithm<viennamesh::map_segments>();
     register_algorithm<viennamesh::merge_meshes>();
