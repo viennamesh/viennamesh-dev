@@ -3,6 +3,7 @@
 #include "viennamesh/algorithm/triangle/triangle_mesh.hpp"
 #include "viennamesh/algorithm/triangle/triangle_mesh_generator.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
+#include "viennamesh/core/sizing_function.hpp"
 
 namespace viennamesh
 {
@@ -62,7 +63,73 @@ namespace viennamesh
 
 
 
-    void extract_seed_points( triangle::input_segmentation const & segmentation, int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points )
+
+
+    void make_mesh(triangle::input_mesh const & input,
+                   triangle::output_mesh & output,
+                   point_2d_container const & hole_points,
+                   seed_point_2d_container const & seed_points,
+                   std::string options)
+    {
+      triangulateio tmp = input.triangle_mesh;
+
+
+      if (!hole_points.empty())
+      {
+        tmp.numberofholes = hole_points.size();
+        tmp.holelist = new REAL[2*hole_points.size()];
+
+        for (std::size_t i = 0; i < hole_points.size(); ++i)
+        {
+          tmp.holelist[2*i+0] = hole_points[i][0];
+          tmp.holelist[2*i+1] = hole_points[i][1];
+        }
+      }
+      else
+      {
+        tmp.numberofholes = 0;
+        tmp.holelist = NULL;
+      }
+
+
+      if (!seed_points.empty())
+      {
+        tmp.numberofregions = seed_points.size();
+        tmp.regionlist = new REAL[4*seed_points.size()];
+
+        for (unsigned int i = 0; i < seed_points.size(); ++i)
+        {
+          tmp.regionlist[4*i+0] = seed_points[i].first[0];
+          tmp.regionlist[4*i+1] = seed_points[i].first[1];
+          tmp.regionlist[4*i+2] = REAL(seed_points[i].second);
+          tmp.regionlist[4*i+3] = 0;
+        }
+
+        options += 'A';
+      }
+      else
+      {
+        tmp.numberofregions = 0;
+        tmp.regionlist = NULL;
+      }
+
+      char * options_buffer = new char[options.length()];
+      std::strcpy(options_buffer, options.c_str());
+
+      std_capture().start();
+      triangulate( options_buffer, &tmp, &output.triangle_mesh, NULL);
+      std_capture().finish();
+
+      delete[] tmp.regionlist;
+      delete[] tmp.holelist;
+      delete[] options_buffer;
+    }
+
+
+
+    void extract_seed_points( triangle::input_segmentation const & segmentation,
+                              point_2d_container const & hole_points,
+                              seed_point_2d_container & seed_points )
     {
       if (segmentation.segments.empty())
         return;
@@ -80,27 +147,13 @@ namespace viennamesh
 
       for ( std::list<triangle::input_mesh>::const_iterator sit = segmentation.segments.begin(); sit != segmentation.segments.end(); ++sit)
       {
-        LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
-
-        triangulateio tmp = sit->triangle_mesh;
         triangle::output_mesh tmp_mesh;
 
-        if (hole_points)
-        {
-          tmp.numberofholes = num_hole_points;
-          tmp.holelist = hole_points;
-        }
-
-        char * buffer = new char[options.length()];
-        std::strcpy(buffer, options.c_str());
-
-
-        triangulate( buffer, &tmp, &tmp_mesh.triangle_mesh, NULL);
+        LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
+        make_mesh(*sit, tmp_mesh, hole_points, seed_point_2d_container(), options);
 
         viennagrid::triangular_2d_mesh viennagrid_mesh;
         viennamesh::triangle::convert( tmp_mesh, viennagrid_mesh );
-
-
 
         std::vector<point_2d> local_seed_points;
         viennagrid::extract_seed_points( viennagrid_mesh, local_seed_points );
@@ -110,19 +163,32 @@ namespace viennamesh
           seed_points.push_back( std::make_pair(local_seed_points[i], highest_segment_id) );
         }
         highest_segment_id++;
-
-        tmp.holelist = NULL;
       }
     }
 
-//     sizing_function_2d_handle create_sizing_function(
-//       triangle::input_segmentation const & input_segmentation,
-//       viennamesh::result_of::parameter_handle<
-//         viennagrid::segmented_mesh<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>
-//         >::type & sizing_function
-//       int num_hole_points, REAL * hole_points, seed_point_2d_container & seed_points
-//     )
 
+
+    template<typename SizingFunctionRepresentationT>
+    sizing_function_2d make_sizing_function(triangle::input_mesh const & mesh,
+                                            point_2d_container const & hole_points,
+                                            seed_point_2d_container const & seed_points,
+                                            SizingFunctionRepresentationT const & sf,
+                                            string const & base_path)
+    {
+      typedef viennagrid::triangular_2d_mesh MeshType;
+      typedef viennagrid::triangular_2d_segmentation SegmentationType;
+
+      typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
+      viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
+
+      string options = "zpQ";
+      triangle::output_mesh tmp_mesh;
+
+      make_mesh(mesh, tmp_mesh, hole_points, seed_points, options);
+      viennamesh::triangle::convert( tmp_mesh, simple_mesh() );
+
+      return viennamesh::sizing_function::from_xml(sf, simple_mesh, base_path);
+    }
 
 
 
@@ -182,88 +248,71 @@ namespace viennamesh
       }
 
 
-      triangulateio tmp = input_mesh().mesh.triangle_mesh;
-
-      REAL * tmp_regionlist = NULL;
-      REAL * tmp_holelist = NULL;
-
-
-      seed_point_2d_container seed_points;
-
-      if (input_seed_points.valid() && !input_seed_points().empty())
-      {
-        info(5) << "Found input seed points" << std::endl;
-        seed_points = input_seed_points();
-      }
+      triangulateio const & im = input_mesh().mesh.triangle_mesh;
 
       point_2d_container hole_points;
-
+      // exttract hole points from input interface
       if (input_hole_points.valid() && !input_hole_points().empty())
       {
         info(5) << "Found hole points" << std::endl;
         hole_points = input_hole_points();
       }
+      // hole points from mesh
+      for (int i = 0; i < im.numberofholes; ++i)
+        hole_points.push_back( point_2d(im.holelist[2*i+0], im.holelist[2*i+1]) );
 
-      if (!hole_points.empty())
+
+      seed_point_2d_container seed_points;
+      // seed points from input interface
+      if (input_seed_points.valid() && !input_seed_points().empty())
       {
-        tmp_holelist = (REAL*)malloc( 2*sizeof(REAL)*(tmp.numberofholes+hole_points.size()) );
-        memcpy( tmp_holelist, tmp.holelist, 2*sizeof(REAL)*tmp.numberofholes );
-
-        for (std::size_t i = 0; i < hole_points.size(); ++i)
-        {
-          tmp_holelist[2*(tmp.numberofholes+i)+0] = hole_points[i][0];
-          tmp_holelist[2*(tmp.numberofholes+i)+1] = hole_points[i][1];
-        }
-
-        tmp.numberofholes += hole_points.size();
-        tmp.holelist = tmp_holelist;
+        info(5) << "Found input seed points" << std::endl;
+        seed_points = input_seed_points();
       }
-
-
+      // seed points from mesh
+      for (int i = 0; i < im.numberofregions; ++i)
+        seed_points.push_back( std::make_pair(point_2d(im.regionlist[4*i+0], im.regionlist[4*i+1]),
+                                              static_cast<int>(im.regionlist[4*i+2])+0.5) );
+      // seed points from segmentation
       if (extract_segment_seed_points())
       {
-        extract_seed_points( input_mesh().segmentation, tmp.numberofholes, tmp.holelist, seed_points );
+        extract_seed_points( input_mesh().segmentation, hole_points, seed_points );
       }
 
-      if (!seed_points.empty())
-      {
-        tmp_regionlist = (REAL*)malloc( 4*sizeof(REAL)*(tmp.numberofregions+seed_points.size()) );
-        memcpy( tmp_regionlist, tmp.regionlist, 4*sizeof(REAL)*tmp.numberofregions );
-
-        for (unsigned int i = 0; i < seed_points.size(); ++i)
-        {
-          tmp_regionlist[4*(i+tmp.numberofregions)+0] = seed_points[i].first[0];
-          tmp_regionlist[4*(i+tmp.numberofregions)+1] = seed_points[i].first[1];
-          tmp_regionlist[4*(i+tmp.numberofregions)+2] = REAL(seed_points[i].second);
-          tmp_regionlist[4*(i+tmp.numberofregions)+3] = 0;
-        }
-
-        tmp.numberofregions += seed_points.size();
-        tmp.regionlist = tmp_regionlist;
-
-        options << "A";
-      }
 
       if (sizing_function.valid())
       {
-        triangle_sizing_function = sizing_function();
-        options << "u";
-        should_triangle_be_refined = should_triangle_be_refined_function;
+        if (sizing_function.get<sizing_function_2d>())
+        {
+          info(5) << "Using user-defined sizing function" << std::endl;
+          triangle_sizing_function = sizing_function.get<sizing_function_2d>()();
+          options << "u";
+          should_triangle_be_refined = should_triangle_be_refined_function;
+        }
+        else if (sizing_function.get<pugi::xml_node>())
+        {
+          info(5) << "Using user-defined XML sizing function" << std::endl;
+          triangle_sizing_function = make_sizing_function(
+                                      input_mesh().mesh, hole_points, seed_points,
+                                      sizing_function.get<pugi::xml_node>()(), base_path());
+          options << "u";
+          should_triangle_be_refined = should_triangle_be_refined_function;
+        }
+        else if (sizing_function.get<string>())
+        {
+          info(5) << "Using user-defined XML string sizing function" << std::endl;
+          info(5) << sizing_function.get<string>()() << std::endl;
+          triangle_sizing_function = make_sizing_function(
+                                      input_mesh().mesh, hole_points, seed_points,
+                                      sizing_function.get<string>()(), base_path());
+          options << "u";
+          should_triangle_be_refined = should_triangle_be_refined_function;
+        }
+        else
+          warning(5) << "Type of sizing function not supported" << std::endl;
       }
 
-
-      char * buffer = new char[options.str().length()];
-      std::strcpy(buffer, options.str().c_str());
-
-      std_capture().start();
-      triangulate( buffer, &tmp, &omp().triangle_mesh, NULL);
-      std_capture().start();
-
-      delete[] buffer;
-      if (!seed_points.empty())
-        free(tmp_regionlist);
-      if (!hole_points.empty())
-        free(tmp_holelist);
+      make_mesh( input_mesh().mesh, omp(), hole_points, seed_points, options.str() );
 
       return true;
     }

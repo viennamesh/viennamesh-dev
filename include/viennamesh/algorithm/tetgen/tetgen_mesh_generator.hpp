@@ -23,7 +23,7 @@ namespace viennamesh
       required_input_parameter_interface<InputMeshType>             input_mesh;
       optional_input_parameter_interface<seed_point_3d_container>   input_seed_points;
       optional_input_parameter_interface<point_3d_container>        input_hole_points;
-      optional_input_parameter_interface<sizing_function_3d>        sizing_function;
+      dynamic_optional_input_parameter_interface                    sizing_function;
       optional_input_parameter_interface<double>                    cell_size;
       optional_input_parameter_interface<double>                    max_radius_edge_ratio;
       optional_input_parameter_interface<double>                    min_dihedral_angle;
