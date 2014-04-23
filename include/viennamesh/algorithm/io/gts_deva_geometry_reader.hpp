@@ -224,7 +224,7 @@ namespace viennamesh
         }
 
         if (!reader.good())
-          throw bad_file_format_exception(filename, "File is empty.");
+          throw bad_file_format_exception("gts_deva_geometry_reader::operator(): File \"" + filename + "\" is empty");
 
 
         gts_deva::token * root = gts_deva::parse(reader);

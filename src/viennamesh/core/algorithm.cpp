@@ -25,7 +25,7 @@ namespace viennamesh
 
       return success;
     }
-    catch ( algorithm_exception const & ex )
+    catch ( std::exception const & ex )
     {
       error(1) << "Algorithm failed!" << std::endl;
       error(1) << ex.what() << std::endl;

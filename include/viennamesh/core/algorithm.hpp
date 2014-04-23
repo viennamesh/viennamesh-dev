@@ -173,7 +173,7 @@ namespace viennamesh
     {
       const_parameter_handle param = get_input(name);
       if (!param)
-        throw input_parameter_not_found_exception(name);
+        throw input_parameter_not_found_exception( "Input parameter '" + name + "' is missing or of non-convertable type" );
       return param;
     }
 
@@ -183,7 +183,7 @@ namespace viennamesh
     {
       typename result_of::const_parameter_handle<ValueT>::type parameter = get_input<ValueT>(name);
       if (!parameter)
-        throw input_parameter_not_found_exception(name);
+        throw input_parameter_not_found_exception( "Input parameter '" + name + "' is missing or of non-convertable type" );
       return parameter;
     }
 
@@ -529,7 +529,7 @@ namespace viennamesh
       else
       {
         if (base_handle && native_handle && !is_convertable(native_handle, base_handle))
-          throw output_not_convertable_to_referenced_value_exception(name);
+          throw output_not_convertable_to_referenced_value_exception( "Output parameter '" + name + "' is not convertable to referenced value" );
 
         is_native_ = false;
         native_handle = make_parameter<ValueT>();
