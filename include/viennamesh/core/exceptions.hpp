@@ -13,7 +13,6 @@ namespace viennamesh
     virtual ~input_parameter_not_found_exception() throw() {}
   };
 
-
   class output_not_convertable_to_referenced_value_exception : public std::runtime_error
   {
   public:
