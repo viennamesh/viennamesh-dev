@@ -96,6 +96,14 @@ namespace viennamesh
         {
           algorithm->set_input( parameter_name, parameter_value );
         }
+        else if (parameter_type == "bool")
+        {
+          algorithm->set_input( parameter_name, lexical_cast<bool>(parameter_value) );
+        }
+        else if (parameter_type == "int")
+        {
+          algorithm->set_input( parameter_name, lexical_cast<int>(parameter_value) );
+        }
         else if (parameter_type == "double")
         {
           algorithm->set_input( parameter_name, lexical_cast<double>(parameter_value) );
