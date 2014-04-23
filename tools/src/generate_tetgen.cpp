@@ -77,7 +77,7 @@ int main(int argc, char **argv)
       simple_mesher->set_input( "mesh", reader->get_output("mesh") );
       simple_mesher->run();
 
-      mesher->set_input( "sizing_function", viennamesh::sizing_function::from_xmlfile<MeshType, SegmentationType>(sizing_function_filename.getValue(), simple_mesh) );
+      mesher->set_input( "sizing_function", viennamesh::sizing_function::from_xmlfile(sizing_function_filename.getValue(), simple_mesh) );
     }
 
 
