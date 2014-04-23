@@ -140,12 +140,12 @@ namespace viennamesh
     {
       typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 
-      mesh_gradient_functor( string const & filename, string const & parameter_name ) :
+      mesh_gradient_functor( string const & filename, string const & quantity_name ) :
           mesh(viennamesh::make_parameter<SegmentedMeshType>()),
           values(new ValuesContainerType), values_field(new FieldType(*values))
       {
         viennagrid::io::vtk_reader<MeshT, SegmentationT> reader;
-        viennagrid::io::add_scalar_data_on_vertices( reader, *values_field, parameter_name );
+        viennagrid::io::add_scalar_data_on_vertices( reader, *values_field, quantity_name );
         reader( mesh().mesh, mesh().segmentation, filename );
       }
 
@@ -556,7 +556,6 @@ namespace viennamesh
     };
 
 
-
     template<typename PointT>
     struct linear_interpolate_functor
     {
@@ -595,7 +594,12 @@ namespace viennamesh
 
 
 
-
+    class create_sizing_function_exception : public std::runtime_error
+    {
+    public:
+      create_sizing_function_exception(string const & message_) : std::runtime_error(message_) {}
+      virtual ~create_sizing_function_exception() throw() {}
+    };
 
 
     template<typename MeshT, typename SegmentationT>
@@ -615,67 +619,88 @@ namespace viennamesh
 
       if (name == "constant")
       {
+        if ( !node.child_value("value") )
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"value\" missing" );
+
         double value = lexical_cast<double>(node.child_value("value"));
         return viennamesh::bind( constant_functor<PointType>(value), _1 );
       }
-
-      if (name == "min")
+      else if (name == "min")
       {
         std::vector<SizingFunctionType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
           functions.push_back( from_xml<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
+
+        if (functions.empty())
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no sources specified" );
 
         return viennamesh::bind( min_functor<PointType>(functions), _1 );
       }
-
-      if (name == "max")
+      else if (name == "max")
       {
         std::vector<SizingFunctionType> functions;
         for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
           functions.push_back( from_xml<MeshT, SegmentationT>(source.first_child(), mesh, base_path) );
 
+        if (functions.empty())
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no sources specified" );
+
         return viennamesh::bind( max_functor<PointType>(functions), _1 );
       }
-
-      if (name == "interpolate")
+      else if (name == "interpolate")
       {
         pugi::xml_attribute transform_type_node = node.attribute("transform_type");
         string transform_type = transform_type_node.as_string();
 
+        if ( !node.child_value("source") )
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
+
+        SizingFunctionType source = from_xml<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
+
         if (transform_type == "linear")
         {
+          if ( !node.child_value("lower") )
+            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"lower\" missing" );
+          if ( !node.child_value("upper") )
+            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"upper\" missing" );
+          if ( !node.child_value("lower_to") )
+            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"lower_to\" missing" );
+          if ( !node.child_value("upper_to") )
+            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"upper_to\" missing" );
+
           double lower = lexical_cast<double>(node.child_value("lower"));
           double upper = lexical_cast<double>(node.child_value("upper"));
           double lower_to = lexical_cast<double>(node.child_value("lower_to"));
           double upper_to = lexical_cast<double>(node.child_value("upper_to"));
-
-          SizingFunctionType source = from_xml<MeshT, SegmentationT>(node.child("source").first_child(), mesh, base_path);
 
           return viennamesh::bind(linear_interpolate_functor<PointType>(source, lower, upper, lower_to, upper_to ), _1);
         }
 
         return SizingFunctionType();
       }
-
-      if (name == "distance_to_segment_boundaries")
+      else if (name == "distance_to_segment_boundaries")
       {
         std::vector<std::string> segment_names;
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
           segment_names.push_back( segment.text().as_string() );
+
+        if (segment_names.empty())
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no segment names specified" );
 
         return viennamesh::bind( distance_to_segment_boundaries_functor<viennagrid::line_tag, MeshT, SegmentationT>(mesh, segment_names), _1 );
       }
-
-      if (name == "distance_to_interface")
+      else if (name == "distance_to_interface")
       {
         std::vector<std::string> segment_names;
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
           segment_names.push_back( segment.text().as_string() );
 
+        if (segment_names.empty())
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no segment names specified" );
+
         return viennamesh::bind( distance_to_interface_functor<MeshT, SegmentationT>(mesh, segment_names[0], segment_names[1]), _1 );
       }
-
-      if (name == "is_in_segments")
+      else if (name == "is_in_segments")
       {
         std::vector<std::string> segment_names;
         for (pugi::xml_node segment = node.child("segment"); segment; segment = segment.next_sibling("segment"))
@@ -685,21 +710,23 @@ namespace viennamesh
 
         return viennamesh::bind( is_in_segments_functor<MeshT, SegmentationT>(mesh, segment_names, source), _1 );
       }
-
-      if (name == "mesh_gradient")
+      else if (name == "mesh_gradient")
       {
+        if ( !node.child_value("mesh_file") )
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"mesh_file\" missing" );
+        if ( !node.child_value("quantity_name") )
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
+
         string mesh_file = node.child_value("mesh_file");
         if (!base_path.empty())
           mesh_file = base_path + "/" + mesh_file;
 
-        string parameter_name = node.child_value("parameter_name");
+        string quantity_name = node.child_value("quantity_name");
 
-        string transform_matrix = node.child_value("transform_matrix");
-        string translate = node.child_value("translate");
-
-
-        return viennamesh::bind( mesh_gradient_functor<MeshT, SegmentationT>(mesh_file, parameter_name), _1 );
+        return viennamesh::bind( mesh_gradient_functor<MeshT, SegmentationT>(mesh_file, quantity_name), _1 );
       }
+
+      throw create_sizing_function_exception( "Sizing function functor \"" + name + "\" not supported" );
 
       return SizingFunctionType();
     }
