@@ -67,43 +67,62 @@ namespace viennamesh
 
 
       string parameter_value = paramater_node.text().as_string();
-      if (parameter_value.empty())
-      {
-        error(1) << "Parameter \"" << parameter_name << "\" has no value" << std::endl;
-        return false;
-      }
 
 
-      if (parameter_type == "string")
+      if (parameter_type == "xml")
       {
-        algorithm->set_input( parameter_name, parameter_value );
-      }
-      else if (parameter_type == "double")
-      {
-        algorithm->set_input( parameter_name, lexical_cast<double>(parameter_value) );
-      }
-      else if (parameter_type == "point")
-      {
-        algorithm->set_input( parameter_name, stringtools::vector_from_string<double>(parameter_value) );
-      }
-      else if (parameter_type == "dynamic")
-      {
-        string source_algorithm_name = parameter_value.substr( 0, parameter_value.find("/") );
-        string source_parameter_name = parameter_value.substr( parameter_value.find("/")+1 );
+        size_t number_of_children = std::distance(paramater_node.children().begin(), paramater_node.children().end());
 
-        std::map<string, algorithm_handle>::iterator ait = algorithms.find( source_algorithm_name );
-        if (ait == algorithms.end())
+        if ( number_of_children == 0 )
         {
-          error(1) << "Dynamic parameter \"" << parameter_name << "\": algorithm \"" << source_algorithm_name << "\" was not found" << std::endl;
+          error(1) << "Parameter \"" << parameter_name << "\" is type xml but has no children." << std::endl;
           return false;
         }
 
-        algorithm->link_input( parameter_name, ait->second, source_parameter_name );
+        if ( number_of_children != 1 )
+          warning(1) << "Parameter \"" << parameter_name << "\" is type xml but has more than one children" << std::endl;
+
+        algorithm->set_input( parameter_name, paramater_node.first_child() );
       }
       else
       {
-        error(1) << "Parameter \"" << parameter_name << "\": type \"" << parameter_type << "\" is not supported" << std::endl;
-        return false;
+        if (parameter_value.empty())
+        {
+          error(1) << "Parameter \"" << parameter_name << "\" has no value" << std::endl;
+          return false;
+        }
+
+        if (parameter_type == "string")
+        {
+          algorithm->set_input( parameter_name, parameter_value );
+        }
+        else if (parameter_type == "double")
+        {
+          algorithm->set_input( parameter_name, lexical_cast<double>(parameter_value) );
+        }
+        else if (parameter_type == "point")
+        {
+          algorithm->set_input( parameter_name, stringtools::vector_from_string<double>(parameter_value) );
+        }
+        else if (parameter_type == "dynamic")
+        {
+          string source_algorithm_name = parameter_value.substr( 0, parameter_value.find("/") );
+          string source_parameter_name = parameter_value.substr( parameter_value.find("/")+1 );
+
+          std::map<string, algorithm_handle>::iterator ait = algorithms.find( source_algorithm_name );
+          if (ait == algorithms.end())
+          {
+            error(1) << "Dynamic parameter \"" << parameter_name << "\": algorithm \"" << source_algorithm_name << "\" was not found" << std::endl;
+            return false;
+          }
+
+          algorithm->link_input( parameter_name, ait->second, source_parameter_name );
+        }
+        else
+        {
+          error(1) << "Parameter \"" << parameter_name << "\": type \"" << parameter_type << "\" is not supported" << std::endl;
+          return false;
+        }
       }
 
     }
