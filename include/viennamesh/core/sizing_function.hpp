@@ -177,8 +177,6 @@ namespace viennamesh
 
       shared_ptr<ValuesContainerType> values;
       shared_ptr<FieldType> values_field;
-//       ValuesContainerType values;
-//       FieldType values_field;
     };
 
 
@@ -258,13 +256,6 @@ namespace viennamesh
 
       NumericType operator()( PointType const & pt ) const
       {
-//         std::cout << "Mesh has " << mesh().segmentation.size() << " segments" << std::endl;
-//         for (typename SegmentationT::const_iterator sit = mesh().segmentation.begin(); sit != mesh().segmentation.end(); ++sit)
-//           std::cout << "   Segment with id " << (*sit).id() << " has name \"" << (*sit).name() << "\"" << std::endl;
-//
-//         std::cout << "Segment " << segment0_name << " has id " << mesh().segmentation(segment0_name).id() << " and name " << mesh().segmentation(segment0_name).name() << std::endl;
-//         std::cout << "Segment " << segment1_name << " has id " << mesh().segmentation(segment1_name).id() << " and name " << mesh().segmentation(segment1_name).name() << std::endl;
-
         typedef typename viennagrid::result_of::facet_tag<SegmentType>::type FacetTag;
         return distance_to_interface<FacetTag>( pt,
                                                 mesh().segmentation(segment0_name),
