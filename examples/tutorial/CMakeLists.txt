@@ -27,6 +27,9 @@ target_link_libraries(extract_hull_holes viennamesh)
 add_executable(reference_parameter reference_parameter.cpp)
 target_link_libraries(reference_parameter viennamesh)
 
+add_executable(statistic statistic.cpp)
+target_link_libraries(statistic viennamesh)
+
 # add_executable(line_cut_example line_cut_example.cpp)
 # target_link_libraries(line_cut_example viennamesh)
 
