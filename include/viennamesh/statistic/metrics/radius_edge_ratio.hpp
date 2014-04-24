@@ -9,7 +9,7 @@ namespace viennamesh
   namespace metrics
   {
     template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type aspect_ratio_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits)
+    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type aspect_ratio_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT)
     {
       typedef typename PointAccessorT::value_type               PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type               NumericType;
@@ -23,7 +23,7 @@ namespace viennamesh
 
       NumericType min_length = 2 * circum_radius;
       std::vector<NumericType> edge_length( lines.size() );
-      unsigned int index = 0;
+//       unsigned int index = 0;
       for (LinesOnElementRangeIterator lit = lines.begin(); lit != lines.end(); ++lit)
       {
         PointType line = point_accessor( viennagrid::vertices(*lit)[0] ) -
@@ -54,19 +54,19 @@ namespace viennamesh
   template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
   typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type radius_edge_ratio( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
   {
-      return metrics::aspect_ratio_impl(point_accessor, element, numeric_limits);
+    return metrics::aspect_ratio_impl(point_accessor, element, numeric_limits);
   }
 
   template<typename PointAccessorT, typename ElementT>
   typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type radius_edge_ratio( PointAccessorT const point_accessor, ElementT const & element )
   {
-      return radius_edge_ratio(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type >() );
+    return radius_edge_ratio(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type >() );
   }
 
   template<typename ElementT>
   typename viennagrid::result_of::coord< ElementT >::type radius_edge_ratio(ElementT const & element)
   {
-      return radius_edge_ratio( viennagrid::default_point_accessor(element), element);
+    return radius_edge_ratio( viennagrid::default_point_accessor(element), element);
   }
 
   namespace detail

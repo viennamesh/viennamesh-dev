@@ -9,7 +9,7 @@ namespace viennamesh
   namespace metrics
   {
     template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::tetrahedron_tag)
+    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT, viennagrid::tetrahedron_tag)
     {
       typedef typename PointAccessorT::value_type            PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
