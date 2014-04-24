@@ -21,7 +21,7 @@ namespace viennamesh
       bool success = run_impl();
 
       if (!success)
-        error(1) << "Algorithm failed" << std::endl;
+        error(1) << "Algorithm failed!" << std::endl;
 
       return success;
     }
