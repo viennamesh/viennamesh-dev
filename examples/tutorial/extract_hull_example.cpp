@@ -7,7 +7,7 @@ int main()
   viennamesh::algorithm_handle reader( new viennamesh::io::mesh_reader() );
 
   // creating a hull extraction algorithm
-  viennamesh::algorithm_handle extract_hull( new viennamesh::extract_hull() );
+  viennamesh::algorithm_handle extract_hull( new viennamesh::extract_boundary() );
 
   // creating an algorithm for writing a mesh to a file
   viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
