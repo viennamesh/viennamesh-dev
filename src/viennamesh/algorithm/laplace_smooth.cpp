@@ -1,7 +1,6 @@
 #include "viennamesh/algorithm/laplace_smooth.hpp"
 
 #include "viennagrid/algorithm/boundary.hpp"
-#include "viennagrid/mesh/element_deletion.hpp"
 
 namespace viennamesh
 {
