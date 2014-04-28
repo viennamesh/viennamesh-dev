@@ -1,11 +1,11 @@
 add_executable(convert_mesh src/convert_mesh.cpp)
 target_link_libraries(convert_mesh viennamesh)
 
-# add_executable(generate_triangle src/generate_triangle.cpp)
-# target_link_libraries(generate_triangle viennamesh)
+add_executable(triangle_make_mesh src/triangle_make_mesh.cpp)
+target_link_libraries(triangle_make_mesh viennamesh)
 
-# add_executable(generate_tetgen src/generate_tetgen.cpp)
-# target_link_libraries(generate_tetgen viennamesh)
+add_executable(tetgen_make_mesh src/tetgen_make_mesh.cpp)
+target_link_libraries(tetgen_make_mesh viennamesh)
 
 add_executable(extract_boundary src/extract_boundary.cpp)
 target_link_libraries(extract_boundary viennamesh)

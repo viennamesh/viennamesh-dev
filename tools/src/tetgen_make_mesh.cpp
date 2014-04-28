@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     reader->run();
 
 
-    viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
+    viennamesh::algorithm_handle mesher( new viennamesh::tetgen::make_mesh() );
 
     if (sizing_function_filename.isSet())
     {
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
-      viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::mesh_generator() );
+      viennamesh::algorithm_handle simple_mesher( new viennamesh::tetgen::make_mesh() );
       simple_mesher->set_output( "mesh", simple_mesh() );
       simple_mesher->set_input( "mesh", reader->get_output("mesh") );
       simple_mesher->run();

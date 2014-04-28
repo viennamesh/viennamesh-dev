@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 
 
-    viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
+    viennamesh::algorithm_handle mesher( new viennamesh::triangle::make_mesh() );
 
     if (sizing_function_filename.isSet())
     {
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
       typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
-      viennamesh::algorithm_handle simple_mesher( new viennamesh::triangle::mesh_generator() );
+      viennamesh::algorithm_handle simple_mesher( new viennamesh::triangle::make_mesh() );
       simple_mesher->set_output( "mesh", simple_mesh() );
       simple_mesher->set_input( "mesh", reader->get_output("mesh") );
       simple_mesher->run();
