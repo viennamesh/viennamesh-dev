@@ -1,14 +1,14 @@
-#ifndef VIENNAMESH_ALGORITHM_LINE_MESH_GENERATOR_HPP
-#define VIENNAMESH_ALGORITHM_LINE_MESH_GENERATOR_HPP
+#ifndef VIENNAMESH_ALGORITHM_MAKE_LINE_MESH_HPP
+#define VIENNAMESH_ALGORITHM_MAKE_LINE_MESH_HPP
 
 #include "viennamesh/core/algorithm.hpp"
 
 namespace viennamesh
 {
-  class line_mesh_generator : public base_algorithm
+  class make_line_mesh : public base_algorithm
   {
   public:
-    line_mesh_generator();
+    make_line_mesh();
 
     string name() const;
     string id() const;

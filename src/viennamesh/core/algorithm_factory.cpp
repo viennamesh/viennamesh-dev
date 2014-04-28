@@ -27,7 +27,7 @@ namespace viennamesh
   #endif
 #endif
 
-    register_algorithm<viennamesh::line_mesh_generator>();
+    register_algorithm<viennamesh::make_line_mesh>();
 
     register_algorithm<viennamesh::affine_transform>();
     register_algorithm<viennamesh::extract_boundary>();

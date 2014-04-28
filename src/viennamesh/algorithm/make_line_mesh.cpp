@@ -1,4 +1,4 @@
-#include "viennamesh/algorithm/line_mesh_generator.hpp"
+#include "viennamesh/algorithm/make_line_mesh.hpp"
 
 #include "viennagrid/algorithm/norm.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
@@ -187,7 +187,7 @@ namespace viennamesh
 
 
 
-  line_mesh_generator::line_mesh_generator() :
+  make_line_mesh::make_line_mesh() :
     input_mesh(*this, "mesh"),
     input_seed_points(*this, "seed_points"),
     input_hole_points(*this, "hole_points"),
@@ -198,13 +198,13 @@ namespace viennamesh
     absolute_min_geometry_point_distance(*this, "absolute_min_geometry_point_distance"),
     output_mesh(*this, "mesh") {}
 
-  string line_mesh_generator::name() const { return "ViennaGrid 1D line mesher"; }
-  string line_mesh_generator::id() const { return "line_mesh_generator"; }
+  string make_line_mesh::name() const { return "ViennaGrid 1D line mesher"; }
+  string make_line_mesh::id() const { return "make_line_mesh"; }
 
 
 
   template<typename GeometrySegmentationT>
-  void line_mesh_generator::extract_seed_points( GeometrySegmentationT const & segmentation, point_1d_container const & hole_points,
+  void make_line_mesh::extract_seed_points( GeometrySegmentationT const & segmentation, point_1d_container const & hole_points,
                             seed_point_1d_container & seed_points )
   {
     typedef typename viennagrid::result_of::point<GeometrySegmentationT>::type PointType;
@@ -235,7 +235,7 @@ namespace viennamesh
 
 
   template<typename GeometryT, typename GeometrySegmentationT, typename OutputMeshT, typename OutputSegmentationT>
-  bool line_mesh_generator::generic_run_impl()
+  bool make_line_mesh::generic_run_impl()
   {
     typedef typename viennagrid::result_of::point<GeometryT>::type PointType;
 
@@ -330,7 +330,7 @@ namespace viennamesh
   }
 
 
-  bool line_mesh_generator::run_impl()
+  bool make_line_mesh::run_impl()
   {
     if (generic_run_impl<viennagrid::brep_1d_mesh, viennagrid::brep_1d_segmentation, viennagrid::line_1d_mesh, viennagrid::line_1d_segmentation>())
       return true;
