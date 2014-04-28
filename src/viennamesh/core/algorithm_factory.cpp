@@ -12,8 +12,8 @@ namespace viennamesh
     register_algorithm<viennamesh::io::mesh_writer>();
 
 #ifdef VIENNAMESH_WITH_TRIANGLE
-    register_algorithm<viennamesh::triangle::mesh_generator>();
-    register_algorithm<viennamesh::triangle::hull_mesh_generator>();
+    register_algorithm<viennamesh::triangle::make_mesh>();
+    register_algorithm<viennamesh::triangle::make_hull>();
 #endif
 
 #ifdef VIENNAMESH_WITH_TETGEN

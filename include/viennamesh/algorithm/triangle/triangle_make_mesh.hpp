@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_TRIANGLE_MESH_GENERATOR_HPP
-#define VIENNAMESH_ALGORITHM_TRIANGLE_MESH_GENERATOR_HPP
+#ifndef VIENNAMESH_ALGORITHM_TRIANGLE_MAKE_MESH_HPP
+#define VIENNAMESH_ALGORITHM_TRIANGLE_MAKE_MESH_HPP
 
 #include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/algorithm/triangle/triangle_mesh.hpp"
@@ -8,10 +8,10 @@ namespace viennamesh
 {
   namespace triangle
   {
-    class mesh_generator : public base_algorithm
+    class make_mesh : public base_algorithm
     {
     public:
-      mesh_generator();
+      make_mesh();
 
       string name() const;
       string id() const;

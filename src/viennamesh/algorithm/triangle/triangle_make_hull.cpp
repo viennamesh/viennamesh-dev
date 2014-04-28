@@ -1,22 +1,22 @@
 #ifdef VIENNAMESH_WITH_TRIANGLE
 
 #include "viennamesh/algorithm/triangle/triangle_3d_mesh.hpp"
-#include "viennamesh/algorithm/triangle/triangle_hull_mesh_generator.hpp"
+#include "viennamesh/algorithm/triangle/triangle_make_hull.hpp"
 
 
 namespace viennamesh
 {
   namespace triangle
   {
-    hull_mesh_generator::hull_mesh_generator() :
+    make_hull::make_hull() :
       input_mesh(*this, "mesh"),
       output_mesh(*this, "mesh") {}
 
-    string hull_mesh_generator::name() const { return "Triangle 1.6 hull mesher"; }
-    string hull_mesh_generator::id() const { return "triangle_hull_mesh_generator"; }
+    string make_hull::name() const { return "Triangle 1.6 hull mesher"; }
+    string make_hull::id() const { return "triangle_make_hull"; }
 
 
-    bool hull_mesh_generator::run_impl()
+    bool make_hull::run_impl()
     {
       typedef triangle::output_mesh_3d OutputMeshType;
       output_parameter_proxy<OutputMeshType> omp(output_mesh);
