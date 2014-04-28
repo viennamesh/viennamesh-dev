@@ -1,4 +1,4 @@
-<algorithm id="netgen_csg_mesh_generator" name="mesher">
+<algorithm id="netgen_csg_make_mesh" name="mesher">
   <parameter type="string" name="default">
     algebraic3d
     solid cube = orthobrick (0, 0, 0; 1, 10, 1);

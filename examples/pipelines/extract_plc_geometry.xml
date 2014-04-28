@@ -2,7 +2,7 @@
   <parameter name="filename" type="string">../data/cube_with_tunnel.poly</parameter>
 </algorithm>
 
-<algorithm id="tetgen_mesh_generator" name="mesher">
+<algorithm id="tetgen_make_mesh" name="mesher">
   <default_source>input</default_source>
 
   <parameter type="double" name="cell_size">10.0</parameter>
@@ -20,7 +20,7 @@
   <default_source>plc</default_source>
 </algorithm>
 
-<algorithm id="tetgen_mesh_generator" name="remesher">
+<algorithm id="tetgen_make_mesh" name="remesher">
   <default_source>plc</default_source>
   <parameter name="seed_points" type="dynamic">boundary/seed_points</parameter>
   <parameter name="hole_points" type="dynamic">boundary/hole_points</parameter>
