@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_NETGEN_CSG_MESH_GENERATOR_HPP
-#define VIENNAMESH_ALGORITHM_NETGEN_CSG_MESH_GENERATOR_HPP
+#ifndef VIENNAMESH_ALGORITHM_NETGEN_CSG_MAKE_MESH_HPP
+#define VIENNAMESH_ALGORITHM_NETGEN_CSG_MAKE_MESH_HPP
 
 #include "viennamesh/core/algorithm.hpp"
 
@@ -7,10 +7,10 @@ namespace viennamesh
 {
   namespace netgen
   {
-    class csg_mesh_generator : public base_algorithm
+    class csg_make_mesh : public base_algorithm
     {
     public:
-      csg_mesh_generator();
+      csg_make_mesh();
 
       string name() const;
       string id() const;

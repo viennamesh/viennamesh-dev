@@ -1,6 +1,6 @@
 #if defined(VIENNAMESH_WITH_NETGEN) && defined(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
 
-#include "viennamesh/algorithm/netgen/netgen_occ_mesh_generator.hpp"
+#include "viennamesh/algorithm/netgen/netgen_occ_make_mesh.hpp"
 #include "viennamesh/algorithm/netgen/netgen_mesh.hpp"
 #include "viennamesh/algorithm/io/common.hpp"
 
@@ -12,7 +12,7 @@ namespace viennamesh
 {
   namespace netgen
   {
-    occ_mesh_generator::occ_mesh_generator() :
+    occ_make_mesh::occ_make_mesh() :
       filename(*this, "filename"),
       filetype(*this, "filetype"),
       cell_size(*this, "cell_size"),
@@ -21,10 +21,10 @@ namespace viennamesh
       grading(*this, "grading", 0.3),
       output_mesh(*this, "mesh") {}
 
-    string occ_mesh_generator::name() const { return "Netgen 5.1 OpenCascade mesher"; }
-    string occ_mesh_generator::id() const { return "netgen_occ_mesh_generator"; }
+    string occ_make_mesh::name() const { return "Netgen 5.1 OpenCascade mesher"; }
+    string occ_make_mesh::id() const { return "netgen_occ_make_mesh"; }
 
-    bool occ_mesh_generator::run_impl()
+    bool occ_make_mesh::run_impl()
     {
       io::FileType ft;
       if (filetype.valid())

@@ -28,7 +28,7 @@
 #include "viennamesh/algorithm/tetgen/tetgen_make_mesh.hpp"
 
 // Netgen algorithms
-#include "viennamesh/algorithm/netgen/netgen_csg_mesh_generator.hpp"
-#include "viennamesh/algorithm/netgen/netgen_occ_mesh_generator.hpp"
+#include "viennamesh/algorithm/netgen/netgen_csg_make_mesh.hpp"
+#include "viennamesh/algorithm/netgen/netgen_occ_make_mesh.hpp"
 
 #endif
