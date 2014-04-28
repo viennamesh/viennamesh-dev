@@ -54,7 +54,7 @@ namespace viennamesh
 
     mesh_reader::mesh_reader() :
       filename(*this, "filename"),
-      filetype(*this, "file_type"),
+      filetype(*this, "filetype"),
       output_mesh(*this, "mesh"),
       output_quantities(*this, "quantities"),
       output_seed_points(*this, "seed_points"),
