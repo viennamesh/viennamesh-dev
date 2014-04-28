@@ -2824,7 +2824,7 @@ char* tetgenio::findnextfield(char *string)
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
-char* tetgenio::readnumberline(char *string, FILE *infile, char *infilename)
+char* tetgenio::readnumberline(char *string, FILE *infile, char */*infilename*/)
 {
   char *result;
 
@@ -14906,7 +14906,7 @@ enum tetgenmesh::interresult
 
 enum tetgenmesh::interresult
   tetgenmesh::scoutsegment(point startpt, point endpt, triface* searchtet,
-                           point* refpt, arraypool* intfacelist)
+                           point* refpt, arraypool* /*intfacelist*/)
 {
   point pd;
   enum interresult dir;
@@ -24255,8 +24255,8 @@ int tetgenmesh::checkseg4split(face *chkseg, point& encpt, int& qflag)
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
-int tetgenmesh::splitsegment(face *splitseg, point encpt, REAL rrp,
-                             point encpt1, point encpt2, int qflag,
+int tetgenmesh::splitsegment(face *splitseg, point encpt, REAL /*rrp*/,
+                             point /*encpt1*/, point /*encpt2*/, int qflag,
                              int chkencflag)
 {
   point pa = sorg(*splitseg);
