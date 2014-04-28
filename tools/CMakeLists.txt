@@ -4,8 +4,8 @@ target_link_libraries(convert_mesh viennamesh)
 # add_executable(generate_triangle src/generate_triangle.cpp)
 # target_link_libraries(generate_triangle viennamesh)
 
-add_executable(generate_tetgen src/generate_tetgen.cpp)
-target_link_libraries(generate_tetgen viennamesh)
+# add_executable(generate_tetgen src/generate_tetgen.cpp)
+# target_link_libraries(generate_tetgen viennamesh)
 
 add_executable(extract_boundary src/extract_boundary.cpp)
 target_link_libraries(extract_boundary viennamesh)

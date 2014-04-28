@@ -25,7 +25,7 @@
 #include "viennamesh/algorithm/triangle/triangle_make_hull.hpp"
 
 // Tetgen algorithms
-#include "viennamesh/algorithm/tetgen/tetgen_mesh_generator.hpp"
+#include "viennamesh/algorithm/tetgen/tetgen_make_mesh.hpp"
 
 // Netgen algorithms
 #include "viennamesh/algorithm/netgen/netgen_csg_mesh_generator.hpp"

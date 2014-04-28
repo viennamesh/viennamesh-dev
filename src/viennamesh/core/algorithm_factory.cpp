@@ -17,7 +17,7 @@ namespace viennamesh
 #endif
 
 #ifdef VIENNAMESH_WITH_TETGEN
-    register_algorithm<viennamesh::tetgen::mesh_generator>();
+    register_algorithm<viennamesh::tetgen::make_mesh>();
 #endif
 
 #ifdef VIENNAMESH_WITH_NETGEN

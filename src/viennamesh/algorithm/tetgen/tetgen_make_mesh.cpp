@@ -1,7 +1,7 @@
 #ifdef VIENNAMESH_WITH_TETGEN
 
 #include "viennamesh/algorithm/tetgen/tetgen_mesh.hpp"
-#include "viennamesh/algorithm/tetgen/tetgen_mesh_generator.hpp"
+#include "viennamesh/algorithm/tetgen/tetgen_make_mesh.hpp"
 
 #include "viennagrid/algorithm/distance.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
@@ -95,7 +95,7 @@ namespace viennamesh
 
 
 
-    void make_mesh(tetgen::input_mesh const & input,
+    void make_mesh_impl(tetgen::input_mesh const & input,
                    tetgen::output_mesh & output,
                    point_3d_container const & hole_points,
                    seed_point_3d_container const & seed_points,
@@ -192,7 +192,7 @@ namespace viennamesh
         tetgen::output_mesh tmp_mesh;
 
         LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
-        make_mesh(*sit, tmp_mesh, hole_points, seed_point_3d_container(), options);
+        make_mesh_impl(*sit, tmp_mesh, hole_points, seed_point_3d_container(), options);
 
         viennagrid::tetrahedral_3d_mesh viennagrid_mesh;
         viennamesh::tetgen::convert( tmp_mesh, viennagrid_mesh );
@@ -228,7 +228,7 @@ namespace viennamesh
       options.plc = 1;
       tetgen::output_mesh tmp_mesh;
 
-      make_mesh(mesh, tmp_mesh, hole_points, seed_points, options);
+      make_mesh_impl(mesh, tmp_mesh, hole_points, seed_points, options);
       viennamesh::tetgen::convert( tmp_mesh, simple_mesh() );
 
       return viennamesh::sizing_function::from_xml(sf, simple_mesh, base_path);
@@ -236,7 +236,7 @@ namespace viennamesh
 
 
 
-    mesh_generator::mesh_generator() :
+    make_mesh::make_mesh() :
       input_mesh(*this, "mesh"),
       input_seed_points(*this, "seed_points"),
       input_hole_points(*this, "hole_points"),
@@ -250,11 +250,11 @@ namespace viennamesh
       option_string(*this, "option_string"),
       output_mesh(*this, "mesh") {}
 
-    string mesh_generator::name() const { return "Tetgen 1.5 mesher"; }
-    string mesh_generator::id() const { return "tetgen_mesh_generator"; }
+    string make_mesh::name() const { return "Tetgen 1.5 mesher"; }
+    string make_mesh::id() const { return "tetgen_make_mesh"; }
 
 
-    bool mesh_generator::run_impl()
+    bool make_mesh::run_impl()
     {
       typedef tetgen::output_mesh OutputMeshType;
       output_parameter_proxy<OutputMeshType> omp(output_mesh);
@@ -397,7 +397,7 @@ namespace viennamesh
       }
 
 
-      make_mesh( input_mesh().mesh, omp(), hole_points, seed_points, options );
+      make_mesh_impl( input_mesh().mesh, omp(), hole_points, seed_points, options );
 
 
       if (sizing_function.valid())
