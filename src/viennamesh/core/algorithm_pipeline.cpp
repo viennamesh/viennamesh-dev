@@ -141,7 +141,7 @@ namespace viennamesh
 
     if (!result.second)
     {
-      error(1) << "Duplicated algorithm with \"" << algorithm_name << "\" and id \"" << algorithm_id << std::endl;
+      error(1) << "Duplicated algorithm with \"" << algorithm_name << "\" and id \"" << algorithm_id << "\n" << std::endl;
       return false;
     }
 
