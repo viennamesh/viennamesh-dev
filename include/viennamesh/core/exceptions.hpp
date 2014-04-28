@@ -20,6 +20,14 @@ namespace viennamesh
     output_not_convertable_to_referenced_value_exception(string const & message_) : std::runtime_error(message_) {}
     virtual ~output_not_convertable_to_referenced_value_exception() throw() {}
   };
+
+  class metric_not_implemented_or_supported_exception : public std::runtime_error
+  {
+  public:
+
+    metric_not_implemented_or_supported_exception(string const & message_) : std::runtime_error(message_) {}
+    virtual ~metric_not_implemented_or_supported_exception() throw() {}
+  };
 }
 
 #endif
