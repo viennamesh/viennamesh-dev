@@ -32,7 +32,7 @@ namespace viennamesh
     StdCapture & std_capture = *(StdCapture*)(data);
     int readFd = std_capture.m_pipe[StdCapture::READ];
     fd_set readset;
-    int err = 0, size = 0;
+    int err = 0;
     // Initialize time out struct for select()
     struct timeval tv;
     tv.tv_sec = 0;
