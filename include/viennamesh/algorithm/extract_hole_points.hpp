@@ -28,8 +28,8 @@ namespace viennagrid
       typedef typename viennagrid::result_of::coord< PointT >::type CoordType;
       typedef typename detail::result_of::numeric_type<NumericConfigT, CoordType>::type inner_numeric_type;
 
-      PointT const & v0 = viennagrid::point(viennagrid::vertices(element)[0]);
-      PointT const & v1 = viennagrid::point(viennagrid::vertices(element)[1]);
+      PointT const & v0 = point_accessor(viennagrid::vertices(element)[0]);
+      PointT const & v1 = point_accessor(viennagrid::vertices(element)[1]);
 
       PointT const & w0 = ray_start;
       PointT const & w1 = ray_end;
@@ -127,6 +127,8 @@ namespace viennagrid
                             PointT const & ray_end,
                             NumericConfigT nc)
     {
+      typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
+
       PointT const & A = point_accessor(viennagrid::vertices(element)[0]);
       PointT const & B = point_accessor(viennagrid::vertices(element)[1]);
       PointT const & C = point_accessor(viennagrid::vertices(element)[2]);
@@ -145,14 +147,14 @@ namespace viennagrid
       // (b c -d) (beta gamma lambda)^T = r-A
       // (beta gamma lambda)^T = (b c -d)^-1 (r-A)
 
-      double det = viennagrid::determinant( b, c, -d );
+      NumericType det = viennagrid::determinant( b, c, -d );
 
-      if ( std::abs(det) < 1e-6)
+      if ( std::abs(det) < detail::absolute_tolerance<NumericType>(nc) )
       {
         PointT n = viennagrid::cross_prod( B-A, C-A );
 
         PointT center = (A+B+C)/3.0;
-        if( std::abs( viennagrid::inner_prod( n, r-center ) ) < 1e-6 )
+        if( std::abs( viennagrid::inner_prod( n, r-center ) ) < detail::absolute_tolerance<NumericType>(nc) )
           return true; // r lies on triangle plane, TODO behandeln: kreuzt strahl dreieck?
         else
           return false;
@@ -175,9 +177,9 @@ namespace viennagrid
         im[1][2] = -(b[0]*d[1] - b[1]*d[0]);
         im[2][2] = b[0]*c[1] - b[1]*c[0];
 
-        double beta   = viennagrid::inner_prod( rhs, im[0] );
-        double gamma  = viennagrid::inner_prod( rhs, im[1] );
-        double lambda = viennagrid::inner_prod( rhs, im[2] );
+        NumericType beta   = viennagrid::inner_prod( rhs, im[0] );
+        NumericType gamma  = viennagrid::inner_prod( rhs, im[1] );
+        NumericType lambda = viennagrid::inner_prod( rhs, im[2] );
 
         if (det < 0)
         {
@@ -187,10 +189,10 @@ namespace viennagrid
           lambda = -lambda;
         }
 
-        double alpha  = det - beta - gamma;
-        double offset = det * 1e-6;
-        double lower  = 0 - offset;
-        double upper  = det + offset;
+        NumericType alpha  = det - beta - gamma;
+        NumericType offset = detail::relative_tolerance(nc, det);
+        NumericType lower  = 0 - offset;
+        NumericType upper  = det + offset;
 
         if ( (alpha >= lower ) && (beta >= lower) && (gamma >= lower) && (alpha <= upper) && (beta <= upper) && (gamma <= upper) && (lambda >= lower) && (lambda <= upper))
         {
@@ -383,7 +385,7 @@ namespace viennagrid
               if (beit2.handle() == beit.handle())
                 continue;
 
-              int j = 0;
+              std::size_t j = 0;
               for (; j < direct_hull_children[hull].size(); ++j)
               {
                 if (hull_id_accessor(*beit2) == direct_hull_children[hull][j])
