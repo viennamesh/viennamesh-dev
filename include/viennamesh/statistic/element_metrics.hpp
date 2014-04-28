@@ -1,26 +1,18 @@
 #ifndef VIENNAMESH_STATISTICS_ELEMENT_METRICS_HPP
 #define VIENNAMESH_STATISTICS_ELEMENT_METRICS_HPP
 
+#include "viennamesh/statistic/forwards.hpp"
 
-#include "viennamesh/statistics/metrics/radius_edge_ratio.hpp"
-#include "viennamesh/statistics/metrics/aspect_ratio.hpp"
-#include "viennamesh/statistics/metrics/condition_number.hpp"
-#include "viennamesh/statistics/metrics/min_angle.hpp"
-#include "viennamesh/statistics/metrics/min_dihedral_angle.hpp"
+#include "viennamesh/statistic/metrics/radius_edge_ratio.hpp"
+#include "viennamesh/statistic/metrics/aspect_ratio.hpp"
+#include "viennamesh/statistic/metrics/condition_number.hpp"
+#include "viennamesh/statistic/metrics/min_angle.hpp"
+#include "viennamesh/statistic/metrics/max_angle.hpp"
+#include "viennamesh/statistic/metrics/min_dihedral_angle.hpp"
 
 
 namespace viennamesh
 {
-  struct lower_is_better_tag;
-  struct higher_is_better_tag;
-
-  namespace result_of
-  {
-    template<typename MetricTagT>
-    struct metric_ordering_tag;
-  }
-
-
   template<typename MetricTagT, typename PointAccessorT, typename ElementT, typename NumericLimitsT>
   typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits)
   {

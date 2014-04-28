@@ -17,6 +17,7 @@
 #include "viennamesh/algorithm/map_segments.hpp"
 #include "viennamesh/algorithm/merge_meshes.hpp"
 #include "viennamesh/algorithm/project_mesh.hpp"
+#include "viennamesh/algorithm/make_statistic.hpp"
 
 // Triangle algorithms
 #include "viennamesh/algorithm/triangle/triangle_mesh_generator.hpp"

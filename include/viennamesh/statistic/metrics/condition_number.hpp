@@ -2,7 +2,7 @@
 #define VIENNAMESH_STATISTICS_METRICS_CONDITION_NUMBER_HPP
 
 #include "viennagrid/algorithm/volume.hpp"
-#include "viennamesh/statistics/forwards.hpp"
+#include "viennamesh/statistic/forwards.hpp"
 
 namespace viennamesh
 {
@@ -29,6 +29,12 @@ namespace viennamesh
                 viennagrid::inner_prod(v2, v2) -
                 viennagrid::inner_prod(v1, v2) ) /
               ( 2 * area * std::sqrt(3) );
+    }
+
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT, typename TagT>
+    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type condition_number_impl(PointAccessorT const, ElementT const &, NumericLimitsT, TagT)
+    {
+      throw metric_not_implemented_or_supported_exception( "condition number not implemented for " + TagT::name() );
     }
   }
 

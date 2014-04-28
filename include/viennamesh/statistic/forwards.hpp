@@ -1,6 +1,8 @@
 #ifndef VIENNAMESH_STATISTICS_FORWARDS_HPP
 #define VIENNAMESH_STATISTICS_FORWARDS_HPP
 
+#include "viennamesh/core/exceptions.hpp"
+
 namespace viennamesh
 {
   struct lower_is_better_tag;

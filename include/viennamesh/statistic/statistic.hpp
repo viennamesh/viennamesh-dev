@@ -1,10 +1,133 @@
 #ifndef VIENNAMESH_STATISTICS_STATISTIC_HPP
 #define VIENNAMESH_STATISTICS_STATISTIC_HPP
 
-#include "viennamesh/statistics/element_metrics.hpp"
+#include "viennamesh/statistic/element_metrics.hpp"
 
 namespace viennamesh
 {
+
+  namespace detail
+  {
+    template<typename NumericT>
+    struct infinity_impl
+    {
+      static NumericT get()
+      {
+        return static_cast<NumericT>(1)/static_cast<NumericT>(0);
+      }
+    };
+  }
+
+  template<typename NumericT>
+  NumericT infinity()
+  { return detail::infinity_impl<NumericT>::get(); }
+
+
+  template<typename NumericT, typename BinT>
+  class histogram
+  {
+    typedef std::map<NumericT, BinT> BinContainerType;
+    typedef typename BinContainerType::iterator iterator;
+
+    iterator begin() { return bins.begin(); }
+    iterator end() { return bins.end(); }
+  public:
+
+    typedef histogram<NumericT, BinT> self_type;
+
+    static self_type make_uniform( NumericT min, NumericT max, std::size_t bin_count )
+    {
+      self_type tmp;
+      tmp.bins.clear();
+      for (std::size_t i = 0; i < bin_count+1; ++i)
+        tmp.bins[ min + i/static_cast<NumericT>(bin_count)*(max-min) ] = 0;
+      return tmp;
+    }
+
+    template<typename BinBorderIteratorT>
+    static self_type make( BinBorderIteratorT begin_it, BinBorderIteratorT const & end_it )
+    {
+      self_type tmp;
+      tmp.bins.clear();
+      for (; begin_it != end_it; ++begin_it)
+        tmp.bins[ *begin_it ] = 0;
+      return tmp;
+    }
+
+    void reset()
+    {
+      for (iterator bin_it = begin(); bin_it != end(); ++bin_it)
+        bin_it->second = 0;
+      overflow_bin_ = 0;
+    }
+
+    void increase(NumericT value, BinT to_increase = 1)
+    {
+      iterator bin_it = bin(value);
+      if (bin_it != bins.end())
+        bin_it->second += to_increase;
+      else
+        overflow_bin_ += to_increase;
+    }
+
+    BinT get(NumericT value) const
+    {
+      const_iterator bin_it = bin(value);
+      if (bin_it != bins.end())
+        return bin_it->second;
+      else
+        return overflow_bin_;
+    }
+
+    typedef typename BinContainerType::const_iterator const_iterator;
+
+    const_iterator begin() const { return bins.begin(); }
+    const_iterator end() const { return bins.end(); }
+
+    std::pair<NumericT, NumericT> bin_interval(const_iterator bin_it) const
+    {
+      if (bin_it == bins.begin())
+        return std::make_pair( -infinity<NumericT>(), bin_it->first );
+
+      if (bin_it == bins.end())
+        return std::make_pair( bins.rbegin()->first, infinity<NumericT>() );
+
+      const_iterator prev_it = bin_it; --prev_it;
+      return std::make_pair( prev_it->first, bin_it->first );
+    }
+
+    BinT overflow_bin() const { return overflow_bin_; }
+
+  private:
+
+    iterator bin(NumericT value)
+    { return bins.upper_bound(value); }
+    const_iterator bin(NumericT value) const
+    { return bins.upper_bound(value); }
+
+    BinContainerType bins;
+    BinT overflow_bin_;
+  };
+
+
+
+  template<typename NumericT, typename BinT>
+  std::ostream & operator <<(std::ostream & stream, histogram<NumericT, BinT> const & hist)
+  {
+    std::pair<NumericT, NumericT> bin_interval;
+    for (typename histogram<NumericT, BinT>::const_iterator bin_it = hist.begin(); bin_it != hist.end(); ++bin_it)
+    {
+      bin_interval = hist.bin_interval(bin_it);
+      stream << "  [" << bin_interval.first << "," << bin_interval.second << "] = " << bin_it->second << "\n";
+    }
+    stream << "  [" << bin_interval.second << "," << infinity<NumericT>() << "] = " << hist.overflow_bin();
+
+    return stream;
+  }
+
+
+
+
 
   template<typename NumericT>
   class statistic
@@ -15,21 +138,14 @@ namespace viennamesh
 
   public:
 
-    statistic()
-    {
-      set_bin_count(10);
-    }
+    typedef histogram<NumericT, std::size_t> histogram_type;
 
-    statistic(size_t num_bins)
-    {
-      set_bin_count(num_bins);
-      clear();
-    }
+    statistic() {}
 
     void clear()
     {
       sum_ = 0;
-      std::fill(bins.begin(), bins.end(), 0);
+      histogram_.reset();
     }
 
     template<typename MeshT, typename FunctorT>
@@ -58,12 +174,14 @@ namespace viennamesh
       for (cit = cells.begin(); cit != cells.end(); ++cit)
       {
         NumericT cell_metric = functor(*cit);
-        ++bins[get_bin(cell_metric)];
+        histogram_.increase( cell_metric );
       }
     }
 
-    size_t bin_count() const { return bins.size(); }
-    void set_bin_count(size_t num_bins) { bins.resize(num_bins); }
+
+    void set_histogram( histogram_type const & histogram_x )
+    { histogram_ = histogram_x; }
+
 
     NumericT min() const { return min_; }
     NumericT max() const { return max_; }
@@ -71,31 +189,18 @@ namespace viennamesh
     size_t count() const { return count_; }
 
     NumericT mean() const { return sum() / count(); }
+    histogram_type const & histogram() const { return histogram_; }
 
 
   private:
-
-    size_t get_bin(NumericT value) const
-    {
-      if (max_ == min_)
-        return 0;
-
-      if (value < min_)
-        return 0;
-
-      if (value >= max_)
-        return bins.size()-1;
-
-      return (value-min_) / (max_-min_) * bin_count();
-    }
-
 
     NumericT sum_;
     size_t count_;
 
     NumericT min_;
     NumericT max_;
-    std::vector<size_t> bins;
+
+    histogram_type histogram_;
   };
 
 
@@ -105,18 +210,7 @@ namespace viennamesh
     stream << "min  = " << stats.min() << "\n";
     stream << "max  = " << stats.max() << "\n";
     stream << "mean = " << stats.mean() << "\n";
-
-    NumericT tmp = (stats.max()-stats.min())/static_cast<NumericT>(stats.bin_count());
-
-    for (size_t i = 0; i < stats.bin_count(); ++i)
-    {
-      stream << "  [" << stats.min() + static_cast<NumericT>(i)*tmp << "," <<
-                         stats.min() + static_cast<NumericT>(i+1)*tmp << "] = " <<
-                         stats.bins[i];
-
-      if (i != stats.bin_count()-1)
-        stream << "\n";
-    }
+    stream << stats.histogram();
 
     return stream;
   }

@@ -1,6 +1,6 @@
 #include "viennamesh/viennamesh.hpp"
 #include "viennagrid/io/vtk_writer.hpp"
-#include "viennamesh/statistics/statistic.hpp"
+#include "viennamesh/statistic/statistic.hpp"
 
 int main()
 {

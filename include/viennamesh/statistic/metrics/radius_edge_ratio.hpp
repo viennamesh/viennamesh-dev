@@ -2,7 +2,7 @@
 #define VIENNAMESH_STATISTICS_METRICS_RADIUS_EDGE_RATIO_HPP
 
 #include "viennagrid/algorithm/circumcenter.hpp"
-#include "viennamesh/statistics/forwards.hpp"
+#include "viennamesh/statistic/forwards.hpp"
 
 namespace viennamesh
 {

@@ -2,7 +2,7 @@
 #define VIENNAMESH_STATISTICS_METRICS_MIN_DIHEDRAL_ANGLE_HPP
 
 #include "viennagrid/algorithm/angle.hpp"
-#include "viennamesh/statistics/forwards.hpp"
+#include "viennamesh/statistic/forwards.hpp"
 
 namespace viennamesh
 {
@@ -28,6 +28,12 @@ namespace viennamesh
       double da_23 = viennagrid::dihedral_angle( p2, p3, p0, p2, p3, p1 );
 
       return std::min( std::min( std::min( da_01, da_02 ), std::min(da_03, da_12) ), std::min(da_13, da_23) );
+    }
+
+    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT, typename TagT>
+    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle_impl(PointAccessorT const, ElementT const &, NumericLimitsT, TagT)
+    {
+      throw metric_not_implemented_or_supported_exception( "min dihedral angle not implemented for " + TagT::name() );
     }
   }
 
