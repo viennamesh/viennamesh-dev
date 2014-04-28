@@ -169,11 +169,6 @@ namespace viennamesh
         min_ = std::min(min_, cell_metric);
         max_ = std::max(max_, cell_metric);
         sum_ += cell_metric;
-      }
-
-      for (cit = cells.begin(); cit != cells.end(); ++cit)
-      {
-        NumericT cell_metric = functor(*cit);
         histogram_.increase( cell_metric );
       }
     }
