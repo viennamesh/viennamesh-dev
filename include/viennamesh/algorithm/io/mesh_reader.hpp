@@ -33,7 +33,7 @@ namespace viennamesh
 
 
       required_input_parameter_interface<string>        filename;
-      optional_input_parameter_interface<string>        file_type;
+      optional_input_parameter_interface<string>        filetype;
 
       output_parameter_interface                        output_mesh;
       output_parameter_interface                        output_quantities;

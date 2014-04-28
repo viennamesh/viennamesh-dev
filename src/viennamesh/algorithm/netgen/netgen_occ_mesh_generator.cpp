@@ -2,6 +2,7 @@
 
 #include "viennamesh/algorithm/netgen/netgen_occ_mesh_generator.hpp"
 #include "viennamesh/algorithm/netgen/netgen_mesh.hpp"
+#include "viennamesh/algorithm/io/common.hpp"
 
 #define OCCGEOMETRY
 #include "netgen/libsrc/occ/occgeom.hpp"
@@ -12,7 +13,8 @@ namespace viennamesh
   namespace netgen
   {
     occ_mesh_generator::occ_mesh_generator() :
-      input_geometry_filename(*this, "filename"),
+      filename(*this, "filename"),
+      filetype(*this, "filetype"),
       cell_size(*this, "cell_size"),
       curvature_safety_factor(*this, "curvature_safety_factor", 2.0),
       segments_per_edge(*this, "segments_per_edge", 1.0),
@@ -24,9 +26,24 @@ namespace viennamesh
 
     bool occ_mesh_generator::run_impl()
     {
-      output_parameter_proxy<netgen::output_mesh> omp(output_mesh);
+      io::FileType ft;
+      if (filetype.valid())
+        ft = io::from_string( filetype() );
+      else
+        ft = io::from_filename( filename() );
 
-      ::netgen::OCCGeometry * geometry = ::netgen::LoadOCC_STEP( input_geometry_filename().c_str() );
+      output_parameter_proxy<netgen::output_mesh> omp(output_mesh);
+      ::netgen::OCCGeometry * geometry;
+
+      if (ft == io::OCC_STEP)
+        geometry = ::netgen::LoadOCC_STEP( filename().c_str() );
+      else if (ft == io::OCC_IGES)
+        geometry = ::netgen::LoadOCC_IGES( filename().c_str() );
+      else
+      {
+        error(1) << "File type \"" << io::to_string(ft) << "\" is not supported" << std::endl;
+        return false;
+      }
 
       // http://sourceforge.net/p/netgen-mesher/discussion/905307/thread/7176bc7d/
       TopTools_IndexedMapOfShape FMap;

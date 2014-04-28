@@ -45,6 +45,12 @@ namespace viennamesh
       if ( extension_found(filename, "tess") )
         return NEPER_TESS;
 
+      if ( extension_found(filename, "step") )
+        return OCC_STEP;
+
+      if ( extension_found(filename, "iges") )
+        return OCC_IGES;
+
       return UNKNOWN;
     }
 
@@ -71,6 +77,12 @@ namespace viennamesh
       if (str == "NEPER_TESS")
         return NEPER_TESS;
 
+      if (str == "OCC_STEP")
+        return NEPER_TESS;
+      if (str == "OCC_IGES")
+        return NEPER_TESS;
+
+
       return UNKNOWN;
     }
 
@@ -96,6 +108,11 @@ namespace viennamesh
           return "COMSOL_MPHTXT";
         case NEPER_TESS:
           return "NEPER_TESS";
+
+        case OCC_STEP:
+          return "OCC_STEP";
+        case OCC_IGES:
+          return "OCC_IGES";
 
         default:
           return "UNKNOWN";

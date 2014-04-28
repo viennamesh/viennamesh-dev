@@ -18,7 +18,8 @@ namespace viennamesh
       bool run_impl();
 
     private:
-      required_input_parameter_interface<string>         input_geometry_filename;
+      required_input_parameter_interface<string>         filename;
+      optional_input_parameter_interface<string>         filetype;
       optional_input_parameter_interface<double>         cell_size;
       default_input_parameter_interface<double>          curvature_safety_factor;
       default_input_parameter_interface<double>          segments_per_edge;

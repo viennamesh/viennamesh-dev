@@ -17,7 +17,9 @@ namespace viennamesh
       GTS_DEVA,
       SYNOPSIS_BND,
       COMSOL_MPHTXT,
-      NEPER_TESS
+      NEPER_TESS,
+      OCC_STEP,
+      OCC_IGES
     };
 
     FileType from_filename( string filename );

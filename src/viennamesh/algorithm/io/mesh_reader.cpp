@@ -54,7 +54,7 @@ namespace viennamesh
 
     mesh_reader::mesh_reader() :
       filename(*this, "filename"),
-      file_type(*this, "file_type"),
+      filetype(*this, "file_type"),
       output_mesh(*this, "mesh"),
       output_quantities(*this, "quantities"),
       output_seed_points(*this, "seed_points"),
@@ -145,14 +145,14 @@ namespace viennamesh
 
 
 
-    bool mesh_reader::load( string const & filename, FileType file_type )
+    bool mesh_reader::load( string const & filename, FileType filetype )
     {
       string path = stringtools::extract_path( filename );
 
       info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 
 //       parameter_handle result;
-      switch (file_type)
+      switch (filetype)
       {
       case SYNOPSIS_BND:
         {
@@ -382,7 +382,7 @@ namespace viennamesh
         }
       default:
         {
-          error(1) << "Unsupported extension: " << to_string(file_type) << std::endl;
+          error(1) << "Unsupported extension: " << to_string(filetype) << std::endl;
           return false;
         }
       }
@@ -396,8 +396,8 @@ namespace viennamesh
     bool mesh_reader::run_impl()
     {
       FileType ft;
-      if (file_type.valid())
-        ft = from_string( file_type() );
+      if (filetype.valid())
+        ft = from_string( filetype() );
       else
         ft = from_filename( filename() );
 
