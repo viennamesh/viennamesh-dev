@@ -138,7 +138,7 @@ namespace viennamesh
 
         Triangular2DMeshType mesh2d;
         std::vector<VertexHandle2DType> vertex_handles_2d(plc_points_2d.size());
-        for (int j = 0; j < plc_points_2d.size(); ++j)
+        for (std::size_t j = 0; j < plc_points_2d.size(); ++j)
           vertex_handles_2d[j] = viennagrid::make_vertex(mesh2d, plc_points_2d[j]);
 
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
