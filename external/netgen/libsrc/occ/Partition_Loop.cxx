@@ -194,7 +194,7 @@ static Standard_Boolean  SelectEdge(const TopoDS_Face&    F,
 	  Cc->D2(uc, PC, CTg1, CTg2);
 	  C->D2(u, P, Tg1, Tg2);
 
-	  Standard_Real angle;
+	  Standard_Real angle = - M_PI;
 
 	  if (CE.Orientation () == TopAbs_REVERSED && E.Orientation () == TopAbs_FORWARD) {
 	    angle = CTg1.Angle(Tg1.Reversed());
