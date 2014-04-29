@@ -47,11 +47,6 @@ namespace viennamesh
     {
       typedef typename viennagrid::result_of::point<GeometryT>::type PointType;
 
-      typedef typename viennamesh::result_of::const_parameter_handle<GeometryT>::type GeometryHandleType;
-
-  //       typedef typename viennagrid::result_of::segment_handle<OutputSegmentationT>::type OutputSegmentHandleType;
-  //       typedef typename viennagrid::segmented_mesh<OutputMeshT, OutputSegmentationT> OutputSegmentedMesh;
-
       typedef typename viennagrid::result_of::const_vertex_handle<GeometryT>::type GeometryVertexHandleType;
       typedef typename viennagrid::result_of::vertex_handle<OutputMeshT>::type OutputVertexHandleType;
 
@@ -237,18 +232,14 @@ namespace viennamesh
   template<typename GeometryT, typename GeometrySegmentationT, typename OutputMeshT, typename OutputSegmentationT>
   bool make_line_mesh::generic_run_impl()
   {
-    typedef typename viennagrid::result_of::point<GeometryT>::type PointType;
-
     typedef viennagrid::segmented_mesh<GeometryT, GeometrySegmentationT> SegmentedGeometryType;
 
     typedef typename viennamesh::result_of::const_parameter_handle<GeometryT>::type GeometryHandleType;
     typedef typename viennamesh::result_of::const_parameter_handle<SegmentedGeometryType>::type SegmentedGeometryHandleType;
 
-    typedef typename viennagrid::result_of::segment_handle<OutputSegmentationT>::type OutputSegmentHandleType;
     typedef typename viennagrid::segmented_mesh<OutputMeshT, OutputSegmentationT> OutputSegmentedMesh;
 
     typedef typename viennagrid::result_of::const_vertex_handle<GeometryT>::type GeometryVertexHandleType;
-    typedef typename viennagrid::result_of::vertex_handle<OutputMeshT>::type OutputVertexHandleType;
 
     typedef typename viennagrid::result_of::const_vertex_range<GeometryT>::type ConstVertexRangeType;
     typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;

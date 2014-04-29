@@ -13,7 +13,6 @@ namespace viennamesh
     typedef typename viennagrid::result_of::cell<InputMeshT>::type InputCellType;
     typedef typename viennagrid::result_of::cell_id<InputMeshT>::type InputCellIDType;
 
-    typedef typename viennagrid::result_of::cell<OutputMeshT>::type OutputCellType;
     typedef typename viennagrid::result_of::cell_handle<OutputMeshT>::type OutputCellHandleType;
 
     typedef typename viennagrid::result_of::vertex_id<InputMeshT>::type InputVertexIDType;

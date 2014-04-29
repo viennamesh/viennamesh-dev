@@ -17,7 +17,6 @@ namespace viennamesh
     typedef typename viennagrid::result_of::const_cell_range<SrcMeshT>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
-    typedef typename viennagrid::result_of::segment_id<SrcSegmentationT>::type SrcSegmentIDType;
     typedef typename viennagrid::result_of::segment_id_range<SrcSegmentationT, CellType>::type SrcSegmentIDRangeType;
     typedef typename viennagrid::result_of::segment_id<DstSegmentationT>::type DstSegmentIDType;
 

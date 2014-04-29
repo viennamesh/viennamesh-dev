@@ -13,7 +13,6 @@ namespace viennamesh
     {
       typedef typename PointAccessorT::value_type            PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
-      typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
 
       PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
       PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );

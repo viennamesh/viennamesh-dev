@@ -138,7 +138,7 @@ namespace viennamesh
 
   public:
 
-    typedef histogram<NumericT, std::size_t> histogram_type;
+    typedef viennamesh::histogram<NumericT, std::size_t> histogram_type;
 
     statistic() {}
 

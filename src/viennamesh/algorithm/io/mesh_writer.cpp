@@ -106,12 +106,6 @@ namespace viennamesh
                        string const & filename,
                        mesh_writer const & algorithm)
       {
-        typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-        typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainer;
-
-//         typename result_of::const_parameter_handle<SeedPointContainer>::type seed_points = algorithm->get_input<SeedPointContainer>("seed_points");
-
-
         string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
 
         if (!vtk_writer_proxy()(mesh, filename, algorithm))
@@ -545,8 +539,6 @@ namespace viennamesh
       typedef viennagrid::mesh<FullConfigType> FullMeshType;
 
       typedef viennagrid::result_of::segmentation<FullMeshType>::type FullSegmentationOfFullMeshType;
-
-      typedef viennagrid::result_of::cell_only_segmentation<FullMeshType>::type CellOnlySegmentationOfFullMeshType;
 
       // full mesh, full segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<FullMeshType, FullSegmentationOfFullMeshType> >())

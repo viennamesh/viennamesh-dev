@@ -603,9 +603,6 @@ namespace viennamesh
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennamesh::result_of::sizing_function<PointType>::type SizingFunctionType;
 
-      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
-      typedef typename viennagrid::result_of::segment_id<SegmentationT>::type SegmentIDType;
-
       string name = node.name();
 
       if (name == "constant")

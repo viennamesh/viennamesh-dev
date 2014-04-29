@@ -14,7 +14,6 @@ namespace viennamesh
     {
       typedef typename PointAccessorT::value_type            PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
-      typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
 
       PointType const & a = point_accessor( viennagrid::vertices(element)[0] );
       PointType const & b = point_accessor( viennagrid::vertices(element)[1] );
@@ -33,7 +32,6 @@ namespace viennamesh
     {
       typedef typename PointAccessorT::value_type            PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
-      typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
 
       PointType const & a = point_accessor( viennagrid::vertices(element)[0] );
       PointType const & b = point_accessor( viennagrid::vertices(element)[1] );

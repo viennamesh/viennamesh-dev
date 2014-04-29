@@ -202,13 +202,7 @@ namespace viennamesh
       int operator()(MeshT & mesh, SegmentationT & segmentation, std::string const & filename) const
       {
         typedef typename viennagrid::result_of::point<MeshT>::type           PointType;
-
-//         static const int point_dim = viennagrid::result_of::static_size<PointType>::value;
-
-        typedef typename viennagrid::result_of::vertex<MeshT>::type         VertexType;
         typedef typename viennagrid::result_of::vertex_handle<MeshT>::type          VertexHandleType;
-        typedef typename VertexType::id_type VertexIDType;
-
         typedef typename viennagrid::result_of::line_handle<MeshT>::type            LineHandleType;
 
         std::ifstream reader(filename.c_str());

@@ -52,12 +52,10 @@ namespace viennamesh
                     OutputMeshT & output_mesh)
   {
     typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
-    typedef typename viennagrid::result_of::cell_handle<OutputMeshT>::type OutputCellHandleType;
 
     typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-    typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
 
     ConstCellRangeType cells(mesh);
 
@@ -224,7 +222,6 @@ namespace viennamesh
                               NumericConfigT numeric_config )
   {
     typedef typename viennagrid::result_of::const_coboundary_range<LineMeshT, viennagrid::vertex_tag, viennagrid::line_tag>::type  ConstCoboundaryRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstCoboundaryRangeType>::type                                                 ConstCoboundaryRangeIterator;
     typedef typename viennagrid::detail::result_of::value_type<LineHandleT>::type                                      LineType;
 
     ConstCoboundaryRangeType lines = viennagrid::coboundary_elements<viennagrid::vertex_tag, viennagrid::line_tag>(line_mesh, vertex_handle);

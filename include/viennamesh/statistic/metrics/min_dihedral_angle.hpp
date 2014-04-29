@@ -12,8 +12,6 @@ namespace viennamesh
     typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT, viennagrid::tetrahedron_tag)
     {
       typedef typename PointAccessorT::value_type            PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
-      typedef typename viennagrid::result_of::const_vertex_range<ElementT>::type   VertexOnCellContainer;
 
       PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
       PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );

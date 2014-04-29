@@ -63,24 +63,18 @@ namespace viennamesh
     void generic_convert(MeshSegmentT const & input, tetgen::input_mesh & output)
     {
       typedef MeshSegmentT ViennaGridMeshType;
-      typedef typename viennagrid::result_of::point<ViennaGridMeshType>::type PointType;
 
       typedef typename viennagrid::result_of::const_vertex_handle<ViennaGridMeshType>::type ConstVertexHandleType;
       typedef typename viennagrid::result_of::cell<ViennaGridMeshType>::type CellType;
-
-      typedef typename viennagrid::result_of::const_vertex_range<ViennaGridMeshType>::type ConstVertexRangeType;
-      typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
 
       typedef typename viennagrid::result_of::const_cell_range<ViennaGridMeshType>::type ConstCellRangeType;
       typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
       std::map<ConstVertexHandleType, int> vertex_handle_to_tetgen_index_map;
 
-      ConstVertexRangeType vertices(input);
-
       output.firstnumber = 0;
       output.numberofpoints = 0;
-      output.pointlist = new REAL[ vertices.size() * 3 ];
+      output.pointlist = new REAL[ viennagrid::vertices(input).size() * 3 ];
 
       int index = 0;
 //       for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++index)
@@ -267,8 +261,6 @@ namespace viennamesh
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
       typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
       typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
-
-      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
 
       std::vector<VertexHandleType> vertex_handles(input.numberofpoints);
 

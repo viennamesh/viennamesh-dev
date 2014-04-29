@@ -190,7 +190,6 @@ namespace viennamesh
     template<typename MeshT>
     void generic_convert_3d(triangle::output_mesh_3d const & input, MeshT & output)
     {
-      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
 
       std::map<int, VertexHandleType> vertex_handles;
@@ -234,9 +233,7 @@ namespace viennamesh
         return;
       }
 
-      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
-      typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
       typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
 
       std::map<int, VertexHandleType> vertex_handles;

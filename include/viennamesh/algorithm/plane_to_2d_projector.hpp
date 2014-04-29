@@ -160,8 +160,6 @@ namespace viennagrid
     void unproject(PointIteratorT start, const PointIteratorT & end,
                   OutPointIteratorT out)
     {
-      typedef typename std::iterator_traits<OutPointIteratorT>::value_type Point2DType;
-
       for ( ; start != end; ++start, ++out)
         *out = unproject(*start);
     }

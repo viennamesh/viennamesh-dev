@@ -12,12 +12,10 @@ namespace viennamesh
     viennagrid::vertex_copy_map<SrcMeshT, DstMeshT> vertex_map(dst_mesh);
 
     typedef typename viennagrid::result_of::cell<SrcMeshT>::type CellType;
-    typedef typename viennagrid::result_of::coord<SrcMeshT>::type NumericType;
 
     typedef typename viennagrid::result_of::const_cell_range<SrcMeshT>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
-//       typedef typename viennagrid::result_of::segment_id<SrcSegmentationT>::type SrcSegmentIDType;
     typedef typename viennagrid::result_of::segment_id_range<SrcSegmentationT, CellType>::type SrcSegmentIDRangeType;
     typedef typename viennagrid::result_of::segment_id<DstSegmentationT>::type DstSegmentIDType;
 
@@ -60,9 +58,6 @@ namespace viennamesh
   bool map_segments::generic_run( std::map<int, int> const & segment_mapping )
   {
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
-
-    typedef typename viennamesh::result_of::point< viennagrid::result_of::geometric_dimension<MeshT>::value >::type PointType;
-    typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
 
     typename viennamesh::result_of::const_parameter_handle<SegmentedMeshType>::type imp = input_mesh.get<SegmentedMeshType>();
 

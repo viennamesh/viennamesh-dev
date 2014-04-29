@@ -34,7 +34,6 @@ namespace viennamesh
       typedef typename viennamesh::result_of::full_config<CellTagT, GeometricDimensionV>::type ConfigType;
       typedef typename viennagrid::mesh<ConfigType> MeshType;
       typedef typename viennagrid::result_of::segmentation<MeshType>::type SegmentationType;
-      typedef typename viennagrid::result_of::segment_handle<SegmentationType>::type SegmentHandleType;
       typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
 
       typedef typename viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
