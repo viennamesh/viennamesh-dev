@@ -42,19 +42,19 @@ void STLEdgeData :: Read(ifstream& ifs)
 int STLEdgeData :: GetStatus () const
 {
   if (topedgenr <= 0 || topedgenr > top->GetNTE()) return 0;
-  return top->GetTopEdge (topedgenr).GetStatus(); 
+  return top->GetTopEdge (topedgenr).GetStatus();
 }
 
 void STLEdgeData ::SetStatus (int stat)
 {
   if (topedgenr >= 1 && topedgenr <= top->GetNTE())
-    top->GetTopEdge (topedgenr).SetStatus(stat); 
+    top->GetTopEdge (topedgenr).SetStatus(stat);
 }
 
 
 float STLEdgeData :: CosAngle() const
 {
-  return top->GetTopEdge (topedgenr).CosAngle(); 
+  return top->GetTopEdge (topedgenr).CosAngle();
 }
 
 
@@ -130,7 +130,7 @@ const STLEdgeDataList& STLEdgeDataList :: operator=(const STLEdgeDataList& edl)
       Add(edl.Get(i), i);
     }
   return *this;
-} 
+}
 
 void STLEdgeDataList :: Add(const STLEdgeData& ed, int i)
 {
@@ -147,7 +147,7 @@ void STLEdgeDataList :: Write(ofstream& of) const
   of.precision(16);
   int i;
   of << Size() << endl;
-  
+
   for (i = 1; i <= Size(); i++)
     {
       Get(i).Write(of);
@@ -216,17 +216,17 @@ void STLEdgeDataList :: BuildLineWithEdge(int ep1, int ep2, Array<twoint>& line)
       while (found && !closed)
 	{
 	  found = 0;
-	  
+
 	  if (GetNEPPStat(p,status) == 2)
 	    {
 	      for (i = 1; i <= GetNEPP(p); i++)
-		{		
+		{
 		  const STLEdgeData& e = Get(GetEdgePP(p,i));
-		  if (GetEdgePP(p,i) != en && e.GetStatus() == status) 
+		  if (GetEdgePP(p,i) != en && e.GetStatus() == status)
 		    {
-		      if (e.p1 == p) 
+		      if (e.p1 == p)
 			{pnew = e.p2;}
-		      else 
+		      else
 			{pnew = e.p1;}
 
 		      ennew = GetEdgePP(p,i);
@@ -243,7 +243,7 @@ void STLEdgeDataList :: BuildLineWithEdge(int ep1, int ep2, Array<twoint>& line)
 	    }
 	}
     }
-  
+
 }
 */
 
@@ -295,7 +295,7 @@ int STLEdgeDataList :: GetNConfEdges() const
   for (i = 1; i <= ne; i++)
     if (geom.GetTopEdge (i).GetStatus() == ED_CONFIRMED)
       cnt++;
-  return cnt; 
+  return cnt;
 }
 
 void STLEdgeDataList :: ChangeStatus(int status1, int status2)
@@ -320,12 +320,12 @@ void STLEdgeDataList :: Add(const STLEdgeData& ed, int i)
 
 void STLEdgeDataList :: Write(ofstream& of) const
 {
-  
+
   /*
   of.precision(16);
   int i;
   of << Size() << endl;
-  
+
   for (i = 1; i <= Size(); i++)
     {
       Get(i).Write(of);
@@ -352,7 +352,7 @@ void STLEdgeDataList :: Write(ofstream& of) const
 	 << p2.Y() << " "
 	 << p2.Z() << endl;
     }
-  
+
 }
 
 void STLEdgeDataList :: Read(ifstream& ifs)
@@ -375,7 +375,7 @@ void STLEdgeDataList :: Read(ifstream& ifs)
 
 
       if (ednum)
-	{ 
+	{
 	  geom.GetTopEdge(ednum).SetStatus (status);
 	//	geom.GetTopEdge (ednum).SetStatus (ED_CONFIRMED);
 	}
@@ -414,7 +414,7 @@ int STLEdgeDataList :: GetNConfCandEPP(int p) const
   int cnt = 0;
   for (i = 1; i <= GetNEPP(p); i++)
     {
-      if (Get(GetEdgePP(p,i)).GetStatus() == ED_CANDIDATE || 
+      if (Get(GetEdgePP(p,i)).GetStatus() == ED_CANDIDATE ||
 	  Get(GetEdgePP(p,i)).GetStatus() == ED_CONFIRMED)
 	{
 	  cnt++;
@@ -443,17 +443,17 @@ void STLEdgeDataList :: BuildLineWithEdge(int ep1, int ep2, Array<twoint>& line)
       while (found && !closed)
 	{
 	  found = 0;
-	  
+
 	  if (GetNEPPStat(p,status) == 2)
 	    {
 	      for (i = 1; i <= GetNEPP(p); i++)
-		{		
+		{
 		  const STLTopEdge & e = Get(GetEdgePP(p,i));
-		  if (GetEdgePP(p,i) != en && e.GetStatus() == status) 
+		  if (GetEdgePP(p,i) != en && e.GetStatus() == status)
 		    {
-		      if (e.PNum(1) == p) 
+		      if (e.PNum(1) == p)
 			{pnew = e.PNum(2);}
-		      else 
+		      else
 			{pnew = e.PNum(1);}
 
 		      ennew = GetEdgePP(p,i);
@@ -470,7 +470,7 @@ void STLEdgeDataList :: BuildLineWithEdge(int ep1, int ep2, Array<twoint>& line)
 	    }
 	}
     }
-  
+
 }
 
 int Exists(int p1, int p2, const Array<twoint>& line)
@@ -510,14 +510,14 @@ void STLEdgeDataList :: BuildClusterWithEdge(int ep1, int ep2, Array<twoint>& li
 	      en = GetEdgeNum(line.Get(k).i1, line.Get(k).i2);
 
 	      for (i = 1; i <= GetNEPP(p); i++)
-		{		
+		{
 		  pnew = 0;
 		  const STLTopEdge & e = Get(GetEdgePP(p,i));
-		  if (GetEdgePP(p,i) != en && e.GetStatus() == status) 
+		  if (GetEdgePP(p,i) != en && e.GetStatus() == status)
 		    {
-		      if (e.PNum(1) == p) 
+		      if (e.PNum(1) == p)
 			{pnew = e.PNum(2);}
-		      else 
+		      else
 			{pnew = e.PNum(1);}
 
 		      ennew = GetEdgePP(p,i);
@@ -530,7 +530,7 @@ void STLEdgeDataList :: BuildClusterWithEdge(int ep1, int ep2, Array<twoint>& li
 		      en = ennew;
 		    }
 		}
-	      
+
 	    }
 	}
 
@@ -556,7 +556,7 @@ STLLine :: STLLine(const STLGeometry * ageometry)
 {
   geometry = ageometry;
   split = 0;
-};
+}
 
 int STLLine :: GetNS() const
 {
@@ -569,17 +569,17 @@ void STLLine :: GetSeg(int nr, int& p1, int& p2) const
   p2 = pts.Get(nr+1);
 }
 
-int STLLine :: GetLeftTrig(int nr) const 
+int STLLine :: GetLeftTrig(int nr) const
 {
   if (nr > lefttrigs.Size()) {PrintSysError("In STLLine::GetLeftTrig!!!"); return 0;}
   return lefttrigs.Get(nr);
-};
+}
 
-int STLLine :: GetRightTrig(int nr) const 
+int STLLine :: GetRightTrig(int nr) const
 {
   if (nr > righttrigs.Size()) {PrintSysError("In STLLine::GetRightTrig!!!"); return 0;}
   return righttrigs.Get(nr);
-};
+}
 
 double STLLine :: GetSegLen(const Array<Point<3> >& ap, int nr) const
 {
@@ -605,7 +605,7 @@ void STLLine :: GetBoundingBox (const Array<Point<3> > & ap, Box<3> & box) const
 
 
 
-Point<3> STLLine :: 
+Point<3> STLLine ::
 GetPointInDist(const Array<Point<3> >& ap, double dist, int& index) const
 {
   if (dist <= 0)
@@ -613,7 +613,7 @@ GetPointInDist(const Array<Point<3> >& ap, double dist, int& index) const
       index = 1;
       return ap.Get(StartP());
     }
-  
+
   double len = 0;
   int i;
   for (i = 1; i < pts.Size(); i++)
@@ -639,13 +639,13 @@ GetPointInDist(const Array<Point<3> >& ap, double dist, int& index) const
 
 /*
 double stlgh;
-double GetH(const Point3d& p, double x) 
+double GetH(const Point3d& p, double x)
 {
   return stlgh;//+0.5)*(x+0.5);
 }
 */
-STLLine* STLLine :: Mesh(const Array<Point<3> >& ap, 
-			 Array<Point3d>& mp, double ghi,
+STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
+			 Array<Point3d>& mp, double /*ghi*/,
 			 class Mesh& mesh) const
 {
   static int timer1a = NgProfiler::CreateTimer ("mesh stl-line 1a");
@@ -658,7 +658,7 @@ STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
   STLLine* line = new STLLine(geometry);
 
   //stlgh = ghi; //uebergangsloesung!!!!
-  
+
   double len = GetLength(ap);
   double inthl = 0; //integral of 1/h
   double dist = 0;
@@ -675,7 +675,7 @@ STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
   double maxseglen = 0;
   for (int i = 1; i <= GetNS(); i++)
     maxseglen = max2 (maxseglen, GetSegLen (ap, i));
-  
+
   int nph = 10+int(maxseglen / minh); //anzahl der integralauswertungen pro segment
 
   Array<double> inthi(GetNS()*nph);
@@ -694,9 +694,9 @@ STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
 	  //h = GetH(p,dist/len);
 	  h = mesh.GetH(p);
 
-	  
+
 	  dist += GetSegLen(ap,i)/(double)nph;
-	  
+
 	  inthl += GetSegLen(ap,i)/nph/(h);
 	  inthi.Elem((i-1)*nph+j) = GetSegLen(ap,i)/nph/h;
 	  curvelen.Elem((i-1)*nph+j) = GetSegLen(ap,i)/nph;
@@ -712,9 +712,9 @@ STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
     }
   if ( (inthlint == 1) && ShouldSplit())
     {
-      inthlint = 2; 
+      inthlint = 2;
     }
-     
+
   double fact = inthl/(double)inthlint;
   dist = 0;
   int j = 1;
@@ -748,12 +748,12 @@ STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
       inthl -= tofar*inthi.Get(j);
       dist -= tofar*curvelen.Get(j)*fact;
 
-      if (i == inthlint && fabs(dist - len) >= 1E-8) 
+      if (i == inthlint && fabs(dist - len) >= 1E-8)
 	{
-	  PrintSysError("meshline failed!!!"); 
+	  PrintSysError("meshline failed!!!");
 	}
 
-      if (i != inthlint) 
+      if (i != inthlint)
 	{
 	  p = GetPointInDist(ap,dist,ind);
 	  pn = AddPointIfNotExists(mp, p, 1e-10*diam);
@@ -780,13 +780,13 @@ STLLine* STLLine :: Mesh(const Array<Point<3> >& ap,
   line->AddLeftTrig(GetLeftTrig(segn));
   line->AddRightTrig(GetRightTrig(segn));
   line->AddDist(dist);
-  
+
   for (int ii = 1; ii <= line->GetNS(); ii++)
     {
       int p1, p2;
       line->GetSeg(ii,p1,p2);
     }
-  /*  
+  /*
   (*testout) << "line, " << ap.Get(StartP()) << "-" << ap.Get(EndP())
 	     << " len = " << Dist (ap.Get(StartP()), ap.Get(EndP())) << endl;
   */

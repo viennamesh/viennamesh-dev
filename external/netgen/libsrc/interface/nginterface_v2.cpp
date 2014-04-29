@@ -32,7 +32,7 @@ namespace netgen
 
   Ngx_Mesh :: ~Ngx_Mesh ()
   {
-    if (netgen::mesh.Ptr() == mesh) 
+    if (netgen::mesh.Ptr() == mesh)
       netgen::mesh.Ptr() = NULL;
     delete mesh;
   }
@@ -46,7 +46,7 @@ namespace netgen
   {
     return mesh -> mglevels;
   }
-  
+
   int Ngx_Mesh :: GetNElements (int dim) const
   {
     switch (dim)
@@ -58,7 +58,7 @@ namespace netgen
       }
     return -1;
   }
-  
+
   int Ngx_Mesh :: GetNNodes (int nt) const
   {
     switch (nt)
@@ -79,7 +79,7 @@ namespace netgen
     return ret;
   }
 
-  template <> DLL_HEADER Ng_Element Ngx_Mesh :: GetElement<0> (int nr) const
+  template <> DLL_HEADER Ng_Element Ngx_Mesh :: GetElement<0> (int /*nr*/) const
   {
     cout << "Netgen does not support 0-D elements" << endl;
 	Ng_Element ret;
@@ -111,7 +111,7 @@ namespace netgen
   template <> DLL_HEADER Ng_Element Ngx_Mesh :: GetElement<2> (int nr) const
   {
     const Element2d & el = mesh->SurfaceElement (SurfaceElementIndex (nr));
-  
+
     Ng_Element ret;
     ret.type = NG_ELEMENT_TYPE(el.GetType());
     ret.points.num = el.GetNP();
@@ -132,7 +132,7 @@ namespace netgen
   template <> DLL_HEADER Ng_Element Ngx_Mesh :: GetElement<3> (int nr) const
   {
     const Element & el = mesh->VolumeElement (ElementIndex (nr));
-  
+
     Ng_Element ret;
     ret.type = NG_ELEMENT_TYPE(el.GetType());
     ret.points.num = el.GetNP();
@@ -152,7 +152,7 @@ namespace netgen
 
 
   template <>
-  DLL_HEADER int Ngx_Mesh :: GetElementIndex<0> (int nr) const
+  DLL_HEADER int Ngx_Mesh :: GetElementIndex<0> (int /*nr*/) const
   {
     return 0;
   }
@@ -162,14 +162,14 @@ namespace netgen
   {
     return (*mesh)[SegmentIndex(nr)].si;
   }
-  
+
   template <>
   DLL_HEADER int Ngx_Mesh :: GetElementIndex<2> (int nr) const
   {
-    int ind = (*mesh)[SurfaceElementIndex(nr)].GetIndex(); 
+    int ind = (*mesh)[SurfaceElementIndex(nr)].GetIndex();
     return mesh->GetFaceDescriptor(ind).BCProperty();
   }
-  
+
   template <>
   DLL_HEADER int Ngx_Mesh :: GetElementIndex<3> (int nr) const
   {
@@ -207,14 +207,14 @@ namespace netgen
   {
     return (*mesh)[SegmentIndex(nr)].si;
   }
-  
+
   template <>
   DLL_HEADER int Ng_GetElementIndex<2> (int nr)
   {
-    int ind = (*mesh)[SurfaceElementIndex(nr)].GetIndex(); 
+    int ind = (*mesh)[SurfaceElementIndex(nr)].GetIndex();
     return mesh->GetFaceDescriptor(ind).BCProperty();
   }
-  
+
   template <>
   DLL_HEADER int Ng_GetElementIndex<3> (int nr)
   {
@@ -273,7 +273,7 @@ namespace netgen
   template <> DLL_HEADER Ng_Element Ng_GetElement<2> (int nr)
   {
     const Element2d & el = mesh->SurfaceElement (SurfaceElementIndex (nr));
-  
+
     Ng_Element ret;
     ret.type = NG_ELEMENT_TYPE(el.GetType());
     ret.points.num = el.GetNP();
@@ -291,10 +291,10 @@ namespace netgen
     return ret;
   }
 
-  template <> DLL_HEADER Ng_Element Ng_GetElement<3> (int nr) 
+  template <> DLL_HEADER Ng_Element Ng_GetElement<3> (int nr)
   {
     const Element & el = mesh->VolumeElement (ElementIndex (nr));
-  
+
     Ng_Element ret;
     ret.type = NG_ELEMENT_TYPE(el.GetType());
     ret.points.num = el.GetNP();
@@ -319,12 +319,12 @@ namespace netgen
 
 
 
-  
-  
-  template <> DLL_HEADER void Ngx_Mesh :: 
-  ElementTransformation<3,3> (int elnr, 
+
+
+  template <> DLL_HEADER void Ngx_Mesh ::
+  ElementTransformation<3,3> (int elnr,
                               const double * xi,
-                              double * x, 
+                              double * x,
                               double * dxdxi) const
   {
     Point<3> xl(xi[0], xi[1], xi[2]);
@@ -334,7 +334,7 @@ namespace netgen
 
     if (x)
       for (int i = 0; i < 3; i++) x[i] = xg(i);
-    
+
     if (dxdxi)
       for (int i=0; i<3; i++)
         {
@@ -346,8 +346,8 @@ namespace netgen
 
   template <> DLL_HEADER void Ngx_Mesh ::
   ElementTransformation<2,3> (int elnr,
-                              const double * xi, 
-                              double * x, 
+                              const double * xi,
+                              double * x,
                               double * dxdxi) const
   {
     Point<2> xl(xi[0], xi[1]);
@@ -355,10 +355,10 @@ namespace netgen
     Mat<3,2> dx;
 
     mesh->GetCurvedElements().CalcSurfaceTransformation (xl, elnr, xg, dx);
-    
+
     if (x)
       for (int i = 0; i < 3; i++) x[i] = xg(i);
-    
+
     if (dxdxi)
       for (int i=0; i<3; i++)
         {
@@ -370,8 +370,8 @@ namespace netgen
 
   template <> DLL_HEADER void Ngx_Mesh ::
   ElementTransformation<2,2> (int elnr,
-                                 const double * xi, 
-                                 double * x, 
+                                 const double * xi,
+                                 double * x,
                                  double * dxdxi) const
   {
     Point<2> xl(xi[0], xi[1]);
@@ -379,10 +379,10 @@ namespace netgen
     Mat<3,2> dx;
 
     mesh->GetCurvedElements().CalcSurfaceTransformation (xl, elnr, xg, dx);
-    
+
     if (x)
       for (int i = 0; i < 2; i++) x[i] = xg(i);
-    
+
     if (dxdxi)
       for (int i=0; i<2; i++)
         {
@@ -394,7 +394,7 @@ namespace netgen
 
 
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
+  template <> DLL_HEADER void Ngx_Mesh ::
   ElementTransformation<1,2> (int elnr,
                               const double * xi,
                               double * x,
@@ -404,10 +404,10 @@ namespace netgen
     Vec<3> dx;
 
     mesh->GetCurvedElements().CalcSegmentTransformation (xi[0], elnr, xg, dx);
-    
+
     if (x)
       for (int i = 0; i < 2; i++) x[i] = xg(i);
-    
+
     if (dxdxi)
       for (int i=0; i < 2; i++)
         dxdxi[i] = dx(i);
@@ -415,7 +415,7 @@ namespace netgen
 
 
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
+  template <> DLL_HEADER void Ngx_Mesh ::
   ElementTransformation<1,1> (int elnr,
                               const double * xi,
                               double * x,
@@ -425,17 +425,17 @@ namespace netgen
     Vec<3> dx;
 
     mesh->GetCurvedElements().CalcSegmentTransformation (xi[0], elnr, xg, dx);
-    
+
     if (x) x[0] = xg(0);
     if (dxdxi) dxdxi[0] = dx(0);
   }
 
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
-  ElementTransformation<0,1> (int elnr, 
-                              const double * xi,
-                              double * x,
-                              double * dxdxi) const
+  template <> DLL_HEADER void Ngx_Mesh ::
+  ElementTransformation<0,1> (int /*elnr*/,
+                              const double * /*xi*/,
+                              double * /*x*/,
+                              double * /*dxdxi*/) const
   {
     cout << "1D not supported" << endl;
   }
@@ -448,9 +448,9 @@ namespace netgen
 
 
 
-  
-  
-  template <> DLL_HEADER void Ngx_Mesh :: 
+
+
+  template <> DLL_HEADER void Ngx_Mesh ::
   MultiElementTransformation<3,3> (int elnr, int npts,
                                    const double * xi, size_t sxi,
                                    double * x, size_t sx,
@@ -458,7 +458,7 @@ namespace netgen
   {
     mesh->GetCurvedElements().CalcMultiPointElementTransformation (elnr, npts, xi, sxi, x, sx, dxdxi, sdxdxi);
   }
-  
+
   template <> DLL_HEADER void Ngx_Mesh ::
   MultiElementTransformation<2,2> (int elnr, int npts,
                                    const double * xi, size_t sxi,
@@ -468,7 +468,7 @@ namespace netgen
     mesh->GetCurvedElements().CalcMultiPointSurfaceTransformation<2> (elnr, npts, xi, sxi, x, sx, dxdxi, sdxdxi);
   }
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
+  template <> DLL_HEADER void Ngx_Mesh ::
   MultiElementTransformation<2,3> (int elnr, int npts,
                                    const double * xi, size_t sxi,
                                    double * x, size_t sx,
@@ -477,7 +477,7 @@ namespace netgen
     mesh->GetCurvedElements().CalcMultiPointSurfaceTransformation<3> (elnr, npts, xi, sxi, x, sx, dxdxi, sdxdxi);
   }
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
+  template <> DLL_HEADER void Ngx_Mesh ::
   MultiElementTransformation<1,2> (int elnr, int npts,
                                    const double * xi, size_t sxi,
                                    double * x, size_t sx,
@@ -486,7 +486,7 @@ namespace netgen
     mesh->GetCurvedElements().CalcMultiPointSegmentTransformation<2> (elnr, npts, xi, sxi, x, sx, dxdxi, sdxdxi);
   }
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
+  template <> DLL_HEADER void Ngx_Mesh ::
   MultiElementTransformation<1,1> (int elnr, int npts,
                                    const double * xi, size_t sxi,
                                    double * x, size_t sx,
@@ -497,11 +497,11 @@ namespace netgen
   }
 
 
-  template <> DLL_HEADER void Ngx_Mesh :: 
-  MultiElementTransformation<0,1> (int elnr, int npts,
-                                   const double * xi, size_t sxi,
-                                   double * x, size_t sx,
-                                   double * dxdxi, size_t sdxdxi) const
+  template <> DLL_HEADER void Ngx_Mesh ::
+  MultiElementTransformation<0,1> (int /*elnr*/, int /*npts*/,
+                                   const double * /*xi*/, size_t /*sxi*/,
+                                   double * /*x*/, size_t /*sx*/,
+                                   double * /*dxdxi*/, size_t /*sdxdxi*/) const
   {
     cout << "1D not supported" << endl;
   }
@@ -540,18 +540,18 @@ namespace netgen
   template <>
   DLL_HEADER int Ngx_Mesh :: FindElementOfPoint <2>
   (double * p, double * lami,
-   bool build_searchtree, 
+   bool build_searchtree,
    int * const indices, int numind)
 
   {
     Array<int> dummy(numind);
     for (int i = 0; i < numind; i++) dummy[i] = indices[i]+1;
-    
+
     double lam3[3];
     Point<3> p2d(p[0], p[1], 0);
-    int ind = 
+    int ind =
       mesh->GetElementOfPoint(p2d, lam3, &dummy, build_searchtree);
-    
+
     if (ind > 0)
       {
         if(mesh->SurfaceElement(ind).GetType()==QUAD)
@@ -559,7 +559,7 @@ namespace netgen
             lami[0] = lam3[0];
             lami[1] = lam3[1];
           }
-        else 
+        else
           {
             lami[0] = 1-lam3[0]-lam3[1];
             lami[1] = lam3[0];
@@ -572,15 +572,15 @@ namespace netgen
   template <>
   DLL_HEADER int Ngx_Mesh :: FindElementOfPoint <3>
   (double * p, double * lami,
-   bool build_searchtree, 
+   bool build_searchtree,
    int * const indices, int numind)
 
   {
     Array<int> dummy(numind);
     for (int i = 0; i < numind; i++) dummy[i] = indices[i]+1;
-    
+
     Point<3> p3d(p[0], p[1], p[2]);
-    int ind = 
+    int ind =
       mesh->GetElementOfPoint(p3d, lami, &dummy, build_searchtree);
     return ind-1;
   }

@@ -4,7 +4,7 @@
 namespace netgen
 {
 
-QuadraticPolynomial1V :: 
+QuadraticPolynomial1V ::
 QuadraticPolynomial1V (double ac, double acx, double acxx)
 {
   c = ac;
@@ -12,7 +12,7 @@ QuadraticPolynomial1V (double ac, double acx, double acxx)
   cxx = acxx;
 }
 
-double QuadraticPolynomial1V :: 
+double QuadraticPolynomial1V ::
 Value (double x)
 {
   return c + cx * x + cxx * x * x;
@@ -26,7 +26,7 @@ double QuadraticPolynomial1V ::  MaxUnitInterval ()
       return c - 0.25 * cx * cx / cxx;
     }
 
-  
+
   if (cx + cxx > 0)   // right edge
     return c + cx + cxx;
 
@@ -37,23 +37,23 @@ double QuadraticPolynomial1V ::  MaxUnitInterval ()
 
 
 
-LinearPolynomial2V :: 
+LinearPolynomial2V ::
 LinearPolynomial2V (double ac, double acx, double acy)
 {
   c = ac;
   cx = acx;
   cy = acy;
-};
+}
 
 
-QuadraticPolynomial2V ::   
+QuadraticPolynomial2V ::
 QuadraticPolynomial2V ()
 {
   ;
 }
 
 
-QuadraticPolynomial2V :: 
+QuadraticPolynomial2V ::
 QuadraticPolynomial2V (double ac, double acx, double acy,
 		       double acxx, double acxy, double acyy)
 {
@@ -65,7 +65,7 @@ QuadraticPolynomial2V (double ac, double acx, double acy,
   cyy = acyy;
 }
 
-void QuadraticPolynomial2V :: 
+void QuadraticPolynomial2V ::
 Square (const LinearPolynomial2V & lp)
 {
   c = lp.c * lp.c;
@@ -77,7 +77,7 @@ Square (const LinearPolynomial2V & lp)
   cyy = lp.cy * lp.cy;
 }
 
-void QuadraticPolynomial2V :: 
+void QuadraticPolynomial2V ::
 Add (double lam, const QuadraticPolynomial2V & qp2)
 {
   c += lam * qp2.c;
@@ -88,14 +88,14 @@ Add (double lam, const QuadraticPolynomial2V & qp2)
   cyy += lam * qp2.cyy;
 }
 
-double QuadraticPolynomial2V :: 
+double QuadraticPolynomial2V ::
 Value (double x, double y)
 {
   return c + cx * x + cy * y + cxx * x * x + cxy * x * y + cyy * y * y;
 }
 
 /*
-double QuadraticPolynomial2V :: 
+double QuadraticPolynomial2V ::
 MinUnitSquare ()
 {
   double x, y;
@@ -112,7 +112,7 @@ MinUnitSquare ()
 };
 */
 
-double QuadraticPolynomial2V :: 
+double QuadraticPolynomial2V ::
 MaxUnitSquare ()
 {
   // find critical point
@@ -126,7 +126,7 @@ MaxUnitSquare ()
   if (det > 0)
     {
       // definite surface
-      
+
       x0 = (-2 * cyy * cx + cxy * cy) / det;
       y0 = (cxy * cx -2 * cxx * cy) / det;
 
@@ -136,12 +136,12 @@ MaxUnitSquare ()
 	  if (hv > maxv) maxv = hv;
 	}
     }
-  
+
   QuadraticPolynomial1V e1(c, cx, cxx);
   QuadraticPolynomial1V e2(c, cy, cyy);
   QuadraticPolynomial1V e3(c+cy+cyy, cx+cxy, cxx);
   QuadraticPolynomial1V e4(c+cx+cxx, cy+cxy, cyy);
-  
+
   hv = e1.MaxUnitInterval();
   if (hv > maxv) maxv = hv;
   hv = e2.MaxUnitInterval();
@@ -152,16 +152,16 @@ MaxUnitSquare ()
   if (hv > maxv) maxv = hv;
 
   return maxv;
-};
+}
 
 
 
 
-double QuadraticPolynomial2V :: 
+double QuadraticPolynomial2V ::
 MaxUnitTriangle ()
 {
   // find critical point
-  
+
   double maxv = c;
   double hv;
 
@@ -169,9 +169,9 @@ MaxUnitTriangle ()
   det = 4 * cxx * cyy - cxy * cxy;
 
   if (cxx < 0 && det > 0)
-    { 
+    {
       // definite surface
-      
+
       x0 = (-2 * cyy * cx + cxy * cy) / det;
       y0 = (cxy * cx -2 * cxx * cy) / det;
 
@@ -180,12 +180,12 @@ MaxUnitTriangle ()
 	  return Value (x0, y0);
 	}
     }
-  
-  
+
+
   QuadraticPolynomial1V e1(c, cx, cxx);
   QuadraticPolynomial1V e2(c, cy, cyy);
   QuadraticPolynomial1V e3(c+cy+cyy, cx-cy+cxy-2*cyy, cxx-cxy+cyy);
-  
+
   hv = e1.MaxUnitInterval();
   if (hv > maxv) maxv = hv;
   hv = e2.MaxUnitInterval();

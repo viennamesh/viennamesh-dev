@@ -72,14 +72,14 @@ namespace netgen
   void CSGScanner :: ReadNext ()
   {
     char ch;
-  
+
 
     // scan whitespaces
     do
-      { 
+      {
 	scanin->get(ch);
 
-	//if (ch == '\n') 
+	//if (ch == '\n')
 	//  linenum++;
 
 	// end of file reached
@@ -88,7 +88,7 @@ namespace netgen
 	    token = TOK_END;
 	    return;
 	  }
-	if (ch == '\n') 
+	if (ch == '\n')
 	  linenum++;
 
 
@@ -105,21 +105,21 @@ namespace netgen
 		  }
 	      }
 	    linenum++;
-	  }	
+	  }
       }
     while (isspace(ch));
-  
+
     switch (ch)
       {
-      case '(': case ')': 
-      case '[': case ']': 
+      case '(': case ')':
+      case '[': case ']':
       case '-':
       case '=': case ',': case ';':
 	{
 	  token = TOKEN_TYPE (ch);
 	  break;
 	}
-  
+
       default:
 	{
 	  if (isdigit (ch) || ch == '.')
@@ -186,11 +186,11 @@ namespace netgen
 
   void ParseChar (CSGScanner & scan, char ch)
   {
-    if (scan.GetToken() != TOKEN_TYPE(ch)) 
+    if (scan.GetToken() != TOKEN_TYPE(ch))
       scan.Error (string ("token '") + string(1, ch) + string("' expected"));
     scan.ReadNext();
   }
-  
+
   double ParseNumber(CSGScanner & scan)
   {
     if (scan.GetToken() == '-')
@@ -218,7 +218,7 @@ namespace netgen
 
   CSGScanner & operator>> (CSGScanner & scan, char ch)
   {
-    if (scan.GetToken() != TOKEN_TYPE(ch)) 
+    if (scan.GetToken() != TOKEN_TYPE(ch))
       scan.Error (string ("token '") + string(1, ch) + string("' expected"));
     scan.ReadNext();
     return scan;
@@ -252,7 +252,7 @@ namespace netgen
   Solid * ParseSolid (CSGScanner & scan);
   Solid * ParseTerm (CSGScanner & scan);
   Solid * ParsePrimary (CSGScanner & scan);
- 
+
 
   Solid * ParsePrimary (CSGScanner & scan)
   {
@@ -264,7 +264,7 @@ namespace netgen
 	    {
 	      Point<3> p;
 	      Vec<3> v;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> p >> ';' >> v >> ')';
 
@@ -277,7 +277,7 @@ namespace netgen
 	    {
 	      Point<3> pa, pb;
 	      double r;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> pa >> ';' >> pb >> ';' >> r >> ')';
 
@@ -290,7 +290,7 @@ namespace netgen
 	    {
 	      Point<3> pa;
 	      Vec<3> vl, vs;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> pa >> ';' >> vl >> ';' >> vs >> ')';
 
@@ -304,7 +304,7 @@ namespace netgen
 	    {
 	      Point<3> pa;
 	      Vec<3> v1, v2, v3;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> pa >> ';' >> v1 >> ';' >> v2 >> ';' >> v3 >> ')';
 
@@ -318,7 +318,7 @@ namespace netgen
 	    {
 	      Point<3> pa, pb;
 	      double ra, rb;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> pa >> ';' >> ra >> ';' >> pb >> ';' >> rb >> ')';
 
@@ -333,7 +333,7 @@ namespace netgen
 	    {
 	      Point<3> p;
 	      double r;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> p >> ';' >> r >> ')';
 
@@ -345,15 +345,15 @@ namespace netgen
 	  case TOK_ORTHOBRICK:
 	    {
 	      Point<3> pa, pb;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> pa >> ';' >> pb >> ')';
-	      
+
 
 	      Primitive * nprim = new OrthoBrick (pa, pb);
 	      geom->AddSurfaces (nprim);
 	      return new Solid (nprim);
-	    } 
+	    }
 
 	  case TOK_POLYHEDRON:
 	    {
@@ -361,10 +361,10 @@ namespace netgen
 
 	      Point<3> p;
 	      //int pi1, pi2, pi3, pi4;
-	      
+
 	      scan.ReadNext();
 	      ParseChar (scan, '(');
-	      
+
 	      Polyhedra * polyhedron = new Polyhedra;
 
 	      // scanning the points
@@ -390,14 +390,14 @@ namespace netgen
 		  for(int i=0; i<3; i++)
 		    {
 		      pnums.Append((int) (ParseNumber (scan)));
-		      if(i<2) 
+		      if(i<2)
 			ParseChar (scan, ',');
 		    }
 
 		  if (scan.GetToken() == TOK_COMMA)
 		    {
 		      ParseChar (scan, ',');
-		      pnums.Append((int) (ParseNumber (scan)));	
+		      pnums.Append((int) (ParseNumber (scan)));
 		    }
 
 		  for(int i=0; i<pnums.Size(); i++)
@@ -430,8 +430,8 @@ namespace netgen
 			msg << " " << pnums[i];
 		      throw NgException(msg.str());
 		    }
-		  
-		      
+
+
 
 		  if (scan.GetToken() == ')')
 		    {
@@ -455,10 +455,10 @@ namespace netgen
 	      scan >> '(' >> p0 >> ';' >> p1 >> ';';
 
 	      string spline = scan.GetStringValue();
-	      
+
 	      scan.ReadNext();
 	      scan >> ')';
-	      
+
 	      if(!geom->GetSplineCurve2d(spline))
 		{
 		  scan.Error ( string("2D Spline curve not found: ") + spline );
@@ -473,8 +473,8 @@ namespace netgen
 	    }
 
 
-	  case TOK_EXTRUSION: 
-	    {   
+	  case TOK_EXTRUSION:
+	    {
 	      scan.ReadNext();
 	      scan >> '(';
 	      string epath = scan.GetStringValue();
@@ -482,11 +482,11 @@ namespace netgen
 	      scan >> ';';
 	      string profile = scan.GetStringValue();
 
-	      
+
 	      scan.ReadNext();
 	      Vec<3> z_dir;
 	      scan >> ';' >> z_dir(0) >> ',' >> z_dir(1) >> ',' >> z_dir(2) >> ')';
-	      
+
 	      if(!geom->GetSplineCurve2d(profile))
 		{
 		  scan.Error ( string("2D Spline curve not found: ") + profile );
@@ -497,7 +497,7 @@ namespace netgen
 		  scan.Error ( string("2D Spline curve not found: ") + epath );
 		  break;
 		}
-	      
+
 	      Primitive * nprim = new Extrusion(*(geom->GetSplineCurve3d(epath)),
 						*(geom->GetSplineCurve2d(profile)),
 						z_dir);
@@ -506,17 +506,17 @@ namespace netgen
 	    }
 
 
-	  /// Torus 
+	  /// Torus
     	  /// Lorenzo Codecasa (codecasa@elet.polimi.it)
-    	  /// April 27th, 2005 
+    	  /// April 27th, 2005
 	  ///
 	  /// begin...
 	  case TOK_TORUS:
-	    {     
-	      Point<3> pc; 
+	    {
+	      Point<3> pc;
 	      Vec<3> vn;
 	      double R, r;
-	      
+
 	      scan.ReadNext();
 	      scan >> '(' >> pc >> ';' >> vn >> ';' >> R >> ';' >> r >> ')';
 
@@ -529,7 +529,7 @@ namespace netgen
 
 
 
-	  case TOK_TRANSLATE: 
+	  case TOK_TRANSLATE:
 	    {
 	      Vec<3> v;
 	      scan.ReadNext();
@@ -537,7 +537,7 @@ namespace netgen
 	      ParseChar (scan, '(');
 	      v = ParseVector (scan);
 	      ParseChar (scan, ';');
-	      
+
 	      Solid * sol1 = ParseSolid (scan);
 
 	      ParseChar (scan, ')');
@@ -549,7 +549,7 @@ namespace netgen
 	    }
 
 
-	  case TOK_ROTATE: 
+	  case TOK_ROTATE:
 	    {
 	      Point<3> c;
 	      Vec<3> v;
@@ -568,38 +568,38 @@ namespace netgen
 	    }
 
 
-	  case TOK_MULTITRANSLATE: 
+	  case TOK_MULTITRANSLATE:
 	    {
 	      Vec<3> v;
 	      int n;
-	      
+
 	      scan.ReadNext();
 
 	      scan >> '(' >> v >> ';' >> n >> ';';
 
 	      Solid * sol1 = ParseSolid (scan);
-	      
+
 	      scan >> ')';
-	      
+
 	      Solid * hsol = sol1;
 	      for (int i = 1; i <= n; i++)
 		{
 		  Solid * nsol = sol1 -> Copy(*geom);
 		  Transformation<3> trans(double(i) * v);
-		  
+
 		  nsol -> Transform (trans);
-		  hsol = new Solid (Solid::UNION, hsol, nsol); 
+		  hsol = new Solid (Solid::UNION, hsol, nsol);
 		}
 	      return hsol;
 	    }
 
 
-	  case TOK_MULTIROTATE: 
+	  case TOK_MULTIROTATE:
 	    {
 	      Point<3> c;
 	      Vec<3> v;
 	      int n;
-	      
+
 	      scan.ReadNext();
 
 	      scan >> '(' >> c >> ';' >> v >> ';' >> n >> ';';
@@ -616,7 +616,7 @@ namespace netgen
 		  Solid * nsol = sol1 -> Copy(*geom);
 
 		  nsol -> Transform (multi);
-		  hsol = new Solid (Solid::UNION, hsol, nsol); 
+		  hsol = new Solid (Solid::UNION, hsol, nsol);
 
 		  ht=multi;
 		  multi.Combine (trans, ht);
@@ -698,10 +698,10 @@ namespace netgen
     double hd;
     Point<D> x;
     int nump, numseg;
-    
+
     //scan.ReadNext();
     scan >> nump >> ';';
-    
+
     hd = 1;
     spline.geompoints.SetSize(nump);
     for(int i = 0; i<nump; i++)
@@ -710,16 +710,16 @@ namespace netgen
 	  scan >> x(0) >> ',' >> x(1) >> ';';
 	else if(D==3)
 	  scan >> x(0) >> ',' >> x(1) >> ',' >> x(2) >> ';';
-	
+
 	spline.geompoints[i] = GeomPoint<D>(x,hd);
       }
-    
+
     scan >> numseg;// >> ';';
 
     spline.splines.SetSize(numseg);
 
   int pnums,pnum1,pnum2,pnum3;
-    
+
 
   for(int i = 0; i<numseg; i++)
     {
@@ -732,7 +732,7 @@ namespace netgen
 	}
       else if (pnums == 3)
 	{
-	  scan >> pnum1 >> ',' >> pnum2 >> ',' 
+	  scan >> pnum1 >> ',' >> pnum2 >> ','
 	       >> pnum3;// >> ';';
 	  spline.splines[i] = new SplineSeg3<D>(spline.geompoints[pnum1-1],
 						spline.geompoints[pnum2-1],
@@ -740,7 +740,7 @@ namespace netgen
 	}
       else if (pnums == 4)
 	{
-	  scan >> pnum1 >> ',' >> pnum2 >> ',' 
+	  scan >> pnum1 >> ',' >> pnum2 >> ','
 	       >> pnum3;// >> ';';
 	  spline.splines[i] = new CircleSeg<D>(spline.geompoints[pnum1-1],
 					       spline.geompoints[pnum2-1],
@@ -810,7 +810,7 @@ namespace netgen
 		flags.SetFlag (name.c_str(), scan.GetNumValue());
 		scan.ReadNext();
 	      }
-	  }     
+	  }
 	else
 	  {
 	    flags.SetFlag (name.c_str());
@@ -825,7 +825,7 @@ namespace netgen
   CSGeometry * ParseCSG (istream & istr)
   {
     CSGScanner scan(istr);
-    
+
     geom = new CSGeometry;
 
     scan.ReadNext();
@@ -839,7 +839,7 @@ namespace netgen
 	while (1)
 	  {
 	    if (scan.GetToken() == TOK_END) break;
-	    
+
 	    if (scan.GetToken() == TOK_SOLID)
 	      {
 		scan.ReadNext();
@@ -855,11 +855,11 @@ namespace netgen
 		Flags flags;
 		ParseFlags (scan, flags);
 
-		geom->SetSolid (solidname.c_str(), new Solid (Solid::ROOT, solid)); 
-		geom->SetFlags (solidname.c_str(), flags); 
-		
+		geom->SetSolid (solidname.c_str(), new Solid (Solid::ROOT, solid));
+		geom->SetFlags (solidname.c_str(), flags);
+
 		ParseChar (scan, ';');
-		
+
 		PrintMessage (4, "define solid ", solidname);
 	      }
 
@@ -868,7 +868,7 @@ namespace netgen
 	      { // a TopLevelObject definition
 
 		scan.ReadNext();
-		
+
 		string name = scan.GetStringValue();
 		scan.ReadNext();
 
@@ -878,12 +878,12 @@ namespace netgen
 
 		    Flags flags;
 		    ParseFlags (scan, flags);
-		    
+
 		    ParseChar (scan, ';');
 		    if (!geom->GetSolid (name))
 		      scan.Error ("Top-Level-Object "+name+" not defined");
 
-		    int tlonr = 
+		    int tlonr =
 		      geom->SetTopLevelObject ((Solid*)geom->GetSolid(name));
 		    TopLevelObject * tlo = geom->GetTopLevelObject (tlonr);
 
@@ -904,7 +904,7 @@ namespace netgen
 		  }
 
 		else
-		  
+
 		  { // a surface TLO
 
 		    string surfname = scan.GetStringValue();
@@ -912,12 +912,12 @@ namespace netgen
 
 		    Flags flags;
 		    ParseFlags (scan, flags);
-		    
+
 		    ParseChar (scan, ';');
 
 		    Array<int> si;
 		    geom->GetSolid(surfname)->GetSurfaceIndices(si);
-		    int tlonr = 
+		    int tlonr =
 		      geom->SetTopLevelObject ((Solid*)geom->GetSolid(name),
 					       (Surface*)geom->GetSurface(si.Get(1)));
 		    TopLevelObject * tlo = geom->GetTopLevelObject (tlonr);
@@ -937,30 +937,30 @@ namespace netgen
 		      tlo->SetBCName ( flags.GetStringFlag ("bcname", "default") );
 		  }
 	      }
-	    
+
 	    else if (scan.GetToken() == TOK_IDENTIFY)
 
 	      {
-		
+
 		scan.ReadNext();
 		switch (scan.GetToken())
 		  {
 		  case TOK_CLOSESURFACES:
 		    {
 		      scan.ReadNext();
-		      
+
 		      string name1 = scan.GetStringValue();
 		      scan.ReadNext();
-		      
+
 		      string name2 = scan.GetStringValue();
 		      scan.ReadNext();
 
 		      Flags flags;
 		      ParseFlags (scan, flags);
-		      
+
 		      ParseChar (scan, ';');
-		      
-		      
+
+
 		      Array<int> si1, si2;
 		      geom->GetSolid(name1)->GetSurfaceIndices(si1);
 		      geom->GetSolid(name2)->GetSurfaceIndices(si2);
@@ -968,26 +968,26 @@ namespace netgen
 		      const TopLevelObject * domain = 0;
 		      if (flags.StringFlagDefined ("tlo"))
 			{
-			  domain = 
+			  domain =
 			    geom->GetTopLevelObject (geom->GetSolid(flags.GetStringFlag ("tlo","")));
-			  if (!domain) 
+			  if (!domain)
 			    scan.Error ("identification needs undefined tlo");
 			}
 
-		      geom->AddIdentification 
-			(new CloseSurfaceIdentification 
-			 (geom->GetNIdentifications()+1, *geom, 
+		      geom->AddIdentification
+			(new CloseSurfaceIdentification
+			 (geom->GetNIdentifications()+1, *geom,
 			  geom->GetSurface (si1[0]), geom->GetSurface (si2[0]),
 			  domain,
 			  flags));
 
 		      break;
 		    }
-		    
+
 		  case TOK_PERIODIC:
 		    {
 		      scan.ReadNext();
-		      
+
 		      string name1 = scan.GetStringValue();
 		      scan.ReadNext();
 
@@ -996,13 +996,13 @@ namespace netgen
 
 		      ParseChar (scan, ';');
 
-		      
+
 		      Array<int> si1, si2;
 		      geom->GetSolid(name1)->GetSurfaceIndices(si1);
 		      geom->GetSolid(name2)->GetSurfaceIndices(si2);
-		      
-		      geom->AddIdentification 
-			(new PeriodicIdentification 
+
+		      geom->AddIdentification
+			(new PeriodicIdentification
 			 (geom->GetNIdentifications()+1,
 			  *geom,
 			  geom->GetSurface (si1.Get(1)),
@@ -1013,34 +1013,34 @@ namespace netgen
 		  default:
 		    scan.Error ("keyword 'closesurfaces' or 'periodic' expected");
 		  }
-		
+
 	      }
 
 	    else if (scan.GetToken() == TOK_SINGULAR)
 
 	      {
-		
+
 		scan.ReadNext();
 		switch (scan.GetToken())
 		  {
 		  case TOK_FACE:
 		    {
 		      scan.ReadNext();
-		      
+
 		      string name1 = scan.GetStringValue();  // tlo
 		      scan.ReadNext();
-		      
+
 		      string name2 = scan.GetStringValue();
 		      scan.ReadNext();
-		      
+
 		      Flags flags;
 		      ParseFlags (scan, flags);
-		      int factor = int(flags.GetNumFlag("factor",1)); 
-		      // cout << "Singular Face with factor " << factor << endl; 
+		      int factor = int(flags.GetNumFlag("factor",1));
+		      // cout << "Singular Face with factor " << factor << endl;
 		      PrintMessageCR (3, "Singular Face  with factor ", factor);
 
 		      ParseChar (scan, ';');
-		      
+
 		      const Solid * sol = geom->GetSolid(name2);
 
 		      if(!sol)
@@ -1056,19 +1056,19 @@ namespace netgen
 		  case TOK_EDGE:
 		    {
 		      scan.ReadNext();
-		      
+
 		      string name1 = scan.GetStringValue();
 		      scan.ReadNext();
-		      
+
 		      string name2 = scan.GetStringValue();
 		      scan.ReadNext();
-		      
+
 		      Flags flags;
 		      ParseFlags (scan, flags);
 		      int factor = int(flags.GetNumFlag("factor",1));
 		      double maxhinit = flags.GetNumFlag("maxh",-1);
 		      ParseChar (scan, ';');
-		      
+
 		      const Solid * s1 = geom->GetSolid(name1);
 		      const Solid * s2 = geom->GetSolid(name2);
 		      PrintMessageCR (3, "Singular Edge  with factor ", factor);
@@ -1078,18 +1078,18 @@ namespace netgen
 			{
 			  const Solid * sol =
 			    geom->GetSolid(flags.GetStringFlag ("tlo",""));
-			  
+
 			  for (int i = 0; i < geom->GetNTopLevelObjects(); i++)
 			    if (geom->GetTopLevelObject(i)->GetSolid() == sol)
 			      domnr = i;
-			  
+
 			  // cout << "domnr = " << domnr;
 			}
 
 		      if(!s1 || !s2)
 			scan.Error ("unknown solid ins singular edge definition");
 		      else
-			geom->singedges.Append (new SingularEdge (1, domnr, 
+			geom->singedges.Append (new SingularEdge (1, domnr,
 								  *geom, s1, s2, factor,
 								  maxhinit));
 		      break;
@@ -1098,23 +1098,23 @@ namespace netgen
 		  case TOK_POINT:
 		    {
 		      scan.ReadNext();
-		      
+
 		      string name1 = scan.GetStringValue();
 		      scan.ReadNext();
 		      string name2 = scan.GetStringValue();
 		      scan.ReadNext();
 		      string name3 = scan.GetStringValue();
 		      scan.ReadNext();
-		      
+
 		      Flags flags;
 		      ParseFlags (scan, flags);
-		      int factor = int(flags.GetNumFlag("factor",1)); 
+		      int factor = int(flags.GetNumFlag("factor",1));
 		      ParseChar (scan, ';');
-		      
+
 		      const Solid * s1 = geom->GetSolid(name1);
 		      const Solid * s2 = geom->GetSolid(name2);
 		      const Solid * s3 = geom->GetSolid(name3);
-		      // cout << "Singular Point with factor " << factor << endl; 
+		      // cout << "Singular Point with factor " << factor << endl;
 		      PrintMessageCR (3, "Singular Point  with factor ", factor);
 		      geom->singpoints.Append (new SingularPoint (1, s1, s2, s3, factor));
 		      break;
@@ -1124,7 +1124,7 @@ namespace netgen
 		  }
 	      }
 
-	    
+
 	    else if (scan.GetToken() == TOK_POINT)
 	      {
 		Point<3> p;
@@ -1137,7 +1137,7 @@ namespace netgen
 
 		Flags flags;
 		ParseFlags (scan, flags);
-		int factor = int(flags.GetNumFlag("factor",0)); 
+		int factor = int(flags.GetNumFlag("factor",0));
 
 		ParseChar (scan, ';');
 
@@ -1147,7 +1147,7 @@ namespace netgen
 	    else if (scan.GetToken() == TOK_BOUNDINGBOX)
 	      {
 		Point<3> p1, p2;
-		
+
 		scan.ReadNext();
 		ParseChar (scan, '(');
 		p1 = Point<3> (ParseVector (scan));
@@ -1163,7 +1163,7 @@ namespace netgen
 	      {
 		scan.ReadNext();
 
-		
+
 		if (scan.GetToken() != TOK_STRING)
 		  scan.Error ("name identifier expected");
 		string curvename = scan.GetStringValue();
@@ -1172,7 +1172,7 @@ namespace netgen
 
 		ParseChar (scan, '=');
 		ParseChar (scan, '(');
-		
+
 		SplineGeometry<2> * newspline = new SplineGeometry<2>;
 		// newspline->CSGLoad(scan);
 		LoadSpline (*newspline, scan);
@@ -1189,7 +1189,7 @@ namespace netgen
 	      {
 		scan.ReadNext();
 
-		
+
 		if (scan.GetToken() != TOK_STRING)
 		  scan.Error ("name identifier expected");
 		string curvename = scan.GetStringValue();
@@ -1198,7 +1198,7 @@ namespace netgen
 
 		ParseChar (scan, '=');
 		ParseChar (scan, '(');
-		
+
 		SplineGeometry<3> * newspline = new SplineGeometry<3>;
 		// newspline->CSGLoad(scan);
 		LoadSpline (*newspline, scan);
@@ -1214,13 +1214,13 @@ namespace netgen
 	    else if (scan.GetToken() == TOK_BOUNDARYCONDITION)
 	      {
 		scan.ReadNext();
-		
+
 		string name1 = scan.GetStringValue();
 		scan.ReadNext();
-		
+
 		string name2 = scan.GetStringValue();
 		scan.ReadNext();
-		
+
 		int num = int (ParseNumber (scan));
 		ParseChar (scan, ';');
 
@@ -1228,16 +1228,16 @@ namespace netgen
 		CSGeometry::BCModification bcm;
 		bcm.bcname = NULL;
 		Array<int> si;
-		
+
 		geom->GetSolid(name1)->GetSurfaceIndices(si);
 		if(si.Size() == 0)
 		  {
 		    string errstring = "solid \""; errstring += name1; errstring += "\" has no surfaces";
 		    scan.Error (errstring);
 		  }
-	
+
 		bcm.tlonr = -1;
-		int i;	
+		int i;
 		for (i = 0; i < geom->GetNTopLevelObjects(); i++)
 		  if (string (geom->GetTopLevelObject(i)->GetSolid()->Name())
 		      == name2)
@@ -1250,8 +1250,8 @@ namespace netgen
 		    string errstring = "tlo \""; errstring += name2; errstring += "\" not found";
 		    scan.Error(errstring);
 		  }
-		
-		
+
+
 		bcm.bcnr = num;
 		for (i = 0; i < si.Size(); i++)
 		  {
@@ -1259,37 +1259,37 @@ namespace netgen
 		    geom->bcmodifications.Append (bcm);
 		  }
 	      }
-	    
+
 	    else if (scan.GetToken() == TOK_BOUNDARYCONDITIONNAME)
 	      {
 		scan.ReadNext();
-		
+
 		string name1 = scan.GetStringValue();
 		scan.ReadNext();
-		
+
 		string name2 = scan.GetStringValue();
 		scan.ReadNext();
 
 		string bcname = scan.GetStringValue();
 		scan.ReadNext();
 		ParseChar(scan, ';');
-		
+
 
 		CSGeometry::BCModification bcm;
 		bcm.bcname = NULL;
 
 
 		Array<int> si;
-		
+
 		geom->GetSolid(name1)->GetSurfaceIndices(si);
 		if(si.Size() == 0)
 		  {
 		    string errstring = "solid \""; errstring += name1; errstring += "\" has no surfaces";
 		    scan.Error (errstring);
 		  }
-	
+
 		bcm.tlonr = -1;
-		int i;	
+		int i;
 		for (i = 0; i < geom->GetNTopLevelObjects(); i++)
 		  if (string (geom->GetTopLevelObject(i)->GetSolid()->Name())
 		      == name2)
@@ -1302,8 +1302,8 @@ namespace netgen
 		    string errstring = "tlo \""; errstring += name2; errstring += "\" not found";
 		    scan.Error(errstring);
 		  }
-		
-		
+
+
 		bcm.bcnr = -1;
 		for (i = 0; i < si.Size(); i++)
 		  {
@@ -1312,18 +1312,18 @@ namespace netgen
 		    geom->bcmodifications.Last().bcname = new string(bcname);
 		  }
 	      }
-	    
+
 	    else if (scan.GetToken() == TOK_DEFINE)
 	      {
 		scan.ReadNext();
 		string name;
 		double val;
-		
+
 		switch (scan.GetToken())
 		  {
 		  case TOK_CONSTANT:
 		    scan.ReadNext();
-		      
+
 		    name = scan.GetStringValue();
 		    scan.ReadNext();
 
@@ -1332,8 +1332,8 @@ namespace netgen
 
 		    if(name == "identprec")
 		      geom->SetIdEps(val);
-		    
-		    
+
+
 
 		    break;
 		  default:
@@ -1344,7 +1344,7 @@ namespace netgen
 
 	    else
 	      {
-		cout << "read unidentified token " << scan.GetToken() 
+		cout << "read unidentified token " << scan.GetToken()
 		     << " (as char: \"" << char(scan.GetToken()) << "\")"
 		     << " string = " << scan.GetStringValue() << endl;
 		scan.ReadNext();
@@ -1386,5 +1386,5 @@ namespace netgen
   }
 
 
-};
+}
 

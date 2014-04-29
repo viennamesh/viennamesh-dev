@@ -16,10 +16,10 @@ MeshingStat3d :: MeshingStat3d ()
   cntsucc = cnttrials = cntelem = qualclass = 0;
   vol0 = h = 1;
   problemindex = 1;
-}  
-  
+}
 
-Meshing3 :: Meshing3 (const string & rulefilename) 
+
+Meshing3 :: Meshing3 (const string & rulefilename)
 {
   tolfak = 1;
 
@@ -74,76 +74,76 @@ Meshing3 :: ~Meshing3 ()
 
 
 
-static double CalcLocH (const Array<Point3d> & locpoints,
-			const Array<MiniElement2d> & locfaces,
-			double h)
-{
-  return h;
-
-  // was war das ????
-  
-  int i, j;
-  double hi, h1, d, dn, sum, weight, wi;
-  Point3d p0, pc;
-  Vec3d n, v1, v2;
-
-  p0.X() = p0.Y() = p0.Z() = 0;
-  for (j = 1; j <= 3; j++)
-    {
-      p0.X() += locpoints.Get(locfaces.Get(1).PNum(j)).X();
-      p0.Y() += locpoints.Get(locfaces.Get(1).PNum(j)).Y();
-      p0.Z() += locpoints.Get(locfaces.Get(1).PNum(j)).Z();
-    }
-  p0.X() /= 3; p0.Y() /= 3; p0.Z() /= 3;
-  
-  v1 = locpoints.Get(locfaces.Get(1).PNum(2)) -
-    locpoints.Get(locfaces.Get(1).PNum(1));
-  v2 = locpoints.Get(locfaces.Get(1).PNum(3)) -
-    locpoints.Get(locfaces.Get(1).PNum(1));
-
-  h1 = v1.Length();
-  n = Cross (v2, v1);
-  n /= n.Length();
-
-  sum = 0;
-  weight = 0;
-
-  for (i = 1; i <= locfaces.Size(); i++)
-    {
-      pc.X() = pc.Y() = pc.Z() = 0;
-      for (j = 1; j <= 3; j++)
-	{
-	  pc.X() += locpoints.Get(locfaces.Get(i).PNum(j)).X();
-	  pc.Y() += locpoints.Get(locfaces.Get(i).PNum(j)).Y();
-	  pc.Z() += locpoints.Get(locfaces.Get(i).PNum(j)).Z();
-	}
-      pc.X() /= 3; pc.Y() /= 3; pc.Z() /= 3;
-
-      d = Dist (p0, pc);
-      dn = n * (pc - p0);
-      hi = Dist (locpoints.Get(locfaces.Get(i).PNum(1)),
-		 locpoints.Get(locfaces.Get(i).PNum(2)));
-		 
-      if (dn > -0.2 * h1)
-	{
-	  wi = 1 / (h1 + d);
-	  wi *= wi;
-	}
-      else
-	wi = 0;
-
-      sum += hi * wi;
-      weight += wi;
-    }
-
-  return sum/weight;
-}
+// static double CalcLocH (const Array<Point3d> & locpoints,
+// 			const Array<MiniElement2d> & locfaces,
+// 			double h)
+// {
+//   return h;
+//
+//   // was war das ????
+//
+//   int i, j;
+//   double hi, h1, d, dn, sum, weight, wi;
+//   Point3d p0, pc;
+//   Vec3d n, v1, v2;
+//
+//   p0.X() = p0.Y() = p0.Z() = 0;
+//   for (j = 1; j <= 3; j++)
+//     {
+//       p0.X() += locpoints.Get(locfaces.Get(1).PNum(j)).X();
+//       p0.Y() += locpoints.Get(locfaces.Get(1).PNum(j)).Y();
+//       p0.Z() += locpoints.Get(locfaces.Get(1).PNum(j)).Z();
+//     }
+//   p0.X() /= 3; p0.Y() /= 3; p0.Z() /= 3;
+//
+//   v1 = locpoints.Get(locfaces.Get(1).PNum(2)) -
+//     locpoints.Get(locfaces.Get(1).PNum(1));
+//   v2 = locpoints.Get(locfaces.Get(1).PNum(3)) -
+//     locpoints.Get(locfaces.Get(1).PNum(1));
+//
+//   h1 = v1.Length();
+//   n = Cross (v2, v1);
+//   n /= n.Length();
+//
+//   sum = 0;
+//   weight = 0;
+//
+//   for (i = 1; i <= locfaces.Size(); i++)
+//     {
+//       pc.X() = pc.Y() = pc.Z() = 0;
+//       for (j = 1; j <= 3; j++)
+// 	{
+// 	  pc.X() += locpoints.Get(locfaces.Get(i).PNum(j)).X();
+// 	  pc.Y() += locpoints.Get(locfaces.Get(i).PNum(j)).Y();
+// 	  pc.Z() += locpoints.Get(locfaces.Get(i).PNum(j)).Z();
+// 	}
+//       pc.X() /= 3; pc.Y() /= 3; pc.Z() /= 3;
+//
+//       d = Dist (p0, pc);
+//       dn = n * (pc - p0);
+//       hi = Dist (locpoints.Get(locfaces.Get(i).PNum(1)),
+// 		 locpoints.Get(locfaces.Get(i).PNum(2)));
+//
+//       if (dn > -0.2 * h1)
+// 	{
+// 	  wi = 1 / (h1 + d);
+// 	  wi *= wi;
+// 	}
+//       else
+// 	wi = 0;
+//
+//       sum += hi * wi;
+//       weight += wi;
+//     }
+//
+//   return sum/weight;
+// }
 
 
 PointIndex Meshing3 :: AddPoint (const Point3d & p, PointIndex globind)
 {
-  return adfront -> AddPoint (p, globind);  
-}  
+  return adfront -> AddPoint (p, globind);
+}
 
 void Meshing3 :: AddBoundaryElement (const Element2d & elem)
 {
@@ -151,7 +151,7 @@ void Meshing3 :: AddBoundaryElement (const Element2d & elem)
   for (int j = 0; j < elem.GetNP(); j++)
     mini[j] = elem[j];
   adfront -> AddFace(mini);
-}  
+}
 
 
 void Meshing3 :: AddBoundaryElement (const MiniElement2d & elem)
@@ -164,7 +164,7 @@ int Meshing3 :: AddConnectedPair (const INDEX_2 & apair)
   return adfront -> AddConnectedPair (apair);
 }
 
-MESHING3_RESULT Meshing3 :: 
+MESHING3_RESULT Meshing3 ::
 GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 {
   static int meshing3_timer = NgProfiler::CreateTimer ("Meshing3::GenerateMesh");
@@ -194,29 +194,29 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
   float err;
 
   INDEX locfacesplit;             //index for faces in outer area
-  
+
   bool loktestmode = false;
 
   int uselocalh = mp.uselocalh;
 
-  // int giveuptol = mp.giveuptol; // 
+  // int giveuptol = mp.giveuptol; //
   MeshingStat3d stat;      // statistics
   int plotstat_oldne = -1;
 
-  
+
   // for star-shaped domain meshing
-  Array<MeshPoint> grouppoints;      
+  Array<MeshPoint> grouppoints;
   Array<MiniElement2d> groupfaces;
   Array<PointIndex> grouppindex;
   Array<INDEX> groupfindex;
-  
-  
+
+
   float minerr;
   int hasfound;
   double tetvol;
   // int giveup = 0;
 
-  
+
   Array<Point3d> tempnewpoints;
   Array<MiniElement2d> tempnewfaces;
   Array<int> tempdelfaces;
@@ -244,7 +244,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	break;
 
       // break, if advancing front has no elements with
-      // mp.baseelnp nodes  
+      // mp.baseelnp nodes
       if (mp.baseelnp && adfront->Empty (mp.baseelnp))
 	break;
 
@@ -255,7 +255,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
       findex.SetSize(0);
 
       INDEX_2_HASHTABLE<int> connectedpairs(100);  // connected pairs for prism meshing
-      
+
       // select base-element (will be locface[1])
       // and get local environment of radius (safety * h)
 
@@ -263,7 +263,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
       int baseelem = adfront -> SelectBaseElement ();
       if (mp.baseelnp && adfront->GetFace (baseelem).GetNP() != mp.baseelnp)
 	{
-	  adfront->IncrementClass (baseelem);	  
+	  adfront->IncrementClass (baseelem);
 	  continue;
 	}
 
@@ -286,14 +286,14 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	hshould = max2 (his, hshould);
 
       double hmax = (his > hshould) ? his : hshould;
-      
+
       // qualclass should come from baseelem !!!!!
       double hinner = hmax * (1 + stat.qualclass);
       double houter = hmax * (1 + 2 * stat.qualclass);
 
       NgProfiler::StartTimer (meshing3_timer_a);
       stat.qualclass =
-        adfront -> GetLocals (baseelem, locpoints, locfaces, 
+        adfront -> GetLocals (baseelem, locpoints, locfaces,
 			      pindex, findex, connectedpairs,
 			      houter, hinner,
 			      locfacesplit);
@@ -306,11 +306,11 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
       int pi3 = pindex.Get(locfaces[0].PNum(3));
 
       //loktestmode = 1;
-      testmode = loktestmode;  //changed 
+      testmode = loktestmode;  //changed
       // loktestmode = testmode =  (adfront->GetFace (baseelem).GetNP() == 4) && (rules.Size() == 5);
 
       loktestmode = stat.qualclass > 5;
-      
+
 
       if (loktestmode)
 	{
@@ -332,7 +332,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 
 
       // loch = CalcLocH (locpoints, locfaces, h);
-      
+
       stat.nff = adfront->GetNF();
       stat.vol = adfront->Volume();
       if (stat.vol < 0) break;
@@ -352,9 +352,9 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	allowpoint = 2;
 
 
-      
+
       if (stat.qualclass >= mp.starshapeclass &&
-	  mp.baseelnp != 4)   
+	  mp.baseelnp != 4)
 	{
 	  NgProfiler::RegionTimer reg1 (meshing3_timer_b);
 	  // star-shaped domain removing
@@ -363,15 +363,15 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	  groupfaces.SetSize (0);
 	  grouppindex.SetSize (0);
 	  groupfindex.SetSize (0);
-	  
-	  adfront -> GetGroup (findex[0], grouppoints, groupfaces, 
+
+	  adfront -> GetGroup (findex[0], grouppoints, groupfaces,
 			       grouppindex, groupfindex);
 
 	  bool onlytri = 1;
 	  for (i = 0; i < groupfaces.Size(); i++)
-	    if (groupfaces[i].GetNP() != 3) 
+	    if (groupfaces[i].GetNP() != 3)
 	      onlytri = 0;
-	  
+
 	  if (onlytri && groupfaces.Size() <= 20 + 2*stat.qualclass &&
 	      FindInnerPoint (grouppoints, groupfaces, inp))
 	    {
@@ -379,28 +379,28 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 
 	      for (i = 1; i <= groupfaces.Size(); i++)
 		adfront -> DeleteFace (groupfindex.Get(i));
-	      
+
 	      for (i = 1; i <= groupfaces.Size(); i++)
 		for (j = 1; j <= locfaces.Size(); j++)
 		  if (findex.Get(j) == groupfindex.Get(i))
 		    delfaces.Append (j);
-	      
-	      
+
+
 	      delfaces.SetSize (0);
-	      
+
 	      INDEX npi;
 	      Element newel;
-	      
+
 	      npi = mesh.AddPoint (inp);
 	      newel.SetNP(4);
 	      newel.PNum(4) = npi;
-	      
+
 	      for (i = 1; i <= groupfaces.Size(); i++)
 		{
 		  for (j = 1; j <= 3; j++)
 		    {
-		      newel.PNum(j) = 
-			adfront->GetGlobalIndex 
+		      newel.PNum(j) =
+			adfront->GetGlobalIndex
 			(grouppindex.Get(groupfaces.Get(i).PNum(j)));
 		    }
 		  mesh.AddVolumeElement (newel);
@@ -408,7 +408,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	      continue;
 	    }
 	}
-      
+
       found = 0;
       hasfound = 0;
       minerr = 1e6;
@@ -425,8 +425,8 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	}
       for (i = 1; i <= locpoints.Size(); i++)
 	{
-	  (*testout) << "p" << i 
-		     << ", gi = " << pindex.Get(i) 
+	  (*testout) << "p" << i
+		     << ", gi = " << pindex.Get(i)
 		     << " = " << locpoints.Get(i) << endl;
 	}
 	*/
@@ -474,30 +474,30 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	      (*testout) << "\n";
 	      for (i = 1; i <= canuse.Size(); i++)
 	      {
-		(*testout) << foundmap.Get(i) << "/" 
+		(*testout) << foundmap.Get(i) << "/"
 			   << canuse.Get(i) << "/"
 			   << ruleused.Get(i) << " map/can/use rule " << rules.Get(i)->Name() << "\n";
 	      }
 	      (*testout) << endl;
 	    }
 
-	  NgProfiler::StartTimer (meshing3_timer_c);	  
+	  NgProfiler::StartTimer (meshing3_timer_c);
 
-	  found = ApplyRules (plainpoints, allowpoint, 
+	  found = ApplyRules (plainpoints, allowpoint,
 			      locfaces, locfacesplit, connectedpairs,
-			      locelements, delfaces, 
+			      locelements, delfaces,
 			      stat.qualclass, mp.sloppy, rotind, err);
 
 	  if (found >= 0) impossible = 0;
 	  if (found < 0) found = 0;
 
 
-	  NgProfiler::StopTimer (meshing3_timer_c);	  
+	  NgProfiler::StopTimer (meshing3_timer_c);
 
 	  if (!found) loktestmode = 0;
 
-	  NgProfiler::RegionTimer reg2 (meshing3_timer_d);	  
-	  
+	  NgProfiler::RegionTimer reg2 (meshing3_timer_d);
+
 	  if (loktestmode)
 	    {
 	      (*testout) << "plainpoints = " << endl << plainpoints << endl;
@@ -509,7 +509,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	  locpoints.SetSize (plainpoints.Size());
 	  for (i = oldnp+1; i <= plainpoints.Size(); i++)
 	    trans.FromPlain (plainpoints.Elem(i), locpoints.Elem(i));
-	  
+
 
 
 	  // avoid meshing from large to small mesh-size
@@ -547,7 +547,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 
 
 	  // plotstat->Plot(stat);
-	  
+
 	  if (stat.cntelem != plotstat_oldne)
 	    {
 	      plotstat_oldne = stat.cntelem;
@@ -556,14 +556,14 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 			      //	    << " trials: " << stat.cnttrials
 			      " faces: ", stat.nff,
 			      " vol = ", float(100 * stat.vol / stat.vol0));
-  
+
 	      multithread.percent = 100 -  100.0 * stat.vol / stat.vol0;
 	    }
 
 
 	  if (found && (!hasfound || err < minerr) )
 	    {
-	      
+
 	      if (testmode)
 		{
 		  (*testout) << "found is active, 3" << endl;
@@ -577,24 +577,24 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 		      (*testout) << plainpoints.Get(i) << endl;
 		    }
 		}
-	      
-	      
-	      
+
+
+
 	      hasfound = found;
 	      minerr = err;
-	      
+
 	      tempnewpoints.SetSize (0);
 	      for (i = oldnp+1; i <= locpoints.Size(); i++)
 		tempnewpoints.Append (locpoints.Get(i));
-	      
+
 	      tempnewfaces.SetSize (0);
 	      for (i = oldnf+1; i <= locfaces.Size(); i++)
 		tempnewfaces.Append (locfaces.Get(i));
-	      
+
 	      tempdelfaces.SetSize (0);
 	      for (i = 1; i <= delfaces.Size(); i++)
 		tempdelfaces.Append (delfaces.Get(i));
-	      
+
 	      templocelements.SetSize (0);
 	      for (i = 1; i <= locelements.Size(); i++)
 		templocelements.Append (locelements.Get(i));
@@ -604,14 +604,14 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 		strcmp (problems[found], "other") == 0;
 	      */
 	    }
-	  
+
 	  locpoints.SetSize (oldnp);
 	  locfaces.SetSize (oldnf);
 	  delfaces.SetSize (0);
 	  locelements.SetSize (0);
 	}
-      
-      
+
+
 
       if (hasfound)
 	{
@@ -667,7 +667,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	      hp2 = &locpoints.Elem(locelements.Get(i).PNum(2));
 	      hp3 = &locpoints.Elem(locelements.Get(i).PNum(3));
 	      hp4 = &locpoints.Elem(locelements.Get(i).PNum(4));
-	      
+
 	      tetvol += (1.0 / 6.0) * ( Cross ( *hp2 - *hp1, *hp3 - *hp1) * (*hp4 - *hp1) );
 
 	      for (j = 1; j <= locelements.Get(i).NP(); j++)
@@ -681,12 +681,12 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
 	  for (i = oldnf+1; i <= locfaces.Size(); i++)
 	    {
 	      for (j = 1; j <= locfaces.Get(i).GetNP(); j++)
-		locfaces.Elem(i).PNum(j) = 
+		locfaces.Elem(i).PNum(j) =
 		  pindex.Get(locfaces.Get(i).PNum(j));
 	      // (*testout) << "add face " << locfaces.Get(i) << endl;
 	      adfront->AddFace (locfaces.Get(i));
 	    }
-	  
+
 	  for (i = 1; i <= delfaces.Size(); i++)
 	    adfront->DeleteFace (findex.Get(delfaces.Get(i)));
 	}
@@ -708,7 +708,7 @@ GenerateMesh (Mesh & mesh, const MeshingParameters & mp)
       if (stat.qualclass >= mp.giveuptol)
 	break;
     }
-  
+
   PrintMessage (5, "");  // line feed after statistics
 
   for (i = 1; i <= ruleused.Size(); i++)
@@ -743,7 +743,7 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
   double xmin(0), xmax(0), ymin(0), ymax(0), zmin(0), zmax(0);
   double xminb, xmaxb, yminb, ymaxb, zminb, zmaxb;
   //double rad = 0.7 * gh;
-  
+
   for (i = 1; i <= adfront->GetNP(); i++)
     {
       const Point3d & p = adfront->GetPoint(PointIndex(i));
@@ -763,16 +763,16 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 	  if (p.Z() > zmax) zmax = p.Z();
 	}
     }
-  
+
   xmin -= 5 * gh;
   ymin -= 5 * gh;
   zmin -= 5 * gh;
-  
+
   n1 = int ((xmax-xmin) / gh + 5);
   n2 = int ((ymax-ymin) / gh + 5);
   n3 = int ((zmax-zmin) / gh + 5);
   n = n1 * n2 * n3;
-  
+
   PrintMessage (5, "n1 = ", n1, " n2 = ", n2, " n3 = ", n3);
 
   Array<blocktyp> inner(n);
@@ -806,7 +806,7 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 	  if (p.Z() > zmaxb) zmaxb = p.Z();
 	}
 
-	
+
 
       double filldist = 0.2; // globflags.GetNumFlag ("filldist", 0.4);
       xminb -= filldist * gh;
@@ -827,10 +827,10 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
       for (i1 = min1; i1 <= max1; i1++)
 	for (i2 = min2; i2 <= max2; i2++)
 	  for (i3 = min3; i3 <= max3; i3++)
-	    inner.Elem(i3 + (i2-1) * n3 + (i1-1) * n2 * n3) = BLOCKBOUND;      
+	    inner.Elem(i3 + (i2-1) * n3 + (i1-1) * n2 * n3) = BLOCKBOUND;
     }
 
-  
+
 
 
   while (1)
@@ -851,12 +851,12 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 		  undefp.Z() = zmin + (i3-0.5) * gh;
 		}
 	    }
-	      
+
       if (!undefi)
 	break;
 
       //      PrintMessage (5, "Test point: ", undefp);
-      
+
       if (adfront -> Inside (undefp))
 	{
 	  //	  (*mycout) << "inner" << endl;
@@ -885,7 +885,7 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 			case 2: j = i + n3; break;
 			case 3: j = i + 1; break;
 			}
-		  
+
 		      if (j > n1 * n2 * n3) continue;
 
 		      if (inner.Elem(i) == BLOCKOUTER && inner.Elem(j) == BLOCKUNDEF)
@@ -911,7 +911,7 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 		    }
 		}
 	}
-      while (changed); 
+      while (changed);
 
     }
 
@@ -930,7 +930,7 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
       pointnr.Elem(i) = 0;
       frontpointnr.Elem(i) = 0;
     }
-  
+
   for (i1 = 1; i1 <= n1-1; i1++)
     for (i2 = 1; i2 <= n2-1; i2++)
       for (i3 = 1; i3 <= n3-1; i3++)
@@ -945,8 +945,8 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 		      j = j3 + (j2-1) * n3 + (j1-1) * n2 * n3;
 		      if (pointnr.Get(j) == 0)
 			{
-			  Point3d hp(xmin + (j1-1) * gh, 
-				     ymin + (j2-1) * gh, 
+			  Point3d hp(xmin + (j1-1) * gh,
+				     ymin + (j2-1) * gh,
 				     zmin + (j3-1) * gh);
 			  pointnr.Elem(j) = mesh.AddPoint (hp);
 			  frontpointnr.Elem(j) =
@@ -1002,7 +1002,7 @@ void Meshing3 :: BlockFill (Mesh & mesh, double gh)
 	{
 	  i = i3 + (i2-1) * n3 + (i1-1) * n2 * n3;
 	  if (inner.Elem(i) == BLOCKINNER)
-	    {    
+	    {
 	      int pi1(0), pi2(0), pi3(0), pi4(0);
 
 	      int pn1 = frontpointnr.Get(i);
@@ -1096,7 +1096,7 @@ static int TestSameSide (const Point3d & p1, const Point3d & p2)
 
 
 
-void Meshing3 :: BlockFillLocalH (Mesh & mesh, 
+void Meshing3 :: BlockFillLocalH (Mesh & mesh,
 				  const MeshingParameters & mp)
 {
   double filldist = mp.filldist;
@@ -1107,7 +1107,7 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
 
 
   Array<Point<3> > npoints;
-  
+
   adfront -> CreateTrees();
 
   Box<3> bbox ( Box<3>::EMPTY_BOX );
@@ -1132,8 +1132,8 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
   Point3d mpmin = bbox.PMin();
   Point3d mpmax = bbox.PMax();
   Point3d mpc = Center (mpmin, mpmax);
-  double d = max3(mpmax.X()-mpmin.X(), 
-		  mpmax.Y()-mpmin.Y(), 
+  double d = max3(mpmax.X()-mpmin.X(),
+		  mpmax.Y()-mpmin.Y(),
 		  mpmax.Z()-mpmin.Z()) / 2;
   mpmin = mpc - Vec3d (d, d, d);
   mpmax = mpc + Vec3d (d, d, d);
@@ -1144,14 +1144,14 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
   if (mp.maxh < maxh) maxh = mp.maxh;
 
   bool changed;
-  do 
+  do
     {
       mesh.LocalHFunction().ClearFlags();
 
       for (int i = 1; i <= adfront->GetNF(); i++)
 	{
 	  const MiniElement2d & el = adfront->GetFace(i);
-	  
+
 	  Box<3> bbox (adfront->GetPoint (el[0]));
 	  bbox.Add (adfront->GetPoint (el[1]));
 	  bbox.Add (adfront->GetPoint (el[2]));
@@ -1159,7 +1159,7 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
 
 	  double filld = filldist * bbox.Diam();
 	  bbox.Increase (filld);
-      
+
       	  mesh.LocalHFunction().CutBoundary (bbox); // .PMin(), bbox.PMax());
 	}
 
@@ -1203,10 +1203,10 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
 	}
     }
 
-  
+
 
   // find outer points
-  
+
   loch2.ClearFlags();
 
   for (int i = 1; i <= adfront->GetNF(); i++)
@@ -1214,14 +1214,14 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
       const MiniElement2d & el = adfront->GetFace(i);
       Point3d pmin = adfront->GetPoint (el.PNum(1));
       Point3d pmax = pmin;
-      
+
       for (int j = 2; j <= 3; j++)
 	{
 	  const Point3d & p = adfront->GetPoint (el.PNum(j));
 	  pmin.SetToMin (p);
 	  pmax.SetToMax (p);
 	}
-      
+
       loch2.SetH (Center (pmin, pmax), Dist (pmin, pmax));
     }
 
@@ -1230,14 +1230,14 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
       const MiniElement2d & el = adfront->GetFace(i);
       Point3d pmin = adfront->GetPoint (el.PNum(1));
       Point3d pmax = pmin;
-      
+
       for (int j = 2; j <= 3; j++)
 	{
 	  const Point3d & p = adfront->GetPoint (el.PNum(j));
 	  pmin.SetToMin (p);
 	  pmax.SetToMax (p);
 	}
-      
+
       double filld = filldist * Dist (pmin, pmax);
       pmin = pmin - Vec3d (filld, filld, filld);
       pmax = pmax + Vec3d (filld, filld, filld);
@@ -1250,7 +1250,7 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
 
   npoints.SetSize(0);
   loch2.GetOuterPoints (npoints);
-  
+
   for (int i = 1; i <= npoints.Size(); i++)
     {
       if (meshbox.IsIn (npoints.Get(i)))
@@ -1258,7 +1258,7 @@ void Meshing3 :: BlockFillLocalH (Mesh & mesh,
 	  PointIndex gpnum = mesh.AddPoint (npoints.Get(i));
 	  adfront->AddPoint (npoints.Get(i), gpnum);
 	}
-    }  
+    }
 }
 
 }

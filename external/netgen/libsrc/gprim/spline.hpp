@@ -53,16 +53,16 @@ namespace netgen
     /// returns point at curve, 0 <= t <= 1
     virtual Point<D> GetPoint (double t) const = 0;
     /// returns a (not necessarily unit-length) tangent vector for 0 <= t <= 1
-    virtual Vec<D> GetTangent (const double t) const
-    { 
-      cerr << "GetTangent not implemented for spline base-class"  << endl; 
+    virtual Vec<D> GetTangent (const double /*t*/) const
+    {
+      cerr << "GetTangent not implemented for spline base-class"  << endl;
       Vec<D> dummy; return dummy;
     }
 
-    virtual void GetDerivatives (const double t, 
+    virtual void GetDerivatives (const double t,
 				 Point<D> & point,
 				 Vec<D> & first,
-				 Vec<D> & second) const 
+				 Vec<D> & second) const
     {
       double eps = 1e-6;
       point = GetPoint (t);
@@ -91,18 +91,18 @@ namespace netgen
     /** calculates (2D) lineintersections:
 	for lines $$ a x + b y + c = 0 $$ the interecting points are calculated
 	and stored in points */
-    virtual void LineIntersections (const double a, const double b, const double c,
-				    Array < Point<D> > & points, const double eps) const
+    virtual void LineIntersections (const double /*a*/, const double /*b*/, const double /*c*/,
+				    Array < Point<D> > & points, const double /*eps*/) const
     {points.SetSize(0);}
 
     virtual double MaxCurvature(void) const = 0;
 
     virtual string GetType(void) const {return "splinebase";}
 
-    virtual void Project (const Point<D> point, Point<D> & point_on_curve, double & t) const
+    virtual void Project (const Point<D> /*point*/, Point<D> & /*point_on_curve*/, double & /*t*/) const
     { cerr << "Project not implemented for spline base-class" << endl;}
 
-    virtual void GetRawData (Array<double> & data) const
+    virtual void GetRawData (Array<double> & /*data*/) const
     { cerr << "GetRawData not implemented for spline base-class" << endl;}
 
   };
@@ -124,8 +124,8 @@ namespace netgen
     ///
     virtual Vec<D> GetTangent (const double t) const;
 
-  
-    virtual void GetDerivatives (const double t, 
+
+    virtual void GetDerivatives (const double t,
 				 Point<D> & point,
 				 Vec<D> & first,
 				 Vec<D> & second) const;
@@ -159,16 +159,16 @@ namespace netgen
     mutable double proj_latest_t;
   public:
     ///
-    SplineSeg3 (const GeomPoint<D> & ap1, 
-		const GeomPoint<D> & ap2, 
+    SplineSeg3 (const GeomPoint<D> & ap1,
+		const GeomPoint<D> & ap2,
 		const GeomPoint<D> & ap3);
     ///
-    inline virtual Point<D> GetPoint (double t) const;
+    virtual Point<D> GetPoint (double t) const;
     ///
     virtual Vec<D> GetTangent (const double t) const;
 
-  
-    DLL_HEADER virtual void GetDerivatives (const double t, 
+
+    DLL_HEADER virtual void GetDerivatives (const double t,
 				 Point<D> & point,
 				 Vec<D> & first,
 				 Vec<D> & second) const;
@@ -207,8 +207,8 @@ namespace netgen
     double		radius, w1,w3;
   public:
     ///
-    CircleSeg (const GeomPoint<D> & ap1, 
-	       const GeomPoint<D> & ap2, 
+    CircleSeg (const GeomPoint<D> & ap1,
+	       const GeomPoint<D> & ap2,
 	       const GeomPoint<D> & ap3);
     ///
     virtual Point<D> GetPoint (double t) const;
@@ -240,7 +240,7 @@ namespace netgen
 
 
 
-  /// 
+  ///
   template<int D>
   class DiscretePointsSeg : public SplineSeg<D>
   {
@@ -258,7 +258,7 @@ namespace netgen
     ///
     virtual const GeomPoint<D> & EndPI () const { return p2n; }
     ///
-    virtual void GetCoeff (Vector & coeffs) const {;}
+    virtual void GetCoeff (Vector & /*coeffs*/) const {;}
 
     virtual double MaxCurvature(void) const {return 1;}
   };
@@ -313,13 +313,13 @@ namespace netgen
 
 
 
-  /* 
+  /*
      Implementation of line-segment from p1 to p2
   */
 
 
   template<int D>
-  LineSeg<D> :: LineSeg (const GeomPoint<D> & ap1, 
+  LineSeg<D> :: LineSeg (const GeomPoint<D> & ap1,
 			 const GeomPoint<D> & ap2)
     : p1(ap1), p2(ap2)
   {
@@ -334,13 +334,13 @@ namespace netgen
   }
 
   template<int D>
-  Vec<D> LineSeg<D> :: GetTangent (const double t) const
+  Vec<D> LineSeg<D> :: GetTangent (const double /*t*/) const
   {
     return p2-p1;
   }
 
   template<int D>
-  void LineSeg<D> :: GetDerivatives (const double t, 
+  void LineSeg<D> :: GetDerivatives (const double t,
 				     Point<D> & point,
 				     Vec<D> & first,
 				     Vec<D> & second) const
@@ -439,28 +439,28 @@ namespace netgen
     return sqrt(cosalpha + 1.)/(min2(l1,l2)*(1.-cosalpha));
     }
   */
-  
+
 
 
   //########################################################################
   //		circlesegment
 
   template<int D>
-  CircleSeg<D> :: CircleSeg (const GeomPoint<D> & ap1, 
+  CircleSeg<D> :: CircleSeg (const GeomPoint<D> & ap1,
 			     const GeomPoint<D> & ap2,
 			     const GeomPoint<D> & ap3)
     : p1(ap1), p2(ap2), p3(ap3)
   {
     Vec<D> v1,v2;
-  
+
     v1 = p1 - p2;
     v2 = p3 - p2;
-  
+
     Point<D> p1t(p1+v1);
     Point<D> p2t(p3+v2);
 
     // works only in 2D!!!!!!!!!
-    
+
     Line2d g1t,g2t;
 
     g1t.P1() = Point<2>(p1(0),p1(1));
@@ -478,27 +478,27 @@ namespace netgen
     auxv.X() = p3(0)-pm(0); auxv.Y() = p3(1)-pm(1);
     w3      = Angle(auxv);
     if ( fabs(w3-w1) > M_PI )
-      {  
+      {
 	if ( w3>M_PI )   w3 -= 2*M_PI;
 	if ( w1>M_PI )   w1 -= 2*M_PI;
       }
   }
- 
+
 
   template<int D>
   Point<D> CircleSeg<D> :: GetPoint (double t) const
   {
     if (t >= 1.0)  { return p3; }
-     
+
     double phi = StartAngle() + t*(EndAngle()-StartAngle());
     Vec<D>  tmp(cos(phi),sin(phi));
-     
+
     return pm + Radius()*tmp;
   }
-  
+
   template<int D>
   void CircleSeg<D> :: GetCoeff (Vector & coeff) const
-  { 
+  {
     coeff[0] = coeff[1] = 1.0;
     coeff[2] = 0.0;
     coeff[3] = -2.0 * pm[0];
@@ -506,14 +506,14 @@ namespace netgen
     coeff[5] = sqr(pm[0]) + sqr(pm[1]) - sqr(Radius());
   }
 
-  
+
 
 
 
   template<int D>
   DiscretePointsSeg<D> ::   DiscretePointsSeg (const Array<Point<D> > & apts)
     : pts (apts)
-  { 
+  {
     for(int i=0; i<D; i++)
       {
 	p1n(i) = apts[0](i);
@@ -539,7 +539,7 @@ namespace netgen
     if (segnr >= pts.Size()) segnr = pts.Size()-1;
 
     double rest = t1 - segnr;
-    
+
     return pts[segnr] + rest*Vec<D>(pts[segnr+1]-pts[segnr]);
   }
 
@@ -549,19 +549,19 @@ namespace netgen
 
 
 
-  
+
 
   // *************************************
   // Template for B-Splines of order ORDER
   // thx to Gerhard Kitzler
   // *************************************
-  
+
   template<int D, int ORDER>
   class BSplineSeg : public SplineSeg<D>
   {
     Array<Point<D> > pts;
-    GeomPoint<D> p1n, p2n;    
-    Array<int> ti; 
+    GeomPoint<D> p1n, p2n;
+    Array<int> ti;
 
   public:
     ///
@@ -575,7 +575,7 @@ namespace netgen
     ///
     virtual const GeomPoint<D> & EndPI () const { return p2n; }
     ///
-    virtual void GetCoeff (Vector & coeffs) const {;}
+    virtual void GetCoeff (Vector & /*coeffs*/) const {;}
 
     virtual double MaxCurvature(void) const {return 1;}
   };
@@ -584,7 +584,7 @@ namespace netgen
   template<int D,int ORDER>
   BSplineSeg<D,ORDER> :: BSplineSeg (const Array<Point<D> > & apts)
     : pts (apts)
-  { 
+  {
     /*
     for(int i=0; i<D; i++)
       {
@@ -605,10 +605,10 @@ namespace netgen
     int m=pts.Size()+ORDER;
     ti.SetSize(m);
     // b.SetSize(m-1);
-    ti=0;    
+    ti=0;
     //    b=0.0;
     for(int i=ORDER;i<m-ORDER+1;i++)
-      ti[i]=i-ORDER+1;   
+      ti[i]=i-ORDER+1;
     for(int i=m-ORDER+1;i<m;i++)
       ti[i]=m-2*ORDER+1;
   }
@@ -621,26 +621,26 @@ namespace netgen
   // GetPoint Method...(evaluation of BSpline Curve)
   template<int D,int ORDER>
   Point<D> BSplineSeg<D,ORDER> :: GetPoint (double t_in) const
-  {    
-    int m=pts.Size()+ORDER;           
+  {
+    int m=pts.Size()+ORDER;
 
-    double t = t_in * (m-2*ORDER+1);    
+    double t = t_in * (m-2*ORDER+1);
 
     double b[ORDER];
-    
-    int interval_nr = int(t)+ORDER-1;    
+
+    int interval_nr = int(t)+ORDER-1;
     if (interval_nr < ORDER-1) interval_nr = ORDER-1;
     if (interval_nr > m-ORDER-1) interval_nr = m-ORDER-1;
 
     b[ORDER-1] = 1.0;
-    
+
     for(int degree=1;degree<ORDER;degree++)
       for (int k = 0; k <= degree; k++)
 	{
 	  int j = interval_nr-degree+k;
 	  double bnew = 0;
 
-	  if (k != 0) 
+	  if (k != 0)
 	    bnew += (t-ti[j]) / ( ti[j+degree]-ti[j] ) * b[k-degree+ORDER-1];
 	  if (k != degree)
 	    bnew += (ti[j+degree+1]-t) / ( ti[j+degree+1]-ti[j+1] ) * b[k-degree+ORDER];
@@ -648,7 +648,7 @@ namespace netgen
 	}
 
     Point<D> p = 0.0;
-    for(int i=0; i < ORDER; i++) 
+    for(int i=0; i < ORDER; i++)
       p += b[i] * Vec<D> (pts[i+interval_nr-ORDER+1]);
     return p;
   }

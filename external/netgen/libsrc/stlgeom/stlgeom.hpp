@@ -13,7 +13,7 @@
 
 
    Terminology:
-   
+
    Point ... coordinates of STL triangles
    Triangle  (short Trig)  STL triangle
    TopEdge .... edge in topology, boundary of STL triangles (many)
@@ -23,12 +23,16 @@
 
 #include <meshing.hpp>
 
+#include "stltopology.hpp"
+#include "stltool.hpp"
+#include "stlline.hpp"
+#include "meshstlsurface.hpp"
 
 namespace netgen
 {
   inline int IsInArray(int n, const Array<int>& ia)
   {
-    return ia.Contains(n); 
+    return ia.Contains(n);
   }
 
   inline bool AddIfNotExists(Array<int>& list, int x)
@@ -37,18 +41,8 @@ namespace netgen
     list.Append(x);
     return true;
   }
-  
+
   extern DLL_HEADER MeshingParameters mparam;
-  
-
-
-#include "stltopology.hpp"
-#include "stltool.hpp"
-#include "stlline.hpp"
- 
-
-
-
 
 
 
@@ -57,7 +51,7 @@ namespace netgen
     Array<int> storedstatus;
     STLTopology & geom;
   public:
-  
+
     STLEdgeDataList(STLTopology & ageom);
     ~STLEdgeDataList();
 
@@ -124,12 +118,12 @@ namespace netgen
 
 
 
-    int facecnt; 
+    int facecnt;
     //meshpoint is only set, if an edge is at this point!!!
 
     Array<int> vicinity; //is one, if a triangle belongs to vicinity (eg. of selecttrig)
     Array<int> markedtrigs; //is one, if a triangle belongs to marked triangles (calcdirtystrigs)
-    Array<Point3d> markedsegs; //every pointpair is a segment!!!  
+    Array<Point3d> markedsegs; //every pointpair is a segment!!!
     Array<twoint> selectedmultiedge;
 
 
@@ -138,7 +132,7 @@ namespace netgen
     //
     Array<STLChart*> atlas;
     //marks all already charted trigs with chartnumber
-    Array<int> chartmark; 
+    Array<int> chartmark;
     //outerchartspertrig, ascending sorted
     TABLE<int> outerchartspertrig;
 
@@ -147,7 +141,7 @@ namespace netgen
     Array<int> meshcharttrigs; //per trig: 1=belong to chart, 0 not
     int meshchart;
 
-    Array<int> ha_points;  // help array, np long, filled with 0 
+    Array<int> ha_points;  // help array, np long, filled with 0
 
 
     // sharp geometric edges not declared as edges
@@ -159,6 +153,8 @@ namespace netgen
     Vec<3> meshtrignv;
     Vec<3> ex, ey, ez;
     Point<3> p1;
+
+    RefinementSTLGeometry tmp_refinement;
 
   public:
     int edgesfound;
@@ -215,7 +211,7 @@ namespace netgen
     void LoadEdgeData(const char* file);
     void SaveEdgeData(const char* file);
     //  void SetEdgeAtSelected(int mode);
-  
+
 
     void STLDoctorConfirmEdge();
     void STLDoctorCandidateEdge();
@@ -267,14 +263,14 @@ namespace netgen
     void LoadMarkedTrigs();
     void SaveMarkedTrigs();
     void ClearMarkedSegs() {markedsegs.SetSize(0);}
-    void AddMarkedSeg(const Point<3> & ap1, const Point<3> & ap2) 
+    void AddMarkedSeg(const Point<3> & ap1, const Point<3> & ap2)
     {
       markedsegs.Append(ap1);markedsegs.Append(ap2);
     }
 
-    void GetMarkedSeg(int i, Point<3> & ap1, Point<3> & ap2) 
+    void GetMarkedSeg(int i, Point<3> & ap1, Point<3> & ap2)
     {
-      ap1=markedsegs.Get(i*2-1); 
+      ap1=markedsegs.Get(i*2-1);
       ap2=markedsegs.Get(i*2);
     }
     int GetNMarkedSegs() {return markedsegs.Size()/2;}
@@ -318,7 +314,7 @@ namespace netgen
     //int TrigsTouch(int t1, int t2, int& p1, int& p2);
 
 
-  
+
     ///
 
     ///ReadTriangle->STLTriangle, initialise some important variables, always after load!!!
@@ -328,7 +324,7 @@ namespace netgen
 
     //get NO edges per point
     int GetEPPSize() const {return edgesperpoint.Size();};
-    int GetNEPP(int pn) 
+    int GetNEPP(int pn)
     {
       if (edgesperpoint.Size() == 0) {BuildEdgesPerPoint();}
       return edgesperpoint.EntrySize(pn);
@@ -359,7 +355,7 @@ namespace netgen
     void AddConeAndSpiralEdges();
     void AddFaceEdges(); //each face should have at least one starting edge (outherwise it won't be meshed)
 
-    void GetDirtyChartTrigs(int chartnum, STLChart& chart, const Array<int>& outercharttrigs, 
+    void GetDirtyChartTrigs(int chartnum, STLChart& chart, const Array<int>& outercharttrigs,
 			    Array<int>& chartpointchecked, Array<int>& dirtytrigs);
 
     void ClearSpiralPoints();
@@ -383,10 +379,10 @@ namespace netgen
     void SetOCPT(int tn, int vi, int ocn) {outerchartspertrig.Set(tn,vi,ocn);};
     void AddOCPT(int tn, int ocn) {outerchartspertrig.Add1(tn, ocn);};
     int TrigIsInOC(int tn, int ocn) const;
- 
+
     //get chart number of a trig or 0 if unmarked
     int GetChartNr(int i) const;
-    int GetMarker(int i) const 
+    int GetMarker(int i) const
     { return chartmark.Get(i); }
     void SetMarker(int nr, int m);
     int GetNOCharts() const;
@@ -394,7 +390,7 @@ namespace netgen
     const STLChart& GetChart(int nr) const;
     STLChart& GetChart(int nr) {return *(atlas.Get(nr));};
     int AtlasMade() const;
-  
+
     void GetInnerChartLimes(Array<twoint>& limes, int chartnum);
 
     //FOR MESHING
@@ -418,11 +414,11 @@ namespace netgen
     const Vec<3> & GetChartNormalVector () const { return meshtrignv; }
 
     // list of trigs
-    void ToPlane (const Point<3> & locpoint, int * trigs, Point<2> & plainpoint, 
+    void ToPlane (const Point<3> & locpoint, int * trigs, Point<2> & plainpoint,
 		  double h, int& zone, int checkchart);
     //return 0, wenn alles OK, 1 sonst
     int FromPlane (const Point<2> & plainpoint, Point<3> & locpoint, double h);
-  
+
     //get nearest point in actual chart and return any triangle where it lies on
     int ProjectNearest(Point<3> & p3d) const;
     //project point with normal nv from last define tangential plane
@@ -444,7 +440,7 @@ namespace netgen
 
     void RestrictLocalH(class Mesh & mesh, double gh);
     void RestrictLocalHCurv(class Mesh & mesh, double gh);
-    void RestrictHChartDistOneChart(int chartnum, Array<int>& acttrigs, class Mesh & mesh, 
+    void RestrictHChartDistOneChart(int chartnum, Array<int>& acttrigs, class Mesh & mesh,
 				    double gh, double fact, double minh);
 
     friend class MeshingSTLSurface;
@@ -452,10 +448,10 @@ namespace netgen
 
     virtual int GenerateMesh (Mesh*& mesh, MeshingParameters & mparam,
 			      int perfstepsstart, int perfstepsend);
-    
+
     virtual const Refinement & GetRefinement () const;
   };
- 
+
 
 #include "meshstlsurface.hpp"
 

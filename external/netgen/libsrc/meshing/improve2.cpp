@@ -18,7 +18,7 @@ namespace netgen
     int orient[3];
 
   public:
-    Neighbour () { ; } 
+    Neighbour () { ; }
 
     void SetNr (int side, int anr) { nr[side] = anr; }
     int GetNr (int side) { return nr[side]; }
@@ -53,7 +53,7 @@ namespace netgen
 
 
 
- 
+
   void MeshOptimize2d :: EdgeSwapping (Mesh & mesh, int usemetric)
   {
     if (!faceindex)
@@ -136,9 +136,9 @@ namespace netgen
 	  }
       }
 
-    // for (PointIndex pi = PointIndex::BASE; 
+    // for (PointIndex pi = PointIndex::BASE;
     // pi < mesh.GetNP()+PointIndex::BASE; pi++)
-    
+
     // pdef = 0;
     for (int i = 0; i < seia.Size(); i++)
       {
@@ -186,7 +186,7 @@ namespace netgen
       normals.Elem(pi) /= normals.Elem(pi).Length();
       }
       }
-    */	    
+    */
 
     for (int i = 0; i < seia.Size(); i++)
       {
@@ -196,15 +196,15 @@ namespace netgen
 	  {
 	    PointIndex pi1 = sel.PNumMod(j+2);
 	    PointIndex pi2 = sel.PNumMod(j+3);
-	  
+
 	    //	    double loch = mesh.GetH(mesh[pi1]);
-	    
+
 	    INDEX_2 edge(pi1, pi2);
 	    edge.Sort();
-	  
+
 	    if (mesh.IsSegment (pi1, pi2))
 	      continue;
-	  
+
 	    /*
 	      if (segments.Used (edge))
 	      continue;
@@ -214,10 +214,10 @@ namespace netgen
 	      {
 		// INDEX_2 i2s(ii2);
 		// i2s.Sort();
-	      
+
 		int i2 = other.Get(ii2).tnr;
 		int j2 = other.Get(ii2).sidenr;
-		
+
 		neighbors[seia[i]].SetNr (j, i2);
 		neighbors[seia[i]].SetOrientation (j, j2);
 		neighbors[i2].SetNr (j2, seia[i]);
@@ -234,7 +234,7 @@ namespace netgen
       swapped[seia[i]] = 0;
 
     NgProfiler::StopTimer (timerstart);
-  
+
 
 
     int t = 4;
@@ -264,18 +264,18 @@ namespace netgen
 
 		if (t2 == -1) continue;
 		if (swapped[t1] || swapped[t2]) continue;
-	      
+
 
 		PointIndex pi1 = mesh[t1].PNumMod(o1+1+1);
 		PointIndex pi2 = mesh[t1].PNumMod(o1+1+2);
 		PointIndex pi3 = mesh[t1].PNumMod(o1+1);
 		PointIndex pi4 = mesh[t2].PNumMod(o2+1);
-	      
+
 		PointGeomInfo gi1 = mesh[t1].GeomInfoPiMod(o1+1+1);
 		PointGeomInfo gi2 = mesh[t1].GeomInfoPiMod(o1+1+2);
 		PointGeomInfo gi3 = mesh[t1].GeomInfoPiMod(o1+1);
 		PointGeomInfo gi4 = mesh[t2].GeomInfoPiMod(o2+1);
-	    
+
 		bool allowswap = true;
 
 		Vec<3> auxvec1 = mesh[pi3]-mesh[pi4];
@@ -299,11 +299,11 @@ namespace netgen
 
 		Vec<3> nv2 = Cross (auxvec1, auxvec2);
 
-	      
+
 		// normals of original
 		Vec<3> nv3 = Cross (mesh[pi1]-mesh[pi4], mesh[pi2]-mesh[pi4]);
 		Vec<3> nv4 = Cross (mesh[pi2]-mesh[pi3], mesh[pi1]-mesh[pi3]);
-	      
+
 		nv3 *= -1;
 		nv4 *= -1;
 		nv3.Normalize();
@@ -311,7 +311,7 @@ namespace netgen
 
 		nv1.Normalize();
 		nv2.Normalize();
-	    
+
 		Vec<3> nvp3, nvp4;
 		SelectSurfaceOfPoint (mesh.Point(pi3), gi3);
 		GetNormalVector (surfnr, mesh.Point(pi3), gi3, nvp3);
@@ -320,20 +320,20 @@ namespace netgen
 
 		SelectSurfaceOfPoint (mesh.Point(pi4), gi4);
 		GetNormalVector (surfnr, mesh.Point(pi4), gi4, nvp4);
-	    
+
 		nvp4.Normalize();
-	      
-	      
-	      
+
+
+
 		double critval = cos (M_PI / 6);  // 30 degree
 		allowswap = allowswap &&
-		  (nv1 * nvp3 > critval) && 
-		  (nv1 * nvp4 > critval) && 
-		  (nv2 * nvp3 > critval) && 
+		  (nv1 * nvp3 > critval) &&
+		  (nv1 * nvp4 > critval) &&
+		  (nv2 * nvp3 > critval) &&
 		  (nv2 * nvp4 > critval) &&
-		  (nvp3 * nv3 > critval) && 
+		  (nvp3 * nv3 > critval) &&
 		  (nvp4 * nv4 > critval);
-	      
+
 
 		double horder = Dist (mesh.Point(pi1), mesh.Point(pi2));
 
@@ -345,69 +345,69 @@ namespace netgen
 		    if (!usemetric)
 		      {
 			int e = pdef[pi1] + pdef[pi2] - pdef[pi3] - pdef[pi4];
-			double d = 
-			  Dist2 (mesh.Point(pi1), mesh.Point(pi2)) - 
+			double d =
+			  Dist2 (mesh.Point(pi1), mesh.Point(pi2)) -
 			  Dist2 (mesh.Point(pi3), mesh.Point(pi4));
-		      
+
 			should = e >= t && (e > 2 || d > 0);
 		      }
 		    else
 		      {
 			double loch = mesh.GetH(mesh[pi1]);
-			should = 
-			  CalcTriangleBadness (mesh.Point(pi4), mesh.Point(pi3), mesh.Point(pi1), 
+			should =
+			  CalcTriangleBadness (mesh.Point(pi4), mesh.Point(pi3), mesh.Point(pi1),
 					       metricweight, loch) +
-			  CalcTriangleBadness (mesh.Point(pi3), mesh.Point(pi4), mesh.Point(pi2), 
+			  CalcTriangleBadness (mesh.Point(pi3), mesh.Point(pi4), mesh.Point(pi2),
 					       metricweight, loch) <
-			  CalcTriangleBadness (mesh.Point(pi1), mesh.Point(pi2), mesh.Point(pi3), 
+			  CalcTriangleBadness (mesh.Point(pi1), mesh.Point(pi2), mesh.Point(pi3),
 					       metricweight, loch) +
-			  CalcTriangleBadness (mesh.Point(pi2), mesh.Point(pi1), mesh.Point(pi4), 
+			  CalcTriangleBadness (mesh.Point(pi2), mesh.Point(pi1), mesh.Point(pi4),
 					       metricweight, loch);
 
 		      }
-		  
+
 		    if (allowswap)
 		      {
 			Element2d sw1 (pi4, pi3, pi1);
 			Element2d sw2 (pi3, pi4, pi2);
 
-			int legal1 = 
-			  mesh.LegalTrig (mesh.SurfaceElement (t1)) + 
+			int legal1 =
+			  mesh.LegalTrig (mesh.SurfaceElement (t1)) +
 			  mesh.LegalTrig (mesh.SurfaceElement (t2));
-			int legal2 = 
+			int legal2 =
 			  mesh.LegalTrig (sw1) + mesh.LegalTrig (sw2);
 
 			if (legal1 < legal2) should = 1;
 			if (legal2 < legal1) should = 0;
 		      }
-		  
+
 		    if (should)
 		      {
 			// do swapping !
-		      
+
 			done = 1;
-		      
+
 			mesh[t1].PNum(1) = pi1;
 			mesh[t1].PNum(2) = pi4;
 			mesh[t1].PNum(3) = pi3;
-		      
+
 			mesh[t2].PNum(1) = pi2;
 			mesh[t2].PNum(2) = pi3;
 			mesh[t2].PNum(3) = pi4;
-		      
+
 			mesh[t1].GeomInfoPi(1) = gi1;
 			mesh[t1].GeomInfoPi(2) = gi4;
 			mesh[t1].GeomInfoPi(3) = gi3;
-		      
+
 			mesh[t2].GeomInfoPi(1) = gi2;
 			mesh[t2].GeomInfoPi(2) = gi3;
 			mesh[t2].GeomInfoPi(3) = gi4;
-		      
+
 			pdef[pi1]--;
 			pdef[pi2]--;
 			pdef[pi3]++;
 			pdef[pi4]++;
-		      
+
 			swapped[t1] = 1;
 			swapped[t2] = 1;
 		      }
@@ -426,7 +426,7 @@ namespace netgen
 
 
 
- 
+
   void MeshOptimize2d :: CombineImprove (Mesh & mesh)
   {
     if (!faceindex)
@@ -485,7 +485,7 @@ namespace netgen
     int np = mesh.GetNP();
     //int nse = mesh.GetNSE();
 
-    TABLE<SurfaceElementIndex,PointIndex::BASE> elementsonnode(np); 
+    TABLE<SurfaceElementIndex,PointIndex::BASE> elementsonnode(np);
     Array<SurfaceElementIndex> hasonepi, hasbothpi;
 
     for (int i = 0; i < seia.Size(); i++)
@@ -517,7 +517,7 @@ namespace netgen
 	    PointIndex pi1 = sel.PNumMod(j+2);
 	    PointIndex pi2 = sel.PNumMod(j+3);
 	    if (mesh.IsSegment (pi1, pi2))
-	      {	
+	      {
 		fixed[pi1] = true;
 		fixed[pi2] = true;
 	      }
@@ -561,7 +561,7 @@ namespace netgen
 	    PointIndex pi1 = elem[j];
 	    PointIndex pi2 = elem[(j+1) % 3];
 
-	    if (pi1 < PointIndex::BASE || 
+	    if (pi1 < PointIndex::BASE ||
 		pi2 < PointIndex::BASE)
 	      continue;
 
@@ -576,22 +576,22 @@ namespace netgen
 
 	    if (debugflag)
 	      {
-		(*testout) << "Combineimprove, face = " << faceindex 
+		(*testout) << "Combineimprove, face = " << faceindex
 			   << "pi1 = " << pi1 << " pi2 = " << pi2 << endl;
 	      }
 
 	    /*
 	    // save version:
-	    if (fixed.Get(pi1) || fixed.Get(pi2)) 
+	    if (fixed.Get(pi1) || fixed.Get(pi2))
 	    continue;
 	    if (pi2 < pi1) swap (pi1, pi2);
 	    */
 
-	    // more general 
-	    if (fixed[pi2]) 
+	    // more general
+	    if (fixed[pi2])
 	      Swap (pi1, pi2);
 
-	    if (fixed[pi2])  
+	    if (fixed[pi2])
 	      continue;
 
 	    double loch = mesh.GetH (mesh[pi1]);
@@ -599,7 +599,7 @@ namespace netgen
 	    INDEX_2 si2 (pi1, pi2);
 	    si2.Sort();
 
-	    /*	  
+	    /*
 	      if (edgetested.Used (si2))
 	      continue;
 	      edgetested.Set (si2, 1);
@@ -624,7 +624,7 @@ namespace netgen
 		  {
 		    hasonepi.Append (elementsonnode[pi1][k]);
 		  }
-	      } 
+	      }
 
 
 	    Element2d & hel = mesh[hasbothpi[0]];
@@ -650,7 +650,7 @@ namespace netgen
 		  ;
 		else
 		  hasonepi.Append (elementsonnode[pi2][k]);
-	      } 
+	      }
 
 	    bad1 = 0;
 	    int illegal1 = 0, illegal2 = 0;
@@ -661,7 +661,7 @@ namespace netgen
 					     nv, -1, loch);
 		illegal1 += 1-mesh.LegalTrig(el);
 	      }
-	  
+
 	    for (int k = 0; k < hasbothpi.Size(); k++)
 	      {
 		const Element2d & el = mesh[hasbothpi[k]];
@@ -682,7 +682,7 @@ namespace netgen
 	    for (int k = 0; k < hasonepi.Size(); k++)
 	      {
 		Element2d & el = mesh[hasonepi[k]];
-		double err = 
+		double err =
 		  CalcTriangleBadness (mesh[el[0]], mesh[el[1]], mesh[el[2]],
 				       nv, -1, loch);
 		bad2 += err;
@@ -693,7 +693,7 @@ namespace netgen
 					   mesh[el[2]]));
 		if (hnv * nv < 0)
 		  bad2 += 1e10;
-              
+
 		for (int l = 0; l < 3; l++)
 		  if ( (normals[el[l]] * nv) < 0.5)
 		    bad2 += 1e10;
@@ -704,8 +704,8 @@ namespace netgen
 
 	    mesh[pi1] = p1;
 	    mesh[pi2] = p2;
-	  
-       
+
+
 	    if (debugflag)
 	      {
 		(*testout) << "bad1 = " << bad1 << ", bad2 = " << bad2 << endl;
@@ -718,7 +718,7 @@ namespace netgen
 		if (illegal1 > illegal2) should = 1;
 		if (illegal2 > illegal1) should = 0;
 	      }
-	  
+
 
 	    if (should)
 	      {
@@ -729,8 +729,8 @@ namespace netgen
 		mesh[pi1] = pnew;
 		PointGeomInfo gi;
 		// bool gi_set(false);
-	      
-	      
+
+
 		Element2d *el1p(NULL);
 		int l = 0;
 		while(mesh[elementsonnode[pi1][l]].IsDeleted() && l<elementsonnode.EntrySize(pi1)) l++;
@@ -799,15 +799,15 @@ namespace netgen
   }
 
 
-  void MeshOptimize2d :: CheckMeshApproximation (Mesh & mesh)
+  void MeshOptimize2d :: CheckMeshApproximation (Mesh & /*mesh*/)
   {
     // Check angles between elements and normals at corners
     /*
-  
+
     int i, j;
     int ne = mesh.GetNSE();
     int surfnr;
-  
+
     Vec3d n, ng;
     Array<Vec3d> ngs(3);
 
@@ -835,14 +835,14 @@ namespace netgen
     (*testout) << "el " << i << " node " << el.PNum(j)
     << "has angle = " << angle << endl;
     }
-    }	
+    }
 
     for (j = 1; j <= 3; j++)
     {
     double angle =  (180.0 / M_PI) * Angle (ngs.Get(j), ngs.Get(j%3+1));
     if (angle > 60)
     {
-    (*testout) << "el " << i << " node-node " 
+    (*testout) << "el " << i << " node-node "
     << ngs.Get(j) << " - " << ngs.Get(j%3+1)
     << " has angle = " << angle << endl;
     }

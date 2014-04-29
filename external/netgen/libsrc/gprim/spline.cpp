@@ -14,7 +14,7 @@ namespace netgen
 
   // just for testing (JS)
   template <int D>
-  void ProjectTrivial (const SplineSeg3<D> & seg, 
+  void ProjectTrivial (const SplineSeg3<D> & seg,
                        const Point<D> point, Point<D> & point_on_curve, double & t)
   {
     double mindist = -1;
@@ -33,14 +33,14 @@ namespace netgen
   }
 
 
-  template <> 
-  void CircleSeg<3> :: LineIntersections (const double a, const double b, const double c,
-					  Array < Point<3> > & points, const double eps) const
+  template <>
+  void CircleSeg<3> :: LineIntersections (const double /*a*/, const double /*b*/, const double /*c*/,
+					  Array < Point<3> > & /*points*/, const double /*eps*/) const
   {
     cerr << "CircleSeg<3>::LineIntersections not implemented" << endl;
   }
-  
-  template <> 
+
+  template <>
   void CircleSeg<2> :: LineIntersections (const double a, const double b, const double c,
 					  Array < Point<2> > & points, const double eps) const
   {
@@ -56,7 +56,7 @@ namespace netgen
     const double c1 = a*a + b*b;
     const double c2 = 2. * ( a*(py-pm(1)) - b*(px-pm(0)));
     const double c3 = pow(px-pm(0),2) + pow(py-pm(1),2) - pow(Radius(),2);
-    
+
     const double discr = c2*c2 - 4*c1*c3;
 
     if(discr < 0)
@@ -87,7 +87,7 @@ namespace netgen
 
 
   template<int D>
-  SplineSeg3<D> :: SplineSeg3 (const GeomPoint<D> & ap1, 
+  SplineSeg3<D> :: SplineSeg3 (const GeomPoint<D> & ap1,
 			       const GeomPoint<D> & ap2,
 			       const GeomPoint<D> & ap3)
     : p1(ap1), p2(ap2), p3(ap3)
@@ -133,7 +133,7 @@ namespace netgen
 
 
     Vec<D> retval;
-    for(int i=0; i<D; i++) 
+    for(int i=0; i<D; i++)
       retval(i) = b1*p1(i) + b2*p2(i) + b3*p3(i);
 
     return retval;
@@ -180,11 +180,11 @@ namespace netgen
     double gradx = 2.*u(0)*p0(0) + u(2)*p0(1) + u(3);
     double grady = 2.*u(1)*p0(1) + u(2)*p0(0) + u(4);
     Vec<2> gradn (grady, -gradx);
-  
+
     if (tang * gradn < 0) u *= -1;
   }
 
-  
+
 
 
   template<int D>
@@ -196,16 +196,16 @@ namespace netgen
       t = proj_latest_t;
     else
       t = 0.5;
-	
+
     Point<D> phi;
     Vec<D> phip,phipp,phimp;
-    
+
     int i=0;
 
     while(t > -0.5 && t < 1.5 && i<20 && fabs(t-t_old) > 1e-15 )
       {
         GetDerivatives(t,phi,phip,phipp);
-	
+
         t_old = t;
 
         phimp = phi-point;
@@ -215,7 +215,7 @@ namespace netgen
 
         i++;
       }
-    
+
     //if(i<10 && t > 0. && t < 1.)
     if(i<20 && t > -0.4 && t < 1.4)
       {
@@ -229,9 +229,9 @@ namespace netgen
           }
 
         point_on_curve = SplineSeg3<D>::GetPoint(t);
-	
+
         double dist = Dist(point,point_on_curve);
-	
+
         phi =  SplineSeg3<D> ::GetPoint(0);
         double auxdist = Dist(phi,point);
         if(auxdist < dist)
@@ -257,11 +257,11 @@ namespace netgen
 
         double d0,d1,d2;
 
-	
+
         //(*testout) << "newtonersatz" << endl;
         while(t2-t0 > 1e-8)
           {
-	    
+
             phi =  SplineSeg3<D> ::GetPoint(t0); d0 = Dist(phi,point);
             phi =  SplineSeg3<D> ::GetPoint(t1); d1 = Dist(phi,point);
             phi =  SplineSeg3<D> ::GetPoint(t2); d2 = Dist(phi,point);
@@ -300,13 +300,13 @@ namespace netgen
                     t0 = max2(0.,t1-auxt1);
                     t2 = min2(1.,t1+auxt1);
                   }
-		
+
                 t1 = 0.5*(t2+t0);
-              }  
+              }
 
           }
 
-	
+
         phi =  SplineSeg3<D> ::GetPoint(t0); d0 = Dist(phi,point);
         phi =  SplineSeg3<D> ::GetPoint(t1); d1 = Dist(phi,point);
         phi =  SplineSeg3<D> ::GetPoint(t2); d2 = Dist(phi,point);
@@ -352,7 +352,7 @@ namespace netgen
 
 
   template<int D>
-  void SplineSeg3<D> :: GetDerivatives (const double t, 
+  void SplineSeg3<D> :: GetDerivatives (const double t,
                                         Point<D> & point,
                                         Vec<D> & first,
                                         Vec<D> & second) const
@@ -380,8 +380,8 @@ namespace netgen
 
     for(int i=0; i<D; i++)
       point(i) = b1*p1(i) + b2*p2(i) + b3*p3(i);
-    
- 
+
+
     first = (b1p - b1*fac1) * v1 +
       (b2p - b2*fac1) * v2 +
       (b3p - b3*fac1) * v3;
@@ -400,10 +400,10 @@ namespace netgen
     Vec<2> v2 = p3-p2;
     double l1 = v1.Length();
     double l2 = v2.Length();
-        
+
     double cosalpha = (v1*v2)/(l1*l2);
-    
-            
+
+
     return sqrt(cosalpha + 1.)/(min2(l1,l2)*(1.-cosalpha));
   }
 
@@ -414,10 +414,10 @@ namespace netgen
     Vec<3> v2 = p3-p2;
     double l1 = v1.Length();
     double l2 = v2.Length();
-        
+
     double cosalpha = v1*v2/(l1*l2);
-    
-        
+
+
     return sqrt(cosalpha + 1.)/(min2(l1,l2)*(1.-cosalpha));
   }
 
@@ -430,8 +430,8 @@ namespace netgen
 
     double t;
 
-    const double c1 = a*p1(0) - weight*a*p2(0) + a*p3(0) 
-      + b*p1(1) - weight*b*p2(1) + b*p3(1) 
+    const double c1 = a*p1(0) - weight*a*p2(0) + a*p3(0)
+      + b*p1(1) - weight*b*p2(1) + b*p3(1)
       + (2.-weight)*c;
     const double c2 = -2.*a*p1(0) + weight*a*p2(0) -2.*b*p1(1) + weight*b*p2(1) + (weight-2.)*c;
     const double c3 = a*p1(0) + b*p1(1) + c;

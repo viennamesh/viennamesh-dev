@@ -19,7 +19,7 @@ namespace netgen
 
 
 
-  void ReadTETFormat (Mesh & mesh, 
+  void ReadTETFormat (Mesh & mesh,
                       const string & hfilename)
   {
     const char * filename = hfilename.c_str();
@@ -48,7 +48,7 @@ namespace netgen
     int modelverts,modeledges,modelfaces,modelcells;
     Point3d p;
     int numObj3D,numObj2D,numObj1D,numObj0D;
-    bool nullstarted;
+//     bool nullstarted;
     Array<int> eldom;
     int minId3D = -1, minId2D = -1;
     int maxId3D(-1), maxId2D(-1), maxId1D(-1), maxId0D(-1);
@@ -70,7 +70,7 @@ namespace netgen
             ch = in.get();
             while(ch == ' ' || ch == '\n' || ch == '\t' || ch =='\r')
               ch = in.get();
-	      
+
             if(ch != '/')
               {
                 comment = false;
@@ -92,7 +92,7 @@ namespace netgen
               }
           }
 
-	  
+
         switch(inputsection)
           {
           case 0:
@@ -160,7 +160,7 @@ namespace netgen
               for(int i=0; i<nnodes; i++)
                 {
                   in >> nodeid >> p.X() >> p.Y() >> p.Z() >> type >> pid;
-                  mesh.AddPoint(p);		  
+                  mesh.AddPoint(p);
                   point_pids.Append(pid);
                   if(pid > maxId0D)
                     maxId0D = pid;
@@ -222,7 +222,7 @@ namespace netgen
           case 14:
             // EdgeID, NodeID0, NodeID1, Type (0=Reg 1=PMaster 2=PSlave 3=CPMaster 4=CPSlave), PID
             cout << "read edges" << endl;
-            nullstarted = false;
+//             nullstarted = false;
             segmentdata.SetSize(nedges);
             for(int i=0; i<nedges; i++)
               {
@@ -272,12 +272,12 @@ namespace netgen
               int segnum_ng[3];
               bool neg[3];
               cout << "read faces" << endl;
-              nullstarted = false;
+//               nullstarted = false;
               for(int i=0; i<nfaces; i++)
                 {
                   int trinum;
                   int segnum;
-		    
+
                   tris.Append(new Element2d(TRIG));
 
                   in >> trinum;
@@ -289,7 +289,7 @@ namespace netgen
                         segnum_ng[j] = segnum-1;
                       else
                         segnum_ng[j] = -segnum-1;
-			
+
                       if(neg[j])
                         tris.Last()->PNum(j+1) = (*segmentdata[segnum_ng[j]])[1];
                       else
@@ -300,13 +300,13 @@ namespace netgen
                   in >> type;
                   int faceid;
                   in >> faceid;
-		    
+
                   if(faceid > maxId2D)
                     maxId2D = faceid;
 
                   if(i==0 || faceid < minId2D)
                     minId2D = faceid;
-		    
+
                   tris.Last()->SetIndex(faceid);
 
                   if(faceid > 0)
@@ -316,7 +316,7 @@ namespace netgen
                       //    cout << "Faces: Assumption about index 0 wrong (face"<<trinum <<")" << endl;
                       //  }
                       //mesh.AddSurfaceElement(tri);
-			
+
                       for(int j=0; j<3; j++)
                         {
                           if(neg[j])
@@ -331,8 +331,8 @@ namespace netgen
                             }
                         }
                     }
-                  else
-                    nullstarted = true;
+//                   else
+//                     nullstarted = true;
                 }
             }
             break;
@@ -356,8 +356,8 @@ namespace netgen
 
                   if(transl > maxtransl)
                     maxtransl = transl;
-		    
-		    
+
+
                   for(int j=0; j<3; j++)
                     {
                       nodes1[j] = tris[tri1-1]->PNum(j+1);
@@ -371,11 +371,11 @@ namespace netgen
 
                   for(int j=0; j<3; j++)
                     mesh.GetIdentifications().Add(nodes1[j],nodes2[j],transl);
-			
+
                 }
               for(int i=1; i<= maxtransl; i++)
                 mesh.GetIdentifications().SetType(i,Identifications::PERIODIC);
-            }	      
+            }
             break;
 
           case 22:
@@ -387,7 +387,7 @@ namespace netgen
               bool neg[4];
               int elemid;
               int domain;
-		
+
               eldom.SetSize(nelts);
 
               for(int i=0; i<nelts; i++)
@@ -398,7 +398,7 @@ namespace netgen
                          << "%%\r"
 #else
                          << "\%\r"
-#endif 
+#endif
                          << flush;
                   in >> elemid;
                   for(int j=0; j<4;j++)
@@ -413,7 +413,7 @@ namespace netgen
                       tetfacedata.Append(((neg[j]) ? 1 : 0));
                       //surf[j] = dummyint-1;
                     }
-		    
+
                   in >> domain;
                   eldom[i] = domain;
                   tetfacedata.Append(domain);
@@ -423,7 +423,7 @@ namespace netgen
 
                   if(domain > maxId3D)
                     maxId3D = domain;
-		    
+
                   // 		    for(int j=0; j<4; j++)
                   // 		      {
                   // 			if(mesh.GetNSE() <= surf[j])
@@ -453,14 +453,14 @@ namespace netgen
                   // 		      }
                 }
               cout << endl;
-		
-		
+
+
               // 		Array<int> indextodescriptor(maxId2D+1);
-		
+
               // 		for(int i=1; i<=mesh.GetNFD(); i++)
               // 		  indextodescriptor[mesh.GetFaceDescriptor(i).SurfNr()] = i;
-		
-		
+
+
               // 		for(SurfaceElementIndex i=0; i<mesh.GetNSE(); i++)
               // 		  mesh[i].SetIndex(indextodescriptor[mesh[i].GetIndex()]);
             }
@@ -468,7 +468,7 @@ namespace netgen
 
           case 23:
             // ElemID, NodeID0, NodeID1, NodeID2, NodeID3
-            { 
+            {
               cout << "read elements (2)" << endl;
               Element el(TET);
               for(ElementIndex i=0; i<nelts; i++)
@@ -477,13 +477,13 @@ namespace netgen
                   for(int j=1; j<=4; j++)
                     in >> el.PNum(j);
                   swap(el.PNum(1),el.PNum(2));
-		    
+
                   el.SetIndex(eldom[i]);
                   mesh.AddVolumeElement(el);
-                }	
-            }	  
+                }
+            }
             break;
-	      
+
           case 24:
             // Physical Object counts (#Obj3D,#Obj2D,#Obj1D,#Obj0D)
             {
@@ -523,11 +523,11 @@ namespace netgen
                   for(int j=0; j<nelems; j++)
                     {
                       in >> dummyint;
-			
+
                       (*testout) << "read " << dummyint << endl;
                       //userdata_int.Append(dummyint);
-			
-                      if(dummyint < 0) 
+
+                      if(dummyint < 0)
                         dummyint *= -1;
                       uid_to_group_3D[eldom[dummyint-1]] = groupid;
                     }
@@ -560,7 +560,7 @@ namespace netgen
                         ;
 
                       (*testout) << "read " << dummyint << endl;
-                      if(dummyint < 0) 
+                      if(dummyint < 0)
                         dummyint *= -1;
                       int uid = tris[dummyint-1]->GetIndex();
 
@@ -571,9 +571,9 @@ namespace netgen
                         }
                       else
                         in.putback(port);
-			
+
                       //userdata_int.Append(dummyint);
-			
+
                       uid_to_group_2D[uid] = groupid;
                       (*testout) << "setting " << uid << endl;
 
@@ -603,7 +603,7 @@ namespace netgen
                       in >> dummyint;
                       //userdata_int.Append(dummyint);
 
-                      if(dummyint < 0) 
+                      if(dummyint < 0)
                         dummyint *= -1;
                       uid_to_group_1D[(*segmentdata[dummyint-1])[2]] = groupid;
                     }
@@ -629,7 +629,7 @@ namespace netgen
                       in >> dummyint;
                       //userdata_int.Append(dummyint);
 
-                      if(dummyint < 0) 
+                      if(dummyint < 0)
                         dummyint *= -1;
                       uid_to_group_0D[point_pids[dummyint-1]] = groupid;
                     }
@@ -641,9 +641,9 @@ namespace netgen
 
           default:
             done = true;
-	      
+
           }
-	  
+
         if(inputsection == 4 && version == "1.1")
           inputsection++;
 
@@ -655,7 +655,7 @@ namespace netgen
     mesh.SetUserData("TETmesh:double",userdata_double);
     userdata_int.Append(minId2D);
     userdata_int.Append(minId3D);
-    mesh.SetUserData("TETmesh:int",userdata_int);   
+    mesh.SetUserData("TETmesh:int",userdata_int);
     //if(version == "1.1")
     mesh.SetUserData("TETmesh:point_id",point_pids);
 
@@ -687,7 +687,7 @@ namespace netgen
         delete tris[i];
       }
 
-      
+
     mesh.ClearFaceDescriptors();
     if(atof(version.c_str()) <= 1.999999)
       for(int i = 1; i <= maxId2D; i++)
@@ -695,14 +695,14 @@ namespace netgen
     else
       for(int i=minId2D; i<minId3D; i++)
         mesh.AddFaceDescriptor(FaceDescriptor(i,0,0,0));
-	
+
 
     for(int i=0; i<tetfacedata.Size(); i+=9)
       {
         for(int j=0; j<4; j++)
           {
             SurfaceElementIndex surf = surfindices[tetfacedata[i+2*j]];
-	      
+
             //if(mesh.GetNSE() <= surf)
             if(surf == -1)
               continue;
@@ -711,7 +711,7 @@ namespace netgen
               mesh.GetFaceDescriptor(mesh[surf].GetIndex()).SetDomainOut(tetfacedata[i+8]);
             else
               mesh.GetFaceDescriptor(mesh[surf].GetIndex()).SetDomainIn(tetfacedata[i+8]);
-			
+
 
             /*
 	      int faceind = 0;
@@ -739,13 +739,13 @@ namespace netgen
           }
 
       }
-      
+
     //       Array<int> indextodescriptor(maxId2D+1);
-		
+
     //       for(int i=1; i<=mesh.GetNFD(); i++)
     // 	indextodescriptor[mesh.GetFaceDescriptor(i).SurfNr()] = i;
-		
-		
+
+
     //       for(SurfaceElementIndex i=0; i<mesh.GetNSE(); i++)
     // 	mesh[i].SetIndex(indextodescriptor[mesh[i].GetIndex()]);
 
@@ -754,7 +754,7 @@ namespace netgen
       {
         Segment seg;
 
-	  
+
         if((atof(version.c_str()) <= 1.999999 && (*segmentdata[i])[2] > 0) ||
            (atof(version.c_str()) > 1.999999  && (*segmentdata[i])[2] > 0 && (*segmentdata[i])[2] < minId2D))
           {
@@ -787,10 +787,10 @@ namespace netgen
       if(mesh.LineSegment(i).epgeominfo[0].edgenr == 0 ||
       mesh.LineSegment(i).epgeominfo[1].edgenr == 0)
       mesh.FullDeleteSegment(i);
-    */	
-  
+    */
+
     mesh.CalcSurfacesOfNode();
-      
+
   }
 }
 

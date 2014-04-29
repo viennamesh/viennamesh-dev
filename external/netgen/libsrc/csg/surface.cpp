@@ -56,12 +56,12 @@ void Surface :: CalcHesse (const Point<3> & point, Mat<3> & hesse) const
 
       CalcGradient (hp1, g1);
       CalcGradient (hp2, g2);
-      	
+
       for (int j = 0; j < 3; j++)
 	hesse(i, j) = (g1(j) - g2(j)) / (2 * dx);
     }
 }
-  
+
 /*
 void Surface :: GetNormalVector (const Point<3> & p, Vec<3> & n) const
 {
@@ -77,20 +77,20 @@ Vec<3> Surface :: GetNormalVector (const Point<3> & p) const
   return n;
 }
 
-void Surface :: DefineTangentialPlane (const Point<3> & ap1, 
+void Surface :: DefineTangentialPlane (const Point<3> & ap1,
 				       const Point<3> & ap2)
 {
   p1 = ap1;
   p2 = ap2;
-  
+
   ez = GetNormalVector (p1);
   ex = p2 - p1;
   ex -= (ex * ez) * ez;
   ex.Normalize();
-  ey = Cross (ez, ex);  
+  ey = Cross (ez, ex);
 }
 
-void Surface :: ToPlane (const Point<3> & p3d, Point<2> & pplane, 
+void Surface :: ToPlane (const Point<3> & p3d, Point<2> & pplane,
 			 double h, int & zone) const
 {
   Vec<3> p1p, n;
@@ -103,20 +103,20 @@ void Surface :: ToPlane (const Point<3> & p3d, Point<2> & pplane,
       pplane(1) = 1e9;
       return;
     }
-  
+
   p1p = p3d - p1;
   pplane(0) = (p1p * ex) / h;
   pplane(1) = (p1p * ey) / h;
   zone = 0;
-}	
+}
 
-void Surface :: FromPlane (const Point<2> & pplane, 
-			   Point<3> & p3d, double h) const 
-{ 
-  p3d = p1 
-    + (h * pplane(0)) * ex 
+void Surface :: FromPlane (const Point<2> & pplane,
+			   Point<3> & p3d, double h) const
+{
+  p3d = p1
+    + (h * pplane(0)) * ex
     + (h * pplane(1)) * ey;
-  
+
   Project (p3d);
 }
 
@@ -129,7 +129,7 @@ void Surface :: Project (Point<3> & p) const
     {
       val = CalcFunctionValue (p);
       if (fabs (val) < 1e-12) return;
-	
+
       CalcGradient (p, n);
       p -= (val / Abs2 (n)) * n;
     }
@@ -151,31 +151,31 @@ void Surface :: SkewProject (Point<3> & p, const Vec<3> & direction) const
 
 
 double Surface :: MaxCurvature () const
-{ 
-  return 0.5 * HesseNorm (); 
+{
+  return 0.5 * HesseNorm ();
 }
 
-double Surface :: 
+double Surface ::
 MaxCurvatureLoc (const Point<3> & /* c */ , double /* rad */) const
-{ 
-  return MaxCurvature (); 
+{
+  return MaxCurvature ();
 }
-              
 
 
-double Surface :: LocH (const Point<3> & p, double x, 
+
+double Surface :: LocH (const Point<3> & p, double x,
 			double c, double hmax) const
   // finds h <= hmax, s.t.  h * \kappa_x*h < c
 {
   /*
     double h, hmin, kappa;
     hmin = 0;
-  
+
     while (hmin < 0.9 * hmax)
     {
     h = 0.5 * (hmin + hmax);
     kappa = 2 * MaxCurvatureLoc (p, x * h);
-      
+
     if (kappa * h >= c)
     hmax = h;
     else
@@ -188,7 +188,7 @@ double Surface :: LocH (const Point<3> & p, double x,
   double kappa = MaxCurvatureLoc (p, x*hmax);
 
   kappa *= c *  mparam.curvaturesafety;
-  
+
   if (hmax * kappa < 1)
     hret = hmax;
   else
@@ -220,7 +220,7 @@ int Primitive :: GetSurfaceId (int i) const
   return surfaceids[i];
 }
 
-void Primitive :: SetSurfaceId (int i, int id) 
+void Primitive :: SetSurfaceId (int i, int id)
 {
   surfaceids[i] = id;
 }
@@ -228,14 +228,14 @@ void Primitive :: SetSurfaceId (int i, int id)
 
 
 
-void Primitive :: GetPrimitiveData (const char *& classname, 
+void Primitive :: GetPrimitiveData (const char *& classname,
 				    Array<double> & coeffs) const
 {
   classname = "undef";
   coeffs.SetSize (0);
 }
 
-void Primitive :: SetPrimitiveData (Array<double> & coeffs)
+void Primitive :: SetPrimitiveData (Array<double> & /*coeffs*/)
 {
   ;
 }
@@ -268,14 +268,14 @@ Primitive * Primitive :: Copy () const
 }
 
 
-void Primitive :: Transform (Transformation<3> & trans)
+void Primitive :: Transform (Transformation<3> & /*trans*/)
 {
   stringstream ost;
   ost << "Primitve::Transform not implemented for " << typeid(*this).name() << endl;
   throw NgException (ost.str());
 }
 
-void Primitive :: GetTangentialSurfaceIndices (const Point<3> & p, 
+void Primitive :: GetTangentialSurfaceIndices (const Point<3> & p,
 					       Array<int> & surfind, double eps) const
 {
   for (int j = 0; j < GetNSurfaces(); j++)
@@ -285,15 +285,15 @@ void Primitive :: GetTangentialSurfaceIndices (const Point<3> & p,
 }
 
 
-void Primitive :: 
-GetTangentialVecSurfaceIndices (const Point<3> & p, const Vec<3> & v,
-				Array<int> & surfind, double eps) const
+void Primitive ::
+GetTangentialVecSurfaceIndices (const Point<3> & /*p*/, const Vec<3> & /*v*/,
+				Array<int> & surfind, double /*eps*/) const
 {
   cout << "get tangvecsurfind not implemented" << endl;
   surfind.SetSize (0);
 }
 
-void Primitive :: 
+void Primitive ::
 GetTangentialVecSurfaceIndices2 (const Point<3> & p, const Vec<3> & v1, const Vec<3> & v2,
 				 Array<int> & surfind, double eps) const
 {
@@ -303,7 +303,7 @@ GetTangentialVecSurfaceIndices2 (const Point<3> & p, const Vec<3> & v1, const Ve
 	{
 	  Vec<3> grad;
 	  GetSurface(j).CalcGradient (p, grad);
-	  if (sqr (grad * v1) < 1e-6 * v1.Length2() * grad.Length2()  && 
+	  if (sqr (grad * v1) < 1e-6 * v1.Length2() * grad.Length2()  &&
 	      sqr (grad * v2) < 1e-6 * v2.Length2() * grad.Length2() )   // new, 18032006 JS
 	    {
 	      if (!surfind.Contains (GetSurfaceId(j)))
@@ -316,7 +316,7 @@ GetTangentialVecSurfaceIndices2 (const Point<3> & p, const Vec<3> & v1, const Ve
 
 
 
-INSOLID_TYPE Primitive :: 
+INSOLID_TYPE Primitive ::
 VecInSolid2 (const Point<3> & p,
 	     const Vec<3> & v1,
 	     const Vec<3> & v2,
@@ -331,20 +331,20 @@ VecInSolid2 (const Point<3> & p,
   return res;
 }
 
-INSOLID_TYPE Primitive :: 
+INSOLID_TYPE Primitive ::
 VecInSolid3 (const Point<3> & p,
 	     const Vec<3> & v1,
-	     const Vec<3> & v2,
+	     const Vec<3> & /*v2*/,
 	     double eps) const
 {
   //(*testout) << "Primitive::VecInSolid3" << endl;
   return VecInSolid (p, v1, eps);
 }
 
-INSOLID_TYPE Primitive :: 
+INSOLID_TYPE Primitive ::
 VecInSolid4 (const Point<3> & p,
 	     const Vec<3> & v,
-	     const Vec<3> & v2,
+	     const Vec<3> & /*v2*/,
 	     const Vec<3> & m,
 	     double eps) const
 {
@@ -366,7 +366,7 @@ OneSurfacePrimitive :: ~OneSurfacePrimitive()
 }
 
 
-INSOLID_TYPE OneSurfacePrimitive :: 
+INSOLID_TYPE OneSurfacePrimitive ::
 PointInSolid (const Point<3> & p,
 	      double eps) const
 {
@@ -377,9 +377,9 @@ PointInSolid (const Point<3> & p,
     return IS_OUTSIDE;
   return DOES_INTERSECT;
 }
- 
 
-INSOLID_TYPE OneSurfacePrimitive :: 
+
+INSOLID_TYPE OneSurfacePrimitive ::
 VecInSolid (const Point<3> & p, const Vec<3> & v,
 	    double eps) const
 {
@@ -404,7 +404,7 @@ VecInSolid (const Point<3> & p, const Vec<3> & v,
 }
 
 
-INSOLID_TYPE OneSurfacePrimitive :: 
+INSOLID_TYPE OneSurfacePrimitive ::
 VecInSolid2 (const Point<3> & p,
 	     const Vec<3> & v1,
 	     const Vec<3> & v2,
@@ -432,10 +432,10 @@ VecInSolid2 (const Point<3> & p,
   else
     return IS_OUTSIDE;
 }
-  
 
 
-INSOLID_TYPE OneSurfacePrimitive :: 
+
+INSOLID_TYPE OneSurfacePrimitive ::
 VecInSolid3 (const Point<3> & p, const Vec<3> & v, const Vec<3> & v2,
 	     double eps) const
 {
@@ -467,7 +467,7 @@ VecInSolid3 (const Point<3> & p, const Vec<3> & v, const Vec<3> & v2,
 
 
 
-INSOLID_TYPE OneSurfacePrimitive :: 
+INSOLID_TYPE OneSurfacePrimitive ::
 VecInSolid4 (const Point<3> & p, const Vec<3> & v, const Vec<3> & v2,
 	     const Vec<3> & m,
 	     double eps) const
@@ -512,12 +512,12 @@ int OneSurfacePrimitive :: GetNSurfaces() const
   return 1;
 }
 
-Surface & OneSurfacePrimitive :: GetSurface (int i)
+Surface & OneSurfacePrimitive :: GetSurface (int /*i*/)
 {
   return *this;
 }
 
-const Surface & OneSurfacePrimitive :: GetSurface (int i) const
+const Surface & OneSurfacePrimitive :: GetSurface (int /*i*/) const
 {
   return *this;
 }
@@ -556,7 +556,7 @@ void ProjectToEdge (const Surface * f1, const Surface * f2, Point<3> & hp)
 	  a(0,0) = a1 * a1;
 	  a(0,1) = a(1,0) = a1 * a2;
 	  a(1,1) = a2 * a2;
-	  
+
 	  a.Solve (rs, lam);
 
 	  hp -= lam(0) * a1 + lam(1) * a2;

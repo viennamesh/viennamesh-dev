@@ -1,16 +1,16 @@
 #include <mystdlib.h>
 
-#include "meshing.hpp"  
+#include "meshing.hpp"
 
 namespace netgen
 {
-  int MultiPointGeomInfo :: 
+  int MultiPointGeomInfo ::
   AddPointGeomInfo (const PointGeomInfo & gi)
   {
     for (int k = 0; k < cnt; k++)
       if (mgi[k].trignum == gi.trignum)
 	return 0;
-  
+
     if (cnt < MULTIPOINTGEOMINFO_MAX)
       {
 	mgi[cnt] = gi;
@@ -20,12 +20,12 @@ namespace netgen
 
     throw NgException ("Please report error: MPGI Size too small\n");
   }
-  
+
 
 
 #ifdef PARALLEL
   MPI_Datatype MeshPoint :: MyGetMPIType ( )
-  { 
+  {
     static MPI_Datatype type = NULL;
     static MPI_Datatype htype = NULL;
     if (!type)
@@ -47,7 +47,7 @@ namespace netgen
 	ext = sizeof (MeshPoint);
 	MPI_Type_create_resized (htype, lb, ext, &type);
 	MPI_Type_commit ( &type );
-	
+
       }
     return type;
   }
@@ -56,10 +56,10 @@ namespace netgen
 
 
 
-  Segment :: Segment() 
+  Segment :: Segment()
   {
     pnums[0] = -1;
-    pnums[1] = -1; 
+    pnums[1] = -1;
     edgenr = -1;
 
     singedge_left = 0.;
@@ -77,8 +77,8 @@ namespace netgen
     pnums[2] = -1;
     meshdocval = 0;
     /*
-      geominfo[0].trignum=-1; 
-      geominfo[1].trignum=-1; 
+      geominfo[0].trignum=-1;
+      geominfo[1].trignum=-1;
 
       epgeominfo[0].edgenr = 1;
       epgeominfo[0].dist = 0;
@@ -87,7 +87,7 @@ namespace netgen
     */
 
     bcname = 0;
-  }    
+  }
 
   Segment::Segment (const Segment & other)
     :
@@ -141,7 +141,7 @@ namespace netgen
 	hp_elnr = other.hp_elnr;
 	bcname = other.bcname;
       }
-    
+
     return *this;
   }
 
@@ -150,14 +150,14 @@ namespace netgen
   {
     s << seg[0] << "(gi=" << seg.geominfo[0].trignum << ") - "
       << seg[1] << "(gi=" << seg.geominfo[1].trignum << ")"
-      << " domin = " << seg.domin << ", domout = " << seg.domout 
+      << " domin = " << seg.domin << ", domout = " << seg.domout
       << " si = " << seg.si << ", edgenr = " << seg.edgenr;
     return s;
   }
 
 
   Element2d :: Element2d ()
-  { 
+  {
     for (int i = 0; i < ELEMENT2D_MAXPOINTS; i++)
       {
 	pnum[i] = 0;
@@ -172,11 +172,11 @@ namespace netgen
     orderx = ordery = 1;
     refflag = 1;
     strongrefflag = false;
-  } 
+  }
 
 
   Element2d :: Element2d (int anp)
-  { 
+  {
     for (int i = 0; i < ELEMENT2D_MAXPOINTS; i++)
       {
 	pnum[i] = 0;
@@ -197,10 +197,10 @@ namespace netgen
     orderx = ordery = 1;
     refflag = 1;
     strongrefflag = false;
-  } 
+  }
 
   Element2d :: Element2d (ELEMENT_TYPE atyp)
-  { 
+  {
     for (int i = 0; i < ELEMENT2D_MAXPOINTS; i++)
       {
 	pnum[i] = 0;
@@ -216,7 +216,7 @@ namespace netgen
     orderx = ordery = 1;
     refflag = 1;
     strongrefflag = false;
-  } 
+  }
 
 
 
@@ -230,7 +230,7 @@ namespace netgen
     pnum[3] = 0;
     pnum[4] = 0;
     pnum[5] = 0;
-  
+
     for (int i = 0; i < ELEMENT2D_MAXPOINTS; i++)
       geominfo[i].trignum = 0;
     index = 0;
@@ -253,7 +253,7 @@ namespace netgen
 
     pnum[4] = 0;
     pnum[5] = 0;
-  
+
     for (int i = 0; i < ELEMENT2D_MAXPOINTS; i++)
       geominfo[i].trignum = 0;
     index = 0;
@@ -333,8 +333,8 @@ namespace netgen
     //nur für tets!!! hannes
     for (int i = 1; i <= 3; i++)
       {
-        if (PNumMod(i)   == el[0] && 
-            PNumMod(i+1) == el[1] && 
+        if (PNumMod(i)   == el[0] &&
+            PNumMod(i+1) == el[1] &&
             PNumMod(i+2) == el[2])
           {
             return 1;
@@ -372,7 +372,7 @@ namespace netgen
         int mini = 1;
         for (int i = 2; i <= GetNP(); i++)
           if (PNum(i) < PNum(mini)) mini = i;
-      
+
         Element2d hel = (*this);
         for (int i = 1; i <= GetNP(); i++)
           PNum(i) = hel.PNumMod (i+mini-1);
@@ -398,7 +398,7 @@ namespace netgen
     return nip;
   }
 
-  void Element2d :: 
+  void Element2d ::
   GetIntegrationPoint (int ip, Point2d & p, double & weight) const
   {
     static double eltriqp[1][3] =
@@ -407,13 +407,13 @@ namespace netgen
       };
 
     static double elquadqp[4][3] =
-      { 
+      {
         { 0, 0, 0.25 },
         { 0, 1, 0.25 },
         { 1, 0, 0.25 },
         { 1, 1, 0.25 }
       };
-  
+
     double * pp = 0;
     switch (typ)
       {
@@ -428,7 +428,7 @@ namespace netgen
     weight = pp[2];
   }
 
-  void Element2d :: 
+  void Element2d ::
   GetTransformation (int ip, const Array<Point2d> & points,
                      DenseMatrix & trans) const
   {
@@ -443,7 +443,7 @@ namespace netgen
     GetPointMatrix (points, pmat);
     GetIntegrationPoint (ip, p, w);
     GetDShape (p, dshape);
-  
+
     CalcABt (pmat, dshape, trans);
 
     /*
@@ -454,7 +454,7 @@ namespace netgen
     */
   }
 
-  void Element2d :: 
+  void Element2d ::
   GetTransformation (int ip, class DenseMatrix & pmat,
                      class DenseMatrix & trans) const
   {
@@ -477,7 +477,7 @@ namespace netgen
       default:
         PrintSysError ("Element2d::GetTransformation, illegal type ", typ);
       }
-  
+
     CalcABt (pmat, *dshapep, trans);
   }
 
@@ -530,6 +530,8 @@ namespace netgen
           shape(3) = (1-p(0))*   p(1) ;
           break;
         }
+      default:
+        break;
       }
   }
 
@@ -541,7 +543,7 @@ namespace netgen
 
 
 
-  void Element2d :: 
+  void Element2d ::
   GetDShape (const Point2d & p, DenseMatrix & dshape) const
   {
 #ifdef DEBUG
@@ -580,7 +582,7 @@ namespace netgen
 
 
 
-  void Element2d :: 
+  void Element2d ::
   GetDShapeNew (const Point<2> & p, MatrixFixWidth<2> & dshape) const
   {
     switch (typ)
@@ -609,6 +611,8 @@ namespace netgen
           dshape(3,1) = (1-p(0));
           break;
         }
+      default:
+        break;
       }
   }
 
@@ -616,7 +620,7 @@ namespace netgen
 
 
 
-  void Element2d :: 
+  void Element2d ::
   GetPointMatrix (const Array<Point2d> & points,
                   DenseMatrix & pmat) const
   {
@@ -629,7 +633,7 @@ namespace netgen
         return;
       }
 #endif
-  
+
     for (int i = 1; i <= np; i++)
       {
         const Point2d & p = points.Get(PNum(i));
@@ -648,7 +652,7 @@ namespace netgen
     int nip = GetNIP();
     DenseMatrix trans(2,2);
     DenseMatrix pmat;
-  
+
     pmat.SetSize (2, GetNP());
     GetPointMatrix (points, pmat);
 
@@ -685,7 +689,7 @@ namespace netgen
       { 3, 2, 1, 2 }
     };
 
-  double Element2d :: 
+  double Element2d ::
   CalcJacobianBadnessDirDeriv (const Array<Point2d> & points,
                                int pi, Vec2d & dir, double & dd) const
   {
@@ -693,7 +697,7 @@ namespace netgen
       {
         Mat<2,2> trans, dtrans;
         Mat<2,4> vmat, pmat;
-      
+
         for (int j = 0; j < 4; j++)
           {
             const Point2d & p = points.Get( (*this)[j] );
@@ -704,7 +708,7 @@ namespace netgen
         vmat = 0.0;
         vmat(0, pi-1) = dir.X();
         vmat(1, pi-1) = dir.Y();
-      
+
         double err = 0;
         dd = 0;
 
@@ -714,7 +718,7 @@ namespace netgen
             int ix2 = qip_table[i][1];
             int iy1 = qip_table[i][2];
             int iy2 = qip_table[i][3];
-	      
+
             trans(0,0) = pmat(0, ix2) - pmat(0,ix1);
             trans(1,0) = pmat(1, ix2) - pmat(1,ix1);
             trans(0,1) = pmat(0, iy2) - pmat(0,iy1);
@@ -727,7 +731,7 @@ namespace netgen
                 dd = 0;
                 return 1e12;
               }
-	  
+
             dtrans(0,0) = vmat(0, ix2) - vmat(0,ix1);
             dtrans(1,0) = vmat(1, ix2) - vmat(1,ix1);
             dtrans(0,1) = vmat(0, iy2) - vmat(0,iy1);
@@ -736,28 +740,28 @@ namespace netgen
 
             // Frobenius norm
             double frob = 0;
-            for (int j = 0; j < 4; j++) 
+            for (int j = 0; j < 4; j++)
               frob += sqr (trans(j));
             frob = sqrt (frob);
-	  
+
             double dfrob = 0;
             for (int j = 0; j < 4; j++)
               dfrob += trans(j) * dtrans(j);
             dfrob = dfrob / frob;
-	  
-            frob /= 2;      
+
+            frob /= 2;
             dfrob /= 2;
-	  
-	  
+
+
             // ddet = \sum_j det (m_j)   with m_j = trans, except col j = dtrans
-            double ddet 
+            double ddet
               = dtrans(0,0) * trans(1,1) - trans(0,1) * dtrans(1,0)
               + trans(0,0) * dtrans(1,1) - dtrans(0,1) * trans(1,0);
-	  
+
             err += frob * frob / det;
             dd += (2 * frob * dfrob * det - frob * frob * ddet) / (det * det);
           }
-      
+
         err /= 4;
         dd /= 4;
         return err;
@@ -766,12 +770,12 @@ namespace netgen
     int nip = GetNIP();
     DenseMatrix trans(2,2), dtrans(2,2);
     DenseMatrix pmat, vmat;
-  
+
     pmat.SetSize (2, GetNP());
     vmat.SetSize (2, GetNP());
 
     GetPointMatrix (points, pmat);
-  
+
     vmat = 0.0;
     vmat.Elem(1, pi) = dir.X();
     vmat.Elem(2, pi) = dir.Y();
@@ -790,19 +794,19 @@ namespace netgen
         for (int j = 1; j <= 4; j++)
           frob += sqr (trans.Get(j));
         frob = sqrt (frob);
-      
+
         double dfrob = 0;
         for (int j = 1; j <= 4; j++)
           dfrob += trans.Get(j) * dtrans.Get(j);
         dfrob = dfrob / frob;
-      
-        frob /= 2;      
+
+        frob /= 2;
         dfrob /= 2;
-      
+
         double det = trans(0,0)*trans(1,1)-trans(1,0)*trans(0,1);
 
         // ddet = \sum_j det (m_j)   with m_j = trans, except col j = dtrans
-        double ddet 
+        double ddet
           = dtrans(0,0) * trans(1,1) - trans(0,1) * dtrans(1,0)
           + trans(0,0) * dtrans(1,1) - dtrans(0,1) * trans(1,0);
 
@@ -822,14 +826,14 @@ namespace netgen
 
 
 
-  double Element2d :: 
+  double Element2d ::
   CalcJacobianBadness (const T_POINTS & points, const Vec<3> & n) const
   {
     int i, j;
     int nip = GetNIP();
     DenseMatrix trans(2,2);
     DenseMatrix pmat;
-  
+
     pmat.SetSize (2, GetNP());
 
     Vec<3> t1, t2;
@@ -982,19 +986,19 @@ namespace netgen
     orderx = ordery = orderz = 1;
   }
 
-  void Element :: SetOrder (const int aorder) 
-  { 
-    orderx = aorder; 
-    ordery = aorder; 
+  void Element :: SetOrder (const int aorder)
+  {
+    orderx = aorder;
+    ordery = aorder;
     orderz = aorder;
   }
 
 
-  void Element :: SetOrder (const int ox, const int oy, const int oz) 
-  { 
-    orderx = ox; 
+  void Element :: SetOrder (const int ox, const int oy, const int oz)
+  {
+    orderx = ox;
     ordery = oy;
-    orderz = oz; 
+    orderz = oz;
   }
 
 
@@ -1043,7 +1047,7 @@ namespace netgen
 
   void Element :: SetNP (int anp)
   {
-    np = anp; 
+    np = anp;
     switch (np)
       {
       case 4: typ = TET; break;
@@ -1051,7 +1055,7 @@ namespace netgen
       case 6: typ = PRISM; break;
       case 8: typ = HEX; break;
       case 10: typ = TET10; break;
-        // 
+        //
       default: break;
         cerr << "Element::SetNP unknown element with " << np << " points" << endl;
       }
@@ -1123,21 +1127,21 @@ namespace netgen
   {
     Vec<3> v1 = points.Get(PNum(2)) - points.Get(PNum(1));
     Vec<3> v2 = points.Get(PNum(3)) - points.Get(PNum(1));
-    Vec<3> v3 = points.Get(PNum(4)) - points.Get(PNum(1)); 
-  
-    return -(Cross (v1, v2) * v3) / 6;	 
-  }  
+    Vec<3> v3 = points.Get(PNum(4)) - points.Get(PNum(1));
+
+    return -(Cross (v1, v2) * v3) / 6;
+  }
 
 
   void Element :: GetFace2 (int i, Element2d & face) const
   {
-    static const int tetfaces[][5] = 
+    static const int tetfaces[][5] =
       { { 3, 2, 3, 4, 0 },
         { 3, 3, 1, 4, 0 },
         { 3, 1, 2, 4, 0 },
         { 3, 2, 1, 3, 0 } };
 
-    static const int tet10faces[][7] = 
+    static const int tet10faces[][7] =
       { { 3, 2, 3, 4, 10, 9, 8 },
         { 3, 3, 1, 4, 7, 10, 6 },
         { 3, 1, 2, 4, 9, 7, 5 },
@@ -1215,7 +1219,7 @@ namespace netgen
       {
       case TET:
         {
-          int linels[1][4] = 
+          int linels[1][4] =
             { { 1, 2, 3, 4 },
             };
           for (i = 0; i < 1; i++)
@@ -1229,7 +1233,7 @@ namespace netgen
         }
       case TET10:
         {
-          int linels[8][4] = 
+          int linels[8][4] =
             { { 1, 5, 6, 7 },
               { 5, 2, 8, 9 },
               { 6, 8, 3, 10 },
@@ -1249,7 +1253,7 @@ namespace netgen
         }
       case PYRAMID:
         {
-          int linels[2][4] = 
+          int linels[2][4] =
             { { 1, 2, 3, 5 },
               { 1, 3, 4, 5 } };
           for (i = 0; i < 2; i++)
@@ -1264,7 +1268,7 @@ namespace netgen
       case PRISM:
       case PRISM12:
         {
-          int linels[3][4] = 
+          int linels[3][4] =
             { { 1, 2, 3, 4 },
               { 4, 2, 3, 5 },
               { 6, 5, 4, 3 }
@@ -1280,7 +1284,7 @@ namespace netgen
         }
       case HEX:
         {
-          int linels[6][4] = 
+          int linels[6][4] =
             { { 1, 7, 2, 3 },
               { 1, 7, 3, 4 },
               { 1, 7, 4, 8 },
@@ -1322,7 +1326,7 @@ namespace netgen
         { 1, 0, 0 },
         { 0, 1, 0 },
         { 0, 0, 1 }};
-  
+
     const static double prismpoints[6][3] =
       { { 0, 0, 0 },
         { 1, 0, 0 },
@@ -1330,14 +1334,14 @@ namespace netgen
         { 0, 0, 1 },
         { 1, 0, 1 },
         { 0, 1, 1 } };
-  
+
     const static double pyramidpoints[6][3] =
       { { 0, 0, 0 },
         { 1, 0, 0 },
         { 1, 1, 0 },
         { 0, 1, 0 },
         { 0, 0, 1 } };
-  
+
     const static double tet10points[10][3] =
       { { 0, 0, 0 },
         { 1, 0, 0 },
@@ -1351,7 +1355,7 @@ namespace netgen
         { 0, 0.5, 0.5 } };
 
     const static double hexpoints[8][3] =
-      { 
+      {
         { 0, 0, 0 },
         { 1, 0, 0 },
         { 1, 1, 0 },
@@ -1361,7 +1365,7 @@ namespace netgen
         { 1, 1, 1 },
         { 0, 1, 1 }
       };
-  
+
     int np, i;
     const double (*pp)[3];
     switch (GetType())
@@ -1403,7 +1407,7 @@ namespace netgen
           np = 0;
         }
       }
-  
+
     points.SetSize(0);
     for (i = 0; i < np; i++)
       points.Append (Point3d (pp[i][0], pp[i][1], pp[i][2]));
@@ -1418,13 +1422,13 @@ namespace netgen
   void Element :: GetNodesLocalNew (Array<Point<3> > & points) const
   {
     const static double tetpoints[4][3] =
-      {      
+      {
         { 1, 0, 0 },
         { 0, 1, 0 },
         { 0, 0, 1 },
         { 0, 0, 0 }
       };
-  
+
     const static double prismpoints[6][3] =
       {
         { 1, 0, 0 },
@@ -1434,14 +1438,14 @@ namespace netgen
         { 0, 1, 1 },
         { 0, 0, 1 }
       };
-  
+
     const static double pyramidpoints[6][3] =
       { { 0, 0, 0 },
         { 1, 0, 0 },
         { 1, 1, 0 },
         { 0, 1, 0 },
         { 0, 0, 1 } };
-  
+
     const static double tet10points[10][3] =
       { { 0, 0, 0 },
         { 1, 0, 0 },
@@ -1455,7 +1459,7 @@ namespace netgen
         { 0, 0.5, 0.5 } };
 
     const static double hexpoints[8][3] =
-      { 
+      {
         { 0, 0, 0 },
         { 1, 0, 0 },
         { 1, 1, 0 },
@@ -1465,9 +1469,9 @@ namespace netgen
         { 1, 1, 1 },
         { 0, 1, 1 }
       };
-  
 
-  
+
+
     int np, i;
     const double (*pp)[3];
     switch (GetType())
@@ -1510,7 +1514,7 @@ namespace netgen
 	  pp = NULL;
         }
       }
-  
+
     points.SetSize(0);
     for (i = 0; i < np; i++)
       points.Append (Point<3> (pp[i][0], pp[i][1], pp[i][2]));
@@ -1534,13 +1538,13 @@ namespace netgen
 
   void Element :: GetSurfaceTriangles (Array<Element2d> & surftrigs) const
   {
-    static int tet4trigs[][3] = 
+    static int tet4trigs[][3] =
       { { 2, 3, 4 },
         { 3, 1, 4 },
         { 1, 2, 4 },
         { 2, 1, 3 } };
 
-    static int tet10trigs[][3] = 
+    static int tet10trigs[][3] =
       { { 2, 8, 9 }, { 3, 10, 8}, { 4, 9, 10 }, { 9, 8, 10 },
         { 3, 6, 10 }, { 1, 7, 6 }, { 4, 10, 7 }, { 6, 7, 10 },
         { 1, 5, 7 }, { 2, 9, 5 }, { 4, 7, 9 }, { 5, 9, 7 },
@@ -1568,11 +1572,11 @@ namespace netgen
         { 3, 1, 6 },
         { 6, 1, 4 }
       };
-  
-    static int hextrigs[][3] = 
+
+    static int hextrigs[][3] =
       {
         { 1, 3, 2 },
-        { 1, 4, 3 }, 
+        { 1, 4, 3 },
         { 5, 6, 7 },
         { 5, 7, 8 },
         { 1, 2, 6 },
@@ -1630,7 +1634,7 @@ namespace netgen
         }
       }
 
-  
+
     surftrigs.SetSize (nf);
     for (j = 0; j < nf; j++)
       {
@@ -1662,7 +1666,7 @@ namespace netgen
     return nip;
   }
 
-  void Element :: 
+  void Element ::
   GetIntegrationPoint (int ip, Point<3> & p, double & weight) const
   {
     static double eltetqp[1][4] =
@@ -1681,12 +1685,13 @@ namespace netgen
         { 0, 0, 1, 1 },
         { 0, 0, 0, 1 },
       };
-  
+
     double * pp = NULL;
     switch (typ)
       {
       case TET: pp = &eltetqp[0][0]; break;
       case TET10: pp = &eltet10qp[ip-1][0]; break;
+      default: break;
       }
 
     p(0) = pp[0];
@@ -1695,7 +1700,7 @@ namespace netgen
     weight = pp[3];
   }
 
-  void Element :: 
+  void Element ::
   GetTransformation (int ip, const T_POINTS & points,
                      DenseMatrix & trans) const
   {
@@ -1710,7 +1715,7 @@ namespace netgen
     GetPointMatrix (points, pmat);
     GetIntegrationPoint (ip, p, w);
     GetDShape (p, dshape);
-  
+
     CalcABt (pmat, dshape, trans);
 
     /*
@@ -1721,7 +1726,7 @@ namespace netgen
     */
   }
 
-  void Element :: 
+  void Element ::
   GetTransformation (int ip, class DenseMatrix & pmat,
                      class DenseMatrix & trans) const
   {
@@ -1742,7 +1747,7 @@ namespace netgen
       default:
         PrintSysError ("Element::GetTransformation, illegal type ", int(typ));
       }
-  
+
     CalcABt (pmat, *dshapep, trans);
   }
 
@@ -1761,7 +1766,7 @@ namespace netgen
       {
       case TET:
         {
-          shape(0) = 1 - p.X() - p.Y() - p.Z(); 
+          shape(0) = 1 - p.X() - p.Y() - p.Z();
           shape(1) = p.X();
           shape(2) = p.Y();
           shape(3) = p.Z();
@@ -1773,14 +1778,14 @@ namespace netgen
           double lam2 = p.X();
           double lam3 = p.Y();
           double lam4 = p.Z();
-	
+
           shape(4) = 4 * lam1 * lam2;
           shape(5) = 4 * lam1 * lam3;
           shape(6) = 4 * lam1 * lam4;
           shape(7) = 4 * lam2 * lam3;
           shape(8) = 4 * lam2 * lam4;
           shape(9) = 4 * lam3 * lam4;
-	
+
           shape(0) = lam1 - 0.5 * (shape(4) + shape(5) + shape(6));
           shape(1) = lam2 - 0.5 * (shape(4) + shape(7) + shape(8));
           shape(2) = lam3 - 0.5 * (shape(5) + shape(7) + shape(9));
@@ -1790,7 +1795,7 @@ namespace netgen
 
       case PRISM:
         {
-          Point<3> hp = p; 
+          Point<3> hp = p;
           shape(0) = hp(0) * (1-hp(2));
           shape(1) = hp(1) * (1-hp(2));
           shape(2) = (1-hp(0)-hp(1)) * (1-hp(2));
@@ -1801,7 +1806,7 @@ namespace netgen
         }
       case HEX:
         {
-          Point<3> hp = p; 
+          Point<3> hp = p;
           shape(0) = (1-hp(0))*(1-hp(1))*(1-hp(2));
           shape(1) = (  hp(0))*(1-hp(1))*(1-hp(2));
           shape(2) = (  hp(0))*(  hp(1))*(1-hp(2));
@@ -1812,6 +1817,8 @@ namespace netgen
           shape(7) = (1-hp(0))*(  hp(1))*(  hp(2));
           break;
         }
+      default:
+        break;
       }
   }
 
@@ -1844,7 +1851,7 @@ namespace netgen
           double lam2 = p(1);
           double lam3 = p(2);
           double lam4 = 1-p(0)-p(1)-p(2);
-	
+
           shape(0) = 2 * lam1 * (lam1-0.5);
           shape(1) = 2 * lam2 * (lam2-0.5);
           shape(2) = 2 * lam3 * (lam3-0.5);
@@ -1856,7 +1863,7 @@ namespace netgen
           shape(7) = 4 * lam2 * lam3;
           shape(8) = 4 * lam2 * lam4;
           shape(9) = 4 * lam3 * lam4;
-	
+
           break;
         }
 
@@ -1898,12 +1905,14 @@ namespace netgen
           shape(7) = (1-p(0))*(  p(1))*(  p(2));
           break;
         }
+      default:
+        break;
       }
   }
 
 
 
-  void Element :: 
+  void Element ::
   GetDShape (const Point<3> & hp, DenseMatrix & dshape) const
   {
     Point3d p = hp;
@@ -1923,7 +1932,7 @@ namespace netgen
         Point3d pr(p), pl(p);
         pr.X(i) += eps;
         pl.X(i) -= eps;
-      
+
         GetShape (pr, shaper);
         GetShape (pl, shapel);
         for (int j = 0; j < np; j++)
@@ -1932,7 +1941,7 @@ namespace netgen
   }
 
 
-  void Element :: 
+  void Element ::
   GetDShapeNew (const Point<3> & p, MatrixFixWidth<3> & dshape) const
   {
     switch (typ)
@@ -1974,13 +1983,13 @@ namespace netgen
           int np = GetNP();
           double eps = 1e-6;
           Vector shaper(np), shapel(np);
-	
+
           for (int i = 1; i <= 3; i++)
             {
               Point3d pr(p), pl(p);
               pr.X(i) += eps;
               pl.X(i) -= eps;
-	    
+
               GetShapeNew (pr, shaper);
               GetShapeNew (pl, shapel);
               for (int j = 0; j < np; j++)
@@ -1990,7 +1999,7 @@ namespace netgen
       }
   }
 
-  void Element :: 
+  void Element ::
   GetPointMatrix (const T_POINTS & points,
                   DenseMatrix & pmat) const
   {
@@ -2012,7 +2021,7 @@ namespace netgen
     int nip = GetNIP();
     DenseMatrix trans(3,3);
     DenseMatrix pmat;
-  
+
     pmat.SetSize (3, GetNP());
     GetPointMatrix (points, pmat);
 
@@ -2029,7 +2038,7 @@ namespace netgen
         frob /= 3;
 
         double det = -trans.Det();
-      
+
         if (det <= 0)
           err += 1e12;
         else
@@ -2040,7 +2049,7 @@ namespace netgen
     return err;
   }
 
-  double Element :: 
+  double Element ::
   CalcJacobianBadnessDirDeriv (const T_POINTS & points,
                                int pi, Vec<3> & dir, double & dd) const
   {
@@ -2048,12 +2057,12 @@ namespace netgen
     int nip = GetNIP();
     DenseMatrix trans(3,3), dtrans(3,3), hmat(3,3);
     DenseMatrix pmat, vmat;
-  
+
     pmat.SetSize (3, GetNP());
     vmat.SetSize (3, GetNP());
 
     GetPointMatrix (points, pmat);
-  
+
     for (i = 1; i <= np; i++)
       for (j = 1; j <= 3; j++)
         vmat.Elem(j, i) = 0;
@@ -2076,19 +2085,19 @@ namespace netgen
         for (j = 1; j <= 9; j++)
           frob += sqr (trans.Get(j));
         frob = sqrt (frob);
-      
+
         double dfrob = 0;
         for (j = 1; j <= 9; j++)
           dfrob += trans.Get(j) * dtrans.Get(j);
         dfrob = dfrob / frob;
-      
-        frob /= 3;      
+
+        frob /= 3;
         dfrob /= 3;
 
-      
+
         double det = trans.Det();
         double ddet = 0;
-      
+
         for (j = 1; j <= 3; j++)
           {
             hmat = trans;
@@ -2101,7 +2110,7 @@ namespace netgen
         det *= -1;
         ddet *= -1;
 
-      
+
         if (det <= 0)
           err += 1e12;
         else
@@ -2116,19 +2125,19 @@ namespace netgen
     return err;
   }
 
-  double Element :: 
+  double Element ::
   CalcJacobianBadnessGradient (const T_POINTS & points,
                                int pi, Vec<3> & grad) const
   {
     int nip = GetNIP();
     DenseMatrix trans(3,3), dtrans(3,3), hmat(3,3);
     DenseMatrix pmat, vmat;
-  
+
     pmat.SetSize (3, GetNP());
     vmat.SetSize (3, GetNP());
 
     GetPointMatrix (points, pmat);
-  
+
     for (int i = 1; i <= np; i++)
       for (int j = 1; j <= 3; j++)
         vmat.Elem(j, i) = 0;
@@ -2146,7 +2155,7 @@ namespace netgen
       {
         GetTransformation (i, pmat, trans);
         GetTransformation (i, vmat, dtrans);
- 
+
         // Frobenius norm
         double frob = 0;
         for (int j = 1; j <= 9; j++)
@@ -2161,11 +2170,11 @@ namespace netgen
             dfrob[k] = dfrob[k] / (3.*frob);
           }
 
-        frob /= 3;      
+        frob /= 3;
 
         double det = trans.Det();
         double ddet[3]; // = 0;
-      
+
         for(int k=1; k<=3; k++)
           {
             int km1 = (k > 1) ? (k-1) : 3;
@@ -2175,15 +2184,15 @@ namespace netgen
               {
                 int jm1 = (j > 1) ? (j-1) : 3;
                 int jp1 = (j < 3) ? (j+1) : 1;
-	      
-                ddet[k-1] += (-1.)* dtrans.Get(k,j) * ( trans.Get(km1,jm1)*trans.Get(kp1,jp1) - 
+
+                ddet[k-1] += (-1.)* dtrans.Get(k,j) * ( trans.Get(km1,jm1)*trans.Get(kp1,jp1) -
                                                         trans.Get(km1,jp1)*trans.Get(kp1,jm1) );
               }
           }
 
-      
+
         det *= -1;
-      
+
         if (det <= 0)
           err += 1e12;
         else
@@ -2250,36 +2259,36 @@ namespace netgen
 
 
   FaceDescriptor ::  FaceDescriptor()
-  { 
-    surfnr = domin = domout  = bcprop = 0; 
+  {
+    surfnr = domin = domout  = bcprop = 0;
     domin_singular = domout_singular = 0.;
     // Philippose - 06/07/2009
     // Initialise surface colour
     surfcolour = Vec3d(0.0,1.0,0.0);
-    tlosurf = -1; 
+    tlosurf = -1;
     bcname = 0;
     firstelement = -1;
   }
 
   FaceDescriptor ::  FaceDescriptor(const FaceDescriptor& other)
     : surfnr(other.surfnr), domin(other.domin), domout(other.domout),
-      tlosurf(other.tlosurf), bcprop(other.bcprop), 
+      tlosurf(other.tlosurf), bcprop(other.bcprop),
       surfcolour(other.surfcolour), bcname(other.bcname),
       domin_singular(other.domin_singular), domout_singular(other.domout_singular)
-  { 
+  {
     firstelement = -1;
   }
 
-  FaceDescriptor :: 
+  FaceDescriptor ::
   FaceDescriptor(int surfnri, int domini, int domouti, int tlosurfi)
-  { 
-    surfnr = surfnri; 
-    domin = domini; 
+  {
+    surfnr = surfnri;
+    domin = domini;
     domout = domouti;
     // Philippose - 06/07/2009
     // Initialise surface colour
     surfcolour = Vec3d(0.0,1.0,0.0);
-    tlosurf = tlosurfi; 
+    tlosurf = tlosurfi;
     bcprop = surfnri;
     domin_singular = domout_singular = 0.;
     bcname = 0;
@@ -2287,8 +2296,8 @@ namespace netgen
   }
 
   FaceDescriptor :: FaceDescriptor(const Segment & seg)
-  { 
-    surfnr = seg.si; 
+  {
+    surfnr = seg.si;
     domin = seg.domin+1;
     domout = seg.domout+1;
     // Philippose - 06/07/2009
@@ -2328,7 +2337,7 @@ namespace netgen
 
   ostream & operator<<(ostream  & s, const FaceDescriptor & fd)
   {
-    s << "surfnr = " << fd.SurfNr() 
+    s << "surfnr = " << fd.SurfNr()
       << ", domin = " << fd.DomainIn()
       << ", domout = " << fd.DomainOut()
       << ", tlosurf = " << fd.TLOSurface()
@@ -2381,7 +2390,7 @@ namespace netgen
     if (identnr+1 > idpoints_table.Size())
       idpoints_table.ChangeSize (identnr+1);
     idpoints_table.Add (identnr, pair);
-  
+
     //  timestamp = NextTimeStamp();
   }
 
@@ -2443,24 +2452,24 @@ namespace netgen
               INDEX_3 i3;
               int dummy;
               identifiedpoints_nr->GetData (i, j, i3, dummy);
-	    
+
               if (i3.I3() == identnr || !identnr)
                 {
                   identmap.Elem(i3.I1()) = i3.I2();
                   if(symmetric)
                     identmap.Elem(i3.I2()) = i3.I1();
                 }
-            }  
+            }
       }
 
   }
 
 
-  void Identifications :: GetPairs (int identnr, 
+  void Identifications :: GetPairs (int identnr,
                                     Array<INDEX_2> & identpairs) const
   {
     identpairs.SetSize(0);
-  
+
     if (identnr == 0)
       for (int i = 1; i <= identifiedpoints->GetNBags(); i++)
         for (int j = 1; j <= identifiedpoints->GetBagSize(i); j++)
@@ -2469,7 +2478,7 @@ namespace netgen
             int nr;
             identifiedpoints->GetData (i, j, i2, nr);
             identpairs.Append (i2);
-          }  
+          }
     else
       for (int i = 1; i <= identifiedpoints_nr->GetNBags(); i++)
         for (int j = 1; j <= identifiedpoints_nr->GetBagSize(i); j++)
@@ -2477,10 +2486,10 @@ namespace netgen
             INDEX_3 i3;
             int dummy;
             identifiedpoints_nr->GetData (i, j, i3 , dummy);
-	  
+
             if (i3.I3() == identnr)
               identpairs.Append (INDEX_2(i3.I1(), i3.I2()));
-          }  
+          }
   }
 
 
@@ -2492,11 +2501,11 @@ namespace netgen
           INDEX_2 i2;
           int nr;
           identifiedpoints->GetData (i, j, i2, nr);
-	
+
           if (i2.I1() > maxpnum || i2.I2() > maxpnum)
             {
               i2.I1() = i2.I2() = -1;
-              identifiedpoints->SetData (i, j, i2, -1);	    
+              identifiedpoints->SetData (i, j, i2, -1);
             }
         }
   }
@@ -2593,10 +2602,10 @@ namespace netgen
 
   void MeshingParameters :: CopyFrom(const MeshingParameters & other)
   {
-    //strcpy(optimize3d,other.optimize3d); 
+    //strcpy(optimize3d,other.optimize3d);
     optimize3d = other.optimize3d;
     optsteps3d = other.optsteps3d;
-    //strcpy(optimize2d,other.optimize2d); 
+    //strcpy(optimize2d,other.optimize2d);
     optimize2d = other.optimize2d;
     optsteps2d = other.optsteps2d;
     opterrpow = other.opterrpow;
@@ -2622,7 +2631,7 @@ namespace netgen
     giveuptol = other.giveuptol;
     maxoutersteps = other.maxoutersteps;
     starshapeclass = other.starshapeclass;
-    baseelnp = other.baseelnp;       
+    baseelnp = other.baseelnp;
     sloppy = other.sloppy;
     badellimit = other.badellimit;
     secondorder = other.secondorder;
@@ -2642,7 +2651,7 @@ namespace netgen
     haltsegment = 0;
     haltsegmentp1 = 0;
     haltsegmentp2 = 0;
-  };
+  }
 
 
 

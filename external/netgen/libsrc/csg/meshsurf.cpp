@@ -24,15 +24,15 @@ Meshing2Surfaces :: Meshing2Surfaces (const Surface & asurf,
 
 
 void Meshing2Surfaces :: DefineTransformation (const Point3d & p1, const Point3d & p2,
-					       const PointGeomInfo * geominfo1,
-					       const PointGeomInfo * geominfo2)
+					       const PointGeomInfo * /*geominfo1*/,
+					       const PointGeomInfo * /*geominfo2*/)
 {
   ((Surface&)surface).DefineTangentialPlane (p1, p2);
 }
 
-void Meshing2Surfaces :: TransformToPlain (const Point3d & locpoint, 
-					   const MultiPointGeomInfo & geominfo,
-					   Point2d & planepoint, 
+void Meshing2Surfaces :: TransformToPlain (const Point3d & locpoint,
+					   const MultiPointGeomInfo & /*geominfo*/,
+					   Point2d & planepoint,
 					   double h, int & zone)
 {
   Point<2> hp;
@@ -42,7 +42,7 @@ void Meshing2Surfaces :: TransformToPlain (const Point3d & locpoint,
 }
 
 int Meshing2Surfaces :: TransformFromPlain (Point2d & planepoint,
-					    Point3d & locpoint, 
+					    Point3d & locpoint,
 					    PointGeomInfo & gi,
 					    double h)
 {
@@ -85,17 +85,17 @@ void MeshOptimize2dSurfaces :: ProjectPoint (INDEX surfind, Point<3> & p) const
   p = hp;
 }
 
-void MeshOptimize2dSurfaces :: ProjectPoint2 (INDEX surfind, INDEX surfind2, 
+void MeshOptimize2dSurfaces :: ProjectPoint2 (INDEX surfind, INDEX surfind2,
 					      Point<3> & p) const
 {
   Point<3> hp = p;
-  ProjectToEdge ( geometry.GetSurface(surfind), 
+  ProjectToEdge ( geometry.GetSurface(surfind),
 		  geometry.GetSurface(surfind2), hp);
   p = hp;
 }
 
 
-void MeshOptimize2dSurfaces :: 
+void MeshOptimize2dSurfaces ::
 GetNormalVector(INDEX surfind, const Point<3> & p, Vec<3> & n) const
 {
   Vec<3> hn = n;
@@ -108,7 +108,7 @@ GetNormalVector(INDEX surfind, const Point<3> & p, Vec<3> & n) const
     n *= -1;
   */
 }
-  
+
 
 
 
@@ -119,7 +119,7 @@ RefinementSurfaces :: RefinementSurfaces (const CSGeometry & ageometry)
   : Refinement(), geometry(ageometry)
 {
   if(geometry.GetNSurf() == 0)
-    *testout << endl 
+    *testout << endl
              << "WARNING: Intializing 2D refinement with 0-surface geometry" << endl
              << "==========================================================" << endl
              << endl << endl;
@@ -129,12 +129,12 @@ RefinementSurfaces :: ~RefinementSurfaces ()
 {
   ;
 }
-  
-void RefinementSurfaces :: 
+
+void RefinementSurfaces ::
 PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
-	      int surfi, 
-	      const PointGeomInfo & gi1, 
-	      const PointGeomInfo & gi2,
+	      int surfi,
+	      const PointGeomInfo & /*gi1*/,
+	      const PointGeomInfo & /*gi2*/,
 	      Point<3> & newp, PointGeomInfo & newgi) const
 {
   Point<3> hnewp;
@@ -148,19 +148,19 @@ PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
   newp = hnewp;
 }
 
-void RefinementSurfaces :: 
+void RefinementSurfaces ::
 PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
-	      int surfi1, int surfi2, 
-	      const EdgePointGeomInfo & ap1, 
-	      const EdgePointGeomInfo & ap2,
+	      int surfi1, int surfi2,
+	      const EdgePointGeomInfo & /*ap1*/,
+	      const EdgePointGeomInfo & /*ap2*/,
 	      Point<3> & newp, EdgePointGeomInfo & newgi) const
 {
   Point<3> hnewp = p1+secpoint*(p2-p1);
   //(*testout) << "hnewp " << hnewp << " s1 " << surfi1 << " s2 " << surfi2 << endl;
   if (surfi1 != -1 && surfi2 != -1 && surfi1 != surfi2)
     {
-      netgen::ProjectToEdge (geometry.GetSurface(surfi1), 
-                             geometry.GetSurface(surfi2), 
+      netgen::ProjectToEdge (geometry.GetSurface(surfi1),
+                             geometry.GetSurface(surfi2),
                              hnewp);
       // (*testout) << "Pointbetween, newp = " << hnewp << endl
       // << ", err = " << sqrt (sqr (hnewp(0))+ sqr(hnewp(1)) + sqr (hnewp(2))) - 1 << endl;
@@ -174,10 +174,10 @@ PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
     }
 
   newp = hnewp;
-};
+}
 
 Vec<3> RefinementSurfaces :: GetTangent (const Point<3> & p, int surfi1, int surfi2,
-                                         const EdgePointGeomInfo & ap1) const
+                                         const EdgePointGeomInfo & /*ap1*/) const
 {
   Vec<3> n1 = geometry.GetSurface (surfi1)->GetNormalVector (p);
   Vec<3> n2 = geometry.GetSurface (surfi2)->GetNormalVector (p);
@@ -185,8 +185,8 @@ Vec<3> RefinementSurfaces :: GetTangent (const Point<3> & p, int surfi1, int sur
   return tau;
 }
 
-Vec<3> RefinementSurfaces :: GetNormal (const Point<3> & p, int surfi1, 
-                                        const PointGeomInfo & gi) const
+Vec<3> RefinementSurfaces :: GetNormal (const Point<3> & p, int surfi1,
+                                        const PointGeomInfo & /*gi*/) const
 {
   return geometry.GetSurface (surfi1)->GetNormalVector (p);
 }
@@ -197,14 +197,14 @@ void RefinementSurfaces :: ProjectToSurface (Point<3> & p, int surfi) const
 {
   if (surfi != -1)
     geometry.GetSurface (surfi) -> Project (p);
-};
+}
 
-void RefinementSurfaces :: ProjectToEdge (Point<3> & p, int surfi1, int surfi2, const EdgePointGeomInfo & egi) const
+void RefinementSurfaces :: ProjectToEdge (Point<3> & p, int surfi1, int surfi2, const EdgePointGeomInfo & /*egi*/) const
 {
-  netgen::ProjectToEdge (geometry.GetSurface(surfi1), 
-                         geometry.GetSurface(surfi2), 
+  netgen::ProjectToEdge (geometry.GetSurface(surfi1),
+                         geometry.GetSurface(surfi2),
                          p);
-  
+
 }
 
 

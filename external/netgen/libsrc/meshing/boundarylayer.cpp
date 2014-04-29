@@ -95,12 +95,12 @@ namespace netgen
 /*
    Philippose Rajan - 11 June 2009
 
-   Function to calculate the surface normal at a given 
-   vertex of a surface element, with respect to that 
+   Function to calculate the surface normal at a given
+   vertex of a surface element, with respect to that
    surface element.
 
-   This function is used by the boundary layer generation 
-   function, in order to calculate the effective direction 
+   This function is used by the boundary layer generation
+   function, in order to calculate the effective direction
    in which the prismatic layer should grow
 */
    void GetSurfaceNormal(Mesh & mesh, Element2d & el, int Vertex, Vec3d & SurfaceNormal)
@@ -115,7 +115,7 @@ namespace netgen
       if(Vertex_B <= 0) Vertex_B = el.GetNP();
 
       Vec3d Vect_A,Vect_B;
-      
+
       Vect_A = mesh.Point(el.PNum(Vertex_A)) - mesh.Point(el.PNum(Vertex));
       Vect_B = mesh.Point(el.PNum(Vertex_B)) - mesh.Point(el.PNum(Vertex));
 
@@ -129,32 +129,32 @@ namespace netgen
 
 /*
     Philippose Rajan - 11 June 2009
-    
-    Added an initial experimental function for 
-    generating prismatic boundary layers on 
+
+    Added an initial experimental function for
+    generating prismatic boundary layers on
     a given set of surfaces.
-    
-    The number of layers, height of the first layer 
-    and the growth / shrink factor can be specified 
+
+    The number of layers, height of the first layer
+    and the growth / shrink factor can be specified
     by the user
 
     Currently, the layer height is calculated using:
     height = h_first_layer * (growth_factor^(num_layers - 1))
 */
-   void GenerateBoundaryLayer (Mesh & mesh, MeshingParameters & mp)
+   void GenerateBoundaryLayer (Mesh & mesh, MeshingParameters & /*mp*/)
    {
       int i, j;
 
       ofstream dbg("BndLayerDebug.log");
 
-      // Angle between a surface element and a growth-vector below which 
+      // Angle between a surface element and a growth-vector below which
       // a prism is project onto that surface as a quad
       // (in degrees)
       double angleThreshold = 5.0;
-      
+
       cout << "Generate Prismatic Boundary Layers (Experimental)...." << endl;
 
-      // Use an array to support creation of boundary 
+      // Use an array to support creation of boundary
       // layers for multiple surfaces in the future...
       Array<int> surfid;
       int surfinp = 0;
@@ -162,7 +162,7 @@ namespace netgen
       double hfirst = 0.01;
       double growthfactor = 1.0;
 
-      // Monitor and print out the number of prism and quad elements 
+      // Monitor and print out the number of prism and quad elements
       // added to the mesh
       int numprisms = 0;
       int numquads = 0;
@@ -174,14 +174,14 @@ namespace netgen
          if(surfinp >= 0) surfid.Append(surfinp);
       }
 
-      cout << "Number of surfaces entered = " << surfid.Size() << endl; 
+      cout << "Number of surfaces entered = " << surfid.Size() << endl;
       cout << "Selected surfaces are:" << endl;
 
       for(i = 1; i <= surfid.Size(); i++)
       {
          cout << "Surface " << i << ": " << surfid.Elem(i) << endl;
       }
-      
+
       cout << endl << "Enter number of prism layers: ";
       cin >> prismlayers;
       if(prismlayers < 1) prismlayers = 1;
@@ -196,7 +196,7 @@ namespace netgen
 
       cout << "Old NP: " << mesh.GetNP() << endl;
       cout << "Old NSE: " << mesh.GetNSE() << endl;
-      
+
       for(int layer = prismlayers; layer >= 1; layer--)
       {
          cout << "Generating layer: " << layer << endl;
@@ -219,13 +219,13 @@ namespace netgen
 
          cout << "Layer Height = " << layerht << endl;
 
-         // Need to store the old number of points and 
-         // surface elements because there are new points and 
+         // Need to store the old number of points and
+         // surface elements because there are new points and
          // surface elements being added during the process
          int np = mesh.GetNP();
          int nse = mesh.GetNSE();
 
-         // Safety measure to ensure no issues with mesh 
+         // Safety measure to ensure no issues with mesh
          // consistency
          int nseg = mesh.GetNSeg();
 
@@ -235,18 +235,18 @@ namespace netgen
          // Map of the old points to the new points
          Array<int> mapto(np);
 
-         // Growth vectors for the prismatic layer based on 
+         // Growth vectors for the prismatic layer based on
          // the effective surface normal at a given point
          Array<Vec3d> growthvectors(np);
 
-         // Bit array to identify all the points belonging 
+         // Bit array to identify all the points belonging
          // to the surface of interest
          bndnodes.Clear();
 
-         // Run through all the surface elements and mark the points 
+         // Run through all the surface elements and mark the points
          // belonging to those where a boundary layer has to be created.
-         // In addition, also calculate the effective surface normal 
-         // vectors at each of those points to determine the mesh motion 
+         // In addition, also calculate the effective surface normal
+         // vectors at each of those points to determine the mesh motion
          // direction
          cout << "Marking points for remapping...." << endl;
 
@@ -260,29 +260,29 @@ namespace netgen
                int selNP = sel.GetNP();
                for(j = 1; j <= selNP; j++)
                {
-                  // Set the bitarray to indicate that the 
+                  // Set the bitarray to indicate that the
                   // point is part of the required set
                   bndnodes.Set(sel.PNum(j));
-		  
+
                   // Vec3d& surfacenormal = Vec3d();   ????
                   Vec3d surfacenormal;
 
-                  // Calculate the surface normal at the current point 
+                  // Calculate the surface normal at the current point
                   // with respect to the current surface element
                   GetSurfaceNormal(mesh,sel,j,surfacenormal);
-                  
-                  // Add the surface normal to the already existent one 
-                  // (This gives the effective normal direction at corners 
+
+                  // Add the surface normal to the already existent one
+                  // (This gives the effective normal direction at corners
                   //  and curved areas)
-                  growthvectors.Elem(sel.PNum(j)) = growthvectors.Elem(sel.PNum(j)) 
+                  growthvectors.Elem(sel.PNum(j)) = growthvectors.Elem(sel.PNum(j))
                                                     + surfacenormal;
                }
             }
          }
 
-         // Add additional points into the mesh structure in order to 
+         // Add additional points into the mesh structure in order to
          // clone the surface elements.
-         // Also invert the growth vectors so that they point inwards, 
+         // Also invert the growth vectors so that they point inwards,
          // and normalize them
          cout << "Cloning points and calculating growth vectors...." << endl;
 
@@ -303,7 +303,7 @@ namespace netgen
          }
 
 
-         // Add quad surface elements at edges for surfaces which 
+         // Add quad surface elements at edges for surfaces which
          // dont have boundary layers
 
          // Bit array to keep track of segments already processed
@@ -319,7 +319,7 @@ namespace netgen
             int seg_p1 = mesh.LineSegment(i)[0];
             int seg_p2 = mesh.LineSegment(i)[1];
 
-            // Only go in if the segment is still active, and if both its 
+            // Only go in if the segment is still active, and if both its
             // surface index is part of the "hit-list"
             if(segsel.Test(i) && surfid.Contains(mesh.LineSegment(i).si))
             {
@@ -339,16 +339,16 @@ namespace netgen
                      // clear bit to indicate that processing of this segment is done
                      segsel.Clear(j);
 
-                     // Only worry about those surfaces which are not in the 
+                     // Only worry about those surfaces which are not in the
                      // boundary layer list
                      if(!surfid.Contains(mesh.LineSegment(j).si))
                      {
 		        int pnt_commelem = 0;
-			int pnum_commelem = 0;
+// 			int pnum_commelem = 0;
                         Array<int> pnt1_elems;
                         Array<int> pnt2_elems;
-                       
-                            
+
+
                         meshtopo.GetVertexSurfaceElements(segpair_p1,pnt1_elems);
                         meshtopo.GetVertexSurfaceElements(segpair_p2,pnt2_elems);
                         for(int k = 1; k <= pnt1_elems.Size(); k++)
@@ -357,7 +357,7 @@ namespace netgen
                            for(int l = 1; l <= pnt2_elems.Size(); l++)
                            {
                               Element2d pnt2_sel = mesh.SurfaceElement(pnt2_elems.Elem(l));
-                              if((pnt1_sel.GetIndex() == mesh.LineSegment(j).si) 
+                              if((pnt1_sel.GetIndex() == mesh.LineSegment(j).si)
                                  && (pnt2_sel.GetIndex() == mesh.LineSegment(j).si)
                                  && (pnt1_elems.Elem(k) == pnt2_elems.Elem(l)))
                               {
@@ -371,12 +371,12 @@ namespace netgen
                            if((mesh.SurfaceElement(pnt_commelem).PNum(k) != segpair_p1)
                               && (mesh.SurfaceElement(pnt_commelem).PNum(k) != segpair_p2))
                            {
-                              pnum_commelem = mesh.SurfaceElement(pnt_commelem).PNum(k);
+//                               pnum_commelem = mesh.SurfaceElement(pnt_commelem).PNum(k);
                            }
                         }
 
                         Vec3d surfelem_vect, surfelem_vect1;
-                        
+
                         Element2d & commsel = mesh.SurfaceElement(pnt_commelem);
 
                         dbg << "NP= " << commsel.GetNP() << " : ";
@@ -391,13 +391,13 @@ namespace netgen
 
                         double surfangle = Angle(growthvectors.Elem(segpair_p1),surfelem_vect);
 
-                        dbg << "V1= " << surfelem_vect1 
+                        dbg << "V1= " << surfelem_vect1
                             << " : V2= " << surfelem_vect1
                             << " : V= " << surfelem_vect
                             << " : GV= " << growthvectors.Elem(segpair_p1)
                             << " : Angle= " << surfangle * 180 / 3.141592;
 
-                  
+
                         // remap the segments to the new points
                         mesh.LineSegment(i)[0] = mapto.Get(seg_p1);
                         mesh.LineSegment(i)[1] = mapto.Get(seg_p2);
@@ -408,13 +408,13 @@ namespace netgen
                            && (surfangle > (90 - angleThreshold) * 3.141592 / 180.0))
                         {
                            dbg << " : quad\n";
-                           // Since the surface is lower than the threshold, change the effective 
-                           // prism growth vector to match with the surface vector, so that 
+                           // Since the surface is lower than the threshold, change the effective
+                           // prism growth vector to match with the surface vector, so that
                            // the Quad which is created lies on the original surface
                            //growthvectors.Elem(segpair_p1) = surfelem_vect;
 
                            // Add a quad element to account for the prism volume
-                           // element which is going to be added 
+                           // element which is going to be added
                            Element2d sel(QUAD);
                            sel.PNum(4) = mapto.Get(seg_p1);
                            sel.PNum(3) = mapto.Get(seg_p2);
@@ -468,10 +468,10 @@ namespace netgen
                      }
                      else
                      {
-                        // If the code comes here, it indicates that we are at 
-                        // a line segment pair which is at the intersection 
-                        // of two surfaces, both of which have to grow boundary 
-                        // layers.... here too, remapping the segments to the 
+                        // If the code comes here, it indicates that we are at
+                        // a line segment pair which is at the intersection
+                        // of two surfaces, both of which have to grow boundary
+                        // layers.... here too, remapping the segments to the
                         // new points is required
                         mesh.LineSegment(i)[0] = mapto.Get(seg_p1);
                         mesh.LineSegment(i)[1] = mapto.Get(seg_p2);
@@ -494,7 +494,7 @@ namespace netgen
                Element el(PRISM);
                for (j = 1; j <= sel.GetNP(); j++)
                {
-                  // Check (Doublecheck) if the corresponding point has a 
+                  // Check (Doublecheck) if the corresponding point has a
                   // copy available for remapping
                   if (mapto.Get(sel.PNum(j)))
                   {
@@ -511,7 +511,7 @@ namespace netgen
             }
          }
 
-         // Finally switch the point indices of the surface elements 
+         // Finally switch the point indices of the surface elements
          // to the newly added ones
          cout << "Transferring boundary layer surface elements to new vertex references...." << endl;
 
@@ -522,7 +522,7 @@ namespace netgen
             {
                for (j = 1; j <= sel.GetNP(); j++)
                {
-                  // Check (Doublecheck) if the corresponding point has a 
+                  // Check (Doublecheck) if the corresponding point has a
                   // copy available for remapping
                   if (mapto.Get(sel.PNum(j)))
                   {
@@ -533,17 +533,17 @@ namespace netgen
             }
          }
 
-         // Lock all the prism points so that the rest of the mesh can be 
+         // Lock all the prism points so that the rest of the mesh can be
          // optimised without invalidating the entire mesh
          for (PointIndex pi = mesh.Points().Begin(); pi < mesh.Points().End(); pi++)
          {
            if(bndnodes.Test(i)) mesh.AddLockedPoint(pi);
          }
 
-         // Now, actually pull back the old surface points to create 
+         // Now, actually pull back the old surface points to create
          // the actual boundary layers
          cout << "Moving and optimising boundary layer points...." << endl;
-         
+
          for (i = 1; i <= np; i++)
          {
             Array<ElementIndex> vertelems;
@@ -571,7 +571,7 @@ namespace netgen
                         //   mesh.Point(i).SetPoint(pointtomove + (sfact * layerht * growthvectors.Elem(i)));
                         //   mesh.ImproveMesh();
 
-                        //   // Try to move the point back by one step but 
+                        //   // Try to move the point back by one step but
                         //   // if the volume drops to below zero, double back
                         //   mesh.Point(i).SetPoint(pointtomove + ((sfact + 0.1) * layerht * growthvectors.Elem(i)));
                         //   if(volel.Volume(mesh.Points()) <= 0.0)
@@ -594,7 +594,7 @@ namespace netgen
          }
       }
 
-      // Optimise the tet part of the volume mesh after all the modifications 
+      // Optimise the tet part of the volume mesh after all the modifications
       // to the system are completed
       //OptimizeVolume(mparam,mesh);
 

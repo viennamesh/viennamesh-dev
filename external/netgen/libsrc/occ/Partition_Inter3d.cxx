@@ -722,7 +722,11 @@ TopTools_MapOfShape& Partition_Inter3d::NewEdges()
 //purpose  :
 //=======================================================================
 
-void Partition_Inter3d::Affiche(const TopTools_ListOfShape& SetOfFaces) const
+void Partition_Inter3d::Affiche(const TopTools_ListOfShape&
+#ifdef DEB
+SetOfFaces
+#endif
+) const
 {
 #ifdef DEB
   char PSection[1024];

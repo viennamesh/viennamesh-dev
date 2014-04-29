@@ -2,7 +2,7 @@
 #define FILE_IMPROVE3
 
 
-extern double CalcTotalBad (const Mesh::T_POINTS & points, 
+extern double CalcTotalBad (const Mesh::T_POINTS & points,
 			    const Mesh::T_VOLELEMENTS & elements,
 			    const MeshingParameters & mp);
 
@@ -22,17 +22,17 @@ public:
 			   const Array< Array<int,PointIndex::BASE>* > * idmaps = NULL);
   void SwapImprove2 (Mesh & mesh, OPTIMIZEGOAL goal = OPT_QUALITY);
 
-  double 
+  double
   CalcBad (const Mesh::T_POINTS & points, const Element & elem, double h)
   {
     if (elem.GetType() == TET)
-      return CalcTetBadness (points[elem[0]], points[elem[1]],  
-			     points[elem[2]], points[elem[3]], h, mp);  
+      return CalcTetBadness (points[elem[0]], points[elem[1]],
+			     points[elem[2]], points[elem[3]], h, mp);
     return 0;
   }
 
 
-  double CalcTotalBad (const Mesh::T_POINTS & points, 
+  double CalcTotalBad (const Mesh::T_POINTS & points,
 		       const Mesh::T_VOLELEMENTS & elements)
   {
     return netgen::CalcTotalBad (points, elements, mp);
@@ -41,12 +41,12 @@ public:
 };
 
 
-inline double 
+inline double
 CalcBad (const Mesh::T_POINTS & points, const Element & elem, double h, const MeshingParameters & mp)
 {
   if (elem.GetType() == TET)
-    return CalcTetBadness (points[elem[0]], points[elem[1]],  
-			   points[elem[2]], points[elem[3]], h, mp);  
+    return CalcTetBadness (points[elem[0]], points[elem[1]],
+			   points[elem[2]], points[elem[3]], h, mp);
   return 0;
 }
 
@@ -62,9 +62,9 @@ class MinFunctionSum : public MinFunction
 {
 protected:
   Array<MinFunction*> functions;
- 
+
 public:
-  
+
   virtual double Func (const Vector & x) const;
   virtual void Grad (const Vector & x, Vector & g) const;
   virtual double FuncGrad (const Vector & x, Vector & g) const;
@@ -72,11 +72,11 @@ public:
   virtual double GradStopping (const Vector & x) const;
 
   void AddFunction(MinFunction & fun);
-  
+
   const MinFunction & Function(int i) const;
-  MinFunction & Function(int i);  
+  MinFunction & Function(int i);
 };
-  
+
 
 class PointFunction1 : public MinFunction
 {
@@ -85,11 +85,13 @@ class PointFunction1 : public MinFunction
   const MeshingParameters & mp;
   double h;
 public:
-  PointFunction1 (Mesh::T_POINTS & apoints, 
+  PointFunction1 (Mesh::T_POINTS & apoints,
 		  const Array<INDEX_3> & afaces,
 		  const MeshingParameters & amp,
 		  double ah);
-  
+
+  virtual ~PointFunction1() {}
+
   virtual double Func (const Vector & x) const;
   virtual double FuncDeriv (const Vector & x, const Vector & dir, double & deriv) const;
   virtual double FuncGrad (const Vector & x, Vector & g) const;
@@ -106,11 +108,13 @@ public:
 
   bool onplane;
   Vec<3> nv;
-  
+
 public:
-  JacobianPointFunction (Mesh::T_POINTS & apoints, 
+  JacobianPointFunction (Mesh::T_POINTS & apoints,
 			 const Mesh::T_VOLELEMENTS & aelements);
-  
+
+  virtual ~JacobianPointFunction() {}
+
   virtual void SetPointIndex (PointIndex aactpind);
   virtual double Func (const Vector & x) const;
   virtual double FuncGrad (const Vector & x, Vector & g) const;

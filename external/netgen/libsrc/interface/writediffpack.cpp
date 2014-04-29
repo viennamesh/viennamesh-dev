@@ -20,7 +20,7 @@ namespace netgen
 
 
 void WriteDiffPackFormat (const Mesh & mesh,
-			  const CSGeometry & geom,
+			  const CSGeometry & /*geom*/,
 			  const string & filename)
 {
   //   double scale = globflags.GetNumFlag ("scale", 1);
@@ -58,22 +58,22 @@ void WriteDiffPackFormat (const Mesh & mesh,
 	"  Max number of nodes in an element: "<< eldummy.GetNP() << "\n"
 	"  Only one subdomain               : dpFALSE\n"
 	"  Lattice data                     ? 0\n\n\n\n";
-      
-      for (i = 1; i <= nse; i++) 
+
+      for (i = 1; i <= nse; i++)
 	{
 	  int BI=mesh.GetFaceDescriptor(mesh.SurfaceElement(i).GetIndex()).BCProperty();
 	  int nbi=BIname.Size();
 	  int found=0;
 	  for (j = 1; j <= nbi; j++)
 	    if(BI == BIname.Get(j)) found = 1;
-	  if( ! found ) BIname.Append(BI);	    	     
+	  if( ! found ) BIname.Append(BI);
 	}
-      
+
       outfile << "  " << BIname.Size() <<  " Boundary indicators:  ";
       for (i =1 ; i <= BIname.Size(); i++)
 	outfile << BIname.Get(i) << " ";
       outfile << "\n\n\n";
-      
+
       outfile << "  Nodal coordinates and nodal boundary indicators,\n"
 	"  the columns contain:\n"
 	"   - node number\n"
@@ -83,7 +83,7 @@ void WriteDiffPackFormat (const Mesh & mesh,
 	"#\n";
 
 
-      // setup point-to-surfaceelement table 
+      // setup point-to-surfaceelement table
       TABLE<SurfaceElementIndex, PointIndex::BASE> point2sel(np);
       for (SurfaceElementIndex sei = 0; sei < nse; sei++)
 	{
@@ -105,26 +105,26 @@ void WriteDiffPackFormat (const Mesh & mesh,
           outfile << p.Y()/scale << ", ";
           outfile.width(16);
           outfile << p.Z()/scale << ") ";
-	 
-	  if(mesh[PointIndex(i)].Type() != INNERPOINT) 
+
+	  if(mesh[PointIndex(i)].Type() != INNERPOINT)
 	    {
 	      BCsinpoint.DeleteAll();
 	      /*
-	      for (j = 1; j <= nse; j++) 
+	      for (j = 1; j <= nse; j++)
 	      */
 	      FlatArray<SurfaceElementIndex> sels = point2sel[i];
 	      for (int jj = 0; jj < sels.Size(); jj++)
 		{
-		  for (k = 1; k <= mesh[sels[jj]].GetNP(); k++) 
+		  for (k = 1; k <= mesh[sels[jj]].GetNP(); k++)
 		    {
-		      if(mesh[sels[jj]].PNum(k)==i) 
+		      if(mesh[sels[jj]].PNum(k)==i)
 			{
 			  int BC=mesh.GetFaceDescriptor(mesh[sels[jj]].GetIndex()).BCProperty();
 			  int nbcsp=BCsinpoint.Size();
 			  int found = 0;
 			  for (l = 1; l <= nbcsp; l++)
 			    if(BC == BCsinpoint.Get(l)) found = 1;
-			  if( ! found ) BCsinpoint.Append(BC); 	    	     
+			  if( ! found ) BCsinpoint.Append(BC);
 			}
 		    }
 		}
@@ -221,22 +221,22 @@ void WriteDiffPackFormat (const Mesh & mesh,
 	"  Max number of nodes in an element: "<<eldummy.GetNP()<<"\n"
 	"  Only one subdomain               : dpFALSE\n"
 	"  Lattice data                     ? 0\n\n\n\n";
-      
-      for (i = 1; i <= nse; i++) 
+
+      for (i = 1; i <= nse; i++)
 	{
 	  int BI=mesh.GetFaceDescriptor(mesh.SurfaceElement(i).GetIndex()).BCProperty();
 	  int nbi=BIname.Size();
 	  int found=0;
 	  for (j = 1; j <= nbi; j++)
 	    if(BI == BIname.Get(j)) found = 1;
-	  if( ! found ) BIname.Append(BI);	    	     
+	  if( ! found ) BIname.Append(BI);
 	}
-      
+
       outfile << "  " << BIname.Size() <<  " Boundary indicators:  ";
       for (i =1 ; i <= BIname.Size(); i++)
 	outfile << BIname.Get(i) << " ";
       outfile << "\n\n\n";
-      
+
       outfile << "  Nodal coordinates and nodal boundary indicators,\n"
 	"  the columns contain:\n"
 	"   - node number\n"
@@ -255,22 +255,22 @@ void WriteDiffPackFormat (const Mesh & mesh,
           outfile << p.X()/scale << ", ";
           outfile.width(16);
           outfile << p.Y()/scale << ", ";
-	 
-	  if(mesh[PointIndex(i)].Type() != INNERPOINT) 
+
+	  if(mesh[PointIndex(i)].Type() != INNERPOINT)
 	    {
 	      BCsinpoint.DeleteAll();
-	      for (j = 1; j <= nse; j++) 
+	      for (j = 1; j <= nse; j++)
 		{
-		  for (k = 1; k <= 2; k++) 
+		  for (k = 1; k <= 2; k++)
 		    {
-		      if(mesh.SurfaceElement(j).PNum(k)==i) 
+		      if(mesh.SurfaceElement(j).PNum(k)==i)
 			{
 			  int BC=mesh.GetFaceDescriptor(mesh.SurfaceElement(j).GetIndex()).BCProperty();
 			  int nbcsp=BCsinpoint.Size();
 			  int found = 0;
 			  for (l = 1; l <= nbcsp; l++)
 			    if(BC == BCsinpoint.Get(l)) found = 1;
-			  if( ! found ) BCsinpoint.Append(BC); 	    	     
+			  if( ! found ) BCsinpoint.Append(BC);
 			}
 		    }
 		}

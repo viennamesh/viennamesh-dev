@@ -16,7 +16,7 @@ namespace netgen
 #include "writeuser.hpp"
 
 void WriteJCMFormat (const Mesh & mesh,
-                     const CSGeometry & geom,
+                     const CSGeometry & /*geom*/,
                      const string & filename)
 {
   if (mesh.GetDimension() != 3)
@@ -70,8 +70,8 @@ void WriteJCMFormat (const Mesh & mesh,
                  << "\n REFINE MESH !" << endl;
             return;
           }
-        }      
-      
+        }
+
     }
     else if (el.GetNP() == 6)
       nprisms++;
@@ -85,7 +85,7 @@ void WriteJCMFormat (const Mesh & mesh,
 
   if (nprisms > 0)
     cout << " Please note: Boundaries at infinity have to carry the bc-attribute '-bc="
-         << bc_at_infinity <<"'."<<endl; 
+         << bc_at_infinity <<"'."<<endl;
 
   // number of surface elements
   int nse = mesh.GetNSE();
@@ -93,7 +93,7 @@ void WriteJCMFormat (const Mesh & mesh,
   int nbtri = 0;
   // number of boundary quadrilaterals
   int nbquad = 0;
-  // array with 1 if point on any tetra, 0 else 
+  // array with 1 if point on any tetra, 0 else
   // this is needed in order to arrange the prism points in the right order
   Array<int,1> pointsOnTetras;
   pointsOnTetras.SetSize (mesh.GetNP());
@@ -104,7 +104,7 @@ void WriteJCMFormat (const Mesh & mesh,
     if (el.GetNP() == 4)
     {
       for (j = 1; j <= 4; j++)
-        pointsOnTetras.Set(int (el.PNum(j)),1);     
+        pointsOnTetras.Set(int (el.PNum(j)),1);
     }
   }
 
@@ -121,12 +121,12 @@ void WriteJCMFormat (const Mesh & mesh,
                mesh.GetFaceDescriptor (el.GetIndex()).DomainOut()==0 ) )
       nbquad++;
   }
-  
+
   ofstream outfile (filename.c_str());
   outfile.precision(6);
   outfile.setf (ios::fixed, ios::floatfield);
   outfile.setf (ios::showpoint);
-  
+
   outfile << "/* <BLOBHead>\n";
   outfile << "__BLOBTYPE__=Grid\n";
   outfile << "__OWNER__=JCMwave\n";
@@ -145,13 +145,13 @@ void WriteJCMFormat (const Mesh & mesh,
   for (i=1; i<=nDomains; i++)
   {
     if (mesh.GetMaterial(i))
-      outfile << "#" << mesh.GetMaterial(i) 
-              << ": Material ID = " 
+      outfile << "#" << mesh.GetMaterial(i)
+              << ": Material ID = "
               << i << "\n";
   }
 
   outfile << "# Points\n";
-  cout << " Please note: The unit of length in the .geo file is assumed to be 'microns'."<<endl; 
+  cout << " Please note: The unit of length in the .geo file is assumed to be 'microns'."<<endl;
   for (i = 1; i <= np; i++)
   {
     const Point<3> & p = mesh.Point(i);
@@ -190,7 +190,7 @@ void WriteJCMFormat (const Mesh & mesh,
           outfile << el.PNum(j)<<"\n";
         for (j = 3; j <= 4; j++)
           outfile << el.PNum(j)<<"\n";
-      }  
+      }
       outfile << el.GetIndex() << "\n\n";
     }
   }
@@ -254,7 +254,7 @@ void WriteJCMFormat (const Mesh & mesh,
             outfile << el.PNum(j)<<"\n";
         }
       }
-      else 
+      else
       {
         cout << "\n Error in determining prism point numbering!\n"<<endl;
         return;
@@ -282,7 +282,7 @@ void WriteJCMFormat (const Mesh & mesh,
   }
 
   outfile << "\n";
-  outfile << "# Boundary triangles\n";  
+  outfile << "# Boundary triangles\n";
   outfile << "# Number of identified points in 1-direction: " << npid1 << "\n";
   outfile << "# Number of identified points in 2-direction: " << npid2 << "\n";
   outfile << "# Number of identified points in 3-direction: " << npid3 << "\n";
@@ -297,9 +297,9 @@ void WriteJCMFormat (const Mesh & mesh,
       for (j = 1; j <= 3; j++)
         outfile << el.PNum(j)<<"\n";
       if (mesh.GetFaceDescriptor (el.GetIndex()).BCProperty()==bc_at_infinity)
-        outfile << 1000 << "\n";      
+        outfile << 1000 << "\n";
       else
-        outfile << mesh.GetFaceDescriptor (el.GetIndex()).BCProperty() << "\n";      
+        outfile << mesh.GetFaceDescriptor (el.GetIndex()).BCProperty() << "\n";
       if (mesh.GetFaceDescriptor (el.GetIndex()).BCProperty() == bc_at_infinity)
         outfile << "-2\n\n";
       else if (identmap1.Elem(el.PNum(1))
@@ -331,7 +331,7 @@ void WriteJCMFormat (const Mesh & mesh,
       }
       else
         outfile << "1\n\n";
-        
+
     }
   }
 
@@ -359,7 +359,7 @@ void WriteJCMFormat (const Mesh & mesh,
         ct = 3;
       else
         cout << "\nWarning: Quadrilateral with inconsistent points found!"<<endl;
-      
+
       for (j = 1; j <= 4; j++)
       {
         jj = j + ct;
@@ -367,7 +367,7 @@ void WriteJCMFormat (const Mesh & mesh,
           jj = jj - 4;
         outfile << el.PNum(jj)<<"\n";
       }
-      outfile << mesh.GetFaceDescriptor (el.GetIndex()).BCProperty() << "\n";      
+      outfile << mesh.GetFaceDescriptor (el.GetIndex()).BCProperty() << "\n";
       if (mesh.GetFaceDescriptor (el.GetIndex()).BCProperty() == bc_at_infinity)
       {
         outfile << "-2\n\n";

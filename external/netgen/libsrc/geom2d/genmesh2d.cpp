@@ -10,19 +10,19 @@ namespace netgen
 
 
 
-  void CalcPartition (const SplineSegExt & spline, 
-		      // double l, 
-		      MeshingParameters & mp, Mesh & mesh, 
-		      // double h, double h1, double h2, double hcurve, 
+  void CalcPartition (const SplineSegExt & spline,
+		      // double l,
+		      MeshingParameters & /*mp*/, Mesh & mesh,
+		      // double h, double h1, double h2, double hcurve,
 		      double elto0, Array<double> & points)
   {
     double fperel, oldf, f;
 
     int n = 10000;
-    
+
     Array<Point<2> > xi(n);
     Array<double> hi(n);
-    
+
     for (int i = 0; i < n; i++)
       {
 	xi[i] = spline.GetPoint ( (i+0.5) / n );
@@ -35,7 +35,7 @@ namespace netgen
       {
 	double hnext = hi[i] + gradh * (xi[i+1]-xi[i]).Length();
 	hi[i+1] = min(hi[i+1], hnext);
-      } 
+      }
     for (int i = n-1; i > 1; i--)
       {
 	double hnext = hi[i] + gradh * (xi[i-1]-xi[i]).Length();
@@ -50,7 +50,7 @@ namespace netgen
     double sum = 0;
     for (int i = 1; i <= n; i++)
       {
-	double t = (i-0.5)*dt;
+// 	double t = (i-0.5)*dt;
 	double fun = hi[i-1];
 	sum += dt / fun;
       }
@@ -91,8 +91,8 @@ namespace netgen
 
   // partitionizes spline curve
   void Partition (const SplineSegExt & spline,
-		  MeshingParameters & mp, double hxxx, double elto0,
-		  Mesh & mesh, Point3dTree & searchtree, int segnr) 
+		  MeshingParameters & mp, double /*hxxx*/, double elto0,
+		  Mesh & mesh, Point3dTree & searchtree, int segnr)
   {
     int n = 100;
 
@@ -111,7 +111,7 @@ namespace netgen
     oldmark = pold;
     edgelengthold = 0;
     Array<int> locsearch;
-    
+
     for (int i = 1; i <= n; i++)
       {
 	Point<2> p = spline.GetPoint (i*dt);
@@ -121,10 +121,10 @@ namespace netgen
 	    double frac = (curvepoints[j]-lold) / (l-lold);
 	    edgelength = i*dt + (frac-1)*dt;
 	    mark = spline.GetPoint (edgelength);
-	  
+
 	    {
 	      PointIndex pi1 = -1, pi2 = -1;
-	  
+
 	      Point3d mark3(mark(0), mark(1), 0);
 	      Point3d oldmark3(oldmark(0), oldmark(1), 0);
 
@@ -135,7 +135,7 @@ namespace netgen
 	      for (int k = 0; k < locsearch.Size(); k++)
 		if ( mesh[PointIndex(locsearch[k])].GetLayer() == spline.layer)
 		  pi1 = locsearch[k];
-	      
+
 	      searchtree.GetIntersecting (mark3 - v, mark3 + v, locsearch);
 	      for (int k = 0; k < locsearch.Size(); k++)
 		if ( mesh[PointIndex(locsearch[k])].GetLayer() == spline.layer)
@@ -167,12 +167,12 @@ namespace netgen
 	      seg.singedge_right = spline.hpref_right;
 	      mesh.AddSegment (seg);
 	    }
-	
+
 	    oldmark = mark;
 	    edgelengthold = edgelength;
 	    j++;
 	  }
-    
+
 	pold = p;
 	lold = l;
       }
@@ -188,7 +188,7 @@ namespace netgen
     double dist = Dist (bbox.PMin(), bbox.PMax());
     Point<3> pmin;
     Point<3> pmax;
-  
+
     pmin(2) = -dist; pmax(2) = dist;
     for(int j=0;j<D;j++)
       {
@@ -207,7 +207,7 @@ namespace netgen
 
 
     // mesh size restrictions ...
-    
+
     for (int i = 0; i < splines.Size(); i++)
       {
 	const SplineSegExt & spline = GetSpline(i);
@@ -220,7 +220,7 @@ namespace netgen
 	mesh2d.RestrictLocalH (Point<3>(p2(0),p2(1),0), h2);
 
 	double len = spline.Length();
-	mesh2d.RestrictLocalHLine (Point<3>(p1(0),p1(1),0), 
+	mesh2d.RestrictLocalHLine (Point<3>(p1(0),p1(1),0),
 				   Point<3>(p2(0),p2(1),0), len/mp.segmentsperedge);
 
 	double hcurve = min (spline.hmax, h/spline.reffak);
@@ -250,7 +250,7 @@ namespace netgen
 	  if (hl > 0) useh = min2 (h, hl);
 	  if (hr > 0) useh = min2 (h, hr);
 
-	  Partition(GetSpline(i), mp, useh, elto0, mesh2d, searchtree, i+1);	    
+	  Partition(GetSpline(i), mp, useh, elto0, mesh2d, searchtree, i+1);
 	}
       else
 	{
@@ -278,7 +278,7 @@ namespace netgen
 
     if (printmessage_importance>0)
       cout << "copy edge, from = " << from << " to " << to << endl;
-  
+
     for (int i = 1; i <= mesh.GetNSeg(); i++)
       {
 	const Segment & seg = mesh.LineSegment(i);
@@ -299,14 +299,14 @@ namespace netgen
 	  {
 	    Point<2> newp = splines.Get(to)->GetPoint (param.Get(i));
 	    Point<3> newp3 (newp(0), newp(1), 0);
-	  
+
 	    int npi = -1;
-	  
-	    for (PointIndex pi = PointIndex::BASE; 
+
+	    for (PointIndex pi = PointIndex::BASE;
 		 pi < mesh.GetNP()+PointIndex::BASE; pi++)
 	      if (Dist2 (mesh.Point(pi), newp3) < 1e-12 * diam2)
 		npi = pi;
-	  
+
 	    if (npi == -1)
 	      {
 		npi = mesh.AddPoint (newp3);
@@ -336,7 +336,7 @@ namespace netgen
 	    nseg[1] = mappoints.Get(seg[1]);
 	    nseg.domin = GetSpline(to-1).leftdom;
 	    nseg.domout = GetSpline(to-1).rightdom;
-	  
+
 	    nseg.epgeominfo[0].edgenr = to;
 	    nseg.epgeominfo[0].dist = param.Get(seg[0]);
 	    nseg.epgeominfo[1].edgenr = to;
@@ -351,7 +351,7 @@ namespace netgen
 
 
   void MeshFromSpline2D (SplineGeometry2d & geometry,
-			 Mesh *& mesh, 
+			 Mesh *& mesh,
 			 MeshingParameters & mp)
   {
     PrintMessage (1, "Generate Mesh from spline geometry");
@@ -360,7 +360,7 @@ namespace netgen
 
     Box<2> bbox = geometry.GetBoundingBox ();
 
-    if (bbox.Diam() < h) 
+    if (bbox.Diam() < h)
       {
 	h = bbox.Diam();
 	mp.maxh = h;
@@ -375,7 +375,7 @@ namespace netgen
     mesh->SetLocalH (pmin, pmax, mparam.grading);
     mesh->SetGlobalH (h);
 
-    
+
 
     geometry.PartitionBoundary (mp, h, *mesh);
 
@@ -388,7 +388,7 @@ namespace netgen
 	  PointIndex mpi(0);
 	  Point<2> gp = geometry.GetPoint(i);
 	  Point<3> gp3(gp(0), gp(1), 0);
-	  for (PointIndex pi = PointIndex::BASE; 
+	  for (PointIndex pi = PointIndex::BASE;
 	       pi < mesh->GetNP()+PointIndex::BASE; pi++)
 	    if (Dist2(gp3, (*mesh)[pi]) < mindist)
 	      {
@@ -410,7 +410,7 @@ namespace netgen
     for (int i = 1; i <= maxdomnr; i++)
       mesh->AddFaceDescriptor (FaceDescriptor (i, 0, 0, i));
 
-    // set Array<string*> bcnames... 
+    // set Array<string*> bcnames...
     // number of bcnames
     int maxsegmentindex = 0;
     for (SegmentIndex si = 0; si < mesh->GetNSeg(); si++)
@@ -426,7 +426,7 @@ namespace netgen
     for (SegmentIndex si = 0; si < mesh->GetNSeg(); si++)
       (*mesh)[si].SetBCName ( (*mesh).GetBCNamePtr( (*mesh)[si].si-1 ) );
 
-  
+
     mesh->CalcLocalH(mparam.grading);
 
     int bnp = mesh->GetNP(); // boundary points
@@ -437,11 +437,11 @@ namespace netgen
     for (int domnr = 1; domnr <= maxdomnr; domnr++)
       if (geometry.GetDomainTensorMeshing (domnr))
         { // tensor product mesh
-          
+
           Array<PointIndex, PointIndex::BASE> nextpi(bnp);
           Array<int, PointIndex::BASE> si1(bnp), si2(bnp);
           PointIndex firstpi;
-          
+
           nextpi = -1;
           si1 = -1;
           si2 = -1;
@@ -453,11 +453,11 @@ namespace netgen
                 { p1 = (*mesh)[si][0]; p2 = (*mesh)[si][1]; }
               if ( (*mesh)[si].domout == domnr)
                 { p1 = (*mesh)[si][1]; p2 = (*mesh)[si][0]; }
-              
+
               if (p1 == -1) continue;
 
               nextpi[p1] = p2;       // counter-clockwise
-              
+
               int index = (*mesh)[si].si;
               if (si1[p1] != index && si2[p1] != index)
                 { si2[p1] = si1[p1]; si1[p1] = index; }
@@ -470,7 +470,7 @@ namespace netgen
 
           for (PointIndex pi = 1; pi <= si2.Size(); pi++)
             if (si2[pi] != -1)
-              { c1 = pi; break; }      
+              { c1 = pi; break; }
 
           for (c2 = nextpi[c1]; si2[c2] == -1; c2 = nextpi[c2], nex++);
           for (c3 = nextpi[c2]; si2[c3] == -1; c3 = nextpi[c3], ney++);
@@ -548,14 +548,14 @@ namespace netgen
 	  {
 	    if ( (*mesh)[si].domin == domnr)
 	      {
-		meshing.AddBoundaryElement ( compress[(*mesh)[si][0]], 
+		meshing.AddBoundaryElement ( compress[(*mesh)[si][0]],
 					     compress[(*mesh)[si][1]], gi, gi);
 	      }
 	    if ( (*mesh)[si].domout == domnr)
 	      {
 		meshing.AddBoundaryElement ( compress[(*mesh)[si][1]],
 					     compress[(*mesh)[si][0]], gi, gi);
-		
+
 	      }
 
 	  }
@@ -585,11 +585,11 @@ namespace netgen
 
     int hsteps = mp.optsteps2d;
 
-    mp.optimize2d = "smcm"; 
+    mp.optimize2d = "smcm";
     mp.optsteps2d = hsteps/2;
     Optimize2d (*mesh, mp);
 
-    mp.optimize2d = "Smcm"; 
+    mp.optimize2d = "Smcm";
     mp.optsteps2d = (hsteps+1)/2;
     Optimize2d (*mesh, mp);
 

@@ -212,9 +212,9 @@ inline ostream& operator << (ostream& os, const MyStr& s)
 inline void MyStr::SetToErrHandler(void (*Handler)())
 {
   ErrHandler = Handler;
-};
+}
 
 }
 #endif
 
-   
+

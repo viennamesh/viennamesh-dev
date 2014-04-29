@@ -20,7 +20,7 @@ namespace netgen
      A simple array container.
      Array represented by size and data-pointer.
      No memory allocation and deallocation, must be provided by user.
-     Helper functions for printing. 
+     Helper functions for printing.
      Optional range check by macro RANGE_CHECK
   */
 
@@ -36,7 +36,7 @@ namespace netgen
     typedef T TELEM;
 
     /// provide size and memory
-    FlatArray (int asize, T * adata) 
+    FlatArray (int asize, T * adata)
       : size(asize), data(adata) { ; }
 
     /// the size
@@ -53,7 +53,7 @@ namespace netgen
 	cout << "array<" << typeid(T).name() << "> out of range, i = " << i << ", s = " << size << endl;
 #endif
 
-      return data[i-BASE]; 
+      return data[i-BASE];
     }
 
     template <typename T2, int B2>
@@ -69,16 +69,16 @@ namespace netgen
     {
 #ifdef DEBUG
       if (i < 1 || i > size)
-	cout << "Array<" << typeid(T).name() 
+	cout << "Array<" << typeid(T).name()
 	     << ">::Elem out of range, i = " << i
 	     << ", s = " << size << endl;
 #endif
 
-      return ((T*)data)[i-1]; 
+      return ((T*)data)[i-1];
     }
-  
+
     /// Access array, one-based  (old fashioned)
-    const T & Get (int i) const 
+    const T & Get (int i) const
     {
 #ifdef DEBUG
       if (i < 1 || i > size)
@@ -86,19 +86,19 @@ namespace netgen
 	     << ", s = " << size << endl;
 #endif
 
-      return ((const T*)data)[i-1]; 
+      return ((const T*)data)[i-1];
     }
 
     /// Access array, one-based  (old fashioned)
     void Set (int i, const T & el)
-    { 
+    {
 #ifdef DEBUG
       if (i < 1 || i > size)
 	cout << "Array<" << typeid(T).name() << ">::Set out of range, i = " << i
 	     << ", s = " << size << endl;
 #endif
 
-      ((T*)data)[i-1] = el; 
+      ((T*)data)[i-1] = el;
     }
 
     /// access first element
@@ -128,7 +128,7 @@ namespace netgen
       return FlatArray<T> (end-start, data+start);
     }
 
-    /// first position of element elem, returns -1 if element not contained in array 
+    /// first position of element elem, returns -1 if element not contained in array
     TIND Pos(const T & elem) const
     {
       TIND pos = -1;
@@ -157,15 +157,15 @@ namespace netgen
 
 
 
-  /** 
+  /**
       Dynamic array container.
-   
+
       Array<T> is an automatically increasing array container.
-      The allocated memory doubles on overflow. 
+      The allocated memory doubles on overflow.
       Either the container takes care of memory allocation and deallocation,
       or the user provides one block of data.
   */
-  template <class T, int BASE = 0, typename TIND = int> 
+  template <class T, int BASE = 0, typename TIND = int>
   class Array : public FlatArray<T, BASE, TIND>
   {
   protected:
@@ -183,14 +183,14 @@ namespace netgen
     explicit Array()
       : FlatArray<T, BASE, TIND> (0, NULL)
     {
-      allocsize = 0; 
+      allocsize = 0;
       ownmem = 1;
     }
 
     explicit Array(int asize)
       : FlatArray<T, BASE, TIND> (asize, new T[asize])
     {
-      allocsize = asize; 
+      allocsize = asize;
       ownmem = 1;
     }
 
@@ -198,11 +198,11 @@ namespace netgen
     Array(TIND asize, T* adata)
       : FlatArray<T, BASE, TIND> (asize, adata)
     {
-      allocsize = asize; 
+      allocsize = asize;
       ownmem = 0;
     }
 
-    /// array copy 
+    /// array copy
     explicit Array (const Array<T,BASE,TIND> & a2)
       : FlatArray<T, BASE, TIND> (a2.Size(), a2.Size() ? new T[a2.Size()] : 0)
     {
@@ -224,9 +224,9 @@ namespace netgen
     /// Change logical size. If necessary, do reallocation. Keeps contents.
     void SetSize(int nsize)
     {
-      if (nsize > allocsize) 
+      if (nsize > allocsize)
 	ReSize (nsize);
-      size = nsize; 
+      size = nsize;
     }
 
     /// Change physical size. Keeps logical size. Keeps contents.
@@ -240,7 +240,7 @@ namespace netgen
     /// Add element at end of array. reallocation if necessary.
     int Append (const T & el)
     {
-      if (size == allocsize) 
+      if (size == allocsize)
 	ReSize (size+1);
       data[size] = el;
       size++;
@@ -282,7 +282,7 @@ namespace netgen
       size--;
     }
 
-    /// Delete last element. 
+    /// Delete last element.
     void DeleteLast ()
     {
       size--;
@@ -334,9 +334,11 @@ namespace netgen
       if (data)
 	{
 	  T * p = new T[nsize];
-	
-	  int mins = (nsize < size) ? nsize : size; 
-	  memcpy (p, data, mins * sizeof(T));
+
+	  int mins = (nsize < size) ? nsize : size;
+
+    std::copy(data, data+mins, p);
+// 	  memcpy (p, data, mins * sizeof(T));
 
 	  if (ownmem)
 	    delete [] data;
@@ -348,14 +350,213 @@ namespace netgen
 	  data = new T[nsize];
 	  ownmem = 1;
 	}
-    
+
       allocsize = nsize;
     }
   };
 
 
 
-  template <class T, int S> 
+
+  template <typename T>
+  class AutoPtr;
+
+  template <class U, int BASE, typename TIND>
+  class Array< AutoPtr<U>, BASE, TIND > : public FlatArray<AutoPtr<U>, BASE, TIND>
+  {
+    typedef AutoPtr<U> T;
+  protected:
+    using FlatArray<T,BASE,TIND>::size;
+    using FlatArray<T,BASE,TIND>::data;
+
+    /// physical size of array
+    int allocsize;
+    /// memory is responsibility of container
+    bool ownmem;
+
+  public:
+
+    /// Generate array of logical and physical size asize
+    explicit Array()
+      : FlatArray<T, BASE, TIND> (0, NULL)
+    {
+      allocsize = 0;
+      ownmem = 1;
+    }
+
+    explicit Array(int asize)
+      : FlatArray<T, BASE, TIND> (asize, new T[asize])
+    {
+      allocsize = asize;
+      ownmem = 1;
+    }
+
+    /// Generate array in user data
+    Array(TIND asize, T* adata)
+      : FlatArray<T, BASE, TIND> (asize, adata)
+    {
+      allocsize = asize;
+      ownmem = 0;
+    }
+
+    /// array copy
+    explicit Array (const Array<T,BASE,TIND> & a2)
+      : FlatArray<T, BASE, TIND> (a2.Size(), a2.Size() ? new T[a2.Size()] : 0)
+    {
+      allocsize = size;
+      ownmem = 1;
+      for (TIND i = BASE; i < size+BASE; i++)
+  (*this)[i] = a2[i];
+    }
+
+
+
+    /// if responsible, deletes memory
+    ~Array()
+    {
+      if (ownmem)
+  delete [] data;
+    }
+
+    /// Change logical size. If necessary, do reallocation. Keeps contents.
+    void SetSize(int nsize)
+    {
+      if (nsize > allocsize)
+  ReSize (nsize);
+      size = nsize;
+    }
+
+    /// Change physical size. Keeps logical size. Keeps contents.
+    void SetAllocSize (int nallocsize)
+    {
+      if (nallocsize > allocsize)
+  ReSize (nallocsize);
+    }
+
+
+    /// Add element at end of array. reallocation if necessary.
+    int Append (const T & el)
+    {
+      if (size == allocsize)
+  ReSize (size+1);
+      data[size] = el;
+      size++;
+      return size;
+    }
+
+    template <typename T2, int B2>
+    void Append (FlatArray<T2, B2> a2)
+    {
+      if (size+a2.Size() > allocsize)
+  ReSize (size+a2.Size());
+      for (int i = 0; i < a2.Size(); i++)
+  data[size+i] = a2[i+B2];
+      size += a2.Size();
+    }
+
+
+    /// Delete element i (0-based). Move last element to position i.
+    void Delete (TIND i)
+    {
+#ifdef CHECK_Array_RANGE
+      RangeCheck (i+1);
+#endif
+
+      data[i] = data[size-1];
+      size--;
+      //    DeleteElement (i+1);
+    }
+
+
+    /// Delete element i (1-based). Move last element to position i.
+    void DeleteElement (TIND i)
+    {
+#ifdef CHECK_Array_RANGE
+      RangeCheck (i);
+#endif
+
+      data[i-1] = data[size-1];
+      size--;
+    }
+
+    /// Delete last element.
+    void DeleteLast ()
+    {
+      size--;
+    }
+
+    /// Deallocate memory
+    void DeleteAll ()
+    {
+      if (ownmem)
+  delete [] data;
+      data = 0;
+      size = allocsize = 0;
+    }
+
+    /// Fill array with val
+    Array & operator= (const T & val)
+    {
+      FlatArray<T, BASE, TIND>::operator= (val);
+      return *this;
+    }
+
+    /// array copy
+    Array & operator= (const Array & a2)
+    {
+      SetSize (a2.Size());
+      for (TIND i (BASE); i < size+BASE; i++)
+  (*this)[i] = a2[i];
+      return *this;
+    }
+
+    /// array copy
+    Array & operator= (const FlatArray<T> & a2)
+    {
+      SetSize (a2.Size());
+      for (TIND i = BASE; i < size+BASE; i++)
+  (*this)[i] = a2[i];
+      return *this;
+    }
+
+
+  private:
+
+    /// resize array, at least to size minsize. copy contents
+    void ReSize (int minsize)
+    {
+      int nsize = 2 * allocsize;
+      if (nsize < minsize) nsize = minsize;
+
+      if (data)
+  {
+    T * p = new T[nsize];
+
+    int mins = (nsize < size) ? nsize : size;
+
+//     std::copy(data, data+mins, p);
+   memcpy (p, data, mins * sizeof(T));
+
+    if (ownmem)
+      delete [] data;
+    ownmem = 1;
+    data = p;
+  }
+      else
+  {
+    data = new T[nsize];
+    ownmem = 1;
+  }
+
+      allocsize = nsize;
+    }
+  };
+
+
+
+
+
+  template <class T, int S>
   class ArrayMem : public Array<T>
   {
     using Array<T>::size;
@@ -379,7 +580,7 @@ namespace netgen
       // SetSize (asize);
     }
 
-    ArrayMem & operator= (const T & val)  
+    ArrayMem & operator= (const T & val)
     {
       Array<T>::operator= (val);
       return *this;
@@ -404,8 +605,8 @@ namespace netgen
   class IndirectArray
   {
     const FlatArray<T, B1> & array;
-    const FlatArray<int, B2> & ia; 
-    
+    const FlatArray<int, B2> & ia;
+
   public:
     IndirectArray (const FlatArray<T,B1> & aa, const FlatArray<int, B2> & aia)
     : array(aa), ia(aia) { ; }
@@ -418,8 +619,8 @@ namespace netgen
   class IndirectArray
   {
     const TA1 & array;
-    const TA2 & ia; 
-    
+    const TA2 & ia;
+
   public:
     IndirectArray (const TA1 & aa, const TA2 & aia)
     : array(aa), ia(aia) { ; }
@@ -438,14 +639,14 @@ namespace netgen
       s << i << ": " << ia[i] << endl;
     return s;
   }
-  
+
 
 
   /*
 
   ///
-  template <class T, int BASE = 0> 
-  class MoveableArray 
+  template <class T, int BASE = 0>
+  class MoveableArray
   {
     int size;
     int allocsize;
@@ -454,22 +655,22 @@ namespace netgen
   public:
 
     MoveableArray()
-    { 
-      size = allocsize = 0; 
+    {
+      size = allocsize = 0;
       data.SetName ("MoveableArray");
     }
 
     MoveableArray(int asize)
       : size(asize), allocsize(asize), data(asize)
     { ; }
-  
+
     ~MoveableArray () { ; }
 
     int Size() const { return size; }
 
     void SetSize(int nsize)
     {
-      if (nsize > allocsize) 
+      if (nsize > allocsize)
 	{
 	  data.ReAlloc (nsize);
 	  allocsize = nsize;
@@ -494,9 +695,9 @@ namespace netgen
     ///
     T & Elem (int i)
     { return ((T*)data)[i-1]; }
-  
+
     ///
-    const T & Get (int i) const 
+    const T & Get (int i) const
     { return ((const T*)data)[i-1]; }
 
     ///
@@ -506,15 +707,15 @@ namespace netgen
     ///
     T & Last ()
     { return ((T*)data)[size-1]; }
-  
+
     ///
     const T & Last () const
     { return ((const T*)data)[size-1]; }
-  
+
     ///
     int Append (const T & el)
     {
-      if (size == allocsize) 
+      if (size == allocsize)
 	{
 	  SetAllocSize (2*allocsize+1);
 	}
@@ -522,7 +723,7 @@ namespace netgen
       size++;
       return size;
     }
-  
+
     ///
     void Delete (int i)
     {
@@ -535,7 +736,7 @@ namespace netgen
       ((T*)data)[i-1] = ((T*)data)[size-1];
       size--;
     }
-  
+
     ///
     void DeleteLast ()
     { size--; }
@@ -550,7 +751,7 @@ namespace netgen
     ///
     void PrintMemInfo (ostream & ost) const
     {
-      ost << Size() << " elements of size " << sizeof(T) << " = " 
+      ost << Size() << " elements of size " << sizeof(T) << " = "
 	  << Size() * sizeof(T) << endl;
     }
 
@@ -624,7 +825,7 @@ namespace netgen
 	    T hv = data[i];
 	    data[i] = data[j];
 	    data[j] = hv;
-	    
+
 	    S hvs = slave[i];
 	    slave[i] = slave[j];
 	    slave[j] = hvs;
@@ -640,12 +841,12 @@ namespace netgen
     int i = left;
     int j = right;
     T midval = data[(left+right)/2];
-  
+
     do
       {
 	while (data[i] < midval) i++;
 	while (midval < data[j]) j--;
-      
+
 	if (i <= j)
 	  {
 	    Swap (data[i], data[j]);
@@ -672,8 +873,8 @@ namespace netgen
 
 
 
-  template <class T> 
-  void Intersection (const FlatArray<T> & in1, const FlatArray<T> & in2, 
+  template <class T>
+  void Intersection (const FlatArray<T> & in1, const FlatArray<T> & in2,
 		     Array<T> & out)
   {
     out.SetSize(0);
@@ -681,7 +882,7 @@ namespace netgen
       if(in2.Contains(in1[i]))
 	out.Append(in1[i]);
   }
-  template <class T> 
+  template <class T>
   void Intersection (const FlatArray<T> & in1, const FlatArray<T> & in2, const FlatArray<T> & in3,
 		     Array<T> & out)
   {

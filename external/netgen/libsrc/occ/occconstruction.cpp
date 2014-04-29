@@ -2,7 +2,7 @@
 #ifdef OCCGEOMETRY
 
 #include <mystdlib.h>
-#include <occgeom.hpp>  
+#include <occgeom.hpp>
 #include "ShapeAnalysis_ShapeTolerance.hxx"
 #include "ShapeAnalysis_ShapeContents.hxx"
 #include "ShapeAnalysis_CheckSmallFace.hxx"
@@ -35,7 +35,7 @@
 namespace netgen
 {
 
-  void OCCConstructGeometry (OCCGeometry & geom)
+  void OCCConstructGeometry (OCCGeometry & /*geom*/)
   {
 #ifdef NOTHING
     cout << "OCC construction" << endl;
@@ -64,7 +64,7 @@ namespace netgen
     dom8plus.Build();
     ShapeFix_Shape fixshape(dom8plus.Shape());
     fixshape.Perform();
-    
+
     ShapeFix_Shape fix_dom2(geom.somap(2));
     fix_dom2.Perform();
 
@@ -73,8 +73,8 @@ namespace netgen
     ShapeFix_Shape fix_dom2m8 (dom2m8);
     fix_dom2m8.Perform();
 
-    builder.Add (geom.shape, 
-		 BRepAlgoAPI_Cut 
+    builder.Add (geom.shape,
+		 BRepAlgoAPI_Cut
 		 (BRepAlgoAPI_Cut (geom.somap(2), dom6plus),
 		  dom8plus));
     // builder.Add (geom.shape, fix_dom2m8.Shape());
@@ -104,7 +104,7 @@ namespace netgen
 
     /*
     BRepAlgo_Sewing sewing(1.e5);
-    
+
     int cnt = 0;
     for (TopExp_Explorer exp_solid(geom.shape, TopAbs_SOLID); exp_solid.More(); exp_solid.Next())
       {
@@ -129,7 +129,7 @@ namespace netgen
 	cout << "section, cnt = " << cnt << endl;
 	if (cnt == 7)
 	  {
-	    builder.Add (geom.shape, 
+	    builder.Add (geom.shape,
 			 BRepAlgoAPI_Section (air, exp_solid.Current()));
 	  }
 	cnt++;

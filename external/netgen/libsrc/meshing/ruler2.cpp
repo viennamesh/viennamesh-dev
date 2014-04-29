@@ -32,7 +32,7 @@ namespace netgen
 
     if (testmode)
       {
-	(*testout) << "l = " << l12 << " + " << l13 << " + " << l23 << " = " 
+	(*testout) << "l = " << l12 << " + " << l13 << " + " << l23 << " = "
 		   << cir << ", area = " << area << endl;
 	(*testout) << "shapeerr = " << 10 * (c * cir * cir / area - 1) << endl
 		   << "sizeerr = " << 1/l12 + l12 + 1/l13 + l13 + 1/l23 + l23 - 6
@@ -45,7 +45,7 @@ namespace netgen
 
 
 
-  int Meshing2 ::ApplyRules (Array<Point2d> & lpoints, 
+  int Meshing2 ::ApplyRules (Array<Point2d> & lpoints,
 			     Array<int> & legalpoints,
 			     int maxlegalpoint,
 			     Array<INDEX_2> & llines1,
@@ -70,7 +70,7 @@ namespace netgen
     ArrayMem<int,100> pnearness(noldlp), lnearness(llines1.Size());
 
     ArrayMem<int, 20> pmap, pfixed, lmap;
-  
+
     ArrayMem<Point2d,100> tempnewpoints;
     ArrayMem<INDEX_2,100> tempnewlines;
     ArrayMem<int,100> tempdellines;
@@ -102,7 +102,7 @@ namespace netgen
     int found = 0;   // rule number
 
     pnearness = 1000;
-  
+
     for (int j = 0; j < 2; j++)
       pnearness.Set(llines1[0][j], 0);
 
@@ -144,7 +144,7 @@ namespace netgen
     for (int i = 0; i < maxlegalline; i++)
       if (lnearness[i] < MAX_NEARNESS)
 	lnearness_class[lnearness[i]]++;
-    
+
     int cumm = 0;
     for (int j = 0; j < MAX_NEARNESS; j++)
       {
@@ -180,20 +180,20 @@ namespace netgen
 
 
 
-    static bool firsttime = true;
-    static int timers[100];
-    static int timers2[100];
-    static int timers3[100];
-    if (firsttime)
-      {
-	for (int ri = 0; ri < rules.Size(); ri++)
-	  timers[ri] = NgProfiler::CreateTimer (string("netrule ")+rules[ri]->Name());
-	for (int ri = 0; ri < rules.Size(); ri++)
-	  timers2[ri] = NgProfiler::CreateTimer (string("netrule,mapped ")+rules[ri]->Name());
-	for (int ri = 0; ri < rules.Size(); ri++)
-	  timers3[ri] = NgProfiler::CreateTimer (string("netrule,lines mapped ")+rules[ri]->Name());
-	firsttime = false;
-      }
+//     static bool firsttime = true;
+//     static int timers[100];
+//     static int timers2[100];
+//     static int timers3[100];
+//     if (firsttime)
+//       {
+// 	for (int ri = 0; ri < rules.Size(); ri++)
+// 	  timers[ri] = NgProfiler::CreateTimer (string("netrule ")+rules[ri]->Name());
+// 	for (int ri = 0; ri < rules.Size(); ri++)
+// 	  timers2[ri] = NgProfiler::CreateTimer (string("netrule,mapped ")+rules[ri]->Name());
+// 	for (int ri = 0; ri < rules.Size(); ri++)
+// 	  timers3[ri] = NgProfiler::CreateTimer (string("netrule,lines mapped ")+rules[ri]->Name());
+// 	firsttime = false;
+//       }
 
     lused = 0;
     pused = 0;
@@ -217,12 +217,12 @@ namespace netgen
 
 	pmap.SetSize (rule->GetNP());
 	lmap.SetSize (rule->GetNL());
-      
+
 	pmap = 0;
 	lmap = 0;
 
-	lused[0] = 1; 
-	lmap[0] = 1;  
+	lused[0] = 1;
+	lmap[0] = 1;
 
 	for (int j = 0; j < 2; j++)
 	  {
@@ -244,7 +244,7 @@ namespace netgen
 
 	      {
 		ok = 0;
-		
+
 		int maxline = (rule->GetLNearness(nlok) < MAX_NEARNESS) ? lnearness_class[rule->GetLNearness(nlok)] : maxlegalline;
 		// int maxline = maxlegalline;
 
@@ -357,7 +357,7 @@ namespace netgen
 		pfixed.SetSize (pmap.Size());
 		for (int i = 0; i < pmap.Size(); i++)
 		  pfixed[i] = (pmap[i] >= 1);
- 
+
 		while (npok >= 1)
 		  {
 
@@ -393,9 +393,9 @@ namespace netgen
 				  }
 				else
 				  {
-				    if (rule->CalcPointDist (npok, lpoints.Get(pmap.Get(npok))) > maxerr 
-					|| !legalpoints.Get(pmap.Get(npok))) 
-                                    
+				    if (rule->CalcPointDist (npok, lpoints.Get(pmap.Get(npok))) > maxerr
+					|| !legalpoints.Get(pmap.Get(npok)))
+
 				      ok = 0;
 				  }
 			      }
@@ -426,7 +426,7 @@ namespace netgen
 			incnpok = 0;
 
 			if (ok)
-			  foundmap.Elem(ri)++; 
+			  foundmap.Elem(ri)++;
 
 #ifdef LOCDEBUG
 			if (loctestmode)
@@ -456,23 +456,23 @@ namespace netgen
 			if (!ok) continue;
 
 			Vector oldu (2 * rule->GetNOldP());
-		      
+
 			for (int i = 1; i <= rule->GetNOldP(); i++)
 			  {
 			    Vec2d ui(rule->GetPoint(i), lpoints.Get(pmap.Get(i)));
 			    oldu (2*i-2) = ui.X();
 			    oldu (2*i-1) = ui.Y();
 			  }
-		      
+
 			rule -> SetFreeZoneTransformation (oldu, tolerance);
 
-		      
+
 			if (!ok) continue;
 			if (!rule->ConvexFreeZone())
 			  {
 			    ok = 0;
 #ifdef LOCDEBUG
-			    if (loctestmode) 
+			    if (loctestmode)
 			      (*testout) << "freezone not convex" << endl;
 #endif
 			    /*
@@ -523,7 +523,7 @@ namespace netgen
 			if (!ok) continue;
 			for (int i = 1; i <= maxlegalline; i++)
 			  {
-			    if (!lused.Get(i) && 
+			    if (!lused.Get(i) &&
 				rule->IsLineInFreeZone (lpoints.Get(llines.Get(i).I1()),
 							lpoints.Get(llines.Get(i).I2())))
 			      {
@@ -584,14 +584,14 @@ namespace netgen
 			  {
 			    Vector newu(rule->GetOldUToNewU().Height());
 			    rule->GetOldUToNewU().Mult (oldu, newu);
-			    
+
 			    int oldnp = rule->GetNOldP();
 			    for (int i = oldnp + 1; i <= rule->GetNP(); i++)
 			      {
 				Point2d np = rule->GetPoint(i);
 				np.X() += newu (2 * (i-oldnp) - 2);
 				np.Y() += newu (2 * (i-oldnp) - 1);
-				
+
 				pmap.Elem(i) = lpoints.Append (np);
 			      }
 			  }

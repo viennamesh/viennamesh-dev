@@ -30,14 +30,14 @@ namespace netgen
 
 
     infile.open (filename);
-  
+
     if ( ! infile.good() )
-      throw NgException(string ("Input file '") + 
+      throw NgException(string ("Input file '") +
 			string (filename) +
 			string ("' not available!"));
 
     TestComment ( infile );
-  
+
     infile >> buf;   // file recognition
 
     tensormeshing.SetSize(0);
@@ -77,7 +77,7 @@ namespace netgen
 	;
       }
       else if ( isspace(ch) ) { // skip whitespaces
-	; 
+	;
       }
       else { // end of comment
 	infile.putback(ch);
@@ -91,7 +91,7 @@ namespace netgen
 
 
   void SplineGeometry2d :: LoadData ( ifstream & infile )
-  {      
+  {
     enum { D = 2 };
 
     int nump, numseg, leftdom, rightdom;
@@ -132,7 +132,7 @@ namespace netgen
 	      infile.get (ch);
 	    } while (isspace(ch) && ch != '\n');
 	  }
-    
+
 	if (infile.good())
 	  infile.putback (ch);
 
@@ -155,11 +155,11 @@ namespace netgen
     for (int i = 0; i < numseg; i++)
       {
 	TestComment ( infile );
-      
+
 	infile >> leftdom >> rightdom;
 
 	// cout << "add spline " << i << ", left = " << leftdom << ", right = " << rightdom << endl;
-      
+
 	infile >> buf;
 	// type of spline segement
 	if (strcmp (buf, "2") == 0)
@@ -194,10 +194,10 @@ namespace netgen
 
 	    spline = new DiscretePointsSeg<D> (pts);
 	  }
-    
+
 
 	SplineSegExt * spex = new SplineSegExt (*spline);
-	
+
 	infile >> spex->reffak;
 	spex -> leftdom = leftdom;
 	spex -> rightdom = rightdom;
@@ -217,14 +217,14 @@ namespace netgen
 	    ch = 'a';
 	    infile >> ch;
 	  }
-    
+
 	if (infile.good())
 	  infile.putback (ch);
-    
+
 	spex->bc = int (flags.GetNumFlag ("bc", i+1));
-	spex->hpref_left = int (flags.GetDefineFlag ("hpref")) || 
+	spex->hpref_left = int (flags.GetDefineFlag ("hpref")) ||
 	  int (flags.GetDefineFlag ("hprefleft"));
-	spex->hpref_right = int (flags.GetDefineFlag ("hpref")) || 
+	spex->hpref_right = int (flags.GetDefineFlag ("hpref")) ||
 	  int (flags.GetDefineFlag ("hprefright"));
 	spex->copyfrom = int (flags.GetNumFlag ("copy", -1));
 	if ( flags.StringFlagDefined("bcname") )
@@ -253,10 +253,10 @@ namespace netgen
     TestComment ( infile );
     infile >> elto0;
     TestComment ( infile );
-      
+
     infile >> nump;
     geompoints.SetSize(nump);
-      
+
     for (int i = 0; i < nump; i++)
       {
 	TestComment ( infile );
@@ -276,10 +276,10 @@ namespace netgen
 	Flags flags;
 
 
-	// get flags, 
+	// get flags,
 	ch = 'a';
 	// infile >> ch;
-	do 
+	do
 	  {
 
 	    infile.get (ch);
@@ -291,7 +291,7 @@ namespace netgen
 		infile >> hd;
 		infile.get(ch);
 	      }
-	  } 
+	  }
 	while (isspace(ch) && ch != '\n');
 	while (ch == '-')
 	  {
@@ -304,7 +304,7 @@ namespace netgen
 	      infile.get (ch);
 	    } while (isspace(ch) && ch != '\n');
 	  }
-    
+
 	if (infile.good())
 	  infile.putback (ch);
 
@@ -326,7 +326,7 @@ namespace netgen
     for (int i = 0; i < numseg; i++)
       {
 	TestComment ( infile );
-      
+
 	infile >> leftdom >> rightdom;
 
 	// cout << "add spline " << i << ", left = " << leftdom << endl;
@@ -365,7 +365,7 @@ namespace netgen
 
 	    spline = new DiscretePointsSeg<D> (pts);
 	  }
-    
+
 	//      infile >> spline->reffak;
 
 	SplineSegExt * spex = new SplineSegExt (*spline);
@@ -378,7 +378,7 @@ namespace netgen
 	//  infile >> hd;
 	hd = 1;
 	infile >> ch;
-      
+
 	// get refinement parameter, if it is there
 	// infile.get (ch);
 	// if another int-value, set refinement flag to this value
@@ -389,7 +389,7 @@ namespace netgen
 	    infile >> hd;
 	    infile >> ch ;
 	  }
-      
+
 	Flags flags;
 	while (ch == '-')
 	  {
@@ -400,14 +400,14 @@ namespace netgen
 	    ch = 'a';
 	    infile >> ch;
 	  }
-    
+
 	if (infile.good())
 	  infile.putback (ch);
-    
+
 	spex->bc = int (flags.GetNumFlag ("bc", i+1));
-	spex->hpref_left = int (flags.GetDefineFlag ("hpref")) || 
+	spex->hpref_left = int (flags.GetDefineFlag ("hpref")) ||
 	  int (flags.GetDefineFlag ("hprefleft"));
-	spex->hpref_right = int (flags.GetDefineFlag ("hpref")) || 
+	spex->hpref_right = int (flags.GetDefineFlag ("hpref")) ||
 	  int (flags.GetDefineFlag ("hprefright"));
 	spex->copyfrom = int (flags.GetNumFlag ("copy", -1));
 	spex->reffak = flags.GetNumFlag ("ref", 1 );
@@ -430,7 +430,7 @@ namespace netgen
     int domainnr;
     char material[100];
 
-    if ( !infile.good() ) 
+    if ( !infile.good() )
       return;
 
     infile >> numdomains;
@@ -463,10 +463,10 @@ namespace netgen
 	    ch = 'a';
 	    infile >> ch;
 	  }
-    
+
 	if (infile.good())
 	  infile.putback (ch);
-	 
+
 	maxh[domainnr-1] = flags.GetNumFlag ( "maxh", 1000);
       }
     return;
@@ -476,10 +476,10 @@ namespace netgen
 
 
   void SplineGeometry2d :: LoadDataV2 ( ifstream & infile )
-  { 
+  {
     enum { D = 2 };
     // new parser by Astrid Sinwel
-    
+
     PrintMessage (1, "Load 2D Geometry V2");
     int nump, leftdom, rightdom;
     Point<D> x;
@@ -500,7 +500,7 @@ namespace netgen
     // refinement factor
     infile >> elto0;
     TestComment ( infile );
-      
+
 
     // test if next ch is a letter, i.e. new keyword starts
     bool ischar = false;
@@ -528,22 +528,22 @@ namespace netgen
 		TestComment ( infile );
 		infile >> pointnr;
 		// pointnrs 1-based
-		if ( pointnr > nump ) nump = pointnr; 
+		if ( pointnr > nump ) nump = pointnr;
 		pointnrs.Append(pointnr);
-	      
+
 		for(int j=0; j<D; j++)
 		  infile >> x(j);
 		// hd is now optional, default 1
 		//  infile >> hd;
 		hd = 1;
-	      
+
 		Flags flags;
-	      
-	      
-		// get flags, 
+
+
+		// get flags,
 		ch = 'a';
 		// infile >> ch;
-		do 
+		do
 		  {
 		    infile.get (ch);
 		    // if another int-value, set refinement flag to this value
@@ -554,7 +554,7 @@ namespace netgen
 			infile >> hd;
 			infile.get(ch);
 		      }
-		  } 
+		  }
 		while (isspace(ch) && ch != '\n');
 		while (ch == '-')
 		  {
@@ -569,7 +569,7 @@ namespace netgen
 		  }
 		if (infile.good())
 		  infile.putback (ch);
-	      
+
 		if ( hd == 1 )
 		  hd = flags.GetNumFlag ( "ref", 1.0);
 		//       geompoints.Append (GeomPoint<D>(x, hd));
@@ -595,7 +595,7 @@ namespace netgen
 	    for ( int i = 0; i < nump; i++ )
 	      {
 		geompoints[pointnrs[i] - 1] = infilepoints[i];
-		geompoints[pointnrs[i] - 1].hpref = infilepoints[i].hpref; 
+		geompoints[pointnrs[i] - 1].hpref = infilepoints[i].hpref;
 	      }
 	    TestComment(infile);
 	  }
@@ -622,13 +622,13 @@ namespace netgen
 
 		SplineSeg<D> * spline = 0;
 		TestComment ( infile );
-		  
+
 		infile >> leftdom >> rightdom;
-	      
+
 		if ( leftdom > numdomains ) numdomains = leftdom;
 		if ( rightdom > numdomains ) numdomains = rightdom;
 
-	      
+
 		infile >> buf;
 		// type of spline segement
 		if (strcmp (buf, "2") == 0)
@@ -659,19 +659,19 @@ namespace netgen
 		    for (int j = 0; j < npts; j++)
 		      for(int k=0; k<D; k++)
 			infile >> pts[j](k);
-		  
+
 		    spline = new DiscretePointsSeg<D> (pts);
 		  }
 		else if (strcmp (buf, "bsplinepoints") == 0)
 		  {
 		    int npts,order;
-		    infile >> npts;    
+		    infile >> npts;
 		    infile >> order;
 		    Array< Point<D> > pts(npts);
 		    for (int j = 0; j < npts; j++)
 		      for(int k=0; k<D; k++)
-			infile >> pts[j](k);	    		    
-		    if(order<2)		      
+			infile >> pts[j](k);
+		    if(order<2)
 			cerr<<"Minimum order of 2 is required!!"<<endl;
 		    else if(order==2)
 		      spline = new BSplineSeg<D,2> (pts);
@@ -679,24 +679,24 @@ namespace netgen
 			spline = new BSplineSeg<D,3> (pts);
 		      else if(order==4)
 			spline = new BSplineSeg<D,4> (pts);
-		      else if(order>4)		      
+		      else if(order>4)
 			cerr<<"Maximum allowed order is 4!!"<<endl;
 		  }
-	      
+
 		//      infile >> spline->reffak;
 		SplineSegExt * spex = new SplineSegExt (*spline);
 
 		spex -> leftdom = leftdom;
 		spex -> rightdom = rightdom;
 		splines.Append (spex);
-	      
-	      
+
+
 		// hd is now optional, default 1
 		//  infile >> hd;
 		hd = 1;
 
 		infile >> ch;
-	      
+
 		// get refinement parameter, if it is there
 		//infile.get (ch);
 		// if another int-value, set refinement flag to this value
@@ -709,7 +709,7 @@ namespace netgen
 		    infile >> ch ;
 		  }
                 */
-		// get flags, 
+		// get flags,
 		Flags flags;
 		while (ch == '-')
 		  {
@@ -720,14 +720,14 @@ namespace netgen
 		    ch = 'a';
 		    infile >> ch;
 		  }
-	      
+
 		if (infile.good())
 		  infile.putback (ch);
-	      
+
 		spex->bc = int (flags.GetNumFlag ("bc", i+1));
-		spex->hpref_left = int (flags.GetDefineFlag ("hpref")) || 
+		spex->hpref_left = int (flags.GetDefineFlag ("hpref")) ||
 		  int (flags.GetDefineFlag ("hprefleft"));
-		spex->hpref_right = int (flags.GetDefineFlag ("hpref")) || 
+		spex->hpref_right = int (flags.GetDefineFlag ("hpref")) ||
 		  int (flags.GetDefineFlag ("hprefright"));
 		spex->copyfrom = int (flags.GetNumFlag ("copy", -1));
 		spex->reffak = flags.GetNumFlag ("ref", 1 );
@@ -754,10 +754,10 @@ namespace netgen
 		  ischar = true;
 
 	      }
-	  
+
 	    infile.get(ch);
 	    infile.putback(ch);
-	
+
 
 	  }
 	else if ( keyword == "materials" )
@@ -765,10 +765,10 @@ namespace netgen
 	    TestComment ( infile );
 	    int domainnr;
 	    char material[100];
-	  
-	    if ( !infile.good() ) 
+
+	    if ( !infile.good() )
 	      return;
-	  
+
 	    materials.SetSize(numdomains) ;
 	    maxh.SetSize ( numdomains ) ;
 	    for ( int i = 0; i < numdomains; i++)
@@ -780,12 +780,12 @@ namespace netgen
 	    layer.SetSize ( numdomains );
 	    layer = 1;
 
-	  
+
 	    TestComment ( infile );
-	  
+
 	    for ( int i=0; i<numdomains; i++)
 	      materials [ i ] = new char[100];
-	  
+
 	    for ( int i=0; i<numdomains && infile.good(); i++)
 	      {
 		TestComment ( infile );
@@ -793,7 +793,7 @@ namespace netgen
 		infile >> material;
 
 		strcpy (materials[domainnr-1], material);
-	      
+
 		Flags flags;
 		ch = 'a';
 		infile >> ch;
@@ -806,10 +806,10 @@ namespace netgen
 		    ch = 'a';
 		    infile >> ch;
 		  }
-	      
+
 		if (infile.good())
 		  infile.putback (ch);
-	      
+
 		maxh[domainnr-1] = flags.GetNumFlag ( "maxh", 1000);
 		if (flags.GetDefineFlag("quad")) quadmeshing[domainnr-1] = true;
 		if (flags.GetDefineFlag("tensor")) tensormeshing[domainnr-1] = true;
@@ -897,7 +897,7 @@ namespace netgen
     return "default";
   }
 
-  string * SplineGeometry2d :: BCNamePtr( const int bcnr ) 
+  string * SplineGeometry2d :: BCNamePtr( const int bcnr )
   {
     if ( bcnr > bcnames.Size() )
       return 0;
@@ -913,7 +913,7 @@ namespace netgen
   {
     if ( materials.Size() >= domnr)
       material =  materials[domnr-1];
-    else 
+    else
       material = 0;
   }
 
@@ -929,12 +929,12 @@ namespace netgen
 
 
   extern void MeshFromSpline2D (SplineGeometry2d & geometry,
-				Mesh *& mesh, 
+				Mesh *& mesh,
 				MeshingParameters & mp);
 
 
   int SplineGeometry2d :: GenerateMesh (Mesh*& mesh, MeshingParameters & mparam,
-					int perfstepsstart, int perfstepsend)
+					int /*perfstepsstart*/, int /*perfstepsend*/)
   {
     MeshFromSpline2D (*this, mesh, mparam);
     return 0;
@@ -960,7 +960,7 @@ namespace netgen
     if (strcmp (&cfilename[strlen(cfilename)-4], "in2d") == 0)
       {
 	PrintMessage (1, "Load 2D-Spline geometry file ", cfilename);
-	
+
 
 	ifstream infile(cfilename);
 
@@ -968,7 +968,7 @@ namespace netgen
 	hgeom -> Load (cfilename);
 	return hgeom;
       }
-    
+
     return NULL;
   }
 

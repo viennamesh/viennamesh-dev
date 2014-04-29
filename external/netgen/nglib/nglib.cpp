@@ -5,9 +5,9 @@
 /**************************************************************************/
 
 /*
-  
+
   Interface to the netgen meshing kernel
-  
+
 */
 #include <mystdlib.h>
 #include <myadt.hpp>
@@ -28,7 +28,7 @@
 
 namespace netgen {
    extern void MeshFromSpline2D (SplineGeometry2d & geometry,
-                                 Mesh *& mesh, 
+                                 Mesh *& mesh,
                                  MeshingParameters & mp);
 }
 
@@ -96,7 +96,7 @@ namespace nglib
    // Create a new netgen mesh object
    DLL_HEADER Ng_Mesh * Ng_NewMesh ()
    {
-      Mesh * mesh = new Mesh;  
+      Mesh * mesh = new Mesh;
       mesh->AddFaceDescriptor (FaceDescriptor (1, 1, 0, 1));
       return (Ng_Mesh*)(void*)mesh;
    }
@@ -123,7 +123,7 @@ namespace nglib
 
 
 
-   // Save a netgen mesh in the native VOL format 
+   // Save a netgen mesh in the native VOL format
    DLL_HEADER void Ng_SaveMesh(Ng_Mesh * mesh, const char* filename)
    {
       ((Mesh*)mesh)->Save(filename);
@@ -185,7 +185,7 @@ namespace nglib
 
 
    // Merge another mesh file into the currently loaded one
-   DLL_HEADER Ng_Result Ng_MergeMesh( Ng_Mesh* mesh1, Ng_Mesh* mesh2)
+   DLL_HEADER Ng_Result Ng_MergeMesh( Ng_Mesh* /*mesh1*/, Ng_Mesh* /*mesh2*/)
    {
       return NG_ERROR;
    }
@@ -204,7 +204,7 @@ namespace nglib
 
 
    // Manually add a surface element of a given type to an existing mesh object
-   DLL_HEADER void Ng_AddSurfaceElement (Ng_Mesh * mesh, Ng_Surface_Element_Type et,
+   DLL_HEADER void Ng_AddSurfaceElement (Ng_Mesh * mesh, Ng_Surface_Element_Type /*et*/,
                                          int * pi)
    {
       Mesh * m = (Mesh*)mesh;
@@ -220,7 +220,7 @@ namespace nglib
 
 
    // Manually add a volume element of a given type to an existing mesh object
-   DLL_HEADER void Ng_AddVolumeElement (Ng_Mesh * mesh, Ng_Volume_Element_Type et,
+   DLL_HEADER void Ng_AddVolumeElement (Ng_Mesh * mesh, Ng_Volume_Element_Type /*et*/,
                                         int * pi)
    {
       Mesh * m = (Mesh*)mesh;
@@ -276,7 +276,7 @@ namespace nglib
 
 
    // Return the surface element at a given index "pi"
-   DLL_HEADER Ng_Surface_Element_Type 
+   DLL_HEADER Ng_Surface_Element_Type
       Ng_GetSurfaceElement (Ng_Mesh * mesh, int num, int * pi)
    {
       const Element2d & el = ((Mesh*)mesh)->SurfaceElement(num);
@@ -287,7 +287,7 @@ namespace nglib
       {
       case 3: et = NG_TRIG; break;
       case 4: et = NG_QUAD; break;
-      case 6: 
+      case 6:
          switch (el.GetNV())
          {
          case 3: et = NG_TRIG6; break;
@@ -365,8 +365,8 @@ namespace nglib
       Mesh * m = (Mesh*)mesh;
 
       // Philippose - 30/08/2009
-      // Do not locally re-define "mparam" here... "mparam" is a global 
-      // object 
+      // Do not locally re-define "mparam" here... "mparam" is a global
+      // object
       //MeshingParameters mparam;
       mp->Transfer_Parameters();
 
@@ -457,7 +457,7 @@ namespace nglib
       {
       case 3: et = NG_TRIG; break;
       case 4: et = NG_QUAD; break;
-      case 6: 
+      case 6:
          switch (el.GetNV())
          {
          case 3: et = NG_TRIG6; break;
@@ -508,7 +508,7 @@ namespace nglib
                                             Ng_Meshing_Parameters * mp)
    {
       // use global variable mparam
-      //  MeshingParameters mparam;  
+      //  MeshingParameters mparam;
       mp->Transfer_Parameters();
 
       Mesh * m;
@@ -581,9 +581,9 @@ namespace nglib
       {
          const STLTriangle& t = geo->GetTriangle(i);
          p = geo->GetPoint(t.PNum(1));
-         p1[0] = p.X(); p1[1] = p.Y(); p1[2] = p.Z(); 
+         p1[0] = p.X(); p1[1] = p.Y(); p1[2] = p.Z();
          p = geo->GetPoint(t.PNum(2));
-         p2[0] = p.X(); p2[1] = p.Y(); p2[2] = p.Z(); 
+         p2[0] = p.X(); p2[1] = p.Y(); p2[2] = p.Z();
          p = geo->GetPoint(t.PNum(3));
          p3[0] = p.X(); p3[1] = p.Y(); p3[2] = p.Z();
          normal = t.Normal();
@@ -602,7 +602,7 @@ namespace nglib
    DLL_HEADER Ng_STL_Geometry * Ng_STL_NewGeometry ()
    {
       return (Ng_STL_Geometry*)(void*)new STLGeometry;
-   } 
+   }
 
 
 
@@ -641,8 +641,8 @@ namespace nglib
       Mesh* me = (Mesh*)mesh;
 
       // Philippose - 27/07/2009
-      // Do not locally re-define "mparam" here... "mparam" is a global 
-      // object 
+      // Do not locally re-define "mparam" here... "mparam" is a global
+      // object
       //MeshingParameters mparam;
       mp->Transfer_Parameters();
 
@@ -683,7 +683,7 @@ namespace nglib
       Mesh* me = (Mesh*)mesh;
 
       // Philippose - 27/07/2009
-      // Do not locally re-define "mparam" here... "mparam" is a global 
+      // Do not locally re-define "mparam" here... "mparam" is a global
       // object
       //MeshingParameters mparam;
       mp->Transfer_Parameters();
@@ -702,7 +702,7 @@ namespace nglib
       stlgeometry->surfacemeshed = 0;
       stlgeometry->surfaceoptimized = 0;
       stlgeometry->volumemeshed = 0;
-      */  
+      */
       int retval = STLSurfaceMeshing (*stlgeometry, *me);
       if (retval == MESHING3_OK)
       {
@@ -710,7 +710,7 @@ namespace nglib
          stlgeometry->surfacemeshed = 1;
          stlgeometry->surfaceoptimized = 0;
          stlgeometry->volumemeshed = 0;
-      } 
+      }
       else if (retval == MESHING3_OUTERSTEPSEXCEEDED)
       {
          (*mycout) << "ERROR: Give up because of too many trials. Meshing aborted!" << endl;
@@ -736,8 +736,8 @@ namespace nglib
    // fills STL Geometry
    // positive orientation
    // normal vector may be null-pointer
-   DLL_HEADER void Ng_STL_AddTriangle (Ng_STL_Geometry * geom, 
-                                       double * p1, double * p2, double * p3, 
+   DLL_HEADER void Ng_STL_AddTriangle (Ng_STL_Geometry * /*geom*/,
+                                       double * p1, double * p2, double * p3,
                                        double * nv)
    {
       Point<3> apts[3];
@@ -755,7 +755,7 @@ namespace nglib
    }
 
    // add (optional) edges:
-   DLL_HEADER void Ng_STL_AddEdge (Ng_STL_Geometry * geom, 
+   DLL_HEADER void Ng_STL_AddEdge (Ng_STL_Geometry * /*geom*/,
       double * p1, double * p2)
    {
       readedges.Append(Point3d(p1[0],p1[1],p1[2]));
@@ -771,7 +771,7 @@ namespace nglib
    DLL_HEADER Ng_OCC_Geometry * Ng_OCC_NewGeometry ()
    {
       return (Ng_OCC_Geometry*)(void*)new OCCGeometry;
-   } 
+   }
 
 
 
@@ -785,17 +785,17 @@ namespace nglib
          geom = NULL;
          return NG_OK;
       }
-      
+
       return NG_ERROR;
    }
 
 
 
-   
+
    // Loads geometry from STEP File
    DLL_HEADER Ng_OCC_Geometry * Ng_OCC_Load_STEP (const char * filename)
    {
-      // Call the STEP File Load function. Note.. the geometry class 
+      // Call the STEP File Load function. Note.. the geometry class
       // is created and instantiated within the load function
       OCCGeometry * occgeo = LoadOCC_STEP(filename);
 
@@ -804,11 +804,11 @@ namespace nglib
 
 
 
-   
+
    // Loads geometry from IGES File
    DLL_HEADER Ng_OCC_Geometry * Ng_OCC_Load_IGES (const char * filename)
    {
-      // Call the IGES File Load function. Note.. the geometry class 
+      // Call the IGES File Load function. Note.. the geometry class
       // is created and instantiated within the load function
       OCCGeometry * occgeo = LoadOCC_IGES(filename);
 
@@ -817,11 +817,11 @@ namespace nglib
 
 
 
-   
+
    // Loads geometry from BREP File
    DLL_HEADER Ng_OCC_Geometry * Ng_OCC_Load_BREP (const char * filename)
    {
-      // Call the BREP File Load function. Note.. the geometry class 
+      // Call the BREP File Load function. Note.. the geometry class
       // is created and instantiated within the load function
       OCCGeometry * occgeo = LoadOCC_BREP(filename);
 
@@ -831,7 +831,7 @@ namespace nglib
 
 
 
-   // Locally limit the size of the mesh to be generated at various points 
+   // Locally limit the size of the mesh to be generated at various points
    // based on the topology of the geometry
    DLL_HEADER Ng_Result Ng_OCC_SetLocalMeshSize (Ng_OCC_Geometry * geom,
                                                  Ng_Mesh * mesh,
@@ -843,11 +843,11 @@ namespace nglib
       me->geomtype = Mesh::GEOM_OCC;
 
       mp->Transfer_Parameters();
-      
+
       occparam.resthcloseedgeenable = mp->closeedgeenable;
       occparam.resthcloseedgefac = mp->closeedgefact;
 
-      // Delete the mesh structures in order to start with a clean 
+      // Delete the mesh structures in order to start with a clean
       // slate
       me->DeleteMesh();
 
@@ -858,7 +858,7 @@ namespace nglib
 
 
 
-   
+
    // Mesh the edges and add Face descriptors to prepare for surface meshing
    DLL_HEADER Ng_Result Ng_OCC_GenerateEdgeMesh (Ng_OCC_Geometry * geom,
                                                  Ng_Mesh * mesh,
@@ -883,7 +883,7 @@ namespace nglib
 
 
 
-   
+
    // Mesh the edges and add Face descriptors to prepare for surface meshing
    DLL_HEADER Ng_Result Ng_OCC_GenerateSurfaceMesh (Ng_OCC_Geometry * geom,
                                                     Ng_Mesh * mesh,
@@ -894,7 +894,7 @@ namespace nglib
       OCCGeometry * occgeom = (OCCGeometry*)geom;
       Mesh * me = (Mesh*)mesh;
 
-      // Set the internal meshing parameters structure from the nglib meshing 
+      // Set the internal meshing parameters structure from the nglib meshing
       // parameters structure
       mp->Transfer_Parameters();
 
@@ -917,7 +917,7 @@ namespace nglib
       OCCMeshSurface(*occgeom, *me, perfstepsend);
 
       me->CalcSurfacesOfNode();
-      
+
       if(me->GetNP() <= numpoints)
          return NG_ERROR;
 
@@ -931,9 +931,9 @@ namespace nglib
 
 
    // Extract the face map from the OCC geometry
-   // The face map basically gives an index to each face in the geometry, 
+   // The face map basically gives an index to each face in the geometry,
    // which can be used to access a specific face
-   DLL_HEADER Ng_Result Ng_OCC_GetFMap(Ng_OCC_Geometry * geom, 
+   DLL_HEADER Ng_Result Ng_OCC_GetFMap(Ng_OCC_Geometry * geom,
                                        Ng_OCC_TopTools_IndexedMapOfShape * FMap)
    {
       OCCGeometry* occgeom = (OCCGeometry*)geom;
@@ -1035,11 +1035,11 @@ namespace nglib
 
 
 
-   // 
+   //
    DLL_HEADER void Ng_Meshing_Parameters :: Transfer_Parameters()
    {
       mparam.uselocalh = uselocalh;
-      
+
       mparam.maxh = maxh;
       mparam.minh = minh;
 
@@ -1166,7 +1166,7 @@ namespace nglib
 
 
 // compatibility functions:
-namespace netgen 
+namespace netgen
 {
    char geomfilename[255];
 
@@ -1208,7 +1208,7 @@ namespace netgen
 
 
 
-   void MyBeep (int i)
+   void MyBeep (int /*i*/)
    {
       ;
    }
@@ -1218,7 +1218,7 @@ namespace netgen
 
    void Render()
    {
-      ; 
+      ;
    }
 } // End of namespace netgen
 
@@ -1227,10 +1227,10 @@ namespace netgen
 
 void Ng_Redraw () { ; }
 void Ng_ClearSolutionData () { ; }
-void Ng_SetSolutionData (Ng_SolutionData * soldata) 
-{ 
+void Ng_SetSolutionData (Ng_SolutionData * soldata)
+{
   delete soldata->solclass;
 }
-void Ng_InitSolutionData (Ng_SolutionData * soldata) { ; }
+void Ng_InitSolutionData (Ng_SolutionData * /*soldata*/) { ; }
 
 

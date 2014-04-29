@@ -17,10 +17,10 @@ namespace netgen
 
 
 
-  enum ELEMENT_TYPE { 
+  enum ELEMENT_TYPE {
     SEGMENT = 1, SEGMENT3 = 2,
     TRIG = 10, QUAD=11, TRIG6 = 12, QUAD6 = 13, QUAD8 = 14,
-    TET = 20, TET10 = 21, 
+    TET = 20, TET10 = 21,
     PYRAMID = 22, PRISM = 23, PRISM12 = 24,
     HEX = 25
   };
@@ -48,7 +48,7 @@ namespace netgen
     int trignum;   // for STL Meshing
     double u, v;   // for OCC Meshing
 
-    PointGeomInfo () 
+    PointGeomInfo ()
       : trignum(-1), u(0), v(0) { ; }
   };
 
@@ -95,7 +95,7 @@ namespace netgen
 
     EdgePointGeomInfo & operator= (const EdgePointGeomInfo & gi2)
     {
-      edgenr = gi2.edgenr;  
+      edgenr = gi2.edgenr;
       body = gi2.body;
       dist = gi2.dist;
       u = gi2.u; v = gi2.v;
@@ -135,7 +135,7 @@ namespace netgen
     enum { BASE = 0 };
 #else
     enum { BASE = 1 };
-#endif  
+#endif
   };
 
   inline istream & operator>> (istream & ist, PointIndex & pi)
@@ -181,7 +181,7 @@ namespace netgen
   public:
     SurfaceElementIndex () { ; }
     SurfaceElementIndex (int ai) : i(ai) { ; }
-    SurfaceElementIndex & operator= (const SurfaceElementIndex & ai) 
+    SurfaceElementIndex & operator= (const SurfaceElementIndex & ai)
     { i = ai.i; return *this; }
     SurfaceElementIndex & operator= (int ai) { i = ai; return *this; }
     operator int () const { return i; }
@@ -206,7 +206,7 @@ namespace netgen
   public:
     SegmentIndex () { ; }
     SegmentIndex (int ai) : i(ai) { ; }
-    SegmentIndex & operator= (const SegmentIndex & ai) 
+    SegmentIndex & operator= (const SegmentIndex & ai)
     { i = ai.i; return *this; }
     SegmentIndex & operator= (int ai) { i = ai; return *this; }
     operator int () const { return i; }
@@ -239,29 +239,29 @@ namespace netgen
 
 
   public:
-    MeshPoint () 
-    { 
+    MeshPoint ()
+    {
       ;
     }
 
     MeshPoint (const Point<3> & ap, int alayer = 1, POINTTYPE apt = INNERPOINT)
-      : Point<3> (ap), layer(alayer), singular(0.),type(apt) 
-    { 
+      : Point<3> (ap), layer(alayer), singular(0.),type(apt)
+    {
       ;
     }
-  
+
     void SetPoint (const Point<3> & ap)
-    { 
-      Point<3>::operator= (ap); 
-      layer = 0; 
-      singular = 0; 
+    {
+      Point<3>::operator= (ap);
+      layer = 0;
+      singular = 0;
     }
 
     int GetLayer() const { return layer; }
 
     POINTTYPE Type() const { return type; }
     void SetType(POINTTYPE at) { type = at; }
- 
+
     double Singularity() const { return singular; }
     void Singularity(double s) { singular = s; }
     bool IsSingular() const { return (singular != 0.0); }
@@ -273,8 +273,8 @@ namespace netgen
   };
 
   inline ostream & operator<<(ostream  & s, const MeshPoint & pt)
-  { 
-    return (s << Point<3> (pt)); 
+  {
+    return (s << Point<3> (pt));
   }
 
 
@@ -288,7 +288,7 @@ namespace netgen
      Triangle element for surface mesh generation.
   */
   class Element2d
-  { 
+  {
     /// point numbers
     PointIndex pnum[ELEMENT2D_MAXPOINTS];
     /// geom info of points
@@ -306,7 +306,7 @@ namespace netgen
     bool deleted:1;  // element is deleted
 
     // Philippose - 08 August 2010
-    // Set a new property for each element, to 
+    // Set a new property for each element, to
     // control whether it is visible or not
     bool visible:1;  // element visible
 
@@ -315,7 +315,7 @@ namespace netgen
     unsigned int ordery:6;
 
 #ifdef PARALLEL
-    int partitionNumber; 
+    int partitionNumber;
 #endif
 
     /// a linked list for all segments in the same face
@@ -334,7 +334,7 @@ namespace netgen
     Element2d (int pi1, int pi2, int pi3, int pi4);
     ///
     ELEMENT_TYPE GetType () const { return typ; }
-    /// 
+    ///
     void SetType (ELEMENT_TYPE atyp)
     {
       typ = atyp;
@@ -376,9 +376,9 @@ namespace netgen
     ///
     const PointIndex & operator[] (int i) const { return pnum[i]; }
 
-    FlatArray<const PointIndex> PNums () const 
+    FlatArray<const PointIndex> PNums () const
     { return FlatArray<const PointIndex> (np, &pnum[0]); }
-    
+
     ///
     PointIndex & PNum (int i) { return pnum[i-1]; }
     ///
@@ -446,13 +446,13 @@ namespace netgen
     void GetDShapeNew (const Point<2> & p, class MatrixFixWidth<2> & dshape) const;
     /// matrix 2 * np
     void GetPointMatrix (const Array<Point2d> & points,
-			 class DenseMatrix & pmat) const; 
+			 class DenseMatrix & pmat) const;
 
     void ComputeIntegrationPointData () const;
-  
+
 
     double CalcJacobianBadness (const Array<Point2d> & points) const;
-    double CalcJacobianBadness (const T_POINTS & points, 
+    double CalcJacobianBadness (const T_POINTS & points,
 				const Vec<3> & n) const;
     double CalcJacobianBadnessDirDeriv (const Array<Point2d> & points,
 					int pi, Vec2d & dir, double & dd) const;
@@ -460,33 +460,33 @@ namespace netgen
 
 
     void Delete () { deleted = 1; pnum[0] = pnum[1] = pnum[2] = pnum[3] = PointIndex::BASE-1; }
-    bool IsDeleted () const 
+    bool IsDeleted () const
     {
 #ifdef DEBUG
       if (pnum[0] < PointIndex::BASE && !deleted)
 	cerr << "Surfelement has illegal pnum, but not marked as deleted" << endl;
-#endif    
-      return deleted; 
+#endif
+      return deleted;
     }
 
     // Philippose - 08 August 2010
     // Access functions for the new property: visible
-    void Visible(bool vis = 1) 
+    void Visible(bool vis = 1)
     { visible = vis; }
-    bool IsVisible () const 
+    bool IsVisible () const
     { return visible; }
-   
-    void SetRefinementFlag (bool rflag = 1) 
+
+    void SetRefinementFlag (bool rflag = 1)
     { refflag = rflag; }
     bool TestRefinementFlag () const
     { return refflag; }
 
-    void SetStrongRefinementFlag (bool rflag = 1) 
+    void SetStrongRefinementFlag (bool rflag = 1)
     { strongrefflag = rflag; }
     bool TestStrongRefinementFlag () const
     { return strongrefflag; }
 
-  
+
     SurfaceElementIndex NextElement() { return next; }
 
     bool operator==(const Element2d & el2) const;
@@ -499,7 +499,7 @@ namespace netgen
 
 #ifdef PARALLEL
     int GetPartition () const { return partitionNumber; }
-    void SetPartition (int nr) { partitionNumber = nr; }; 
+    void SetPartition (int nr) { partitionNumber = nr; };
 #endif
   };
 
@@ -539,12 +539,12 @@ namespace netgen
     /// number of points (4..tet, 5..pyramid, 6..prism, 8..hex, 10..quad tet, 12..quad prism)
     int np:5;
     ///
-    class flagstruct { 
+    class flagstruct {
     public:
       bool marked:1;  // marked for refinement
       bool badel:1;   // angles worse then limit
       bool reverse:1; // for refinement a la Bey
-      bool illegal:1; // illegal, will be split or swaped 
+      bool illegal:1; // illegal, will be split or swaped
       bool illegal_valid:1; // is illegal-flag valid ?
       bool badness_valid:1; // is badness valid ?
       bool refflag:1;     // mark element for refinement
@@ -561,12 +561,12 @@ namespace netgen
     unsigned int orderz:6;
     /* unsigned int levelx:6;
        unsigned int levely:6;
-       unsigned int levelz:6; */ 
+       unsigned int levelz:6; */
     /// stored shape-badness of element
-    float badness;
-  
+//     float badness;
+
 #ifdef PARALLEL
-    /// number of partition for parallel computation 
+    /// number of partition for parallel computation
     int partitionNumber;
 
 #endif
@@ -582,7 +582,9 @@ namespace netgen
     Element (ELEMENT_TYPE type);
     ///
     Element & operator= (const Element & el2);
-  
+    ///
+    virtual ~Element() {}
+
     ///
     void SetNP (int anp);
     ///
@@ -594,12 +596,12 @@ namespace netgen
     {
       switch (typ)
 	{
-	case TET: 
-	case TET10: 
+	case TET:
+	case TET10:
 	  return 4;
-	case PRISM12: 
-	case PRISM: 
-	  return 6; 
+	case PRISM12:
+	case PRISM:
+	  return 6;
 	case PYRAMID:
 	  return 5;
 	case HEX:
@@ -626,7 +628,7 @@ namespace netgen
     ///
     const PointIndex & operator[] (int i) const { return pnum[i]; }
 
-    FlatArray<const PointIndex> PNums () const 
+    FlatArray<const PointIndex> PNums () const
     { return FlatArray<const PointIndex> (np, &pnum[0]); }
 
     ///
@@ -637,14 +639,14 @@ namespace netgen
     PointIndex & PNumMod (int i) { return pnum[(i-1) % np]; }
     ///
     const PointIndex & PNumMod (int i) const { return pnum[(i-1) % np]; }
-  
+
     ///
     void SetIndex (int si) { index = si; }
     ///
     int GetIndex () const { return index; }
 
     int GetOrder () const { return orderx; }
-    void SetOrder (const int aorder) ; 
+    void SetOrder (const int aorder) ;
 
     void GetOrder (int & ox, int & oy, int & oz) const { ox = orderx; oy = ordery; oz = orderz; }
     void SetOrder (const int ox, const int oy, const int oz);
@@ -663,10 +665,10 @@ namespace netgen
     {
       switch (typ)
 	{
-	case TET: 
+	case TET:
 	case TET10: return 4;
 	case PYRAMID: return 5;
-	case PRISM: 
+	case PRISM:
 	case PRISM12: return 5;
 	default:
 #ifdef DEBUG
@@ -711,10 +713,10 @@ namespace netgen
     void GetDShapeNew (const Point<3> & p, class MatrixFixWidth<3> & dshape) const;
     /// matrix 3 * np
     void GetPointMatrix (const T_POINTS & points,
-			 class DenseMatrix & pmat) const; 
+			 class DenseMatrix & pmat) const;
 
     void ComputeIntegrationPointData () const;
-  
+
 
     double CalcJacobianBadness (const T_POINTS & points) const;
     double CalcJacobianBadnessDirDeriv (const T_POINTS & points,
@@ -725,12 +727,12 @@ namespace netgen
     ///
     // friend ostream & operator<<(ostream  & s, const Element & el);
 
-    void SetRefinementFlag (bool rflag = 1) 
+    void SetRefinementFlag (bool rflag = 1)
     { flags.refflag = rflag; }
     int TestRefinementFlag () const
     { return flags.refflag; }
 
-    void SetStrongRefinementFlag (bool rflag = 1) 
+    void SetStrongRefinementFlag (bool rflag = 1)
     { flags.strongrefflag = rflag; }
     int TestStrongRefinementFlag () const
     { return flags.strongrefflag; }
@@ -749,23 +751,23 @@ namespace netgen
       flags.illegal = alegal ? 0 : 1;
       flags.illegal_valid = 1;
     }
-  
+
     void Delete () { flags.deleted = 1; }
-    bool IsDeleted () const 
-    { 
+    bool IsDeleted () const
+    {
 #ifdef DEBUG
       if (pnum[0] < PointIndex::BASE && !flags.deleted)
 	cerr << "Volelement has illegal pnum, but not marked as deleted" << endl;
-#endif    
+#endif
 
-      return flags.deleted; 
+      return flags.deleted;
     }
 
 
 
 #ifdef PARALLEL
     int GetPartition () const { return partitionNumber; }
-    void SetPartition (int nr) { partitionNumber = nr; }; 
+    void SetPartition (int nr) { partitionNumber = nr; };
 #else
     int GetPartition () const { return 0; }
 #endif
@@ -806,11 +808,11 @@ namespace netgen
     unsigned int seginfo:2;
 
     /// surface decoding index
-    int si;          
+    int si;
     /// domain number inner side
     int domin;
     /// domain number outer side
-    int domout;  
+    int domout;
     /// top-level object number of surface
     int tlosurf;
     ///
@@ -826,7 +828,7 @@ namespace netgen
     int meshdocval;
 
 #ifdef PARALLEL
-    /// number of partition for parallel computation 
+    /// number of partition for parallel computation
     int partitionNumber;
 #endif
 
@@ -838,13 +840,13 @@ namespace netgen
       PointIndex operator[] (int i) const
       { return (i == 0) ? p1 : p2; }
 
-      PointIndex & operator[] (int i) 
+      PointIndex & operator[] (int i)
       { return (i == 0) ? p1 : p2; }
     */
 
     Segment& operator=(const Segment & other);
 
-  
+
     int hp_elnr;
 
     void SetBCName ( string * abcname )
@@ -852,10 +854,10 @@ namespace netgen
       bcname = abcname;
     }
 
-    string * BCNamePtr () 
+    string * BCNamePtr ()
     { return bcname; }
 
-    const string * BCNamePtr () const 
+    const string * BCNamePtr () const
     { return bcname; }
 
     const string & GetBCName () const
@@ -874,13 +876,13 @@ namespace netgen
     {
       return (pnums[2] < 0) ? SEGMENT : SEGMENT3;
     }
-  
+
     PointIndex & operator[] (int i) { return pnums[i]; }
     const PointIndex & operator[] (int i) const { return pnums[i]; }
 
 #ifdef PARALLEL
     int GetPartition () const { return partitionNumber; }
-    void SetPartition (int nr) { partitionNumber = nr; }; 
+    void SetPartition (int nr) { partitionNumber = nr; };
 #else
     int GetPartition () const { return 0; }
 #endif
@@ -891,7 +893,7 @@ namespace netgen
 
 
 
-  // class Surface;  
+  // class Surface;
   // class FaceDescriptor;
 
   ///
@@ -908,16 +910,16 @@ namespace netgen
     /// boundary condition property
     int bcprop;
     // Philippose - 06/07/2009
-    // Add capability to store surface colours along with 
+    // Add capability to store surface colours along with
     // other face data
     /// surface colour (Default: R=0.0 ; G=1.0 ; B=0.0)
     Vec3d surfcolour;
 
     ///
     string * bcname;
-    /// root of linked list 
+    /// root of linked list
     SurfaceElementIndex firstelement;
-  
+
     double domin_singular;
     double domout_singular;
 
@@ -943,7 +945,7 @@ namespace netgen
     // Philippose - 06/07/2009
     // Get Surface colour
     Vec3d SurfColour () const { return surfcolour; }
-    const string & GetBCName () const; 
+    const string & GetBCName () const;
     // string * BCNamePtr () { return bcname; }
     // const string * BCNamePtr () const  { return bcname; }
     void SetSurfNr (int sn) { surfnr = sn; }
@@ -965,7 +967,7 @@ namespace netgen
 
   ostream & operator<< (ostream  & s, const FaceDescriptor & fd);
 
- 
+
   class EdgeDescriptor
   {
     int tlosurf;
@@ -1016,7 +1018,7 @@ namespace netgen
     int optsteps2d;
     /// power of error (to approximate max err optimization)
     double opterrpow;
-    /// do block filling ?  
+    /// do block filling ?
     int blockfill;
     /// block filling up to distance
     double filldist;
@@ -1065,15 +1067,15 @@ namespace netgen
     /// class starting star-shape filling
     int starshapeclass;
     /// if non-zero, baseelement must have baseelnp points
-    int baseelnp;        
+    int baseelnp;
     /// quality tolerances are handled less careful
     int sloppy;
-  
+
     /// limit for max element angle (150-180)
     double badellimit;
 
     bool check_impossible;
-  
+
     ///
     int secondorder;
     /// high order element curvature
@@ -1096,7 +1098,7 @@ namespace netgen
 
 
 
-  class DebugParameters 
+  class DebugParameters
   {
   public:
     ///
@@ -1173,7 +1175,7 @@ namespace netgen
 
 
 
-  static const int gftetfacesa[4][3] = 
+  static const int gftetfacesa[4][3] =
     { { 1, 2, 3 },
       { 2, 0, 3 },
       { 0, 1, 3 },
@@ -1199,20 +1201,20 @@ namespace netgen
 
 
   /**
-     Identification of periodic surfaces, close surfaces, etc. 
+     Identification of periodic surfaces, close surfaces, etc.
   */
   class Identifications
   {
   public:
     enum ID_TYPE { UNDEFINED = 1, PERIODIC = 2, CLOSESURFACES = 3, CLOSEEDGES = 4};
-  
+
 
   private:
     class Mesh & mesh;
 
-    /// identify points (thin layers, periodic b.c.)  
+    /// identify points (thin layers, periodic b.c.)
     INDEX_2_HASHTABLE<int> * identifiedpoints;
-  
+
     /// the same, with info about the id-nr
     INDEX_3_HASHTABLE<int> * identifiedpoints_nr;
 
@@ -1246,9 +1248,9 @@ namespace netgen
     bool GetSymmetric (PointIndex pi1, PointIndex pi2, int identnr) const;
 
     ///
-    INDEX_2_HASHTABLE<int> & GetIdentifiedPoints () 
-    { 
-      return *identifiedpoints; 
+    INDEX_2_HASHTABLE<int> & GetIdentifiedPoints ()
+    {
+      return *identifiedpoints;
     }
 
     bool Used (PointIndex pi1, PointIndex pi2)
@@ -1258,7 +1260,7 @@ namespace netgen
 
     bool UsedSymmetric (PointIndex pi1, PointIndex pi2)
     {
-      return 
+      return
 	identifiedpoints->Used (INDEX_2 (pi1, pi2)) ||
 	identifiedpoints->Used (INDEX_2 (pi2, pi1));
     }
@@ -1279,11 +1281,11 @@ namespace netgen
 	type.Append(UNDEFINED);
       type[identnr-1] = t;
     }
-    
+
     ///
     void GetPairs (int identnr, Array<INDEX_2> & identpairs) const;
     ///
-    int GetMaxNr () const { return maxidentnr; }  
+    int GetMaxNr () const { return maxidentnr; }
 
     /// remove secondorder
     void SetMaxPointNr (int maxpnum);

@@ -26,7 +26,7 @@ namespace netgen
 	    {
 	      int hi;
 	      hi = edges.Get(i2);
-	      if (hi != 1) 
+	      if (hi != 1)
 		PrintSysError ("CheckSurfaceMesh, hi = ", hi);
 	      edges.Set(i2, 2);
 	      cnt2++;
@@ -38,7 +38,7 @@ namespace netgen
 	      cnt1++;
 	    }
 	}
-  
+
 
     if (cnt1 != cnt2)
       {
@@ -221,13 +221,13 @@ namespace netgen
     err = 0.0080187537 * lll / vol;    // sqrt(216) / (6^4 * sqrt(2))
 
     if (h > 0)
-      err += ll / (h * h) + 
-	h * h * ( 1 / ll1 + 1 / ll2 + 1 / ll3 + 
+      err += ll / (h * h) +
+	h * h * ( 1 / ll1 + 1 / ll2 + 1 / ll3 +
 		  1 / ll4 + 1 / ll5 + 1 / ll6 ) - 12;
-    
+
     double teterrpow = mp.opterrpow;
     if(teterrpow < 1) teterrpow = 1;
-    
+
     if (teterrpow == 1) return err;
     if (teterrpow == 2) return err*err;
     return pow (err, teterrpow);
@@ -248,7 +248,7 @@ namespace netgen
     pp2 = &p2;
     pp3 = &p3;
     pp4 = &p4;
-  
+
     switch (pi)
       {
       case 2:
@@ -270,7 +270,7 @@ namespace netgen
 	  break;
 	}
       }
-  
+
 
     Vec3d v1 (*pp1, *pp2);
     Vec3d v2 (*pp1, *pp3);
@@ -299,7 +299,7 @@ namespace netgen
     lll = l * ll;
 
     if (vol <= 1e-24 * lll)
-      { 
+      {
 	grad = Vec3d (0, 0, 0);
 	return 1e24;
       }
@@ -323,14 +323,14 @@ namespace netgen
     gradll *= -2;
     */
 
-    err = 0.0080187537 * lll / vol; 
+    err = 0.0080187537 * lll / vol;
 
 
     gradll *= (0.0080187537 * 1.5 * l / vol);
     Vec3d graderr(gradll);
     gradvol *= ( -0.0080187537 * lll / (vol * vol) );
     graderr += gradvol;
-  
+
     if (h > 0)
       {
 	/*
@@ -341,8 +341,8 @@ namespace netgen
 	gradll2 *= 2;
 	gradll3 *= 2;
 	*/
-	err += ll / (h*h) + 
-	  h*h * ( 1 / ll1 + 1 / ll2 + 1 / ll3 + 
+	err += ll / (h*h) +
+	  h*h * ( 1 / ll1 + 1 / ll2 + 1 / ll3 +
 		  1 / ll4 + 1 / ll5 + 1 / ll6 ) - 12;
 
 	graderr += (1/(h*h) - h*h/(ll1*ll1)) * gradll1;
@@ -363,7 +363,7 @@ namespace netgen
 
     if (teterrpow == 2)
       {
-        errpow = err*err;   
+        errpow = err*err;
         grad = (2 * err) * graderr;
       }
 
@@ -374,7 +374,7 @@ namespace netgen
       }
     return errpow;
   }
-  
+
 
 
 
@@ -407,21 +407,21 @@ namespace netgen
   // l += 1e-40 * CalcTetBadnessNew (p1, p2, p3, p4, h);
 
   if (vol <= 1e-24 * l * l * l)
-  { 
+  {
   return 1e24;
   }
 
   err = (l*l*l) / (1832.82 * vol);    // 6^4 * sqrt(2)
-  
+
   if (h > 0)
-  err += l / h + 
+  err += l / h +
   h * (1 / l1 + 1/l2 + 1/l3 + 1/l4 + 1/l5 + 1/l6) - 12;
 
   return pow (err, teterrpow);
   }
 
 
-  
+
   double CalcTetBadnessGrad (const Point3d & p1, const Point3d & p2,
   const Point3d & p3, const Point3d & p4, double h,
   int pi, Vec3d & grad)
@@ -435,7 +435,7 @@ namespace netgen
   pp2 = &p2;
   pp3 = &p3;
   pp4 = &p4;
-  
+
   switch (pi)
   {
   case 2:
@@ -457,7 +457,7 @@ namespace netgen
   break;
   }
   }
-  
+
 
   Vec3d v1 (*pp1, *pp2);
   Vec3d v2 (*pp1, *pp3);
@@ -473,7 +473,7 @@ namespace netgen
   //   vol = - (n * v3) / 6;
 
 
-  vol = -Determinant (v1, v2, v3) / 6;  
+  vol = -Determinant (v1, v2, v3) / 6;
 
   Vec3d gradvol;
   Cross (v5, v4, gradvol);
@@ -502,25 +502,25 @@ namespace netgen
 
 
   if (vol <= 1e-24 * l * l * l)
-  { 
+  {
   grad = Vec3d (0, 0, 0);
   return 1e24;
   }
 
 
   double c1 = 1.0 / 1832.82;      // 6^4 * sqrt(2)
-  err = c1 * (l*l*l) / vol; 
+  err = c1 * (l*l*l) / vol;
 
 
   gradl *= (c1 * 3 * l * l / vol);
   Vec3d graderr(gradl);
   gradvol *= ( -c1 * l * l * l / (vol * vol) );
   graderr+= gradvol;
-  
+
   if (h > 0)
   {
-  err += l / h + 
-  h * ( 1 / l1 + 1 / l2 + 1 / l3 + 
+  err += l / h +
+  h * ( 1 / l1 + 1 / l2 + 1 / l3 +
   1 / l4 + 1 / l5 + 1 / l6 ) - 12;
 
   graderr += (1/h - h/(l1*l1)) * gradl1;
@@ -531,53 +531,53 @@ namespace netgen
 
   double errpow = pow (err, teterrpow);
   grad = (teterrpow * errpow / err) * graderr;
-  
+
   return errpow;
   }
-  
+
   */
 
 
 
 
-  
+
   /*
     double CalcVolume (const Array<Point3d> & points,
     const Element & el)
     {
-    Vec3d v1 = points.Get(el.PNum(2)) - 
+    Vec3d v1 = points.Get(el.PNum(2)) -
     points.Get(el.PNum(1));
-    Vec3d v2 = points.Get(el.PNum(3)) - 
+    Vec3d v2 = points.Get(el.PNum(3)) -
     points.Get(el.PNum(1));
-    Vec3d v3 = points.Get(el.PNum(4)) - 
-    points.Get(el.PNum(1)); 
-         
-    return -(Cross (v1, v2) * v3) / 6;	 
-    }  
+    Vec3d v3 = points.Get(el.PNum(4)) -
+    points.Get(el.PNum(1));
+
+    return -(Cross (v1, v2) * v3) / 6;
+    }
   */
 
-  double CalcVolume (const Array<Point3d> & points, 
+  double CalcVolume (const Array<Point3d> & points,
 		     const Array<Element> & elements)
   {
     double vol;
     Vec3d v1, v2, v3;
-  
+
     vol = 0;
     for (int i = 0; i < elements.Size(); i++)
       {
 	v1 = points.Get(elements[i][1]) - points.Get(elements[i][0]);
 	v2 = points.Get(elements[i][2]) - points.Get(elements[i][0]);
 	v3 = points.Get(elements[i][3]) - points.Get(elements[i][0]);
-	vol -= (Cross (v1, v2) * v3) / 6;	 
+	vol -= (Cross (v1, v2) * v3) / 6;
       }
     return vol;
   }
 
-  
-  
+
+
 
   void MeshQuality3d (const Mesh & mesh, Array<int> * inclass)
-  { 
+  {
     int ncl = 20;
     signed int cl;
     Array<INDEX> incl(ncl);
@@ -604,8 +604,8 @@ namespace netgen
 
 	if (qual > 1) qual = 1;
 	cl = int (ncl * qual ) + 1;
-     
-	if (cl < 1) cl = 1; 
+
+	if (cl < 1) cl = 1;
 	if (cl > ncl) cl = ncl;
 
 	incl.Elem(cl)++;
@@ -637,7 +637,7 @@ namespace netgen
     ofstream of (filename);
     int i;
     const Segment * seg;
-  
+
     of << "edges" << endl;
     of << geomfile << endl;
     of << h << endl;
@@ -647,7 +647,7 @@ namespace netgen
       of << mesh.Point(i)(0) << " "
 	 << mesh.Point(i)(1) << " "
 	 << mesh.Point(i)(2) << "\n";
-    
+
     of << 2 * mesh.GetNSeg() << endl;
     for (i = 1; i <= mesh.GetNSeg(); i++)
       {
@@ -655,7 +655,7 @@ namespace netgen
 
 	of << (*seg)[1] << " " << (*seg)[0] << " " << seg->si << "\n";
       }
-   
+
   }
 
 
@@ -677,7 +677,7 @@ namespace netgen
 	      << mesh.Point(i)(1) << " "
 	      << mesh.Point(i)(2) << endl;
 
-  
+
 
     outfile << mesh.GetNSE() << endl;
     for (i = 1; i <= mesh.GetNSE(); i++)
@@ -705,7 +705,7 @@ namespace netgen
   {
     int i, j;
     outfile.precision (6);
-  
+
     outfile << "areamesh2" << endl;
 
 
@@ -715,7 +715,7 @@ namespace netgen
       outfile << mesh2d.LineSegment(i).si << "        "
 	      << mesh2d.LineSegment(i)[0] << " "
 	      << mesh2d.LineSegment(i)[1] << "  " << endl;
-  
+
 
     outfile << mesh2d.GetNSE() << endl;
     for (i = 1; i <= mesh2d.GetNSE(); i++)
@@ -750,8 +750,8 @@ namespace netgen
 
 
 
-  void SaveVolumeMesh (const Mesh & mesh, 
-		       const CSGeometry & geometry,
+  void SaveVolumeMesh (const Mesh & mesh,
+		       const CSGeometry & /*geometry*/,
 		       char * filename)
   {
     INDEX i;
@@ -825,18 +825,18 @@ namespace netgen
     for (i = 1; i <= mesh.GetNSE(); i++)
       {
 	const Element2d & el = mesh.SurfaceElement(i);
-      
+
 	if (mesh.GetFaceDescriptor(el.GetIndex()).DomainIn() == 0 ||
 	    mesh.GetFaceDescriptor(el.GetIndex()).DomainOut() == 0)
 	  {
 	    for (j = 1; j <= 3; j++)
 	      i3.I(j) = el.PNum(j);
-	  
+
 	    i3.Sort();
 	    faceused.Set (i3, 1);
 	  }
       }
-  
+
     for (ei = 0; ei < mesh.GetNE(); ei++)
       {
 	const Element & el = mesh[ei];
@@ -868,18 +868,18 @@ namespace netgen
 
 	for (j = 1; j <= 3; j++)
 	  i3.I(j) = el.PNum(j);
-      
+
 	i3.Sort();
 	k = faceused.Get (i3);
 	if (k != 2)
 	  {
 	    ok = 0;
-	    (*testout) << "face " << i << " with points " 
-		       << i3.I1() << "-" << i3.I2() << "-" << i3.I3() 
+	    (*testout) << "face " << i << " with points "
+		       << i3.I1() << "-" << i3.I2() << "-" << i3.I3()
 		       << " has " << k << " elements" << endl;
 	  }
       }
-  
+
     for (ei = 0; ei < mesh.GetNE(); ei++)
       {
 	const Element & el = mesh[ei];
@@ -901,9 +901,9 @@ namespace netgen
 	    if (k != 2)
 	      {
 		ok = 0;
-		(*testout) << "element " << ei << " with face " 
+		(*testout) << "element " << ei << " with face "
 			   << i3.I1() << "-" << i3.I2() << "-"
-			   << i3.I3() 
+			   << i3.I3()
 			   << " has " << k << " elements" << endl;
 	      }
 	  }
@@ -920,8 +920,8 @@ namespace netgen
       faceused.GetData(i, j, i3, k);
       if (k != 2)
       {
-      (*testout) << "Face: " << i3.I1() << "-" 
-      << i3.I2() << "-" << i3.I3() << " has " 
+      (*testout) << "Face: " << i3.I1() << "-"
+      << i3.I2() << "-" << i3.I3() << " has "
       << k << " Faces " << endl;
       cerr << "Face Error" << endl;
       ok = 0;
@@ -936,18 +936,18 @@ namespace netgen
 	for (i = 1; i <= mesh.GetNSE(); i++)
 	  {
 	    const Element2d & el = mesh.SurfaceElement(i);
-	    (*testout) << setw(5) << i << ":" 
-		       << setw(6) << el.GetIndex() 
-		       << setw(6) << el.PNum(1) 
-		       << setw(4) << el.PNum(2) 
+	    (*testout) << setw(5) << i << ":"
+		       << setw(6) << el.GetIndex()
+		       << setw(6) << el.PNum(1)
+		       << setw(4) << el.PNum(2)
 		       << setw(4) << el.PNum(3)  << endl;
 	  }
 	(*testout) << "volelements: " << endl;
 	for (ei = 0; ei < mesh.GetNE(); ei++)
 	  {
 	    const Element & el = mesh[ei];
-	    (*testout) << setw(5) << i << ":" 
-		       << setw(6) << el.GetIndex() 
+	    (*testout) << setw(5) << i << ":"
+		       << setw(6) << el.GetIndex()
 		       << setw(6) << el[0] << setw(4) << el[1]
 		       << setw(4) << el[2] << setw(4) << el[3] << endl;
 	  }
@@ -962,12 +962,12 @@ namespace netgen
   void RemoveProblem (Mesh & mesh, int domainnr)
   {
     int i, j, k;
-  
+
     mesh.FindOpenElements(domainnr);
     int np = mesh.GetNP();
 
     BitArrayChar<PointIndex::BASE> ppoints(np);
-  
+
     // int ndom = mesh.GetNDomains();
 
     PrintMessage (3, "Elements before Remove: ", mesh.GetNE());
@@ -975,7 +975,7 @@ namespace netgen
     k = domainnr;
       {
 	ppoints.Clear();
-      
+
 	for (i = 1; i <= mesh.GetNOpenElements(); i++)
 	  {
 	    const Element2d & sel = mesh.OpenElement(i);
@@ -995,10 +995,10 @@ namespace netgen
 		for (j = 0; j < el.GetNP(); j++)
 		  if (ppoints.Test (el[j]))
 		    todel = 1;
-	      
+
 		if (el.GetNP() != 4)
 		  todel = 0;
-	      
+
 		if (todel)
 		  {
 		    mesh[ei].Delete();
@@ -1007,7 +1007,7 @@ namespace netgen
 	      }
 	  }
       }
-  
+
     mesh.Compress();
     PrintMessage (3, "Elements after Remove: ", mesh.GetNE());
   }

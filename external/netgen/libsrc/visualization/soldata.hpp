@@ -18,7 +18,7 @@ namespace netgen
     int multidimcomponent;
 
   public:
-    SolutionData (const string & aname, 
+    SolutionData (const string & aname,
                   int acomponents = 1, bool aiscomplex = 0)
       : name(aname), components(acomponents), iscomplex(aiscomplex)
     { ; }
@@ -26,31 +26,31 @@ namespace netgen
     virtual ~SolutionData ()
     { ; }
 
-    int GetComponents() 
-    { 
-      return components; 
-    }
-
-    bool IsComplex() 
+    int GetComponents()
     {
-      return iscomplex; 
+      return components;
     }
 
-    virtual bool GetValue (int /* elnr */, 
+    bool IsComplex()
+    {
+      return iscomplex;
+    }
+
+    virtual bool GetValue (int /* elnr */,
                            double /* lam1 */, double /* lam2 */, double /* lam3 */,
-                           double * /* values */) 
-    { 
-      return false; 
+                           double * /* values */)
+    {
+      return false;
     }
 
     virtual bool GetValue (int selnr,
-                           const double xref[], const double x[], const double dxdxref[],
-                           double * values) 
+                           const double xref[], const double /*x*/[], const double /*dxdxref*/[],
+                           double * values)
     {
-      return GetValue (selnr, xref[0], xref[1], xref[2], values); 
+      return GetValue (selnr, xref[0], xref[1], xref[2], values);
     }
 
-    virtual bool GetMultiValue (int elnr, int facetnr, int npts,
+    virtual bool GetMultiValue (int elnr, int /*facetnr*/, int npts,
 				const double * xref, int sxref,
 				const double * x, int sx,
 				const double * dxdxref, int sdxdxref,
@@ -64,19 +64,19 @@ namespace netgen
 
 
 
-    virtual bool GetSurfValue (int /* selnr */, int facetnr, 
-                               double /* lam1 */, double /* lam2 */, 
+    virtual bool GetSurfValue (int /* selnr */, int /*facetnr*/,
+                               double /* lam1 */, double /* lam2 */,
                                double * /* values */)
-    { 
-      return false; 
+    {
+      return false;
     }
 
 
-    virtual bool GetSurfValue (int selnr, int facetnr, 
-                               const double xref[], const double x[], const double dxdxref[],
+    virtual bool GetSurfValue (int selnr, int facetnr,
+                               const double xref[], const double /*x*/[], const double /*dxdxref*/[],
                                double * values)
-    { 
-      return GetSurfValue (selnr, facetnr, xref[0], xref[1], values); 
+    {
+      return GetSurfValue (selnr, facetnr, xref[0], xref[1], values);
     }
 
 
@@ -92,9 +92,9 @@ namespace netgen
       return res;
     }
 
-    virtual bool GetSegmentValue (int segnr, double xref, double * values)
+    virtual bool GetSegmentValue (int /*segnr*/, double /*xref*/, double * /*values*/)
     { return false; }
-    
+
 
     virtual int GetNumMultiDimComponents ()
     {
@@ -102,10 +102,10 @@ namespace netgen
     }
 
     void SetMultiDimComponent (int mc)
-    { 
+    {
       if (mc >= GetNumMultiDimComponents()) mc = GetNumMultiDimComponents()-1;
       if (mc < 0) mc = 0;
-      multidimcomponent = mc; 
+      multidimcomponent = mc;
     }
   };
 
@@ -113,7 +113,7 @@ namespace netgen
   class DLL_HEADER MouseEventHandler
   {
   public:
-    virtual void DblClick (int elnr) { ; }
+    virtual void DblClick (int /*elnr*/) { ; }
   };
 
 }

@@ -7,7 +7,7 @@ namespace netgen
 {
 
 
-  void MeshOptimize2d :: ProjectBoundaryPoints(Array<int> & surfaceindex, 
+  void MeshOptimize2d :: ProjectBoundaryPoints(Array<int> & surfaceindex,
 					       const Array<Point<3>* > & from, Array<Point<3>* > & dest)
   {
     for(int i=0; i<surfaceindex.Size(); i++)
@@ -18,13 +18,13 @@ namespace netgen
 	    ProjectPoint(surfaceindex[i],*dest[i]);
 	  }
       }
-      
+
 
   }
 
   void MeshOptimize2d :: ImproveVolumeMesh (Mesh & mesh)
   {
-    
+
     if (!faceindex)
       {
 	PrintMessage (3, "Smoothing");
@@ -38,7 +38,7 @@ namespace netgen
 	faceindex = 0;
 	return;
       }
-      
+
 
 
     static int timer = NgProfiler::CreateTimer ("MeshSmoothing 2D");
@@ -54,11 +54,11 @@ namespace netgen
     Array<SurfaceElementIndex> seia;
     mesh.GetSurfaceElementsOfFace (faceindex, seia);
 
-    bool mixed = 0;
+//     bool mixed = 0;
     for (i = 0; i < seia.Size(); i++)
       if (mesh[seia[i]].GetNP() != 3)
 	{
-	  mixed = 1;
+// 	  mixed = 1;
 	  break;
 	}
 
@@ -92,7 +92,7 @@ namespace netgen
 	for (j = 0; j < el.GetNP(); j++)
 	  elementsonpoint.Add (el[j], seia[i]);
       }
-    
+
 
     JacobianPointFunction pf(mesh.Points(),mesh.VolumeElements());
 
@@ -148,7 +148,7 @@ namespace netgen
 
 	if (multithread.terminate)
 	  throw NgException ("Meshing stopped");
-	
+
 	int surfi(-1);
 
 	if(elementsonpoint[pi].Size() == 0)
@@ -166,7 +166,7 @@ namespace netgen
 	    PrintDot (plotchar);
 	  }
 
-		
+
 	int hpi = 0;
 	for (j = 1; j <= hel.GetNP(); j++)
 	  if (hel.PNum(j) == pi)
@@ -175,18 +175,18 @@ namespace netgen
 	      break;
 	    }
 	PointGeomInfo gi1 = hel.GeomInfoPi(hpi);
-	
+
 	locelements.SetSize(0);
 	locrots.SetSize (0);
-	
+
 	for (j = 0; j < elementsonpoint[pi].Size(); j++)
 	  {
 	    sei = elementsonpoint[pi][j];
 	    const Element2d & bel = mesh[sei];
 	    surfi = mesh.GetFaceDescriptor(bel.GetIndex()).SurfNr();
-	    
+
 	    locelements.Append (sei);
-	    
+
 	    for (k = 1; k <= bel.GetNP(); k++)
 	      if (bel.PNum(k) == pi)
 		{
@@ -194,26 +194,26 @@ namespace netgen
 		  break;
 		}
 	  }
-	 
+
 
 	double lh = mesh.GetH(mesh.Point(pi));
 	par.typx = lh;
 
 	pf.SetPointIndex(pi);
-	
+
 	x = 0;
-	bool pok = (pf.Func (x) < 1e10); 
-	
+	bool pok = (pf.Func (x) < 1e10);
+
 	if (pok)
 	  {
 	    BFGS (x, pf, par);
-	    
+
 	    origp = mesh[pi];
 	    loci = 1;
 	    fact = 1;
 	    moveisok = false;
-	
-	    
+
+
 	    //optimizer loop (if whole distance is not possible, move only a bit!!!!)
 	    while (loci <= 5 && !moveisok)
 	      {
@@ -222,17 +222,17 @@ namespace netgen
 		mesh[pi](1) = origp(1) + x(1)*fact;
 		mesh[pi](2) = origp(2) + x(2)*fact;
 		fact = fact/2.;
-	    
-	    
+
+
 		//cout << "origp " << origp << " newp " << mesh[pi];
-	    
+
 		ngi = gi1;
 		moveisok = (ProjectPointGI (surfi, mesh[pi], ngi) != 0);
 
 		//cout << " projected " << mesh[pi] << endl;
 
 		// point lies on same chart in stlsurface
-		
+
 		if (moveisok)
 		  {
 		    for (j = 0; j < locelements.Size(); j++)
@@ -244,7 +244,7 @@ namespace netgen
 		  {
 		    mesh[pi] = origp;
 		  }
-	    
+
 	      }
 	  }
 	else
@@ -255,10 +255,10 @@ namespace netgen
 
     if (printeddot)
       PrintDot ('\n');
-  
+
     CheckMeshApproximation (mesh);
     mesh.SetNextTimeStamp();
   }
 
-  
+
 }

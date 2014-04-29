@@ -45,7 +45,7 @@ class DLL_HEADER Refinement
 public:
   Refinement ();
   virtual ~Refinement ();
-  
+
   void Refine (Mesh & mesh) const;
   void Refine (Mesh & mesh);
   void Bisect (Mesh & mesh, class BisectionOptions & opt, Array<double> * quality_loss = NULL) const;
@@ -53,28 +53,28 @@ public:
   void MakeSecondOrder (Mesh & mesh) const;
   void MakeSecondOrder (Mesh & mesh);
 
-  virtual void PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint, 
-			     int surfi, 
-			     const PointGeomInfo & gi1, 
+  virtual void PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
+			     int surfi,
+			     const PointGeomInfo & gi1,
 			     const PointGeomInfo & gi2,
 			     Point<3> & newp, PointGeomInfo & newgi) const;
 
   virtual void PointBetween (const Point<3> & p1, const Point<3> & p2, double secpoint,
-			     int surfi1, int surfi2, 
-			     const EdgePointGeomInfo & ap1, 
+			     int surfi1, int surfi2,
+			     const EdgePointGeomInfo & ap1,
 			     const EdgePointGeomInfo & ap2,
 			     Point<3> & newp, EdgePointGeomInfo & newgi) const;
 
   virtual Vec<3> GetTangent (const Point<3> & p, int surfi1, int surfi2,
                              const EdgePointGeomInfo & egi) const;
 
-  virtual Vec<3> GetNormal (const Point<3> & p, int surfi1, 
+  virtual Vec<3> GetNormal (const Point<3> & p, int surfi1,
                             const PointGeomInfo & gi) const;
 
 
   virtual void ProjectToSurface (Point<3> & p, int surfi) const;
 
-  virtual void ProjectToSurface (Point<3> & p, int surfi, const PointGeomInfo & /* gi */) const
+  virtual void ProjectToSurface (Point<3> & p, int surfi, PointGeomInfo & /* gi */) const
   {
     ProjectToSurface (p, surfi);
   }
@@ -83,7 +83,7 @@ public:
 
 
   void ValidateSecondOrder (Mesh & mesh);
-  void ValidateRefinedMesh (Mesh & mesh, 
+  void ValidateRefinedMesh (Mesh & mesh,
 			    Array<INDEX_2> & parents);
 
   MeshOptimize2d * Get2dOptimizer(void) const
@@ -95,7 +95,7 @@ public:
     optimizer2d = opti;
   }
 
-  
+
   virtual void LocalizeEdgePoints(Mesh & /* mesh */) const {;}
 };
 

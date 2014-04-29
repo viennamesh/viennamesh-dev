@@ -14,19 +14,19 @@ namespace netgen
     planee2 = ae2;
     planee3 = Cross (planee1, planee2);
     (*testout) << "Vecs = " << planee1 << " " << planee2 << " " << planee3 << endl;
-  };
-  
+  }
+
 
   void GeneralizedCylinder :: Project (Point<3> & p) const
   {
     Point<2> p2d;
     double z;
-  
+
     p2d = Point<2> (planee1 * (p - planep), planee2 * (p - planep));
     z = planee3 * (p - planep);
 
     crosssection.Project (p2d);
-  
+
     p = planep + p2d(0) * planee1 + p2d(1) * planee2 + z * planee3;
   }
 
@@ -36,25 +36,25 @@ namespace netgen
     Point<2> p2d, projp;
     double t;
     Vec<2> tan, n;
-  
+
     p3d = box.Center();
-  
+
     p2d = Point<2> (planee1 * (p3d - planep), planee2 * (p3d - planep));
     t = crosssection.ProjectParam (p2d);
-  
+
     projp = crosssection.Eval (t);
     tan = crosssection.EvalPrime (t);
     n(0) = tan(1);
     n(1) = -tan(0);
-    
+
     if (Dist (p2d, projp) < box.Diam()/2)
       return 2;
-    
-    if (n * (p2d - projp) > 0) 
+
+    if (n * (p2d - projp) > 0)
       {
-        return 0;   
+        return 0;
       }
-    
+
     return 1;
   }
 
@@ -63,40 +63,40 @@ namespace netgen
     Point<2> p2d, projp;
     double t;
     Vec<2> tan, n;
-  
-  
+
+
     p2d = Point<2> (planee1 * (point - planep), planee2 * (point - planep));
     t = crosssection.ProjectParam (p2d);
-  
+
     projp = crosssection.Eval (t);
     tan = crosssection.EvalPrime (t);
     n(0) = tan(1);
     n(1) = -tan(0);
-    
+
     n /= n.Length();
     return n * (p2d - projp);
   }
-  
+
   void GeneralizedCylinder :: CalcGradient (const Point<3> & point, Vec<3> & grad) const
   {
     Point<2> p2d, projp;
     double t;
     Vec<2> tan, n;
-  
-  
+
+
     p2d = Point<2> (planee1 * (point - planep), planee2 * (point - planep));
     t = crosssection.ProjectParam (p2d);
-  
+
     projp = crosssection.Eval (t);
     tan = crosssection.EvalPrime (t);
     n(0) = tan(1);
     n(1) = -tan(0);
-    
+
     n /= n.Length();
     grad = n(0) * planee1 + n(1) * planee2;
   }
-  
-  
+
+
   void GeneralizedCylinder :: CalcHesse (const Point<3> & point, Mat<3> & hesse) const
   {
     Point<2> p2d, projp;
@@ -106,7 +106,7 @@ namespace netgen
     Mat<2> h2d;
     Mat<3,2> vmat;
     int i, j, k, l;
-  
+
     p2d = Point<2> (planee1 * (point - planep), planee2 * (point - planep));
     t = crosssection.ProjectParam (p2d);
 
@@ -114,18 +114,18 @@ namespace netgen
     curvpp = p2d-curvp;
     dist = curvpp.Length();
     curvpp /= dist;
-    
-    h2d(0, 0) = (1 - curvpp(0) * curvpp(0) ) / dist;  
-    h2d(0, 1) = h2d(1, 0) = (- curvpp(0) * curvpp(1) ) / dist;  
-    h2d(1, 1) = (1 - curvpp(1) * curvpp(1) ) / dist;  
-  
+
+    h2d(0, 0) = (1 - curvpp(0) * curvpp(0) ) / dist;
+    h2d(0, 1) = h2d(1, 0) = (- curvpp(0) * curvpp(1) ) / dist;
+    h2d(1, 1) = (1 - curvpp(1) * curvpp(1) ) / dist;
+
     vmat(0,0) = planee1(0);
     vmat(1,0) = planee1(1);
     vmat(2,0) = planee1(2);
     vmat(0,1) = planee2(0);
     vmat(1,1) = planee2(1);
     vmat(2,1) = planee2(2);
-  
+
     for (i = 0; i < 3; i++)
       for (j = 0; j < 3; j++)
         {
@@ -148,19 +148,19 @@ namespace netgen
     Point<2> c2d = Point<2> (planee1 * (c - planep), planee2 * (c - planep));
     return crosssection.MaxCurvatureLoc(c2d, rad);
   }
-  
 
-  
+
+
   Point<3> GeneralizedCylinder :: GetSurfacePoint () const
   {
-    Point<2> p2d; 
+    Point<2> p2d;
     p2d = crosssection.Eval(0);
     return planep + p2d(0) * planee1 + p2d(1) * planee2;
   }
 
   void GeneralizedCylinder :: Reduce (const BoxSphere<3> & box)
   {
-    Point<2> c2d = Point<2> (planee1 * (box.Center() - planep), 
+    Point<2> c2d = Point<2> (planee1 * (box.Center() - planep),
                              planee2 * (box.Center() - planep));
     crosssection.Reduce (c2d, box.Diam()/2);
   }
@@ -175,5 +175,5 @@ namespace netgen
     str << "Generalized Cylinder" << endl;
     crosssection.Print (str);
   }
-  
+
 }

@@ -49,7 +49,7 @@ double Fastatan2 (double x, double y)
       else
 	return 3 - x / (y-x);
     }
-  else 
+  else
     {
       if (x >= 0)
 	return 0;
@@ -63,7 +63,7 @@ double Angle (const Vec2d & v)
 {
   if (v.X() == 0 && v.Y() == 0)
     return 0;
-    
+
   double ang = atan2 (v.Y(), v.X());
   if (ang < 0) ang+= 2 * M_PI;
   return ang;
@@ -104,7 +104,7 @@ double  Dist2(const Line2d & g, const Line2d & h )
   {
   double   dd = 0.0, d1,d2,d3,d4;
   Point2d  cp = CrossPoint(g,h);
-  
+
   if ( Parallel(g,h) || !IsOnLine(g,cp) || !IsOnLine(h,cp) )
     {
       d1 = Dist2(g.P1(),h.P1());
@@ -142,11 +142,11 @@ int CrossPointBarycentric (const Line2d & l1, const Line2d & l2,
 
   double b1 = l2.p1.X() - l1.p1.X();
   double b2 = l2.p1.Y() - l1.p1.Y();
-  
+
   double det = a11*a22 - a12 * a21;
   if (det == 0)
     return 1;
-    
+
   lam1 = (a22 * b1 - a12 * b2) / det;
   lam2 = (a11 * b2 - a21 * b1) / det;
   return 0;
@@ -209,7 +209,7 @@ void Line2d :: GetNormal (Line2d & n) const
   double 	ax  = P2().X()-P1().X(),
     ay  = P2().Y()-P1().Y();
   Point2d 	mid(P1().X()+.5*ax, P1().Y()+.5*ay);
- 
+
  n=Line2d(mid,Point2d(mid.X()+ay,mid.Y()-ax)) ;
 }
 
@@ -268,8 +268,8 @@ Polygon2d :: ~Polygon2d ()
 }
 
 void Polygon2d :: AddPoint (const Point2d & p)
-{ 
-  points.Append(p); 
+{
+  points.Append(p);
 }
 
 
@@ -281,7 +281,7 @@ double Polygon2d :: HArea () const
     {
       const Point2d & p1 = points.Get(i);
       const Point2d & p2 = points.Get(i%points.Size()+1);
-      ar += 
+      ar +=
 	(p2.X()-p1.X()) * p1.Y() -
 	(p2.Y()-p1.Y()) * p1.X();
     }
@@ -317,7 +317,7 @@ int Polygon2d :: IsOn (const Point2d & p) const
   /*
   CURSOR c;
   Point2d * p1, * p2;
-  
+
   p2 = points[points.Last()];
   for (c = points.First(); c != points.Head(); c++)
     {
@@ -391,7 +391,7 @@ int Polygon2d :: IsConvex () const
   }
 
 
-int Polygon2d :: IsStarPoint (const Point2d & p) const
+int Polygon2d :: IsStarPoint (const Point2d & /*p*/) const
   {
     /*
   Point2d *pnew, *pold;

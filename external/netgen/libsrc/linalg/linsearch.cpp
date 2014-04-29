@@ -39,8 +39,8 @@ void MinFunction :: Grad (const Vector & /* x */, Vector & /* g */) const
 {
   cerr << "Grad of MinFunction called" << endl;
 }
-  
-double MinFunction :: FuncGrad (const Vector & x, Vector & g) const
+
+double MinFunction :: FuncGrad (const Vector & /*x*/, Vector & /*g*/) const
 {
   cerr << "Grad of MinFunction called" << endl;
   return 0;
@@ -52,7 +52,7 @@ double MinFunction :: FuncGrad (const Vector & x, Vector & g) const
 
   double eps = 1e-6;
   double fl, fr;
-  
+
   for (int i = 1; i <= n; i++)
     {
       xr.Set (1, x);
@@ -95,7 +95,7 @@ void MinFunction :: ApproximateHesse (const Vector & x,
 
   double eps = 1e-6;
   double f, f11, f12, f21, f22;
-  
+
   for (i = 0; i < n; i++)
     {
       for (j = 0; j < i; j++)
@@ -222,8 +222,8 @@ void lines (Vector & x,         // i: initial point of line-search
 	  flag = 0;
 	  alpha2 = alphahat;
 
-	  c = 
-	    (f - phi1 - phi1prime * (alphahat-alpha1)) / 
+	  c =
+	    (f - phi1 - phi1prime * (alphahat-alpha1)) /
 	    sqr (alphahat-alpha1);
 
 	  alphahat = alpha1 - 0.5 * phi1prime / c;
@@ -236,7 +236,7 @@ void lines (Vector & x,         // i: initial point of line-search
 
 	  alphahat = max2 (alphahat, alpha1 + tau * (alpha2 - alpha1));
 	  alphahat = min2 (alphahat, alpha2 - tau * (alpha2 - alpha1));
-	  
+
 	  //	  (*testout) << " if-branch" << endl;
 
 	}
@@ -253,7 +253,7 @@ void lines (Vector & x,         // i: initial point of line-search
 	  if (phihatprime < sigma * phi0prime * (1 + eps0))
 
 	    {
-	      if (phi1prime < phihatprime)   
+	      if (phi1prime < phihatprime)
 		// Approximationsfunktion ist konvex
 
 		alphaincr = (alphahat - alpha1) * phihatprime /
@@ -285,7 +285,7 @@ void lines (Vector & x,         // i: initial point of line-search
 	      ifail = 0;     // Erfolg !!
 	      break;
 	    }
-	  
+
 	  //	  (*testout) << " else, " << endl;
 
 	}

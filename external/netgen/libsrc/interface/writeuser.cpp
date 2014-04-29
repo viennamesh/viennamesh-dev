@@ -17,7 +17,7 @@ namespace netgen
 
   void RegisterUserFormats (Array<const char*> & names,
 			    Array<const char*> & extensions)
-			    
+
 {
   const char *types[] =
     {
@@ -43,14 +43,14 @@ namespace netgen
       //      { "Chemnitz Format" },
       0
     };
-  
+
   for (int i = 0; types[2*i]; i++)
     {
       names.Append (types[2*i]);
       extensions.Append (types[2*i+1]);
     }
 }
-  
+
 
 
 bool WriteUserFormat (const string & format,
@@ -157,7 +157,7 @@ bool WriteUserFormat (const string & format,
  */
 
 void WriteNeutralFormat (const Mesh & mesh,
-			 const CSGeometry & geom,
+			 const CSGeometry & /*geom*/,
 			 const string & filename)
 {
   cout << "write neutral, new" << endl;
@@ -393,7 +393,7 @@ void WriteSTLExtFormat (const Mesh & mesh,
 	  {
         numBCs++;
 		  faceBCs.Set(numBCs,bcNum);
-        faceBCMapping.Add1(numBCs,faceNr);        
+        faceBCMapping.Add1(numBCs,faceNr);
 	  }
      else
      {
@@ -747,7 +747,7 @@ void WriteFEPPFormat (const Mesh & mesh,
  */
 
 void WriteEdgeElementFormat (const Mesh & mesh,
-			     const CSGeometry & geom,
+			     const CSGeometry & /*geom*/,
 			     const string & filename)
 {
   cout << "write edge element format" << endl;

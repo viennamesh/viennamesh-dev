@@ -7,9 +7,9 @@ namespace netgen
 {
 
   // find singular edges
-  void SelectSingularEdges (const Mesh & mesh, const CSGeometry & geom, 
+  void SelectSingularEdges (const Mesh & mesh, const CSGeometry & geom,
 			    INDEX_2_HASHTABLE<int> & singedges,
-			    ZRefinementOptions & opt)
+			    ZRefinementOptions & /*opt*/)
   {
     // edges selected in csg input file
     for (int i = 1; i <= geom.singedges.Size(); i++)
@@ -60,7 +60,7 @@ namespace netgen
 		  int pi3 = 1, pi4 = 1;
 		  while (pi3 == j || pi3 == k) pi3++;
 		  pi4 = 10 - j - k - pi3;
-		
+
 		  int p3 = el.PNum(pi3);
 		  int p4 = el.PNum(pi4);
 
@@ -126,10 +126,10 @@ namespace netgen
 		      int pi3 = 1, pi4 = 1;
 		      while (pi3 == j || pi3 == k) pi3++;
 		      pi4 = 10 - j - k - pi3;
-		    
+
 		      int p3 = el.PNum(pi3);
 		      int p4 = el.PNum(pi4);
-		    
+
 		      el.SetType(PRISM);
 		      el.PNum(1) = edge.I1();
 		      el.PNum(2) = p3;
@@ -144,7 +144,7 @@ namespace netgen
 	if (el.GetType() == PYRAMID)
 	  {
 	    // pyramid, base face = 1,2,3,4
-	  
+
 	    for (j = 0; j <= 1; j++)
 	      {
 		PointIndex pi1 = el.PNum( (j+0) % 4 + 1);
@@ -162,7 +162,7 @@ namespace netgen
 		  {
 		    //int p3 = el.PNum(pi3);
 		    //int p4 = el.PNum(pi4);
-		  
+
 		    el.SetType(PRISM);
 		    el.PNum(1) = pi1;
 		    el.PNum(2) = pi2;
@@ -174,7 +174,7 @@ namespace netgen
 	      }
 	  }
       }
-  
+
     for (i = 1; i <= mesh.GetNSE(); i++)
       {
 	Element2d & el = mesh.SurfaceElement(i);
@@ -219,7 +219,7 @@ namespace netgen
       {
 	for (j = 1; j <= 2; j++)
 	  {
-	    int pi = (j == 1) ? 
+	    int pi = (j == 1) ?
 	      mesh.LineSegment(i)[0] :
 	      mesh.LineSegment(i)[1];
 	    edgesonpoint.Elem(pi)++;
@@ -241,15 +241,15 @@ namespace netgen
 #endif
 
 
-  void RefinePrisms (Mesh & mesh, const CSGeometry * geom, 
-		     ZRefinementOptions & opt)
+  void RefinePrisms (Mesh & mesh, const CSGeometry * geom,
+		     ZRefinementOptions & /*opt*/)
   {
     int i, j;
     bool found, change;
     int cnt = 0;
 
 
-    // markers for z-refinement:  p1, p2, levels  
+    // markers for z-refinement:  p1, p2, levels
     // p1-p2 is an edge to be refined
     Array<INDEX_3> ref_uniform;
     Array<INDEX_3> ref_singular;
@@ -258,8 +258,8 @@ namespace netgen
     BitArray first_id(geom->identifications.Size());
     first_id.Set();
 
-  
-    INDEX_2_HASHTABLE<int> & identpts = 
+
+    INDEX_2_HASHTABLE<int> & identpts =
       mesh.GetIdentifications().GetIdentifiedPoints ();
 
     if (&identpts)
@@ -270,8 +270,8 @@ namespace netgen
 	      INDEX_2 pair;
 	      int idnr;
 	      identpts.GetData(i, j, pair, idnr);
-	      const CloseSurfaceIdentification * csid = 
-		dynamic_cast<const CloseSurfaceIdentification*> 
+	      const CloseSurfaceIdentification * csid =
+		dynamic_cast<const CloseSurfaceIdentification*>
 		(geom->identifications.Get(idnr));
 	      if (csid)
 		{
@@ -286,7 +286,7 @@ namespace netgen
 			}
 		    }
 		  else
-		    {   
+		    {
 		      //const Array<double> & slices = csid->GetSlices();
 		      INDEX_4 i4;
 		      i4[0] = pair.I1();
@@ -299,8 +299,8 @@ namespace netgen
 	    }
       }
 
-  
-  
+
+
     Array<EdgePointGeomInfo> epgi;
 
     while (1)
@@ -324,7 +324,7 @@ namespace netgen
 		const Point3d & p1 = mesh.Point(pi1);
 		const Point3d & p2 = mesh.Point(pi2);
 		int npi(0);
-	      
+
 		INDEX_2 edge(pi1, pi2);
 		edge.Sort();
 		if (!refedges.Used(edge))
@@ -350,7 +350,7 @@ namespace netgen
 		const Point3d & p1 = mesh.Point(pi1);
 		const Point3d & p2 = mesh.Point(pi2);
 		int npi;
-	      
+
 		INDEX_2 edge(pi1, pi2);
 		edge.Sort();
 		if (!refedges.Used(edge))
@@ -380,11 +380,11 @@ namespace netgen
 		const Point3d & p2 = mesh.Point(pi2);
 		int npi;
 
-		const CloseSurfaceIdentification * csid = 
-		  dynamic_cast<const CloseSurfaceIdentification*> 
+		const CloseSurfaceIdentification * csid =
+		  dynamic_cast<const CloseSurfaceIdentification*>
 		  (geom->identifications.Get(idnr));
 
-	      
+
 		INDEX_2 edge(pi1, pi2);
 		edge.Sort();
 		if (!refedges.Used(edge))
@@ -393,9 +393,9 @@ namespace netgen
 		    //(*testout) << "idnr " << idnr << " i " << i << endl;
 		    //(*testout) << "slices " << slices << endl;
 		    double slicefac = slices.Get(slicenr);
-		    double slicefaclast = 
+		    double slicefaclast =
 		      (slicenr == slices.Size()) ? 1 : slices.Get(slicenr+1);
-		    
+
 		    Point3d np = p1 + (slicefac / slicefaclast) * (p2-p1);
 		    //(*testout) << "slicenr " << slicenr << " slicefac " << slicefac << " quot " << (slicefac / slicefaclast) << " np " << np << endl;
 		    npi = mesh.AddPoint (np);
@@ -404,7 +404,7 @@ namespace netgen
 		  }
 		else
 		  npi = refedges.Get (edge);
-		
+
 		ref_slices.Elem(i)[1] = npi;
 		ref_slices.Elem(i)[3] --;
 	      }
@@ -456,7 +456,7 @@ namespace netgen
 		  }
 	      }
 	  }
-      
+
 	if (!found) break;
 
 	// build closure:
@@ -470,7 +470,7 @@ namespace netgen
 		Element & el = mesh.VolumeElement (i);
 		if (el.GetType() != PRISM)
 		  continue;
-	      
+
 		bool hasref = 0, hasnonref = 0;
 		for (j = 1; j <= 3; j++)
 		  {
@@ -482,7 +482,7 @@ namespace netgen
 			edge.Sort();
 			if (refedges.Used(edge))
 			  hasref = 1;
-			else 
+			else
 			  hasnonref = 1;
 		      }
 		  }
@@ -497,7 +497,7 @@ namespace netgen
 			int pi2 = el.PNum(j+3);
 			const Point3d & p1 = mesh.Point(pi1);
 			const Point3d & p2 = mesh.Point(pi2);
-		      
+
 			INDEX_2 edge(pi1, pi2);
 			edge.Sort();
 			if (!refedges.Used(edge))
@@ -524,10 +524,10 @@ namespace netgen
 
 	    INDEX_2 i2(el[0], el[1]);
 	    i2.Sort();
-	  
+
 	    int pnew;
 	    EdgePointGeomInfo ngi;
-      
+
 	    if (refedges.Used(i2))
 	      {
 		pnew = refedges.Get(i2);
@@ -549,14 +549,14 @@ namespace netgen
 		// 	      pb = Center (mesh.Point (el[0]), mesh.Point (el[1]));
 
 		// 	      pnew = mesh.AddPoint (pb);
-	      
+
 		// 	      refedges.Set (i2, pnew);
-	      
+
 		// 	      if (pnew > epgi.Size())
 		// 		epgi.SetSize (pnew);
 		// 	      epgi.Elem(pnew) = ngi;
 	      }
-	  
+
 	    Segment ns1 = el;
 	    Segment ns2 = el;
 	    ns1[1] = pnew;
@@ -567,7 +567,7 @@ namespace netgen
 	    mesh.LineSegment(i) = ns1;
 	    mesh.AddSegment (ns2);
 	  }
-      
+
 	PrintMessage (5, "Segments done, NSeg = ", mesh.GetNSeg());
 
 	// do refinement
@@ -595,7 +595,7 @@ namespace netgen
 		    else
 		      {
 			/*
-			  (*testout) << "ERROR: prism " << i << " has hanging node !!" 
+			  (*testout) << "ERROR: prism " << i << " has hanging node !!"
 			  << ", edge = " << edge << endl;
 			  cerr << "ERROR: prism " << i << " has hanging node !!" << endl;
 			*/
@@ -621,7 +621,7 @@ namespace netgen
 	      }
 	  }
 
-      
+
 	PrintMessage (5, "Elements done, NE = ", mesh.GetNE());
 
 

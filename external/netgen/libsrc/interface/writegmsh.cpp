@@ -30,7 +30,7 @@ namespace netgen
  */
 
 void WriteGmshFormat (const Mesh & mesh,
-			 const CSGeometry & geom,
+			 const CSGeometry & /*geom*/,
 			 const string & filename)
 {
   ofstream outfile (filename.c_str());
@@ -60,7 +60,7 @@ void WriteGmshFormat (const Mesh & mesh,
       /// Write nodes
       outfile << "$NOD\n";
       outfile << np << "\n";
-  
+
       for (i = 1; i <= np; i++)
           {
           const Point3d & p = mesh.Point(i);
@@ -111,7 +111,7 @@ void WriteGmshFormat (const Mesh & mesh,
              outfile << 100000 + el.GetIndex();   /// volume number
              outfile << " ";
              outfile << "4";  /// number of nodes i.e. 4 for a tetrahedron
-                                                                                                        
+
              for (j = 1; j <= el.GetNP(); j++)
                  {
                  outfile << " ";
@@ -179,7 +179,7 @@ void WriteGmshFormat (const Mesh & mesh,
                   outfile << el.PNum(l);
                   }
 	              outfile << "\n";
-		  
+
                }
                outfile << "$ENDELM$ \n";
     }

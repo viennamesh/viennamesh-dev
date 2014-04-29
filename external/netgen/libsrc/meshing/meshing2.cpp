@@ -22,7 +22,7 @@ namespace netgen
   Meshing2 :: Meshing2 (const MeshingParameters & mp, const Box<3> & aboundingbox)
   {
     boundingbox = aboundingbox;
-    
+
     LoadRules (NULL, mp.quad);
     // LoadRules ("rules/quad.rls");
     // LoadRules ("rules/triangle.rls");
@@ -41,7 +41,7 @@ namespace netgen
       delete rules[i];
   }
 
-  void Meshing2 :: AddPoint (const Point3d & p, PointIndex globind, 
+  void Meshing2 :: AddPoint (const Point3d & p, PointIndex globind,
 			     MultiPointGeomInfo * mgi,
 			     bool pointonsurface)
   {
@@ -88,7 +88,7 @@ namespace netgen
     starttime = astarttime;
   }
 
-  
+
   void Meshing2 :: SetMaxArea (double amaxarea)
   {
     maxarea = amaxarea;
@@ -105,8 +105,8 @@ namespace netgen
   // static Point3d globp1;
 
   void Meshing2 :: DefineTransformation (const Point3d & p1, const Point3d & p2,
-					 const PointGeomInfo * geominfo1,
-					 const PointGeomInfo * geominfo2)
+					 const PointGeomInfo * /*geominfo1*/,
+					 const PointGeomInfo * /*geominfo2*/)
   {
     globp1 = p1;
     ex = p2 - p1;
@@ -116,8 +116,8 @@ namespace netgen
     ey.Z() = 0;
   }
 
-  void Meshing2 :: TransformToPlain (const Point3d & locpoint, 
-				     const MultiPointGeomInfo & geominf,
+  void Meshing2 :: TransformToPlain (const Point3d & locpoint,
+				     const MultiPointGeomInfo & /*geominf*/,
 				     Point2d & plainpoint, double h, int & zone)
   {
     Vec3d p1p (globp1, locpoint);
@@ -130,8 +130,8 @@ namespace netgen
   }
 
   int Meshing2 :: TransformFromPlain (Point2d & plainpoint,
-				      Point3d & locpoint, 
-				      PointGeomInfo & gi, 
+				      Point3d & locpoint,
+				      PointGeomInfo & gi,
 				      double h)
   {
     Vec3d p1p;
@@ -144,21 +144,21 @@ namespace netgen
   }
 
 
-  int Meshing2 :: BelongsToActiveChart (const Point3d & p, 
-					const PointGeomInfo & gi)
+  int Meshing2 :: BelongsToActiveChart (const Point3d & /*p*/,
+					const PointGeomInfo & /*gi*/)
   {
     return 1;
   }
 
 
-  int Meshing2 :: ComputePointGeomInfo (const Point3d & p, PointGeomInfo & gi)
+  int Meshing2 :: ComputePointGeomInfo (const Point3d & /*p*/, PointGeomInfo & gi)
   {
     gi.trignum = 1;
     return 0;
   }
 
 
-  int Meshing2 :: ChooseChartPointGeomInfo (const MultiPointGeomInfo & mpgi, 
+  int Meshing2 :: ChooseChartPointGeomInfo (const MultiPointGeomInfo & mpgi,
 					    PointGeomInfo & pgi)
   {
     pgi = mpgi.GetPGI(1);
@@ -167,17 +167,17 @@ namespace netgen
 
 
 
-  int Meshing2 :: 
-  IsLineVertexOnChart (const Point3d & p1, const Point3d & p2,
-		       int endpoint, const PointGeomInfo & geominfo)
+  int Meshing2 ::
+  IsLineVertexOnChart (const Point3d & /*p1*/, const Point3d & /*p2*/,
+		       int /*endpoint*/, const PointGeomInfo & /*geominfo*/)
   {
     return 1;
   }
 
   void Meshing2 ::
-  GetChartBoundary (Array<Point2d> & points, 
-		    Array<Point3d> & points3d, 
-		    Array<INDEX_2> & lines, double h) const
+  GetChartBoundary (Array<Point2d> & points,
+		    Array<Point3d> & points3d,
+		    Array<INDEX_2> & lines, double /*h*/) const
   {
     points.SetSize (0);
     points3d.SetSize (0);
@@ -272,7 +272,7 @@ namespace netgen
 
     trigsonnode = 0;
     illegalpoint = 0;
-  
+
     double totalarea = Area ();
     double meshedarea = 0;
 
@@ -320,11 +320,11 @@ namespace netgen
 	{
 	  const Element2d & sel = mesh[sei];
 	  if (sel.IsDeleted()) continue;
-	
+
 	  double trigarea = Cross ( mesh[sel[1]]-mesh[sel[0]],
 				    mesh[sel[2]]-mesh[sel[0]] ).Length() / 2;
-	  
-	  
+
+
 	  if (sel.GetNP() == 4)
 	    trigarea += Cross (Vec3d (mesh.Point (sel.PNum(1)),
 				      mesh.Point (sel.PNum(3))),
@@ -333,7 +333,7 @@ namespace netgen
 	  meshedarea += trigarea;
 	}
       */
-      // cout << "meshedarea = " << meshedarea << " =?= " 
+      // cout << "meshedarea = " << meshedarea << " =?= "
       // << mesh.SurfaceArea() << endl;
 
     NgProfiler::StopTimer (ts2);
@@ -379,7 +379,7 @@ namespace netgen
 	// plot statistics
 	if (trials > plotnexttrial)
 	  {
-	    PrintMessage (5, 
+	    PrintMessage (5,
 			  "faces = ", nfaces,
 			  " trials = ", trials,
 			  " elements = ", mesh.GetNSE(),
@@ -396,14 +396,14 @@ namespace netgen
 
 	nfaces = adfront->GetNFL();
 	trials ++;
-    
+
 
 	if (trials % 1000 == 0)
 	  {
 	    (*testout) << "\n";
 	    for (int i = 1; i <= canuse.Size(); i++)
 	      {
-		(*testout) << foundmap.Get(i) << "/" 
+		(*testout) << foundmap.Get(i) << "/"
 			   << canuse.Get(i) << "/"
 			   << ruleused.Get(i) << " map/can/use rule " << rules.Get(i)->Name() << "\n";
 	      }
@@ -428,14 +428,14 @@ namespace netgen
 
 	double hinner = (3 + qualclass) * max2 (his, hshould);
 
-	adfront ->GetLocals (baselineindex, locpoints, mpgeominfo, loclines, 
+	adfront ->GetLocals (baselineindex, locpoints, mpgeominfo, loclines,
 			     pindex, lindex, 2*hinner);
 
 
 	NgProfiler::RegionTimer reg2 (timer2);
 
 	//(*testout) << "h for locals: " << 2*hinner << endl;
-	
+
 
 	//(*testout) << "locpoints " << locpoints << endl;
 
@@ -462,31 +462,31 @@ namespace netgen
 	PointIndex gpi2 = adfront -> GetGlobalIndex (pindex.Get(loclines[0].I2()));
 
 
-	debugflag = 
-	  ( 
+	debugflag =
+	  (
 	   debugparam.haltsegment &&
-	   ( ((debugparam.haltsegmentp1 == gpi1) && (debugparam.haltsegmentp2 == gpi2)) || 
-	     ((debugparam.haltsegmentp1 == gpi2) && (debugparam.haltsegmentp2 == gpi1))) 
-	   ) 
+	   ( ((debugparam.haltsegmentp1 == gpi1) && (debugparam.haltsegmentp2 == gpi2)) ||
+	     ((debugparam.haltsegmentp1 == gpi2) && (debugparam.haltsegmentp2 == gpi1)))
+	   )
 	  ||
 	  (
 	   debugparam.haltnode &&
 	   ( (debugparam.haltsegmentp1 == gpi1) || (debugparam.haltsegmentp2 == gpi1))
 	   );
-	
-      
+
+
 	if (debugparam.haltface && debugparam.haltfacenr == facenr)
 	  {
 	    debugflag = 1;
 	    cout << "set debugflag" << endl;
 	  }
-	
+
 	if (debugparam.haltlargequalclass && qualclass > 50)
 	  debugflag = 1;
 
 	// problem recognition !
-	if (found && 
-	    (gpi1 < illegalpoint.Size()+PointIndex::BASE) && 
+	if (found &&
+	    (gpi1 < illegalpoint.Size()+PointIndex::BASE) &&
 	    (gpi2 < illegalpoint.Size()+PointIndex::BASE) )
 	  {
 	    if (illegalpoint[gpi1] || illegalpoint[gpi2])
@@ -500,12 +500,12 @@ namespace netgen
 	  {
 	    oldnp = locpoints.Size();
 	    oldnl = loclines.Size();
-	  
+
 	    if (debugflag)
 	      (*testout) << "define new transformation" << endl;
 
 	    DefineTransformation (p1, p2, blgeominfo1, blgeominfo2);
-	  
+
 	    plainpoints.SetSize (locpoints.Size());
 	    plainzones.SetSize (locpoints.Size());
 
@@ -520,7 +520,7 @@ namespace netgen
 	    for (int i = 1; i <= locpoints.Size(); i++)
 	      {
 		// (*testout) << "pindex(i) = " << pindex[i-1] << endl;
-		TransformToPlain (locpoints.Get(i), 
+		TransformToPlain (locpoints.Get(i),
 				  mpgeominfo.Get(i),
 				  plainpoints.Elem(i), h, plainzones.Elem(i));
 		//		(*testout) << mpgeominfo.Get(i).GetPGI(1).u << " " << mpgeominfo.Get(i).GetPGI(1).v << " ";
@@ -550,7 +550,7 @@ namespace netgen
 	    {
 	    z1 = plainzones.Get(loclines.Get(i).I1());
 	    z2 = plainzones.Get(loclines.Get(i).I2());
-	      
+
 	    if (z1 && z2 && (z1 != z2) || (z1 == -1) || (z2 == -1) )
 	    {
 	    loclines.DeleteElement(i);
@@ -564,16 +564,16 @@ namespace netgen
 	    // 	    if (plainzones.Elem(i) == -1)
 	    // 	      plainpoints.Elem(i) = Point2d (1e4, 1e4);
 	    */
-	  
 
-	  
+
+
 	    for (int i = 2; i <= loclines.Size(); i++)  // don't remove first line
 	      {
 		// (*testout) << "loclines(i) = " << loclines.Get(i).I1() << " - " << loclines.Get(i).I2() << endl;
 		z1 = plainzones.Get(loclines.Get(i).I1());
 		z2 = plainzones.Get(loclines.Get(i).I2());
-	      
-	      
+
+
 		// one inner point, one outer
 		if ( (z1 >= 0) != (z2 >= 0))
 		  {
@@ -583,17 +583,17 @@ namespace netgen
 					     innerp,
 					     adfront->GetLineGeomInfo (lindex.Get(i), innerp)))
 		      // pgeominfo.Get(loclines.Get(i).I(innerp))))
-		      {		
+		      {
 
 			if (!morerisc)
 			  {
 			    // use one end of line
 			    int pini, pouti;
 			    Vec2d v;
-			  
+
 			    pini = loclines.Get(i).I(innerp);
 			    pouti = loclines.Get(i).I(3-innerp);
-			  
+
 			    Point2d pin (plainpoints.Get(pini));
 			    Point2d pout (plainpoints.Get(pouti));
 			    v = pout - pin;
@@ -602,18 +602,18 @@ namespace netgen
 			      (*testout) << "WARNING(js): inner-outer: short vector" << endl;
 			    else
 			      v /= len;
-			  
+
 			    /*
 			    // don't elongate line towards base-line !!
-			    if (Vec2d (pin, p12d) * v > 0 && 
+			    if (Vec2d (pin, p12d) * v > 0 &&
 			    Vec2d (pin, p22d) * v > 0)
-			    v *= -1;  
+			    v *= -1;
 			    */
 
 			    Point2d newpout = pin + 1000 * v;
 			    newpout = pout;
 
-			  
+
 			    plainpoints.Append (newpout);
 			    Point3d pout3d = locpoints.Get(pouti);
 			    locpoints.Append (pout3d);
@@ -625,7 +625,7 @@ namespace netgen
 			  }
 			else
 			  plainzones.Elem(loclines.Get(i).I(3-innerp)) = 0;
-			
+
 
 			//		  (*testout) << "inner - outer correction" << endl;
 		      }
@@ -636,9 +636,9 @@ namespace netgen
 			lindex.DeleteElement(i);
 			oldnl--;
 			i--;
-		      }			
+		      }
 		  }
-	      
+
 		else if ( (z1 > 0 && z2 > 0 && (z1 != z2)) || ((z1 < 0) && (z2 < 0)) )
 		  {
 		    loclines.DeleteElement(i);
@@ -647,7 +647,7 @@ namespace netgen
 		    i--;
 		  }
 	      }
-	  
+
 
 
 
@@ -660,7 +660,7 @@ namespace netgen
 	    for (int i = 1; i <= plainpoints.Size(); i++)
 	      avy += plainpoints.Elem(i).Y();
 	    avy *= 1./plainpoints.Size();
-		
+
 
 	    for (int i = 1; i <= plainpoints.Size(); i++)
 	      {
@@ -673,7 +673,7 @@ namespace netgen
 		  {
 		    legalpoints.Elem(i) = 0;
 		  }
-		    
+
 
 		if (plainpoints.Elem(i).Y() < -1e-10*avy) // changed
 		  {
@@ -685,14 +685,14 @@ namespace netgen
 	      if (sqr (plainpoints.Get(i).X()) + sqr (plainpoints.Get(i).Y())
 	      > sqr (2 + 0.2 * qualclass))
 	      legalpoints.Elem(i) = 0;
-	    */  
+	    */
 
-	    /*	  
+	    /*
 		 int clp = 0;
 		 for (i = 1; i <= plainpoints.Size(); i++)
 		 if (legalpoints.Get(i))
 		 clp++;
-		 (*testout) << "legalpts: " << clp << "/" << plainpoints.Size() << endl; 
+		 (*testout) << "legalpts: " << clp << "/" << plainpoints.Size() << endl;
 
 		 // sort legal/illegal lines
 		 int lastleg = 2;
@@ -708,7 +708,7 @@ namespace netgen
 		 !legalpoints.Get(loclines.Get(firstilleg).I2())) &&
 		 lastleg < firstilleg)
 		 firstilleg--;
-	      
+
 		 if (lastleg < firstilleg)
 		 {
 		 swap (loclines.Elem(lastleg), loclines.Elem(firstilleg));
@@ -718,9 +718,9 @@ namespace netgen
 
 		 (*testout) << "leglines " << lastleg << "/" << oldnl << endl;
 	    */
-	
 
-	    GetChartBoundary (chartboundpoints, 
+
+	    GetChartBoundary (chartboundpoints,
 			      chartboundpoints3d,
 			      chartboundlines, h);
 
@@ -739,7 +739,7 @@ namespace netgen
 		    locpoints.Append (chartboundpoints3d.Get(i));
 		    legalpoints.Append (0);
 		  }
-	      
+
 
 		for (int i = 1; i <= chartboundlines.Size(); i++)
 		  {
@@ -778,7 +778,7 @@ namespace netgen
 		  PrintWarning ("no rule found");
 	      }
 	  }
-      
+
 	NgProfiler::RegionTimer reg3 (timer3);
 
 
@@ -803,7 +803,7 @@ namespace netgen
 	    for (int i = oldnp+1; i <= plainpoints.Size(); i++)
 	      {
 		int err =
-		  TransformFromPlain (plainpoints.Elem(i), locpoints.Elem(i), 
+		  TransformFromPlain (plainpoints.Elem(i), locpoints.Elem(i),
 				      upgeominfo.Elem(i), h);
 
 		if (err)
@@ -817,7 +817,7 @@ namespace netgen
 		  }
 	      }
 	  }
-	  
+
 
 	//      for (i = 1; i <= oldnl; i++)
 	//        adfront -> ResetClass (lindex[i]);
@@ -838,7 +838,7 @@ namespace netgen
 	  Point3d pmax = pmin;
 	  for (j = 2; j <= 3; j++)
 	  {
-	  const Point3d & hp = 
+	  const Point3d & hp =
 	  locpoints.Get(locelements.Get(i).PNum(j));
 	  pmin.SetToMin (hp);
 	  pmax.SetToMax (hp);
@@ -855,7 +855,7 @@ namespace netgen
 	*/
 
 
-	if (found) 
+	if (found)
 	  {
 	    double violateminh = 3 + 0.1 * sqr (qualclass);
 	    double minh = 1e8;
@@ -880,7 +880,7 @@ namespace netgen
 		Point3d pmax = pmin;
 		for (int j = 2; j <= locelements.Get(i).GetNP(); j++)
 		  {
-		    const Point3d & hp = 
+		    const Point3d & hp =
 		      locpoints.Get(locelements.Get(i).PNum(j));
 		    pmin.SetToMin (hp);
 		    pmax.SetToMax (hp);
@@ -960,7 +960,7 @@ namespace netgen
 		  int pi = locelements.Get(i).PNum(j);
 		  if (pi <= oldnp)
 		    {
-		    
+
 		      if (ChooseChartPointGeomInfo (mpgeominfo.Get(pi), upgeominfo.Elem(pi)))
 			{
 			  // cannot select, compute new one
@@ -993,10 +993,10 @@ namespace netgen
 	  {
 	    // cout << "checkoverlap" << endl;
 	    // test for overlaps
-	  
+
 	    Point3d hullmin(1e10, 1e10, 1e10);
 	    Point3d hullmax(-1e10, -1e10, -1e10);
-	  
+
 	    for (int i = 1; i <= locelements.Size(); i++)
 	      for (int j = 1; j <= locelements.Get(i).GetNP(); j++)
 		{
@@ -1021,10 +1021,10 @@ namespace netgen
 		    const Point3d & tp1 = locpoints.Get(tri.PNum(1));
 		    const Point3d & tp2 = locpoints.Get(tri.PNum(2));
 		    const Point3d & tp3 = locpoints.Get(tri.PNum(3));
-		  
+
 		    Vec3d tv1 (tp1, tp2);
 		    Vec3d tv2 (tp1, tp3);
-		  
+
 		    double lam1, lam2;
 		    for (lam1 = 0.2; lam1 <= 0.8; lam1 += 0.2)
 		      for (lam2 = 0.2; lam2 + lam1 <= 0.8; lam2 += 0.2)
@@ -1039,23 +1039,23 @@ namespace netgen
 		    const Point3d & tp2 = locpoints.Get(tri.PNum(2));
 		    const Point3d & tp3 = locpoints.Get(tri.PNum(3));
 		    const Point3d & tp4 = locpoints.Get(tri.PNum(4));
-		  
+
 		    double l1, l2;
 		    for (l1 = 0.1; l1 <= 0.9; l1 += 0.1)
 		      for (l2 = 0.1; l2 <= 0.9; l2 += 0.1)
 			{
 			  Point3d hp;
-			  hp.X() = 
+			  hp.X() =
 			    (1-l1)*(1-l2) * tp1.X() +
 			    l1*(1-l2) * tp2.X() +
 			    l1*l2 * tp3.X() +
 			    (1-l1)*l2 * tp4.X();
-			  hp.Y() = 
+			  hp.Y() =
 			    (1-l1)*(1-l2) * tp1.Y() +
 			    l1*(1-l2) * tp2.Y() +
 			    l1*l2 * tp3.Y() +
 			    (1-l1)*l2 * tp4.Y();
-			  hp.Z() = 
+			  hp.Z() =
 			    (1-l1)*(1-l2) * tp1.Z() +
 			    l1*(1-l2) * tp2.Z() +
 			    l1*l2 * tp3.Z() +
@@ -1088,7 +1088,7 @@ namespace netgen
 	    for (int i = 1; i <= critpoints.Size(); i++)
 	      {
 		const Point3d & p = critpoints.Get(i);
-		 
+
 		for (int jj = 0; jj < intersecttrias.Size(); jj++)
 		  {
 		    // int j = intersecttrias.Get(jj);
@@ -1124,7 +1124,7 @@ namespace netgen
 			    onchart = 1;
 			if (!onchart)
 			  continue;
-		      
+
 			Vec3d e1(tp1, tp2);
 			Vec3d e2(tp1, tp3);
 			Vec3d n = Cross (e1, e2);
@@ -1132,8 +1132,8 @@ namespace netgen
 			double lam1, lam2, lam3;
 			lam3 = n * Vec3d (tp1, p);
 			LocalCoordinates (e1, e2, Vec3d (tp1, p), lam1, lam2);
-		      
-			if (fabs (lam3) < 0.1 * hshould && 
+
+			if (fabs (lam3) < 0.1 * hshould &&
 			    lam1 > 0 && lam2 > 0 && (lam1 + lam2) < 1)
 			  {
 #ifdef DEVELOP
@@ -1143,23 +1143,23 @@ namespace netgen
 				       << "point = " << p << endl
 				       << "lam1, 2 = " << lam1 << ", " << lam2 << endl
 				       << "lam3 = " << lam3 << endl;
-			  
+
 			    //		      cout << "overlap !!!" << endl;
 #endif
 			    for (int k = 1; k <= 5; k++)
 			      adfront -> IncrementClass (lindex.Get(1));
 
 			    found = 0;
-			  
+
 			    if ( debugflag || debugparam.haltnosuccess )
 			      PrintWarning ("overlapping");
-			  
-			  
+
+
 			    if (debugparam.haltoverlap)
 			      {
 				debugflag = 1;
 			      }
-			  
+
 			    /*
 			      multithread.drawing = 1;
 			      glrender(1);
@@ -1198,7 +1198,7 @@ namespace netgen
 		      }
 		  }
 	      }
-	  
+
 	  }
 
 
@@ -1239,13 +1239,13 @@ namespace netgen
 
 
 	    pindex.SetSize(locpoints.Size());
-	      
+
 	    for (int i = oldnp+1; i <= locpoints.Size(); i++)
 	      {
 		PointIndex globind = mesh.AddPoint (locpoints.Get(i));
 		pindex.Elem(i) = adfront -> AddPoint (locpoints.Get(i), globind);
 	      }
-	      
+
 	    for (int i = oldnl+1; i <= loclines.Size(); i++)
 	      {
 		/*
@@ -1254,20 +1254,20 @@ namespace netgen
 		  (*testout) << j << ": " << locpoints.Get(j) << endl;
 		  }
 		*/
-	      
+
 		/*
 		  ComputeLineGeoInfo (locpoints.Get(loclines.Get(i).I1()),
 		  locpoints.Get(loclines.Get(i).I2()),
 		  gisize, geominfo);
-		*/		  
+		*/
 
-		if (pindex.Get(loclines.Get(i).I1()) == -1 || 
+		if (pindex.Get(loclines.Get(i).I1()) == -1 ||
 		    pindex.Get(loclines.Get(i).I2()) == -1)
 		  {
 		    (*testout) << "pindex is 0" << endl;
 		  }
 
-		if (!upgeominfo.Get(loclines.Get(i).I1()).trignum || 
+		if (!upgeominfo.Get(loclines.Get(i).I1()).trignum ||
 		    !upgeominfo.Get(loclines.Get(i).I2()).trignum)
 		  {
 		    cout << "new el: illegal geominfo" << endl;
@@ -1296,20 +1296,20 @@ namespace netgen
 
 		for (int j = 1; j <= locelements.Get(i).GetNP(); j++)
 		  {
-		    mtri.PNum(j) = 
+		    mtri.PNum(j) =
 		      locelements.Elem(i).PNum(j) =
 		      adfront -> GetGlobalIndex (pindex.Get(locelements.Get(i).PNum(j)));
 		  }
-	      
-		
-	      
-	      
+
+
+
+
 		mesh.AddSurfaceElement (mtri);
 		cntelem++;
 		//	      cout << "elements: " << cntelem << endl;
 
 
-	      
+
 		Box<3> box;
 		box.Set (mesh[mtri[0]]);
 		box.Add (mesh[mtri[1]]);
@@ -1320,13 +1320,13 @@ namespace netgen
 		const Point3d & sep2 = mesh.Point (mtri.PNum(2));
 		const Point3d & sep3 = mesh.Point (mtri.PNum(3));
 
-		double trigarea = Cross (Vec3d (sep1, sep2), 
+		double trigarea = Cross (Vec3d (sep1, sep2),
 					 Vec3d (sep1, sep3)).Length() / 2;
 
 		if (mtri.GetNP() == 4)
 		  {
 		    const Point3d & sep4 = mesh.Point (mtri.PNum(4));
-		    trigarea += Cross (Vec3d (sep1, sep3), 
+		    trigarea += Cross (Vec3d (sep1, sep3),
 				       Vec3d (sep1, sep4)).Length() / 2;
 		  }
 
@@ -1339,7 +1339,7 @@ namespace netgen
 			 << "GIVING UP" << endl;
 		    return MESHING2_GIVEUP;
 		  }
-	      
+
 
 
 		for (int j = 1; j <= locelements.Get(i).GetNP(); j++)
@@ -1351,7 +1351,7 @@ namespace netgen
 		      {
 			trigsonnode.SetSize (gpi+1-PointIndex::BASE);
 			illegalpoint.SetSize (gpi+1-PointIndex::BASE);
-			for (int k = oldts+PointIndex::BASE; 
+			for (int k = oldts+PointIndex::BASE;
 			     k <= gpi; k++)
 			  {
 			    trigsonnode[k] = 0;
@@ -1360,7 +1360,7 @@ namespace netgen
 		      }
 
 		    trigsonnode[gpi]++;
-		  
+
 		    if (trigsonnode[gpi] > 20)
 		      {
 			illegalpoint[gpi] = 1;
@@ -1375,13 +1375,13 @@ namespace netgen
 		//	      cout << "els = " << cntelem << " trials = " << trials << endl;
 		//	      if (trials > 100)		return;
 	      }
-	      
+
 	    for (int i = 1; i <= dellines.Size(); i++)
 	      adfront -> DeleteLine (lindex.Get(dellines.Get(i)));
-	      
+
 	    //	  rname = rules.Get(rulenr)->Name();
 #ifdef MYGRAPH
-	    if (silentflag<3) 
+	    if (silentflag<3)
 	      {
 		plotsurf.DrawPnL(locpoints, loclines);
 		plotsurf.Plot(testmode, testmode);
@@ -1397,7 +1397,7 @@ namespace netgen
 
 
 
-	  
+
 	    if ( debugparam.haltsuccess || debugflag )
 	      {
 		// adfront -> PrintOpenSegments (*testout);
@@ -1437,11 +1437,11 @@ namespace netgen
 
 			(*testout) << hi << " ";
 		      }
-		    (*testout) << " : " 
+		    (*testout) << " : "
 			       << plainpoints.Get(loclines.Get(i).I1()) << " - "
 			       << plainpoints.Get(loclines.Get(i).I2()) << " 3d: "
 			       << locpoints.Get(loclines.Get(i).I1()) << " - "
-			       << locpoints.Get(loclines.Get(i).I2()) 
+			       << locpoints.Get(loclines.Get(i).I2())
 			       << endl;
 		  }
 
@@ -1489,25 +1489,25 @@ namespace netgen
 
 			(*testout) << hi << " ";
 		      }
-		    (*testout) << " : " 
+		    (*testout) << " : "
 			       << plainpoints.Get(loclines.Get(i).I1()) << " - "
 			       << plainpoints.Get(loclines.Get(i).I2()) << " 3d: "
 			       << locpoints.Get(loclines.Get(i).I1()) << " - "
-			       << locpoints.Get(loclines.Get(i).I2()) 
+			       << locpoints.Get(loclines.Get(i).I2())
 			       << endl;
 		  }
 
 
 		/*
-		  cout << "p1gi = " << blgeominfo[0].trignum 
+		  cout << "p1gi = " << blgeominfo[0].trignum
 		  << ", p2gi = " << blgeominfo[1].trignum << endl;
 		*/
 
 		glrender(1);
 	      }
 
-	  
-#ifdef MYGRAPH      
+
+#ifdef MYGRAPH
 	    if (silentflag<3)
 	      {
 		if (testmode || trials%2 == 0)
@@ -1534,7 +1534,7 @@ namespace netgen
 
     if (!adfront->Empty())
       return MESHING2_GIVEUP;
-    
+
     return MESHING2_OK;
   }
 
@@ -1562,7 +1562,7 @@ namespace netgen
 #include <visual.hpp>
 #include <stlgeom.hpp>
 
-namespace netgen 
+namespace netgen
 {
 
   extern STLGeometry * stlgeometry;
@@ -1579,7 +1579,7 @@ namespace netgen
       {
 	//      vssurfacemeshing.Render();
 	Render ();
-      
+
 	if (wait || multithread.testmode)
 	  {
 	    multithread.pause = 1;
@@ -1609,7 +1609,7 @@ namespace netgen
       {
 	center = Point<3>(0,0,-5);
 	rad = 0.1;
-  
+
 	CalcTransformationMatrices();
 	changeval = loclines.Size();
       }
@@ -1674,9 +1674,9 @@ namespace netgen
 	    glEnable (GL_POLYGON_OFFSET_FILL);
 	    glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_colbl);
 	  }
-	else if (i <= oldnl) 
+	else if (i <= oldnl)
 	  glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_cololdl);
-	else 
+	else
 	  glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_colnewl);
 
 	int pi1 = loclines.Get(i).I1();
@@ -1686,7 +1686,7 @@ namespace netgen
 	  {
 	    Point3d p1 = locpoints.Get(pi1);
 	    Point3d p2 = locpoints.Get(pi2);
-	  
+
 	    glBegin (GL_LINES);
 	    glVertex3f (p1.X(), p1.Y(), p1.Z());
 	    glVertex3f (p2.X(), p2.Y(), p2.Z());
@@ -1695,7 +1695,7 @@ namespace netgen
 
 	glDisable (GL_POLYGON_OFFSET_FILL);
       }
-  
+
 
     glLineWidth (1);
 
@@ -1720,7 +1720,7 @@ namespace netgen
     float mat_col2d1[] = { 1, 0.5, 0.5, 1 };
     float mat_col2d[] = { 1, 1, 1, 1 };
     glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_col2d);
-  
+
     double scalex = 0.1, scaley = 0.1;
 
     glBegin (GL_LINES);
@@ -1737,7 +1737,7 @@ namespace netgen
 	  {
 	    Point2d p1 = plainpoints.Get(pi1);
 	    Point2d p2 = plainpoints.Get(pi2);
-	  
+
 	    glBegin (GL_LINES);
 	    glVertex3f (scalex * p1.X(), scaley * p1.Y(), -5);
 	    glVertex3f (scalex * p2.X(), scaley * p2.Y(), -5);
@@ -1762,11 +1762,11 @@ namespace netgen
 
 
   glDisable (GL_POLYGON_OFFSET_FILL);
- 
+
   glPopMatrix();
   DrawCoordinateCross ();
   DrawNetgenLogo ();
-  glFinish();  
+  glFinish();
 
   /*
     glDisable (GL_POLYGON_OFFSET_FILL);
@@ -1776,7 +1776,7 @@ namespace netgen
     //  if (changeval != stlgeometry->GetNT())
     //      BuildScene();
     //      changeval = stlgeometry->GetNT();
-    
+
 
     glClearColor(backcolor, backcolor, backcolor, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1814,29 +1814,29 @@ namespace netgen
     glColor3f (1.0f, 1.0f, 1.0f);
 
     glEnable (GL_NORMALIZE);
-    
+
     //  glBegin (GL_TRIANGLES);
     //      for (j = 1; j <= stlgeometry -> GetNT(); j++)
     //      {
     //      glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_col);
     //      if (j == geomtrig)
     //      glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_colrt);
-	
+
 
     //      const STLReadTriangle & tria = stlgeometry -> GetReadTriangle(j);
     //      glNormal3f (tria.normal.X(),
     //      tria.normal.Y(),
     //      tria.normal.Z());
-		  
+
     //      for (k = 0; k < 3; k++)
     //      {
     //      glVertex3f (tria.pts[k].X(),
     //      tria.pts[k].Y(),
     //      tria.pts[k].Z());
     //      }
-    //      }    
+    //      }
     //      glEnd ();
-    
+
 
 
     glDisable (GL_POLYGON_OFFSET_FILL);
@@ -1857,9 +1857,9 @@ namespace netgen
 	    glEnable (GL_POLYGON_OFFSET_FILL);
 	    glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_colbl);
 	  }
-	else if (i <= oldnl) 
+	else if (i <= oldnl)
 	  glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_cololdl);
-	else 
+	else
 	  glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_colnewl);
 
 	int pi1 = loclines.Get(i).I1();
@@ -1869,7 +1869,7 @@ namespace netgen
 	  {
 	    Point3d p1 = locpoints.Get(pi1);
 	    Point3d p2 = locpoints.Get(pi2);
-	  
+
 	    glBegin (GL_LINES);
 	    glVertex3f (p1.X(), p1.Y(), p1.Z());
 	    glVertex3f (p2.X(), p2.Y(), p2.Z());
@@ -1901,7 +1901,7 @@ namespace netgen
     float mat_col2d1[] = { 1, 0.5, 0.5, 1 };
     float mat_col2d[] = { 1, 1, 1, 1 };
     glMaterialfv (GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_col2d);
-  
+
     double scalex = 0.1, scaley = 0.1;
 
     glBegin (GL_LINES);
@@ -1918,7 +1918,7 @@ namespace netgen
 	  {
 	    Point2d p1 = plainpoints.Get(pi1);
 	    Point2d p2 = plainpoints.Get(pi2);
-	  
+
 	    glBegin (GL_LINES);
 	    glVertex3f (scalex * p1.X(), scaley * p1.Y(), -5);
 	    glVertex3f (scalex * p2.X(), scaley * p2.Y(), -5);
@@ -1937,7 +1937,7 @@ namespace netgen
       }
     glEnd();
 
-    glFinish();  
+    glFinish();
 */
   }
 
@@ -1959,7 +1959,7 @@ namespace netgen
 #else
 namespace netgen
 {
-  void glrender (int wait)
+  void glrender (int /*wait*/)
   { ; }
 }
 #endif

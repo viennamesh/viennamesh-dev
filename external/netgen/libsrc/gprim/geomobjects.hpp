@@ -28,7 +28,7 @@ namespace netgen
     Point (double ax) { for (int i = 0; i < D; i++) x[i] = ax; }
     Point (double ax, double ay) { x[0] = ax; x[1] = ay; }
     Point (double ax, double ay, double az)
-    { x[0] = ax; x[1] = ay; x[2] = az; }
+    { x[0] = ax; x[1] = ay; if (D > 2) x[2] = az; }
     Point (double ax, double ay, double az, double au)
     { x[0] = ax; x[1] = ay; x[2] = az; x[3] = au;}
 
@@ -41,7 +41,7 @@ namespace netgen
 
     Point & operator= (const Point<D> & p2)
     {
-      for (int i = 0; i < D; i++) x[i] = p2.x[i]; 
+      for (int i = 0; i < D; i++) x[i] = p2.x[i];
       return *this;
     }
 
@@ -85,12 +85,12 @@ namespace netgen
 
     Vec (const Vec<D> & p1, const Vec<D> & p2)
     { for(int i=0; i<D; i++) x[i] = p2(i)-p1(1); }
-  
+
 
 
     Vec & operator= (const Vec<D> & p2)
     {
-      for (int i = 0; i < D; i++) x[i] = p2.x[i]; 
+      for (int i = 0; i < D; i++) x[i] = p2.x[i];
       return *this;
     }
 
@@ -148,7 +148,7 @@ namespace netgen
     Mat () { ; }
     Mat (const Mat & b)
     { for (int i = 0; i < H*W; i++) x[i] = b.x[i]; }
-  
+
     Mat & operator= (double s)
     {
       for (int i = 0; i < H*W; i++) x[i] = s;
@@ -157,7 +157,7 @@ namespace netgen
 
     Mat & operator= (const Mat & b)
     {
-      for (int i = 0; i < H*W; i++) x[i] = b.x[i]; 
+      for (int i = 0; i < H*W; i++) x[i] = b.x[i];
       return *this;
     }
 
@@ -168,18 +168,18 @@ namespace netgen
 
     Vec<H> Col (int i) const
     {
-      Vec<H> hv; 
+      Vec<H> hv;
       for (int j = 0; j < H; j++)
 	hv(j) = x[j*W+i];
-      return hv; 
+      return hv;
     }
 
     Vec<W> Row (int i) const
     {
-      Vec<W> hv; 
+      Vec<W> hv;
       for (int j = 0; j < W; j++)
 	hv(j) = x[i*W+j];
-      return hv; 
+      return hv;
     }
 
     void Solve (const Vec<H> & rhs, Vec<W> & sol) const
@@ -218,7 +218,7 @@ namespace netgen
     }
 
     enum EB_TYPE { EMPTY_BOX = 1 };
-    Box ( EB_TYPE et ) 
+    Box ( EB_TYPE /*et*/ )
     {
       pmin = Point<3> (1e99, 1e99, 1e99);
       pmax = Point<3> (-1e99, -1e99, -1e99);
@@ -226,12 +226,12 @@ namespace netgen
 
     const Point<D> & PMin () const { return pmin; }
     const Point<D> & PMax () const { return pmax; }
-  
+
     void Set (const Point<D> & p)
     { pmin = pmax = p; }
 
     void Add (const Point<D> & p)
-    { 
+    {
       for (int i = 0; i < D; i++)
 	{
 	  if (p(i) < pmin(i)) pmin(i) = p(i);
@@ -255,11 +255,11 @@ namespace netgen
     }
 
 
-    Point<D> Center () const 
-    { 
+    Point<D> Center () const
+    {
       Point<D> c;
       for (int i = 0; i < D; i++)
-	c(i) = 0.5 * (pmin(i)+pmax(i)); 
+	c(i) = 0.5 * (pmin(i)+pmax(i));
       return c;
     }
     double Diam () const { return Abs (pmax-pmin); }
@@ -320,9 +320,9 @@ namespace netgen
     ///
     BoxSphere () { };
     ///
-    BoxSphere (const Box<D> & box) 
-      : Box<D> (box) 
-    { 
+    BoxSphere (const Box<D> & box)
+      : Box<D> (box)
+    {
       CalcDiamCenter();
     };
 

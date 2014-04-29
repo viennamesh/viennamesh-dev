@@ -8,7 +8,7 @@
 namespace netgen
 {
 
-  double 
+  double
   QuadraticSurface :: CalcFunctionValue (const Point<3> & p) const
   {
     return p(0) * (cxx * p(0) + cxy * p(1) + cxz * p(2) + cx) +
@@ -16,7 +16,7 @@ namespace netgen
       p(2) * (czz * p(2) + cz) + c1;
   }
 
-  void 
+  void
   QuadraticSurface :: CalcGradient (const Point<3> & p, Vec<3> & grad) const
   {
     grad(0) = 2 * cxx * p(0) + cxy * p(1) + cxz * p(2) + cx;
@@ -24,7 +24,7 @@ namespace netgen
     grad(2) = 2 * czz * p(2) + cxz * p(0) + cyz * p(1) + cz;
   }
 
-  void 
+  void
   QuadraticSurface :: CalcHesse (const Point<3> & /* p */, Mat<3> & hesse) const
   {
     hesse(0,0) = 2 * cxx;
@@ -109,7 +109,7 @@ namespace netgen
 
 
 
-  void Plane :: GetPrimitiveData (const char *& classname, 
+  void Plane :: GetPrimitiveData (const char *& classname,
                                   Array<double> & coeffs) const
   {
     classname = "plane";
@@ -160,7 +160,7 @@ namespace netgen
         Vec<3> hv1, hv2;
         hv1 = n.GetNormal ();
         hv2 = Cross (n, hv1);
-      
+
         Point<3> hp = p + hv1;
         if (fabs (s2.CalcFunctionValue(hp)) > eps) return 0;
         hp = p + hv2;
@@ -182,8 +182,8 @@ namespace netgen
   }
 
 
-  void Plane :: ToPlane (const Point<3> & p3d, 
-                         Point<2> & pplane, 
+  void Plane :: ToPlane (const Point<3> & p3d,
+                         Point<2> & pplane,
                          double h, int & zone) const
   {
     Vec<3> p1p;
@@ -220,14 +220,14 @@ namespace netgen
     if (val > 0)
       {
         /*
-          double modify = 
-          ((box.MaxX()-box.MinX()) * fabs (cx) + 
-          (box.MaxY()-box.MinY()) * fabs (cy) + 
+          double modify =
+          ((box.MaxX()-box.MinX()) * fabs (cx) +
+          (box.MaxY()-box.MinY()) * fabs (cy) +
           (box.MaxZ()-box.MinZ()) * fabs (cz)) / 2;
         */
         Vec<3> vdiag = box.PMax() - box.PMin();
-        double modify = (vdiag(0) * fabs (cx) + 
-                         vdiag(1) * fabs (cy) + 
+        double modify = (vdiag(0) * fabs (cx) +
+                         vdiag(1) * fabs (cy) +
                          vdiag(2) * fabs (cz) ) / 2;
 
         if (val - modify < 0)
@@ -239,7 +239,7 @@ namespace netgen
           {
             pp = box.GetPointNr (i);
             val = Plane::CalcFunctionValue (pp);
-            if (val < 0) 
+            if (val < 0)
               return DOES_INTERSECT;
           }
         return IS_OUTSIDE;
@@ -247,14 +247,14 @@ namespace netgen
     else
       {
         /*
-          double modify = 
-          ((box.MaxX()-box.MinX()) * fabs (cx) + 
-          (box.MaxY()-box.MinY()) * fabs (cy) + 
+          double modify =
+          ((box.MaxX()-box.MinX()) * fabs (cx) +
+          (box.MaxY()-box.MinY()) * fabs (cy) +
           (box.MaxZ()-box.MinZ()) * fabs (cz)) / 2;
         */
         Vec<3> vdiag = box.PMax() - box.PMin();
-        double modify =  (vdiag(0) * fabs (cx) + 
-                          vdiag(1) * fabs (cy) + 
+        double modify =  (vdiag(0) * fabs (cx) +
+                          vdiag(1) * fabs (cy) +
                           vdiag(2) * fabs (cz) ) / 2;
         if (val + modify > 0)
           return DOES_INTERSECT;
@@ -266,7 +266,7 @@ namespace netgen
           {
             pp = box.GetPointNr (i);
             val = Plane::CalcFunctionValue (pp);
-            if (val > 0) 
+            if (val > 0)
               return DOES_INTERSECT;
           }
         return IS_INSIDE;
@@ -320,8 +320,8 @@ namespace netgen
   }
 
 
-  void Plane :: GetTriangleApproximation 
-  (TriangleApproximation & tas, 
+  void Plane :: GetTriangleApproximation
+  (TriangleApproximation & tas,
    const Box<3> & boundingbox, double /* facets */) const
   {
     // find triangle, such that
@@ -453,9 +453,9 @@ namespace netgen
   void Sphere :: ToPlane (const Point<3> & p, Point<2> & pplane, double h, int & zone) const
   {
     Vec<3> p1p;
-  
+
     p1p = p - p1;
-  
+
     /*
       if (p1p * ez < -r)
       {
@@ -463,7 +463,7 @@ namespace netgen
       pplane = Point<2> (1E8, 1E8);
       }
       else
-      { 
+      {
       zone = 0;
       p1p /= h;
       pplane(0) = p1p * ex;
@@ -489,10 +489,10 @@ namespace netgen
 
     pplane(0) = -lam(0) / h;
     pplane(1) = -lam(1) / h;
-  
+
     if (lam(2) > 2)
       zone = -1;
-    else 
+    else
       zone = 0;
   }
 
@@ -555,11 +555,11 @@ namespace netgen
   }
 
 
-  void Sphere :: GetTriangleApproximation 
-  (TriangleApproximation & tas, 
+  void Sphere :: GetTriangleApproximation
+  (TriangleApproximation & tas,
    const Box<3> & /* boundingbox */, double facets) const
   {
-    int n = int(facets) + 1;  
+    int n = int(facets) + 1;
 
     for (int j = 0; j <= n; j++)
       for (int i = 0; i <= n; i++)
@@ -586,7 +586,7 @@ namespace netgen
 
 
 
-  Ellipsoid :: 
+  Ellipsoid ::
   Ellipsoid (const Point<3> & aa,
              const Vec<3> & av1, const Vec<3> & av2, const Vec<3> & av3)
   {
@@ -603,7 +603,7 @@ namespace netgen
   {
     // f = (x-a, vl)^2 / |vl|^2 + (x-a, vs)^2 / |vs|^2 -1
     // f = sum_{i=1}^3  (x-a,v_i)^2 / |vi|^4 - 1   =  sum (x-a,hv_i)^2
-  
+
     Vec<3> hv1, hv2, hv3;
     double lv1 = v1.Length2 ();
     if (lv1 < 1e-32) lv1 = 1;
@@ -628,7 +628,7 @@ namespace netgen
 
     Vec<3> va (a);
     c1 = sqr(va * hv1) + sqr(va * hv2) + sqr(va * hv3) - 1;
-  
+
     Vec<3> v = -2 * (va * hv1) * hv1 - 2 * (va * hv2) * hv2  - 2 * (va * hv3) * hv3;
     cx = v(0);
     cy = v(1);
@@ -679,11 +679,11 @@ namespace netgen
 
 
 
-  void Ellipsoid :: GetTriangleApproximation 
-  (TriangleApproximation & tas, 
+  void Ellipsoid :: GetTriangleApproximation
+  (TriangleApproximation & tas,
    const Box<3> & /* boundingbox */, double facets) const
   {
-    int n = int(facets) + 1;  
+    int n = int(facets) + 1;
 
     for (int j = 0; j <= n; j++)
       for (int i = 0; i <= n; i++)
@@ -691,8 +691,8 @@ namespace netgen
           double lg = 2 * M_PI * double (i) / n;
           double bg = M_PI * (double(j) / n - 0.5);
 
-          Point<3> p(a + 
-                     sin (bg) * v1 + 
+          Point<3> p(a +
+                     sin (bg) * v1 +
                      cos (bg) * sin (lg) * v2 +
                      cos (bg) * cos (lg) * v3);
 
@@ -911,13 +911,13 @@ namespace netgen
   }
 
 
-  void Cylinder :: ToPlane (const Point<3> & p, 
-                            Point<2> & pplane, 
+  void Cylinder :: ToPlane (const Point<3> & p,
+                            Point<2> & pplane,
                             double h, int & zone) const
   {
     Point<3> cp1p2 = Center (p1, p2);
     Project (cp1p2);
-  
+
     Point<3> ccp1p2 = a + ( (cp1p2 - a) * vab ) * vab;
 
     Vec<3> er = cp1p2 - ccp1p2;
@@ -936,14 +936,14 @@ namespace netgen
     si = ephi * (p2 - ccp1p2);
     p2p(0) = r * atan2 (si, co);
     p2p(1) = vab * (p2 - ccp1p2);
-  
+
     co = er * (p - ccp1p2);
     si = ephi * (p - ccp1p2);
 
     double phi = atan2 (si, co);
     pp(0) = r * phi;
     pp(1) = vab * (p - ccp1p2);
-  
+
     zone = 0;
     if (phi > 1.57) zone = 1;
     if (phi < -1.57) zone = 2;
@@ -1048,21 +1048,21 @@ namespace netgen
       vr = Vec<3> (vab(1), -vab(0), 0);
     else
       vr = Vec<3> (0, -vab(2), vab(1));
-    
+
     vr *= (r / vr.Length());
     return a + vr;
   }
 
-  void Cylinder :: GetTriangleApproximation 
-  (TriangleApproximation & tas, 
+  void Cylinder :: GetTriangleApproximation
+  (TriangleApproximation & tas,
    const Box<3> & /* boundingbox */, double facets) const
   {
-    int n = int(facets) + 1;  
+    int n = int(facets) + 1;
 
     Vec<3> lvab = b - a;
     Vec<3> n1 = lvab.GetNormal();
     Vec<3> n2 = Cross (lvab, n1);
-  
+
     n1.Normalize();
     n2.Normalize();
 
@@ -1073,8 +1073,8 @@ namespace netgen
           double lg = 2 * M_PI * double (i) / n;
           double bg = double(j) / n;
 
-          Point<3> p = a + (bg * lvab) 
-            + ((r * cos(lg)) * n1) 
+          Point<3> p = a + (bg * lvab)
+            + ((r * cos(lg)) * n1)
             + ((r * sin(lg)) * n2);
 
           tas.AddPoint (p);
@@ -1097,7 +1097,7 @@ namespace netgen
 
 
 
-  EllipticCylinder :: 
+  EllipticCylinder ::
   EllipticCylinder (const Point<3> & aa,
                     const Vec<3> & avl, const Vec<3> & avs)
   {
@@ -1178,7 +1178,7 @@ namespace netgen
 
     Vec<3> va (a);
     c1 = pow(va * hvl,2) + pow(va * hvs,2) - 1;
-  
+
     Vec<3> v = -2 * (va * hvl) * hvl - 2 * (va * hvs) * hvs;
     cx = v(0);
     cy = v(1);
@@ -1216,7 +1216,7 @@ namespace netgen
     return max2(bb/(aa*aa),aa/(bb*bb));
   }
 
-  double EllipticCylinder :: MaxCurvatureLoc (const Point<3> & /* c */, 
+  double EllipticCylinder :: MaxCurvatureLoc (const Point<3> & /* c */,
                                               double /* rad */) const
   {
     // saubere Loesung wird noch notwendig !!!
@@ -1234,11 +1234,11 @@ namespace netgen
 
 
 
-  void EllipticCylinder :: GetTriangleApproximation 
-  (TriangleApproximation & tas, 
+  void EllipticCylinder :: GetTriangleApproximation
+  (TriangleApproximation & tas,
    const Box<3> & /* boundingbox */, double facets) const
   {
-    int n = int(facets) + 1;  
+    int n = int(facets) + 1;
 
     Vec<3> axis = Cross (vl, vs);
 
@@ -1272,7 +1272,7 @@ namespace netgen
 
 
 
-  Cone :: Cone (const Point<3> & aa, const Point<3> & ab, 
+  Cone :: Cone (const Point<3> & aa, const Point<3> & ab,
                 double ara, double arb)
   {
     a = aa;
@@ -1346,7 +1346,7 @@ namespace netgen
 
     t1vec = t0vec;
     t1vec *= (rb - ra);
-    t1 = ra + (rb - ra) * t0; 
+    t1 = ra + (rb - ra) * t0;
 
     cxx = cyy = czz = 1;
     cxy = cxz = cyz = 0;
@@ -1354,7 +1354,7 @@ namespace netgen
     cxx = 1 - (vab*vab) * t0vec(0) * t0vec(0) - t1vec(0) * t1vec(0);
     cyy = 1 - (vab*vab) * t0vec(1) * t0vec(1) - t1vec(1) * t1vec(1);
     czz = 1 - (vab*vab) * t0vec(2) * t0vec(2) - t1vec(2) * t1vec(2);
-  
+
     cxy = -2 * (vab * vab) * t0vec(0) * t0vec(1) - 2 * t1vec(0) * t1vec(1);
     cxz = -2 * (vab * vab) * t0vec(0) * t0vec(2) - 2 * t1vec(0) * t1vec(2);
     cyz = -2 * (vab * vab) * t0vec(1) * t0vec(2) - 2 * t1vec(1) * t1vec(2);
@@ -1403,7 +1403,7 @@ namespace netgen
   }
 
 
-  double Cone ::  LocH (const Point<3> & p, double /* x */, 
+  double Cone ::  LocH (const Point<3> & p, double /* x */,
                         double /* c */, double hmax) const
   {
     //double bloch = Surface::LocH (p, x, c, hmax);
@@ -1411,14 +1411,14 @@ namespace netgen
     CalcGradient (p, g);
 
     double lam = Abs(g);
-    double meancurv = 
+    double meancurv =
       -( 2  * g(0)*g(1)*cxy - 2 * czz * (g(0)*g(0)+g(1)*g(1))
          +2 * g(1)*g(2)*cyz - 2 * cxx * (g(1)*g(1)+g(2)*g(2))
          +2 * g(0)*g(2)*cxz - 2 * cyy * (g(0)*g(0)+g(2)*g(2))) / (3*lam*lam*lam);
 
     // cout << "type = " << typeid(*this).name() << ", baseh = " << bloch << ", meancurv = " << meancurv << endl;
     // return bloch;
-  
+
     meancurv = fabs (meancurv);
     if (meancurv < 1e-20) meancurv = 1e-20;
 
@@ -1432,7 +1432,7 @@ namespace netgen
   Point<3> Cone :: GetSurfacePoint () const
   {
     Vec<3> vr = vab.GetNormal ();
-  
+
     vr *= (ra / vr.Length());
     return a + vr;
   }
@@ -1441,18 +1441,18 @@ namespace netgen
 
 
 
-  void Cone :: GetTriangleApproximation 
-  (TriangleApproximation & tas, 
+  void Cone :: GetTriangleApproximation
+  (TriangleApproximation & tas,
    const Box<3> & /* boundingbox */, double facets) const
   {
     int i, j;
     double lg, bg;
-    int n = int(facets) + 1;  
+    int n = int(facets) + 1;
 
     Vec<3> lvab = b - a;
     Vec<3> n1 = lvab.GetNormal();
     Vec<3> n2 = Cross (lvab, n1);
-  
+
     n1.Normalize();
     n2.Normalize();
 
@@ -1463,8 +1463,8 @@ namespace netgen
           lg = 2 * M_PI * double (i) / n;
           bg = double(j) / n;
 
-          Point<3> p = a + (bg * lvab) 
-            + (( (ra+(rb-ra)*bg)  * cos(lg)) * n1) 
+          Point<3> p = a + (bg * lvab)
+            + (( (ra+(rb-ra)*bg)  * cos(lg)) * n1)
             + (( (ra+(rb-ra)*bg)  * sin(lg)) * n2);
 
           tas.AddPoint (p);
@@ -1487,9 +1487,9 @@ namespace netgen
 
 
 
-  /// Torus 
+  /// Torus
   /// Lorenzo Codecasa (codecasa@elet.polimi.it)
-  /// April 27th, 2005 
+  /// April 27th, 2005
   ///
   Torus :: Torus (const Point<3> & ac, const Vec<3> & an, double aR, double ar)
   {
@@ -1541,7 +1541,7 @@ namespace netgen
     Point<3> hc;
     trans.Transform (c, hc);
     c = hc;
-  
+
     Vec<3> hn;
     trans.Transform (n, hn);
     n = hn;
@@ -1554,12 +1554,12 @@ namespace netgen
     if (!torus2) return 0;
 
     if (fabs (torus2->R - R) > eps) return 0;
-  
+
     if (fabs (torus2->r - r) > eps) return 0;
 
     Vec<3> v2 = torus2->n - n;
     if ( v2 * v2 > eps ) return 0;
-  
+
     v2 = torus2->c - c;
     if ( v2 * v2 > eps ) return 0;
 
@@ -1580,7 +1580,7 @@ namespace netgen
     return ( a3 * a3 -4 * R * R * ( a1 - a2 * a2 / a4 ) ) / ( R * R * R );
     */
 
-    
+
     // JS, April 2011
     Vec<3> v1 = point-c;
     double abs2 = Abs2(v1);
@@ -1608,7 +1608,7 @@ namespace netgen
     double abs2 = Abs2(v1);
     double tau = v1 * n;
     double rho = sqrt (abs2 - tau*tau);
-    double func = sqr (R - rho) + tau*tau - r*r;
+//     double func = sqr (R - rho) + tau*tau - r*r;
 
     Vec<3> gradabs2 = 2 * v1;
     Vec<3> gradtau = n;
@@ -1634,7 +1634,7 @@ namespace netgen
   }
 
   double Torus :: HesseNorm () const
-  {	
+  {
     return 4/(r*r);
     // return  ( 2 / r + 2 / ( R - r ) );
   }
@@ -1649,8 +1649,8 @@ namespace netgen
   /// {
   /// }
 
-  /// void Torus :: ToPlane (const Point<3> & p, 
-  ///			  Point<2> & pplane, 
+  /// void Torus :: ToPlane (const Point<3> & p,
+  ///			  Point<2> & pplane,
   ///			  double h, int & zone) const
   /// {
   /// }
@@ -1669,7 +1669,7 @@ namespace netgen
     double a1 = Abs2(v1);        // v1(0) * v1(0) + v1(1) * v1(1) + v1(2) * v1(2);
     double a2 = n * v1;          // n(0) * v1(0) + n(1) * v1(1) + n(2) * v1(2);
     double a4 = Abs2(n);         // n(0) * n(0) + n(1) * n(1) + n(2) * n(2);
- 
+
     double dist = sqrt( a1 + R * R - 2 * R * sqrt( a1 - a2 * a2 / a4) );
 
     if (dist - box.Diam()/2 > r) return IS_OUTSIDE;
@@ -1677,30 +1677,30 @@ namespace netgen
     return DOES_INTERSECT;
   }
 
-  void Torus :: GetTriangleApproximation (TriangleApproximation & tas, 
+  void Torus :: GetTriangleApproximation (TriangleApproximation & tas,
                                           const Box<3> & /* boundingbox */, double facets) const
   {
-    int N = int(facets) + 1;  
+    int N = int(facets) + 1;
 
     Vec<3> lvab = n ;
     lvab.Normalize();
-  
+
     Vec<3> n1 = lvab.GetNormal();
     n1.Normalize();
-  
+
     Vec<3> n2 = Cross(lvab, n1);
     n2.Normalize();
-  
+
     for (int j = 0; j <= N; j++)
       for (int i = 0; i <= N; i++)
 	{
           double lg = 2 * M_PI * double (i) / N;
           double bg = 2 * M_PI * double(j) / N;
-	
+
           Point<3> p = c + ( R + r * cos(lg) ) * ( cos(bg) * n1 + sin(bg) * n2 ) + r * sin(lg) * n;
           tas.AddPoint (p);
 	}
-	
+
     for (int j = 0; j < N; j++)
       for (int i = 0; i < N; i++)
 	{
@@ -1708,8 +1708,8 @@ namespace netgen
           tas.AddTriangle (TATriangle (0, pi, pi+1, pi+N+2));
           tas.AddTriangle (TATriangle (0, pi, pi+N+2, pi+N+1));
 	}
-  } 
-  
+  }
+
   void Torus :: Read (istream & ist)
   {
     ist >> c(0) >> c(1) >> c(2) >> n(0) >> n(1) >> n(2) >> R >> r;

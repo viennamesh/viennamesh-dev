@@ -235,14 +235,14 @@ namespace netgen
                     Array<double> & params, Mesh & mesh)
    {
       double s0, s1;
-      double maxh = mparam.maxh;
+//       double maxh = mparam.maxh;
       int nsubedges = 1;
       gp_Pnt pnt, oldpnt;
-      double svalue[DIVIDEEDGESECTIONS];
+//       double svalue[DIVIDEEDGESECTIONS];
 
       GProp_GProps system;
       BRepGProp::LinearProperties(edge, system);
-      double L = system.Mass();
+//       double L = system.Mass();
 
       Handle(Geom_Curve) c = BRep_Tool::Curve(edge, s0, s1);
 
@@ -471,7 +471,7 @@ namespace netgen
                Array <double> params;
 
                DivideEdge (edge, mp, params, mesh);
- 
+
                Array <int> pnums;
                pnums.SetSize (mp.Size()+2);
 
@@ -605,7 +605,7 @@ namespace netgen
    void OCCMeshSurface (OCCGeometry & geom, Mesh & mesh, int perfstepsend)
    {
       int i, j, k;
-      int changed;
+//       int changed;
 
       const char * savetask = multithread.task;
       multithread.task = "Surface meshing";
@@ -649,7 +649,7 @@ namespace netgen
          */
 
 
-         FaceDescriptor & fd = mesh.GetFaceDescriptor(k);
+//          FaceDescriptor & fd = mesh.GetFaceDescriptor(k);
 
          int oldnf = mesh.GetNSE();
 
@@ -868,7 +868,7 @@ namespace netgen
                      for ( exp2.Init(edge,TopAbs_VERTEX); exp2.More(); exp2.Next() )
                      {
                         TopoDS_Vertex vertex = TopoDS::Vertex(exp2.Current());
-                        gp_Pnt point = BRep_Tool::Pnt(vertex);
+                        /*gp_Pnt point = */BRep_Tool::Pnt(vertex);
 //                        problemfile << point.X() << " " << point.Y() << " " << point.Z() << endl;
                      }
                   }
@@ -906,7 +906,7 @@ namespace netgen
          //      (*testout) << "optimize face " << k << endl;
          multithread.percent = 100 * k / (mesh.GetNFD() + VSMALL);
 
-         FaceDescriptor & fd = mesh.GetFaceDescriptor(k);
+//          FaceDescriptor & fd = mesh.GetFaceDescriptor(k);
 
          PrintMessage (1, "Optimize Surface ", k);
          for (i = 1; i <= mparam.optsteps2d; i++)
@@ -1251,14 +1251,14 @@ namespace netgen
       }
 
       // Philippose - 09/03/2009
-      // Added the capability to load the mesh size from a 
+      // Added the capability to load the mesh size from a
       // file also for OpenCascade Geometry
-      // Note: 
-      // ** If the "uselocalh" option is ticked in 
-      // the "mesh options...insider" menu, the mesh 
-      // size will be further modified by the topology 
+      // Note:
+      // ** If the "uselocalh" option is ticked in
+      // the "mesh options...insider" menu, the mesh
+      // size will be further modified by the topology
       // analysis routines.
-      // ** To use the mesh size file as the sole source 
+      // ** To use the mesh size file as the sole source
       // for defining the mesh size, uncheck the "uselocalh"
       // option.
       mesh.LoadLocalMeshSize (mparam.meshsizefilename);

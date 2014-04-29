@@ -27,9 +27,9 @@ namespace netgen
 	(*checklines_vec.Last()) *= 1./pow(checklines_vec.Last()->Length(),2); //!!
 	checklines_vec.Append(new Vec<2>(spline3->TangentPoint() - spline3->StartPI()));
 	(*checklines_vec.Last()) *= 1./pow(checklines_vec.Last()->Length(),2); //!!
-	
+
       }
-    
+
     for(int i=0; i<checklines_vec.Size(); i++)
       {
 	checklines_normal.Append(new Vec<2>);
@@ -46,7 +46,7 @@ namespace netgen
 				   bool last,
 				   const int id_in) :
     isfirst(first), islast(last), spline(&spline_in), p0(p), v_axis(vec),  id(id_in)
-  {    
+  {
     deletable = false;
     Init();
   }
@@ -55,7 +55,7 @@ namespace netgen
   RevolutionFace :: RevolutionFace(const Array<double> & raw_data)
   {
     deletable = true;
-    
+
     int pos = 0;
 
     Array< Point<2> > p(3);
@@ -72,7 +72,7 @@ namespace netgen
       {
 	spline = new LineSeg<2>(GeomPoint<2>(p[0],1),
 				GeomPoint<2>(p[1],1));
-	//(*testout) << "appending LineSeg<2> " << p[0] 
+	//(*testout) << "appending LineSeg<2> " << p[0]
 	//	   << " to " << p[1] << endl;
       }
     else if(stype == 3)
@@ -98,11 +98,11 @@ namespace netgen
     pos++;
     islast = (raw_data[pos] < 0.1);
     pos++;
-    
+
 
   }
 
-  
+
   RevolutionFace :: ~RevolutionFace()
   {
     for(int i=0; i<checklines_start.Size(); i++)
@@ -115,7 +115,7 @@ namespace netgen
     if(deletable)
       delete spline;
   }
-  
+
   void RevolutionFace :: CalcProj(const Point<3> & point3d, Point<2> & point2d,
 				  const Vec<3> & vector3d, Vec<2> & vector2d) const
   {
@@ -125,30 +125,30 @@ namespace netgen
     vector2d(0) = vector3d*v_axis;
     vector2d(1) = vector3d*y;
   }
-  
+
 
   void RevolutionFace :: CalcProj(const Point<3> & point3d, Point<2> & point2d) const
   {
     Vec<3> pmp0 = point3d-p0;
     CalcProj0(pmp0,point2d);
   }
-  
+
   void RevolutionFace :: CalcProj0(const Vec<3> & point3d_minus_p0, Point<2> & point2d) const
   {
     point2d(0) = point3d_minus_p0 * v_axis;
     point2d(1) = sqrt( point3d_minus_p0 * point3d_minus_p0 - point2d(0)*point2d(0) );
   }
-  
 
-  int  RevolutionFace ::IsIdentic (const Surface & s2, int & inv, double eps) const
+
+  int  RevolutionFace ::IsIdentic (const Surface & s2, int & /*inv*/, double /*eps*/) const
   {
     const RevolutionFace * rev2 = dynamic_cast<const RevolutionFace*>(&s2);
-    
+
     if(!rev2) return 0;
-    
+
     if(rev2 == this)
       return 1;
-        
+
     return 0;
   }
 
@@ -195,7 +195,7 @@ namespace netgen
       }
   }
 
-  
+
   void RevolutionFace :: CalcHesse (const Point<3> & point, Mat<3> & hesse) const
   {
     if(spline_coefficient.Size() == 0)
@@ -210,31 +210,31 @@ namespace netgen
     if(fabs(p(1)) > 1e-10)
       {
 	const double dFdybar = 2.*spline_coefficient(1)*p(1) + spline_coefficient(2)*p(0) + spline_coefficient(4);
-	
+
 	const double aux = -pow(p(1),-3);
 	const double aux0 = point_minus_p0(0) - v_axis(0)*p(0);
 	const double aux1 = point_minus_p0(1) - v_axis(1)*p(0);
 	const double aux2 = point_minus_p0(2) - v_axis(2)*p(0);
-	
+
 
 	const double dybardx = aux0/p(1);
 	const double dybardy = aux1/p(1);
 	const double dybardz = aux2/p(1);
-    
+
 	const double dybardxx = aux*aux0*aux0 + (1.-v_axis(0)*v_axis(0))/p(1);
 	const double dybardyy = aux*aux1*aux1 + (1.-v_axis(1)*v_axis(1))/p(1);
 	const double dybardzz = aux*aux2*aux2 + (1.-v_axis(2)*v_axis(2))/p(1);
 	const double dybardxy = aux*aux0*aux1 - v_axis(0)*v_axis(1)/p(1);
 	const double dybardxz = aux*aux0*aux2 - v_axis(0)*v_axis(2)/p(1);
 	const double dybardyz = aux*aux1*aux2 - v_axis(1)*v_axis(2)/p(1);
-	
+
 	hesse(0,0) = 2.*spline_coefficient(0)*v_axis(0)*v_axis(0) + 2.*spline_coefficient(2)*v_axis(0)*dybardx + 2.*spline_coefficient(1)*dybardx*dybardx
 	  + dFdybar*dybardxx;
 	hesse(1,1) = 2.*spline_coefficient(0)*v_axis(1)*v_axis(1) + 2.*spline_coefficient(2)*v_axis(1)*dybardy + 2.*spline_coefficient(1)*dybardy*dybardy
 	  + dFdybar*dybardyy;
 	hesse(2,2) = 2.*spline_coefficient(0)*v_axis(2)*v_axis(2) + 2.*spline_coefficient(2)*v_axis(2)*dybardz + 2.*spline_coefficient(1)*dybardz*dybardz
 	  + dFdybar*dybardzz;
-	
+
 	hesse(0,1) = hesse(1,0) = 2.*spline_coefficient(0)*v_axis(0)*v_axis(1) + spline_coefficient(2)*v_axis(0)*dybardy + spline_coefficient(2)*dybardx*v_axis(1)
 	  + 2.*spline_coefficient(2)*dybardx*dybardy + dFdybar*dybardxy;
 	hesse(0,2) = hesse(2,0) = 2.*spline_coefficient(0)*v_axis(0)*v_axis(2) + spline_coefficient(2)*v_axis(0)*dybardz + spline_coefficient(2)*dybardx*v_axis(2)
@@ -248,7 +248,7 @@ namespace netgen
 	     fabs(spline_coefficient(0)) > 1e-10)
       {
 	double aux = spline_coefficient(0)-spline_coefficient(1);
-	
+
 	hesse(0,0) = aux*v_axis(0)*v_axis(0) + spline_coefficient(1);
 	hesse(0,0) = aux*v_axis(1)*v_axis(1) + spline_coefficient(1);
 	hesse(0,0) = aux*v_axis(2)*v_axis(2) + spline_coefficient(1);
@@ -257,7 +257,7 @@ namespace netgen
 	hesse(0,2) = hesse(2,0) = aux*v_axis(0)*v_axis(2);
 	hesse(1,2) = hesse(2,1) = aux*v_axis(1)*v_axis(2);
 	//(*testout) << "hesse2: " << hesse <<endl;
-	
+
       }
     else if (fabs(spline_coefficient(1)) + fabs(spline_coefficient(3)) + fabs(spline_coefficient(4)) + fabs(spline_coefficient(5)) < 1.e-9) // line
       {
@@ -270,13 +270,13 @@ namespace netgen
       }
   }
 
-  
+
 
   double RevolutionFace ::HesseNorm () const
   {
     if (fabs(spline_coefficient(1)) + fabs(spline_coefficient(3)) + fabs(spline_coefficient(4)) + fabs(spline_coefficient(5)) < 1.e-9) // line
       return 0;
-      
+
     if (fabs(spline_coefficient(2)) + fabs(spline_coefficient(4)) < 1.e-9 &&
 	fabs(spline_coefficient(0)) > 1e-10)
       return 2.*max2(fabs(spline_coefficient(0)),fabs(spline_coefficient(1)));
@@ -297,7 +297,7 @@ namespace netgen
 
     const SplineSeg3<2> * ss3 = dynamic_cast<const SplineSeg3<2> *>(spline);
     const LineSeg<2> * ls = dynamic_cast<const LineSeg<2> *>(spline);
-    
+
     if(ss3)
       {
 	checkpoints.Append(ss3->StartPI());
@@ -324,10 +324,10 @@ namespace netgen
 
 	double t1 = -checkpoints[i](1)/n(1);
 	double t2 = -checkpoints[i+1](1)/n(1);
-	
+
 	double c1 = (t1 > 0) ? (1./t1) : -1;
 	double c2 = (t2 > 0) ? (1./t2) : -1;
-	
+
 	//if(ss3)
 	//  (*testout) << "t1 " << t1 << " t2 " << t2 << " c1 " << c1 << " c2 " << c2 << endl;
 
@@ -336,7 +336,7 @@ namespace netgen
 	if(c2 > retval)
 	  retval = c2;
       }
-	
+
     //if(ss3)
     //  (*testout) << "curvature " << retval << endl;
 
@@ -352,13 +352,13 @@ namespace netgen
       testt.Append(0);
     if(!islast)
       testt.Append(1);
-    
+
     const SplineSegment3 * s3 = dynamic_cast<const SplineSegment3 *>(&spline);
 
     if(s3)
       {
 	double denom = (2.-sqrt(2.))*(s3->EndPI()(1) - s3->StartPI()(1));
-	
+
 	if(fabs(denom) < 1e-20)
 	  testt.Append(0.5);
 	else
@@ -367,7 +367,7 @@ namespace netgen
 			     pow(s3->TangentPoint()(1) - s3->EndPI()(1),2));
 	    testt.Append((s3->StartPI()(1)*(sqrt(2.)-1.) - sqrt(2.)*s3->TangentPoint()(1) + s3->EndPI()(1) + sD)/denom);
 	    testt.Append((s3->StartPI()(1)*(sqrt(2.)-1.) - sqrt(2.)*s3->TangentPoint()(1) + s3->EndPI()(1) - sD)/denom);
-	  }	
+	  }
       }
 
     double miny = fabs(spline.GetPoint(testt[0])(1));
@@ -403,7 +403,7 @@ namespace netgen
 
 
 
-  
+
   Point<3>  RevolutionFace :: GetSurfacePoint () const
   {
     Vec<3> random_vec(0.760320,-0.241175,0.60311534);
@@ -430,8 +430,8 @@ namespace netgen
   }
 
 
-  void RevolutionFace :: GetTriangleApproximation (TriangleApproximation & tas, 
-						   const Box<3> & boundingbox, 
+  void RevolutionFace :: GetTriangleApproximation (TriangleApproximation & tas,
+						   const Box<3> & /*boundingbox*/,
 						   double facets) const
   {
     Vec<3> random_vec(0.760320,-0.241175,0.60311534);
@@ -447,12 +447,12 @@ namespace netgen
 	for(int j=0; j<=n; j++)
 	  {
 	    double phi = 2.*M_PI*double(j)/double(n);
-	    
+
 	    Point<3> p = p0 + sp(0)*v_axis + sp(1)*cos(phi)*v1 + sp(1)*sin(phi)*v2;
-	    tas.AddPoint(p);   
+	    tas.AddPoint(p);
 	  }
       }
-    
+
     for(int i=0; i<n; i++)
       for(int j=0; j<n; j++)
 	{
@@ -462,7 +462,7 @@ namespace netgen
 	  tas.AddTriangle( TATriangle (id, pi+1,pi+n+1,pi+n+2));
 	}
   }
-  
+
 
   bool RevolutionFace :: BoxIntersectsFace(const Box<3> & box) const
   {
@@ -482,7 +482,7 @@ namespace netgen
     double aux = box.Diam()/sqrt(8.);
     pmin(0) = c(0)-aux; pmin(1) = c(1)-aux;
     pmax(0) = c(0)+aux; pmax(1) = c(1)+aux;
-    
+
     BoxSphere<2> box2d(pmin,pmax);
     return BoxIntersectsFace(box2d, uncertain);
   }
@@ -501,7 +501,7 @@ namespace netgen
     uncertain = false;
 
     if(line) inttangent = true;
-  
+
     for(int i=0; i<checklines_start.Size(); i++)
       {
 	Vec<2> b = box.Center()- (*checklines_start[i]);
@@ -518,12 +518,12 @@ namespace netgen
 	    if(spline3)
 	      d = Dist(box.Center(),*checklines_start[(i+1)%3]);
 	    else
-	      d = Dist(box.Center(),(*checklines_start[i]) 
+	      d = Dist(box.Center(),(*checklines_start[i])
 		       + pow(checklines_vec[i]->Length(),2)*(*checklines_vec[i]));
 	  }
-	else 
+	else
 	  d = fabs(ncomp);
-	  
+
 	thisint = (box.Diam() >= 2.*d);
 	retval = retval || thisint;
 	if(thisint)
@@ -546,11 +546,11 @@ namespace netgen
 	retval = true;
 	uncertain = true;
       }
-    
-    return retval;	
-  }  
+
+    return retval;
+  }
   */
-  
+
 
   INSOLID_TYPE RevolutionFace :: PointInFace (const Point<3> & p, const double eps) const
   {
@@ -564,11 +564,11 @@ namespace netgen
       return IS_OUTSIDE;
     if(val < -eps)
       return IS_INSIDE;
-     
+
     return DOES_INTERSECT;
   }
 
-  
+
 
   void RevolutionFace :: GetRawData(Array<double> & data) const
   {
@@ -617,7 +617,7 @@ namespace netgen
 	surfaceids.Append(0);
       }
   }
-  
+
   Revolution::~Revolution()
   {
     for(int i=0; i<faces.Size(); i++)
@@ -630,10 +630,10 @@ namespace netgen
     for(int i=0; i<faces.Size(); i++)
       if(faces[i]->BoxIntersectsFace(box))
 	return DOES_INTERSECT;
-    
-    
+
+
     return PointInSolid(box.Center(),0);
-	 
+
 
     /*
     Point<2> c,pmin,pmax;
@@ -641,7 +641,7 @@ namespace netgen
     double aux = box.Diam()/sqrt(8.);
     pmin(0) = c(0)-aux; pmin(1) = c(1)-aux;
     pmax(0) = c(0)+aux; pmax(1) = c(1)+aux;
-    
+
 
     BoxSphere<2> box2d(pmin,pmax);
 
@@ -683,14 +683,14 @@ namespace netgen
 		    INSOLID_TYPE ppos = PointInSolid(p,0);
 		    if(ppos == DOES_INTERSECT)
 		      return DOES_INTERSECT;
-		    
+
 		    if(firsttime)
 		      {
 			firsttime = false;
 			position = ppos;
 		      }
 		    if(position != ppos)
-		      return DOES_INTERSECT;	    
+		      return DOES_INTERSECT;
 		  }
 	    return position;
 
@@ -698,7 +698,7 @@ namespace netgen
       }
 
     return PointInSolid(box.Center(),0);
-    */ 
+    */
   }
 
   INSOLID_TYPE Revolution :: PointInSolid (const Point<3> & p,
@@ -712,7 +712,7 @@ namespace netgen
     double randomy = 1.814756;
     randomx *= 1./sqrt(randomx*randomx+randomy*randomy);
     randomy *= 1./sqrt(randomx*randomx+randomy*randomy);
-    
+
 
     const double a = randomy;
     const double b = -randomx;
@@ -724,7 +724,7 @@ namespace netgen
     for(int i=0; i<faces.Size(); i++)
       {
 	faces[i]->GetSpline().LineIntersections(a,b,c,points,eps);
-	
+
 	for(int j=0; j<points.Size(); j++)
 	  {
 	    double t = (points[j](0)-p2d(0))/randomx;
@@ -774,13 +774,13 @@ namespace netgen
 
 	double hv1;
 	hv1 = v * hv;
-	
+
 	if (hv1 <= -eps)
 	  return IS_INSIDE;
 	if (hv1 >= eps)
 	  return IS_OUTSIDE;
-	
-	return DOES_INTERSECT; 
+
+	return DOES_INTERSECT;
       }
     else if(intersecting_faces.Size() == 2)
       {
@@ -795,12 +795,12 @@ namespace netgen
 	    intersecting_faces[0] = intersecting_faces[1];
 	    intersecting_faces[1] = aux;
 	  }
-	
-	const SplineSeg3<2> * splinesegment3 = 
+
+	const SplineSeg3<2> * splinesegment3 =
 	  dynamic_cast<const SplineSeg3<2> *>(&faces[intersecting_faces[0]]->GetSpline());
-	const LineSeg<2> * linesegment = 
+	const LineSeg<2> * linesegment =
 	  dynamic_cast<const LineSeg<2> *>(&faces[intersecting_faces[0]]->GetSpline());
-		
+
 	Vec<2> t1,t2;
 
 	if(linesegment)
@@ -808,11 +808,11 @@ namespace netgen
 	else if(splinesegment3)
 	  t1 = splinesegment3->TangentPoint() - splinesegment3->EndPI();
 
-	linesegment = 
+	linesegment =
 	  dynamic_cast<const LineSeg<2> *>(&faces[intersecting_faces[1]]->GetSpline());
-	splinesegment3 = 
+	splinesegment3 =
 	  dynamic_cast<const SplineSeg3<2> *>(&faces[intersecting_faces[1]]->GetSpline());
-	
+
 	if(linesegment)
 	  t2 = linesegment->EndPI() - linesegment->StartPI();
 	else if(splinesegment3)
@@ -853,7 +853,7 @@ namespace netgen
 	cerr << "Jo gibt's denn des?" << endl;
       }
 
-    return DOES_INTERSECT;    
+    return DOES_INTERSECT;
   }
 
   INSOLID_TYPE Revolution :: VecInSolid2 (const Point<3> & p,
@@ -867,7 +867,7 @@ namespace netgen
 
     return VecInSolid(p,v1+0.01*v2,eps);
   }
-  
+
   int Revolution :: GetNSurfaces() const
   {
     return faces.Size();
@@ -885,7 +885,7 @@ namespace netgen
 
 
   void Revolution :: Reduce (const BoxSphere<3> & box)
-  { 
+  {
     //bool dummy;
     for(int i=0; i<faces.Size(); i++)
       surfaceactive[i] = (faces[i]->BoxIntersectsFace(box));

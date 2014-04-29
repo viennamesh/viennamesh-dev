@@ -35,7 +35,7 @@ namespace netgen
   }
 
 
-  ADTree :: ADTree (int adim, const float * acmin, 
+  ADTree :: ADTree (int adim, const float * acmin,
 		    const float * acmax)
     : ela(0), stack(1000), stackdir(1000)
   {
@@ -67,7 +67,7 @@ namespace netgen
 
     float * bmin = new float [dim];
     float * bmax = new float [dim];
-  
+
     memcpy (bmin, cmin, dim * sizeof(float));
     memcpy (bmax, cmax, dim * sizeof(float));
 
@@ -79,7 +79,7 @@ namespace netgen
 	node = next;
 
 	if (node->pi == -1)
-	  {    
+	  {
 	    memcpy (node->data, p, dim * sizeof(float));
 	    node->pi = pi;
 
@@ -171,7 +171,7 @@ namespace netgen
     if (stackindex == 0)
       return -1;
 
-    do 
+    do
       {
 	node = stack.Get(stackindex);
 	dir = stackdir.Get(stackindex);
@@ -195,7 +195,7 @@ namespace netgen
 		stack.Elem(stackindex) = node->right;
 		stackdir.Elem(stackindex) = ndir;
 	      }
-	  
+
 	    if (node -> pi != -1)
 	      return node->pi;
 	  }
@@ -219,7 +219,7 @@ namespace netgen
 
   void ADTree :: PrintRec (ostream & ost, const ADTreeNode * node) const
   {
-  
+
     if (node->data)
       {
 	ost << node->pi << ": ";
@@ -274,7 +274,7 @@ namespace netgen
   BlockAllocator ADTreeNode3 :: ball(sizeof (ADTreeNode3));
 
 
-  void * ADTreeNode3 :: operator new(size_t s)
+  void * ADTreeNode3 :: operator new(size_t /*s*/)
   {
     return ball.Alloc();
   }
@@ -290,7 +290,7 @@ namespace netgen
 
 
 
-  ADTree3 :: ADTree3 (const float * acmin, 
+  ADTree3 :: ADTree3 (const float * acmin,
 		      const float * acmax)
     : ela(0)
   {
@@ -317,7 +317,7 @@ namespace netgen
 
     float bmin[3];
     float bmax[3];
-  
+
     memcpy (bmin, cmin, 3 * sizeof(float));
     memcpy (bmax, cmax, 3 * sizeof(float));
 
@@ -328,7 +328,7 @@ namespace netgen
 	node = next;
 
 	if (node->pi == -1)
-	  {    
+	  {
 	    memcpy (node->data, p, 3 * sizeof(float));
 	    node->pi = pi;
 
@@ -366,7 +366,7 @@ namespace netgen
 
     if (ela.Size() < pi+1)
       ela.SetSize (pi+1);
-    ela[pi] = next;		
+    ela[pi] = next;
 
 
     if (lr)
@@ -396,7 +396,7 @@ namespace netgen
       }
   }
 
-  void ADTree3 :: GetIntersecting (const float * bmin, 
+  void ADTree3 :: GetIntersecting (const float * bmin,
 				   const float * bmax,
 				   Array<int> & pis) const
   {
@@ -416,7 +416,7 @@ namespace netgen
     while (stacks)
       {
 	node = stack.Get(stacks);
-	dir = stackdir.Get(stacks); 
+	dir = stackdir.Get(stacks);
 	stacks--;
 
 	if (node->pi != -1)
@@ -450,7 +450,7 @@ namespace netgen
 
   void ADTree3 :: PrintRec (ostream & ost, const ADTreeNode3 * node) const
   {
-  
+
     if (node->data)
       {
 	ost << node->pi << ": ";
@@ -480,7 +480,7 @@ namespace netgen
   ADTreeNode3Div :: ADTreeNode3Div()
   {
     pi = 0;
-  
+
     int i;
     for (i = 0; i < ADTN_DIV; i++)
       childs[i] = NULL;
@@ -522,7 +522,7 @@ namespace netgen
 
 
 
-  ADTree3Div :: ADTree3Div (const float * acmin, 
+  ADTree3Div :: ADTree3Div (const float * acmin,
 			    const float * acmax)
     : ela(0)
   {
@@ -550,10 +550,10 @@ namespace netgen
     ADTreeNode3Div *next;
     int dir;
     int bag;
-  
+
     float bmin[3];
     float bmax[3];
-  
+
     memcpy (bmin, cmin, 3 * sizeof(float));
     memcpy (bmax, cmax, 3 * sizeof(float));
 
@@ -565,7 +565,7 @@ namespace netgen
 	node = next;
 
 	if (!node->pi)
-	  {    
+	  {
 	    memcpy (node->data, p, 3 * sizeof(float));
 	    node->pi = pi;
 
@@ -583,11 +583,11 @@ namespace netgen
 
 	if (bag < 0) bag = 0;
 	if (bag >= ADTN_DIV) bag = ADTN_DIV-1;
-      
+
 	double nbmin = bmin[dir] + bag * dx;
 	double nbmax = bmin[dir] + (bag+1) * dx;
 
-	/*      
+	/*
 		(*testout) << "bmin, max = " << bmin[dir] << "-" << bmax[dir]
 		<< " p = " << p[dir];
 	*/
@@ -597,8 +597,8 @@ namespace netgen
 
 	//      (*testout) << "new bmin, max = " << bmin[dir] << "-" << bmax[dir] << endl;
 
-      
-	/*      
+
+	/*
 		if (node->sep > p[dir])
 		{
 		next = node->left;
@@ -656,7 +656,7 @@ namespace netgen
       }
   }
 
-  void ADTree3Div :: GetIntersecting (const float * bmin, 
+  void ADTree3Div :: GetIntersecting (const float * bmin,
 				      const float * bmax,
 				      Array<int> & pis) const
   {
@@ -676,7 +676,7 @@ namespace netgen
     while (stacks)
       {
 	node = stack.Get(stacks);
-	dir = stackdir.Get(stacks); 
+	dir = stackdir.Get(stacks);
 	stacks--;
 
 	if (node->pi)
@@ -695,7 +695,7 @@ namespace netgen
 
 	int mini = int ( (bmin[dir] - node->minx) / node->dist );
 	int maxi = int ( (bmax[dir] - node->minx) / node->dist );
-      
+
 	//      (*testout) << "get int, mini, maxi = " << mini << ", " << maxi << endl;
 	if (mini < 0) mini = 0;
 	if (maxi >= ADTN_DIV) maxi = ADTN_DIV-1;
@@ -728,7 +728,7 @@ namespace netgen
 
   void ADTree3Div :: PrintRec (ostream & ost, const ADTreeNode3Div * node) const
   {
-  
+
     if (node->data)
       {
 	ost << node->pi << ": ";
@@ -805,7 +805,7 @@ namespace netgen
 
 
 
-  ADTree3M :: ADTree3M (const float * acmin, 
+  ADTree3M :: ADTree3M (const float * acmin,
 			const float * acmax)
     : ela(0)
   {
@@ -832,7 +832,7 @@ namespace netgen
     int i;
     float bmin[3];
     float bmax[3];
-  
+
     memcpy (bmin, cmin, 3 * sizeof(float));
     memcpy (bmax, cmax, 3 * sizeof(float));
 
@@ -844,14 +844,14 @@ namespace netgen
 
 	for (i = 0; i < ADTN_SIZE; i++)
 	  if (!node->pi[i])
-	    {    
+	    {
 	      memcpy (node->data[i], p, 3 * sizeof(float));
 	      node->pi[i] = pi;
-	    
+
 	      if (ela.Size() < pi)
 		ela.SetSize (pi);
 	      ela.Elem(pi) = node;
-	    
+
 	      return;
 	    }
 
@@ -915,7 +915,7 @@ namespace netgen
       }
   }
 
-  void ADTree3M :: GetIntersecting (const float * bmin, 
+  void ADTree3M :: GetIntersecting (const float * bmin,
 				    const float * bmax,
 				    Array<int> & pis) const
   {
@@ -935,7 +935,7 @@ namespace netgen
     while (stacks)
       {
 	node = stack.Get(stacks);
-	dir = stackdir.Get(stacks); 
+	dir = stackdir.Get(stacks);
 	stacks--;
 
 	int * hpi = node->pi;
@@ -946,7 +946,7 @@ namespace netgen
 	      if (datai[0] >= bmin[0] && datai[0] <= bmax[0] &&
 		  datai[1] >= bmin[1] && datai[1] <= bmax[1] &&
 		  datai[2] >= bmin[2] && datai[2] <= bmax[2])
-	      
+
 		pis.Append (node->pi[i]);
 	    }
 
@@ -972,7 +972,7 @@ namespace netgen
 
   void ADTree3M :: PrintRec (ostream & ost, const ADTreeNode3M * node) const
   {
-  
+
     if (node->data)
       {
 	//      ost << node->pi << ": ";
@@ -1043,7 +1043,7 @@ namespace netgen
 
 
 
-  ADTree3F :: ADTree3F (const float * acmin, 
+  ADTree3F :: ADTree3F (const float * acmin,
 			const float * acmax)
     : ela(0)
   {
@@ -1071,7 +1071,7 @@ namespace netgen
     float bmin[3];
     float bmax[3];
     int i, dir;
-  
+
     memcpy (bmin, cmin, 3 * sizeof(float));
     memcpy (bmax, cmax, 3 * sizeof(float));
 
@@ -1080,9 +1080,9 @@ namespace netgen
     while (next)
       {
 	node = next;
-      
+
 	if (!node->pi)
-	  {    
+	  {
 	    memcpy (node->data, p, 3 * sizeof(float));
 	    node->pi = pi;
 
@@ -1131,7 +1131,7 @@ namespace netgen
 
     for (i = 0; i < 3; i++)
       next->sep[i] = (bmin[i] + bmax[i]) / 2;
-  
+
 
     if (ela.Size() < pi)
       ela.SetSize (pi);
@@ -1161,7 +1161,7 @@ namespace netgen
       }
   }
 
-  void ADTree3F :: GetIntersecting (const float * bmin, 
+  void ADTree3F :: GetIntersecting (const float * bmin,
 				    const float * bmax,
 				    Array<int> & pis) const
   {
@@ -1189,7 +1189,7 @@ namespace netgen
 	      pis.Append (node->pi);
 	  }
 
-      
+
 	int i1min = (bmin[0] <= node->sep[0]) ? 0 : 1;
 	int i1max = (bmax[0] < node->sep[0]) ? 0 : 1;
 	int i2min = (bmin[1] <= node->sep[1]) ? 0 : 1;
@@ -1209,7 +1209,7 @@ namespace netgen
 		    stack.Elem(stacks) = node->childs[i];
 		  }
 	      }
-      
+
 	/*
 	  if (node->left && bmin[dir] <= node->sep)
 	  {
@@ -1304,7 +1304,7 @@ namespace netgen
 
 
 
-  ADTree3FM :: ADTree3FM (const float * acmin, 
+  ADTree3FM :: ADTree3FM (const float * acmin,
 			  const float * acmax)
     : ela(0)
   {
@@ -1332,7 +1332,7 @@ namespace netgen
     float bmin[3];
     float bmax[3];
     int i, dir;
-  
+
     memcpy (bmin, cmin, 3 * sizeof(float));
     memcpy (bmax, cmax, 3 * sizeof(float));
 
@@ -1340,17 +1340,17 @@ namespace netgen
     while (next)
       {
 	node = next;
-      
+
 	for (i = 0; i < ADTN_SIZE; i++)
 	  if (!node->pi[i])
-	    {    
+	    {
 	      memcpy (node->data[i], p, 3 * sizeof(float));
 	      node->pi[i] = pi;
-	    
+
 	      if (ela.Size() < pi)
 		ela.SetSize (pi);
 	      ela.Elem(pi) = node;
-	    
+
 	      return;
 	    }
 
@@ -1392,7 +1392,7 @@ namespace netgen
 
     for (i = 0; i < 3; i++)
       next->sep[i] = (bmin[i] + bmax[i]) / 2;
-  
+
 
     if (ela.Size() < pi)
       ela.SetSize (pi);
@@ -1425,7 +1425,7 @@ namespace netgen
       }
   }
 
-  void ADTree3FM :: GetIntersecting (const float * bmin, 
+  void ADTree3FM :: GetIntersecting (const float * bmin,
 				     const float * bmax,
 				     Array<int> & pis) const
   {
@@ -1452,7 +1452,7 @@ namespace netgen
 	      if (datai[0] >= bmin[0] && datai[0] <= bmax[0] &&
 		  datai[1] >= bmin[1] && datai[1] <= bmax[1] &&
 		  datai[2] >= bmin[2] && datai[2] <= bmax[2])
-	      
+
 		pis.Append (node->pi[i]);
 	    }
 
@@ -1466,7 +1466,7 @@ namespace netgen
 	  pis.Append (node->pi);
 	  }
 	*/
-      
+
 	int i1min = (bmin[0] <= node->sep[0]) ? 0 : 1;
 	int i1max = (bmax[0] < node->sep[0]) ? 0 : 1;
 	int i2min = (bmin[1] <= node->sep[1]) ? 0 : 1;
@@ -1486,7 +1486,7 @@ namespace netgen
 		    stack.Elem(stacks) = node->childs[i];
 		  }
 	      }
-      
+
 	/*
 	  if (node->left && bmin[dir] <= node->sep)
 	  {
@@ -1562,7 +1562,7 @@ namespace netgen
 
 
   BlockAllocator ADTreeNode6 :: ball (sizeof (ADTreeNode6));
-  void * ADTreeNode6 :: operator new(size_t s)
+  void * ADTreeNode6 :: operator new(size_t /*s*/)
   {
     return ball.Alloc();
   }
@@ -1576,7 +1576,7 @@ namespace netgen
 
 
 
-  ADTree6 :: ADTree6 (const float * acmin, 
+  ADTree6 :: ADTree6 (const float * acmin,
 		      const float * acmax)
     : ela(0)
   {
@@ -1603,7 +1603,7 @@ namespace netgen
     float bmin[6];
     float bmax[6];
 
-  
+
     memcpy (bmin, cmin, 6 * sizeof(float));
     memcpy (bmax, cmax, 6 * sizeof(float));
 
@@ -1614,7 +1614,7 @@ namespace netgen
 	node = next;
 
 	if (node->pi == -1)
-	  {    
+	  {
 	    memcpy (node->data, p, 6 * sizeof(float));
 	    node->pi = pi;
 
@@ -1681,7 +1681,7 @@ namespace netgen
 
   void ADTree6 :: PrintMemInfo (ostream & ost) const
   {
-    ost << Elements() << " elements a " << sizeof(ADTreeNode6) 
+    ost << Elements() << " elements a " << sizeof(ADTreeNode6)
 	<< " Bytes = "
 	<< Elements() * sizeof(ADTreeNode6) << endl;
     ost << "maxind = " << ela.Size() << " = " << sizeof(ADTreeNode6*) * ela.Size() << " Bytes" << endl;
@@ -1698,7 +1698,7 @@ namespace netgen
 
 
 
-  void ADTree6 :: GetIntersecting (const float * bmin, 
+  void ADTree6 :: GetIntersecting (const float * bmin,
 				   const float * bmax,
 				   Array<int> & pis) const
   {
@@ -1714,16 +1714,16 @@ namespace netgen
     while (stacks >= 0)
       {
 	ADTreeNode6 * node = stack[stacks].node;
-	int dir = stack[stacks].dir; 
+	int dir = stack[stacks].dir;
 
 	stacks--;
 	if (node->pi != -1)
 	  {
-	    if (node->data[0] > bmax[0] || 
-		node->data[1] > bmax[1] || 
-		node->data[2] > bmax[2] || 
-		node->data[3] < bmin[3] || 
-		node->data[4] < bmin[4] || 
+	    if (node->data[0] > bmax[0] ||
+		node->data[1] > bmax[1] ||
+		node->data[2] > bmax[2] ||
+		node->data[3] < bmin[3] ||
+		node->data[4] < bmin[4] ||
 		node->data[5] < bmin[5])
 	      ;
 	    else
@@ -1751,7 +1751,7 @@ namespace netgen
 
   void ADTree6 :: PrintRec (ostream & ost, const ADTreeNode6 * node) const
   {
-  
+
     if (node->data)
       {
 	ost << node->pi << ": ";
@@ -1841,7 +1841,7 @@ namespace netgen
 
 
 
-  ADTree6F :: ADTree6F (const float * acmin, 
+  ADTree6F :: ADTree6F (const float * acmin,
 			const float * acmax)
     : ela(0)
   {
@@ -1869,7 +1869,7 @@ namespace netgen
     float bmin[6];
     float bmax[6];
     int i, dir;
-  
+
     memcpy (bmin, cmin, 6 * sizeof(float));
     memcpy (bmax, cmax, 6 * sizeof(float));
 
@@ -1877,9 +1877,9 @@ namespace netgen
     while (next)
       {
 	node = next;
-      
+
 	if (!node->pi)
-	  {    
+	  {
 	    memcpy (node->data, p, 6 * sizeof(float));
 	    node->pi = pi;
 
@@ -1928,7 +1928,7 @@ namespace netgen
 
     for (i = 0; i < 6; i++)
       next->sep[i] = (bmin[i] + bmax[i]) / 2;
-  
+
 
     if (ela.Size() < pi)
       ela.SetSize (pi);
@@ -1958,7 +1958,7 @@ namespace netgen
       }
   }
 
-  void ADTree6F :: GetIntersecting (const float * bmin, 
+  void ADTree6F :: GetIntersecting (const float * bmin,
 				    const float * bmax,
 				    Array<int> & pis) const
   {
@@ -1991,7 +1991,7 @@ namespace netgen
 	      pis.Append (node->pi);
 	  }
 
-      
+
 	int i1min = (bmin[0] <= node->sep[0]) ? 0 : 1;
 	int i1max = (bmax[0] < node->sep[0]) ? 0 : 1;
 	int i2min = (bmin[1] <= node->sep[1]) ? 0 : 1;
@@ -2021,7 +2021,7 @@ namespace netgen
 			  stack.Elem(stacks) = node->childs[i];
 			}
 		    }
-      
+
 	/*
 	  if (node->left && bmin[dir] <= node->sep)
 	  {
@@ -2093,7 +2093,7 @@ namespace netgen
     tree->Insert (pd, pi);
   }
 
-  void Point3dTree :: GetIntersecting (const Point<3> & pmin, const Point<3> & pmax, 
+  void Point3dTree :: GetIntersecting (const Point<3> & pmin, const Point<3> & pmax,
 				       Array<int> & pis) const
   {
     float pmi[3], pma[3];
@@ -2157,7 +2157,7 @@ namespace netgen
     tree->Insert (tp, pi);
   }
 
-  void Box3dTree ::GetIntersecting (const Point<3> & pmin, const Point<3> & pmax, 
+  void Box3dTree ::GetIntersecting (const Point<3> & pmin, const Point<3> & pmax,
 				    Array<int> & pis) const
   {
     float tpmin[6];
@@ -2167,7 +2167,7 @@ namespace netgen
       {
 	tpmin[i] = boxpmin(i);
 	tpmax[i] = pmax(i);
-      
+
 	tpmin[i+3] = pmin(i);
 	tpmax[i+3] = boxpmax(i);
       }

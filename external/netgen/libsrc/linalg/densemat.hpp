@@ -7,7 +7,7 @@
 /* Date:   01. Oct. 94                                                    */
 /**************************************************************************/
 
-/** 
+/**
     Data type dense matrix
 */
 
@@ -58,21 +58,21 @@ public:
     double sum;
     const double * mp, * sp;
     double * dp;
-    
+
 #ifdef DEBUG
     if (prod.Size() != height)
       {
 	(*myerr) << "Mult: wrong vector size " << endl;
       }
-    if (!height) 
+    if (!height)
       {
 	cout << "DenseMatrix::Mult height = 0" << endl;
       }
-    if (!width) 
+    if (!width)
       {
 	cout << "DenseMatrix::Mult width = 0" << endl;
       }
-    
+
     if (width != v.Size())
       {
 	(*myerr) << "\nMatrix and Vector don't fit" << endl;
@@ -83,14 +83,14 @@ public:
       }
     else
 #endif
-      {      
+      {
 	mp = data;
 	dp = &prod(0);
         for (int i = 0; i < height; i++)
 	  {
 	    sum = 0;
 	    sp = &v(0);
-	    
+
 	    for (int j = 0; j < width; j++)
 	      {
 		//        sum += Get(i,j) * v.Get(j);
@@ -98,7 +98,7 @@ public:
 		mp++;
 		sp++;
 	      }
-	    
+
 	    *dp = sum;
 	    dp++;
 	  }
@@ -117,7 +117,7 @@ public:
   ///
   friend DenseMatrix operator+ (const DenseMatrix & m1, const DenseMatrix & m2);
 
-  /// 
+  ///
   friend void Transpose (const DenseMatrix & m1, DenseMatrix & m2);
   ///
   friend void Mult (const DenseMatrix & m1, const DenseMatrix & m2, DenseMatrix & m3);
@@ -161,7 +161,7 @@ protected:
 
 public:
   ///
-  MatrixFixWidth () 
+  MatrixFixWidth ()
   { height = 0; data = 0; }
   ///
   MatrixFixWidth (int h)
@@ -176,7 +176,7 @@ public:
       {
 	delete data;
 	height = h;
-	data = new double[WIDTH*height]; 
+	data = new double[WIDTH*height];
       }
   }
 
@@ -190,7 +190,7 @@ public:
   MatrixFixWidth & operator= (double v)
   {
     for (int i = 0; i < height*WIDTH; i++)
-      data[i] = v; 
+      data[i] = v;
     return *this;
   }
 
@@ -201,13 +201,13 @@ public:
     const double * mp, * sp;
     double * dp;
 
-    /*    
+    /*
     if (prod.Size() != height)
       {
 	cerr << "MatrixFixWidth::Mult: wrong vector size " << endl;
 	assert (1);
       }
-    */    
+    */
 
     mp = data;
     dp = &prod[0];
@@ -215,14 +215,14 @@ public:
       {
 	sum = 0;
 	sp = &v[0];
-	
+
 	for (int j = 0; j < WIDTH; j++)
 	  {
 	    sum += *mp * *sp;
 	    mp++;
 	    sp++;
 	  }
-	    
+
 	*dp = sum;
 	dp++;
       }
@@ -267,7 +267,7 @@ extern ostream & operator<< (ostream & ost, const MatrixFixWidth<WIDTH> & m)
       ost << endl;
     }
   return ost;
-};
+}
 
 
 extern DLL_HEADER void CalcAtA (const DenseMatrix & a, DenseMatrix & m2);

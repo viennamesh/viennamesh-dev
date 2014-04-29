@@ -17,14 +17,14 @@ int AddPointIfNotExists(Array<Point3d>& ap, const Point3d& p, double eps)
 {
   double eps2 = sqr(eps);
   for (int i = 1; i <= ap.Size(); i++)
-    if (Dist2(ap.Get(i),p) <= eps2 ) 
+    if (Dist2(ap.Get(i),p) <= eps2 )
       return i;
   return ap.Append(p);
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-double GetDistFromLine(const Point<3> & lp1, const Point<3> & lp2, 
+double GetDistFromLine(const Point<3> & lp1, const Point<3> & lp2,
 		       Point<3> & p)
 {
   Vec3d vn = lp2 - lp1;
@@ -35,14 +35,14 @@ double GetDistFromLine(const Point<3> & lp1, const Point<3> & lp2,
 
   if (v2 * vn <= 0) {p = lp2; return (pold - p).Length();}
   if (v1 * vn <= 0) {p = lp1; return (pold - p).Length();}
-    
+
   double vnl = vn.Length();
   if (vnl == 0) {return Dist(lp1,p);}
 
   vn /= vnl;
   p = lp1 + (v1 * vn) * vn;
   return (pold - p).Length();
-};
+}
 
 double GetDistFromInfiniteLine(const Point<3>& lp1, const Point<3>& lp2, const Point<3>& p)
 {
@@ -59,7 +59,7 @@ double GetDistFromInfiniteLine(const Point<3>& lp1, const Point<3>& lp2, const P
     {
       return Cross (vn, v1).Length() / vnl;
     }
-};
+}
 
 
 
@@ -71,7 +71,7 @@ double GetDistFromInfiniteLine(const Point<3>& lp1, const Point<3>& lp2, const P
 void FIOReadInt(istream& ios, int& i)
 {
   const int ilen = sizeof(int);
-  
+
   char buf[ilen];
   for (int j = 0; j < ilen; j++)
     ios.get(buf[j]);
@@ -81,7 +81,7 @@ void FIOReadInt(istream& ios, int& i)
 void FIOWriteInt(ostream& ios, const int& i)
 {
   const int ilen = sizeof(int);
-  
+
   char buf[ilen];
   memcpy(&buf, &i, ilen);
 
@@ -92,7 +92,7 @@ void FIOWriteInt(ostream& ios, const int& i)
 void FIOReadDouble(istream& ios, double& i)
 {
   const int ilen = sizeof(double);
-  
+
   char buf[ilen];
   for (int j = 0; j < ilen; j++)
     ios.get(buf[j]);
@@ -103,7 +103,7 @@ void FIOReadDouble(istream& ios, double& i)
 void FIOWriteDouble(ostream& ios, const double& i)
 {
   const int ilen = sizeof(double);
-  
+
   char buf[ilen];
   memcpy(&buf, &i, ilen);
 
@@ -114,7 +114,7 @@ void FIOWriteDouble(ostream& ios, const double& i)
 void FIOReadFloat(istream& ios, float& i)
 {
   const int ilen = sizeof(float);
-  
+
   char buf[ilen];
   int j;
   for (j = 0; j < ilen; j++)
@@ -127,7 +127,7 @@ void FIOReadFloat(istream& ios, float& i)
 void FIOWriteFloat(ostream& ios, const float& i)
 {
   const int ilen = sizeof(float);
-  
+
   char buf[ilen];
   memcpy(&buf, &i, ilen);
 
@@ -160,7 +160,7 @@ void FIOWriteString(ostream& ios, char* str, int len)
 void FIOReadInt(istream& ios, int& i)
 {
   const int ilen = sizeof(int);
-  
+
   char buf[ilen];
   int j;
   for (j = 0; j < ilen; j++)
@@ -173,7 +173,7 @@ void FIOReadInt(istream& ios, int& i)
 void FIOWriteInt(ostream& ios, const int& i)
 {
   const int ilen = sizeof(int);
-  
+
   char buf[ilen];
   memcpy(&buf, &i, ilen);
 
@@ -187,7 +187,7 @@ void FIOWriteInt(ostream& ios, const int& i)
 void FIOReadDouble(istream& ios, double& i)
 {
   const int ilen = sizeof(double);
-  
+
   char buf[ilen];
   int j;
   for (j = 0; j < ilen; j++)
@@ -200,7 +200,7 @@ void FIOReadDouble(istream& ios, double& i)
 void FIOWriteDouble(ostream& ios, const double& i)
 {
   const int ilen = sizeof(double);
-  
+
   char buf[ilen];
   memcpy(&buf, &i, ilen);
 
@@ -214,7 +214,7 @@ void FIOWriteDouble(ostream& ios, const double& i)
 void FIOReadFloat(istream& ios, float& i)
 {
   const int ilen = sizeof(float);
-  
+
   char buf[ilen];
   int j;
   for (j = 0; j < ilen; j++)
@@ -227,7 +227,7 @@ void FIOReadFloat(istream& ios, float& i)
 void FIOWriteFloat(ostream& ios, const float& i)
 {
   const int ilen = sizeof(float);
-  
+
   char buf[ilen];
   memcpy(&buf, &i, ilen);
 
@@ -275,7 +275,7 @@ STLReadTriangle :: STLReadTriangle (const Point<3> * apts,
 {
   pts[0] = apts[0];
   pts[1] = apts[1];
-  pts[2] = apts[2]; 
+  pts[2] = apts[2];
   normal = anormal;
 }
 
@@ -296,12 +296,12 @@ int STLTriangle :: IsNeighbourFrom(const STLTriangle& t) const
 
   for(int i = 0; i <= 2; i++)
     for(int j = 0; j <= 2; j++)
-      if (t.pts[(i+1)%3] == pts[j] && 
+      if (t.pts[(i+1)%3] == pts[j] &&
 	  t.pts[i] == pts[(j+1)%3])
 
 	return 1;
 
-  return 0;      
+  return 0;
 }
 
 int STLTriangle :: IsWrongNeighbourFrom(const STLTriangle& t) const
@@ -311,10 +311,10 @@ int STLTriangle :: IsWrongNeighbourFrom(const STLTriangle& t) const
     for(int j = 0; j <= 2; j++)
       if (t.pts[(i+1)%3] == pts[(j+1)%3] &&
 	  t.pts[i] == pts[j])
-	
+
 	return 1;
 
-  return 0;      
+  return 0;
 }
 
 void STLTriangle :: GetNeighbourPoints(const STLTriangle& t, int& p1, int& p2) const
@@ -324,8 +324,8 @@ void STLTriangle :: GetNeighbourPoints(const STLTriangle& t, int& p1, int& p2) c
       if (t.PNumMod(i+1) == PNumMod(j) &&
 	  t.PNumMod(i) == PNumMod(j+1))
 	{
-	  p1 = PNumMod(j); 
-	  p2 = PNumMod(j+1); 
+	  p1 = PNumMod(j);
+	  p2 = PNumMod(j+1);
 	  return;
 	}
 
@@ -339,12 +339,12 @@ int STLTriangle :: GetNeighbourPointsAndOpposite(const STLTriangle& t, int& p1, 
       if (t.PNumMod(i+1) == PNumMod(j) &&
 	  t.PNumMod(i) == PNumMod(j+1))
 	{
-	  p1 = PNumMod(j); 
-	  p2 = PNumMod(j+1); 
-	  po = PNumMod(j+2); 
+	  p1 = PNumMod(j);
+	  p2 = PNumMod(j+1);
+	  po = PNumMod(j+2);
 	  return 1;
 	}
-  
+
   return 0;
 }
 
@@ -353,7 +353,7 @@ Vec<3> STLTriangle :: GeomNormal(const Array<Point<3> >& ap) const
   const Point<3> & p1 = ap.Get(PNum(1));
   const Point<3> & p2 = ap.Get(PNum(2));
   const Point<3> & p3 = ap.Get(PNum(3));
-  
+
   return Cross(p2-p1, p3-p1);
 }
 
@@ -374,16 +374,16 @@ void STLTriangle :: SetNormal (const Vec<3> & n)
 
 
 void STLTriangle :: ChangeOrientation()
-{ 
+{
   normal *= -1;
-  Swap(pts[0],pts[1]); 
+  Swap(pts[0],pts[1]);
 }
 
 
 
 double STLTriangle :: Area(const Array<Point<3> >& ap) const
 {
-  return 0.5 * Cross(ap.Get(PNum(2))-ap.Get(PNum(1)), 
+  return 0.5 * Cross(ap.Get(PNum(2))-ap.Get(PNum(1)),
 		     ap.Get(PNum(3))-ap.Get(PNum(1))).Length();
 }
 
@@ -402,25 +402,25 @@ double STLTriangle :: MaxLength(const Array<Point<3> >& ap) const
 	      Dist(ap.Get(PNum(3)),ap.Get(PNum(1))));
 }
 
-void STLTriangle :: ProjectInPlain(const Array<Point<3> >& ap, 
+void STLTriangle :: ProjectInPlain(const Array<Point<3> >& ap,
 				   const Vec<3> & n, Point<3> & pp) const
 {
   const Point<3> & p1 = ap.Get(PNum(1));
   const Point<3> & p2 = ap.Get(PNum(2));
   const Point<3> & p3 = ap.Get(PNum(3));
-  
+
   Vec<3> v1 = p2 - p1;
   Vec<3> v2 = p3 - p1;
   Vec<3> nt = Cross(v1, v2);
 
   double c = - (p1(0)*nt(0) + p1(1)*nt(1) + p1(2)*nt(2));
 
-  double prod = n * nt;  
+  double prod = n * nt;
 
-  if (fabs(prod) == 0) 
+  if (fabs(prod) == 0)
     {
-      pp = Point<3>(1.E20,1.E20,1.E20); 
-      return; 
+      pp = Point<3>(1.E20,1.E20,1.E20);
+      return;
     }
 
   double nfact = -(pp(0)*nt(0) + pp(1)*nt(1) + pp(2)*nt(2) + c) / (prod);
@@ -429,14 +429,14 @@ void STLTriangle :: ProjectInPlain(const Array<Point<3> >& ap,
 }
 
 
-int STLTriangle :: ProjectInPlain (const Array<Point<3> >& ap, 
-				   const Vec<3> & nproj, 
+int STLTriangle :: ProjectInPlain (const Array<Point<3> >& ap,
+				   const Vec<3> & nproj,
 				   Point<3> & pp, Vec<3> & lam) const
 {
   const Point<3> & p1 = ap.Get(PNum(1));
   const Point<3> & p2 = ap.Get(PNum(2));
   const Point<3> & p3 = ap.Get(PNum(3));
-  
+
   Vec<3> v1 = p2-p1;
   Vec<3> v2 = p3-p1;
 
@@ -467,33 +467,33 @@ int STLTriangle :: ProjectInPlain (const Array<Point<3> >& ap,
 
 
 
-void STLTriangle :: ProjectInPlain(const Array<Point<3> >& ap, 
+void STLTriangle :: ProjectInPlain(const Array<Point<3> >& ap,
 				   Point<3> & pp) const
 {
   const Point<3> & p1 = ap.Get(PNum(1));
   const Point<3> & p2 = ap.Get(PNum(2));
   const Point<3> & p3 = ap.Get(PNum(3));
-  
+
   Vec<3> v1 = p2 - p1;
   Vec<3> v2 = p3 - p1;
   Vec<3> nt = Cross(v1, v2);
 
   double c = - (p1(0)*nt(0) + p1(1)*nt(1) + p1(2)*nt(2));
-  
-  double prod = nt * nt;  
+
+  double prod = nt * nt;
 
   double nfact = -(pp(0)*nt(0) + pp(1)*nt(1) + pp(2)*nt(2) + c) / (prod);
 
   pp = pp + (nfact) * nt;
 }
 
-int STLTriangle :: PointInside(const Array<Point<3> > & ap, 
+int STLTriangle :: PointInside(const Array<Point<3> > & ap,
 			       const Point<3> & pp) const
 {
   const Point<3> & p1 = ap.Get(PNum(1));
   const Point<3> & p2 = ap.Get(PNum(2));
   const Point<3> & p3 = ap.Get(PNum(3));
-  
+
   Vec<3> v1 = p2 - p1;
   Vec<3> v2 = p3 - p1;
   Vec<3> v  = pp - p1;
@@ -506,7 +506,7 @@ int STLTriangle :: PointInside(const Array<Point<3> > & ap,
   ex = v1;
   ex /= ex.Length();
   ey = Cross (ez, ex);
-  
+
   Vec<2> v1p(v1*ex, v1*ey);
   Vec<2> v2p(v2*ex, v2*ey);
   Vec<2> vp(v*ex, v*ey);
@@ -514,9 +514,9 @@ int STLTriangle :: PointInside(const Array<Point<3> > & ap,
   det = v2p(1) * v1p(0) - v2p(0) * v1p(1);
 
   if (fabs(det) == 0) {return 0;}
-  
+
   l2 = (vp(1) * v1p(0) - vp(0) * v1p(1)) / det;
-  
+
   if (v1p(0) != 0.)
     {
       l1 = (vp(0) - l2 * v2p(0)) / v1p(0);
@@ -526,12 +526,12 @@ int STLTriangle :: PointInside(const Array<Point<3> > & ap,
       l1 = (vp(1) - l2 * v2p(1)) / v1p(1);
     }
   else {return 0;}
-  
+
   if (l1 >= -1E-10 && l2 >= -1E-10 && l1 + l2 <= 1.+1E-10) {return 1;}
-  return 0; 
+  return 0;
 }
 
-double STLTriangle :: GetNearestPoint(const Array<Point<3> >& ap, 
+double STLTriangle :: GetNearestPoint(const Array<Point<3> >& ap,
 				      Point<3> & p3d) const
 {
   Point<3> p = p3d;
@@ -550,7 +550,7 @@ double STLTriangle :: GetNearestPoint(const Array<Point<3> >& ap,
 	  dist = GetDistFromLine(ap.Get(PNum(j)), ap.Get(PNumMod(j+1)), p);
 	  if (dist < nearest)
 	    {
-	      nearest = dist; 
+	      nearest = dist;
 	      pf = p;
 	    }
 	}
@@ -577,7 +577,7 @@ ostream& operator<<(ostream& os, const STLTriangle& t)
   os << t[2] << "]";
 
   return os;
-};
+}
 
 
 
@@ -590,11 +590,11 @@ STLTopEdge :: STLTopEdge ()
 }
 
 STLTopEdge :: STLTopEdge (int p1, int p2, int trig1, int trig2)
-{ 
-  pts[0] = p1; 
-  pts[1] = p2; 
-  trigs[0] = trig1; 
-  trigs[1] = trig2; 
+{
+  pts[0] = p1;
+  pts[1] = p2;
+  trigs[0] = trig1;
+  trigs[1] = trig2;
   cosangle = 1;
   status = ED_UNDEFINED;
 }
@@ -615,7 +615,7 @@ STLChart :: STLChart(STLGeometry * ageometry)
 
   geometry = ageometry;
 
-  if ( (stlparam.usesearchtree == 1))
+  if (stlparam.usesearchtree == 1)
     searchtree = new Box3dTree (geometry->GetBoundingBox().PMin() - Vec3d(1,1,1),
 				geometry->GetBoundingBox().PMax() + Vec3d(1,1,1));
   else
@@ -625,7 +625,7 @@ STLChart :: STLChart(STLGeometry * ageometry)
 void STLChart :: AddChartTrig(int i)
 {
   charttrigs->Append(i);
-  
+
   const STLTriangle & trig = geometry->GetTriangle(i);
   const Point3d & p1 = geometry->GetPoint (trig.PNum(1));
   const Point3d & p2 = geometry->GetPoint (trig.PNum(2));
@@ -636,7 +636,7 @@ void STLChart :: AddChartTrig(int i)
   pmin.SetToMin (p3);
   pmax.SetToMax (p2);
   pmax.SetToMax (p3);
-  
+
   if (!geomsearchtreeon && (stlparam.usesearchtree == 1))
     {searchtree->Insert (pmin, pmax, i);}
 }
@@ -655,7 +655,7 @@ void STLChart :: AddOuterTrig(int i)
   pmin.SetToMin (p3);
   pmax.SetToMax (p2);
   pmax.SetToMax (p3);
-  
+
   if (!geomsearchtreeon && (stlparam.usesearchtree==1))
     {searchtree->Insert (pmin, pmax, i);}
 }
@@ -686,7 +686,7 @@ void STLChart :: GetTrianglesInBox (const Point3d & pmin,
       Box3d box2;
 
       trias.SetSize(0);
-      
+
       int nt = GetNT();
       for (int i = 1; i <= nt; i++)
 	{
@@ -695,7 +695,7 @@ void STLChart :: GetTrianglesInBox (const Point3d & pmin,
 	  box2.SetPoint (geometry->GetPoint (trig.PNum(1)));
 	  box2.AddPoint (geometry->GetPoint (trig.PNum(2)));
 	  box2.AddPoint (geometry->GetPoint (trig.PNum(3)));
-	  
+
 	  if (box1.Intersect (box2))
 	    trias.Append (trignum);
 	}
@@ -708,7 +708,7 @@ void STLChart :: MoveToOuterChart(const Array<int>& trigs)
   if (!trigs.Size()) {return;}
   for (int i = 1; i <= trigs.Size(); i++)
     {
-      if (charttrigs->Get(trigs.Get(i)) != -1) 
+      if (charttrigs->Get(trigs.Get(i)) != -1)
 	{AddOuterTrig(charttrigs->Get(trigs.Get(i)));}
       charttrigs->Elem(trigs.Get(i)) = -1;
     }
@@ -753,14 +753,14 @@ void STLChart :: DelChartTrigs(const Array<int>& trigs)
 	  const Point3d & p1 = geometry->GetPoint (trig.PNum(1));
 	  const Point3d & p2 = geometry->GetPoint (trig.PNum(2));
 	  const Point3d & p3 = geometry->GetPoint (trig.PNum(3));
-	  
+
 	  Point3d pmin(p1), pmax(p1);
 	  pmin.SetToMin (p2);
 	  pmin.SetToMin (p3);
 	  pmax.SetToMax (p2);
 	  pmax.SetToMax (p3);
-	  
-	  searchtree->Insert (pmin, pmax, i);	  
+
+	  searchtree->Insert (pmin, pmax, i);
 	}
     }
 }
@@ -792,12 +792,12 @@ Point<2> STLChart :: Project2d (const Point<3> & p3d) const
   int i1, i2;
 public:
 */
-STLBoundarySeg :: 
+STLBoundarySeg ::
 STLBoundarySeg (int ai1, int ai2, const Array<Point<3> > & points,
 		const STLChart * chart)
 {
   i1 = ai1;
-  i2 = ai2; 
+  i2 = ai2;
   p1 = points.Get(i1);
   p2 = points.Get(i2);
   center = ::netgen::Center (p1, p2);
@@ -805,7 +805,7 @@ STLBoundarySeg (int ai1, int ai2, const Array<Point<3> > & points,
 
   p2d1 = chart->Project2d (p1);
   p2d2 = chart->Project2d (p2);
-  
+
   boundingbox.Set (p2d1);
   boundingbox.Add (p2d2);
 }
@@ -819,7 +819,7 @@ void STLBoundarySeg :: Swap ()
 
 
 STLBoundary :: STLBoundary (STLGeometry * ageometry)
-  : // boundary(), 
+  : // boundary(),
     geometry(ageometry)
 {
   ;
@@ -835,11 +835,11 @@ void STLBoundary :: AddOrDelSegment(const STLBoundarySeg & seg)
       if (found) {boundary.Elem(i-1) = boundary.Get(i);}
       if (boundary.Get(i) == seg) {found = 1;}
     }
-  if (!found) 
+  if (!found)
     {
       boundary.Append(seg);
     }
-  else 
+  else
     {
       boundary.SetSize(boundary.Size()-1);
     }
@@ -852,7 +852,7 @@ void STLBoundary ::AddTriangle(const STLTriangle & t)
   int found2 = 0;
   int found3 = 0;
   //int offset = 0;
-  
+
 
   STLBoundarySeg seg1(t[0],t[1], geometry->GetPoints(), chart);
   STLBoundarySeg seg2(t[1],t[2], geometry->GetPoints(), chart);
@@ -874,16 +874,16 @@ void STLBoundary ::AddTriangle(const STLTriangle & t)
   if (offset)
     {
       boundary.SetSize(boundary.Size()-offset);
-    }    
+    }
   */
   for (i = boundary.Size(); i >= 1; i--)
     {
-      if (boundary.Get(i) == seg1) 
-	{ boundary.DeleteElement (i); found1 = 1; } 
-      else if (boundary.Get(i) == seg2) 
-	{ boundary.DeleteElement (i); found2 = 1; } 
-      else if (boundary.Get(i) == seg3) 
-	{ boundary.DeleteElement (i); found3 = 1; } 
+      if (boundary.Get(i) == seg1)
+	{ boundary.DeleteElement (i); found1 = 1; }
+      else if (boundary.Get(i) == seg2)
+	{ boundary.DeleteElement (i); found2 = 1; }
+      else if (boundary.Get(i) == seg3)
+	{ boundary.DeleteElement (i); found3 = 1; }
     }
 
   if (!found1) {seg1.Swap(); boundary.Append(seg1);}
@@ -891,8 +891,8 @@ void STLBoundary ::AddTriangle(const STLTriangle & t)
   if (!found3) {seg3.Swap(); boundary.Append(seg3);}
 }
 
-int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3> & sn, 
-			   double sinchartangle, int divisions, Array<Point<3> >& points, double eps)
+int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3> & sn,
+			   double sinchartangle, int divisions, Array<Point<3> >& /*points*/, double eps)
 {
 
   if (usechartnormal)
@@ -911,7 +911,7 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
 	for (i = 1; i <= cntclass.Size(); i++)
 	  cntclass.Elem(i) = 0;
       }
-    
+
     cntsegs += NOSegments();
     int cla = int (log (double(NOSegments()+1)) / log(2.0));
     if (cla < 1) cla = 1;
@@ -922,7 +922,7 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
       cnti++;
     else
       cnto++;
-    if (cnt > 100000) 
+    if (cnt > 100000)
       {
 	cnt = 0;
 	/*
@@ -938,13 +938,13 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
   }
 
 
-  int i,j,k;
+  int /*i,*/j/*,k*/;
   Point<3> seg1p/*, seg2p*/;
   Point<3> sp1,sp2;
-  double lambda1, lambda2, vlen2;
+//   double lambda1, lambda2, vlen2;
   Vec<3> vptpl;
   double sinchartangle2 = sqr(sinchartangle);
-  double scal;
+//   double scal;
   int possible;
 
   //double maxval = -1;
@@ -958,7 +958,7 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
   double maxl = max2(scalp1, scalp2);
   Point<3> c = Center (p1, p2);
   double dist1 = Dist (c, p1);
- 
+
   int nseg = NOSegments();
   for (j = 1; j <= nseg; j++)
     {
@@ -973,7 +973,7 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
       sp2 = seg.P2();
 
       // Test, ob Spiral Konfikt moeglich
-      
+
       possible = 1;
 
       double scalsp1 = sp1(0) * sn(0) + sp1(1) * sn(1) + sp1(2) * sn(2);
@@ -981,9 +981,9 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
 
       double minsl = min2(scalsp1, scalsp2);
       double maxsl = max2(scalsp1, scalsp2);
-      
+
       double maxdiff = max2 (maxsl - minl, maxl - minsl);
-      
+
       /*
       Point3d sc = Center (sp1, sp2);
       double mindist = Dist(c, sc) - dist1 - GetSegment(j).Radius();
@@ -992,13 +992,13 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
 	  possible = 0;
 	}
       */
-       
+
       double hscal = maxdiff + sinchartangle * (dist1 + seg.Radius());
       if (hscal * hscal < sinchartangle * Dist2(c, seg.center ))
-	possible = 0;
+        possible = 0;
 
 
-      /*      
+      /*
       if (possible)
 	{
 	  double mindist2ex = MinDistLL2 (p1, p2, sp1, sp2);
@@ -1014,19 +1014,19 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
 				 -(scalsp2 - scalsp1));
 	  QuadraticPolynomial2V slp;
 	  slp.Square (lp);
-	  
-      
+
+
 	  Vec3d v (p1, sp1);
 	  Vec3d vl (p1, p2);
 	  Vec3d vsl (sp1, sp2);
-      
+
 	  QuadraticPolynomial2V qp (v.Length2(),
 				    -2 * (v * vl),
 				    2 * (v * vsl),
 				    vl.Length2(),
 				    -2 * (vl * vsl),
 				    vsl.Length2());
-	  
+
 	  slp.Add (-sinchartangle2, qp);
 
 	  double hv = slp.MaxUnitSquare();
@@ -1037,46 +1037,45 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
 	    maxvalnew = hv;
 	  */
 	}
-      
-
-      if (possible && 0)
-
-	for (i = 0; i <= divisions; i++)
-	  {
-	    
-	    lambda1 = (double)i/(double)divisions;
-	    seg1p = Point3d(p1(0)*lambda1+p2(0)*(1.-lambda1),
-			    p1(1)*lambda1+p2(1)*(1.-lambda1),
-			    p1(2)*lambda1+p2(2)*(1.-lambda1));
-	    
-
-	    
-	    for (k = 0; k <= divisions; k++)
-	      {
-		lambda2 = (double)k/(double)divisions;
-		vptpl = Vec3d(sp1(0)*lambda2+sp2(0)*(1.-lambda2)-seg1p(0),
-			      sp1(1)*lambda2+sp2(1)*(1.-lambda2)-seg1p(1),
-			      sp1(2)*lambda2+sp2(2)*(1.-lambda2)-seg1p(2));
-		
-		vlen2 = vptpl.Length2();
-
-		//		if (vlen2 > 0)
-		  {
-		    scal = vptpl * sn;
-		    double hv = scal*scal - sinchartangle2*vlen2;
 
 
-
-		    /*
-		    if (hv > maxval)
-		      maxval = hv;
-		    */
-		    if (hv > eps) return 0;
-		  }
-	      } 
-	  }
+//       if (possible && 0)
+// 	for (i = 0; i <= divisions; i++)
+// 	  {
+//
+// 	    lambda1 = (double)i/(double)divisions;
+// 	    seg1p = Point3d(p1(0)*lambda1+p2(0)*(1.-lambda1),
+// 			    p1(1)*lambda1+p2(1)*(1.-lambda1),
+// 			    p1(2)*lambda1+p2(2)*(1.-lambda1));
+//
+//
+//
+// 	    for (k = 0; k <= divisions; k++)
+// 	      {
+// 		lambda2 = (double)k/(double)divisions;
+// 		vptpl = Vec3d(sp1(0)*lambda2+sp2(0)*(1.-lambda2)-seg1p(0),
+// 			      sp1(1)*lambda2+sp2(1)*(1.-lambda2)-seg1p(1),
+// 			      sp1(2)*lambda2+sp2(2)*(1.-lambda2)-seg1p(2));
+//
+// 		vlen2 = vptpl.Length2();
+//
+// 		//		if (vlen2 > 0)
+// 		  {
+// 		    scal = vptpl * sn;
+// 		    double hv = scal*scal - sinchartangle2*vlen2;
+//
+//
+//
+// 		    /*
+// 		    if (hv > maxval)
+// 		      maxval = hv;
+// 		    */
+// 		    if (hv > eps) return 0;
+// 		  }
+// 	      }
+// 	  }
     }
-  
+
   return 1;
   //  return (maxvalnew < eps);
 }
@@ -1084,8 +1083,8 @@ int STLBoundary :: TestSeg(const Point<3>& p1, const Point<3> & p2, const Vec<3>
 
 
 // checks, whether 2d projection intersects
-int STLBoundary :: TestSegChartNV(const Point3d & p1, const Point3d& p2, 
-				  const Vec3d& sn)
+int STLBoundary :: TestSegChartNV(const Point3d & p1, const Point3d& p2,
+				  const Vec3d& /*sn*/)
 {
   int nseg = NOSegments();
 
@@ -1111,10 +1110,10 @@ int STLBoundary :: TestSegChartNV(const Point3d & p1, const Point3d& p2,
 
       const Point<2> & sp1 = seg.P2D1();
       const Point<2> & sp2 = seg.P2D2();
-      
+
       Line2d l2 (sp1, sp2);
       double lam1, lam2;
-      
+
       int err =
 	CrossPointBarycentric (l1, l2, lam1, lam2);
 
@@ -1177,7 +1176,7 @@ STLParameters ::   STLParameters()
   edgecornerangle = 60;
   chartangle = 15;
   outerchartangle = 70;
-     
+
   usesearchtree = 0;
   atlasminh = 1E-4;
   resthsurfcurvfac = 2;

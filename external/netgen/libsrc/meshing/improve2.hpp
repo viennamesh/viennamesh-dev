@@ -14,11 +14,12 @@ class MeshOptimize2d
 public:
   ///
   MeshOptimize2d ();
+  virtual ~MeshOptimize2d () {}
   ///
   void ImproveMesh (Mesh & mesh2d, const MeshingParameters & mp);
   void ImproveMeshJacobian (Mesh & mesh2d, const MeshingParameters & mp);
   void ImproveVolumeMesh (Mesh & mesh);
-  void ProjectBoundaryPoints(Array<int> & surfaceindex, 
+  void ProjectBoundaryPoints(Array<int> & surfaceindex,
 			     const Array<Point<3>* > & from, Array<Point<3>* > & dest);
 
   void EdgeSwapping (Mesh & mesh, int usemetric);
@@ -41,13 +42,13 @@ public:
   virtual void ProjectPoint (INDEX /* surfind */, Point<3> & /* p */) const { };
 
   /// project point, use gi as initial value, and compute new gi
-  virtual int ProjectPointGI (INDEX surfind, Point<3> & p, PointGeomInfo & gi) const 
+  virtual int ProjectPointGI (INDEX surfind, Point<3> & p, PointGeomInfo & gi) const
   { ProjectPoint (surfind, p); return CalcPointGeomInfo (surfind, gi, p); }
 
   ///
   virtual void ProjectPoint2 (INDEX /* surfind */, INDEX /* surfind2 */, Point<3> & /* p */) const { };
 
-  /// liefert zu einem 3d-Punkt die geominfo (Dreieck) und liefert 1, wenn erfolgreich, 
+  /// liefert zu einem 3d-Punkt die geominfo (Dreieck) und liefert 1, wenn erfolgreich,
   /// 0, wenn nicht (Punkt ausserhalb von chart)
   virtual int CalcPointGeomInfo(PointGeomInfo& gi, const Point<3> & /*p3*/) const
     { gi.trignum = 1; return 1;};
@@ -76,22 +77,22 @@ public:
 };
 
 
-extern void CalcTriangleBadness (double x2, double x3, double y3, 
+extern void CalcTriangleBadness (double x2, double x3, double y3,
 				 double metricweight,
-				 double h, double & badness, 
+				 double h, double & badness,
 				 double & g1x, double & g1y);
 
 
 
 
-extern double CalcTriangleBadness (const Point<3> & p1, 
-				   const Point<3> & p2, 
+extern double CalcTriangleBadness (const Point<3> & p1,
+				   const Point<3> & p2,
 				   const Point<3> & p3,
 				   double metricweight,
 				   double h);
 
-extern double CalcTriangleBadness (const Point<3> & p1, 
-				   const Point<3> & p2, 
+extern double CalcTriangleBadness (const Point<3> & p1,
+				   const Point<3> & p2,
 				   const Point<3> & p3,
 				   const Vec<3> & n,
 				   double metricweight,

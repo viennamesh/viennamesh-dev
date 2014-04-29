@@ -28,15 +28,15 @@ namespace netgen
 
 
     // ".surf" - mesh
-  
+
     if ( (strlen (filename) > 5) &&
          strcmp (&filename[strlen (filename)-5], ".surf") == 0 )
-    
+
       {
         cout << "Surface file" << endl;
-      
+
         ifstream in (filename);
-      
+
         in >> reco;
         in >> np;
         for (int i = 1; i <= np; i++)
@@ -49,7 +49,7 @@ namespace netgen
 
         mesh.ClearFaceDescriptors();
         mesh.AddFaceDescriptor (FaceDescriptor(0,1,0,0));
-      
+
         in >> nbe;
         //      int invert = globflags.GetDefineFlag ("invertsurfacemesh");
         for (int i = 1; i <= nbe; i++)
@@ -61,7 +61,7 @@ namespace netgen
               {
                 in >> el.PNum(j);
                 // el.PNum(j)++;
-                if (el.PNum(j) < PointIndex(1) || 
+                if (el.PNum(j) < PointIndex(1) ||
                     el.PNum(j) > PointIndex(np))
                   {
                     cerr << "Point Number " << el.PNum(j) << " out of range 1..."
@@ -73,24 +73,24 @@ namespace netgen
               if (invert)
               swap (el.PNum(2), el.PNum(3));
             */
-	  
+
             mesh.AddSurfaceElement (el);
           }
-      
-      
+
+
         cout << "points: " << np << " faces: " << nbe << endl;
       }
-  
-  
-  
 
-  
+
+
+
+
     if ( (strlen (filename) > 4) &&
          strcmp (&filename[strlen (filename)-4], ".unv") == 0 )
-      {  
+      {
         char reco[100];
-        int invert;
-      
+//         int invert;
+
         ifstream in(filename);
 
         mesh.ClearFaceDescriptors();
@@ -114,7 +114,7 @@ namespace netgen
                     in >> pi;
                     if (pi == -1)
                       break;
-		    
+
                     in >> hi >> hi >> hi;
                     in >> p(0) >> p(1) >> p(2);
 
@@ -139,16 +139,16 @@ namespace netgen
 		    in >> label;
 		    if (label == -1) break;
 		    in >> fe_id >> phys_prop >> mat_prop >> color >> nnodes;
-		    
+
 		    cout << "fe_id = " << fe_id << " col = " << color << ", nnodes = " << nnodes << endl;
 
 		    if (fe_id >= 11 && fe_id <= 32)
 		      in >> hi >> hi >> hi;
-		      
+
 
 		    for (int j = 0; j < nnodes; j++)
 		      in >> nodes[j];
-		    
+
 		    switch (fe_id)
 		      {
 		      case 41:
@@ -158,7 +158,7 @@ namespace netgen
 			  for (int j = 0; j < nnodes; j++)
 			    el[j] = nodes[j];
 			  mesh.AddSurfaceElement (el);
-			  
+
 			  break;
 			}
 		      case 111:
@@ -168,14 +168,14 @@ namespace netgen
 			  for (int j = 0; j < nnodes; j++)
 			    el[j] = nodes[j];
 			  mesh.AddVolumeElement (el);
-			  
+
 			  break;
 			}
 		      }
                   }
               }
           }
-      
+
 
         Point3d pmin, pmax;
         mesh.GetBox (pmin, pmax);
@@ -185,12 +185,12 @@ namespace netgen
 
 
     // fepp format2d:
-  
+
     if ( (strlen (filename) > 7) &&
          strcmp (&filename[strlen (filename)-7], ".mesh2d") == 0 )
       {
         cout << "Reading FEPP2D Mesh" << endl;
-      
+
         char buf[100];
         int np, ne, nseg, i, j;
 
@@ -227,12 +227,12 @@ namespace netgen
           }
       }
 
-  
+
     else if ( (strlen (filename) > 5) &&
               strcmp (&filename[strlen (filename)-5], ".mesh") == 0 )
       {
         cout << "Reading Neutral Format" << endl;
-      
+
         int np, ne, nse, i, j;
 
         ifstream in (filename);
@@ -249,7 +249,7 @@ namespace netgen
                 in >> p.X() >> p.Y() >> p.Z();
                 mesh.AddPoint (p);
               }
-	  
+
             in >> ne;
             for (i = 1; i <= ne; i++)
               {
@@ -263,7 +263,7 @@ namespace netgen
               }
 
             mesh.AddFaceDescriptor (FaceDescriptor (1, 1, 0, 0));
-	  
+
             in >> nse;
             for (i = 1; i <= nse; i++)
               {
@@ -299,7 +299,7 @@ namespace netgen
          strcmp (&filename[strlen (filename)-4], ".emt") == 0 )
       {
         ifstream inemt (filename);
-      
+
         string pktfile = filename;
         int len = strlen (filename);
         pktfile[len-3] = 'p';
@@ -318,7 +318,7 @@ namespace netgen
             inpkt >> p.X() >> p.Y() >> p.Z()
                   >> bcprop >> values.Elem(i);
             mesh.AddPoint (p);
-          }      
+          }
 
         mesh.ClearFaceDescriptors();
         mesh.AddFaceDescriptor (FaceDescriptor(0,1,0,0));
@@ -374,7 +374,7 @@ namespace netgen
 
 
         ifstream incyl ("ngusers/guenter/cylinder.surf");
-        int npcyl, nsecyl; 
+        int npcyl, nsecyl;
         incyl >> npcyl;
         cout << "npcyl = " << npcyl << endl;
         for (i = 1; i <= npcyl; i++)
@@ -417,6 +417,6 @@ namespace netgen
       }
 
   }
-  
+
 }
 
