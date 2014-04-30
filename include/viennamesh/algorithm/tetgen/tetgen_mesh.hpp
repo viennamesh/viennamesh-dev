@@ -203,6 +203,13 @@ namespace viennamesh
       return true;
     }
 
+    inline bool convert(viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_hull_3d_segmentation> const & input,
+                        viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation> & output)
+    {
+      generic_convert(input, output );
+      return true;
+    }
+
 
 
 
@@ -322,11 +329,13 @@ namespace viennamesh
 
       typedef viennagrid::triangular_3d_mesh Triangle3DViennaGridMeshType;
       typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> SegmentedTriangle3DViennaGridMeshType;
+      typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_hull_3d_segmentation> SegmentedOrientedTriangle3DViennaGridMeshType;
 
       converter::get().register_conversion<BRep3DViennaGridMeshType, SelfType>( &tetgen::convert );
       converter::get().register_conversion<SegmentedBRep3DViennaGridMeshType, SelfType>( &tetgen::convert );
       converter::get().register_conversion<Triangle3DViennaGridMeshType, SelfType>( &tetgen::convert );
       converter::get().register_conversion<SegmentedTriangle3DViennaGridMeshType, SelfType>( &tetgen::convert );
+      converter::get().register_conversion<SegmentedOrientedTriangle3DViennaGridMeshType, SelfType>( &tetgen::convert );
 
       type_properties::get().set_property<SelfType>( "is_mesh", "true" );
       type_properties::get().set_property<SelfType>( "geometric_dimension", "3" );
