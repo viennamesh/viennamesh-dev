@@ -39,7 +39,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::line_mesh_generator() );
+  viennamesh::algorithm_handle mesher( new viennamesh::make_line_mesh() );
 
   // setting the created line geometry as input for the mesher
   mesher->set_input( "mesh", geometry_handle );

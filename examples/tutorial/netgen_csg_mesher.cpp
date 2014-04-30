@@ -4,7 +4,7 @@
 int main()
 {
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::netgen::csg_mesh_generator() );
+  viennamesh::algorithm_handle mesher( new viennamesh::netgen::csg_make_mesh() );
 
   // Define the CSG string
   std::string csg_string =

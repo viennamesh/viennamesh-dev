@@ -15,7 +15,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
+  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::make_mesh() );
 
   viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> mesh;
 
@@ -35,7 +35,8 @@ int main()
 
   typedef viennagrid::result_of::cell<viennagrid::tetrahedral_3d_mesh>::type CellType;
 
-  viennamesh::statistic<double> s(10);
+  viennamesh::statistic<double> s;
+  s.set_histogram( viennamesh::statistic<double>::histogram_type::make_uniform(0, 10, 10) );
   s(mesh.mesh, viennamesh::aspect_ratio<CellType>);
 
   std::cout << s << std::endl;

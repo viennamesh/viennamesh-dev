@@ -86,7 +86,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::triangle::mesh_generator() );
+  viennamesh::algorithm_handle mesher( new viennamesh::triangle::make_mesh() );
 
   viennamesh::sizing_function_2d sizing_function = my_sizing;
   mesher->set_input( "sizing_function", sizing_function );

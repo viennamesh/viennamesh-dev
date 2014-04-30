@@ -15,7 +15,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
+  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::make_mesh() );
 
   viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> mesh;
 

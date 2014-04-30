@@ -11,7 +11,7 @@ int main()
 
 
   // creating an algorithm using the Tetgen meshing library for meshing a hull
-  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::mesh_generator() );
+  viennamesh::algorithm_handle mesher( new viennamesh::tetgen::make_mesh() );
 
   // setting the mesher paramters
   mesher->set_input( "cell_size", 1.0 );              // maximum cell size
