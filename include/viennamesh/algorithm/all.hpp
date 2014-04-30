@@ -17,6 +17,7 @@
 #include "viennamesh/algorithm/merge_meshes.hpp"
 #include "viennamesh/algorithm/project_mesh.hpp"
 #include "viennamesh/algorithm/make_statistic.hpp"
+#include "viennamesh/algorithm/seed_point_segmenting.hpp"
 
 #include "viennamesh/algorithm/make_line_mesh.hpp"
 
@@ -30,5 +31,8 @@
 // Netgen algorithms
 #include "viennamesh/algorithm/netgen/netgen_csg_make_mesh.hpp"
 #include "viennamesh/algorithm/netgen/netgen_occ_make_mesh.hpp"
+
+// VGModeler algorithms
+#include "viennamesh/algorithm/vgmodeler/vgmodeler_adapt_hull.hpp"
 
 #endif
