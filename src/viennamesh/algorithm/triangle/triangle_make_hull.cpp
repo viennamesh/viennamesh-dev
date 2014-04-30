@@ -55,7 +55,7 @@ namespace viennamesh
 
         std_capture().start();
         triangulate( buffer, &tmp, &omp().cells[i].plc.triangle_mesh, NULL);
-        std_capture().start();
+        std_capture().finish();
 
         omp().cells[i].vertex_ids = input_mesh().cells[i].vertex_ids;
         omp().cells[i].segment_ids = input_mesh().cells[i].segment_ids;
