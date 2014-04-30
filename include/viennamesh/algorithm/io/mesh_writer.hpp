@@ -39,8 +39,11 @@ namespace viennamesh
                          int geometric_dimension, string cell_type );
 
 
-      template<typename WriterProxyT, typename TagT, int DimensionV>
-      bool generic_write( const_parameter_handle const & mesh, string const & filename, bool is_segmented );
+      template<typename WriterProxyT, typename MeshT>
+      bool basic_nonsegmented_write( const_parameter_handle const & mesh, string const & filename );
+
+      template<typename WriterProxyT, typename MeshT, typename SegmentationT>
+      bool basic_segmented_write( const_parameter_handle const & mesh, string const & filename );
 
       template<typename WriterProxyT, typename TagT, int DimensionV>
       bool generic_nonsegmented_write( const_parameter_handle const & mesh, string const & filename );
@@ -48,7 +51,8 @@ namespace viennamesh
       template<typename WriterProxyT, typename TagT, int DimensionV>
       bool generic_segmented_write( const_parameter_handle const & mesh, string const & filename );
 
-
+      template<typename WriterProxyT, typename TagT, int DimensionV>
+      bool generic_write( const_parameter_handle const & mesh, string const & filename, bool is_segmented );
     };
 
   }
