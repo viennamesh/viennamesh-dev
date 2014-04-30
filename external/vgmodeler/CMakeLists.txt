@@ -1,5 +1,4 @@
 
-
 # ------------------------------------------------------------------------------
 # LINALG
 #
@@ -28,8 +27,8 @@ SET(MESHING_TMP global.cpp bisect.cpp meshtool.cpp refine.cpp ruler3.cpp improve
    adfront2.cpp netrule2.cpp triarls.cpp geomsearch.cpp secondorder.cpp meshtype.cpp
    parser3.cpp meshing2.cpp quadrls.cpp specials.cpp parser2.cpp meshing3.cpp meshfunc.cpp
    localh.cpp improve2gen.cpp delaunay.cpp boundarylayer.cpp msghandler.cpp
-   meshfunc2d.cpp topology.cpp clusters.cpp curvedelems_new.cpp hprefinement.cpp 
-   validate.cpp 
+   meshfunc2d.cpp topology.cpp clusters.cpp curvedelems_new.cpp hprefinement.cpp
+   validate.cpp
 )
 FOREACH(SRC ${MESHING_TMP})
    LIST(APPEND MESHING ${CMAKE_CURRENT_SOURCE_DIR}/meshing/${SRC})
@@ -91,29 +90,26 @@ ENDFOREACH(SRC)
 # ------------------------------------------------------------------------------
 # BUILD VGMODELERLIB
 #
-ADD_LIBRARY(vgmodeler_base ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG})
-SET_TARGET_PROPERTIES(vgmodeler_base 
-   PROPERTIES COMPILE_FLAGS "-DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -Wdisabled-optimization -funroll-loops -Wno-write-strings -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
+
+
+
+SET(VGMODELER_COMPILE_FLAGS "-DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -Wdisabled-optimization -funroll-loops -Wno-write-strings")
+
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
+
+SET(VGMODELER_GSSE1_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch)
+SET(VGMODELER_GSSE2_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/)
 
 # note: we have to use specific include paths for these sources, as they won't compile
 # if gsse01 and gsse02 is used together in the global INCLUDE_DIRECTORIES path
-#
-ADD_LIBRARY(vgmodeler_stltopo stlgeom/stltopology.cpp)
-SET_TARGET_PROPERTIES(vgmodeler_stltopo PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch")
+ADD_LIBRARY(viennamesh-vgmodeler-meshstl stlgeom/meshstlsurface.cpp)
+SET_PROPERTY(TARGET viennamesh-vgmodeler-meshstl APPEND_STRING PROPERTY COMPILE_FLAGS "${VGMODELER_COMPILE_FLAGS}")
+SET_PROPERTY(TARGET viennamesh-vgmodeler-meshstl APPEND PROPERTY INCLUDE_DIRECTORIES ${VGMODELER_GSSE2_INCLUDE_DIRS})
 
-ADD_LIBRARY(vgmodeler_meshstl stlgeom/meshstlsurface.cpp)
-SET_TARGET_PROPERTIES(vgmodeler_meshstl PROPERTIES COMPILE_FLAGS "-DNDEBUG -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ -I${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/")
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-#
-# *** INSTALL ***
-#
-# ------------------------------------------------------------------------------
-# INSTALL(TARGETS vgmodeler_base vgmodeler_stltopo vgmodeler_meshstl
-#   RUNTIME DESTINATION ${VIENNAMESH_BIN_PATH}
-#   LIBRARY DESTINATION ${VIENNAMESH_LIB_PATH}
-#   ARCHIVE DESTINATION ${VIENNAMESH_LIB_PATH})
-
+ADD_LIBRARY(viennamesh-vgmodeler ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG} stlgeom/stltopology.cpp vgmodeler.cpp)
+SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND_STRING PROPERTY COMPILE_FLAGS "${VGMODELER_COMPILE_FLAGS}")
+SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND PROPERTY INCLUDE_DIRECTORIES ${VGMODELER_GSSE1_INCLUDE_DIRS})
+target_link_libraries(viennamesh-vgmodeler viennamesh-vgmodeler-meshstl)
 
 
