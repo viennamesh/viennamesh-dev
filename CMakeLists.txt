@@ -29,6 +29,7 @@ option(VIENNAMESH_WITH_TRIANGLE "Build the Triangle library" ON)
 option(VIENNAMESH_WITH_TETGEN "Build the Tetgen library" ON)
 option(VIENNAMESH_WITH_NETGEN "Build the Netgen library" ON)
 option(VIENNAMESH_NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" ON)
+option(VIENNAMESH_WITH_VGMODELER "Build the VGModeler library" ON)
 
 option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" ON)
 option(BUILD_EXAMPLES "Build the ViennaMesh examples" ON)
@@ -52,16 +53,16 @@ ENDIF()
 
 
 if(BUILD_DOXYGEN_DOCS)
-   find_package(Doxygen REQUIRED)
+  find_package(Doxygen REQUIRED)
 endif()
 
 if(BUILD_MANUAL)
-   find_package(LATEX REQUIRED)
+  find_package(LATEX REQUIRED)
 endif()
 
 find_package(Boost COMPONENTS thread program_options)
 if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
+  include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
 

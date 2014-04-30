@@ -16,9 +16,9 @@ IF( NOT OpenCASCADE_FOUND STREQUAL TRUE )
     if (APPLE)
       set( _testlibname libTKernel.dylib )
     else (APPLE)
-      set( _testlibname libTKernel.so libTKernel.so.2 )
+      set( _testlibname libTKernel.so )
     endif (APPLE)
-    set( _libsearchpath /usr/lib /usr/lib/oce /opt/occ/lib $ENV{CASROOT}/lib )
+    set( _libsearchpath /usr/lib /opt/occ/lib $ENV{CASROOT}/lib )
   ELSE(UNIX)
     IF (WIN32)
       MESSAGE("************ FindOpenCASCADE.cmake has not been tried on windows and may or may not work! *************")
@@ -37,19 +37,20 @@ IF( NOT OpenCASCADE_FOUND STREQUAL TRUE )
     MESSAGE( FATAL_ERROR "Cannot find OCC include dir. Install opencascade or set CASROOT or create a symlink /opt/occ/inc pointing to the correct directory." )
   ENDIF( OpenCASCADE_INCLUDE_DIR STREQUAL OpenCASCADE_INCLUDE_DIR-NOTFOUND )
 
+
   # Find one lib and save its directory to OpenCASCADE_LINK_DIRECTORY. Because
   # OCC has so many libs, there is increased risk of a name collision.
   # Requiring that all libs be in the same directory reduces the risk.
-  FIND_PATH( OpenCASCADE_LINK_DIRECTORY NAMES ${_testlibname} PATHS ${_libsearchpath} DOC "Path to OCC libs" )
-  IF( OpenCASCADE_LINK_DIRECTORY STREQUAL OpenCASCADE_LINK_DIRECTORY-NOTFOUND )
-    SET( OpenCASCADE_FOUND FALSE CACHE BOOL FORCE )
-    MESSAGE( FATAL_ERROR "Cannot find OCC lib dir. Install opencascade or set CASROOT or create a symlink /opt/occ/lib pointing to the dir where the OCC libs are." )
-  ELSE( OpenCASCADE_LINK_DIRECTORY STREQUAL OpenCASCADE_LINK_DIRECTORY-NOTFOUND )
-    SET( OpenCASCADE_FOUND TRUE CACHE BOOL "Has OCC been found?" FORCE )
-    SET( _firsttime TRUE ) #so that messages are only printed once
-    MESSAGE( STATUS "Found OCC include dir: ${OpenCASCADE_INCLUDE_DIR}" )
-    MESSAGE( STATUS "Found OCC lib dir: ${OpenCASCADE_LINK_DIRECTORY}" )
-  ENDIF( OpenCASCADE_LINK_DIRECTORY STREQUAL OpenCASCADE_LINK_DIRECTORY-NOTFOUND )
+#   FIND_PATH( OpenCASCADE_LINK_DIR NAMES ${_testlibname} PATHS ${_libsearchpath} DOC "Path to OCC libs" )
+#   IF( OpenCASCADE_LINK_DIR STREQUAL OpenCASCADE_LINK_DIR-NOTFOUND )
+#     SET( OpenCASCADE_FOUND FALSE CACHE BOOL FORCE )
+#     MESSAGE( FATAL_ERROR "Cannot find OCC lib dir. Install opencascade or set CASROOT or create a symlink /opt/occ/lib pointing to the dir where the OCC libs are." )
+#   ELSE( OpenCASCADE_LINK_DIR STREQUAL OpenCASCADE_LINK_DIR-NOTFOUND )
+#     SET( OpenCASCADE_FOUND TRUE CACHE BOOL "Has OCC been found?" FORCE )
+#     SET( _firsttime TRUE ) #so that messages are only printed once
+#     MESSAGE( STATUS "Found OCC include dir: ${OpenCASCADE_INCLUDE_DIR}" )
+#     MESSAGE( STATUS "Found OCC lib dir: ${OpenCASCADE_LINK_DIR}" )
+#   ENDIF( OpenCASCADE_LINK_DIR STREQUAL OpenCASCADE_LINK_DIR-NOTFOUND )
 ELSE( NOT OpenCASCADE_FOUND STREQUAL TRUE )
   SET( _firsttime FALSE ) #so that messages are only printed once
 ENDIF( NOT OpenCASCADE_FOUND STREQUAL TRUE )
