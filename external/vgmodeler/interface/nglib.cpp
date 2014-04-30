@@ -5,9 +5,9 @@
 /**************************************************************************/
 
 /*
-  
+
   Interface to the netgen meshing kernel
-  
+
 */
 
 #include "viennagrid/config/default_configs.hpp"
@@ -24,16 +24,16 @@
 
 // #include <FlexLexer.h>
 
-
+#include "nglib.h"
 
 namespace vgmnetgen {
   extern void MeshFromSpline2D (SplineGeometry2d & geometry,
-				Mesh *& mesh, 
+				Mesh *& mesh,
 				MeshingParameters & mp);
 //}
 
 //namespace vgmnglib {
-#include "nglib.h"
+
 //}
 
 //using namespace vgmnetgen;
@@ -48,20 +48,20 @@ void Ng_Init ()
   mycout = &cout;
   myerr = &cerr;
 //  testout = new ofstream ("test.out");
-  testout = new ofstream ("/dev/null");  
-  
+  testout = new ofstream ("/dev/null");
+
 }
 
 void Ng_Exit ()
 {
   ;
 }
-  
+
 
 
 Ng_Mesh * Ng_NewMesh ()
 {
-  Mesh * mesh = new Mesh;  
+  Mesh * mesh = new Mesh;
   mesh->AddFaceDescriptor (FaceDescriptor (1, 1, 0, 1));
   return (Ng_Mesh*)(void*)mesh;
 }
@@ -78,7 +78,7 @@ void Ng_AddPoint (Ng_Mesh * mesh, double * x)
   Mesh * m = (Mesh*)mesh;
   m->AddPoint (Point3d (x[0], x[1], x[2]));
 }
-  
+
 void Ng_AddSurfaceElement (Ng_Mesh * mesh, Ng_Surface_Element_Type et,
 			   int * pi)
 {
@@ -131,7 +131,7 @@ void Ng_GetPoint (Ng_Mesh * mesh, int num, double * x)
 }
 
 // return surface and volume element in pi
-Ng_Surface_Element_Type 
+Ng_Surface_Element_Type
 Ng_GetSurfaceElement (Ng_Mesh * mesh, int num, int * pi)
 {
   const Element2d & el = ((Mesh*)mesh)->SurfaceElement(num);
@@ -182,8 +182,8 @@ void Ng_RestrictMeshSizeBox (Ng_Mesh * mesh, double * pmin, double * pmax, doubl
 Ng_Result Ng_GenerateVolumeMesh (Ng_Mesh * mesh, Ng_Meshing_Parameters * mp)
 {
   Mesh * m = (Mesh*)mesh;
-  
-  
+
+
   MeshingParameters mparam;
   mparam.maxh = mp->maxh;
   mparam.meshsizefilename = mp->meshsize_filename;
@@ -206,7 +206,7 @@ Ng_Result Ng_GenerateVolumeMesh (Ng_Mesh * mesh, Ng_Meshing_Parameters * mp)
 void Ng_AddPoint_2D (Ng_Mesh * mesh, double * x)
 {
   Mesh * m = (Mesh*)mesh;
-  
+
   m->AddPoint (Point3d (x[0], x[1], 0));
 }
 
@@ -219,7 +219,7 @@ void Ng_AddBoundarySeg_2D (Ng_Mesh * mesh, int pi1, int pi2)
   seg.p2 = pi2;
   m->AddSegment (seg);
 }
-  
+
 
 int Ng_GetNP_2D (Ng_Mesh * mesh)
 {
@@ -238,7 +238,7 @@ int Ng_GetNSeg_2D (Ng_Mesh * mesh)
   Mesh * m = (Mesh*)mesh;
   return m->GetNSeg();
 }
-  
+
 void Ng_GetPoint_2D (Ng_Mesh * mesh, int num, double * x)
 {
   Mesh * m = (Mesh*)mesh;
@@ -283,16 +283,16 @@ Ng_Result Ng_GenerateMesh_2D (Ng_Geometry_2D * geom,
 			      Ng_Meshing_Parameters * mp)
 {
   // use global variable mparam
-  //  MeshingParameters mparam;  
+  //  MeshingParameters mparam;
   mparam.maxh = mp->maxh;
   mparam.meshsizefilename = mp->meshsize_filename;
   mparam.quad = mp->quad_dominated;
 
   Mesh * m;
   MeshFromSpline2D (*(SplineGeometry2d*)geom, m, mparam);
-  
+
 //   cout << m->GetNSE() << " elements, " << m->GetNP() << " points" << endl;
-  
+
   *mesh = (Ng_Mesh*)m;
   return NG_OK;
 }
@@ -329,7 +329,7 @@ void Ng_HP_Refinement (Ng_Geometry_2D * geom,
 
 ARRAY<STLReadTriangle> readtrias; //only before initstlgeometry
 ARRAY<Point<3> > readedges; //only before init stlgeometry
- 
+
 void Ng_SaveMesh(Ng_Mesh * mesh, const char* filename)
 {
   ((Mesh*)mesh)->Save(filename);
@@ -384,9 +384,9 @@ Ng_STL_Geometry * Ng_STL_LoadGeometry (const char * filename, int binary)
     {
       const STLTriangle& t = geo->GetTriangle(i);
       p = geo->GetPoint(t.PNum(1));
-      p1[0] = p.X(); p1[1] = p.Y(); p1[2] = p.Z(); 
+      p1[0] = p.X(); p1[1] = p.Y(); p1[2] = p.Z();
       p = geo->GetPoint(t.PNum(2));
-      p2[0] = p.X(); p2[1] = p.Y(); p2[2] = p.Z(); 
+      p2[0] = p.X(); p2[1] = p.Y(); p2[2] = p.Z();
       p = geo->GetPoint(t.PNum(3));
       p3[0] = p.X(); p3[1] = p.Y(); p3[2] = p.Z();
       normal = t.Normal();
@@ -394,7 +394,7 @@ Ng_STL_Geometry * Ng_STL_LoadGeometry (const char * filename, int binary)
       std::cout << "normal: " << normal.X() << " " << normal.Y() << " " << normal.Z() << std::endl;
 #endif
       n[0] = normal.X(); n[1] = normal.Y(); n[2] = normal.Z();
-      
+
       Ng_STL_AddTriangle(geo2, p1, p2, p3, n);
     }
 
@@ -405,7 +405,7 @@ Ng_STL_Geometry * Ng_STL_LoadGeometry (const char * filename, int binary)
 Ng_STL_Geometry * Ng_STL_NewGeometry ()
 {
   return (Ng_STL_Geometry*)(void*)new STLGeometry;
-} 
+}
 
 // after adding triangles (and edges) initialize
 Ng_Result Ng_STL_InitSTLGeometry (Ng_STL_Geometry * geom, viennagrid::triangular_3d_mesh const & vgrid_mesh, viennagrid::triangular_hull_3d_segmentation const & segmentation)
@@ -473,7 +473,7 @@ Ng_Result Ng_STL_MakeEdges (Ng_STL_Geometry * geom,
 {
   STLGeometry* stlgeometry = (STLGeometry*)geom;
   Mesh* me = (Mesh*)mesh;
-  
+
   MeshingParameters mparam;
 
   mparam.maxh = mp->maxh;
@@ -495,31 +495,31 @@ Ng_Result Ng_STL_MakeEdges (Ng_STL_Geometry * geom,
   */
 
   STLMeshing (*stlgeometry, *me);
-  
+
   stlgeometry->edgesfound = 1;
   stlgeometry->surfacemeshed = 0;
   stlgeometry->surfaceoptimized = 0;
   stlgeometry->volumemeshed = 0;
-  
+
   return NG_OK;
 }
 
 Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
                             Ng_Mesh* mesh,
-                            Ng_Meshing_Parameters * mp, 
+                            Ng_Meshing_Parameters * mp,
                             viennagrid::triangular_3d_mesh & vgrid_mesh,
                             viennagrid::triangular_hull_3d_segmentation & segmentation)
 {
 #ifdef DEBUGALL
    std::cout << "ENTER Ng_FS_SurfaceMesh" << std::endl;
-#endif   
+#endif
 
    STLGeometry* stlgeometry = (STLGeometry*)geom;
    Mesh* me = (Mesh*)mesh;
-   
+
    // [JW] transfer the parameters ..
    mparam.maxh                = mp->maxh;
-   mparam.minh                = mp->minh;   
+   mparam.minh                = mp->minh;
    mparam.grading             = mp->grading;
    mparam.meshsizefilename    = mp->meshsize_filename;
    mparam.optimize2d          = mp->optimize2d;
@@ -531,16 +531,16 @@ Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
    mparam.parthread           = mp->parthread;
    mparam.badellimit          = mp->badellimit;
    mparam.quad                = mp->quad_dominated;
-   
-   
+
+
    stlparam.resthsurfcurvfac     = mp->resthsurfcurvfac;
-   stlparam.resthsurfcurvenable  = mp->resthsurfcurvenable;   
- 
+   stlparam.resthsurfcurvenable  = mp->resthsurfcurvenable;
+
    // [JW] print the stlparams
    // note: we need control of the above two params, for curvatures ..
    // find the class: STLParameters @ stltool.cpp/hpp
    //stlparam.Print(std::cout);
-   
+
    STLMeshingDummy(stlgeometry, me, vgrid_mesh, segmentation, 1, 6);
 
 #ifdef DEBUGALL
@@ -549,7 +549,7 @@ Ng_Result Ng_FS_SurfaceMesh(Ng_STL_Geometry * geom,
 
    return NG_OK;
 }
-  
+
 // generates mesh, empty mesh be already created.
 Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
 				      Ng_Mesh* mesh,
@@ -571,7 +571,7 @@ Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
 
 
   STLMeshing (*stlgeometry, *me);
-  
+
   stlgeometry->edgesfound = 1;
   stlgeometry->surfacemeshed = 0;
   stlgeometry->surfaceoptimized = 0;
@@ -591,7 +591,7 @@ Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
       stlgeometry->surfacemeshed = 1;
       stlgeometry->surfaceoptimized = 0;
       stlgeometry->volumemeshed = 0;
-    } 
+    }
   else if (retval == MESHING3_OUTERSTEPSEXCEEDED)
     {
       (*mycout) << "ERROR: Give up because of too many trials. Meshing aborted!" << endl;
@@ -615,7 +615,7 @@ Ng_Result Ng_STL_GenerateSurfaceMesh (Ng_STL_Geometry * geom,
   // fills STL Geometry
   // positive orientation
   // normal vector may be null-pointer
-void Ng_STL_AddTriangle (Ng_STL_Geometry * geom, 
+void Ng_STL_AddTriangle (Ng_STL_Geometry * geom,
 			 double * p1, double * p2, double * p3, double * nv)
 {
   Point<3> apts[3];
@@ -633,7 +633,7 @@ void Ng_STL_AddTriangle (Ng_STL_Geometry * geom,
 }
 
   // add (optional) edges:
-void Ng_STL_AddEdge (Ng_STL_Geometry * geom, 
+void Ng_STL_AddEdge (Ng_STL_Geometry * geom,
 		     double * p1, double * p2)
 {
   readedges.Append(Point3d(p1[0],p1[1],p1[2]));
@@ -667,7 +667,7 @@ Ng_Meshing_Parameters :: Ng_Meshing_Parameters()
 
 ////// compatibility functions:
 
-////namespace vgmnetgen 
+////namespace vgmnetgen
 ////{
 
   char geomfilename[255];
