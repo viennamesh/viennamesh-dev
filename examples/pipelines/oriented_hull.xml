@@ -20,3 +20,13 @@
   <default_source>adapt_hull</default_source>
   <parameter name="filename" type="string">adapted_hull.vtu</parameter>
 </algorithm>
+
+<algorithm id="tetgen_make_mesh" name="remesh">
+  <default_source>adapt_hull</default_source>
+  <parameter name="seed_points" type="dynamic">input/seed_points</parameter>
+</algorithm>
+
+<algorithm id="mesh_writer" name="output2">
+  <default_source>remesh</default_source>
+  <parameter name="filename" type="string">remeshed_volume.vtu</parameter>
+</algorithm>
