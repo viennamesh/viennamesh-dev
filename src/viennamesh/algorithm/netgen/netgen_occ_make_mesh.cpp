@@ -74,26 +74,26 @@ namespace viennamesh
 
       int perfstepsend = 6;
 
-      omp().mesh->geomtype = ::netgen::Mesh::GEOM_OCC;
+      omp()().geomtype = ::netgen::Mesh::GEOM_OCC;
       ::netgen::occparam.resthcloseedgeenable = 0; //mp.closeedgeenable;
       ::netgen::occparam.resthcloseedgefac = 1.0; //mp.closeedgefact;
 
       ::netgen::mparam = mp;
 
-      omp().mesh->DeleteMesh();
-      ::netgen::OCCSetLocalMeshSize( *geometry, *omp().mesh );
+      omp()().DeleteMesh();
+      ::netgen::OCCSetLocalMeshSize( *geometry, omp()() );
 
 
-      ::netgen::OCCFindEdges(*geometry, *omp().mesh);
+      ::netgen::OCCFindEdges(*geometry, omp()());
 
-      ::netgen::OCCMeshSurface(*geometry, *omp().mesh, perfstepsend);
-      omp().mesh->CalcSurfacesOfNode();
+      ::netgen::OCCMeshSurface(*geometry, omp()(), perfstepsend);
+      omp()().CalcSurfacesOfNode();
 
-      ::netgen::MeshVolume(mp, *omp().mesh);
-      ::netgen::RemoveIllegalElements( *omp().mesh );
-      ::netgen::MeshQuality3d( *omp().mesh );
+      ::netgen::MeshVolume(mp, omp()());
+      ::netgen::RemoveIllegalElements( omp()() );
+      ::netgen::MeshQuality3d( omp()() );
 
-      ::netgen::OptimizeVolume(mp, *omp().mesh );
+      ::netgen::OptimizeVolume(mp, omp()() );
 
       return true;
     }

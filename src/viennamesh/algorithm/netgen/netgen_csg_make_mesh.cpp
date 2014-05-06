@@ -40,7 +40,7 @@ namespace viennamesh
       if (optimize_string.valid())
         mesh_parameters.optimize3d = optimize_string().c_str();
 
-      geom->GenerateMesh(output().mesh, mesh_parameters, 1, 5);
+      geom->GenerateMesh(output().mesh_ptr(), mesh_parameters, 1, 5);
 
       delete geom;
 
