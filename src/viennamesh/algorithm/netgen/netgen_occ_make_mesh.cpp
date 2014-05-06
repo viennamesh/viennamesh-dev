@@ -32,7 +32,7 @@ namespace viennamesh
       else
         ft = io::from_filename( filename() );
 
-      output_parameter_proxy<netgen::output_mesh> omp(output_mesh);
+      output_parameter_proxy<netgen::mesh> omp(output_mesh);
       ::netgen::OCCGeometry * geometry;
 
       if (ft == io::OCC_STEP)
