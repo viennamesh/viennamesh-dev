@@ -11,100 +11,33 @@ namespace viennamesh
 {
   namespace netgen
   {
-
-//     struct geometry
-//     {
-//       geometry() : geo(NULL) {}
-//       ~geometry() { delete geo; }
-//
-//       netgen::CSGeometry * geo;
-//     };
-
-
-//     struct netgen_lib
-//     {
-//         netgen_lib()
-//         {
-// //             std::cout << "Init Netgen" << std::endl;
-//             nglib::Ng_Init();
-// //             netgen::printmessage_importance = -1;
-//         }
-//
-//         ~netgen_lib()
-//         {
-// //             std::cout << "Exit Netgen" << std::endl;
-//             nglib::Ng_Exit();
-//         }
-//     };
-
-
-    struct segmented_mesh
+    struct mesh
     {
     public:
-      segmented_mesh() {}
-      ~segmented_mesh() { deinit(); }
+      mesh() : m( new InternalMeshType() ) {}
+      ~mesh() { delete m; }
 
       typedef ::netgen::Mesh InternalMeshType;
 
-      InternalMeshType & operator()( std::size_t segment_id ) { return *segments[segment_id]; }
-      InternalMeshType const & operator()( std::size_t segment_id ) const { return *segments[segment_id]; }
+      InternalMeshType & operator()() { return *m; }
+      InternalMeshType const & operator()() const { return *m; }
 
-      template<typename SegmentationT>
-      void init( SegmentationT const & segmentation )
+      InternalMeshType * & mesh_ptr() { return m; }
+      InternalMeshType const * mesh_ptr() const { return m; }
+
+      mesh & operator=( mesh const & other )
       {
-        deinit();
-        for (std::size_t i = 0; i < segments.size(); ++i)
-          segments.push_back( new InternalMeshType() );
-      }
-
-      void deinit()
-      {
-        for (std::size_t i = 0; i < segments.size(); ++i)
-          delete segments[i];
-        segments.clear();
-      }
-
-      std::size_t segment_count() const { return segments.size(); }
-
-      segmented_mesh & operator=(segmented_mesh const & other)
-      {
-        deinit();
-        for (std::size_t i = 0; i < other.segment_count(); ++i)
-        {
-          InternalMeshType * tmp = new InternalMeshType();
-          *tmp = *other.segments[i];
-          segments.push_back(tmp);
-        }
+        *m = *other.m;
         return *this;
       }
 
     private:
-      std::vector<InternalMeshType *> segments;
+      InternalMeshType * m;
     };
-
-    struct output_mesh
-    {
-    public:
-      output_mesh() : mesh( new ::netgen::Mesh() ) {}
-      ~output_mesh() { delete mesh; }
-
-      typedef ::netgen::Mesh InternalMeshType;
-
-      InternalMeshType & operator()() { return *mesh; }
-      InternalMeshType const & operator()() const { return *mesh; }
-
-      InternalMeshType * & mesh_ptr() { return mesh; }
-
-    private:
-      InternalMeshType * mesh;
-    };
-
-
-
 
 
     template<typename MeshT, typename SegmentationT>
-    bool convert(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input, netgen::segmented_mesh & output)
+    bool convert(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input, netgen::mesh & output)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename SegmentationT::segment_handle_type SegmentType;
@@ -113,49 +46,42 @@ namespace viennamesh
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
       typedef typename viennagrid::result_of::triangle<MeshT>::type TriangleType;
 
-      typedef typename viennagrid::result_of::const_triangle_range<SegmentationT>::type TriangleRangeType;
+      typedef typename viennagrid::result_of::const_vertex_range<MeshT>::type VertexRangeType;
+      typedef typename viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
+
+
+      typedef typename viennagrid::result_of::const_triangle_range<MeshT>::type TriangleRangeType;
       typedef typename viennagrid::result_of::iterator<TriangleRangeType>::type TriangleIteratorType;
 
-      output.init( input.segmentation );
 
-      for (std::size_t seg_id = 0; seg_id != output.segment_count(); ++seg_id)
+      for (typename SegmentationT::const_iterator sit = input.segmentation.begin(); sit != input.segmentation.end(); ++sit)
       {
-        SegmentType const & vgrid_segment = input.segmentation(seg_id);
+        int netgen_sid = (*sit).id() + 1;
+        output().AddFaceDescriptor( (::netgen::FaceDescriptor (netgen_sid, netgen_sid, 0, netgen_sid)) );
+      }
 
-        std::map<VertexIDType, int> vertex_index_map;
-        int index = 0;
+      std::map<VertexIDType, int> vertex_index_map;
+      VertexRangeType vertices(input.mesh);
+      for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+      {
+        PointType const & p = viennagrid::point(*vit);
+        vertex_index_map[ (*vit).id() ] = output().AddPoint( ::netgen::Point3d( p[0], p[1], p[2] ) );
+      }
 
-        segmented_mesh::InternalMeshType & current_mesh = output(seg_id);
+      TriangleRangeType triangles(input.mesh);
+      for (TriangleIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
+      {
+        typedef typename viennagrid::result_of::segment_id_range<SegmentationT, TriangleType>::type SegmentIDType;
 
-        TriangleRangeType triangles( vgrid_segment );
+        int indices[3];
+        for (int i = 0; i < 3; ++i)
+          indices[i] = vertex_index_map[ viennagrid::vertices(*tit)[i].id() ];
 
-        unsigned int triangle_count = 0;
-        for (TriangleIteratorType it = triangles.begin(); it != triangles.end(); ++it)
+        SegmentIDType segment_ids = viennagrid::segment_ids(input.segmentation, *tit);
+        for (typename SegmentIDType::iterator sit = segment_ids.begin(); sit != segment_ids.end(); ++sit)
         {
-          TriangleType const & triangle = *it;
-
-          ++triangle_count;
-
-          int indices[3];
-          for (int i = 0; i < 3; ++i)
-          {
-            VertexIDType vertex_id = viennagrid::vertices(triangle)[i].id();
-
-            typename std::map<VertexIDType, int>::iterator tmp = vertex_index_map.find(vertex_id);
-            if (tmp == vertex_index_map.end())
-            {
-              PointType const & p = viennagrid::point( viennagrid::vertices(triangle)[0] );
-
-              tmp = vertex_index_map.insert( std::make_pair(vertex_id, index+1) ).first;     // increase by one because netgen start counting at 1
-              ++index;
-              current_mesh.AddPoint( Point3d( p[0], p[1], p[2] ) );
-            }
-
-            indices[i] = tmp->second;
-          }
-
           bool faces_outward = true;
-          bool const * faces_outward_on_segment_pointer = viennagrid::segment_element_info( vgrid_segment, triangle );
+          bool const * faces_outward_on_segment_pointer = viennagrid::segment_element_info(input.segmentation(*sit), *tit);
           if (faces_outward_on_segment_pointer)
             faces_outward = *faces_outward_on_segment_pointer;
 
@@ -163,11 +89,11 @@ namespace viennamesh
             std::swap( indices[1], indices[2] );
 
           ::netgen::Element2d el(3);
-          el.SetIndex (1);
+          el.SetIndex ( *sit+1 );
           el.PNum(1) = indices[0];
           el.PNum(2) = indices[1];
           el.PNum(3) = indices[2];
-          current_mesh.AddSurfaceElement (el);
+          output().AddSurfaceElement (el);
         }
       }
 
@@ -182,7 +108,7 @@ namespace viennamesh
 
 
     template<typename MeshT>
-    bool convert(netgen::output_mesh const & input, MeshT & output)
+    bool convert(netgen::mesh const & input, MeshT & output)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
@@ -217,7 +143,7 @@ namespace viennamesh
 
 
     template<typename MeshT, typename SegmentationT>
-    bool convert(netgen::output_mesh const & input, viennagrid::segmented_mesh<MeshT, SegmentationT> & output)
+    bool convert(netgen::mesh const & input, viennagrid::segmented_mesh<MeshT, SegmentationT> & output)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
@@ -247,18 +173,22 @@ namespace viennamesh
 
       return true;
     }
-
-
   }
 
 
   template<>
-  struct type_information< netgen::output_mesh >
+  struct type_information< netgen::mesh >
   {
-    typedef netgen::output_mesh SelfType;
+    typedef netgen::mesh SelfType;
 
     static void init()
     {
+      typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_hull_3d_segmentation> SegmentedTriangular3DViennaGridMeshType;
+
+      converter::get().register_conversion<SegmentedTriangular3DViennaGridMeshType, SelfType>( &netgen::convert );
+
+
+
       typedef viennagrid::tetrahedral_3d_mesh Tetrahedral3DViennaGridMeshType;
       typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> SegmentedTetrahedral3DViennaGridMeshType;
 
@@ -283,7 +213,7 @@ namespace viennamesh
 
     static string name()
     {
-      return "netgen::output_mesh";
+      return "netgen::mesh";
     }
   };
 
