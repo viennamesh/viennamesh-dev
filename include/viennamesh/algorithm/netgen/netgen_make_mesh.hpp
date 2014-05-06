@@ -19,7 +19,7 @@ namespace viennamesh
       bool run_impl();
 
     private:
-      typedef viennamesh::netgen::segmented_mesh InputMeshType;
+      typedef viennamesh::netgen::mesh InputMeshType;
       required_input_parameter_interface<InputMeshType>  input_mesh;
       default_input_parameter_interface<double>          cell_size;
 //       default_input_parameter_interface<double>          curvature_safety_factor;
