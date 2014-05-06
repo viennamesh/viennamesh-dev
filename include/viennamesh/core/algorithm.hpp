@@ -391,13 +391,20 @@ namespace viennamesh
   {
   public:
 
+    typedef typename result_of::const_parameter_handle<ValueT>::type handle_type;
+
     required_input_parameter_interface(base_algorithm & algorithm, std::string const & parameter_name) :
       input_parameter_interface(algorithm, parameter_name), fetched(false) {}
 
     ValueT const & operator()() const
     {
+      return handle()();
+    }
+
+    handle_type const & handle() const
+    {
       fetch();
-      return native_handle();
+      return native_handle;
     }
 
   private:
@@ -419,8 +426,6 @@ namespace viennamesh
     mutable bool fetched;
     mutable typename result_of::const_parameter_handle<ValueT>::type native_handle;
   };
-
-
 
 
   class dynamic_optional_input_parameter_interface : public input_parameter_interface
@@ -571,7 +576,7 @@ namespace viennamesh
     ValueT const & operator()() const { return native_handle(); }
 
 
-    bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph )
+    bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph ) const
     {
       if (!is_native())
         return false;
@@ -579,7 +584,7 @@ namespace viennamesh
       return ph == native_handle;
     }
 
-    bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph )
+    bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph ) const
     {
       return !(*this == ph);
     }
@@ -603,6 +608,23 @@ namespace viennamesh
   template<typename ValueT>
   bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & oop )
   { return !(ph == oop); }
+
+
+  template<typename ValueT>
+  bool operator==( output_parameter_proxy<ValueT> const & output_proxy, required_input_parameter_interface<ValueT> const & interface  )
+  { return interface.handle() == output_proxy; }
+
+  template<typename ValueT>
+  bool operator==( required_input_parameter_interface<ValueT> const & interface, output_parameter_proxy<ValueT> const & output_proxy  )
+  { return output_proxy == interface; }
+
+  template<typename ValueT>
+  bool operator!=( output_parameter_proxy<ValueT> const & output_proxy, required_input_parameter_interface<ValueT> const & interface  )
+  { return !(interface == output_proxy); }
+
+  template<typename ValueT>
+  bool operator!=( required_input_parameter_interface<ValueT> const & interface, output_parameter_proxy<ValueT> const & output_proxy  )
+  { return !(interface == output_proxy); }
 
 
 
