@@ -93,7 +93,7 @@ ENDFOREACH(SRC)
 
 
 
-SET(VGMODELER_COMPILE_FLAGS "-DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -Wdisabled-optimization -funroll-loops -Wno-write-strings")
+SET(VGMODELER_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DNO_PARALLEL_THREADS -DUSE_NON_CONST -DLINUX -Wdisabled-optimization -funroll-loops -Wno-write-strings")
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
