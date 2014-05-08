@@ -575,6 +575,34 @@ namespace vgmnetgen
    }
 
 
+
+
+  struct TriangleIndexType
+  {
+    TriangleIndexType() {}
+    TriangleIndexType(int i0_, int i1_, int i2_)
+    {
+      ordered_indices.resize(3);
+      ordered_indices[0] = i0_;
+      ordered_indices[1] = i1_;
+      ordered_indices[2] = i2_;
+
+      std::sort( ordered_indices.begin(), ordered_indices.end() );
+    }
+
+    bool operator<( TriangleIndexType const & other ) const
+    {
+      for (std::size_t i = 0; i < 3; ++i)
+      if (ordered_indices[i] != other.ordered_indices[i])
+        return ordered_indices[i] < other.ordered_indices[i];
+
+      return false;
+    }
+
+    std::vector<int> ordered_indices;
+  };
+
+
 void STLFindEdges (STLGeometry & geom,
                    class Mesh & mesh,
                    std::map<int, std::map<int,int> >& material_chart_mapping)
@@ -3567,33 +3595,6 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
   //domain.reserve_cells(global_cell_count);    //[KR] Not needed any longer
 
-
-
-
-  struct TriangleIndexType
-  {
-    TriangleIndexType() {}
-    TriangleIndexType(int i0_, int i1_, int i2_)
-    {
-      ordered_indices.resize(3);
-      ordered_indices[0] = i0_;
-      ordered_indices[1] = i1_;
-      ordered_indices[2] = i2_;
-
-      std::sort( ordered_indices.begin(), ordered_indices.end() );
-    }
-
-    bool operator<( TriangleIndexType const & other ) const
-    {
-      for (std::size_t i = 0; i < 3; ++i)
-      if (ordered_indices[i] != other.ordered_indices[i])
-        return ordered_indices[i] < other.ordered_indices[i];
-
-      return false;
-    }
-
-    std::vector<int> ordered_indices;
-  };
 
   typedef viennagrid::result_of::handle<MeshType, viennagrid::triangle_tag>::type TriangleHandleType;
   std::map<TriangleIndexType, TriangleHandleType> triangle_handle_map;
