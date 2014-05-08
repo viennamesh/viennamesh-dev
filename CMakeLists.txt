@@ -127,6 +127,15 @@ endif()
 # Subdirectories
 ################
 
+FILE(GLOB_RECURSE EXAMPLE_MESHES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} /examples/data/*)
+FILE(GLOB_RECURSE EXAMPLE_PIPELINES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} /examples/pipelines/*)
+
+set(EXAMPLE_DATA ${EXAMPLE_MESHES} ${EXAMPLE_PIPELINES})
+
+foreach(f IN LISTS EXAMPLE_DATA)
+   configure_file(${f} "${CMAKE_CURRENT_BINARY_DIR}/${f}" COPYONLY)
+endforeach()
+
 if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif()
