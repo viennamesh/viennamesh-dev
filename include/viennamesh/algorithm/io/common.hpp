@@ -19,7 +19,8 @@ namespace viennamesh
       COMSOL_MPHTXT,
       NEPER_TESS,
       OCC_STEP,
-      OCC_IGES
+      OCC_IGES,
+      SENTAURUS_TDR
     };
 
     FileType from_filename( string filename );
