@@ -6,7 +6,11 @@
 #include "viennagrid/io/tetgen_poly_reader.hpp"
 #include "viennagrid/io/bnd_reader.hpp"
 #include "viennagrid/io/neper_tess_reader.hpp"
+
 #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
+#ifdef VIENNAMESH_WITH_TDR
+  #include "viennamesh/algorithm/io/sentaurus_tdr_reader.hpp"
+#endif
 
 #include "viennamesh/core/mesh_quantities.hpp"
 
@@ -290,6 +294,46 @@ namespace viennamesh
 
           return true;
         }
+
+#ifdef VIENNAMESH_WITH_TDR
+      case SENTAURUS_TDR:
+        {
+          shared_ptr<H5File> file( new H5File(filename.c_str(), H5F_ACC_RDWR) );
+
+          if (file->getNumObjs()!=1)
+          {
+            error(1) << "File has not only collection" << std::endl;
+            return false;
+          }
+
+          tdr_geometry geometry;
+          geometry.read_collection(file->openGroup("collection"));
+
+          geometry.correct_vertices();
+
+          if (dim == 2)
+          {
+            typedef viennagrid::segmented_mesh<viennagrid::triangle_2d_mesh, viennagrid::triangle_2d_segmentation> MeshType;
+
+            output_parameter_proxy<MeshType> omp(output_mesh);
+            geometry.to_viennagrid( omp().mesh, omp().segmentaion );
+
+            return true;
+          }
+          else if (dim == 3)
+          {
+            typedef viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> MeshType;
+
+            output_parameter_proxy<MeshType> omp(output_mesh);
+            geometry.to_viennagrid( omp().mesh, omp().segmentaion );
+
+            return true;
+          }
+
+          return false;
+        }
+#endif
+
       case VTK:
         {
           info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
