@@ -645,8 +645,15 @@ namespace viennamesh
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
+      typedef typename viennagrid::result_of::cell_tag<MeshT>::type CellTag;
 
-      std::vector<VertexHandleType> vertex_handles( vertex.size() );
+      const int mesh_vertices_per_element = viennagrid::boundary_elements<CellTag, viennagrid::vertex_tag>::num;
+      const int mesh_dimension = viennagrid::result_of::geometric_dimension<MeshT>::value;
+
+      if (mesh_dimension != dim)
+        return false;
+
+      std::vector<VertexHandleType> vertex_handles( nvertices );
 
       for (int i=0; i<nvertices; i++)
       {
@@ -669,7 +676,10 @@ namespace viennamesh
         {
           const std::vector<int> &e=*E;
 
-          std::vector<SegmentHandleType> handles;
+          if (e.size() != mesh_vertices_per_element)
+            continue;
+
+          std::vector<VertexHandleType> handles(e.size());
 
           for (std::size_t i = 0; i < e.size(); ++i)
             handles[i] = vertex_handles[ e[i] ];
@@ -678,7 +688,83 @@ namespace viennamesh
         }
       }
 
+      return true;
     }
+
+
+    template<typename MeshT, typename SegmentationT, typename SegmentedMeshQuantitiesType>
+    void to_mesh_quantities( MeshT const & mesh, SegmentationT const & segmentation,
+                             SegmentedMeshQuantitiesType & quantites )
+    {
+      typedef typename viennagrid::result_of::vertex<MeshT>::type VertexType;
+      typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
+
+
+      for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
+      {
+        std::set<int> pointmarkers;
+        const std::vector<std::vector<int> > &elements=R->second.elements;
+        for (int i=0; i<elements.size(); i++)
+          for (int j=0; j<elements[i].size(); j++)
+            pointmarkers.insert(elements[i][j]);
+
+        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
+        {
+          if (globalattributes[D->first].firstattribute==NULL)
+            globalattributes[D->first].firstattribute=&D->second;
+          std::map<int,double> &attr=globalattributes[D->first].values;
+          int validx=0;
+          for (std::set<int>::const_iterator M=pointmarkers.begin(); M!=pointmarkers.end(); M++)
+          {
+            attr[*M]=D->second.conversion_factor*D->second.values[validx];
+            validx++;
+          }
+        }
+      }
+
+
+      if (!globalattribute)
+      {
+        for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
+        {
+          for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
+          {
+            if (D->second.nvalues!=D->second.values.size())
+              mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
+
+            string segment_name = R->second.name;
+            string quantity_name = D->second.name;
+
+            SegmentHandleType const & segment = segmentation(segment_name);
+
+            typedef typename viennagrid::result_of::field<
+                typename SegmentedMeshQuantitiesType::VertexValueContainerType,
+                VertexType,
+                viennagrid::base_id_unpack>::type FieldType;
+
+            FieldType field = quantites.get_vertex_field( mesh, segment.id(), quantity_name );
+
+            typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
+            typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
+
+            ConstVertexRangeType vertices( segment );
+
+            std::map<typename VertexType::id_type, double> tmp;
+
+            int i = 0;
+            for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
+              field(*vit) = D->second.values[i];
+          }
+        }
+      }
+      else
+      {
+        std::cout << "UNSUPPORTED" << std::endl;
+      }
+    }
+
+
 
 
     void write_grid(string filename)
