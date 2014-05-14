@@ -81,6 +81,14 @@ namespace viennamesh
     attributeinfo_c() : firstattribute(NULL) {}
   };
 
+
+  template<typename VertexHandleT>
+  struct region_contacts
+  {
+    string segment_name;
+    std::vector< std::vector<VertexHandleT> > vertex_handles;
+  };
+
   struct tdr_geometry
   {
     int dim,nvertices,nregions,ndatasets;
@@ -398,7 +406,7 @@ namespace viennamesh
     }
 
     template<typename MeshT, typename SegmentationT>
-    bool to_viennagrid(MeshT & mesh, SegmentationT & segmentation)
+    bool to_viennagrid(MeshT & mesh, SegmentationT & segmentation, bool extrude_contacts = true)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::vertex<MeshT>::type VertexType;
@@ -426,14 +434,9 @@ namespace viennamesh
 
       typedef typename viennagrid::result_of::vertex_id<MeshT>::type VertexIDType;
 
-      struct region_contacts
-      {
-        string segment_name;
-//         std::map<VertexIDType, std::pair<VertexHandleType, double> > extruded_vertices;
-        std::vector< std::vector<VertexHandleType> > vertex_handles;
-      };
 
-      std::map<string, region_contacts> contact_elements;
+
+      std::map<string, region_contacts<VertexHandleType> > contact_elements;
 
 
       for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
@@ -459,76 +462,78 @@ namespace viennamesh
         }
       }
 
-      for (typename std::map<string, region_contacts>::iterator rc = contact_elements.begin(); rc != contact_elements.end(); ++rc)
+      if (extrude_contacts)
       {
-        for (std::size_t i = 0; i < rc->second.vertex_handles.size(); ++i)
+        for (typename std::map<string, region_contacts<VertexHandleType> >::iterator rc = contact_elements.begin(); rc != contact_elements.end(); ++rc)
         {
-          std::vector<VertexHandleType> handles = rc->second.vertex_handles[i];
-
-          PointType center;
-          PointType normal;
-          double size = 0;
-
-          if (handles.size() == 2)
+          for (std::size_t i = 0; i < rc->second.vertex_handles.size(); ++i)
           {
-            VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
-            VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
+            std::vector<VertexHandleType> handles = rc->second.vertex_handles[i];
 
-            PointType const & p0 = viennagrid::point(v0);
-            PointType const & p1 = viennagrid::point(v1);
+            PointType center;
+            PointType normal;
+            double size = 0;
 
-            center = (p0+p1)/2;
-            normal = normal_vector(p0, p1);
+            if (handles.size() == 2)
+            {
+              VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
+              VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
 
-            size = std::max(size, viennagrid::distance(center, p0));
-            size = std::max(size, viennagrid::distance(center, p1));
+              PointType const & p0 = viennagrid::point(v0);
+              PointType const & p1 = viennagrid::point(v1);
+
+              center = (p0+p1)/2;
+              normal = normal_vector(p0, p1);
+
+              size = std::max(size, viennagrid::distance(center, p0));
+              size = std::max(size, viennagrid::distance(center, p1));
+            }
+            else if (handles.size() == 3)
+            {
+              VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
+              VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
+              VertexType const & v2 = viennagrid::dereference_handle(mesh, handles[2]);
+
+              PointType const & p0 = viennagrid::point(v0);
+              PointType const & p1 = viennagrid::point(v1);
+              PointType const & p2 = viennagrid::point(v2);
+
+              center = (p0+p1+p2)/3;
+              normal = normal_vector(p0, p1, p2);
+
+              size = std::max(size, viennagrid::distance(center, p0));
+              size = std::max(size, viennagrid::distance(center, p1));
+              size = std::max(size, viennagrid::distance(center, p2));
+            }
+            else
+            {
+              std::cout << "NOT SUPPORTED" << std::endl;
+            }
+
+            normal /= viennagrid::norm_2(normal);
+            normal *= size;
+
+            PointType other_vertex = center + normal;
+
+            typedef typename viennagrid::result_of::cell_range<MeshT>::type CellRangeType;
+            typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellIteratorType;
+
+            CellRangeType cells(mesh);
+            CellIteratorType cit = cells.begin();
+            for (; cit != cells.end(); ++cit)
+            {
+              if ( viennagrid::is_inside(*cit, other_vertex) )
+                break;
+            }
+
+            if (cit != cells.end())
+              other_vertex = center - normal;
+
+            typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
+
+            handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
+            CellHandleType cell_handle = viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
           }
-          else if (handles.size() == 3)
-          {
-            VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
-            VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
-            VertexType const & v2 = viennagrid::dereference_handle(mesh, handles[2]);
-
-            PointType const & p0 = viennagrid::point(v0);
-            PointType const & p1 = viennagrid::point(v1);
-            PointType const & p2 = viennagrid::point(v2);
-
-            center = (p0+p1+p2)/3;
-            normal = normal_vector(p0, p1, p2);
-
-            size = std::max(size, viennagrid::distance(center, p0));
-            size = std::max(size, viennagrid::distance(center, p1));
-            size = std::max(size, viennagrid::distance(center, p2));
-          }
-          else
-          {
-            std::cout << "NOT SUPPORTED" << std::endl;
-          }
-
-          normal /= viennagrid::norm_2(normal);
-          normal *= size;
-
-          PointType other_vertex = center + normal;
-
-          typedef typename viennagrid::result_of::cell_range<MeshT>::type CellRangeType;
-          typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellIteratorType;
-
-          CellRangeType cells(mesh);
-          CellIteratorType cit = cells.begin();
-          for (; cit != cells.end(); ++cit)
-          {
-            if ( viennagrid::is_inside(*cit, other_vertex) )
-              break;
-          }
-
-          if (cit != cells.end())
-            other_vertex = center - normal;
-
-          typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
-
-          handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
-          CellHandleType cell_handle = viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
-//           std::cout << viennagrid::dereference_handle(mesh, cell_handle) << std::endl;
         }
       }
 
