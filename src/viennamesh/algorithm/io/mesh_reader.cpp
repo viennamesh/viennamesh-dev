@@ -322,7 +322,7 @@ namespace viennamesh
             output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
             geometry.to_viennagrid( omp().mesh, omp().segmentation );
 
-            typedef typename viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
+            typedef viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
             output_parameter_proxy<SegmentedMeshQuantitiesType> oqp(output_quantities);
             geometry.to_mesh_quantities( omp().mesh, omp().segmentation, oqp() );
 
@@ -337,7 +337,7 @@ namespace viennamesh
             output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
             geometry.to_viennagrid( omp().mesh, omp().segmentation );
 
-            typedef typename viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
+            typedef viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
             output_parameter_proxy<SegmentedMeshQuantitiesType> oqp(output_quantities);
             geometry.to_mesh_quantities( omp().mesh, omp().segmentation, oqp() );
 
