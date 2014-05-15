@@ -13,6 +13,7 @@ namespace viennamesh
     a.read(a.getDataType(),&i);
     return i;
   }
+
   double read_double(const H5Object &g, const string name)
   {
     double i;
@@ -23,6 +24,7 @@ namespace viennamesh
     a.read(a.getDataType(),&i);
     return i;
   }
+
   //string read_string(const Group &g, const string name)
   string read_string(const H5Object &g, const string name)
   {
@@ -30,11 +32,14 @@ namespace viennamesh
     if (a.getTypeClass()!=H5T_STRING)
       mythrow("Wrong class in atrribute");
 
-    char buf[a.getDataType().getSize()+1];
+    char * buf = new char[a.getDataType().getSize()+1];
     a.read(a.getDataType(),buf);
     buf[a.getDataType().getSize()]='\0';
 
-    return string(buf);
+    string result(buf);
+    delete[] buf;
+
+    return result;
   }
 
 }
