@@ -22,8 +22,8 @@ namespace viennamesh
   public:
     seed_point_segmenting();
 
-    string name() const;
-    string id() const;
+    std::string name() const;
+    std::string id() const;
 
     bool run_impl();
 

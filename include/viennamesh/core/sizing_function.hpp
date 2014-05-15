@@ -140,7 +140,7 @@ namespace viennamesh
     {
       typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 
-      mesh_gradient_functor( string const & filename, string const & quantity_name ) :
+      mesh_gradient_functor( std::string const & filename, std::string const & quantity_name ) :
           mesh(viennamesh::make_parameter<SegmentedMeshType>()),
           values(new ValuesContainerType), values_field(new FieldType(*values))
       {
@@ -579,31 +579,17 @@ namespace viennamesh
       NumericType upper_to;
     };
 
-
-
-
-
-
-
-    class create_sizing_function_exception : public std::runtime_error
-    {
-    public:
-      create_sizing_function_exception(string const & message_) : std::runtime_error(message_) {}
-      virtual ~create_sizing_function_exception() throw() {}
-    };
-
-
     template<typename MeshT, typename SegmentationT>
     typename viennamesh::result_of::sizing_function< typename viennagrid::result_of::point<MeshT>::type >::type
     from_xml(
           pugi::xml_node const & node,
           viennamesh::parameter_handle_t< parameter_wrapper< viennagrid::segmented_mesh<MeshT, SegmentationT > > > const & mesh,
-          string const & base_path = "")
+          std::string const & base_path = "")
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennamesh::result_of::sizing_function<PointType>::type SizingFunctionType;
 
-      string name = node.name();
+      std::string name = node.name();
 
       if (name == "constant")
       {
@@ -638,7 +624,7 @@ namespace viennamesh
       else if (name == "interpolate")
       {
         pugi::xml_attribute transform_type_node = node.attribute("transform_type");
-        string transform_type = transform_type_node.as_string();
+        std::string transform_type = transform_type_node.as_string();
 
         if ( !node.child_value("source") )
           throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
@@ -705,11 +691,11 @@ namespace viennamesh
         if ( !node.child_value("quantity_name") )
           throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
 
-        string mesh_file = node.child_value("mesh_file");
+        std::string mesh_file = node.child_value("mesh_file");
         if (!base_path.empty())
           mesh_file = base_path + "/" + mesh_file;
 
-        string quantity_name = node.child_value("quantity_name");
+        std::string quantity_name = node.child_value("quantity_name");
 
         return viennamesh::bind( mesh_gradient_functor<MeshT, SegmentationT>(mesh_file, quantity_name), _1 );
       }
@@ -721,9 +707,9 @@ namespace viennamesh
 
     template<typename MeshT, typename SegmentationT>
     typename viennamesh::result_of::sizing_function< typename viennagrid::result_of::point<MeshT>::type >::type from_xml(
-          string const & xml_string,
+          std::string const & xml_string,
           viennamesh::parameter_handle_t< parameter_wrapper< viennagrid::segmented_mesh<MeshT, SegmentationT > > > const & mesh,
-          string const & base_path = "")
+          std::string const & base_path = "")
     {
       pugi::xml_document sf_xml;
       sf_xml.load( xml_string.c_str() );
@@ -732,9 +718,9 @@ namespace viennamesh
 
     template<typename MeshT, typename SegmentationT>
     typename viennamesh::result_of::sizing_function< typename viennagrid::result_of::point<MeshT>::type >::type from_xmlfile(
-          string const & xml_filename,
+          std::string const & xml_filename,
           viennamesh::parameter_handle_t< parameter_wrapper< viennagrid::segmented_mesh<MeshT, SegmentationT > > > const & mesh,
-          string const & base_path = "")
+          std::string const & base_path = "")
     {
       pugi::xml_document sf_xml;
       sf_xml.load_file( xml_filename.c_str() );

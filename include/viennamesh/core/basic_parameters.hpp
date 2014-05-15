@@ -19,7 +19,7 @@ namespace viennamesh
 //       converter::get().register_conversion<bool, int>( &static_cast_convert<bool, int> );
     }
 
-    static string name()
+    static std::string name()
     {
       return "bool";
     }
@@ -34,7 +34,7 @@ namespace viennamesh
 //       converter::get().register_conversion<int, bool>( &static_cast_convert<int, bool> );
     }
 
-    static string name()
+    static std::string name()
     {
       return "int";
     }
@@ -48,7 +48,7 @@ namespace viennamesh
       converter::get().register_conversion<double, int>( &static_cast_convert<double, int> );
     }
 
-    static string name()
+    static std::string name()
     {
       return "double";
     }
@@ -56,13 +56,13 @@ namespace viennamesh
 
 
   template<>
-  struct type_information<string>
+  struct type_information<std::string>
   {
-    typedef string SelfT;
+    typedef std::string SelfT;
 
     static void init() {}
 
-    static string name()
+    static std::string name()
     {
       return "string";
     }
@@ -84,11 +84,11 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
 
       int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshType>::value;
-      type_properties::get().set_property<SelfType>( "geometric_dimension", lexical_cast<string>(geometric_dimension) );
+      type_properties::get().set_property<SelfType>( "geometric_dimension", lexical_cast<std::string>(geometric_dimension) );
       type_properties::get().set_property<SelfType>( "cell_type", CellTag::name() );
     }
 
-    static string name()
+    static std::string name()
     {
       std::stringstream ss;
       ss << "viennagrid::segmented_mesh< cell type = " << CellTag::name() << ", geometric dimension = " << viennagrid::result_of::geometric_dimension<MeshType>::value << ">";
@@ -112,11 +112,11 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "false" );
 
       int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshType>::value;
-      type_properties::get().set_property<SelfType>( "geometric_dimension", lexical_cast<string>(geometric_dimension) );
+      type_properties::get().set_property<SelfType>( "geometric_dimension", lexical_cast<std::string>(geometric_dimension) );
       type_properties::get().set_property<SelfType>( "cell_type", CellTag::name() );
     }
 
-    static string name()
+    static std::string name()
     {
       std::stringstream ss;
       ss << "viennagrid::mesh< cell type = " << CellTag::name() << ", geometric dimension = " << viennagrid::result_of::geometric_dimension<MeshType>::value << ">";
@@ -137,7 +137,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_mesh", "false" );
     }
 
-    static string name()
+    static std::string name()
     {
       std::stringstream ss;
       ss << "segmented_mesh_quantities" << std::endl;
@@ -157,7 +157,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_mesh", "false" );
     }
 
-    static string name()
+    static std::string name()
     {
       std::stringstream ss;
       ss << "mesh_quantities" << std::endl;

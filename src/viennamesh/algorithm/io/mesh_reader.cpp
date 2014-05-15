@@ -29,7 +29,7 @@ namespace viennamesh
 
 
     template<typename CellTagT, unsigned int GeometricDimensionV>
-    bool mesh_reader::generic_read_vtk( string const & filename )
+    bool mesh_reader::generic_read_vtk( std::string const & filename )
     {
       typedef typename viennamesh::result_of::full_config<CellTagT, GeometricDimensionV>::type ConfigType;
       typedef typename viennagrid::mesh<ConfigType> MeshType;
@@ -52,15 +52,15 @@ namespace viennamesh
 
 
     mesh_reader::mesh_reader() :
-      filename(*this, "filename"),
-      filetype(*this, "filetype"),
-      output_mesh(*this, "mesh"),
-      output_quantities(*this, "quantities"),
-      output_seed_points(*this, "seed_points"),
-      output_hole_points(*this, "hole_points") {}
+      filename(*this, parameter_information("filename","string","The filename of the mesh to be read")),
+      filetype(*this, parameter_information("filetype","string","The filetype of the mesh to be read. Supported filetypes: VTK, TETGEN_POLY, NETGEN_MESH, GTS_DEVA, SYNOPSIS_BND, NEPER_TESS")),
+      output_mesh(*this, parameter_information("mesh","mesh","The read mesh")),
+      output_quantities(*this, parameter_information("quantities","segmented_mesh_quantities|mesh_quantities","The read mesh quantities")),
+      output_seed_points(*this, parameter_information("seed_points","seed_point_1d_container|seed_point_2d_container|seed_point_3d_container","The read seed points")),
+      output_hole_points(*this, parameter_information("hole_points","point_1d_container|point_2d_container|point_3d_container","The read hole points")) {}
 
-    string mesh_reader::name() const { return "ViennaGrid Mesh Reader"; }
-    string mesh_reader::id() const { return "mesh_reader"; }
+    std::string mesh_reader::name() const { return "ViennaGrid Mesh Reader"; }
+    std::string mesh_reader::id() const { return "mesh_reader"; }
 
 
     template<int GeometricDimensionV>
@@ -101,10 +101,10 @@ namespace viennamesh
 
 
 
-    bool mesh_reader::read_vmesh( string const & filename )
+    bool mesh_reader::read_vmesh( std::string const & filename )
     {
       int geometric_dimension = -1;
-      string mesh_filename;
+      std::string mesh_filename;
 
       pugi::xml_document xml;
       xml.load_file( filename.c_str() );
@@ -144,9 +144,9 @@ namespace viennamesh
 
 
 
-    bool mesh_reader::load( string const & filename, FileType filetype )
+    bool mesh_reader::load( std::string const & filename, FileType filetype )
     {
-      string path = stringtools::extract_path( filename );
+      std::string path = stringtools::extract_path( filename );
 
       info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 
@@ -298,7 +298,7 @@ namespace viennamesh
           int geometric_dimension = 0;
           unsigned int vtk_cell_type = 0; // hexahedron=12, tetrahedron=10, quadrilateral=9, triangle=5, line=3
 
-          string extension = filename.substr(filename.rfind(".")+1);
+          std::string extension = filename.substr(filename.rfind(".")+1);
 
           pugi::xml_document xml;
           if (extension == "vtu")
@@ -316,7 +316,7 @@ namespace viennamesh
       //             pugi::xml_attribute attrib = node.node().attribute("file");
       //             std::cout << attrib.value() << std::endl;
 
-              string vtu_file = path + nodes.first().node().attribute("file").value();
+              std::string vtu_file = path + nodes.first().node().attribute("file").value();
               xml.load_file( vtu_file.c_str() );
             }
           }

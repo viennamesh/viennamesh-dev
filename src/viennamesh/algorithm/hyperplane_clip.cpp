@@ -42,13 +42,13 @@ namespace viennamesh
 
 
   hyperplane_clip::hyperplane_clip() :
-    input_mesh(*this, "mesh"),
-    hyperplane_point(*this, "hyperplane_point"),
-    hyperplane_normal(*this, "hyperplane_normal"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented and non-segmented triangular 2d, segmented and non-segmented triangular 3d and segmented and non-segmented tetrahedral 3d supported")),
+    hyperplane_point(*this, parameter_information("hyperplane_point","dynamic_point","A point of the clipping hyperplane")),
+    hyperplane_normal(*this, parameter_information("hyperplane_normal","dynamic_point","The normal vector of the clipping hyperplane")),
+    output_mesh(*this, parameter_information("mesh","mesh","The output mesh, same type of mesh as input mesh")) {}
 
-  string hyperplane_clip::name() const { return "ViennaGrid Hyperplane Clip"; }
-  string hyperplane_clip::id() const { return "hyperplane_clip"; }
+  std::string hyperplane_clip::name() const { return "ViennaGrid Hyperplane Clip"; }
+  std::string hyperplane_clip::id() const { return "hyperplane_clip"; }
 
 
   template<typename MeshT, typename SegmentationT>

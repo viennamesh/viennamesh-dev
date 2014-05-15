@@ -3,17 +3,17 @@
 namespace viennamesh
 {
 
-  parameter_handle_t<parameter_link> make_parameter_link(algorithm_handle const & algorithm, string const & para_name)
+  parameter_handle_t<parameter_link> make_parameter_link(algorithm_handle const & algorithm, std::string const & para_name)
   {
     return parameter_handle_t<parameter_link>( new parameter_link(algorithm, para_name) );
   }
 
   bool base_algorithm::run()
   {
-    LoggingStack stack( string("Algoritm: ") + name() );
+    LoggingStack stack( std::string("Algoritm: ") + name() );
     outputs.clear_non_references();
 
-    for (RegisteredParameterMapType::iterator ipit = input_parameters.begin(); ipit != input_parameters.end(); ++ipit)
+    for (RegisteredInputParameterMapType::iterator ipit = input_parameters.begin(); ipit != input_parameters.end(); ++ipit)
       (*ipit).second->reset();
 
     try
@@ -33,13 +33,13 @@ namespace viennamesh
     }
   }
 
-  void base_algorithm::register_input_parameter( base_parameter_interface & input_parameter )
+  void base_algorithm::register_input_parameter( base_input_parameter_interface & input_parameter )
   {
     if ( !input_parameters.insert(std::make_pair(input_parameter.name(), &input_parameter)).second )
       error(1) << "Input parameter \"" << input_parameter.name() << "\" of algorithm \"" << name() << "\" registered twice. This is a bug, please report!" << std::endl;
   }
 
-  void base_algorithm::register_output_parameter( base_parameter_interface & output_parameter )
+  void base_algorithm::register_output_parameter( output_parameter_interface & output_parameter )
   {
     if ( !output_parameters.insert(std::make_pair(output_parameter.name(), &output_parameter)).second )
       error(1) << "Output parameter \"" << output_parameter.name() << "\" of algorithm \"" << name() << "\" registered twice. This is a bug, please report!" << std::endl;

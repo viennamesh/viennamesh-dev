@@ -172,7 +172,7 @@ namespace viennamesh
       if (segmentation.segments.empty())
         return;
 
-      LoggingStack stack( string("Extracting seed points from segments") );
+      LoggingStack stack( std::string("Extracting seed points from segments") );
 
       info(5) << "Extracting seed points from segments" << std::endl;
 
@@ -191,7 +191,7 @@ namespace viennamesh
       {
         tetgen::output_mesh tmp_mesh;
 
-        LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
+        LoggingStack stack( std::string("Segment ") + lexical_cast<std::string>(highest_segment_id) );
         make_mesh_impl(*sit, tmp_mesh, hole_points, seed_point_3d_container(), options);
 
         viennagrid::tetrahedral_3d_mesh viennagrid_mesh;
@@ -213,7 +213,7 @@ namespace viennamesh
                                             point_3d_container const & hole_points,
                                             seed_point_3d_container const & seed_points,
                                             SizingFunctionRepresentationT const & sf,
-                                            string const & base_path)
+                                            std::string const & base_path)
     {
       typedef viennagrid::tetrahedral_3d_mesh MeshType;
       typedef viennagrid::tetrahedral_3d_segmentation SegmentationType;
@@ -237,21 +237,21 @@ namespace viennamesh
 
 
     make_mesh::make_mesh() :
-      input_mesh(*this, "mesh"),
-      input_seed_points(*this, "seed_points"),
-      input_hole_points(*this, "hole_points"),
-      sizing_function(*this, "sizing_function"),
-      cell_size(*this, "cell_size"),
-      max_radius_edge_ratio(*this, "max_radius_edge_ratio"),
-      min_dihedral_angle(*this, "min_dihedral_angle"),
-      max_edge_ratio(*this, "max_edge_ratio"),
-      max_inscribed_radius_edge_ratio(*this, "max_inscribed_radius_edge_ratio"),
-      extract_segment_seed_points(*this, "extract_segment_seed_points", true),
-      option_string(*this, "option_string"),
-      output_mesh(*this, "mesh") {}
+      input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented tetgen mesh supported")),
+      input_seed_points(*this, parameter_information("seed_points","seed_point_3d_container","A container of seed points with corresonding segment names")),
+      input_hole_points(*this, parameter_information("hole_points","point_3d_container","A container of hole points")),
+      sizing_function(*this, parameter_information("sizing_function","sizing_function_3d|string|pugi::xml_node","The sizing function, different representation are supported: arbitrary sizing_function_3d or the ViennaMesh sizing function framework in string or pugi::xml_node representation")),
+      cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
+      max_radius_edge_ratio(*this, parameter_information("max_radius_edge_ratio","double","Desired maximum ratio of the circumradius and longest edge")),
+      min_dihedral_angle(*this, parameter_information("min_dihedral_angle","double","Desired minimum dihedral angle")),
+      max_edge_ratio(*this, parameter_information("max_edge_ratio","double","Desired maximum ratio of the shortest edge and the longest edge")),
+      max_inscribed_radius_edge_ratio(*this, parameter_information("max_inscribed_radius_edge_ratio","double","Desired maximum ratio of the inscribed sphere radius and the longest edge")),
+      extract_segment_seed_points(*this, parameter_information("extract_segment_seed_points","bool","Should seed points be extracted from the input segmentation?"), true),
+      option_string(*this, parameter_information("option_string","string","The tetgen options string")),
+      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, segmented tetrahedral 3d")) {}
 
-    string make_mesh::name() const { return "Tetgen 1.5 mesher"; }
-    string make_mesh::id() const { return "tetgen_make_mesh"; }
+    std::string make_mesh::name() const { return "Tetgen 1.5 mesher"; }
+    std::string make_mesh::id() const { return "tetgen_make_mesh"; }
 
 
     bool make_mesh::run_impl()
@@ -373,13 +373,13 @@ namespace viennamesh
           options.use_refinement_callback = 1;
           tmp.tetunsuitable = should_tetrahedron_be_refined_function;
         }
-        else if (sizing_function.get<string>())
+        else if (sizing_function.get<std::string>())
         {
           info(5) << "Using user-defined XML string sizing function" << std::endl;
-          info(5) << sizing_function.get<string>()() << std::endl;
+          info(5) << sizing_function.get<std::string>()() << std::endl;
           tetgen_sizing_function = make_sizing_function(
                                       input_mesh().mesh, hole_points, seed_points,
-                                      sizing_function.get<string>()(), base_path());
+                                      sizing_function.get<std::string>()(), base_path());
           using_sizing_function = true;
           options.use_refinement_callback = 1;
           tmp.tetunsuitable = should_tetrahedron_be_refined_function;

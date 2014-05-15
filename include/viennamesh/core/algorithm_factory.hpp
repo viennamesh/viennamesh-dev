@@ -16,8 +16,8 @@ namespace viennamesh
 
     virtual algorithm_handle create() const = 0;
 
-    virtual string id() const = 0;
-    virtual string type_string() const = 0;
+    virtual std::string id() const = 0;
+    virtual std::string type_string() const = 0;
   };
 
   template<typename AlgorithmT>
@@ -28,8 +28,8 @@ namespace viennamesh
 
     algorithm_handle create() const { return algorithm_handle( new AlgorithmT() ); }
 
-    string id() const { return algorithm.id(); }
-    string type_string() const { return typeid(algorithm).name(); }
+    std::string id() const { return algorithm.id(); }
+    std::string type_string() const { return typeid(algorithm).name(); }
 
   private:
     AlgorithmT algorithm;
@@ -37,7 +37,7 @@ namespace viennamesh
 
 
   template<typename AlgorithmT>
-  void set_feature( string const & feature_key, string const & feature_value )
+  void set_feature( std::string const & feature_key, std::string const & feature_value )
   {
     algorithm_information<AlgorithmT>::feature_map()[feature_key] = feature_value;
   }
@@ -62,7 +62,7 @@ namespace viennamesh
     template<typename AlgorithmT>
     void register_algorithm();
 
-    std::map<string, AlgorithmInformationHandle> algorithms;
+    std::map<std::string, AlgorithmInformationHandle> algorithms;
   };
 
   algorithm_factory_t & algorithm_factory();

@@ -4,7 +4,7 @@ namespace viennamesh
 {
   namespace io
   {
-    bool extension_found( string const & filename, string const & extension )
+    bool extension_found( std::string const & filename, std::string const & extension )
     {
       string ext_w_pt = ".";
       ext_w_pt += extension;
@@ -17,7 +17,7 @@ namespace viennamesh
       return filename.rfind(ext_w_pt) == filename.length()-ext_w_pt.length();
     }
 
-    FileType from_filename( string filename )
+    FileType from_filename( std::string filename )
     {
       std::transform( filename.begin(), filename.end(), filename.begin(), ::toupper );
 
@@ -54,7 +54,7 @@ namespace viennamesh
       return UNKNOWN;
     }
 
-    FileType from_string( string str )
+    FileType from_string( std::string str )
     {
       std::transform( str.begin(), str.end(), str.begin(), ::toupper );
 
@@ -86,7 +86,7 @@ namespace viennamesh
       return UNKNOWN;
     }
 
-    string to_string( FileType file_type )
+    std::string to_string( FileType file_type )
     {
       switch (file_type)
       {

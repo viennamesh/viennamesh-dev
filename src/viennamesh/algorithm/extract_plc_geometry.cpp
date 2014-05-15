@@ -334,11 +334,11 @@ namespace viennamesh
 
 
    extract_plc::extract_plc() :
-    input_mesh(*this, "mesh"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 3d mesh supported")),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, plc 3d mesh")) {}
 
-  string extract_plc::name() const { return "ViennaGrid Extract PLC geometry"; }
-  string extract_plc::id() const { return "extract_plc"; }
+  std::string extract_plc::name() const { return "ViennaGrid Extract PLC geometry"; }
+  std::string extract_plc::id() const { return "extract_plc"; }
 
 
   bool extract_plc::run_impl()
