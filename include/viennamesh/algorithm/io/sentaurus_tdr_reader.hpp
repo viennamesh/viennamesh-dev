@@ -25,6 +25,12 @@ using namespace H5;
 
 #include "viennagrid/mesh/element_creation.hpp"
 
+#include "viennagrid/algorithm/cross_prod.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/inclusion.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/distance.hpp"
+#include "viennagrid/algorithm/norm.hpp"
 
 
 namespace viennamesh
@@ -46,26 +52,15 @@ namespace viennamesh
     child_t child;
   };
 
-  typedef std::map<hid_t,node_t> tree_t;
-  extern tree_t tree;
-  extern hid_t parent;
-
-
-  void iterate_attrs(H5Object &element,int depth=0,string type="");
-
-  void iterate_elements(CommonFG &element,int depth=0,string type="");
-
-  void check_class(H5T_class_t t);
 
   int read_int(const H5Object &g, const string name);
   double read_double(const H5Object &g, const string name);
-  //string read_string(const Group &g, const string name)
   string read_string(const H5Object &g, const string name);
 
   struct dataset_t
   {
     string name, quantity, unit;
-    int nvalues;
+    unsigned int nvalues;
     double conversion_factor;
     std::vector<double> values;
   };
@@ -86,19 +81,18 @@ namespace viennamesh
     attributeinfo_c() : firstattribute(NULL) {}
   };
 
-  extern int globalattribute;
-  extern std::map<string,attributeinfo_c> globalattributes;
-  extern std::set<string> removeattribute;
-  extern std::set<string> removesegment;
-  extern double cutsegmentbelow;
-  extern double cutsegmentabove;
-  extern string addsegment;
-  extern string addmaterial;
 
+  template<typename VertexHandleT>
+  struct region_contacts
+  {
+    string segment_name;
+    std::vector< std::vector<VertexHandleT> > vertex_handles;
+  };
 
   struct tdr_geometry
   {
-    int dim,nvertices,nregions,ndatasets;
+    unsigned int nvertices;
+    int dim,nregions,ndatasets;
     std::vector<double> vertex;
     std::map<string,region_t> region;
     double trans_matrix[9],trans_move[3];
@@ -118,12 +112,10 @@ namespace viennamesh
 
     void read_vertex(const DataSet &vert)
     {
-      const DataSpace &dataspace = vert.getSpace();
-      int rank = dataspace.getSimpleExtentNdims();
+//       const DataSpace &dataspace = vert.getSpace();
+//       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[10];
-      int ndims = dataspace.getSimpleExtentDims( dims, NULL);
-     std::cerr << "dataspace: " << rank << " " << ndims << " " << dims[0] << "," << dims[1] << std::endl;
-     std::cerr << "nvertices: " << nvertices << std::endl;
+//       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
       if (nvertices!=dims[0])
         mythrow("nvertices not equal vertices.dim");
 
@@ -131,19 +123,22 @@ namespace viennamesh
       const H5std_string MEMBER1( "x" );
       const H5std_string MEMBER2( "y" );
       const H5std_string MEMBER3( "z" );
-            mtype2.insertMember( "x", HOFFSET(coord2_t, x[0]), PredType::NATIVE_DOUBLE);
-      if (dim>1)
-      mtype2.insertMember( "y", HOFFSET(coord2_t, x[1]), PredType::NATIVE_DOUBLE);
-      if (dim>2)
-      mtype2.insertMember( "z", HOFFSET(coord2_t, x[2]), PredType::NATIVE_DOUBLE);
-            /*
-            * Read two fields x and y from s2 dataset. Fields in the file
-            * are found by their names "x_name" and "y_name".
-            */
-            coord2_t s2[dims[0]];
-            vert.read( s2, mtype2 );
+      mtype2.insertMember( "x", HOFFSET(coord2_t, x[0]), PredType::NATIVE_DOUBLE);
 
-      for (int i=0; i<dims[0]; i++)
+      if (dim>1)
+        mtype2.insertMember( "y", HOFFSET(coord2_t, x[1]), PredType::NATIVE_DOUBLE);
+
+      if (dim>2)
+        mtype2.insertMember( "z", HOFFSET(coord2_t, x[2]), PredType::NATIVE_DOUBLE);
+
+      /*
+      * Read two fields x and y from s2 dataset. Fields in the file
+      * are found by their names "x_name" and "y_name".
+      */
+      coord2_t * s2 = new coord2_t[dims[0]];
+      vert.read( s2, mtype2 );
+
+      for (unsigned int i=0; i<dims[0]; i++)
       {
         vertex.push_back(s2[i].x[0]*10000.);
         if (dim>1)
@@ -151,31 +146,26 @@ namespace viennamesh
         if (dim>2)
         vertex.push_back(s2[i].x[2]*10000.);
       }
+
+      delete[] s2;
     }
 
     void read_elements(region_t &region, const DataSet &elem)
     {
-     std::cerr << "nelements: " << region.nelements << std::endl;
-
       const DataSpace &dataspace = elem.getSpace();
       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[10];
       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
 
-      //cerr << "dataspace: " << rank << " " << ndims << " " << dims[0] << "," << dims[1] <<std::endl;
       if (rank!=1)
         mythrow("rank of elements in region " << region.name << " is not one");
       if (ndims!=1)
         mythrow("ndims of elements in region " << region.name << " is not one");
 
-      int el[dims[0]];
+      int * el = new int[dims[0]];
       elem.read( el, PredType::NATIVE_INT);
 
-      //for (int i=0; i<dims[0]; i++)
-      // std::cerr << tmp_elements[i] << " ";
-      //cerr <<std::endl;
-
-      int elct=0,eldim;
+      unsigned int elct=0;
       while (elct<dims[0])
       {
         region.elements.push_back(std::vector<int>());
@@ -194,19 +184,21 @@ namespace viennamesh
         }
       }
 
+      delete[] el;
     }
 
     void read_region(const int regnr, const Group &reg)
     {
       string name0=read_string(reg,"name");
       string name;
-      int i;
+      unsigned int i;
       while ((i=name0.find_first_of("_."))!=name0.npos)
       {
         name=name+name0.substr(0,i);
         name0=name0.substr(i+1);
       }
       name=name+name0;
+      std::stringstream ss;
       string material;
       const int typ=read_int(reg,"type");
       switch (typ)
@@ -218,14 +210,15 @@ namespace viennamesh
           material="Contact";
           // attribute "part 0", no idea for what
           break;
-        case 2: material="Interface"+read_int(reg,"bulk 0")+read_int(reg,"bulk 1");
+        case 2:
+          ss << "Interface" << read_int(reg,"bulk 0") << read_int(reg,"bulk 1");
+          material = ss.str();
           break;
         //default : mythrow(__LINE__ << ": Unknown type " << typ << " in region " << read_string(reg,"name"));
         default :std::cerr << __LINE__ << ": Unknown type " << typ << " in region " << read_string(reg,"name") << std::endl;
          std::cerr << "I do not throw, I only skip\n";
           return;
       }
-     std::cerr << "typ: " << typ << std::endl;
       const int nparts=read_int(reg,"number of parts");
       if (nparts!=1)
       {
@@ -269,41 +262,39 @@ namespace viennamesh
     void read_values(dataset_t &dataset,const DataSet &values)
     {
       const DataSpace &dataspace = values.getSpace();
-      int rank = dataspace.getSimpleExtentNdims();
+//       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[10];
       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
-     std::cerr << "dataspace: " << rank << " " << ndims << " " << dims[0] << "," << dims[1] <<std::endl;
-     std::cerr << "nvalues: " << dataset.nvalues << std::endl;
       if (dataset.nvalues!=dims[0] || ndims!=1)
         mythrow("Dataset " << dataset.name << " should have " << dataset.nvalues << " values, but has " << dims[0] << " with dimension " << ndims);
 
-      double v[dims[0]];
+      double * v = new double[dims[0]];
       values.read( v, PredType::NATIVE_DOUBLE);
       dataset.values.insert(dataset.values.end(),&v[0],&v[dims[0]]);
+      delete[] v;
     }
+
     void read_dataset(const Group &dataset)
     {
-            string name = read_string(dataset,"name");
+      string name = read_string(dataset,"name");
       if (name.find("Stress")!=name.npos)
         return;
 
-            string quantity = read_string(dataset,"quantity");
-            int regnr = read_int(dataset,"region");
-            int nvalues=read_int(dataset,"number of values");
-            double conversion_factor = read_double(dataset,"conversion factor");
-            if (read_int(dataset,"location type")!=0)
+      string quantity = read_string(dataset,"quantity");
+      int regnr = read_int(dataset,"region");
+      int nvalues=read_int(dataset,"number of values");
+      double conversion_factor = read_double(dataset,"conversion factor");
+
+      if (read_int(dataset,"location type")!=0)
       {
-        //mythrow("Dataset " << name << " location type not 0");
-       std::cerr << "Dataset " << name << " location type not 0\n";
-       std::cerr << "I only skip this dataset\n";
+        mythrow("Dataset " << name << " location type not 0");
         return;
       }
-            if (read_int(dataset,"structure type") != 0)
-        mythrow("Dataset " << name << " structure type not 0");
-            if (read_int(dataset,"value type") != 2)
-              mythrow("Dataset " << name << " value type not 2");
 
-     std::cerr << "Dataset: " << name << " " << nvalues <<std::endl;
+      if (read_int(dataset,"structure type") != 0)
+        mythrow("Dataset " << name << " structure type not 0");
+      if (read_int(dataset,"value type") != 2)
+        mythrow("Dataset " << name << " value type not 2");
 
       // In this dataset we have a group
       // tag_group_0???
@@ -314,7 +305,6 @@ namespace viennamesh
       int n=dataset.getNumObjs(),i;
       for (i=0; i<n; i++)
       {
-       std::cerr << dataset.getObjnameByIdx(i) <<std::endl;
         if (dataset.getObjnameByIdx(i)=="unit")
         {
           const Group &u=dataset.openGroup("unit");
@@ -341,7 +331,6 @@ namespace viennamesh
     {
       int i;
       ndatasets=read_int(state,"number of datasets");
-      std::cout << "ndatasets: " << ndatasets <<std::endl;
 
       i=read_int(state,"number of plots");
       if (i!=0)
@@ -357,7 +346,6 @@ namespace viennamesh
       {
         char a[100];
         sprintf(a,"dataset_%d",i);
-       std::cerr << "Attribute: " << a <<std::endl;
         read_dataset(state.openGroup(a));
       }
     }
@@ -372,21 +360,15 @@ namespace viennamesh
         case 1: break;
         default : mythrow(__LINE__ << ": Unknown type " << typ << " in geometry");
       }
-     std::cerr << "Typ: " << dum <<std::endl;
-
       dim=read_int(geometry,"dimension");
-      std::cout << "Dimension: " << dim <<std::endl;
 
       nvertices=read_int(geometry,"number of vertices");
-     std::cerr << "nvertices: " << nvertices <<std::endl;
 
       nregions=read_int(geometry,"number of regions");
-     std::cerr << "nregions: " << nregions <<std::endl;
 
       dum=read_int(geometry,"number of states");
       if (dum!=1)
         mythrow("Number of states not one");
-     std::cerr << "States: " << dum <<std::endl;
 
       for (int i=0; i<nregions; i++)
       {
@@ -418,232 +400,27 @@ namespace viennamesh
       read_geometry(collection.openGroup("geometry_0"));
     }
 
-    std::map<std::vector<int>,int> edgeref,triangleref,tetref,elementref;
-    std::vector<std::vector<int> > edges,triangles,tets,elements;
 
-    int insert_edge(const int i1, const int i2,int check=0)
+    template<typename PointT>
+    PointT normal_vector(PointT const & p0, PointT const & p1)
     {
-      std::vector<int> e,e2;
-      e.push_back(i1);
-      e.push_back(i2);
-      e2.push_back(i2);
-      e2.push_back(i1);
-      if (edgeref.find(e)!=edgeref.end())
-      {
-        if (check)
-          mythrow("Edge should not be, dim=" << dim);
-        return edgeref[e];
-      }
-      if (edgeref.find(e2)!=edgeref.end())
-      {
-        return -edgeref[e2]-1;
-      }
-      edgeref[e]=edges.size();
-      edges.push_back(e);
-      return edgeref[e];
-    }
-    int insert_tri(const int i1, const int i2, const int i3,int check=0)
-    {
-      int h;
-      std::vector<int> idx(3),idxsort(3);
-      std::vector<int> e(2);
-
-      idx[0]=i1;
-      idx[1]=i2;
-      idx[2]=i3;
-
-      int n=0;
-      for (int i=1; i<3; i++)
-        if (idx[i]<idx[n])
-          n=i;
-
-      for (int i=0; i<3; i++)
-        idxsort[i]=idx[(n+i)%3];
-
-      if (triangleref.find(idxsort)!=triangleref.end())
-      {
-        if (check)
-          mythrow("Triangle should not be, dim=" << dim);
-        return triangleref[idxsort];
-      }
-
-      idx[0]=idxsort[0];
-      idx[1]=idxsort[2];
-      idx[2]=idxsort[1];
-
-      if (triangleref.find(idx)!=triangleref.end())
-      {
-        return -triangleref[idx]-1;
-      }
-      triangleref[idxsort]=triangles.size();
-      triangles.push_back(idxsort);
-      return triangleref[idxsort];
-    }
-    int insert_tet(const int i1, const int i2, const int i3, const int i4, int check=0)
-    {
-      int h;
-      std::vector<int> idx(4),idxsort(4);
-      std::vector<int> tri(3);
-
-      idx[0]=i1;
-      idx[1]=i2;
-      idx[2]=i3;
-      idx[3]=i4;
-      int n=0;
-      for (int i=1; i<4; i++)
-        if (idx[i]<idx[n])
-          n=i;
-
-      for (int i=0; i<4; i++)
-        idxsort[i]=idx[(n+i)%4];
-
-      if (tetref.find(idxsort)!=tetref.end())
-      {
-        if (check)
-          mythrow("Tet should not be, dim=" << dim);
-        return tetref[idxsort];
-      }
-
-  /*    idx[0]=idxsort[0];
-      idx[1]=idxsort[2];
-      idx[2]=idxsort[1];
-      idx[3]=idxsort[3];
-
-      if (tetref.find(idx)!=tetref.end())
-      {
-        return -tetref[idx]-1;
-      }*/
-      tetref[idxsort]=tets.size();
-      tets.push_back(idxsort);
-      return tetref[idxsort];
+      PointT line = p1-p0;
+      std::swap(line[0], line[1]);
+      line[0] = -line[0];
+      return line;
     }
 
-    void write_grd_header(std::ofstream &file)
+    template<typename PointT>
+    PointT normal_vector(PointT const & p0, PointT const & p1, PointT const & p2)
     {
-                  file << "DF-ISE text" <<std::endl;
-                  file << "" <<std::endl;
-                  file << "Info {" <<std::endl;
-                  file << "  version = 1.0" <<std::endl;
-                  file << "  type    = grid" <<std::endl;
-                  file << "  dimension   = " << dim <<std::endl;
-                  file << "  nb_vertices = " << nvertices <<std::endl;
-                  file << "  nb_edges    = " << edges.size() <<std::endl;
-      if (dim==3)
-      {
-        file << "  nb_faces    = " << triangles.size() <<std::endl;
-      }
-      else if (dim==2)
-      {
-        file << "  nb_faces    = " << 0 <<std::endl;
-      }
-      file << "  nb_elements = " << elements.size() <<std::endl;
-                  file << "  nb_regions  = " << nregions <<std::endl;
-                  file << "  regions     = [ ";
-      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
-        file << "\"" << S->second.name << "\" ";
-      file << "]" <<std::endl;
-                  file << "  materials   = [ ";
-      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
-        file << "" << S->second.material << " ";
-      file << "]" <<std::endl;
-                  file << "}" <<std::endl;
-                  file << "" <<std::endl;
-
-                  file << "Data {" <<std::endl;
-                  file << "" <<std::endl;
-                  file << "  CoordSystem {" <<std::endl;
-                  file << "    translate = [ ";
-      file << trans_move[0] << " ";
-      file << trans_move[1] << " ";
-      file << trans_move[2] << " ";
-      file << "]" <<std::endl;
-
-                  file << "    transform = [ ";
-      file << trans_matrix[0] << " ";
-      file << trans_matrix[1] << " ";
-      file << trans_matrix[2] << " ";
-      file << trans_matrix[3] << " ";
-      file << trans_matrix[4] << " ";
-      file << trans_matrix[5] << " ";
-      file << trans_matrix[6] << " ";
-      file << trans_matrix[7] << " ";
-      file << trans_matrix[8] << " ";
-      file << "]" <<std::endl;
-
-                  file << "  }" <<std::endl;
+      return viennagrid::cross_prod( p1-p0, p2-p0 );
     }
-
-    void write_dat_header(std::ofstream &file)
-    {
-      file << "DF-ISE text" <<std::endl;
-      file << "" <<std::endl;
-      file << "Info {" <<std::endl;
-      file << "  version = 1.0" <<std::endl;
-      file << "  type    = dataset" <<std::endl;
-      file << "  dimension   = " << dim <<std::endl;
-      file << "  nb_vertices = " << nvertices <<std::endl;
-      file << "  nb_edges    = " << edges.size() <<std::endl;
-      if (dim==3)
-      {
-        file << "  nb_faces    = " << triangles.size() <<std::endl;
-      }
-      else if (dim==2)
-      {
-        file << "  nb_faces    = " << 0 <<std::endl;
-      }
-      file << "  nb_elements = " << elements.size() <<std::endl;
-      file << "  nb_regions  = " << nregions <<std::endl;
-      file << "  datasets    = [";
-      if (!globalattribute)
-      {
-          for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-          if (removeattribute.find(D->second.name)==removeattribute.end())
-            file << " \"" << D->second.name << "\"";
-      }
-      else
-      {
-          for (std::map<string,attributeinfo_c>::iterator A=globalattributes.begin(); A!=globalattributes.end(); A++)
-          if (removeattribute.find(A->first)==removeattribute.end())
-            file << " \"" << A->first << "\"";
-      }
-      file << " ]" <<std::endl;
-      file << "  functions   = [";
-      if (!globalattribute)
-      {
-          for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-          if (removeattribute.find(D->second.name)==removeattribute.end())
-            file << " \"" << D->second.quantity << "\"";
-      }
-      else
-      {
-          for (std::map<string,attributeinfo_c>::iterator A=globalattributes.begin(); A!=globalattributes.end(); A++)
-          if (removeattribute.find(A->first)==removeattribute.end())
-            file << " \"" << A->second.firstattribute->quantity << "\"";
-      }
-      file << " ]" <<std::endl;
-      file << "}" <<std::endl;
-    }
-
-    void remove_segments()
-    {
-      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); )
-      {
-        if (removesegment.find(S->first)==removesegment.end())
-        { S++; continue; }
-
-       std::cerr << "Remove Segment " << S->first <<std::endl;
-        std::map<string,region_t>::iterator S2=S++;
-        region.erase(S2);
-      }
-    }
-
 
     template<typename MeshT, typename SegmentationT>
-    bool to_viennagrid(MeshT & mesh, SegmentationT & segmentation)
+    bool to_viennagrid(MeshT & mesh, SegmentationT & segmentation, bool extrude_contacts = true)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::vertex<MeshT>::type VertexType;
       typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
       typedef typename viennagrid::result_of::cell_tag<MeshT>::type CellTag;
 
@@ -655,7 +432,7 @@ namespace viennamesh
 
       std::vector<VertexHandleType> vertex_handles( nvertices );
 
-      for (int i=0; i<nvertices; i++)
+      for (unsigned int i=0; i<nvertices; i++)
       {
         PointType point;
         for (int j = 0; j < dim; ++j)
@@ -666,27 +443,111 @@ namespace viennamesh
 
       typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
 
+      typedef typename viennagrid::result_of::vertex_id<MeshT>::type VertexIDType;
+
+
+
+      std::map<string, region_contacts<VertexHandleType> > contact_elements;
+
+
       for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
       {
         string segment_name = S->second.name;
-        SegmentHandleType & segment = segmentation(segment_name);
 
         std::vector<std::vector<int> > &elements=S->second.elements;
         for (std::vector<std::vector<int> >::iterator E=elements.begin(); E!=elements.end(); E++)
         {
           const std::vector<int> &e=*E;
 
-          if (e.size() != mesh_vertices_per_element)
-            continue;
-
           std::vector<VertexHandleType> handles(e.size());
-
           for (std::size_t i = 0; i < e.size(); ++i)
-            handles[i] = vertex_handles[ e[i] ];
+            handles[i] = vertex_handles[e[i]];
 
-          viennagrid::make_cell( segment, handles.begin(), handles.end() );
+          if (e.size() == mesh_vertices_per_element)
+            viennagrid::make_cell( segmentation(segment_name), handles.begin(), handles.end() );
+          else
+          {
+            contact_elements[segment_name].segment_name = segment_name + "_contact";
+            contact_elements[segment_name].vertex_handles.push_back(handles);
+          }
         }
       }
+
+      if (extrude_contacts)
+      {
+        for (typename std::map<string, region_contacts<VertexHandleType> >::iterator rc = contact_elements.begin(); rc != contact_elements.end(); ++rc)
+        {
+          for (std::size_t i = 0; i < rc->second.vertex_handles.size(); ++i)
+          {
+            std::vector<VertexHandleType> handles = rc->second.vertex_handles[i];
+
+            PointType center;
+            PointType normal;
+            double size = 0;
+
+            if (handles.size() == 2)
+            {
+              VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
+              VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
+
+              PointType const & p0 = viennagrid::point(v0);
+              PointType const & p1 = viennagrid::point(v1);
+
+              center = (p0+p1)/2;
+              normal = normal_vector(p0, p1);
+
+              size = std::max(size, viennagrid::distance(center, p0));
+              size = std::max(size, viennagrid::distance(center, p1));
+            }
+            else if (handles.size() == 3)
+            {
+              VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
+              VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
+              VertexType const & v2 = viennagrid::dereference_handle(mesh, handles[2]);
+
+              PointType const & p0 = viennagrid::point(v0);
+              PointType const & p1 = viennagrid::point(v1);
+              PointType const & p2 = viennagrid::point(v2);
+
+              center = (p0+p1+p2)/3;
+              normal = normal_vector(p0, p1, p2);
+
+              size = std::max(size, viennagrid::distance(center, p0));
+              size = std::max(size, viennagrid::distance(center, p1));
+              size = std::max(size, viennagrid::distance(center, p2));
+            }
+            else
+            {
+              std::cout << "NOT SUPPORTED" << std::endl;
+            }
+
+            normal /= viennagrid::norm_2(normal);
+            normal *= size;
+
+            PointType other_vertex = center + normal;
+
+            typedef typename viennagrid::result_of::cell_range<MeshT>::type CellRangeType;
+            typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellIteratorType;
+
+            CellRangeType cells(mesh);
+            CellIteratorType cit = cells.begin();
+            for (; cit != cells.end(); ++cit)
+            {
+              if ( viennagrid::is_inside(*cit, other_vertex) )
+                break;
+            }
+
+            if (cit != cells.end())
+              other_vertex = center - normal;
+
+            typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
+
+            handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
+            viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
+          }
+        }
+      }
+
 
       return true;
     }
@@ -700,212 +561,48 @@ namespace viennamesh
       typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
       typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
 
-
       for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
       {
-        std::set<int> pointmarkers;
-        const std::vector<std::vector<int> > &elements=R->second.elements;
-        for (int i=0; i<elements.size(); i++)
-          for (int j=0; j<elements[i].size(); j++)
-            pointmarkers.insert(elements[i][j]);
-
         for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
         {
-          if (globalattributes[D->first].firstattribute==NULL)
-            globalattributes[D->first].firstattribute=&D->second;
-          std::map<int,double> &attr=globalattributes[D->first].values;
-          int validx=0;
-          for (std::set<int>::const_iterator M=pointmarkers.begin(); M!=pointmarkers.end(); M++)
-          {
-            attr[*M]=D->second.conversion_factor*D->second.values[validx];
-            validx++;
-          }
+          if (D->second.nvalues!=D->second.values.size())
+            mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
+
+          string segment_name = R->second.name;
+          string quantity_name = D->second.name;
+
+          SegmentHandleType const & segment = segmentation(segment_name);
+
+          typedef typename viennagrid::result_of::field<
+              typename SegmentedMeshQuantitiesType::VertexValueContainerType,
+              VertexType,
+              viennagrid::base_id_unpack>::type FieldType;
+
+          FieldType field = quantites.get_vertex_field( mesh, segment.id(), quantity_name );
+
+          typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
+          typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
+
+          ConstVertexRangeType vertices( segment );
+
+          std::map<typename VertexType::id_type, double> tmp;
+
+          int i = 0;
+          for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
+            field(*vit) = D->second.values[i];
         }
-      }
-
-
-      if (!globalattribute)
-      {
-        for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-        {
-          for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-          {
-            if (D->second.nvalues!=D->second.values.size())
-              mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
-
-            string segment_name = R->second.name;
-            string quantity_name = D->second.name;
-
-            SegmentHandleType const & segment = segmentation(segment_name);
-
-            typedef typename viennagrid::result_of::field<
-                typename SegmentedMeshQuantitiesType::VertexValueContainerType,
-                VertexType,
-                viennagrid::base_id_unpack>::type FieldType;
-
-            FieldType field = quantites.get_vertex_field( mesh, segment.id(), quantity_name );
-
-            typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
-            typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
-
-            ConstVertexRangeType vertices( segment );
-
-            std::map<typename VertexType::id_type, double> tmp;
-
-            int i = 0;
-            for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
-              field(*vit) = D->second.values[i];
-          }
-        }
-      }
-      else
-      {
-        std::cout << "UNSUPPORTED" << std::endl;
       }
     }
 
-
-
-
-    void write_grid(string filename)
-    {
-      std::ofstream file(filename.c_str());
-
-      write_grd_header(file);
-
-      if (vertex.size()/dim!=nvertices)
-        mythrow("Number of vertices and number of coordinates read not ident");
-      file << "Vertices(" << nvertices << ")" <<std::endl << "{" <<std::endl;
-      for (int i=0; i<vertex.size(); i++)
-      {
-        file << vertex[i] << " ";
-        if (i%dim==dim-1)
-          file <<std::endl;
-      }
-      file << "}" <<std::endl;
-
-      file << "Edges(" << edges.size() << ")" <<std::endl << "{" <<std::endl;
-      for (int i=0; i<edges.size(); i++)
-      {
-        for (int j=0; j<edges[i].size(); j++)
-          file << edges[i][j] << " ";
-        file <<std::endl;
-      }
-      file << "}" <<std::endl;
-
-      file << "Locations(" << edges.size() << ")" <<std::endl << "{" <<std::endl;
-      for (int i=0; i<edges.size(); i++)
-      {
-        for (int j=0; j<edges[i].size(); j++)
-        {
-          file << "u ";
-          if (j%20==19)
-            file << std::endl;
-        }
-      }
-      file <<std::endl;
-      file << "}" <<std::endl;
-
-      if (dim>2)
-      {
-      file << "Faces(" << triangles.size() << ")" <<std::endl << "{" <<std::endl;
-      for (int i=0; i<triangles.size(); i++)
-      {
-        for (int j=0; j<triangles[i].size(); j++)
-          file << triangles[i][j] << " ";
-        file <<std::endl;
-      }
-      file << "}" <<std::endl;
-      }
-
-      file << "Elements(" << elements.size() << ")" <<std::endl << "{" <<std::endl;
-      for (int i=0; i<elements.size(); i++)
-      {
-        file << elements[i].size()-1 << " ";
-        for (int j=0; j<elements[i].size(); j++)
-          file << elements[i][j] << " ";
-        file <<std::endl;
-      }
-      file << "}" <<std::endl;
-
-      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
-      {
-        file << "Region(\"" << S->second.name << "\")" <<std::endl << "{" <<std::endl;
-        file << "material = " << S->second.material <<std::endl;
-
-        std::vector<std::vector<int> > &elements=S->second.elements;
-        file << "Elements(" << elements.size() << ")" <<std::endl << "{" <<std::endl;
-        int j=0;
-
-        for (std::vector<std::vector<int> >::iterator E=elements.begin(); E!=elements.end(); E++)
-        {
-          const std::vector<int> &e=*E;
-          int idx=elementref[e];
-          file << idx << " ";
-          if (j++%20==19)
-            file << std::endl;
-        }
-        file <<std::endl << "}" <<std::endl;
-        file <<std::endl << "}" <<std::endl;
-      }
-      file <<std::endl << "}" <<std::endl;
-      file.close();
-    }
-
-    void addsegment(string addsegment, string addmaterial)
-    {
-      double ymin=1e100;
-      for (std::map<string,region_t>::iterator R=region.begin(); R!=region.end(); R++)
-      {
-        for (int j=0; j<R->second.elements.size(); j++)
-        {
-          for (int i=0; i<R->second.elements[j].size(); i++)
-          {
-            double val=-vertex[R->second.elements[j][i]*dim+1];
-            if (val<ymin)
-              ymin=val;
-          }
-        }
-      }
-     std::cerr << "add segment at " << ymin <<std::endl;
-      region_t newseg;
-      newseg.regnr=region.size();
-      newseg.name=addsegment;
-      newseg.material=addmaterial;
-
-      for (std::map<string,region_t>::iterator R=region.begin(); R!=region.end(); R++)
-      {
-        for (int j=0; j<R->second.elements.size(); j++)
-        {
-          std::vector<int> tmpelement;
-          for (int i=0; i<R->second.elements[j].size(); i++)
-          {
-            double val=-vertex[R->second.elements[j][i]*dim+1];
-            if (val==ymin)
-              tmpelement.push_back(R->second.elements[j][i]);
-          }
-          if (tmpelement.size()==dim)
-          {
-            newseg.elements.push_back(tmpelement);
-          }
-        }
-      }
-
-      newseg.nelements=newseg.elements.size();
-      newseg.npointidx=0;
-      region[addsegment]=newseg;
-      nregions++;
-    }
-
-          void correct_vertices()
+    void correct_vertices()
     {
       std::map<int,int> hakerl;
       std::vector<double> vertexsave;
       for (std::map<string,region_t>::iterator R=region.begin(); R!=region.end(); R++)
       {
-        for (int j=0; j<R->second.elements.size(); j++)
+        for (unsigned int j=0; j<R->second.elements.size(); j++)
         {
-          for (int i=0; i<R->second.elements[j].size(); i++)
+          for (unsigned int i=0; i<R->second.elements[j].size(); i++)
             hakerl[R->second.elements[j][i]];
         }
       }
@@ -925,9 +622,9 @@ namespace viennamesh
       }
       for (std::map<string,region_t>::iterator R=region.begin(); R!=region.end(); R++)
       {
-        for (int j=0; j<R->second.elements.size(); j++)
+        for (unsigned int j=0; j<R->second.elements.size(); j++)
         {
-          for (int i=0; i<R->second.elements[j].size(); i++)
+          for (unsigned int i=0; i<R->second.elements[j].size(); i++)
           {
             int idx=hakerl[R->second.elements[j][i]];
             R->second.elements[j][i]=idx;
@@ -935,314 +632,8 @@ namespace viennamesh
         }
       }
       nvertices=vertex.size()/dim;
-     std::cerr << "vertices: " << vertex.size()/dim <<std::endl;
-    }
-    void cut_segments(const double yval, const int below=1)
-    {
-      int cutfound=0;
-      std::map<string,region_t>::iterator R,R2;
-      for (R2=region.begin(); R2!=region.end(); )
-      {
-        R=R2++;
-       std::cerr << "Region " << R->first <<std::endl;
-        region_t &reg=R->second;
-
-       std::cerr << "  Elements " << reg.elements.size() <<std::endl;
-        std::set<int> eraseelements;
-        int ptct=0;
-        for (int j=0; j<reg.elements.size(); j++)
-        {
-          std::vector<int> belowct;
-          for (int i=0; i<reg.elements[j].size(); i++)
-          {
-            if (vertex[reg.elements[j][i]*dim+1]*below>=-yval*below)
-              belowct.push_back(reg.elements[j][i]);
-          }
-          if (belowct.size()==0)
-          {
-            continue;
-          }
-          if (belowct.size()==reg.elements[j].size())
-          {
-            eraseelements.insert(j);
-            continue;
-          }
-          for (int i=0; i<belowct.size(); i++)
-          {
-            ptct++;
-            vertex[belowct[i]*dim+1]=-yval;
-          }
-        }
-       std::cerr << "  Points moved " << ptct <<std::endl;
-        region_t savereg;
-        if (eraseelements.size())
-        {
-          savereg=R->second;
-          reg.elements.clear();
-          for (int j=0; j<savereg.elements.size(); j++)
-            if (eraseelements.find(j)==eraseelements.end())
-              reg.elements.push_back(savereg.elements[j]);
-        }
-        else
-        {
-         std::cerr << "    Nothing to do" <<std::endl;
-          continue;
-        }
-       std::cerr << "  Elements after remove " << reg.elements.size() <<std::endl;
-        if (reg.elements.size()==0)
-        {
-         std::cerr << "    Remove region " << reg.name <<std::endl;
-          nregions--;
-          ndatasets-=R->second.dataset.size();
-          region.erase(R);
-          continue;
-        }
-        if (R->second.dataset.size()==0)
-        {
-         std::cerr << "    No datasets to move" <<std::endl;
-          continue;
-        }
-       std::cerr << "  Move datasets" <<std::endl;
-        std::map<int,int> savevalmap,valmap;
-        std::map<int,int>::iterator saveI,I;
-        std::vector<std::vector<int> >::iterator E;
-        int ct=0;
-        for (E=savereg.elements.begin(); E!=savereg.elements.end(); E++)
-          for (int i=0; i<E->size(); i++)
-            if (savevalmap.find((*E)[i])==savevalmap.end())
-              savevalmap[(*E)[i]];
-        for (saveI=savevalmap.begin(); saveI!=savevalmap.end(); saveI++)
-          saveI->second=ct++;
-        ct=0;
-        for (E=reg.elements.begin(); E!=reg.elements.end(); E++)
-          for (int i=0; i<E->size(); i++)
-            if (valmap.find((*E)[i])==valmap.end())
-              valmap[(*E)[i]];
-        for (saveI=valmap.begin(); saveI!=valmap.end(); saveI++)
-          saveI->second=ct++;
-       std::cerr << "  Values prepared" <<std::endl;
-
-        reg.nelements=reg.elements.size();
-        reg.npointidx=valmap.size();
-        std::map<string,dataset_t>::iterator D,saveD;
-        for (D=reg.dataset.begin(); D!=reg.dataset.end(); D++)
-        {
-         std::cerr << "    Dataset " << D->first <<std::endl;
-          if (D->second.values.size()<=0)
-            continue;
-          D->second.values.clear();
-          D->second.values.reserve(valmap.size());
-          saveD=savereg.dataset.find(D->first);
-          for (saveI=valmap.begin(); saveI!=valmap.end(); saveI++)
-          {
-            double val=saveD->second.values[savevalmap[saveI->first]];
-            D->second.values[saveI->second]=val;
-          }
-          D->second.nvalues=D->second.values.size();
-         std::cerr << "      moved" <<std::endl;
-        }
-       std::cerr << "    Region done" <<std::endl;
-      }
-     std::cerr << "  cut done" <<std::endl;
-
-     std::cerr << "nvertices: " << nvertices <<std::endl;
-     std::cerr << "nregions: " << nregions <<std::endl;
-     std::cerr << "ndatasets: " << ndatasets <<std::endl;
-    }
-    void write_dat(string filename)
-    {
-      std::ofstream file(filename.c_str());
-
-      for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-      {
-        std::set<int> pointmarkers;
-        const std::vector<std::vector<int> > &elements=R->second.elements;
-        for (int i=0; i<elements.size(); i++)
-          for (int j=0; j<elements[i].size(); j++)
-            pointmarkers.insert(elements[i][j]);
-
-        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-        {
-          if (globalattributes[D->first].firstattribute==NULL)
-            globalattributes[D->first].firstattribute=&D->second;
-          std::map<int,double> &attr=globalattributes[D->first].values;
-          int validx=0;
-          for (std::set<int>::const_iterator M=pointmarkers.begin(); M!=pointmarkers.end(); M++)
-          {
-            attr[*M]=D->second.conversion_factor*D->second.values[validx];
-            validx++;
-          }
-        }
-      }
-
-      write_dat_header(file);
-
-
-      file << "Data {" <<std::endl;
-      if (!globalattribute)
-      {
-          for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-        {
-          if (removeattribute.find(D->second.name)!=removeattribute.end())
-            continue;
-          file << "  Dataset (\"" << D->second.name << "\") {" <<std::endl;
-          file << "    function  = " << D->second.quantity <<std::endl;
-          file << "    type      = scalar" <<std::endl;
-          file << "    dimension = 1" <<std::endl;
-          file << "    location  = vertex" <<std::endl;
-          file << "    validity  = [ \"" << R->second.name << "\" ]" <<std::endl;
-          file << "    Values (" << D->second.nvalues << ") {" <<std::endl;
-
-         std::cerr << " Numberofvalues: npointidx=" << R->second.npointidx << " nvalues=" << D->second.nvalues <<std::endl;
-
-          if (D->second.nvalues!=D->second.values.size())
-            mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
-          for (int i=0; i<D->second.nvalues; i++)
-            file << "      " << D->second.values[i] <<std::endl;
-          file << "    }" <<std::endl;
-          file << "  }" <<std::endl;
-        }
-      }
-      else
-      {
-            for (std::map<string,attributeinfo_c>::iterator A=globalattributes.begin(); A!=globalattributes.end(); A++)
-        {
-          if (removeattribute.find(A->first)!=removeattribute.end())
-            continue;
-          file << "  Dataset (\"" << A->first << "\") {" <<std::endl;
-          file << "    function  = " << A->second.firstattribute->quantity <<std::endl;
-          file << "    type      = scalar" <<std::endl;
-          file << "    dimension = 1" <<std::endl;
-          file << "    location  = vertex" <<std::endl;
-          file << "    validity  = [ ";
-          for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
-            file << "\"" << S->first << "\" ";
-          file << "]" <<std::endl;
-          file << "    Values (" << nvertices << ") {" <<std::endl;
-
-          //cerr << " Numberofvalues: npointidx=" << R->second.npointidx << " nvalues=" << D->second.nvalues <<std::endl;
-
-          //if (D->second.nvalues!=D->second.values.size())
-          //  mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
-          for (int i=0; i<nvertices; i++)
-            file << "      " << A->second.values[i] <<std::endl;
-          file << "    }" <<std::endl;
-          file << "  }" <<std::endl;
-        }
-      }
-      file << "}" <<std::endl;
-      file.close();
     }
 
-    void prepare_grid(string filename)
-    {
-      int i1,i2,i3,i4,i5,i6,trii1,trii2,trii3,trii4,teti;
-      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
-      {
-        std::map<int,int> pointidx;
-        for (std::vector<std::vector<int> >::iterator E=S->second.elements.begin(); E!=S->second.elements.end(); E++)
-        {
-          std::vector<int> &e=*E;
-          if (e.size()==dim)
-            continue;
-          if (e.size()!=dim+1)
-                mythrow("Element unknown");
-
-          switch (dim)
-          {
-          case 1:
-          {
-            pointidx[e[0]];
-            pointidx[e[1]];
-            i1=insert_edge(e[0],e[1],1);
-            elementref[e]=elements.size();
-            elements.push_back(edges[i1]);
-            continue;
-          }
-          case 2:
-          {
-            pointidx[e[0]];
-            pointidx[e[1]];
-            pointidx[e[2]];
-            i1=insert_edge(e[0],e[1],1);
-            i2=insert_edge(e[1],e[2],1);
-            i3=insert_edge(e[2],e[0],1);
-            trii1=insert_tri(i1,i2,i3,1);
-            elementref[e]=elements.size();
-            elements.push_back(triangles[trii1]);
-            continue;
-          }
-          case 3:
-          {
-            pointidx[e[0]];
-            pointidx[e[1]];
-            pointidx[e[2]];
-            pointidx[e[3]];
-            i1=insert_edge(e[0],e[1],0);
-            i2=insert_edge(e[1],e[2],0);
-            i3=insert_edge(e[2],e[0],0);
-            i4=insert_edge(e[0],e[3],0);
-            i5=insert_edge(e[1],e[3],0);
-            i6=insert_edge(e[2],e[3],0);
-            trii1=insert_tri(i1,i2,i3,1);
-            trii2=insert_tri(i4,-i5-1,-i1-1,1);
-            trii3=insert_tri(i5,-i6-1,-i2-1,1);
-            trii4=insert_tri(i6,-i4-1,-i3-1,1);
-            teti=insert_tet(trii1,trii2,trii3,trii4,1);
-            elementref[e]=elements.size();
-            elements.push_back(tets[teti]);
-            continue;
-          }
-          }
-        }
-        S->second.npointidx=pointidx.size();
-      }
-      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
-      {
-        for (std::vector<std::vector<int> >::iterator E=S->second.elements.begin(); E!=S->second.elements.end(); E++)
-        {
-          std::vector<int> &e=*E;
-          if (e.size()==dim+1)
-            continue;
-          if (e.size()!=dim)
-                mythrow("Element unknown");
-
-          std::vector<int> tempel;
-
-          switch (dim)
-          {
-          case 1:
-          {
-            tempel.push_back(e[0]);
-            elementref[e]=elements.size();
-            elements.push_back(tempel);
-            continue;
-          }
-          case 2:
-          {
-            tempel.push_back(e[0]);
-            tempel.push_back(e[1]);
-            elementref[e]=elements.size();
-            elements.push_back(tempel);
-            continue;
-          }
-          case 3:
-          {
-            i1=insert_edge(e[0],e[1],0);
-            i2=insert_edge(e[1],e[2],0);
-            i3=insert_edge(e[2],e[0],0);
-            tempel.push_back(i1);
-            tempel.push_back(i2);
-            tempel.push_back(i3);
-            elementref[e]=elements.size();
-            elements.push_back(tempel);
-            continue;
-          }
-          }
-        }
-      }
-    }
   };
 
 
