@@ -26,7 +26,8 @@ namespace viennamesh
 
       ::netgen::MeshingParameters mesh_parameters;
 
-      mesh_parameters.maxh = cell_size();
+      if (cell_size.valid())
+        mesh_parameters.maxh = cell_size();
 
       omp()().CalcLocalH(mesh_parameters.grading);
       MeshVolume (mesh_parameters, omp()());
