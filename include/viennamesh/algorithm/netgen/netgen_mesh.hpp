@@ -138,7 +138,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "cell_type", "3-simplex" );
     }
 
-    static string name()
+    static std::string name()
     {
       return "netgen::output_mesh";
     }

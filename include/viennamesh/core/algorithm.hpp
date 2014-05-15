@@ -23,11 +23,11 @@ namespace viennamesh
 
 
   class base_parameter_interface;
-  class dynamic_input_parameter_interface;
+  class base_input_parameter_interface;
   class output_parameter_interface;
   class parameter_link;
 
-  parameter_handle_t<parameter_link> make_parameter_link(algorithm_handle const & algorithm, string const & para_name);
+  parameter_handle_t<parameter_link> make_parameter_link(algorithm_handle const & algorithm, std::string const & para_name);
 
 
 
@@ -37,7 +37,7 @@ namespace viennamesh
     friend class output_parameter_proxy;
 
     friend class base_parameter_interface;
-    friend class dynamic_input_parameter_interface;
+    friend class base_input_parameter_interface;
     friend class output_parameter_interface;
 
 
@@ -107,10 +107,10 @@ namespace viennamesh
     { set_input_impl(name, static_cast<parameter_handle const &>(parameter)); }
 
     void set_input( std::string const & name, char const * value )
-    { set_input( name, make_parameter( string(value) ) ); }
+    { set_input( name, make_parameter( std::string(value) ) ); }
 
     void set_input( std::string const & name, char * value )
-    { set_input( name, make_parameter( string(value) ) ); }
+    { set_input( name, make_parameter( std::string(value) ) ); }
 
     void set_input( std::string const & name, bool value )
     { generic_set_input(name, value); }
@@ -122,7 +122,7 @@ namespace viennamesh
     { generic_set_input(name, value); }
 
 
-    void link_input( std::string const & name, algorithm_handle const & source_algorithm, string const & source_name )
+    void link_input( std::string const & name, algorithm_handle const & source_algorithm, std::string const & source_name )
     { set_input( name, make_parameter_link(source_algorithm, source_name) ); }
 
 
@@ -224,7 +224,7 @@ namespace viennamesh
     { return outputs.get<ValueT>(name); }
 
     // unsets an output parameter
-    void unset_output( string const & name ) { outputs.unset(name); } // TODO needed?
+    void unset_output( std::string const & name ) { outputs.unset(name); } // TODO needed?
 
 //     // clears all output parameters
 //     void clear_outputs() { outputs.clear(); } // TODO needed?
@@ -233,11 +233,11 @@ namespace viennamesh
     bool run();
 
     // returns the algorithm name
-    virtual string name() const = 0;
-    virtual string id() const = 0;
-//     virtual string type() const = 0;
-//     virtual string category() const = 0;
-//     virtual string description() const = 0;
+    virtual std::string name() const = 0;
+    virtual std::string id() const = 0;
+//     virtual std::string type() const = 0;
+//     virtual std::string category() const = 0;
+//     virtual std::string description() const = 0;
 
     std::string const & base_path() const { return base_path_; }
     std::string & base_path() { return base_path_; }
@@ -248,16 +248,17 @@ namespace viennamesh
 
   private:
 
-    typedef std::map<std::string, base_parameter_interface *> RegisteredParameterMapType;
-    RegisteredParameterMapType input_parameters;
-    RegisteredParameterMapType output_parameters;
+    typedef std::map<std::string, base_input_parameter_interface *> RegisteredInputParameterMapType;
+    RegisteredInputParameterMapType input_parameters;
+
+    typedef std::map<std::string, output_parameter_interface *> RegisteredOutputParameterMapType;
+    RegisteredOutputParameterMapType output_parameters;
 
     bool is_input_registered(std::string const & name) const;
     bool is_output_registered(std::string const & name) const;
 
-    void register_input_parameter( base_parameter_interface & input_parameter );
-    void register_output_parameter( base_parameter_interface
-    & output_parameter );
+    void register_input_parameter( base_input_parameter_interface & input_parameter );
+    void register_output_parameter( output_parameter_interface & output_parameter );
 
   private:
 
@@ -274,17 +275,17 @@ namespace viennamesh
   {
   public:
 
-    parameter_link(algorithm_handle const & algorithm, string const & para_name) : algorithm_(algorithm), parameter_name_(para_name) {}
+    parameter_link(algorithm_handle const & algorithm, std::string const & para_name) : algorithm_(algorithm), parameter_name_(para_name) {}
 
     parameter_handle unpack() { return algorithm_->get_output(parameter_name_); }
     const_parameter_handle unpack() const { return algorithm_->get_output(parameter_name_); }
     bool is_reference() const { return false; }
-    string type_name() const { return "parameter_link"; }
+    std::string type_name() const { return "parameter_link"; }
 
   private:
 
     algorithm_handle algorithm_;
-    string parameter_name_;
+    std::string parameter_name_;
   };
 
 }

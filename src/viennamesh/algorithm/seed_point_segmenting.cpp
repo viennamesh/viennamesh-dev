@@ -322,12 +322,12 @@ namespace viennamesh
 
 
   seed_point_segmenting::seed_point_segmenting() :
-    input_mesh(*this, "mesh"),
-    input_seed_points(*this, "seed_points"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented and non-segmented triangular 3d supported")),
+    input_seed_points(*this, parameter_information("seed_points","seed_point_3d_container","The seed points for segment identification")),
+    output_mesh(*this, parameter_information("mesh","mesh","The output mesh, segmented oriented triangular 3d")) {}
 
-  string seed_point_segmenting::name() const { return "ViennaGrid Hull Segmenting"; }
-  string seed_point_segmenting::id() const { return "seed_point_segmenting"; }
+  std::string seed_point_segmenting::name() const { return "ViennaGrid Hull Segmenting"; }
+  std::string seed_point_segmenting::id() const { return "seed_point_segmenting"; }
 
 
   bool seed_point_segmenting::run_impl()

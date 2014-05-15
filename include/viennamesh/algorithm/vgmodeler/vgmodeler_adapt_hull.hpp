@@ -13,8 +13,8 @@ namespace viennamesh
     public:
       adapt_hull();
 
-      string name() const;
-      string id() const;
+      std::string name() const;
+      std::string id() const;
 
       bool run_impl();
 

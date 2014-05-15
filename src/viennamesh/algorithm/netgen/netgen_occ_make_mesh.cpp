@@ -13,16 +13,16 @@ namespace viennamesh
   namespace netgen
   {
     occ_make_mesh::occ_make_mesh() :
-      filename(*this, "filename"),
-      filetype(*this, "filetype"),
-      cell_size(*this, "cell_size"),
-      curvature_safety_factor(*this, "curvature_safety_factor", 2.0),
-      segments_per_edge(*this, "segments_per_edge", 1.0),
-      grading(*this, "grading", 0.3),
-      output_mesh(*this, "mesh") {}
+      filename(*this, parameter_information("filename","string","The filename of the OpenCascade .STEP or .IGES file")),
+      filetype(*this, parameter_information("filetype","string","The filetype of the OpenCascade file. Supported filetypes: OCC_STEP, OCC_IGES")),
+      cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
+      curvature_safety_factor(*this, parameter_information("curvature_safety_factor","double","A safety factor for curvatures"), 2.0),
+      segments_per_edge(*this, parameter_information("segments_per_edge","double","An edge should be split into how many segments"), 1.0),
+      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), 0.3),
+      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, segmented tetrahedral 3d")) {}
 
-    string occ_make_mesh::name() const { return "Netgen 5.1 OpenCascade mesher"; }
-    string occ_make_mesh::id() const { return "netgen_occ_make_mesh"; }
+    std::string occ_make_mesh::name() const { return "Netgen 5.1 OpenCascade mesher"; }
+    std::string occ_make_mesh::id() const { return "netgen_occ_make_mesh"; }
 
     bool occ_make_mesh::run_impl()
     {

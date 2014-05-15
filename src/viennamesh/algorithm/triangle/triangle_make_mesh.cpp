@@ -134,11 +134,11 @@ namespace viennamesh
       if (segmentation.segments.empty())
         return;
 
-      LoggingStack stack( string("Extracting seed points from segments") );
+      LoggingStack stack( std::string("Extracting seed points from segments") );
 
       info(5) << "Extracting seed points from segments" << std::endl;
 
-      string options = "zpQ";
+      std::string options = "zpQ";
 
       int highest_segment_id = -1;
       for (seed_point_2d_container::iterator spit = seed_points.begin(); spit != seed_points.end(); ++spit)
@@ -149,7 +149,7 @@ namespace viennamesh
       {
         triangle::output_mesh tmp_mesh;
 
-        LoggingStack stack( string("Segment ") + lexical_cast<string>(highest_segment_id) );
+        LoggingStack stack( std::string("Segment ") + lexical_cast<std::string>(highest_segment_id) );
         make_mesh_impl(*sit, tmp_mesh, hole_points, seed_point_2d_container(), options);
 
         viennagrid::triangular_2d_mesh viennagrid_mesh;
@@ -173,7 +173,7 @@ namespace viennamesh
                                             point_2d_container const & hole_points,
                                             seed_point_2d_container const & seed_points,
                                             SizingFunctionRepresentationT const & sf,
-                                            string const & base_path)
+                                            std::string const & base_path)
     {
       typedef viennagrid::triangular_2d_mesh MeshType;
       typedef viennagrid::triangular_2d_segmentation SegmentationType;
@@ -181,7 +181,7 @@ namespace viennamesh
       typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
-      string options = "zpQ";
+      std::string options = "zpQ";
       triangle::output_mesh tmp_mesh;
 
       make_mesh_impl(mesh, tmp_mesh, hole_points, seed_points, options);
@@ -193,20 +193,20 @@ namespace viennamesh
 
 
     make_mesh::make_mesh() :
-      input_mesh(*this, "mesh"),
-      input_seed_points(*this, "seed_points"),
-      input_hole_points(*this, "hole_points"),
-      sizing_function(*this, "sizing_function"),
-      cell_size(*this, "cell_size"),
-      min_angle(*this, "min_angle"),
-      delaunay(*this, "delaunay", true),
-      algorithm_type(*this, "algorithm_type"),
-      extract_segment_seed_points(*this, "extract_segment_seed_points", true),
-      option_string(*this, "option_string"),
-      output_mesh(*this, "mesh") {}
+      input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangle input_mesh supported")),
+      input_seed_points(*this, parameter_information("seed_points","seed_point_2d_container","A container of seed points with corresonding segment names")),
+      input_hole_points(*this, parameter_information("hole_points","point_2d_container","A container of hole points")),
+      sizing_function(*this, parameter_information("sizing_function","sizing_function_2d|string|pugi::xml_node","The sizing function, different representation are supported: arbitrary sizing_function_2d or the ViennaMesh sizing function framework in string or pugi::xml_node representation")),
+      cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
+      min_angle(*this, parameter_information("min_angle","double","Desired minimum angle")),
+      delaunay(*this, parameter_information("delaunay","bool","Determines if the output mesh should be delaunay"), true),
+      algorithm_type(*this, parameter_information("algorithm_type","string","The meshing algorithm, supported algorithms: incremental_delaunay, sweepline, devide_and_conquer")),
+      extract_segment_seed_points(*this, parameter_information("extract_segment_seed_points","bool","Should seed points be extracted from the input segmentation?"), true),
+      option_string(*this, parameter_information("option_string","string","The triangle options string")),
+      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, segmented triangle 2d")) {}
 
-    string make_mesh::name() const { return "Triangle 1.6 mesher"; }
-    string make_mesh::id() const { return "triangle_make_mesh"; }
+    std::string make_mesh::name() const { return "Triangle 1.6 mesher"; }
+    std::string make_mesh::id() const { return "triangle_make_mesh"; }
 
 
     bool make_mesh::run_impl()
@@ -298,13 +298,13 @@ namespace viennamesh
           options << "u";
           should_triangle_be_refined = should_triangle_be_refined_function;
         }
-        else if (sizing_function.get<string>())
+        else if (sizing_function.get<std::string>())
         {
           info(5) << "Using user-defined XML string sizing function" << std::endl;
-          info(5) << sizing_function.get<string>()() << std::endl;
+          info(5) << sizing_function.get<std::string>()() << std::endl;
           triangle_sizing_function = make_sizing_function(
                                       input_mesh().mesh, hole_points, seed_points,
-                                      sizing_function.get<string>()(), base_path());
+                                      sizing_function.get<std::string>()(), base_path());
           options << "u";
           should_triangle_be_refined = should_triangle_be_refined_function;
         }

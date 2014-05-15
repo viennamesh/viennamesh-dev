@@ -10,13 +10,13 @@ namespace viennamesh
 {
 
   extract_boundary::extract_boundary() :
-    input_mesh(*this, "mesh"),
-    output_mesh(*this, "mesh"),
-    output_seed_points(*this, "seed_points"),
-    output_hole_points(*this, "hole_points") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented and non-segmented triangular 2d mesh and segmented and non-segmented tetrahedral 3d mesh supported")),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, line 2d for triangular 2d input, triangular 3d for tetrahedral 3d input")),
+    output_seed_points(*this, parameter_information("seed_points","seed_point_2d_container|seed_point_3d_container","Extracted seed points")),
+    output_hole_points(*this, parameter_information("hole_points","point_2d_container|point_3d_container","Extracted hole points")) {}
 
-  string extract_boundary::name() const { return "ViennaGrid Extract Boundary"; }
-  string extract_boundary::id() const { return "extract_boundary"; }
+  std::string extract_boundary::name() const { return "ViennaGrid Extract Boundary"; }
+  std::string extract_boundary::id() const { return "extract_boundary"; }
 
   template<typename MeshT, typename SegmentationT>
   bool extract_boundary::generic_run()

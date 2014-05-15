@@ -325,7 +325,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
 
-    static string name()
+    static std::string name()
     { return "viennagrid::segmented_mesh<triangle::input_mesh, triangle::input_segmentation>"; }
 
   };
@@ -360,7 +360,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
 
-    static string name()
+    static std::string name()
     { return "triangle::output_mesh"; }
 
   };

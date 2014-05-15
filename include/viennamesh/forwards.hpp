@@ -77,7 +77,7 @@ namespace viennamesh
       return !(*this == rhs);
     }
 
-    string name() const
+    std::string name() const
     {
       return info_->name();
     }
@@ -145,7 +145,13 @@ namespace viennamesh
   }
 
 
-  typedef std::vector<double> dynamic_point;
+  class dynamic_point : public std::vector<double>
+  {
+  public:
+    dynamic_point() {}
+    dynamic_point(dynamic_point const & other) : std::vector<double>(other) {}
+    dynamic_point(std::size_t size_, double default_) : std::vector<double>(size_, default_) {}
+  };
 
   typedef result_of::point<1>::type point_1d;
   typedef result_of::point<2>::type point_2d;

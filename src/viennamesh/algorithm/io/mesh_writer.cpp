@@ -19,7 +19,7 @@ namespace viennamesh
     {
       template<typename MeshT>
       void operator() (MeshT const & mesh,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const &)
       {
         viennagrid::io::vtk_writer<MeshT> writer;
@@ -28,7 +28,7 @@ namespace viennamesh
 
       template<typename MeshT, typename SegmentationT>
       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const &)
       {
         viennagrid::io::vtk_writer<MeshT, SegmentationT> writer;
@@ -38,7 +38,7 @@ namespace viennamesh
       template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
                        viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const & quantities,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const &)
       {
         viennagrid::io::vtk_writer<MeshT, SegmentationT> writer;
@@ -67,10 +67,10 @@ namespace viennamesh
     {
       template<typename MeshT>
       void operator() (MeshT const & mesh,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const & algorithm)
       {
-        string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
+        std::string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
 
         vtk_writer_proxy()(mesh, filename, algorithm);
 
@@ -114,7 +114,7 @@ namespace viennamesh
 
       template<typename MeshT, typename SegmentationT>
       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const & algorithm)
       {
         typedef typename viennagrid::result_of::point<MeshT>::type PointType;
@@ -123,7 +123,7 @@ namespace viennamesh
         typename result_of::const_parameter_handle<SeedPointContainer>::type spp = algorithm.input_seed_points.get<SeedPointContainer>();
 
 
-        string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
+        std::string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
 
         vtk_writer_proxy()(segmented_mesh, filename, algorithm);
 
@@ -172,7 +172,7 @@ namespace viennamesh
       template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
                        viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const & quantities,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const & algorithm)
       {
         typedef typename viennagrid::result_of::point<MeshT>::type PointType;
@@ -181,7 +181,7 @@ namespace viennamesh
         typename result_of::const_parameter_handle<SeedPointContainer>::type spp = algorithm.input_seed_points.get<SeedPointContainer>();
 
 
-        string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
+        std::string filename_without_extension = filename.substr(0, filename.rfind(".vmesh"));
 
         vtk_writer_proxy()(segmented_mesh, quantities, filename, algorithm);
 
@@ -232,7 +232,7 @@ namespace viennamesh
     {
       template<typename MeshT>
       void operator() (MeshT const & mesh,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const &)
       {
         viennagrid::io::mphtxt_writer writer;
@@ -241,7 +241,7 @@ namespace viennamesh
 
       template<typename MeshT, typename SegmentationT>
       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const &)
       {
         viennagrid::io::mphtxt_writer writer;
@@ -251,7 +251,7 @@ namespace viennamesh
       template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
                        viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const &,
-                       string const & filename,
+                       std::string const & filename,
                        mesh_writer const &)
       {
         viennagrid::io::mphtxt_writer writer;
@@ -265,22 +265,22 @@ namespace viennamesh
 
 
     mesh_writer::mesh_writer() :
-      input_mesh(*this, "mesh"),
-      filename(*this, "filename"),
-      file_type(*this, "file_type"),
-      input_seed_points(*this, "seed_points"),
+      input_mesh(*this, parameter_information("mesh","mesh","The mesh to be written")),
+      filename(*this, parameter_information("filename","string","The filename of the mesh to be written")),
+      filetype(*this, parameter_information("filetype","string","The filetype of the mesh to be written, Supported filetypes: VTK, VMESH, COMSOL_MPHTXT")),
+      input_seed_points(*this, parameter_information("seed_points","seed_point_1d_container|seed_point_2d_container|seed_point_3d_container","The seed points to be written")),
 //       input_hole_points(*this, "hole_points")
-      quantities(*this, "quantities") {}
+      quantities(*this, parameter_information("quantities","segmented_mesh_quantities|mesh_quantities","The mesh quantities to be written")) {}
 
-    string mesh_writer::name() const { return "ViennaGrid Mesh Writer"; }
-    string mesh_writer::id() const { return "mesh_writer"; }
+    std::string mesh_writer::name() const { return "ViennaGrid Mesh Writer"; }
+    std::string mesh_writer::id() const { return "mesh_writer"; }
 
 
 
 
 
     template<typename WriterProxyT, typename MeshT>
-    bool mesh_writer::basic_nonsegmented_write( const_parameter_handle const & mesh, string const & filename )
+    bool mesh_writer::basic_nonsegmented_write( const_parameter_handle const & mesh, std::string const & filename )
     {
       if (mesh->is_type<MeshT>())
       {
@@ -292,7 +292,7 @@ namespace viennamesh
     }
 
     template<typename WriterProxyT, typename MeshT, typename SegmentationT>
-    bool mesh_writer::basic_segmented_write( const_parameter_handle const & mesh, string const & filename )
+    bool mesh_writer::basic_segmented_write( const_parameter_handle const & mesh, std::string const & filename )
     {
       // full mesh, full segmentation
       if (mesh->is_type< viennagrid::segmented_mesh<MeshT, SegmentationT> >())
@@ -398,10 +398,10 @@ namespace viennamesh
 
 
     template<typename WriterProxyT>
-    bool mesh_writer::write_all( const_parameter_handle const & mesh, string const & filename_,
-                                 int geometric_dimension, string cell_type, bool is_segmented )
+    bool mesh_writer::write_all( const_parameter_handle const & mesh, std::string const & filename_,
+                                 int geometric_dimension, std::string cell_type, bool is_segmented )
     {
-      string filename = filename_.substr(0, filename_.rfind("."));
+      std::string filename = filename_.substr(0, filename_.rfind("."));
 
       if ( cell_type == "1-simplex" && geometric_dimension == 1 )
         return generic_write<WriterProxyT, viennagrid::line_tag, 1>( mesh, filename, is_segmented );
@@ -455,8 +455,8 @@ namespace viennamesh
       return false;
     }
 
-    bool mesh_writer::write_mphtxt( const_parameter_handle const & mesh, string const & filename,
-                                    int geometric_dimension, string cell_type )
+    bool mesh_writer::write_mphtxt( const_parameter_handle const & mesh, std::string const & filename,
+                                    int geometric_dimension, std::string cell_type )
     {
       if (geometric_dimension != 3 || cell_type != "3-simplex")
         return false;
@@ -492,15 +492,15 @@ namespace viennamesh
       info(1) << "Writing mesh to file \"" << filename() << "\"" << std::endl;
 
       FileType ft;
-      if (file_type.valid())
-        ft = from_string( file_type() );
+      if (filetype.valid())
+        ft = from_string( filetype() );
       else
         ft = from_filename( filename() );
 
       info(1) << "Using file type " << to_string(ft) << std::endl;
 
       int geometric_dimension = lexical_cast<int>(mesh->get_property("geometric_dimension").first);
-      string cell_type = mesh->get_property("cell_type").first;
+      std::string cell_type = mesh->get_property("cell_type").first;
       bool is_segmented = lexical_cast< stringtools::boolalpha_bool >(mesh->get_property("is_segmented").first);
 
 
