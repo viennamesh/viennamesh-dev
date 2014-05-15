@@ -343,7 +343,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
 
-    static string name()
+    static std::string name()
     { return "viennagrid::segmented_mesh<tetgen::input_mesh, tetgen::input_segmentation>"; }
   };
 
@@ -377,7 +377,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
 
-    static string name()
+    static std::string name()
     { return "tetgen::output_mesh"; }
   };
 

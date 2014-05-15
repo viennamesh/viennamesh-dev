@@ -11,7 +11,7 @@ namespace viennamesh
   {
   public:
 
-    typedef std::map<string, algorithm_handle> AlgorithmMapType;
+    typedef std::map<std::string, algorithm_handle> AlgorithmMapType;
 
 
     bool add_algorithm( pugi::xml_node const & algorithm_node );

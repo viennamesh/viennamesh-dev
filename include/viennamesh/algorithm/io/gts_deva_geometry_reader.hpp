@@ -11,7 +11,7 @@ namespace viennamesh
     namespace gts_deva
     {
       template<typename stream_type>
-      bool next_valid_line( stream_type & stream, std::string & line, string const & comment_line )
+      bool next_valid_line( stream_type & stream, std::string & line, std::string const & comment_line )
       {
         std::string tmp;
 
@@ -64,7 +64,7 @@ namespace viennamesh
         const_iterator begin() const { return children.begin(); }
         const_iterator end() const { return children.end(); }
 
-        token * find( string const & name )
+        token * find( std::string const & name )
         {
           for (iterator it = begin(); it != end(); ++it)
             if ( (*it)->name.find( name ) != std::string::npos )
@@ -73,7 +73,7 @@ namespace viennamesh
           return NULL;
         }
 
-        token const * find( string const & name ) const
+        token const * find( std::string const & name ) const
         {
           for (const_iterator it = begin(); it != end(); ++it)
             if ( (*it)->name.find( name ) != std::string::npos )
@@ -82,13 +82,13 @@ namespace viennamesh
           return NULL;
         }
 
-        string attribute(unsigned int position) const
+        std::string attribute(unsigned int position) const
         {
           std::size_t pos = name.find('(');
           if (pos == std::string::npos)
             return "";
 
-          string attrib_string = name.substr( pos+1, name.rfind(')')-pos );
+          std::string attrib_string = name.substr( pos+1, name.rfind(')')-pos );
           std::list<std::string> attribs = stringtools::split_string( attrib_string, "," );
 
           if (position > attribs.size())
@@ -235,7 +235,7 @@ namespace viennamesh
 
         for (gts_deva::token::iterator sik = segments->begin(); sik != segments->end(); ++sik)
         {
-          string name = (*sik)->name.substr( (*sik)->name.find('\"')+1 );
+          std::string name = (*sik)->name.substr( (*sik)->name.find('\"')+1 );
           name.erase( name.find('\"') );
 
           if (name.find("_simple") != std::string::npos)
@@ -244,7 +244,7 @@ namespace viennamesh
 
             std::size_t pos = (*sik)->text.find("Ref(Facelist,");
             pos = (*sik)->text.find('"', pos);
-            string facelist_name = (*sik)->text.substr( pos, (*sik)->text.find('"', pos+1)-pos+1 );
+            std::string facelist_name = (*sik)->text.substr( pos, (*sik)->text.find('"', pos+1)-pos+1 );
 
 //             std::cout << "Using facelist with name " << facelist_name << std::endl;
 
@@ -256,7 +256,7 @@ namespace viennamesh
 
               pos = current_facelist->text.find("Ref(Pointlist,");
               pos = current_facelist->text.find('"', pos);
-              string pointlist_name = current_facelist->text.substr( pos, current_facelist->text.find('"', pos+1)-pos+1 );
+              std::string pointlist_name = current_facelist->text.substr( pos, current_facelist->text.find('"', pos+1)-pos+1 );
 
 //               std::cout << "Using pointlist with name " << pointlist_name << std::endl;
 

@@ -301,7 +301,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
 
-    static string name()
+    static std::string name()
     { return "triangle::input_mesh_3d"; }
 
   };
@@ -336,7 +336,7 @@ namespace viennamesh
       type_properties::get().set_property<SelfType>( "is_segmented", "true" );
     }
 
-    static string name()
+    static std::string name()
     { return "triangle::output_mesh_3d"; }
 
   };

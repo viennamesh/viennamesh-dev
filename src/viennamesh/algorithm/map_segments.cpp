@@ -5,9 +5,9 @@ namespace viennamesh
   template<typename SrcMeshT, typename SrcSegmentationT,
             typename DstMeshT, typename DstSegmentationT,
             typename SegmentIDMapT>
-  void map_segments_impl(SrcMeshT & src_mesh, SrcSegmentationT & src_segmentation,
-                    DstMeshT & dst_mesh, DstSegmentationT & dst_segmentation,
-                    SegmentIDMapT const & segment_id_map)
+  void map_segments_impl(SrcMeshT const & src_mesh, SrcSegmentationT const & src_segmentation,
+                         DstMeshT & dst_mesh, DstSegmentationT & dst_segmentation,
+                         SegmentIDMapT const & segment_id_map)
   {
     viennagrid::vertex_copy_map<SrcMeshT, DstMeshT> vertex_map(dst_mesh);
 
@@ -17,9 +17,19 @@ namespace viennamesh
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
     typedef typename viennagrid::result_of::segment_id_range<SrcSegmentationT, CellType>::type SrcSegmentIDRangeType;
+    typedef typename viennagrid::result_of::segment_id<SrcSegmentationT>::type SrcSegmentIDType;
     typedef typename viennagrid::result_of::segment_id<DstSegmentationT>::type DstSegmentIDType;
 
     typedef typename viennagrid::result_of::cell_handle<DstMeshT>::type CellHandleType;
+
+    std::map<SrcSegmentIDType, std::string> segment_id_name_map;
+    std::map<std::string, DstSegmentIDType> segment_name_id_map;
+    for (typename SrcSegmentationT::const_iterator sit = src_segmentation.begin(); sit != src_segmentation.end(); ++sit)
+    {
+      segment_id_name_map[ (*sit).id() ]   = (*sit).name();
+      segment_name_id_map[ (*sit).name() ] = (*sit).id();
+    }
+
 
     ConstCellRangeType cells(src_mesh);
     for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
@@ -30,9 +40,9 @@ namespace viennamesh
       SrcSegmentIDRangeType segment_ids = viennagrid::segment_ids( src_segmentation, *cit );
       for (typename SrcSegmentIDRangeType::const_iterator sit = segment_ids.begin(); sit != segment_ids.end(); ++sit)
       {
-        typename SegmentIDMapT::const_iterator dst_segment_id_it = segment_id_map.find(*sit);
+        typename SegmentIDMapT::const_iterator dst_segment_id_it = segment_id_map.find( segment_id_name_map[*sit] );
         if (dst_segment_id_it != segment_id_map.end())
-          dst_segment_ids.insert(dst_segment_id_it->second);
+          dst_segment_ids.insert( segment_name_id_map[dst_segment_id_it->second] );
         else
           dst_segment_ids.insert(*sit);
       }
@@ -45,17 +55,17 @@ namespace viennamesh
 
 
   map_segments::map_segments() :
-    input_mesh(*this, "mesh"),
-    segment_mapping(*this, "segment_mapping"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
+    segment_mapping(*this, parameter_information("segment_mapping","std::map<std::string,std::string>","A mapping of segments, each entry maps a segment to another")),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
-  string map_segments::name() const { return "ViennaGrid Map Segments"; }
-  string map_segments::id() const { return "map_segments"; }
+  std::string map_segments::name() const { return "ViennaGrid Map Segments"; }
+  std::string map_segments::id() const { return "map_segments"; }
 
 
 
   template<typename MeshT, typename SegmentationT>
-  bool map_segments::generic_run( std::map<int, int> const & segment_mapping )
+  bool map_segments::generic_run( std::map<std::string, std::string> const & segment_mapping )
   {
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 

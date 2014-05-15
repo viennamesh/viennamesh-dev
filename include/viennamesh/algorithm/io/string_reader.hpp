@@ -12,13 +12,13 @@ namespace viennamesh
     public:
       string_reader();
 
-      string name() const;
-      string id() const;
+      std::string name() const;
+      std::string id() const;
 
       bool run_impl();
 
     private:
-      required_input_parameter_interface<string>        filename;
+      required_input_parameter_interface<std::string>   filename;
 
       output_parameter_interface                        output_string;
     };

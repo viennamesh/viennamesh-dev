@@ -9,7 +9,7 @@ namespace viennamesh
   class input_parameter_not_found_exception : public std::runtime_error
   {
   public:
-    input_parameter_not_found_exception(string const & message_) : std::runtime_error(message_) {}
+    input_parameter_not_found_exception(std::string const & message_) : std::runtime_error(message_) {}
     virtual ~input_parameter_not_found_exception() throw() {}
   };
 
@@ -17,7 +17,7 @@ namespace viennamesh
   {
   public:
 
-    output_not_convertable_to_referenced_value_exception(string const & message_) : std::runtime_error(message_) {}
+    output_not_convertable_to_referenced_value_exception(std::string const & message_) : std::runtime_error(message_) {}
     virtual ~output_not_convertable_to_referenced_value_exception() throw() {}
   };
 
@@ -25,8 +25,23 @@ namespace viennamesh
   {
   public:
 
-    metric_not_implemented_or_supported_exception(string const & message_) : std::runtime_error(message_) {}
+    metric_not_implemented_or_supported_exception(std::string const & message_) : std::runtime_error(message_) {}
     virtual ~metric_not_implemented_or_supported_exception() throw() {}
+  };
+
+  class interface_check_failed_exception : public std::runtime_error
+  {
+  public:
+
+    interface_check_failed_exception(std::string const & message_) : std::runtime_error(message_) {}
+    virtual ~interface_check_failed_exception() throw() {}
+  };
+
+  class create_sizing_function_exception : public std::runtime_error
+  {
+  public:
+    create_sizing_function_exception(std::string const & message_) : std::runtime_error(message_) {}
+    virtual ~create_sizing_function_exception() throw() {}
   };
 }
 

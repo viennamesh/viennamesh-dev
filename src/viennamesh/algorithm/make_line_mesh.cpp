@@ -183,18 +183,18 @@ namespace viennamesh
 
 
   make_line_mesh::make_line_mesh() :
-    input_mesh(*this, "mesh"),
-    input_seed_points(*this, "seed_points"),
-    input_hole_points(*this, "hole_points"),
-    cell_size(*this, "cell_size", -1.0),
-    use_different_segment_ids_for_unknown_segments(*this, "use_different_segment_ids_for_unknown_segments", false),
-    extract_segment_seed_points(*this, "extract_segment_seed_points", true),
-    relative_min_geometry_point_distance(*this, "relative_min_geometry_point_distance", 1e-10),
-    absolute_min_geometry_point_distance(*this, "absolute_min_geometry_point_distance"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented and non-segmented brep 1d mesh supported")),
+    input_seed_points(*this, parameter_information("seed_points","seed_point_1d_container","A container of seed points with corresonding segment names")),
+    input_hole_points(*this, parameter_information("hole_points","point_1d_container","A container of hole points")),
+    cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size"), -1.0),
+    use_different_segment_for_unknown_segments(*this, parameter_information("use_different_segment_for_unknown_segments","bool","Determines, if different segments should be used for elements with unkonwn segment or if the should all be assigned to one segment"), false),
+    extract_segment_seed_points(*this, parameter_information("extract_segment_seed_points","bool","Should seed points be extracted from the input segmentation?"), true),
+    relative_min_geometry_point_distance(*this, parameter_information("relative_min_geometry_point_distance","double","Relative value for checking if two close points should be merged"), 1e-10),
+    absolute_min_geometry_point_distance(*this, parameter_information("absolute_min_geometry_point_distance","double","Absolute value for checking if two close points should be merged, overwrites relative_min_geometry_point_distance")),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, segmented line 1d")) {}
 
-  string make_line_mesh::name() const { return "ViennaGrid 1D line mesher"; }
-  string make_line_mesh::id() const { return "make_line_mesh"; }
+  std::string make_line_mesh::name() const { return "ViennaGrid 1D line mesher"; }
+  std::string make_line_mesh::id() const { return "make_line_mesh"; }
 
 
 
@@ -269,7 +269,7 @@ namespace viennamesh
     output_parameter_proxy<OutputSegmentedMesh> omp(output_mesh);
 
     info(10) << "Using cell size: " << cell_size() << std::endl;
-    info(10) << "Using different segment IDs for unknown segments: " << std::boolalpha << use_different_segment_ids_for_unknown_segments() << std::endl;
+    info(10) << "Using different segment IDs for unknown segments: " << std::boolalpha << use_different_segment_for_unknown_segments() << std::endl;
 
     // query seed points input parameter
     seed_point_1d_container seed_points;
@@ -315,7 +315,7 @@ namespace viennamesh
     if (absolute_min_geometry_point_distance.valid())
       min_distance = absolute_min_geometry_point_distance();
 
-    detail::generate_line_mesh( *geometry, mesh, segmentation, cell_size(), use_different_segment_ids_for_unknown_segments(), min_distance, seed_points, hole_points );
+    detail::generate_line_mesh( *geometry, mesh, segmentation, cell_size(), use_different_segment_for_unknown_segments(), min_distance, seed_points, hole_points );
 
     return true;
   }

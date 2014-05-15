@@ -65,13 +65,13 @@ namespace viennamesh
 
 
   laplace_smooth::laplace_smooth() :
-    input_mesh(*this, "mesh"),
-    lambda(*this, "lambda", 0.5),
-    iteration_count(*this, "iteration_count", 1),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d mesh and segmented tetrahedral 3d mesh supported")),
+    lambda(*this, parameter_information("lambda","double","Smoothing parameter"), 0.5),
+    iteration_count(*this, parameter_information("iteration_count","int","Indicates, how many iterations should be performed"), 1),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
-  string laplace_smooth::name() const { return "ViennaGrid Laplace Smoothing"; }
-  string laplace_smooth::id() const { return "laplace_smooth"; }
+  std::string laplace_smooth::name() const { return "ViennaGrid Laplace Smoothing"; }
+  std::string laplace_smooth::id() const { return "laplace_smooth"; }
 
   template<typename MeshT, typename SegmentationT>
   bool laplace_smooth::generic_run()

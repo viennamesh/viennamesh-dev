@@ -33,6 +33,31 @@ namespace stringtools
       std::stringstream ss;
     };
 
+    template<>
+    struct lexical_cast_impl<std::string>
+    {
+    public:
+      typedef std::string result_type;
+
+      template<typename SourceT>
+      lexical_cast_impl(SourceT const & src)
+      {
+        ss << src;
+      }
+
+      lexical_cast_impl(bool src)
+      {
+        ss << std::boolalpha << src;
+      }
+
+      operator result_type()
+      {
+        return ss.str();
+      }
+
+    private:
+      std::stringstream ss;
+    };
 
     // from http://stackoverflow.com/questions/4452136/how-do-i-use-boostlexical-cast-and-stdboolalpha-i-e-boostlexical-cast-b
 //     struct locale_bool
@@ -151,7 +176,7 @@ namespace stringtools
 
     std::vector<NumericT> result;
 
-    std::list<std::string> elements = stringtools::split_string(str, ",");
+    std::list<std::string> elements = split_string(str, ",");
     for (std::list<std::string>::const_iterator eit = elements.begin(); eit != elements.end(); ++eit)
       result.push_back( lexical_cast<NumericT>(*eit) );
 

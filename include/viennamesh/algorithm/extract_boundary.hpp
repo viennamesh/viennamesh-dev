@@ -10,8 +10,8 @@ namespace viennamesh
   public:
     extract_boundary();
 
-    string name() const;
-    string id() const;
+    std::string name() const;
+    std::string id() const;
 
     template<typename MeshT, typename SegmentationT>
     bool generic_run();

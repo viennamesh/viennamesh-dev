@@ -53,7 +53,7 @@ namespace viennamesh
   {
     AlgorithmT algo;
 
-    std::map<string, AlgorithmInformationHandle>::iterator it = algorithms.find(algo.id());
+    std::map<std::string, AlgorithmInformationHandle>::iterator it = algorithms.find(algo.id());
     if (it != algorithms.end())
     {
       if (it->second->type_string() != typeid(AlgorithmT).name())
@@ -69,7 +69,7 @@ namespace viennamesh
 
   algorithm_handle algorithm_factory_t::create_by_id(std::string const & algorithm_id) const
   {
-    std::map<string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_id);
+    std::map<std::string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_id);
     if (it == algorithms.end())
       return algorithm_handle();
     return it->second->create();
