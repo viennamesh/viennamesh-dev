@@ -60,7 +60,7 @@ namespace viennamesh
   struct dataset_t
   {
     string name, quantity, unit;
-    int nvalues;
+    unsigned int nvalues;
     double conversion_factor;
     std::vector<double> values;
   };
@@ -91,7 +91,8 @@ namespace viennamesh
 
   struct tdr_geometry
   {
-    int dim,nvertices,nregions,ndatasets;
+    unsigned int nvertices;
+    int dim,nregions,ndatasets;
     std::vector<double> vertex;
     std::map<string,region_t> region;
     double trans_matrix[9],trans_move[3];
@@ -111,10 +112,10 @@ namespace viennamesh
 
     void read_vertex(const DataSet &vert)
     {
-      const DataSpace &dataspace = vert.getSpace();
-      int rank = dataspace.getSimpleExtentNdims();
+//       const DataSpace &dataspace = vert.getSpace();
+//       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[10];
-      int ndims = dataspace.getSimpleExtentDims( dims, NULL);
+//       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
       if (nvertices!=dims[0])
         mythrow("nvertices not equal vertices.dim");
 
@@ -122,19 +123,22 @@ namespace viennamesh
       const H5std_string MEMBER1( "x" );
       const H5std_string MEMBER2( "y" );
       const H5std_string MEMBER3( "z" );
-            mtype2.insertMember( "x", HOFFSET(coord2_t, x[0]), PredType::NATIVE_DOUBLE);
-      if (dim>1)
-      mtype2.insertMember( "y", HOFFSET(coord2_t, x[1]), PredType::NATIVE_DOUBLE);
-      if (dim>2)
-      mtype2.insertMember( "z", HOFFSET(coord2_t, x[2]), PredType::NATIVE_DOUBLE);
-            /*
-            * Read two fields x and y from s2 dataset. Fields in the file
-            * are found by their names "x_name" and "y_name".
-            */
-            coord2_t s2[dims[0]];
-            vert.read( s2, mtype2 );
+      mtype2.insertMember( "x", HOFFSET(coord2_t, x[0]), PredType::NATIVE_DOUBLE);
 
-      for (int i=0; i<dims[0]; i++)
+      if (dim>1)
+        mtype2.insertMember( "y", HOFFSET(coord2_t, x[1]), PredType::NATIVE_DOUBLE);
+
+      if (dim>2)
+        mtype2.insertMember( "z", HOFFSET(coord2_t, x[2]), PredType::NATIVE_DOUBLE);
+
+      /*
+      * Read two fields x and y from s2 dataset. Fields in the file
+      * are found by their names "x_name" and "y_name".
+      */
+      coord2_t * s2 = new coord2_t[dims[0]];
+      vert.read( s2, mtype2 );
+
+      for (unsigned int i=0; i<dims[0]; i++)
       {
         vertex.push_back(s2[i].x[0]*10000.);
         if (dim>1)
@@ -142,6 +146,8 @@ namespace viennamesh
         if (dim>2)
         vertex.push_back(s2[i].x[2]*10000.);
       }
+
+      delete[] s2;
     }
 
     void read_elements(region_t &region, const DataSet &elem)
@@ -156,10 +162,10 @@ namespace viennamesh
       if (ndims!=1)
         mythrow("ndims of elements in region " << region.name << " is not one");
 
-      int el[dims[0]];
+      int * el = new int[dims[0]];
       elem.read( el, PredType::NATIVE_INT);
 
-      int elct=0,eldim;
+      unsigned int elct=0;
       while (elct<dims[0])
       {
         region.elements.push_back(std::vector<int>());
@@ -178,19 +184,21 @@ namespace viennamesh
         }
       }
 
+      delete[] el;
     }
 
     void read_region(const int regnr, const Group &reg)
     {
       string name0=read_string(reg,"name");
       string name;
-      int i;
+      unsigned int i;
       while ((i=name0.find_first_of("_."))!=name0.npos)
       {
         name=name+name0.substr(0,i);
         name0=name0.substr(i+1);
       }
       name=name+name0;
+      std::stringstream ss;
       string material;
       const int typ=read_int(reg,"type");
       switch (typ)
@@ -202,7 +210,9 @@ namespace viennamesh
           material="Contact";
           // attribute "part 0", no idea for what
           break;
-        case 2: material="Interface"+read_int(reg,"bulk 0")+read_int(reg,"bulk 1");
+        case 2:
+          ss << "Interface" << read_int(reg,"bulk 0") << read_int(reg,"bulk 1");
+          material = ss.str();
           break;
         //default : mythrow(__LINE__ << ": Unknown type " << typ << " in region " << read_string(reg,"name"));
         default :std::cerr << __LINE__ << ": Unknown type " << typ << " in region " << read_string(reg,"name") << std::endl;
@@ -252,15 +262,16 @@ namespace viennamesh
     void read_values(dataset_t &dataset,const DataSet &values)
     {
       const DataSpace &dataspace = values.getSpace();
-      int rank = dataspace.getSimpleExtentNdims();
+//       int rank = dataspace.getSimpleExtentNdims();
       hsize_t dims[10];
       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
       if (dataset.nvalues!=dims[0] || ndims!=1)
         mythrow("Dataset " << dataset.name << " should have " << dataset.nvalues << " values, but has " << dims[0] << " with dimension " << ndims);
 
-      double v[dims[0]];
+      double * v = new double[dims[0]];
       values.read( v, PredType::NATIVE_DOUBLE);
       dataset.values.insert(dataset.values.end(),&v[0],&v[dims[0]]);
+      delete[] v;
     }
 
     void read_dataset(const Group &dataset)
@@ -421,7 +432,7 @@ namespace viennamesh
 
       std::vector<VertexHandleType> vertex_handles( nvertices );
 
-      for (int i=0; i<nvertices; i++)
+      for (unsigned int i=0; i<nvertices; i++)
       {
         PointType point;
         for (int j = 0; j < dim; ++j)
@@ -532,7 +543,7 @@ namespace viennamesh
             typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
 
             handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
-            CellHandleType cell_handle = viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
+            viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
           }
         }
       }
@@ -589,9 +600,9 @@ namespace viennamesh
       std::vector<double> vertexsave;
       for (std::map<string,region_t>::iterator R=region.begin(); R!=region.end(); R++)
       {
-        for (int j=0; j<R->second.elements.size(); j++)
+        for (unsigned int j=0; j<R->second.elements.size(); j++)
         {
-          for (int i=0; i<R->second.elements[j].size(); i++)
+          for (unsigned int i=0; i<R->second.elements[j].size(); i++)
             hakerl[R->second.elements[j][i]];
         }
       }
@@ -611,9 +622,9 @@ namespace viennamesh
       }
       for (std::map<string,region_t>::iterator R=region.begin(); R!=region.end(); R++)
       {
-        for (int j=0; j<R->second.elements.size(); j++)
+        for (unsigned int j=0; j<R->second.elements.size(); j++)
         {
-          for (int i=0; i<R->second.elements[j].size(); i++)
+          for (unsigned int i=0; i<R->second.elements[j].size(); i++)
           {
             int idx=hakerl[R->second.elements[j][i]];
             R->second.elements[j][i]=idx;
