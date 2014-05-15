@@ -10,8 +10,8 @@ namespace viennamesh
   public:
     project_mesh();
 
-    string name() const;
-    string id() const;
+    std::string name() const;
+    std::string id() const;
 
     template<typename InputMeshT, typename InputSegmentationT, typename OutputMeshT, typename OutputSegmentationT>
     bool generic_run( int target_dimension );

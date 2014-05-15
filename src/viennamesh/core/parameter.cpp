@@ -2,7 +2,7 @@
 
 namespace viennamesh
 {
-  std::pair<string, bool> type_properties::get_property( type_info_wrapper const & ti, string const & name ) const
+  std::pair<std::string, bool> type_properties::get_property( type_info_wrapper const & ti, std::string const & name ) const
   {
     std::map<type_info_wrapper, PropertyMapType>::const_iterator tpit = type_properties_map.find(ti);
     if (tpit != type_properties_map.end())
@@ -10,11 +10,11 @@ namespace viennamesh
       PropertyMapType::const_iterator pmit = tpit->second.find(name);
       if (pmit != tpit->second.end())
       {
-        return std::pair<string, bool>(pmit->second, true);
+        return std::pair<std::string, bool>(pmit->second, true);
       }
     }
 
-    return std::pair<string, bool>("", false);
+    return std::pair<std::string, bool>("", false);
   }
 
   bool type_properties::match_properties( type_info_wrapper const & ti, PropertyMapType const & to_match ) const
@@ -42,7 +42,7 @@ namespace viennamesh
     return true;
   }
 
-  bool type_properties::match_property( type_info_wrapper const & ti, string const & key, string const & value ) const
+  bool type_properties::match_property( type_info_wrapper const & ti, std::string const & key, std::string const & value ) const
   {
     std::map<type_info_wrapper, PropertyMapType>::const_iterator pmit = type_properties_map.find(ti);
 
@@ -91,7 +91,7 @@ namespace viennamesh
 
 
 
-  shared_ptr<base_conversion_function> converter::best_convert_function( const_parameter_handle const & input, std::map<string, string> const & properties )
+  shared_ptr<base_conversion_function> converter::best_convert_function( const_parameter_handle const & input, std::map<std::string, std::string> const & properties )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())
@@ -118,7 +118,7 @@ namespace viennamesh
     return shared_ptr<base_conversion_function>();
   }
 
-  shared_ptr<base_conversion_function> converter::best_convert_function( const_parameter_handle const & input, string const & property_key, string const & property_value )
+  shared_ptr<base_conversion_function> converter::best_convert_function( const_parameter_handle const & input, std::string const & property_key, std::string const & property_value )
   {
     ConversionFunctionMapMapType::iterator ipit = conversions.find(typeid(*input));
     if (ipit != conversions.end())

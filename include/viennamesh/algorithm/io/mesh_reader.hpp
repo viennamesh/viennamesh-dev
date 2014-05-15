@@ -14,26 +14,26 @@ namespace viennamesh
     public:
       mesh_reader();
 
-      string name() const;
-      string id() const;
+      std::string name() const;
+      std::string id() const;
 
       bool run_impl();
 
     private:
 
       template<typename CellTagT, unsigned int GeometricDimensionV>
-      bool generic_read_vtk( string const & filename );
+      bool generic_read_vtk( std::string const & filename );
 
       template<int GeometricDimensionV>
       bool read_seed_points( pugi::xml_document const & xml );
 
-      bool read_vmesh( string const & filename );
+      bool read_vmesh( std::string const & filename );
 
-      bool load( string const & filename, FileType file_type );
+      bool load( std::string const & filename, FileType file_type );
 
 
-      required_input_parameter_interface<string>        filename;
-      optional_input_parameter_interface<string>        filetype;
+      required_input_parameter_interface<std::string>   filename;
+      optional_input_parameter_interface<std::string>   filetype;
 
       output_parameter_interface                        output_mesh;
       output_parameter_interface                        output_quantities;

@@ -5,15 +5,15 @@ namespace viennamesh
   namespace io
   {
     string_reader::string_reader() :
-      filename(*this, "filename"),
-      output_string(*this, "string") {}
+      filename(*this, parameter_information("filename","string","The filename of the string to be read")),
+      output_string(*this, parameter_information("string","string","The read string")) {}
 
-    string string_reader::name() const { return "ViennaGrid String Reader"; }
-    string string_reader::id() const { return "string_reader"; }
+    std::string string_reader::name() const { return "ViennaGrid String Reader"; }
+    std::string string_reader::id() const { return "string_reader"; }
 
     bool string_reader::run_impl()
     {
-      string fn = filename();
+      std::string fn = filename();
       if (!base_path().empty())
       {
         info(1) << "Using base path: " << base_path() << std::endl;
@@ -28,7 +28,7 @@ namespace viennamesh
         return false;
       }
 
-      output_parameter_proxy<string> op(output_string);
+      output_parameter_proxy<std::string> op(output_string);
       op() = stringtools::read_stream(file);
 
       return true;

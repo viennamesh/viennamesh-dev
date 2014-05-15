@@ -7,12 +7,12 @@ namespace viennamesh
   namespace vgmodeler
   {
     adapt_hull::adapt_hull() :
-      input_mesh(*this, "mesh"),
-      cell_size(*this, "cell_size"),
-      output_mesh(*this, "mesh") {}
+      input_mesh(*this, parameter_information("mesh","mesh","The input mesh, triangular 3d with oriented hull segmentation supported")),
+      cell_size(*this, parameter_information("cell_size","double","The desired maximum size of triangles, all triangles will be at most this size")),
+      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
-    string adapt_hull::name() const { return "VGModeler hull adaption"; }
-    string adapt_hull::id() const { return "vgmodeler_adapt_hull"; }
+    std::string adapt_hull::name() const { return "VGModeler hull adaption"; }
+    std::string adapt_hull::id() const { return "vgmodeler_adapt_hull"; }
 
     bool adapt_hull::run_impl()
     {

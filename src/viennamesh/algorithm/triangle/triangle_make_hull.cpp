@@ -9,11 +9,11 @@ namespace viennamesh
   namespace triangle
   {
     make_hull::make_hull() :
-      input_mesh(*this, "mesh"),
-      output_mesh(*this, "mesh") {}
+      input_mesh(*this, parameter_information("mesh","mesh","The input mesh, triangle input_mesh_3d supported")),
+      output_mesh(*this, parameter_information("mesh","mesh","The output mesh, triangle output_mesh_3d")) {}
 
-    string make_hull::name() const { return "Triangle 1.6 hull mesher"; }
-    string make_hull::id() const { return "triangle_make_hull"; }
+    std::string make_hull::name() const { return "Triangle 1.6 hull mesher"; }
+    std::string make_hull::id() const { return "triangle_make_hull"; }
 
 
     bool make_hull::run_impl()

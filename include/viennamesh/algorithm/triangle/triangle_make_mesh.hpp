@@ -13,8 +13,8 @@ namespace viennamesh
     public:
       make_mesh();
 
-      string name() const;
-      string id() const;
+      std::string name() const;
+      std::string id() const;
 
       bool run_impl();
 
@@ -27,9 +27,9 @@ namespace viennamesh
       optional_input_parameter_interface<double>                    cell_size;
       optional_input_parameter_interface<double>                    min_angle;
       default_input_parameter_interface<bool>                       delaunay;
-      optional_input_parameter_interface<string>                    algorithm_type;
+      optional_input_parameter_interface<std::string>               algorithm_type;
       default_input_parameter_interface<bool>                       extract_segment_seed_points;
-      optional_input_parameter_interface<string>                    option_string;
+      optional_input_parameter_interface<std::string>               option_string;
 
       output_parameter_interface output_mesh;
     };

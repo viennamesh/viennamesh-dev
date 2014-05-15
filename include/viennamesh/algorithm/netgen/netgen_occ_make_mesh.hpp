@@ -12,14 +12,14 @@ namespace viennamesh
     public:
       occ_make_mesh();
 
-      string name() const;
-      string id() const;
+      std::string name() const;
+      std::string id() const;
 
       bool run_impl();
 
     private:
-      required_input_parameter_interface<string>         filename;
-      optional_input_parameter_interface<string>         filetype;
+      required_input_parameter_interface<std::string>    filename;
+      optional_input_parameter_interface<std::string>    filetype;
       optional_input_parameter_interface<double>         cell_size;
       default_input_parameter_interface<double>          curvature_safety_factor;
       default_input_parameter_interface<double>          segments_per_edge;

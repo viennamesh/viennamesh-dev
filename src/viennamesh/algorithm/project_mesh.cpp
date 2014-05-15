@@ -73,12 +73,12 @@ namespace viennamesh
 
 
   project_mesh::project_mesh() :
-    input_mesh(*this, "mesh"),
-    target_dimension(*this, "target_dimension"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented line 3d mesh and segmented triangular 3d mesh supported")),
+    target_dimension(*this, parameter_information("target_dimension","int","The target geometric dimension of the resulting mesh")),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh but the target geometric dimension")) {}
 
-  string project_mesh::name() const { return "ViennaGrid Project"; }
-  string project_mesh::id() const { return "project_mesh"; }
+  std::string project_mesh::name() const { return "ViennaGrid Project"; }
+  std::string project_mesh::id() const { return "project_mesh"; }
 
 
   template<typename InputMeshT, typename InputSegmentationT, typename OutputMeshT, typename OutputSegmentationT>

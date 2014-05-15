@@ -5,16 +5,16 @@
 namespace viennamesh
 {
   make_statistic::make_statistic() :
-    input_mesh(*this, "mesh"),
-    metric_type(*this, "metric_type"),
-    histogram_bins(*this, "histogram_bins"),
-    histogram_min(*this, "histogram_min"),
-    histogram_max(*this, "histogram_max"),
-    histogram_bin_count(*this, "histogram_bin_count"),
-    output_statistic(*this, "statistic") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d and segmented tetrahedral 3d supported")),
+    metric_type(*this, parameter_information("metric_type","string","The metric type for which the statistic should be created. Supported metric types: aspect_ratio, condition_number, min_angle, max_angle, min_dihedral_angle, radius_edge_ratio")),
+    histogram_bins(*this, parameter_information("histogram_bins","string","Explicit histogram bin borders")),
+    histogram_min(*this, parameter_information("histogram_min","double","The lower value of the histogram interval")),
+    histogram_max(*this, parameter_information("histogram_max","double","The upper value of the histogram interval")),
+    histogram_bin_count(*this, parameter_information("histogram_bin_count","double","The number of histogram bins within the interval")),
+    output_statistic(*this, parameter_information("statistic","statistic","The output statistic")) {}
 
-  string make_statistic::name() const { return "ViennaGrid Statistic"; }
-  string make_statistic::id() const { return "make_statistic"; }
+  std::string make_statistic::name() const { return "ViennaGrid Statistic"; }
+  std::string make_statistic::id() const { return "make_statistic"; }
 
   template<typename MeshT, typename SegmentationT>
   bool make_statistic::generic_run()
@@ -29,9 +29,9 @@ namespace viennamesh
 
       if (histogram_bins.valid())
       {
-        std::list<string> border_strings = stringtools::split_string( histogram_bins(), "," );
+        std::list<std::string> border_strings = stringtools::split_string( histogram_bins(), "," );
         std::vector<double> borders;
-        for (std::list<string>::const_iterator it = border_strings.begin(); it != border_strings.end(); ++it)
+        for (std::list<std::string>::const_iterator it = border_strings.begin(); it != border_strings.end(); ++it)
           borders.push_back( lexical_cast<double>(*it) );
         osp().set_histogram( StatisticType::histogram_type::make(borders.begin(), borders.end()) );
       }

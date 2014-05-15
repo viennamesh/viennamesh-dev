@@ -15,7 +15,7 @@ namespace viennamesh
   {
     // default implementation is empty! spezialise this class if you want something special
     static void init() {}
-    static string name() { return typeid(ValueT).name(); }
+    static std::string name() { return typeid(ValueT).name(); }
   };
 
 
@@ -120,8 +120,8 @@ namespace viennamesh
   typedef result_of::parameter_handle<double>::type double_parameter_handle;
   typedef result_of::const_parameter_handle<double>::type const_double_parameter_handle;
 
-  typedef result_of::parameter_handle<string>::type string_parameter_handle;
-  typedef result_of::const_parameter_handle<string>::type const_string_parameter_handle;
+  typedef result_of::parameter_handle<std::string>::type string_parameter_handle;
+  typedef result_of::const_parameter_handle<std::string>::type const_string_parameter_handle;
 
 
   namespace detail
@@ -166,7 +166,7 @@ namespace viennamesh
   {
   public:
 
-    typedef std::map<string, string> PropertyMapType;
+    typedef std::map<std::string, std::string> PropertyMapType;
 
 
     PropertyMapType & get_map(type_info_wrapper const & ti)
@@ -174,21 +174,21 @@ namespace viennamesh
       return type_properties_map[ti];
     }
 
-    std::pair<string, bool> get_property( type_info_wrapper const & ti, string const & name ) const;
+    std::pair<std::string, bool> get_property( type_info_wrapper const & ti, std::string const & name ) const;
 
-    void set_property( type_info_wrapper const & ti, string const & key, string const & value )
+    void set_property( type_info_wrapper const & ti, std::string const & key, std::string const & value )
     {
       get_map(ti)[key] = value;
     }
 
     template<typename ValueT>
-    void set_property( string const & key, string const & value )
+    void set_property( std::string const & key, std::string const & value )
     {
       set_property( typeid( parameter_wrapper<ValueT> ), key, value );
     }
 
     bool match_properties( type_info_wrapper const & ti, PropertyMapType const & to_match ) const;
-    bool match_property( type_info_wrapper const & ti, string const & key, string const & value ) const;
+    bool match_property( type_info_wrapper const & ti, std::string const & key, std::string const & value ) const;
 
     void print() const;
 
@@ -307,8 +307,8 @@ namespace viennamesh
     template<typename ValueT>
     shared_ptr<base_conversion_function> convert_function( const_parameter_handle const & input );
 
-    shared_ptr<base_conversion_function> best_convert_function( const_parameter_handle const & input, std::map<string, string> const & properties );
-    shared_ptr<base_conversion_function> best_convert_function( const_parameter_handle const & input, string const & property_key, string const & property_value );
+    shared_ptr<base_conversion_function> best_convert_function( const_parameter_handle const & input, std::map<std::string, std::string> const & properties );
+    shared_ptr<base_conversion_function> best_convert_function( const_parameter_handle const & input, std::string const & property_key, std::string const & property_value );
 
 
     bool is_convertable( const_parameter_handle const & input, const_parameter_handle const & output )
@@ -413,16 +413,16 @@ namespace viennamesh
     virtual parameter_handle unpack() = 0;
     virtual const_parameter_handle unpack() const = 0;
     virtual bool is_reference() const = 0;
-    virtual string type_name() const = 0;
+    virtual std::string type_name() const = 0;
 
 
-    std::pair<string, bool> get_property( string const & key ) const
+    std::pair<std::string, bool> get_property( std::string const & key ) const
     { return type_properties::get().get_property( typeid(*this), key ); }
 
-    bool match_property( string const & key, string const & value ) const
+    bool match_property( std::string const & key, std::string const & value ) const
     { return type_properties::get().match_property( typeid(*this), key, value ); }
 
-    bool match_properties( std::map<string, string> const & properties ) const
+    bool match_properties( std::map<std::string, std::string> const & properties ) const
     { return type_properties::get().match_properties( typeid(*this), properties ); }
 
 
@@ -445,7 +445,7 @@ namespace viennamesh
     template<typename ValueT>
     typename result_of::parameter_handle<ValueT>::type get_converted() const
     {
-      LoggingStack stack( string("get_converted") );
+      LoggingStack stack( std::string("get_converted") );
       info(5) << "Source type: " << type_name() << std::endl;
       info(5) << "Destination type: " << type_information<ValueT>::name() << std::endl;
 
@@ -490,7 +490,7 @@ namespace viennamesh
 
     bool is_reference() const { return value_ptr_; }
 
-    string type_name() const { return type_information<ValueT>::name(); }
+    std::string type_name() const { return type_information<ValueT>::name(); }
 
     static void static_init()
     {
@@ -536,7 +536,7 @@ namespace viennamesh
 
     bool is_reference() const { return true; }
 
-    string type_name() const { return "parameter_handle_reference"; }
+    std::string type_name() const { return "parameter_handle_reference"; }
 
   private:
     parameter_handle handle_reference;
@@ -567,15 +567,15 @@ namespace viennamesh
   {
   public:
 
-    typedef std::map<string, parameter_handle> ParameterMapType;
+    typedef std::map<std::string, parameter_handle> ParameterMapType;
 
-    void set( string const & name, parameter_handle const & parameter )
+    void set( std::string const & name, parameter_handle const & parameter )
     { internal_set(name, parameter); }
 
-    void unset( string const & name )
+    void unset( std::string const & name )
     { parameters.erase(name); }
 
-    const_parameter_handle get( string const & name ) const
+    const_parameter_handle get( std::string const & name ) const
     {
       ParameterMapType::const_iterator it = parameters.find(name);
       if (it == parameters.end())
@@ -583,7 +583,7 @@ namespace viennamesh
       return it->second->unpack();
     }
 
-    parameter_handle get( string const & name )
+    parameter_handle get( std::string const & name )
     {
       ParameterMapType::iterator it = parameters.find(name);
       if (it == parameters.end())
@@ -592,7 +592,7 @@ namespace viennamesh
     }
 
     template<typename ValueT>
-    typename result_of::const_parameter_handle<ValueT>::type get( string const & name ) const
+    typename result_of::const_parameter_handle<ValueT>::type get( std::string const & name ) const
     {
       const_parameter_handle handle = get(name);
       if (!handle) return typename result_of::const_parameter_handle<ValueT>::type();
@@ -605,7 +605,7 @@ namespace viennamesh
     }
 
     template<typename ValueT>
-    typename result_of::parameter_handle<ValueT>::type get( string const & name )
+    typename result_of::parameter_handle<ValueT>::type get( std::string const & name )
     {
       parameter_handle handle = get(name);
       if (!handle) return typename result_of::parameter_handle<ValueT>::type();
@@ -617,11 +617,11 @@ namespace viennamesh
       return handle->template get_converted<ValueT>();
     }
 
-    parameter_handle & get_create( string const & name )
+    parameter_handle & get_create( std::string const & name )
     { return parameters[name]; }
 
     template<typename ValueT>
-    bool copy_if_present( string const & name, ValueT & target ) const
+    bool copy_if_present( std::string const & name, ValueT & target ) const
     {
       typename result_of::const_parameter_handle<ValueT>::type ptr = get<ValueT>(name);
       if (ptr)
@@ -648,7 +648,7 @@ namespace viennamesh
     }
 
   private:
-    void internal_set( string const & name, parameter_handle const & parameter )
+    void internal_set( std::string const & name, parameter_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;
@@ -664,18 +664,18 @@ namespace viennamesh
   {
   public:
 
-    typedef std::map<string, const_parameter_handle> ParameterMapType;
+    typedef std::map<std::string, const_parameter_handle> ParameterMapType;
 
-    void set( string const & name, const_parameter_handle const & parameter )
+    void set( std::string const & name, const_parameter_handle const & parameter )
     { internal_set(name, parameter); }
 
-    void set( string const & name, parameter_handle const & parameter )
+    void set( std::string const & name, parameter_handle const & parameter )
     { internal_set(name, parameter); }
 
-    void unset( string const & name )
+    void unset( std::string const & name )
     { parameters.erase(name); }
 
-    const_parameter_handle get( string const & name ) const
+    const_parameter_handle get( std::string const & name ) const
     {
       ParameterMapType::const_iterator it = parameters.find(name);
       if (it == parameters.end())
@@ -684,7 +684,7 @@ namespace viennamesh
     }
 
     template<typename ValueT>
-    typename result_of::const_parameter_handle<ValueT>::type get( string const & name ) const
+    typename result_of::const_parameter_handle<ValueT>::type get( std::string const & name ) const
     {
       const_parameter_handle handle = get(name);
       if (!handle) return typename result_of::const_parameter_handle<ValueT>::type();
@@ -696,11 +696,11 @@ namespace viennamesh
       return handle->template get_converted<ValueT>();
     }
 
-    const_parameter_handle & get_create( string const & name )
+    const_parameter_handle & get_create( std::string const & name )
     { return parameters[name]; }
 
     template<typename ValueT>
-    bool copy_if_present( string const & name, ValueT & target ) const
+    bool copy_if_present( std::string const & name, ValueT & target ) const
     {
       typename result_of::const_parameter_handle<ValueT>::type handle = get<ValueT>(name);
       if (handle)
@@ -716,7 +716,7 @@ namespace viennamesh
 
   private:
 
-    void internal_set( string const & name, const_parameter_handle const & parameter )
+    void internal_set( std::string const & name, const_parameter_handle const & parameter )
     {
       if (parameter)
         parameters[name] = parameter;

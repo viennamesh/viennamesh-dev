@@ -13,8 +13,8 @@ namespace viennamesh
     public:
       make_mesh();
 
-      string name() const;
-      string id() const;
+      std::string name() const;
+      std::string id() const;
 
       bool run_impl();
 
@@ -30,7 +30,7 @@ namespace viennamesh
       optional_input_parameter_interface<double>                    max_edge_ratio;
       optional_input_parameter_interface<double>                    max_inscribed_radius_edge_ratio;
       default_input_parameter_interface<bool>                       extract_segment_seed_points;
-      optional_input_parameter_interface<string>                    option_string;
+      optional_input_parameter_interface<std::string>               option_string;
 
       output_parameter_interface                                    output_mesh;
     };

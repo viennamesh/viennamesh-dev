@@ -548,9 +548,9 @@ namespace viennamesh
   public:
 
     LoggingStack() : stack_name(""), logger_obj(logger()) { init(); }
-    LoggingStack( string const & stack_name_ ) : stack_name(stack_name_), logger_obj(logger()) { init(); }
+    LoggingStack( std::string const & stack_name_ ) : stack_name(stack_name_), logger_obj(logger()) { init(); }
     LoggingStack( Logger & logger_obj_ ) : stack_name(""), logger_obj(logger_obj_) { init(); }
-    LoggingStack( Logger & logger_obj_, string const & stack_name_ ) : stack_name(stack_name_), logger_obj(logger_obj_) { init(); }
+    LoggingStack( Logger & logger_obj_, std::string const & stack_name_ ) : stack_name(stack_name_), logger_obj(logger_obj_) { init(); }
 
     ~LoggingStack() { deinit(); }
 
@@ -578,7 +578,7 @@ namespace viennamesh
     }
 
     viennautils::Timer timer;
-    string stack_name;
+    std::string stack_name;
     Logger & logger_obj;
   };
 

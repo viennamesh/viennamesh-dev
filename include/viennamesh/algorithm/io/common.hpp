@@ -22,9 +22,9 @@ namespace viennamesh
       OCC_IGES
     };
 
-    FileType from_filename( string filename );
-    FileType from_string( string str );
-    string to_string( FileType file_type );
+    FileType from_filename( std::string filename );
+    FileType from_string( std::string str );
+    std::string to_string( FileType file_type );
   }
 }
 
