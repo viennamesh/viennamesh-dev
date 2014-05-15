@@ -578,7 +578,7 @@ namespace viennamesh
               VertexType,
               viennagrid::base_id_unpack>::type FieldType;
 
-          FieldType field = quantites.get_vertex_field( mesh, segment.id(), quantity_name );
+          FieldType field = quantites.template get_vertex_field<MeshT>( segment.id(), quantity_name );
 
           typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
           typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
