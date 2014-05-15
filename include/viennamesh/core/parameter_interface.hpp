@@ -409,7 +409,7 @@ namespace viennamesh
     ValueT const & operator()() const { return native_handle(); }
 
 
-    bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph )
+    bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph ) const
     {
       if (!is_native())
         return false;
@@ -417,7 +417,7 @@ namespace viennamesh
       return ph == native_handle;
     }
 
-    bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph )
+    bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph ) const
     {
       return !(*this == ph);
     }
@@ -435,12 +435,31 @@ namespace viennamesh
 
 
   template<typename ValueT>
-  bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & oop )
-  { return oop == ph; }
+  bool operator==( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & opp )
+  { return opp == ph; }
 
   template<typename ValueT>
-  bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & oop )
-  { return !(ph == oop); }
+  bool operator!=( typename viennamesh::result_of::parameter_handle<const ValueT>::type const & ph, output_parameter_proxy<ValueT> const & opp )
+  { return !(ph == opp); }
+
+
+  template<typename ValueT, typename CheckT, typename DefaultT>
+  bool operator==( input_parameter_interface<ValueT, CheckT, DefaultT> const & ipi, output_parameter_proxy<ValueT> const & opp )
+  { return ipi.get() == opp; }
+
+  template<typename ValueT, typename CheckT, typename DefaultT>
+  bool operator==( output_parameter_proxy<ValueT> const & opp, input_parameter_interface<ValueT, CheckT, DefaultT> const & ipi )
+  { return ipi == opp; }
+
+
+  template<typename ValueT, typename CheckT, typename DefaultT>
+  bool operator!=( input_parameter_interface<ValueT, CheckT, DefaultT> const & ipi, output_parameter_proxy<ValueT> const & opp )
+  { return !(ipi == opp); }
+
+  template<typename ValueT, typename CheckT, typename DefaultT>
+  bool operator!=( output_parameter_proxy<ValueT> const & opp, input_parameter_interface<ValueT, CheckT, DefaultT> const & ipi )
+  { return !(opp == ipi); }
+
 }
 
 #endif
