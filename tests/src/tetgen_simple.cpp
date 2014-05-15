@@ -1,29 +1,26 @@
 #include "viennamesh/viennamesh.hpp"
 #include "common.hpp"
 
-using viennamesh::info;
-
 inline void test(std::string const & filename, double expected_volume)
 {
   viennamesh::LoggingStack ls("Testing tetgen");
-  info(1) << "Using file: \"" << filename << "\"" << std::endl;
+  viennamesh::info(1) << "Using file: \"" << filename << "\"" << std::endl;
 
   viennamesh::algorithm_handle reader( new viennamesh::io::mesh_reader() );
   reader->set_input( "filename", filename );
-  reader->run();
+  checked_run(reader);
 
   viennagrid::segmented_mesh<viennagrid::tetrahedral_3d_mesh, viennagrid::tetrahedral_3d_segmentation> mesh;
 
   viennamesh::algorithm_handle mesher( new viennamesh::tetgen::make_mesh() );
   mesher->set_default_source(reader);
   mesher->set_output( "mesh", mesh );
-
-  mesher->run();
+  checked_run(mesher);
 
   double volume = viennagrid::volume( mesh.mesh );
 
-  info(1) << "Expected volume: " << expected_volume << std::endl;
-  info(1) << "Actual volume  : " << volume << std::endl;
+  viennamesh::info(1) << "Expected volume: " << expected_volume << std::endl;
+  viennamesh::info(1) << "Actual volume  : " << volume << std::endl;
 
   fuzzy_check( volume, expected_volume );
 }

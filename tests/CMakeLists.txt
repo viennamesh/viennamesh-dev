@@ -1,4 +1,4 @@
-set(TEST_PROGRAMS tetgen_simple)
+set(TEST_PROGRAMS tetgen_simple netgen_simple)
 
 foreach(PROG ${TEST_PROGRAMS})
   add_executable(${PROG}-test src/${PROG}.cpp)
