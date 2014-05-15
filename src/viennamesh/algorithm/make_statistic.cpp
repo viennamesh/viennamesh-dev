@@ -13,8 +13,8 @@ namespace viennamesh
     histogram_bin_count(*this, "histogram_bin_count"),
     output_statistic(*this, "statistic") {}
 
-  string make_statistic::name() const { return "ViennaGrid Statistic"; }
-  string make_statistic::id() const { return "make_statistic"; }
+  std::string make_statistic::name() const { return "ViennaGrid Statistic"; }
+  std::string make_statistic::id() const { return "make_statistic"; }
 
   template<typename MeshT, typename SegmentationT>
   bool make_statistic::generic_run()
@@ -29,11 +29,7 @@ namespace viennamesh
 
       if (histogram_bins.valid())
       {
-        std::list<string> border_strings = stringtools::split_string( histogram_bins(), "," );
-        std::vector<double> borders;
-        for (std::list<string>::const_iterator it = border_strings.begin(); it != border_strings.end(); ++it)
-          borders.push_back( lexical_cast<double>(*it) );
-        osp().set_histogram( StatisticType::histogram_type::make(borders.begin(), borders.end()) );
+        osp().set_histogram( StatisticType::histogram_type::make(histogram_bins().begin(), histogram_bins().end()) );
       }
       else if (histogram_min.valid() && histogram_max.valid() && histogram_bin_count.valid())
       {
