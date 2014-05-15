@@ -32,7 +32,9 @@ namespace viennamesh
       geom->FindIdenticSurfaces(relative_find_identic_surface_eps() * geom->MaxSize());
       ::netgen::MeshingParameters mesh_parameters;
 
-      mesh_parameters.maxh = cell_size();
+      if (cell_size.valid())
+        mesh_parameters.maxh = cell_size();
+
       mesh_parameters.grading = grading();
       mesh_parameters.optsteps3d = optimization_steps();
       mesh_parameters.delaunay = delaunay();
