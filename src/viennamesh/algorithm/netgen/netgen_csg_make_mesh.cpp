@@ -22,7 +22,7 @@ namespace viennamesh
 
     bool csg_make_mesh::run_impl()
     {
-      output_parameter_proxy<netgen::output_mesh> output(output_mesh);
+      output_parameter_proxy<netgen::mesh> output(output_mesh);
 
       std_capture().start();
 
@@ -40,7 +40,7 @@ namespace viennamesh
       if (optimize_string.valid())
         mesh_parameters.optimize3d = optimize_string().c_str();
 
-      geom->GenerateMesh(output().mesh, mesh_parameters, 1, 5);
+      geom->GenerateMesh(output().mesh_ptr(), mesh_parameters, 1, 5);
 
       delete geom;
 
