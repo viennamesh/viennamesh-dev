@@ -69,6 +69,9 @@ target_link_libraries(tetgen_seedpoints_3segments viennamesh)
 add_executable(inplace inplace.cpp)
 target_link_libraries(inplace viennamesh)
 
+add_executable(interface_information interface_information.cpp)
+target_link_libraries(interface_information viennamesh)
+
 # find_package(CGAL QUIET COMPONENTS Core )
 # set( CGAL_LIBS CGAL CGAL_Core ${Boost_LIBRARIES} gmp mpfr )
 # add_executable(cgal_tetrahedron_mesher cgal_tetrahedron_mesher.cpp)
