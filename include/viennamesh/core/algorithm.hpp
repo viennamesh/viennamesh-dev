@@ -4,6 +4,7 @@
 #include "viennamesh/core/parameter.hpp"
 #include "viennamesh/core/basic_parameters.hpp"
 
+#include "viennamesh/utils/utils.hpp"
 #include "viennamesh/utils/logger.hpp"
 #include "viennamesh/core/exceptions.hpp"
 
@@ -28,7 +29,6 @@ namespace viennamesh
   class parameter_link;
 
   parameter_handle_t<parameter_link> make_parameter_link(algorithm_handle const & algorithm, std::string const & para_name);
-
 
 
   class base_algorithm : public enable_shared_from_this<base_algorithm>
@@ -260,6 +260,18 @@ namespace viennamesh
     void register_input_parameter( base_input_parameter_interface & input_parameter );
     void register_output_parameter( output_parameter_interface & output_parameter );
 
+  public:
+
+    typedef const_transform_iterator<RegisteredInputParameterMapType::const_iterator, dereference_second<RegisteredInputParameterMapType::value_type> > const_input_parameter_iterator;
+
+    const_input_parameter_iterator input_parameter_begin() const { return const_input_parameter_iterator(input_parameters.begin()); }
+    const_input_parameter_iterator input_parameter_end() const { return const_input_parameter_iterator(input_parameters.end()); }
+
+    typedef const_transform_iterator<RegisteredOutputParameterMapType::const_iterator, dereference_second<RegisteredOutputParameterMapType::value_type> > const_output_parameter_iterator;
+
+    const_output_parameter_iterator output_parameter_begin() const { return const_output_parameter_iterator(output_parameters.begin()); }
+    const_output_parameter_iterator output_parameter_end() const { return const_output_parameter_iterator(output_parameters.end()); }
+
   private:
 
     algorithm_handle default_source;
@@ -287,7 +299,6 @@ namespace viennamesh
     algorithm_handle algorithm_;
     std::string parameter_name_;
   };
-
 }
 
 #include "viennamesh/core/parameter_interface.hpp"
