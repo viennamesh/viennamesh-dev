@@ -145,7 +145,7 @@ namespace viennamesh
       return true;
 
 
-    error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
+    error(1) << "Input Parameter 'mesh' (type: mesh) is missing or of non-convertable type" << std::endl;
     return false;
   }
 
