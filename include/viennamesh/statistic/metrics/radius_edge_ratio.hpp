@@ -1,6 +1,20 @@
 #ifndef VIENNAMESH_STATISTICS_METRICS_RADIUS_EDGE_RATIO_HPP
 #define VIENNAMESH_STATISTICS_METRICS_RADIUS_EDGE_RATIO_HPP
 
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include "viennagrid/algorithm/circumcenter.hpp"
 #include "viennamesh/statistic/forwards.hpp"
 

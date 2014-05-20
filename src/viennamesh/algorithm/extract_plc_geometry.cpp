@@ -1,3 +1,17 @@
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include "viennamesh/algorithm/extract_plc_geometry.hpp"
 #include "viennamesh/algorithm/extract_hole_points.hpp"
 #include "viennamesh/algorithm/plane_to_2d_projector.hpp"
