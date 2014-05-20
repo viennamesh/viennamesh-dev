@@ -13,15 +13,15 @@ namespace viennamesh
     public:
       make_mesh();
 
-      string name() const;
-      string id() const;
+     std::string name() const;
+     std::string id() const;
 
       bool run_impl();
 
     private:
       typedef viennamesh::netgen::mesh InputMeshType;
       required_input_parameter_interface<InputMeshType>  input_mesh;
-      default_input_parameter_interface<double>          cell_size;
+      optional_input_parameter_interface<double>         cell_size;
 //       default_input_parameter_interface<double>          curvature_safety_factor;
 //       default_input_parameter_interface<double>          segments_per_edge;
 //       default_input_parameter_interface<double>          grading;

@@ -8,12 +8,12 @@ namespace viennamesh
   namespace netgen
   {
     make_mesh::make_mesh() :
-      input_mesh(*this, "mesh"),
-      cell_size(*this, "cell_size", 1e10),
-      output_mesh(*this, "mesh") {}
+      input_mesh(*this, parameter_information("mesh","mesh","The input mesh, netgen mesh supported")),
+      cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
+      output_mesh(*this, parameter_information("mesh","mesh","The output mesh, netgen::mesh")) {}
 
-    string make_mesh::name() const { return "Netgen 5.1 mesher"; }
-    string make_mesh::id() const { return "netgen_make_mesh"; }
+    std::string make_mesh::name() const { return "Netgen 5.1 mesher"; }
+    std::string make_mesh::id() const { return "netgen_make_mesh"; }
 
     bool make_mesh::run_impl()
     {
@@ -26,7 +26,8 @@ namespace viennamesh
 
       ::netgen::MeshingParameters mesh_parameters;
 
-      mesh_parameters.maxh = cell_size();
+      if (cell_size.valid())
+        mesh_parameters.maxh = cell_size();
 
       omp()().CalcLocalH(mesh_parameters.grading);
       MeshVolume (mesh_parameters, omp()());

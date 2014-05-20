@@ -11,7 +11,7 @@ namespace viennamesh
       error(1) << "Algorithm has no name attribute" << std::endl;
       return false;
     }
-    string algorithm_name = algorithm_name_attribute.as_string();
+    std::string algorithm_name = algorithm_name_attribute.as_string();
 
     pugi::xml_attribute algorithm_id_attribute = algorithm_node.attribute("id");
     if ( algorithm_id_attribute.empty() )
@@ -19,7 +19,7 @@ namespace viennamesh
       error(1) << "Algorithm \"" << algorithm_name << "\" has no id attribute" << std::endl;
       return false;
     }
-    string algorithm_id = algorithm_id_attribute.as_string();
+    std::string algorithm_id = algorithm_id_attribute.as_string();
 
     algorithm_handle algorithm = viennamesh::algorithm_factory().create_by_id( algorithm_id );
 
@@ -32,9 +32,9 @@ namespace viennamesh
     pugi::xml_node default_source_algorithm_node = algorithm_node.child("default_source");
     if (default_source_algorithm_node)
     {
-      string default_source_algorithm = default_source_algorithm_node.text().as_string();
+      std::string default_source_algorithm = default_source_algorithm_node.text().as_string();
 
-      std::map<string, algorithm_handle>::iterator ait = algorithms.find( default_source_algorithm );
+      std::map<std::string, algorithm_handle>::iterator ait = algorithms.find( default_source_algorithm );
       if (ait == algorithms.end())
       {
         error(1) << "Default source algorithm \"" << default_source_algorithm << "\" was not found" << std::endl;
@@ -55,7 +55,7 @@ namespace viennamesh
         error(1) << "Parameter has no name attribute" << std::endl;
         return false;
       }
-      string parameter_name = parameter_name_attribute.as_string();
+      std::string parameter_name = parameter_name_attribute.as_string();
 
       pugi::xml_attribute parameter_type_attribute = paramater_node.attribute("type");
       if (parameter_type_attribute.empty())
@@ -63,10 +63,10 @@ namespace viennamesh
         error(1) << "Parameter \"" << parameter_name << "\" has no type attribute" << std::endl;
         return false;
       }
-      string parameter_type = parameter_type_attribute.as_string();
+      std::string parameter_type = parameter_type_attribute.as_string();
 
 
-      string parameter_value = paramater_node.text().as_string();
+      std::string parameter_value = paramater_node.text().as_string();
 
 
       if (parameter_type == "xml")
@@ -114,10 +114,10 @@ namespace viennamesh
         }
         else if (parameter_type == "dynamic")
         {
-          string source_algorithm_name = parameter_value.substr( 0, parameter_value.find("/") );
-          string source_parameter_name = parameter_value.substr( parameter_value.find("/")+1 );
+          std::string source_algorithm_name = parameter_value.substr( 0, parameter_value.find("/") );
+          std::string source_parameter_name = parameter_value.substr( parameter_value.find("/")+1 );
 
-          std::map<string, algorithm_handle>::iterator ait = algorithms.find( source_algorithm_name );
+          std::map<std::string, algorithm_handle>::iterator ait = algorithms.find( source_algorithm_name );
           if (ait == algorithms.end())
           {
             error(1) << "Dynamic parameter \"" << parameter_name << "\": algorithm \"" << source_algorithm_name << "\" was not found" << std::endl;

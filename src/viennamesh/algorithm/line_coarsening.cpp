@@ -106,12 +106,12 @@ namespace viennamesh
 
 
   line_coarsening::line_coarsening() :
-    input_mesh(*this, "mesh"),
-    angle(*this, "angle", 2.5),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented line 2d mesh and segmented line 3d mesh supported")),
+    angle(*this, parameter_information("angle","double","All lines which have an angle higher than this are merged"), 2.5),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
-  string line_coarsening::name() const { return "ViennaGrid Line Coarsing"; }
-  string line_coarsening::id() const { return "line_coarsening"; }
+  std::string line_coarsening::name() const { return "ViennaGrid Line Coarsing"; }
+  std::string line_coarsening::id() const { return "line_coarsening"; }
 
   template<typename MeshT, typename SegmentationT>
   bool line_coarsening::generic_run()

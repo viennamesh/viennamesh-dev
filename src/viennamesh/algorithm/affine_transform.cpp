@@ -5,13 +5,13 @@
 namespace viennamesh
 {
   affine_transform::affine_transform() :
-    input_mesh(*this, "mesh"),
-    matrix(*this, "matrix"),
-    translate(*this, "translate"),
-    output_mesh(*this, "mesh") {}
+    input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented line 2d mesh, segmented line 3d mesh, segmented triangular 2d mesh, segmented triangular 3d mesh and segmented tetrahedral 3d mesh supported")),
+    matrix(*this, parameter_information("matrix", "dynamic_point", "The linear transformation matrix")),
+    translate(*this, parameter_information("translate", "dynamic_point", "The translation matrix")),
+    output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
-  string affine_transform::name() const { return "ViennaGrid Affine Transform"; }
-  string affine_transform::id() const { return "affine_transform"; }
+  std::string affine_transform::name() const { return "ViennaGrid Affine Transform"; }
+  std::string affine_transform::id() const { return "affine_transform"; }
 
   template<typename MeshT, typename SegmentationT>
   bool affine_transform::generic_run( dynamic_point const & matrix, dynamic_point const & base_translate )

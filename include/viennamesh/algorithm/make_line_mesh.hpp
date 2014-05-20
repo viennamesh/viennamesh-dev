@@ -10,8 +10,8 @@ namespace viennamesh
   public:
     make_line_mesh();
 
-    string name() const;
-    string id() const;
+    std::string name() const;
+    std::string id() const;
 
     template<typename GeometrySegmentationT>
     void extract_seed_points( GeometrySegmentationT const & segmentation, point_1d_container const & hole_points,
@@ -26,7 +26,7 @@ namespace viennamesh
     optional_input_parameter_interface<seed_point_1d_container>   input_seed_points;
     optional_input_parameter_interface<point_1d_container>        input_hole_points;
     default_input_parameter_interface<double>                     cell_size;
-    default_input_parameter_interface<bool>                       use_different_segment_ids_for_unknown_segments;
+    default_input_parameter_interface<bool>                       use_different_segment_for_unknown_segments;
     default_input_parameter_interface<bool>                       extract_segment_seed_points;
     default_input_parameter_interface<double>                     relative_min_geometry_point_distance;
     optional_input_parameter_interface<double>                    absolute_min_geometry_point_distance;
