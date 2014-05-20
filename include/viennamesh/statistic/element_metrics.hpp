@@ -1,6 +1,20 @@
 #ifndef VIENNAMESH_STATISTICS_ELEMENT_METRICS_HPP
 #define VIENNAMESH_STATISTICS_ELEMENT_METRICS_HPP
 
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include "viennamesh/statistic/forwards.hpp"
 
 #include "viennamesh/statistic/metrics/radius_edge_ratio.hpp"

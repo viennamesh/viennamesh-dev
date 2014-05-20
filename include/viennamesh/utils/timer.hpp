@@ -1,20 +1,19 @@
-/* =============================================================================
-   Copyright (c) 2010, 2011, Institute for Microelectronics, TU Wien
-   http://www.iue.tuwien.ac.at
-                             -----------------
-                ViennaUtils - The Vienna Utilities Library
-                             -----------------
-
-   authors:    Karl Rupp                          rupp@iue.tuwien.ac.at
-               Josef Weinbub                      weinbub@iue.tuwien.ac.at
-               Markus Bina                        bina@iue.tuwien.ac.at
-
-   license:    see file LICENSE in the base directory
-============================================================================= */
-
-
 #ifndef VIENNAUTILS_TIMER_HPP
 #define VIENNAUTILS_TIMER_HPP
+
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
 
 #include <iostream>
 

@@ -1,6 +1,20 @@
 #ifndef VIENNAMESH_CORE_ALGORITHM_HPP
 #define VIENNAMESH_CORE_ALGORITHM_HPP
 
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include "viennamesh/core/parameter.hpp"
 #include "viennamesh/core/basic_parameters.hpp"
 
