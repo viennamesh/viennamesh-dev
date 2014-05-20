@@ -18,12 +18,12 @@ namespace viennamesh
     bool run_impl();
 
   private:
-    dynamic_required_input_parameter_interface        input_mesh;
-    required_input_parameter_interface<std::string>   metric_type;
-    optional_input_parameter_interface<std::string>   histogram_bins;
-    optional_input_parameter_interface<double>        histogram_min;
-    optional_input_parameter_interface<double>        histogram_max;
-    optional_input_parameter_interface<int>           histogram_bin_count;
+    dynamic_required_input_parameter_interface          input_mesh;
+    required_input_parameter_interface<std::string>     metric_type;
+    optional_input_parameter_interface<dynamic_point>   histogram_bins;
+    optional_input_parameter_interface<double>          histogram_min;
+    optional_input_parameter_interface<double>          histogram_max;
+    optional_input_parameter_interface<int>             histogram_bin_count;
 
     output_parameter_interface                        output_statistic;
   };
