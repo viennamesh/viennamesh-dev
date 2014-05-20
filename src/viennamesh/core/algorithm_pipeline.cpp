@@ -124,7 +124,7 @@ namespace viennamesh
         }
         else if (parameter_type == "point")
         {
-          algorithm->set_input( parameter_name, stringtools::vector_from_string<double>(parameter_value) );
+          algorithm->set_input( parameter_name, dynamic_point_from_string(parameter_value) );
         }
         else if (parameter_type == "dynamic")
         {

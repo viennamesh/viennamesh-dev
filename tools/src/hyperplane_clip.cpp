@@ -44,8 +44,8 @@ int main(int argc, char **argv)
     reader->run();
 
 
-    viennamesh::dynamic_point hyperplane_point = stringtools::vector_from_string<double>( hyperplane_point_string.getValue() );
-    viennamesh::dynamic_point hyperplane_normal = stringtools::vector_from_string<double>( hyperplane_normal_string.getValue() );
+    viennamesh::dynamic_point hyperplane_point = viennamesh::dynamic_point_from_string( hyperplane_point_string.getValue() );
+    viennamesh::dynamic_point hyperplane_normal = viennamesh::dynamic_point_from_string( hyperplane_normal_string.getValue() );
 
 
     viennamesh::algorithm_handle clip( new viennamesh::hyperplane_clip() );
