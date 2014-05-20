@@ -30,6 +30,7 @@ namespace viennamesh
     typedef typename IteratorT::iterator_category   iterator_category;
     typedef ptrdiff_t                               difference_type;
 
+    transform_iterator() {}
     transform_iterator(IteratorT const & it_) : it(it_) {}
 
     value_type & operator*() { return functor(*it); }
@@ -90,6 +91,7 @@ namespace viennamesh
     typedef typename IteratorT::iterator_category   iterator_category;
     typedef ptrdiff_t                               difference_type;
 
+    const_transform_iterator() {}
     const_transform_iterator(IteratorT const & it_) : it(it_) {}
 
     value_type const & operator*() const { return functor(*it); }
