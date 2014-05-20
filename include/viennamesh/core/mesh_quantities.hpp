@@ -137,11 +137,7 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         std::map<VertexKeyT, ValueT>,
         typename viennagrid::result_of::vertex<MeshT>::type,
-<<<<<<< HEAD
-        viennagrid::base_id_unpack>::type get_vertex_field( MeshT const & mesh, SegmentIDT segment_id, std::string const & name )
-=======
         viennagrid::base_id_unpack>::type get_vertex_field( SegmentIDT segment_id, string const & name )
->>>>>>> FlorianRudolf/feature-TDR-reader
     {
       return vertex_segment_quantities[segment_id].template get_field<viennagrid::vertex_tag, MeshT>( name);
     }
@@ -150,11 +146,7 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         const std::map<VertexKeyT, ValueT>,
         typename viennagrid::result_of::vertex<MeshT>::type,
-<<<<<<< HEAD
-        viennagrid::base_id_unpack>::type get_vertex_field( MeshT const & mesh, SegmentIDT segment_id, std::string const & name ) const
-=======
         viennagrid::base_id_unpack>::type get_vertex_field( SegmentIDT segment_id, string const & name ) const
->>>>>>> FlorianRudolf/feature-TDR-reader
     {
       typename std::map<SegmentIDT, VertexQuantitesType>::iterator qit = vertex_segment_quantities.find( segment_id );
       if (qit != vertex_segment_quantities.end())
