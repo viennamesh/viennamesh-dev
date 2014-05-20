@@ -1,6 +1,20 @@
 #ifndef VIENNAMESH_ALGORITHM_IO_SENTAURUS_TDR_READER_HPP
 #define VIENNAMESH_ALGORITHM_IO_SENTAURUS_TDR_READER_HPP
 
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include <string>
 #include <fstream>
 #include <set>
@@ -112,10 +126,9 @@ namespace viennamesh
 
     void read_vertex(const DataSet &vert)
     {
-//       const DataSpace &dataspace = vert.getSpace();
-//       int rank = dataspace.getSimpleExtentNdims();
+      const DataSpace &dataspace = vert.getSpace();
       hsize_t dims[10];
-//       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
+      dataspace.getSimpleExtentDims( dims, NULL);
       if (nvertices!=dims[0])
         mythrow("nvertices not equal vertices.dim");
 
@@ -191,7 +204,7 @@ namespace viennamesh
     {
       string name0=read_string(reg,"name");
       string name;
-      unsigned int i;
+      string::size_type i;
       while ((i=name0.find_first_of("_."))!=name0.npos)
       {
         name=name+name0.substr(0,i);
