@@ -1,5 +1,19 @@
 #ifdef VIENNAMESH_WITH_TETGEN
 
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include "viennamesh/algorithm/tetgen/tetgen_mesh.hpp"
 #include "viennamesh/algorithm/tetgen/tetgen_make_mesh.hpp"
 

@@ -1,6 +1,19 @@
 #ifndef VIENNAMESH_UTILS_UTILS_HPP
 #define VIENNAMESH_UTILS_UTILS_HPP
 
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
 
 #include <boost/shared_ptr.hpp>
 
@@ -17,6 +30,7 @@ namespace viennamesh
     typedef typename IteratorT::iterator_category   iterator_category;
     typedef ptrdiff_t                               difference_type;
 
+    transform_iterator() {}
     transform_iterator(IteratorT const & it_) : it(it_) {}
 
     value_type & operator*() { return functor(*it); }
@@ -77,6 +91,7 @@ namespace viennamesh
     typedef typename IteratorT::iterator_category   iterator_category;
     typedef ptrdiff_t                               difference_type;
 
+    const_transform_iterator() {}
     const_transform_iterator(IteratorT const & it_) : it(it_) {}
 
     value_type const & operator*() const { return functor(*it); }
