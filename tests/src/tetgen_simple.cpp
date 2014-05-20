@@ -30,7 +30,7 @@ int main()
   test("../examples/data/cube.poly", 10*10*10);
   test("../examples/data/big_and_small_cube.poly", 20*20*20 + 10*10*20);
   test("../examples/data/cube_using_lines.poly", 10*10*10);
-  test("../examples/data/cube_with_cube_hole.poly", 20*20*40 - 10*10*10);
+  test("../examples/data/cube_with_cube_hole.poly", 20*20*20 - 10*10*10);
   test("../examples/data/cube_with_tunnel.poly", 20*20*20 - 4*4*20);
   test("../examples/data/cubeception.poly", 60*60*60 - 40*40*40 + 20*20*20);
   test("../examples/data/two_cubes.poly", 2 * 10*10*10);
