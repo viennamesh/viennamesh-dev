@@ -302,9 +302,23 @@ namespace viennamesh
 //         SegmentHandleType segment = segmentation.make_segment();
 
         mark_facing_shortes_angle( mesh, segment, visited_state_accessor, it.handle(), faces_outward );
-        return;
+//         return;
+//         std::cout << "Marking one hull" << std::endl;
       }
     }
+
+
+//     for (TriangleIteratorType it = triangles.begin(); it != triangles.end(); ++it)
+//     {
+//       if (!visited_state_accessor(*it))
+//         continue;
+//
+//       PointType n = viennagrid::normal_vector(*it);
+//       std::cout << *it << std::endl;
+//       std::cout << "  " << n << std::endl;
+//       std::cout << "  " << *viennagrid::segment_element_info( segment, *it ) << std::endl;
+//     }
+
   }
 
 
