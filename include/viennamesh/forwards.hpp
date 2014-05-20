@@ -163,9 +163,14 @@ namespace viennamesh
   {
   public:
     dynamic_point() {}
+    dynamic_point(std::vector<double> const & other) : std::vector<double>(other) {}
     dynamic_point(dynamic_point const & other) : std::vector<double>(other) {}
     dynamic_point(std::size_t size_, double default_) : std::vector<double>(size_, default_) {}
   };
+
+  inline dynamic_point dynamic_point_from_string( std::string str )
+  { return dynamic_point(stringtools::vector_from_string<double>(str)); }
+
 
   typedef result_of::point<1>::type point_1d;
   typedef result_of::point<2>::type point_2d;
