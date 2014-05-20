@@ -17,6 +17,10 @@
 #   add_definitions( -DVIENNAMESH_WITH_VGMODELER )
 # ENDIF(VIENNAMESH_WITH_VGMODELER)
 
+if (VIENNAMESH_WITH_TDR)
+  add_definitions( -DVIENNAMESH_WITH_TDR )
+endif(VIENNAMESH_WITH_TDR)
+
 
 FILE(GLOB_RECURSE LIBVIENNAMESH_SRC *.cpp)
 
@@ -32,4 +36,9 @@ target_link_libraries(viennamesh ${CMAKE_THREAD_LIBS_INIT})
 IF (DEFINED ZLIB_REQUIRED_FOR_LIB_VIENNAMESH)
   find_package(ZLIB REQUIRED)
   target_link_libraries(viennamesh ${ZLIB_LIBRARIES})
+ENDIF()
+
+IF (DEFINED VIENNAMESH_WITH_TDR)
+  find_package(HDF5 COMPONENTS CXX)
+  target_link_libraries(viennamesh ${HDF5_LIBRARIES})
 ENDIF()

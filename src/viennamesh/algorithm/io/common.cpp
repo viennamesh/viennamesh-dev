@@ -51,6 +51,9 @@ namespace viennamesh
       if ( extension_found(filename, "iges") )
         return OCC_IGES;
 
+      if ( extension_found(filename, "tdr") )
+        return SENTAURUS_TDR;
+
       return UNKNOWN;
     }
 
@@ -82,6 +85,8 @@ namespace viennamesh
       if (str == "OCC_IGES")
         return NEPER_TESS;
 
+      if (str == "SENTAURUS_TDR")
+        return SENTAURUS_TDR;
 
       return UNKNOWN;
     }
@@ -113,6 +118,9 @@ namespace viennamesh
           return "OCC_STEP";
         case OCC_IGES:
           return "OCC_IGES";
+
+        case SENTAURUS_TDR:
+          return "SENTAURUS_TDR";
 
         default:
           return "UNKNOWN";

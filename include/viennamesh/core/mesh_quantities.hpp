@@ -17,7 +17,6 @@ namespace viennamesh
     typedef std::map<KeyT, ValueT> QuantitiesType;
     typedef std::map<string, QuantitiesType> NamedQuantitiesType;
 
-
     template<typename MeshT, typename SrcFieldT>
     void from_field( MeshT const & mesh, SrcFieldT const & src_field, string const & name )
     {
@@ -69,6 +68,9 @@ namespace viennamesh
   template<typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
   struct segmented_mesh_quantities
   {
+    typedef std::map<VertexKeyT, ValueT> VertexValueContainerType;
+    typedef std::map<CellKeyT, ValueT> CellValueContainerType;
+
     template<typename ReaderT, typename MeshT, typename SegmentationT>
     void fromReader(ReaderT const & reader, MeshT const & mesh, SegmentationT const & segmentation)
     {
@@ -135,53 +137,59 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         std::map<VertexKeyT, ValueT>,
         typename viennagrid::result_of::vertex<MeshT>::type,
-        viennagrid::base_id_unpack>::type get_vertex_field( MeshT const & mesh, SegmentIDT segment_id, string const & name )
+        viennagrid::base_id_unpack>::type get_vertex_field( SegmentIDT segment_id, string const & name )
     {
-      typename std::map<SegmentIDT, VertexQuantitesType>::iterator qit = vertex_segment_quantities.find( segment_id );
-      if (qit != vertex_segment_quantities.end())
-        return qit->second.template get_field<viennagrid::vertex_tag>(mesh, name);
+      return vertex_segment_quantities[segment_id].template get_field<viennagrid::vertex_tag, MeshT>( name);
     }
 
     template<typename MeshT>
     typename viennagrid::result_of::field<
         const std::map<VertexKeyT, ValueT>,
         typename viennagrid::result_of::vertex<MeshT>::type,
-        viennagrid::base_id_unpack>::type get_vertex_field( MeshT const & mesh, SegmentIDT segment_id, string const & name ) const
+        viennagrid::base_id_unpack>::type get_vertex_field( SegmentIDT segment_id, string const & name ) const
     {
       typename std::map<SegmentIDT, VertexQuantitesType>::iterator qit = vertex_segment_quantities.find( segment_id );
       if (qit != vertex_segment_quantities.end())
-        return qit->second.template get_field<viennagrid::vertex_tag>(mesh, name);
-    }
+        return qit->second.template get_field<viennagrid::vertex_tag, MeshT>( name);
 
-
-
-    template<typename MeshT>
-    typename viennagrid::result_of::field<
-        std::map<VertexKeyT, ValueT>,
-        typename viennagrid::result_of::cell<MeshT>::type,
-        viennagrid::base_id_unpack>::type get_cell_field( MeshT const & mesh, SegmentIDT segment_id, string const & name )
-    {
-      typename std::map<SegmentIDT, CellQuantitesType>::iterator qit = cell_segment_quantities.find( segment_id );
-      if (qit != cell_segment_quantities.end())
-        return qit->second.template get_field<viennagrid::vertex_tag>(mesh, name);
-    }
-
-    template<typename MeshT>
-    typename viennagrid::result_of::field<
+      return typename viennagrid::result_of::field<
         const std::map<VertexKeyT, ValueT>,
+        typename viennagrid::result_of::vertex<MeshT>::type,
+        viennagrid::base_id_unpack>::type();
+    }
+
+
+
+    template<typename MeshT>
+    typename viennagrid::result_of::field<
+        std::map<CellKeyT, ValueT>,
         typename viennagrid::result_of::cell<MeshT>::type,
-        viennagrid::base_id_unpack>::type get_cell_field( MeshT const & mesh, SegmentIDT segment_id, string const & name ) const
+        viennagrid::base_id_unpack>::type get_cell_field( SegmentIDT segment_id, string const & name )
+    {
+      return cell_segment_quantities[segment_id].template get_field<viennagrid::vertex_tag, MeshT>( name);
+    }
+
+    template<typename MeshT>
+    typename viennagrid::result_of::field<
+        const std::map<CellKeyT, ValueT>,
+        typename viennagrid::result_of::cell<MeshT>::type,
+        viennagrid::base_id_unpack>::type get_cell_field( SegmentIDT segment_id, string const & name ) const
     {
       typename std::map<SegmentIDT, CellQuantitesType>::iterator qit = cell_segment_quantities.find( segment_id );
       if (qit != cell_segment_quantities.end())
-        return qit->second.template get_field<viennagrid::vertex_tag>(mesh, name);
+        return qit->second.template get_field<viennagrid::vertex_tag, MeshT>( name);
+
+      return typename viennagrid::result_of::field<
+        const std::map<CellKeyT, ValueT>,
+        typename viennagrid::result_of::cell<MeshT>::type,
+        viennagrid::base_id_unpack>::type();
     }
 
 
 
 
     typedef mesh_quantities<VertexKeyT, ValueT> VertexQuantitesType;
-    typedef mesh_quantities<VertexKeyT, ValueT> CellQuantitesType;
+    typedef mesh_quantities<CellKeyT, ValueT> CellQuantitesType;
 
     VertexQuantitesType vertex_quantities;
     CellQuantitesType cell_quantities;
