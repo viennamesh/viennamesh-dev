@@ -9,7 +9,6 @@
 <!--   <parameter name="seed_points" type="dynamic">input/seed_points</parameter> -->
 <!--   <parameter name="hole_points" type="dynamic">input/hole_points</parameter> -->
 
-  <parameter type="string" name="sizing_function">sizing.xml</parameter>
   <parameter type="double" name="cell_size">0.1</parameter>
 </algorithm>
 
