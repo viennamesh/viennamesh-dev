@@ -178,11 +178,7 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         std::map<CellKeyT, ValueT>,
         typename viennagrid::result_of::cell<MeshT>::type,
-<<<<<<< HEAD
         viennagrid::base_id_unpack>::type get_cell_field( SegmentIDT segment_id, string const & name )
-=======
-        viennagrid::base_id_unpack>::type get_cell_field( MeshT const & mesh, SegmentIDT segment_id, std::string const & name )
->>>>>>> FlorianRudolf/feature-netgen-make-mesh
     {
       return cell_segment_quantities[segment_id].template get_field<viennagrid::vertex_tag, MeshT>( name);
     }
@@ -191,11 +187,7 @@ namespace viennamesh
     typename viennagrid::result_of::field<
         const std::map<CellKeyT, ValueT>,
         typename viennagrid::result_of::cell<MeshT>::type,
-<<<<<<< HEAD
         viennagrid::base_id_unpack>::type get_cell_field( SegmentIDT segment_id, string const & name ) const
-=======
-        viennagrid::base_id_unpack>::type get_cell_field( MeshT const & mesh, SegmentIDT segment_id, std::string const & name ) const
->>>>>>> FlorianRudolf/feature-netgen-make-mesh
     {
       typename std::map<SegmentIDT, CellQuantitesType>::iterator qit = cell_segment_quantities.find( segment_id );
       if (qit != cell_segment_quantities.end())
