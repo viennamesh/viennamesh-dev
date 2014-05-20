@@ -6,89 +6,145 @@
 
 namespace viennamesh
 {
-  namespace utils
+  template<typename IteratorT, typename FunctorT>
+  class transform_iterator
   {
+  public:
 
-    template<typename some_type>
-    struct element_type;
+    typedef typename FunctorT::result_type          value_type;
+    typedef typename FunctorT::pointer              pointer;
+    typedef typename FunctorT::reference            reference;
+    typedef typename IteratorT::iterator_category   iterator_category;
+    typedef ptrdiff_t                               difference_type;
 
-    template<typename some_type>
-    struct element_type< some_type * >
-    { typedef some_type type; };
+    transform_iterator(IteratorT const & it_) : it(it_) {}
 
-    template<typename some_type>
-    struct element_type< some_type const * >
-    { typedef const some_type type; };
+    value_type & operator*() { return functor(*it); }
+    value_type const & operator*() const { return functor(*it); }
 
-    template<typename some_type>
-    struct element_type< boost::shared_ptr<some_type> >
-    { typedef some_type type; };
+    transform_iterator & operator++ ()
+    {
+      ++it;
+      return *this;
+    }
 
-    template<typename some_type>
-    struct element_type< boost::shared_ptr<const some_type> >
-    { typedef const some_type type; };
-
-
-
-
-    template<typename type>
-    struct is_scalar
-    { const static bool value = false; };
+    transform_iterator  operator++ (int)
+    {
+      transform_iterator result(*this);
+      ++(*this);
+      return result;
+    }
 
 
-    template<>
-    struct is_scalar<bool>
-    { const static bool value = true; };
+    transform_iterator & operator-- ()
+    {
+      --it;
+      return *this;
+    }
 
-    template<>
-    struct is_scalar<unsigned char>
-    { const static bool value = true; };
+    transform_iterator  operator-- (int)
+    {
+      transform_iterator result(*this);
+      --(*this);
+      return result;
+    }
 
-    template<>
-    struct is_scalar<char>
-    { const static bool value = true; };
+    bool operator==( transform_iterator<IteratorT, FunctorT> const & other ) const
+    {
+      return it == other.it;
+    }
 
-    template<>
-    struct is_scalar<unsigned short>
-    { const static bool value = true; };
+    bool operator!=( transform_iterator<IteratorT, FunctorT> const & other ) const
+    {
+      return !(*this == other);
+    }
 
-    template<>
-    struct is_scalar<short>
-    { const static bool value = true; };
+  private:
+    IteratorT it;
+    FunctorT functor;
+  };
 
-    template<>
-    struct is_scalar<unsigned int>
-    { const static bool value = true; };
 
-    template<>
-    struct is_scalar<int>
-    { const static bool value = true; };
 
-    template<>
-    struct is_scalar<unsigned long>
-    { const static bool value = true; };
+  template<typename IteratorT, typename FunctorT>
+  class const_transform_iterator
+  {
+  public:
 
-    template<>
-    struct is_scalar<long>
-    { const static bool value = true; };
+    typedef typename FunctorT::result_type          value_type;
+    typedef typename FunctorT::pointer              pointer;
+    typedef typename FunctorT::reference            reference;
+    typedef typename IteratorT::iterator_category   iterator_category;
+    typedef ptrdiff_t                               difference_type;
 
-    template<>
-    struct is_scalar<unsigned long long>
-    { const static bool value = true; };
+    const_transform_iterator(IteratorT const & it_) : it(it_) {}
 
-    template<>
-    struct is_scalar<long long>
-    { const static bool value = true; };
+    value_type const & operator*() const { return functor(*it); }
 
-    template<>
-    struct is_scalar<float>
-    { const static bool value = true; };
+    const_transform_iterator & operator++ ()
+    {
+      ++it;
+      return *this;
+    }
 
-    template<>
-    struct is_scalar<double>
-    { const static bool value = true; };
+    const_transform_iterator  operator++ (int)
+    {
+      const_transform_iterator result(*this);
+      ++(*this);
+      return result;
+    }
 
-  }
+
+    const_transform_iterator & operator-- ()
+    {
+      --it;
+      return *this;
+    }
+
+    const_transform_iterator  operator-- (int)
+    {
+      const_transform_iterator result(*this);
+      --(*this);
+      return result;
+    }
+
+    bool operator==( const_transform_iterator<IteratorT, FunctorT> const & other ) const
+    {
+      return it == other.it;
+    }
+
+    bool operator!=( const_transform_iterator<IteratorT, FunctorT> const & other ) const
+    {
+      return !(*this == other);
+    }
+
+  private:
+    IteratorT it;
+    FunctorT functor;
+  };
+
+
+
+
+  template<typename PairT>
+  class dereference_second {};
+
+  template<typename FirstT, typename SecondT>
+  class dereference_second< std::pair<FirstT, SecondT*> >
+  {
+  public:
+    typedef SecondT result_type;
+    typedef SecondT * pointer;
+    typedef SecondT & reference;
+
+    result_type & operator()( std::pair<FirstT, SecondT*> & p )
+    { return *(p.second); }
+
+    result_type const & operator()( std::pair<FirstT, SecondT*> const & p ) const
+    { return *(p.second); }
+  };
+
+
 }
 
 #endif
