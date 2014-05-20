@@ -166,46 +166,6 @@ namespace viennamesh
       return const_parameter_handle();
     }
 
-    // queries an input parameter of special type
-    template<typename ValueT>
-    typename result_of::const_parameter_handle<ValueT>::type get_input( std::string const & name ) const
-    {
-      const_parameter_handle parameter = get_input(name);
-      if (!parameter) return typename result_of::const_parameter_handle<ValueT>::type();
-
-      typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(parameter);
-
-      if (result)
-        return result;
-
-      return parameter->template get_converted<ValueT>();
-    }
-
-    // queries an input parameter, throws input_parameter_not_found_exception if not found
-    const_parameter_handle get_required_input( std::string const & name ) const
-    {
-      const_parameter_handle param = get_input(name);
-      if (!param)
-        throw input_parameter_not_found_exception( "Input parameter '" + name + "' is missing or of non-convertable type" );
-      return param;
-    }
-
-    // queries an input parameter of special type, throws input_parameter_not_found_exception if not found
-    template<typename ValueT>
-    typename result_of::const_parameter_handle<ValueT>::type get_required_input( std::string const & name ) const
-    {
-      typename result_of::const_parameter_handle<ValueT>::type parameter = get_input<ValueT>(name);
-      if (!parameter)
-        throw input_parameter_not_found_exception( "Input parameter '" + name + "' is missing or of non-convertable type" );
-      return parameter;
-    }
-
-
-    // copies input parameter of special type to value, only works if input is present and convertable, returns true if copy was performed
-    template<typename ValueT>
-    bool copy_input( std::string const & name, ValueT & value ) const
-    { return inputs.copy_if_present(name, value); }
-
   public:
 
     // references an output parameter to a specific value, doesn't take ownership, remembers pointer to value
