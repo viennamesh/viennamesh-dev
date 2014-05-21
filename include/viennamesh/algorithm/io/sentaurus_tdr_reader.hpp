@@ -232,36 +232,40 @@ namespace viennamesh
          std::cerr << "I do not throw, I only skip\n";
           return;
       }
-      const int nparts=read_int(reg,"number of parts");
-      if (nparts!=1)
-      {
-        //mythrow("Number of parts not one");
-       std::cerr << "Number of parts not one\n";
-       std::cerr << "I only skip this\n";
-      }
+
+//       const int nparts=read_int(reg,"number of parts");
+//       if (nparts!=1)
+//       {
+//         //mythrow("Number of parts not one");
+//        std::cerr << "Number of parts not one (" << nparts << ")\n";
+//        std::cerr << "I only skip this\n";
+//       }
 
       region[name].regnr=regnr;
       region[name].name=name;
       region[name].material=material;
       const int n=reg.getNumObjs();
+      std::cout << "n = " << n << std::endl;
       for (int i=0; i<n; i++)
       {
-        if (reg.getObjnameByIdx(i)=="elements_0")
+        std::cout << reg.getObjnameByIdx(i) << std::endl;
+
+        std::string name = reg.getObjnameByIdx(i);
+        if (name.find("elements_") == 0)
         {
-          const DataSet &ds=reg.openDataSet("elements_0");
+          const DataSet &ds=reg.openDataSet(name);
           region[name].nelements=read_int(ds,"number of elements");
           read_elements(region[name],ds);
-          return;
         }
-        if (reg.getObjnameByIdx(i)=="part_0")
+
+        if (name.find("part_") == 0)
         {
-          const Group &part=reg.openGroup("part_0");
+          const Group &part=reg.openGroup(name);
           region[name].nelements=read_int(part,"number of elements");
           read_elements(region[name],part.openDataSet("elements"));
-          return;
         }
       }
-      mythrow("No elements found on region " << name);
+
     }
 
     region_t &find_region(int regnr)
@@ -503,8 +507,12 @@ namespace viennamesh
               VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
               VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
 
+
+
               PointType const & p0 = viennagrid::point(v0);
               PointType const & p1 = viennagrid::point(v1);
+
+              std::cout << p0 << " " << p1 << std::endl;
 
               center = (p0+p1)/2;
               normal = normal_vector(p0, p1);
@@ -521,6 +529,8 @@ namespace viennamesh
               PointType const & p0 = viennagrid::point(v0);
               PointType const & p1 = viennagrid::point(v1);
               PointType const & p2 = viennagrid::point(v2);
+
+              std::cout << p0 << " " << p1 << " " << p2 << std::endl;
 
               center = (p0+p1+p2)/3;
               normal = normal_vector(p0, p1, p2);
@@ -557,6 +567,8 @@ namespace viennamesh
 
             handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
             viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
+
+            std::cout << "Adding contact cell to segment " << rc->second.segment_name << std::endl;
           }
         }
       }
