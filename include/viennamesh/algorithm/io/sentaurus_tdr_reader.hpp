@@ -247,17 +247,17 @@ namespace viennamesh
       const int n=reg.getNumObjs();
       for (int i=0; i<n; i++)
       {
-        std::string name = reg.getObjnameByIdx(i);
-        if (name.find("elements_") == 0)
+        std::string objname = reg.getObjnameByIdx(i);
+        if (objname.find("elements_") == 0)
         {
-          const DataSet &ds=reg.openDataSet(name);
+          const DataSet &ds=reg.openDataSet(objname);
           region[name].nelements=read_int(ds,"number of elements");
           read_elements(region[name],ds);
         }
 
-        if (name.find("part_") == 0)
+        if (objname.find("part_") == 0)
         {
-          const Group &part=reg.openGroup(name);
+          const Group &part=reg.openGroup(objname);
           region[name].nelements=read_int(part,"number of elements");
           read_elements(region[name],part.openDataSet("elements"));
         }
