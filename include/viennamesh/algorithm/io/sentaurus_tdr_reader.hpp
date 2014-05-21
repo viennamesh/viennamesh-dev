@@ -507,12 +507,8 @@ namespace viennamesh
               VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
               VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
 
-
-
               PointType const & p0 = viennagrid::point(v0);
               PointType const & p1 = viennagrid::point(v1);
-
-              std::cout << p0 << " " << p1 << std::endl;
 
               center = (p0+p1)/2;
               normal = normal_vector(p0, p1);
@@ -529,8 +525,6 @@ namespace viennamesh
               PointType const & p0 = viennagrid::point(v0);
               PointType const & p1 = viennagrid::point(v1);
               PointType const & p2 = viennagrid::point(v2);
-
-              std::cout << p0 << " " << p1 << " " << p2 << std::endl;
 
               center = (p0+p1+p2)/3;
               normal = normal_vector(p0, p1, p2);
@@ -567,8 +561,6 @@ namespace viennamesh
 
             handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
             viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
-
-            std::cout << "Adding contact cell to segment " << rc->second.segment_name << std::endl;
           }
         }
       }
