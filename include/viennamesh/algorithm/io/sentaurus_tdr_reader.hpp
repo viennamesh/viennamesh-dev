@@ -245,11 +245,8 @@ namespace viennamesh
       region[name].name=name;
       region[name].material=material;
       const int n=reg.getNumObjs();
-      std::cout << "n = " << n << std::endl;
       for (int i=0; i<n; i++)
       {
-        std::cout << reg.getObjnameByIdx(i) << std::endl;
-
         std::string name = reg.getObjnameByIdx(i);
         if (name.find("elements_") == 0)
         {
