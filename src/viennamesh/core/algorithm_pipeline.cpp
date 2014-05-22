@@ -110,6 +110,23 @@ namespace viennamesh
         {
           algorithm->set_input( parameter_name, parameter_value );
         }
+        else if (parameter_type == "string_string_map")
+        {
+          std::map<string,string> mapping;
+          std::list<std::string> splitted = stringtools::split_string(parameter_value, ";");
+          for (std::list<std::string>::iterator it = splitted.begin(); it != splitted.end(); ++it)
+          {
+            std::list<std::string> splitted2 = stringtools::split_string(*it, ",");
+            if (splitted2.size() != 2)
+            {
+              error(1) << "Parameter \"" << parameter_name << "\" is type string_string_map but has syntax error (syntax: \"from0,to0;from1;to2;\"): " << parameter_value << std::endl;
+              return false;
+            }
+
+            mapping[splitted2.front()] = splitted2.back();
+          }
+          algorithm->set_input( parameter_name, mapping );
+        }
         else if (parameter_type == "bool")
         {
           algorithm->set_input( parameter_name, lexical_cast<bool>(parameter_value) );
