@@ -502,7 +502,7 @@ namespace viennamesh
     parameter_handle unpack() { return shared_from_this(); }
     const_parameter_handle unpack() const { return shared_from_this(); }
 
-    bool is_reference() const { return value_ptr_; }
+    bool is_reference() const { return value_ptr_ != 0; }
 
     std::string type_name() const { return type_information<ValueT>::name(); }
 
