@@ -1,0 +1,100 @@
+/**
+
+\page manual-page-algorithms-io IO Algorithms
+
+\tableofcontents
+
+\section section-algorithm-mesh-reader Mesh Reader
+
+The mesh reader algorithm provides the functionality for reading a mesh from a file. Additional to the mesh, the following meta-information are read (if provided and supported by the file format):
+  - Seed points
+  - Hole points
+  - Vertex and cell quantities
+
+The following mesh file formats are supported:
+
+<table>
+<tr><td> VTK </td><td> <a href="http://www.vtk.org/VTK/img/file-formats.pdf">Visualization Toolkit XML-based .vtu files</a>, Paraview .pvd extension for segmented meshes, also supports vertex and cell quantities </td></tr>
+<tr><td> Tetgen .poly </td><td> <a href="http://wias-berlin.de/software/tetgen/fformats.poly.html">Tetgen PLC boundary representation geometry</a>, also supports seed points and hole points </td></tr>
+<tr><td> Netgen .mesh </td><td> Text based file format, exported by Netgen </td></tr>
+<tr><td> GTS .deva </td><td> <a href="http://www.globaltcad.com">Global TCAD Solution</a> .deva file format </td></tr>
+<tr><td> Synopsys .bnd </td><td> <a href="http://www.synopsys.com/">Global TCAD Solution</a> .bnd boundary file format </td></tr>
+<tr><td> Neper .tess </td><td> <a href="http://neper.sourceforge.net/docs/neper.pdf">Neper .tess file format</a> </td></tr>
+<tr><td> Sentaurus .tdr </td><td> <a href="http://www.synopsys.com/Tools/TCAD/ProcessSimulation/Pages/SentaurusProcess.aspx">Synopsys Sentaurus .tdr file format</a>, also supports vertex quantities </td></tr>
+</table>
+
+\subsection section-algorithm-mesh-reader-inputs Mesh Reader Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>filename</td> <td>string</td> <td>The filename of the mesh to be read</td> </tr>
+<tr> <td>filetype</td> <td>string</td> <td>The filetype of the mesh to be read. Supported filetypes: VTK, TETGEN_POLY, NETGEN_MESH, GTS_DEVA, SYNOPSIS_BND, NEPER_TESS</td> </tr>
+</table>
+
+\subsection section-algorithm-mesh-reader-outputs Mesh Reader Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The read mesh</td> </tr>
+<tr> <td>quantities</td> <td>segmented_mesh_quantities|mesh_quantities</td> <td>The read mesh quantities</td> </tr>
+<tr> <td>seed_points</td> <td>seed_point_1d_container|seed_point_2d_container|seed_point_3d_container</td> <td>The read seed points</td> </tr>
+<tr> <td>hole_points</td> <td>point_1d_container|point_2d_container|point_3d_container</td> <td>The read hole points</td> </tr>
+</table>
+
+
+
+\section section-algorithm-string-reader String Reader
+
+The string reader algorithm provides the functionality for reading a string from a file.
+
+\subsection section-algorithm-string-reader-writer-inputs String Reader Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>filename</td> <td>string</td> <td>The filename of the string to be read</td> </tr>
+</table>
+
+\subsection section-algorithm-string-reader-writer-outputs String Reader Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>string</td> <td>string</td> <td>The read string</td> </tr>
+</table>
+
+
+
+\section section-algorithm-mesh-writer Mesh Writer
+
+The mesh writer algorithm provides the functionality for writing a mesh to a file. Additional to the mesh, the following meta-information are wrote (if provided and supported by the file format):
+  - Seed points
+  - Hole points
+  - Vertex and cell quantities
+
+The following mesh file formats are supported:
+
+<table>
+<tr><td> VTK </td><td> <a href="http://www.vtk.org/VTK/img/file-formats.pdf">Visualization Toolkit XML-based .vtu files</a>, Paraview .pvd extension for segmented meshes, also supports vertex and cell quantities </td></tr>
+<tr><td> Tetgen .poly </td><td> <a href="http://wias-berlin.de/software/tetgen/fformats.poly.html">Tetgen PLC boundary representation geometry</a>, also supports seed points and hole points </td></tr>
+<tr><td> ViennaGrid .vmesh </td><td> ViennaGrid vmesh format (VTK with additional meta information) </td></tr>
+<tr><td> COMSOL .mphtxt </td><td> <a href="http://www.comsol.com/">COMSOL</a> ASCII .mphtxt file format </td></tr>
+</table>
+
+\subsection section-algorithm-mesh-writer-inputs Mesh Writer Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>filename</td> <td>string</td> <td>The filename of the mesh to be read</td> </tr>
+<tr> <td>filetype</td> <td>string</td> <td>The filetype of the mesh to be written, Supported filetypes: VTK, VMESH, COMSOL_MPHTXT</td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The mesh to be written</td> </tr>
+<tr> <td>seed_points</td> <td>seed_point_1d_container|seed_point_2d_container|seed_point_3d_container</td> <td>The seed points to be written</td> </tr>
+<tr> <td>quantities</td> <td>segmented_mesh_quantities|mesh_quantities</td> <td>The mesh quantities to be written</td> </tr>
+</table>
+
+\subsection section-algorithm-mesh-writer-outputs Mesh Writer Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+</table>
+
+
+*/

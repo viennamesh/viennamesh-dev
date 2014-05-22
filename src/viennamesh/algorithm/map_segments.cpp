@@ -70,7 +70,7 @@ namespace viennamesh
 
   map_segments::map_segments() :
     input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
-    segment_mapping(*this, parameter_information("segment_mapping","std::map<std::string,std::string>","A mapping of segments, each entry maps a segment to another")),
+    segment_mapping(*this, parameter_information("segment_mapping","string_string_map","A mapping of segments, each entry maps a segment to another")),
     output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
   std::string map_segments::name() const { return "ViennaGrid Map Segments"; }

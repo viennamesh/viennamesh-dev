@@ -55,8 +55,8 @@ namespace viennamesh
 
 
   merge_meshes::merge_meshes() :
-    input_mesh0(*this, parameter_information("mesh0","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
-    input_mesh1(*this, parameter_information("mesh1","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
+    input_mesh0(*this, parameter_information("mesh0","mesh","The first input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
+    input_mesh1(*this, parameter_information("mesh1","mesh","The second input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
     output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input meshes")) {}
 
   std::string merge_meshes::name() const { return "ViennaGrid Merge Meshes"; }
