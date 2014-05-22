@@ -2,13 +2,13 @@
 
 /**
 
-   \page manual-page-installation    Installation
+\page manual-page-installation    Installation
 
 The necessary steps for compiling and running the various examples in ViennaMesh are outlined for several different platforms in the following.
 Although we run nightly tests on various platforms, we cannot check every possible combination of hardware, operating system, and compiler.
 If you experience any trouble, do not hesitate to ask for help at our mailinglist: viennamesh-support@lists.sourceforge.net
 
- \section Dependencies
+\section Dependencies
  To simplify installation, the required dependencies for using ViennaMesh are kept as small as possible:
 
   <table>
@@ -23,7 +23,7 @@ If you experience any trouble, do not hesitate to ask for help at our mailinglis
   </table>
 
 
- \section Generic Installation
+\section Generic-Installation Generic Installation
 
 If ViennaMesh is to be used as a standalone executable meshing tool with XML file-based
 control, type

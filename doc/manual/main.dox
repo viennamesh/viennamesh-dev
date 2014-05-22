@@ -1,0 +1,15 @@
+
+/**
+
+\page usermanual User Manual
+
+This manual describes the use of the open source meshing framework %ViennaMesh and consists of multiple parts:
+   - \subpage manual-page-introduction  Provides a first overview of ViennaSHE
+   - \subpage manual-page-installation  How to install ViennaSHE
+   - \subpage manual-page-tools       A description of the semiconductor physics relevant for ViennaSHE
+   - \subpage manual-page-pyviennamesh           The programming details
+   - \subpage changelog
+   - \subpage manual-page-license
+
+*/
+
