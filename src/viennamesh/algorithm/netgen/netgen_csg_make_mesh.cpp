@@ -29,7 +29,7 @@ namespace viennamesh
       optimization_steps(*this, parameter_information("optimization_steps","int","Number of optimization steps"), 3),
       delaunay(*this, parameter_information("delaunay","bool","Determines if the output mesh should be delaunay"), true),
       optimize_string(*this, parameter_information("optimize_string","string","The Netgen optimization string")),
-      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, segmented tetrahedral 3d")) {}
+      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, netgen::mesh")) {}
 
     std::string csg_make_mesh::name() const { return "Netgen 5.1 CSG mesher"; }
     std::string csg_make_mesh::id() const { return "netgen_csg_make_mesh"; }
