@@ -304,7 +304,7 @@ namespace viennamesh
           vertex_handles[ input.tetrahedronlist[4*i+3] ]
         );
 
-        viennagrid::tetrahedral_3d_segmentation::segment_id_type segment_id = input.tetrahedronattributelist[i];
+        viennagrid::tetrahedral_3d_segmentation::segment_id_type segment_id = static_cast<viennagrid::tetrahedral_3d_segmentation::segment_id_type>(input.tetrahedronattributelist[i]);
         viennagrid::unchecked_add(output.segmentation.get_make_segment(segment_id), cell_handle);
       }
     }
