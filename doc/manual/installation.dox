@@ -9,18 +9,18 @@ Although we run nightly tests on various platforms, we cannot check every possib
 If you experience any trouble, do not hesitate to ask for help at our mailinglist: viennamesh-support@lists.sourceforge.net
 
 \section Dependencies
- To simplify installation, the required dependencies for using ViennaMesh are kept as small as possible:
+To simplify installation, the required dependencies for using ViennaMesh are kept as small as possible:
 
-  <table>
-  <tr><td> A recent C++ compiler </td><td> GCC version 4.2.x or above, Clang 3.0 or above, and Visual C++ 2005 or above are known to work.</td></tr>
-  <tr><td> <a href="http://viennagrid.sourceforge.net">ViennaGrid</a> </td><td> The ViennaGrid sources are included in the ViennaMesh package, no separate installation required. </td></tr>
-  </table>
+<table>
+<tr><td> A recent C++ compiler </td><td> GCC version 4.2.x or above, Clang 3.0 or above, and Visual C++ 2005 or above are known to work.</td></tr>
+<tr><td> <a href="http://viennagrid.sourceforge.net">ViennaGrid</a> </td><td> The ViennaGrid sources are included in the ViennaMesh package, no separate installation required. </td></tr>
+</table>
 
- Moreover, the following optional components are necessary to unleash the full potential of ViennaMesh:
+Moreover, the following optional components are necessary to unleash the full potential of ViennaMesh:
 
-  <table>
-  <tr><td> <a href="http://www.cmake.org/">CMake</a>     </td><td> Using CMake as a build system makes it easy to configure your builds appropriately. </td></tr>
-  </table>
+<table>
+<tr><td> <a href="http://www.cmake.org/">CMake</a>     </td><td> Using CMake as a build system makes it easy to configure your builds appropriately. </td></tr>
+</table>
 
 
 \section Generic-Installation Generic Installation

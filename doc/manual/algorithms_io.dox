@@ -1,0 +1,32 @@
+/**
+
+\page manual-page-algorithms-io IO Algorithms
+
+\tableofcontents
+
+\section section-algorithm-mesh-reader Mesh Reader
+
+The mesh reader algorithm provides the functionality for reader a mesh from a file. Additional to the mesh, the following meta-information are read (if provided and supported by the file format):
+  - Seed points
+  - Hole points
+  - Vertex and cell quantities
+
+The following mesh file formats are supported:
+<table>
+<tr><td> VTK </td><td> <a href="http://www.vtk.org/VTK/img/file-formats.pdf">Visualization Toolkit XML-based .vtu files</a>, Paraview .pvd extension for segmented meshes, also supports vertex and cell quantities </td></tr>
+<tr><td> Tetgen .poly </td><td> <a href="http://wias-berlin.de/software/tetgen/fformats.poly.html">Tetgen PLC boundary representation geometry</a>, also supports seed points and hole points </td></tr>
+<tr><td> Netgen .mesh </td><td> Text based file format, exported by Netgen </td></tr>
+<tr><td> GTS .deva </td><td> Text based file format, exported by Netgen </td></tr>
+</table>
+
+
+http://wias-berlin.de/software/tetgen/fformats.poly.html
+
+  -
+  - Tetgen .poly
+  - Netgen .mesh
+  - GTS .deva
+  - Synopsis .bnd
+  - Neper .tess
+
+*/
