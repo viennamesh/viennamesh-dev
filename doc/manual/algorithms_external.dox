@@ -1,0 +1,192 @@
+/**
+
+\page manual-page-algorithms-external External Algorithms
+
+\tableofcontents
+
+\section section-algorithm-triangle-make-mesh Triangle Mesh Generator
+
+This algorithm uses the <a href="http://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> library to generate a triangle mesh based on a boundary representation. This algorithm supports local element size using the \ref section-element-sizing-framework "Element Sizing Framework".
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-triangle-make-mesh-inputs Triangle Mesh Generator Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The input mesh, segmented triangle input_mesh supported</td> </tr>
+<tr> <td>seed_points</td> <td>seed_point_2d_container</td> <td>A container of seed points with corresonding segment names</td> </tr>
+<tr> <td>hole_points</td> <td>point_2d_container</td> <td>A container of hole points</td> </tr>
+<tr> <td>sizing_function</td> <td>sizing_function_2d|string|pugi::xml_node</td> <td>The sizing function, different representation are supported: arbitrary sizing_function_2d or the ViennaMesh sizing function framework in string or pugi::xml_node representation</td> </tr>
+<tr> <td>cell_size</td> <td>double</td> <td>The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size</td> </tr>
+<tr> <td>min_angle</td> <td>double</td> <td>Desired minimum angle</td> </tr>
+<tr> <td>delaunay</td> <td>bool</td> <td>Determines if the output mesh should be delaunay</td> </tr>
+<tr> <td>algorithm_type</td> <td>string</td> <td>The meshing algorithm, supported algorithms: incremental_delaunay, sweepline, devide_and_conquer</td> </tr>
+<tr> <td>extract_segment_seed_points</td> <td>bool</td> <td>Should seed points be extracted from the input segmentation?</td> </tr>
+<tr> <td>option_string</td> <td>string</td> <td>The triangle options string</td> </tr>
+</table>
+
+\subsection section-algorithm-triangle-make-mesh-outputs Triangle Mesh Generator Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, segmented triangle 2d</td> </tr>
+</table>
+
+
+
+\section section-algorithm-triangle-make-hull Triangle Hull Mesh Generator
+
+This algorithm uses the <a href="http://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> library to generate a triangle hull mesh based on a PLC boundary representation geometry. To ensure element connectivity, a trivial triangulation is generated.
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-triangle-make-hull-inputs Triangle Hull Mesh Generator Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The input mesh, triangle input_mesh_3d supported</td> </tr>
+</table>
+
+\subsection section-algorithm-triangle-make-hull-outputs Triangle Hull Mesh Generator Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, triangle output_mesh_3d</td> </tr>
+</table>
+
+
+
+\section section-algorithm-tetgen-make-mesh Tetgen Mesh Generator
+
+This algorithm uses the <a href="http://www.tetgen.org">Tetgen</a> library to generate a tetrahedron mesh based on a PLC boundary representation geometry or a triangular hull mesh. This algorithm supports local element size using the \ref section-element-sizing-framework "Element Sizing Framework".
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-tetgen-make-mesh-inputs Tetgen Mesh Generator Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The input mesh, segmented tetgen mesh supported</td> </tr>
+<tr> <td>seed_points</td> <td>seed_point_3d_container</td> <td>A container of seed points with corresonding segment names</td> </tr>
+<tr> <td>hole_points</td> <td>point_3d_container</td> <td>A container of hole points</td> </tr>
+<tr> <td>sizing_function</td> <td>sizing_function_3d|string|pugi::xml_node</td> <td>The sizing function, different representation are supported: arbitrary sizing_function_3d or the ViennaMesh sizing function framework in string or pugi::xml_node representation</td> </tr>
+<tr> <td>cell_size</td> <td>double</td> <td>The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size</td> </tr>
+<tr> <td>max_radius_edge_ratio</td> <td>double</td> <td>Desired maximum ratio of the circumradius and longest edge</td> </tr>
+<tr> <td>min_dihedral_angle</td> <td>double</td> <td>Desired minimum dihedral angle</td> </tr>
+<tr> <td>max_edge_ratio</td> <td>double</td> <td>Desired maximum ratio of the shortest edge and the longest edge</td> </tr>
+<tr> <td>max_inscribed_radius_edge_ratio</td> <td>double</td> <td>Desired maximum ratio of the inscribed sphere radius and the longest edge</td> </tr>
+<tr> <td>extract_segment_seed_points</td> <td>bool</td> <td>Should seed points be extracted from the input segmentation?</td> </tr>
+<tr> <td>option_string</td> <td>string</td> <td>The tetgen options string</td> </tr>
+</table>
+
+\subsection section-algorithm-tetgen-make-mesh-outputs Tetgen Mesh Generator Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, segmented tetrahedral 3d</td> </tr>
+</table>
+
+
+
+\section section-algorithm-netgen-make-mesh Netgen Mesh Generator
+
+This algorithm uses the <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a> library to generate a tetrahedron mesh based on an oriented triangle hull mesh.
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-netgen-make-mesh-inputs Netgen Mesh Generator Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The input mesh, netgen mesh supported</td> </tr>
+<tr> <td>cell_size</td> <td>double</td> <td>The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size</td> </tr>
+</table>
+
+\subsection section-algorithm-netgen-make-mesh-outputs Netgen Mesh Generator Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, netgen::mesh</td> </tr>
+</table>
+
+
+
+
+\section section-algorithm-netgen-csg-make-mesh Netgen CSG Mesh Generator
+
+This algorithm uses the <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a> library to generate a tetrahedron mesh based on CSG represented in Netgen CSG syntax.
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-netgen-csg-make-mesh-inputs Netgen CSG Mesh Generator Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>input_csg_source</td> <td>string</td> <td>The constructive solid geometry string in Netgen syntax</td> </tr>
+<tr> <td>relative_find_identic_surface_eps</td> <td>double</td> <td>A relative value for finding identic surface</td> </tr>
+<tr> <td>cell_size</td> <td>double</td> <td>The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size</td> </tr>
+<tr> <td>grading</td> <td>double</td> <td>The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh</td> </tr>
+<tr> <td>optimization_steps</td> <td>int</td> <td>Number of optimization steps</td> </tr>
+<tr> <td>delaunay</td> <td>bool</td> <td>Determines if the output mesh should be delaunay</td> </tr>
+<tr> <td>optimize_string</td> <td>string</td> <td>The Netgen optimization string</td> </tr>
+</table>
+
+\subsection section-algorithm-netgen-csg-make-mesh-outputs Netgen CSG Mesh Generator Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, netgen::mesh</td> </tr>
+</table>
+
+
+
+\section section-algorithm-netgen-occ-make-mesh Netgen OpenCascade Mesh Generator
+
+This algorithm uses the <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a> library to generate a tetrahedron mesh based on a OpenCascade STEP or IGES file.
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-netgen-occ-make-mesh-inputs Netgen OpenCascade Mesh Generator Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>filename</td> <td>string</td> <td>The filename of the OpenCascade .STEP or .IGES file</td> </tr>
+<tr> <td>filetype</td> <td>string</td> <td>The filetype of the OpenCascade file. Supported filetypes: OCC_STEP, OCC_IGES</td> </tr>
+<tr> <td>cell_size</td> <td>double</td> <td>The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size</td> </tr>
+<tr> <td>curvature_safety_factor</td> <td>double</td> <td>A safety factor for curvatures</td> </tr>
+<tr> <td>segments_per_edge</td> <td>double</td> <td>An edge should be split into how many segments</td> </tr>
+<tr> <td>grading</td> <td>double</td> <td>The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh</td> </tr>
+</table>
+
+\subsection section-algorithm-netgen-occ-make-mesh-outputs Netgen OpenCascade Mesh Generator Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, netgen::mesh</td> </tr>
+</table>
+
+
+
+\section section-algorithm-vgmodeler-adapt-hull VgModeler Hull Adaption
+
+This algorithm uses the VgModeler library, a modified Netgen library, to adapt an oriented triangle hull mesh. A desired element size can be specified.
+
+TODO: picture source -> destination
+
+\subsection section-algorithm-vgmodeler-adapt-hull-inputs VgModeler Hull Adaption Inputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The input mesh, triangular 3d with oriented hull segmentation supported</td> </tr>
+<tr> <td>cell_size</td> <td>double</td> <td>The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size</td> </tr>
+</table>
+
+\subsection section-algorithm-vgmodeler-adapt-hull-outputs VgModeler Hull Adaption Outputs
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>Type</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>mesh</td> <td>mesh</td> <td>The output mesh, same type of mesh as input mesh</td> </tr>
+</table>
+
+*/
