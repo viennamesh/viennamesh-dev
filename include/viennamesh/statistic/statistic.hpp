@@ -15,27 +15,14 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
+#include <limits>
 #include "viennamesh/statistic/element_metrics.hpp"
 
 namespace viennamesh
 {
-
-  namespace detail
-  {
-    template<typename NumericT>
-    struct infinity_impl
-    {
-      static NumericT get()
-      {
-        return static_cast<NumericT>(1)/static_cast<NumericT>(0);
-      }
-    };
-  }
-
   template<typename NumericT>
   NumericT infinity()
-  { return detail::infinity_impl<NumericT>::get(); }
-
+  { return std::numeric_limits<NumericT>::infinity(); }
 
   template<typename NumericT, typename BinT>
   class histogram
