@@ -712,12 +712,12 @@ namespace viennamesh
     StdOutCallback();
 
     virtual std::string make(
-              Logger const & logger,
-              std::string const & tag_name,
-              std::string const & colored_tag_name,
-              int log_level,
-              std::string const & category,
-              std::string const & message) const
+      Logger const & logger,
+      std::string const & tag_name,
+      std::string const & colored_tag_name,
+      int log_level,
+      std::string const & category,
+      std::string const & message) const
     {
       return formater.make(logger, tag_name, colored_tag_name, log_level, category, message);
     }
@@ -726,12 +726,6 @@ namespace viennamesh
 
     OutputFormaterT formater;
   };
-
-
-
-
-
-
 
 }
 
