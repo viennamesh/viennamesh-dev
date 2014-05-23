@@ -15,6 +15,8 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
+#ifdef VIENNAMESH_WITH_NETGEN
+
 #include "netgen/libsrc/csg/csg.hpp"
 namespace netgen
 {
@@ -233,5 +235,7 @@ namespace viennamesh
 
 
 }
+
+#endif
 
 #endif
