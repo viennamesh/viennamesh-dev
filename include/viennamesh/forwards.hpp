@@ -17,6 +17,11 @@
 
 #include "viennagrid/config/default_configs.hpp"
 
+#ifdef _WIN32
+  #pragma warning( disable : 4503 )
+  #define _USE_MATH_DEFINES
+#endif
+
 #if __cplusplus > 199711L
   #define VIENNAMESH_USES_CPP11
 #else
