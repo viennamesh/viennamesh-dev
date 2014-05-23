@@ -71,6 +71,10 @@ namespace viennamesh
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 
     const int geometric_dimension = viennagrid::result_of::geometric_dimension<MeshT>::value;
+
+    if (base_hyperplane_point.size() != geometric_dimension)
+      return false;
+
     typedef typename viennamesh::result_of::point<geometric_dimension>::type PointType;
 
     PointType hyperplane_point;
