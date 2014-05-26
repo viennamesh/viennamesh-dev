@@ -298,54 +298,54 @@ void WriteSurfaceFormat (const Mesh & mesh,
 
 
 
-
-/*
- *  save surface mesh as STL file
- */
-
-void WriteSTLFormat (const Mesh & mesh,
-		     const string & filename)
-{
-  cout << "\nWrite STL Surface Mesh" << endl;
-
-  ostream *outfile;
-
-  if(filename.substr(filename.length()-3,3) == ".gz")
-	  outfile = new ogzstream(filename.c_str());
-  else
-	  outfile = new ofstream(filename.c_str());
-
-  int i;
-
-  outfile->precision(10);
-
-  *outfile << "solid" << endl;
-
-  for (i = 1; i <= mesh.GetNSE(); i++)
-    {
-      *outfile << "facet normal ";
-      const Point3d& p1 = mesh.Point(mesh.SurfaceElement(i).PNum(1));
-      const Point3d& p2 = mesh.Point(mesh.SurfaceElement(i).PNum(2));
-      const Point3d& p3 = mesh.Point(mesh.SurfaceElement(i).PNum(3));
-
-      Vec3d normal = Cross(p2-p1,p3-p1);
-      if (normal.Length() != 0)
-	{
-	  normal /= (normal.Length());
-	}
-
-      *outfile << normal.X() << " " << normal.Y() << " " << normal.Z() << "\n";
-      *outfile << "outer loop\n";
-
-      *outfile << "vertex " << p1.X() << " " << p1.Y() << " " << p1.Z() << "\n";
-      *outfile << "vertex " << p2.X() << " " << p2.Y() << " " << p2.Z() << "\n";
-      *outfile << "vertex " << p3.X() << " " << p3.Y() << " " << p3.Z() << "\n";
-
-      *outfile << "endloop\n";
-      *outfile << "endfacet\n";
-    }
-  *outfile << "endsolid" << endl;
-}
+//
+///*
+// *  save surface mesh as STL file
+// */
+//
+//void WriteSTLFormat (const Mesh & mesh,
+//		     const string & filename)
+//{
+//  cout << "\nWrite STL Surface Mesh" << endl;
+//
+//  ostream *outfile;
+//
+//  if(filename.substr(filename.length()-3,3) == ".gz")
+//	  outfile = new ogzstream(filename.c_str());
+//  else
+//	  outfile = new ofstream(filename.c_str());
+//
+//  int i;
+//
+//  outfile->precision(10);
+//
+//  *outfile << "solid" << endl;
+//
+//  for (i = 1; i <= mesh.GetNSE(); i++)
+//    {
+//      *outfile << "facet normal ";
+//      const Point3d& p1 = mesh.Point(mesh.SurfaceElement(i).PNum(1));
+//      const Point3d& p2 = mesh.Point(mesh.SurfaceElement(i).PNum(2));
+//      const Point3d& p3 = mesh.Point(mesh.SurfaceElement(i).PNum(3));
+//
+//      Vec3d normal = Cross(p2-p1,p3-p1);
+//      if (normal.Length() != 0)
+//	{
+//	  normal /= (normal.Length());
+//	}
+//
+//      *outfile << normal.X() << " " << normal.Y() << " " << normal.Z() << "\n";
+//      *outfile << "outer loop\n";
+//
+//      *outfile << "vertex " << p1.X() << " " << p1.Y() << " " << p1.Z() << "\n";
+//      *outfile << "vertex " << p2.X() << " " << p2.Y() << " " << p2.Z() << "\n";
+//      *outfile << "vertex " << p3.X() << " " << p3.Y() << " " << p3.Z() << "\n";
+//
+//      *outfile << "endloop\n";
+//      *outfile << "endfacet\n";
+//    }
+//  *outfile << "endsolid" << endl;
+//}
 
 
 
@@ -360,87 +360,87 @@ void WriteSTLFormat (const Mesh & mesh,
  *    STL into named boundary faces
  *    when using a third-party mesher
  */
-void WriteSTLExtFormat (const Mesh & mesh,
-		     const string & filename)
-{
-  cout << "\nWrite STL Surface Mesh (with separated boundary faces)" << endl;
-
-  ostream *outfile;
-
-  if(filename.substr(filename.length()-3,3) == ".gz")
-	  outfile = new ogzstream(filename.c_str());
-  else
-	  outfile = new ofstream(filename.c_str());
-
-  outfile->precision(10);
-
-  int numBCs = 0;
-
-  Array<int> faceBCs;
-  TABLE<int> faceBCMapping;
-
-  faceBCs.SetSize(mesh.GetNFD());
-  faceBCMapping.SetSize(mesh.GetNFD());
-
-  faceBCs = -1;
-
-  // Collect the BC numbers used in the mesh
-  for(int faceNr = 1; faceNr <= mesh.GetNFD(); faceNr++)
-  {
-	  int bcNum = mesh.GetFaceDescriptor(faceNr).BCProperty();
-
-	  if(faceBCs.Pos(bcNum) < 0)
-	  {
-        numBCs++;
-		  faceBCs.Set(numBCs,bcNum);
-        faceBCMapping.Add1(numBCs,faceNr);
-	  }
-     else
-     {
-        faceBCMapping.Add1(faceBCs.Pos(bcNum)+1,faceNr);
-     }
-  }
-
-  faceBCs.SetSize(numBCs);
-  faceBCMapping.ChangeSize(numBCs);
-
-  // Now actually write the data to file
-  for(int bcInd = 1; bcInd <= faceBCs.Size(); bcInd++)
-  {
-      *outfile << "solid Boundary_" << faceBCs.Elem(bcInd) << "\n";
-
-      for(int faceNr = 1;faceNr <= faceBCMapping.EntrySize(bcInd); faceNr++)
-      {
-          Array<SurfaceElementIndex> faceSei;
-          mesh.GetSurfaceElementsOfFace(faceBCMapping.Get(bcInd,faceNr),faceSei);
-
-          for (int i = 0; i < faceSei.Size(); i++)
-          {
-        	  *outfile << "facet normal ";
-        	  const Point3d& p1 = mesh.Point(mesh.SurfaceElement(faceSei[i]).PNum(1));
-        	  const Point3d& p2 = mesh.Point(mesh.SurfaceElement(faceSei[i]).PNum(2));
-        	  const Point3d& p3 = mesh.Point(mesh.SurfaceElement(faceSei[i]).PNum(3));
-
-        	  Vec3d normal = Cross(p2-p1,p3-p1);
-        	  if (normal.Length() != 0)
-        	  {
-        		  normal /= (normal.Length());
-        	  }
-
-        	  *outfile << normal.X() << " " << normal.Y() << " " << normal.Z() << "\n";
-        	  *outfile << "outer loop\n";
-
-        	  *outfile << "vertex " << p1.X() << " " << p1.Y() << " " << p1.Z() << "\n";
-        	  *outfile << "vertex " << p2.X() << " " << p2.Y() << " " << p2.Z() << "\n";
-        	  *outfile << "vertex " << p3.X() << " " << p3.Y() << " " << p3.Z() << "\n";
-
-        	  *outfile << "endloop\n";
-        	  *outfile << "endfacet\n";
-          }
-      }
-      *outfile << "endsolid Boundary_" << faceBCs.Elem(bcInd) << "\n";
-  }
-}
+//void WriteSTLExtFormat (const Mesh & mesh,
+//		     const string & filename)
+//{
+//  cout << "\nWrite STL Surface Mesh (with separated boundary faces)" << endl;
+//
+//  ostream *outfile;
+//
+//  if(filename.substr(filename.length()-3,3) == ".gz")
+//	  outfile = new ogzstream(filename.c_str());
+//  else
+//	  outfile = new ofstream(filename.c_str());
+//
+//  outfile->precision(10);
+//
+//  int numBCs = 0;
+//
+//  Array<int> faceBCs;
+//  TABLE<int> faceBCMapping;
+//
+//  faceBCs.SetSize(mesh.GetNFD());
+//  faceBCMapping.SetSize(mesh.GetNFD());
+//
+//  faceBCs = -1;
+//
+//  // Collect the BC numbers used in the mesh
+//  for(int faceNr = 1; faceNr <= mesh.GetNFD(); faceNr++)
+//  {
+//	  int bcNum = mesh.GetFaceDescriptor(faceNr).BCProperty();
+//
+//	  if(faceBCs.Pos(bcNum) < 0)
+//	  {
+//        numBCs++;
+//		  faceBCs.Set(numBCs,bcNum);
+//        faceBCMapping.Add1(numBCs,faceNr);
+//	  }
+//     else
+//     {
+//        faceBCMapping.Add1(faceBCs.Pos(bcNum)+1,faceNr);
+//     }
+//  }
+//
+//  faceBCs.SetSize(numBCs);
+//  faceBCMapping.ChangeSize(numBCs);
+//
+//  // Now actually write the data to file
+//  for(int bcInd = 1; bcInd <= faceBCs.Size(); bcInd++)
+//  {
+//      *outfile << "solid Boundary_" << faceBCs.Elem(bcInd) << "\n";
+//
+//      for(int faceNr = 1;faceNr <= faceBCMapping.EntrySize(bcInd); faceNr++)
+//      {
+//          Array<SurfaceElementIndex> faceSei;
+//          mesh.GetSurfaceElementsOfFace(faceBCMapping.Get(bcInd,faceNr),faceSei);
+//
+//          for (int i = 0; i < faceSei.Size(); i++)
+//          {
+//        	  *outfile << "facet normal ";
+//        	  const Point3d& p1 = mesh.Point(mesh.SurfaceElement(faceSei[i]).PNum(1));
+//        	  const Point3d& p2 = mesh.Point(mesh.SurfaceElement(faceSei[i]).PNum(2));
+//        	  const Point3d& p3 = mesh.Point(mesh.SurfaceElement(faceSei[i]).PNum(3));
+//
+//        	  Vec3d normal = Cross(p2-p1,p3-p1);
+//        	  if (normal.Length() != 0)
+//        	  {
+//        		  normal /= (normal.Length());
+//        	  }
+//
+//        	  *outfile << normal.X() << " " << normal.Y() << " " << normal.Z() << "\n";
+//        	  *outfile << "outer loop\n";
+//
+//        	  *outfile << "vertex " << p1.X() << " " << p1.Y() << " " << p1.Z() << "\n";
+//        	  *outfile << "vertex " << p2.X() << " " << p2.Y() << " " << p2.Z() << "\n";
+//        	  *outfile << "vertex " << p3.X() << " " << p3.Y() << " " << p3.Z() << "\n";
+//
+//        	  *outfile << "endloop\n";
+//        	  *outfile << "endfacet\n";
+//          }
+//      }
+//      *outfile << "endsolid Boundary_" << faceBCs.Elem(bcInd) << "\n";
+//  }
+//}
 
 
 

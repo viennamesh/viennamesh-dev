@@ -1,5 +1,5 @@
 <algorithm id="netgen_csg_make_mesh" name="mesher">
-  <parameter type="string" name="default">
+  <parameter type="string" name="csg">
     algebraic3d
     solid cube = orthobrick (0, 0, 0; 1, 10, 1);
     tlo cube;
