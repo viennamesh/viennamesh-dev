@@ -13,29 +13,41 @@ TODO: Image algorithm (with inputs and outputs)
 Currently, ViennaMesh supports the following list of algorithms:
 
 \subpage manual-page-algorithms-io
-  - \ref section-algorithm-mesh-reader "Mesh Reader"
-  - \ref section-algorithm-string-reader "String Reader"
-  - \ref section-algorithm-mesh-writer "Mesh Writer"
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>ID</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>\ref section-algorithm-mesh-reader "Mesh Reader"</td> <td>mesh_reader</td> <td>Reads a mesh</td> </tr>
+<tr> <td>\ref section-algorithm-string-reader "String Reader"</td> <td>string_reader</td> <td>Reads a string</td> </tr>
+<tr> <td>\ref section-algorithm-mesh-writer "Mesh Writer"</td> <td>mesh_writer</td> <td>Writes a mesh</td> </tr>
+</table>
 
 \subpage manual-page-algorithms-viennagrid
-  - \ref section-algorithm-make-line-mesh "1D Line Mesh Generator"
-  - \ref section-algorithm-affine-transform "Affine Transform"
-  - \ref section-algorithm-extract-boundary "Extract Boundary"
-  - \ref section-algorithm-extract-plc "Extract PLC Boundary Representation Geometry"
-  - \ref section-algorithm-hyperplane-clip "Hyperplane Clip"
-  - \ref section-algorithm-laplace-smooth "Laplacian Smooth"
-  - \ref section-algorithm-seed-point-segmenting "Seed Point Segmenting"
-  - \ref section-algorithm-map-segments "Map Segments"
-  - \ref section-algorithm-merge-meshes "Merge Meshes"
-  - \ref section-algorithm-make-statistic "Make Statistic"
+
+<table>
+<tr> <td><b>Name</b></td> <td><b>ID</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>\ref section-algorithm-make-line-mesh "1D Line Mesh Generator"</td> <td>make_line_mesh</td> <td>Generates a 1d line mesh based on a 1d boundary representation geometry</td> </tr>
+<tr> <td>\ref section-algorithm-affine-transform "Affine Transform"</td> <td>affine_transform</td> <td>Affine transformation on point coordinates</td> </tr>
+<tr> <td>\ref section-algorithm-extract-boundary "Extract Boundary"</td> <td>extract_boundary</td> <td>Extracts the boundary of a volume mesh</td> </tr>
+<tr> <td>\ref section-algorithm-extract-plc "Extract PLC Boundary Representation Geometry"</td> <td>extract_plc</td> <td>Extracts the PLC geometry of a hull mesh</td> </tr>
+<tr> <td>\ref section-algorithm-hyperplane-clip "Hyperplane Clip"</td> <td>hyperplane_clip</td> <td>Clips elements based on a hyperplane</td> </tr>
+<tr> <td>\ref section-algorithm-laplace-smooth "Laplacian Smooth"</td> <td>laplace_smooth</td> <td>Smoothing points based on laplace algorithm</td> </tr>
+<tr> <td>\ref section-algorithm-seed-point-segmenting "Seed Point Segmenting"</td> <td>seed_point_segmenting</td> <td>Assigns hull triangles to segments based on seed points</td> </tr>
+<tr> <td>\ref section-algorithm-map-segments "Map Segments"</td> <td>map_segments</td> <td>Maps/renames segments</td> </tr>
+<tr> <td>\ref section-algorithm-merge-meshes "Merge Meshes"</td> <td>merge_meshes</td> <td>Merges two meshes</td> </tr>
+<tr> <td>\ref section-algorithm-make-statistic "Make Statistic"</td> <td>make_statistic</td> <td>Generates a quality statistic</td> </tr>
+</table>
 
 \subpage manual-page-algorithms-external
-  - \ref section-algorithm-triangle-make-mesh "Triangle Mesh Generator" (requires external library Triangle)
-  - \ref section-algorithm-triangle-make-hull "Triangle Hull Mesh Generator" (requires external library Triangle)
-  - \ref section-algorithm-tetgen-make-mesh "Tetgen Mesh Generator" (requires external library Tetgen)
-  - \ref section-algorithm-netgen-make-mesh "Netgen Mesh Generator" (requires external library Netgen)
-  - \ref section-algorithm-netgen-csg-make-mesh "Netgen CSG Mesh Generator" (requires external library Netgen)
-  - \ref section-algorithm-netgen-occ-make-mesh "Netgen OpenCascade Mesh Generator" (requires external library Netgen)
-  - \ref section-algorithm-vgmodeler-adapt-hull "VgModeler Hull Adaption" (requires external library VgModeler)
+<table>
+<tr> <td><b>Name</b></td> <td><b>ID</b></td> <td><b>Description</b></td> <td><b>Required library</b></td> </tr>
+<tr> <td>\ref section-algorithm-triangle-make-mesh "Triangle Mesh Generator"</td> <td>triangle_make_mesh</td><td>Generates a 2d triangle mesh based on a 2d boundary representation geometry</td> <td>Triangle</td></tr>
+<tr> <td>\ref section-algorithm-triangle-make-hull "Triangle Hull Mesh Generator"</td> <td>triangle_make_hull</td><td>Generates a 3d triangle hull mesh based on a 3d boundary representation geometry</td><td>Triangle</td> </tr>
+<tr> <td>\ref section-algorithm-tetgen-make-mesh "Tetgen Mesh Generator"</td> <td>tetgen_make_mesh</td> <td>Generates a 3d tetrahedron mesh based on a 3d boundary representation geometry</td><td>Tetgen</td> </tr>
+<tr> <td>\ref section-algorithm-netgen-make-mesh "Netgen Mesh Generator"</td> <td>netgen_make_mesh</td> <td>Generates a 3d tetrahedron mesh based on a 3d triangular hull mesh</td><td>Netgen</td> </tr>
+<tr> <td>\ref section-algorithm-netgen-csg-make-mesh "Netgen CSG Mesh Generator"</td> <td>netgen_csg_make_mesh</td> <td>Generates a 3d tetrahedron mesh based on a CSG</td><td>Netgen</td> </tr>
+<tr> <td>\ref section-algorithm-netgen-occ-make-mesh "Netgen OpenCascade Mesh Generator"</td> <td>netgen_occ_make_mesh</td> <td>Generates a 3d tetrahedron mesh based on a OpenCascade .STEP or .IGES file</td><td>Netgen, OpenCascade</td> </tr>
+<tr> <td>\ref section-algorithm-vgmodeler-adapt-hull "VgModeler Hull Adaption"</td> <td>vgmodeler_adapt_hull</td> <td>Adapts/Optimizes a triangular hull geometry</td><td>VgModeler</td> </tr>
+</table>
+
 
 */
