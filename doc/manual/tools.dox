@@ -2,14 +2,15 @@
 
 \page manual-page-tools    Tools
 
-ViennaMesh comes with a small collection of simple command line tools and the \ref section-tools-vmesh "VMesh" application, which is a flexible tool for connecting and executing multiple algorithms.
+\tableofcontents
+
+ViennaMesh comes with a small collection of simple command line tools and the \subpage manual-page-tools-vmesh "VMesh" application, which is a flexible tool for connecting and executing multiple algorithms.
 
   - \ref section-tools-convert-mesh "Convert Mesh"
   - \ref section-tools-extract-boundary "Extract Boundary"
   - \ref section-tools-hyperplane-clip "Hyperplane Clip"
   - \ref section-tools-map-segments "Map Segments"
   - \ref section-tools-merge-segments "Merge Segments"
-  - \ref section-tools-project-mesh "Project Mesh"
   - \ref section-tools-tetgen-make-mesh "Tetgen Mesh Generation"
   - \ref section-tools-transform-mesh "Transform Mesh"
   - \ref section-tools-triangle-make-mesh "Triangle Mesh Generation"
@@ -131,7 +132,7 @@ Where:
    Extracts the boundary of a mesh
 \endverbatim
 
-\section section-tools-hyperplane-clip "Hyperplane Clip"
+\section section-tools-hyperplane-clip Hyperplane Clip
 
 Wraps the \ref section-algorithm-hyperplane-clip algorithm.
 
@@ -292,67 +293,6 @@ Where:
 
 
    Merge meshes
-\endverbatim
-
-\section section-tools-project-mesh Project Mesh
-
-Wraps the \ref section-algorithm-project-mesh algorithm.
-
-\verbatim
-USAGE:
-
-   ./project_mesh  -d <int> [--outputtype <string>] [--inputtype <string>]
-                   [-l <string>] [--] [--version] [-h] <InputFile>
-                   <OutputFile>
-
-
-Where:
-
-   -d <int>,  --dimension <int>
-     (required)  Target dimension
-
-   --outputtype <string>
-     Output file type. Can be
-
-     auto - ViennaMesh automatically detects the file format (default)
-
-     vtk - for VTK files
-
-     vmesh - for Vienna vmesh files
-
-   --inputtype <string>
-     Input file type. Can be
-
-     auto - ViennaMesh automatically detects the file format (default)
-
-     vtk - for VTK files
-
-     mesh - for Netgen .mesh files
-
-     poly - for Tetgen .poly files
-
-     deva - for GTS deva files
-
-   -l <string>,  --logfile <string>
-     Log file name (default is convert.log)
-
-   --,  --ignore_rest
-     Ignores the rest of the labeled arguments following this flag.
-
-   --version
-     Displays version information and exits.
-
-   -h,  --help
-     Displays usage information and exits.
-
-   <InputFile>
-     (required)  Input file name
-
-   <OutputFile>
-     (required)  Output file name
-
-
-   Project mesh
 \endverbatim
 
 \section section-tools-tetgen-make-mesh Tetgen Mesh Generation
