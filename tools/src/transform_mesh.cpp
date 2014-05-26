@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 {
   try
   {
-    TCLAP::CmdLine cmd("Extracts a hull of a mesh", ' ', "1.0");
+    TCLAP::CmdLine cmd("Geometrically transforms a mesh", ' ', "1.0");
 
     TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is convert.log)", false, "convert.log", "string");
     cmd.add( log_filename );
