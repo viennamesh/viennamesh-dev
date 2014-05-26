@@ -16,7 +16,7 @@ The main entity of ViennaMesh is the algorithm. An algorithm processes a set of 
 
 TODO: Image pipeline
 
-ViennaMesh supports a wide range of \ref manual-page-algorithms "Algorithms" which can be used and linked together to generate or modify meshes.
+ViennaMesh supports a wide range of \ref manual-page-algorithms "Algorithms" which can be used and linked together to generate or modify meshes. For more information on parameters see \ref manual-page-parameters.
 
 \section section-viennamesh-infrastructure ViennaMesh Infrastructure
 
