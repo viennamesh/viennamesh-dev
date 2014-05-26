@@ -173,111 +173,111 @@ void Ng_LoadMeshFromStream ( istream & input )
 
 
 
-void Ng_LoadMesh (const char * filename)
-{
-#ifdef PARALLEL
-  MPI_Comm_size(MPI_COMM_WORLD, &ntasks);
-  MPI_Comm_rank(MPI_COMM_WORLD, &id);
-
-  if (id == 0)
-    {
-#endif
-      if ( string(filename).find(".vol") == string::npos )
-        /*
-      if ( (strlen (filename) > 4) &&
-	   strcmp (filename + (strlen (filename)-4), ".vol") != 0 )
-        */
-	{
-	  mesh.Reset (new Mesh());
-	  ReadFile(*mesh,filename);
-
-	  //mesh->SetGlobalH (mparam.maxh);
-	  //mesh->CalcLocalH();
-	  return;
-	}
-
-      string fn(filename);
-
-      istream * infile;
-      if (fn.substr (fn.length()-3, 3) == ".gz")
-        infile = new igzstream (filename);
-      else
-        infile = new ifstream (filename);
-
-      Ng_LoadMeshFromStream(*infile);
-      delete infile;
-
-#ifdef PARALLEL
-      if (ntasks > 1)
-	{
-
-	  char * weightsfilename = new char [strlen(filename)+1];
-	  strcpy (weightsfilename, filename);
-	  weightsfilename[strlen (weightsfilename)-3] = 'w';
-	  weightsfilename[strlen (weightsfilename)-2] = 'e';
-	  weightsfilename[strlen (weightsfilename)-1] = 'i';
-
-	  ifstream weightsfile(weightsfilename);
-	  delete [] weightsfilename;
-
-	  if (!(weightsfile.good()))
-	    {
-	      // cout << "regular distribute" << endl;
-	      mesh -> Distribute();
-	    }
-	  else
-	    {
-	      char str[20];
-	      bool endfile = false;
-	      int n, dummy;
-
-	      Array<int> segment_weights;
-	      Array<int> surface_weights;
-	      Array<int> volume_weights;
-
-	      while (weightsfile.good() && !endfile)
-		{
-		  weightsfile >> str;
-
-		  if (strcmp (str, "edgeweights") == 0)
-		    {
-		      weightsfile >> n;
-		      segment_weights.SetSize(n);
-		      for (int i = 0; i < n; i++)
-			weightsfile >> dummy >> segment_weights[i];
-		    }
-
-		  if (strcmp (str, "surfaceweights") == 0)
-		    {
-		      weightsfile >> n;
-		      surface_weights.SetSize(n);
-		      for (int i=0; i<n; i++)
-			weightsfile >> dummy >> surface_weights[i];
-		    }
-
-		  if (strcmp (str, "volumeweights") == 0)
-		    {
-		      weightsfile >> n;
-		      volume_weights.SetSize(n);
-		      for (int i=0; i<n; i++)
-			weightsfile >> dummy >> volume_weights[i];
-		    }
-
-		  if (strcmp (str, "endfile") == 0)
-		    endfile = true;
-		}
-
-	      mesh -> Distribute(volume_weights, surface_weights, segment_weights);
-	    }
-	}
-    }
-  else
-    {
-      mesh.Reset (new Mesh());
-      mesh->SendRecvMesh();
-    }
-#endif
-}
+// void Ng_LoadMesh (const char * filename)
+// {
+// #ifdef PARALLEL
+//   MPI_Comm_size(MPI_COMM_WORLD, &ntasks);
+//   MPI_Comm_rank(MPI_COMM_WORLD, &id);
+//
+//   if (id == 0)
+//     {
+// #endif
+//       if ( string(filename).find(".vol") == string::npos )
+//         /*
+//       if ( (strlen (filename) > 4) &&
+// 	   strcmp (filename + (strlen (filename)-4), ".vol") != 0 )
+//         */
+// 	{
+// 	  mesh.Reset (new Mesh());
+// 	  ReadFile(*mesh,filename);
+//
+// 	  //mesh->SetGlobalH (mparam.maxh);
+// 	  //mesh->CalcLocalH();
+// 	  return;
+// 	}
+//
+//       string fn(filename);
+//
+//       istream * infile;
+//       if (fn.substr (fn.length()-3, 3) == ".gz")
+//         infile = new igzstream (filename);
+//       else
+//         infile = new ifstream (filename);
+//
+//       Ng_LoadMeshFromStream(*infile);
+//       delete infile;
+//
+// #ifdef PARALLEL
+//       if (ntasks > 1)
+// 	{
+//
+// 	  char * weightsfilename = new char [strlen(filename)+1];
+// 	  strcpy (weightsfilename, filename);
+// 	  weightsfilename[strlen (weightsfilename)-3] = 'w';
+// 	  weightsfilename[strlen (weightsfilename)-2] = 'e';
+// 	  weightsfilename[strlen (weightsfilename)-1] = 'i';
+//
+// 	  ifstream weightsfile(weightsfilename);
+// 	  delete [] weightsfilename;
+//
+// 	  if (!(weightsfile.good()))
+// 	    {
+// 	      // cout << "regular distribute" << endl;
+// 	      mesh -> Distribute();
+// 	    }
+// 	  else
+// 	    {
+// 	      char str[20];
+// 	      bool endfile = false;
+// 	      int n, dummy;
+//
+// 	      Array<int> segment_weights;
+// 	      Array<int> surface_weights;
+// 	      Array<int> volume_weights;
+//
+// 	      while (weightsfile.good() && !endfile)
+// 		{
+// 		  weightsfile >> str;
+//
+// 		  if (strcmp (str, "edgeweights") == 0)
+// 		    {
+// 		      weightsfile >> n;
+// 		      segment_weights.SetSize(n);
+// 		      for (int i = 0; i < n; i++)
+// 			weightsfile >> dummy >> segment_weights[i];
+// 		    }
+//
+// 		  if (strcmp (str, "surfaceweights") == 0)
+// 		    {
+// 		      weightsfile >> n;
+// 		      surface_weights.SetSize(n);
+// 		      for (int i=0; i<n; i++)
+// 			weightsfile >> dummy >> surface_weights[i];
+// 		    }
+//
+// 		  if (strcmp (str, "volumeweights") == 0)
+// 		    {
+// 		      weightsfile >> n;
+// 		      volume_weights.SetSize(n);
+// 		      for (int i=0; i<n; i++)
+// 			weightsfile >> dummy >> volume_weights[i];
+// 		    }
+//
+// 		  if (strcmp (str, "endfile") == 0)
+// 		    endfile = true;
+// 		}
+//
+// 	      mesh -> Distribute(volume_weights, surface_weights, segment_weights);
+// 	    }
+// 	}
+//     }
+//   else
+//     {
+//       mesh.Reset (new Mesh());
+//       mesh->SendRecvMesh();
+//     }
+// #endif
+// }
 
 void Ng_LoadMeshFromString (const char * mesh_as_string)
 {
