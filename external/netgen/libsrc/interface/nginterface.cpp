@@ -19,21 +19,21 @@
 
 // #include <pthread.h>
 
-static pthread_t meshingthread;
-void RunParallel ( void * (*fun)(void *), void * in)
-{
-  if (netgen::mparam.parthread) //  && (ntasks == 1) )
-    {
-      pthread_attr_t attr;
-      pthread_attr_init (&attr);
-      // the following call can be removed if not available:
-      pthread_attr_setstacksize(&attr, 1000000);
-      //pthread_create (&meshingthread, &attr, fun, NULL);
-      pthread_create (&meshingthread, &attr, fun, in);
-    }
-  else
-    fun (in);
-}
+//static pthread_t meshingthread;
+//void RunParallel ( void * (*fun)(void *), void * in)
+//{
+//  if (netgen::mparam.parthread) //  && (ntasks == 1) )
+//    {
+//      pthread_attr_t attr;
+//      pthread_attr_init (&attr);
+//      // the following call can be removed if not available:
+//      pthread_attr_setstacksize(&attr, 1000000);
+//      //pthread_create (&meshingthread, &attr, fun, NULL);
+//      pthread_create (&meshingthread, &attr, fun, in);
+//    }
+//  else
+//    fun (in);
+//}
 
 #else // Using MS VC++ Standard / Enterprise / Professional edition
 
