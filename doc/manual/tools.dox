@@ -4,7 +4,6 @@
 
 ViennaMesh comes with a small collection of simple command line tools and the \ref section-tools-vmesh "VMesh" application, which is a flexible tool for connecting and executing multiple algorithms.
 
-  - \ref section-tools-coarsen-linemesh "Coarsen Line Mesh"
   - \ref section-tools-convert-mesh "Convert Mesh"
   - \ref section-tools-extract-boundary "Extract Boundary"
   - \ref section-tools-hyperplane-clip "Hyperplane Clip"
@@ -12,12 +11,580 @@ ViennaMesh comes with a small collection of simple command line tools and the \r
   - \ref section-tools-merge-segments "Merge Segments"
   - \ref section-tools-project-mesh "Project Mesh"
   - \ref section-tools-tetgen-make-mesh "Tetgen Mesh Generation"
-  - \ref section-tools-transform-mesh "Transform "
+  - \ref section-tools-transform-mesh "Transform Mesh"
   - \ref section-tools-triangle-make-mesh "Triangle Mesh Generation"
 
-\section section-tools-coarsen-linemesh Coarsen Line Mesh
+\section section-tools-convert-mesh Convert Mesh
+
+Simply convert a mesh to another.
+
+\verbatim
+USAGE:
+
+   ./convert_mesh  [--outputtype <string>] [--inputtype <string>] [-l
+                   <string>] [--] [--version] [-h] <InputFile>
+                   <OutputFile>
 
 
+Where:
 
+   --outputtype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --inputtype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Converts a mesh into another mesh
+\endverbatim
+
+
+\section section-tools-extract-boundary Extract Boundary
+
+Wraps the \ref section-algorithm-extract-boundary algorithm.
+
+\verbatim
+USAGE:
+
+   ./extract_boundary  [--outputtype <string>] [--inputtype <string>] [-l
+                       <string>] [--] [--version] [-h] <InputFile>
+                       <OutputFile>
+
+
+Where:
+
+   --outputtype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --inputtype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Extracts the boundary of a mesh
+\endverbatim
+
+\section section-tools-hyperplane-clip "Hyperplane Clip"
+
+Wraps the \ref section-algorithm-hyperplane-clip algorithm.
+
+\verbatim
+USAGE:
+
+   ./hyperplane_clip  -n <string> -p <string> [--outputtype <string>]
+                      [--inputtype <string>] [-l <string>] [--] [--version]
+                      [-h] <InputFile> <OutputFile>
+
+
+Where:
+
+   -n <string>,  --hyperplane_normal <string>
+     (required)  Normal vector of the clip hyperplane
+
+   -p <string>,  --hyperplane_point <string>
+     (required)  Point of the clip hyperplane
+
+   --outputtype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --inputtype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Clips elements based on a hyperplane
+\endverbatim
+
+\section section-tools-map-segments Map Segments
+
+Wraps the \ref section-algorithm-map-segments algorithm.
+
+\verbatim
+USAGE:
+
+   ./map_segments  -m <string> [--outputtype <string>] [--inputtype
+                   <string>] [-l <string>] [--] [--version] [-h]
+                   <InputFile> <OutputFile>
+
+
+Where:
+
+   -m <string>,  --segment-mapping <string>
+     (required)  Segment mapping. Syntax: "src_id,dst_id;src_id,dst_id"
+
+   --outputtype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --inputtype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Maps/Renames segments
+\endverbatim
+
+\section section-tools-merge-segments Merge Segments
+
+Wraps the \ref section-algorithm-merge-segments algorithm.
+
+\verbatim
+USAGE:
+
+   ./merge_meshes  [-l <string>] [--] [--version] [-h] <InputFile>
+                   <InputFile> <OutputFile>
+
+
+Where:
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Merge meshes
+\endverbatim
+
+\section section-tools-project-mesh Project Mesh
+
+Wraps the \ref section-algorithm-project-mesh algorithm.
+
+\verbatim
+USAGE:
+
+   ./project_mesh  -d <int> [--outputtype <string>] [--inputtype <string>]
+                   [-l <string>] [--] [--version] [-h] <InputFile>
+                   <OutputFile>
+
+
+Where:
+
+   -d <int>,  --dimension <int>
+     (required)  Target dimension
+
+   --outputtype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --inputtype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Project mesh
+\endverbatim
+
+\section section-tools-tetgen-make-mesh Tetgen Mesh Generation
+
+Wraps the \ref section-algorithm-tetgen-make-mesh algorithm.
+
+\verbatim
+USAGE:
+
+   ./tetgen_make_mesh  [-f <string>] [--dont_use_logger] [-i <double>] [-e
+                       <double>] [-a <double>] [-r <double>] [-c <double>]
+                       [-s <string>] [--output_filetype <string>]
+                       [--input_filetype <string>] [-l <string>] [--]
+                       [--version] [-h] <InputFile> <OutputFile>
+
+
+Where:
+
+   -f <string>,  --sizing_function <string>
+     Filename for sizing function
+
+   --dont_use_logger
+     Don't use logger for Tetgen output
+
+   -i <double>,  --max_inscribed_radius_edge_ratio <double>
+     Maximum inscribed ratio edge ratio
+
+   -e <double>,  --max_edge_ratio <double>
+     Maximum edge ratio
+
+   -a <double>,  --min_dihedral_angle <double>
+     Minimum dihedral angle
+
+   -r <double>,  --max_radius_edge_ratio <double>
+     Maximum radius edge ratio
+
+   -c <double>,  --cell_size <double>
+     Maximum cell size
+
+   -s <string>,  --option_string <string>
+     Option string for Tetgen
+
+   --output_filetype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --input_filetype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is generate_tetgen.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Uses the Tetgen algorithm to generate a volume mesh out of a boundary
+   representation geometry
+\endverbatim
+
+\section section-tools-transform-mesh Transform Mesh
+
+Wraps the \ref section-algorithm-transform-mesh algorithm.
+
+\verbatim
+USAGE:
+
+   ./transform_mesh  [-t <string>] [-s <double>] [-m <string>]
+                     [--outputtype <string>] [--inputtype <string>] [-l
+                     <string>] [--] [--version] [-h] <InputFile>
+                     <OutputFile>
+
+
+Where:
+
+   -t <string>,  --translate <string>
+     Translate the mesh
+
+   -s <double>,  --scale <double>
+     Scale the mesh
+
+   -m <string>,  --matrix <string>
+     Translate matrix
+
+   --outputtype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --inputtype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is convert.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Geometrically transforms a mesh
+\endverbatim
+
+\section section-tools-triangle-make-mesh Triangle Mesh Generation
+
+Wraps the \ref section-algorithm-triangle-make-mesh algorithm.
+
+\verbatim
+USAGE:
+
+   ./triangle_make_mesh  [-f <string>] [--dont_use_logger] [-d] [-a
+                         <double>] [-c <double>] [-s <string>]
+                         [--output_filetype <string>] [--input_filetype
+                         <string>] [-l <string>] [--] [--version] [-h]
+                         <InputFile> <OutputFile>
+
+
+Where:
+
+   -f <string>,  --sizing_function <string>
+     Filename for sizing function
+
+   --dont_use_logger
+     Don't use logger for Tetgen output
+
+   -d,  --delaunay
+     Use delaunay meshing
+
+   -a <double>,  --min_angle <double>
+     Minimum angle
+
+   -c <double>,  --cell_size <double>
+     Maximum cell size
+
+   -s <string>,  --option_string <string>
+     Option string for Triangle
+
+   --output_filetype <string>
+     Output file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     vmesh - for Vienna vmesh files
+
+   --input_filetype <string>
+     Input file type. Can be
+
+     auto - ViennaMesh automatically detects the file format (default)
+
+     vtk - for VTK files
+
+     mesh - for Netgen .mesh files
+
+     poly - for Tetgen .poly files
+
+     deva - for GTS deva files
+
+   -l <string>,  --logfile <string>
+     Log file name (default is generate_triangle.log)
+
+   --,  --ignore_rest
+     Ignores the rest of the labeled arguments following this flag.
+
+   --version
+     Displays version information and exits.
+
+   -h,  --help
+     Displays usage information and exits.
+
+   <InputFile>
+     (required)  Input file name
+
+   <OutputFile>
+     (required)  Output file name
+
+
+   Uses Triangle to generate a volume mesh out of a boundary representation
+   geometry
+\endverbatim
 
 */
