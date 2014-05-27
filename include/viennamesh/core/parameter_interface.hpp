@@ -131,11 +131,24 @@ namespace viennamesh
     virtual std::string check_string() const { return "no value checking"; }
 
   private:
+    // queries an input parameter
     const_parameter_handle get_impl() const
     { return algorithm().get_input(name()); }
 
-    const_parameter_handle get_required_impl() const
-    { return algorithm().get_required_input(name()); }
+    // queries an input parameter of special type
+    template<typename ValueT>
+    typename result_of::const_parameter_handle<ValueT>::type get_impl() const
+    {
+      const_parameter_handle parameter = get_impl();
+      if (!parameter) return typename result_of::const_parameter_handle<ValueT>::type();
+
+      typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(parameter);
+
+      if (result)
+        return result;
+
+      return parameter->template get_converted<ValueT>();
+    }
 
     // queries an input parameter, throws input_parameter_not_found_exception if not found
     const_parameter_handle get_required_impl() const
