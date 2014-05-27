@@ -17,3 +17,4 @@
 
 %include "../include/viennamesh/core/algorithm.hpp"
 %include "../include/viennamesh/core/algorithm_factory.hpp"
+%include "../include/viennamesh/core/parameter_interface.hpp"
