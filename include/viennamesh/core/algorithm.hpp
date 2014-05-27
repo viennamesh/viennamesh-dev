@@ -267,10 +267,27 @@ namespace viennamesh
     const_input_parameter_iterator input_parameter_begin() const { return const_input_parameter_iterator(input_parameters.begin()); }
     const_input_parameter_iterator input_parameter_end() const { return const_input_parameter_iterator(input_parameters.end()); }
 
+    std::size_t input_parameter_size() const { return input_parameters.size(); }
+    base_input_parameter_interface const & input_parameter(std::size_t index) const
+    {
+      const_input_parameter_iterator it = input_parameter_begin();
+      std::advance(it, index);
+      return *it;
+    }
+
     typedef const_transform_iterator<RegisteredOutputParameterMapType::const_iterator, dereference_second<RegisteredOutputParameterMapType::value_type> > const_output_parameter_iterator;
 
     const_output_parameter_iterator output_parameter_begin() const { return const_output_parameter_iterator(output_parameters.begin()); }
     const_output_parameter_iterator output_parameter_end() const { return const_output_parameter_iterator(output_parameters.end()); }
+
+    std::size_t output_parameter_size() const { return output_parameters.size(); }
+    output_parameter_interface const & output_parameter(std::size_t index) const
+    {
+      const_output_parameter_iterator it = output_parameter_begin();
+      std::advance(it, index);
+      return *it;
+    }
+
 
   private:
 
