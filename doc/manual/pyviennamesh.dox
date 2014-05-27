@@ -2,7 +2,7 @@
 
 \page manual-page-pyviennamesh    PyViennaMesh
 
-ViennaMesh also provides an interface to Python enabling convenient meshing with scripts. To enable the Python layer see \ref manual-page-installation.
+ViennaMesh also provides an interface to Python enabling convenient meshing with scripts.
 
 
 \section section-pyviennamesh-how-to How To Use PyViennaMesh
@@ -28,7 +28,7 @@ Input parameters can be set by using the set_input method of the algorithm:
 Input parameters can also be linked to output parameters of another algorithm:
 
 \code{.py}
->>> my_algo.set_input( <INPUT_PARAMETER_NAME> , <OTHER_ALGORITHM> , <OUTPUT_PARAMETER_NAME_OF_OTHER_ALGORITHM> )
+>>> my_algo.link_input( <INPUT_PARAMETER_NAME> , <OTHER_ALGORITHM> , <OUTPUT_PARAMETER_NAME_OF_OTHER_ALGORITHM> )
 \endcode
 
 A default source algorithm can be set by using the set_default_algorithm method:
@@ -55,7 +55,7 @@ A simple short example is presented here:
 >>> reader.set_input("filename","../../examples/data/cubeception.poly")
 >>> mesher.set_default_source(reader)
 >>> mesher.set_input("cell_size",1.0)
->>> writer.set_default_source(mesher)
+>>> writer.link_input("mesh", mesher, "mesh")
 >>> writer.set_input("filename","test.vtu")
 >>> reader.run()
 >>> mesher.run()

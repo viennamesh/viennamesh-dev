@@ -14,6 +14,7 @@ To simplify installation, the required dependencies for using ViennaMesh are kep
 <table>
 <tr><td> A recent C++ compiler </td><td> GCC version 4.2.x or above, Clang 3.0 or above, and Visual C++ 2005 or above are known to work.</td></tr>
 <tr><td> <a href="http://viennagrid.sourceforge.net">ViennaGrid</a> </td><td> The ViennaGrid sources are included in the ViennaMesh package, no separate installation required. </td></tr>
+<tr><td> <a href="http://www.boost.org/">Boost</a> </td><td> The Boost Libraries, the following modules are required: Smart Ptr, Function, and Bind </td></tr>
 </table>
 
 Moreover, the following optional components are necessary to unleash the full potential of ViennaMesh:
@@ -50,7 +51,7 @@ On Windows, the situation strongly depends on your development environment.
 We advise to consult the documentation of the compiler on how to set the include path correctly.
 With Visual Studio 9.0 this is usually something like C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include and can be set in Tools -> Options -> Projects and Solutions -> VC++-Directories.
 
-  \section manual-installation-exa Building the Examples
+  \section manual-installation-examples Building the Examples
 
 For building the examples, we suppose that CMake is properly set up on your system.
 The instructions for the various operating systems are as follows
@@ -71,7 +72,7 @@ to obtain a Makefile and type
 
 to build the examples and the standalone executable. If desired, one can build each example separately instead:
 
-    $> make tetgen_mesher      #builds the tetgen_mesher example
+    $> make vmesh      #builds the vmesh tool
 
 You may speed up the building process by using multiple concurrent jobs, e.g. make -j4.
 
@@ -85,8 +86,6 @@ The build process of ViennaMesh is similar to Linux.
 
   \subsection manual-installation-windows  Windows
 
-  TODO!!!!
-
 In the following the procedure is outlined for Visual Studio: Assuming that CMake is
 already installed, Visual Studio solution and project files can be created using CMake:
     - Open the CMake GUI.
@@ -99,5 +98,8 @@ already installed, Visual Studio solution and project files can be created using
 
 Note that the examples should be executed from the build/ folder in order to access the correct input files.
 
+ViennaMesh is tested with Visual Studio 2013. Currently the following parts of ViennaMesh does not work with Windows:
+  - PyViennaMesh (might work but was not tested)
+  - VgModeler algorithm
 
 */
