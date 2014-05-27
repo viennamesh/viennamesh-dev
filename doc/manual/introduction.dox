@@ -29,6 +29,5 @@ TODO: Image conversion
 Currently, there are three ways how to use ViennaMesh:
   - \ref manual-page-tools "Command line tools"
   - \ref manual-page-pyviennamesh "Python Layer"
-  - \ref manual-page-api "API"
 
 */
