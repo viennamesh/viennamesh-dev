@@ -137,14 +137,33 @@ namespace viennamesh
     const_parameter_handle get_required_impl() const
     { return algorithm().get_required_input(name()); }
 
-
-    template<typename ValueT>
-    typename result_of::const_parameter_handle<ValueT>::type get_impl() const
-    { return algorithm().get_input<ValueT>(name()); }
+    // queries an input parameter, throws input_parameter_not_found_exception if not found
+    const_parameter_handle get_required_impl() const
+    {
+      const_parameter_handle param = get_impl();
+      if (!param)
+        throw input_parameter_not_found_exception( "Required input parameter '" + name() + "' is missing" );
+      return param;
+    }
 
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get_required_impl() const
-    { return algorithm().get_required_input<ValueT>(name()); }
+    {
+      const_parameter_handle parameter = get_required_impl();
+      if (!parameter) return typename result_of::const_parameter_handle<ValueT>::type();
+
+      typename result_of::const_parameter_handle<ValueT>::type result = dynamic_handle_cast<const ValueT>(parameter);
+
+      if (result)
+        return result;
+
+      result = parameter->template get_converted<ValueT>();
+
+      if (!result)
+        throw input_parameter_not_found_exception( "Required input parameter '" + name() + "' is of non-convertable type" );
+
+      return result;
+    }
 
     RequirementFlag requirement_flag_;
   };
