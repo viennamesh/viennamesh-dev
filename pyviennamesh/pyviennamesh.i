@@ -1,5 +1,7 @@
 %module pyviennamesh
 
+%feature("autodoc", "3");
+
 #define VIENNAMESH_USES_BOOST
 
 %include <std_string.i>
