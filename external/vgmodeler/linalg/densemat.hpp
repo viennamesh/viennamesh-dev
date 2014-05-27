@@ -15,7 +15,7 @@
 // #include <assert.h>
 
 
-class DenseMatrix277
+class DenseMatrix
 {
 protected:
   int height;
