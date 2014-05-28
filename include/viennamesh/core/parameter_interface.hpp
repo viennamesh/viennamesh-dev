@@ -169,7 +169,7 @@ namespace viennamesh
     {
       const_parameter_handle param = get_impl();
       if (!param)
-        throw input_parameter_not_found_exception( "Input parameter '" + name() + "' is missing or of non-convertable type" );
+        throw input_parameter_not_found_exception( "Required input parameter '" + name() + "' is missing" );
       return param;
     }
 
@@ -185,7 +185,12 @@ namespace viennamesh
       if (result)
         return result;
 
-      return parameter->template get_converted<ValueT>();
+      result = parameter->template get_converted<ValueT>();
+
+      if (!result)
+        throw input_parameter_not_found_exception( "Required input parameter '" + name() + "' is of non-convertable type" );
+
+      return result;
     }
 
     RequirementFlag requirement_flag_;
