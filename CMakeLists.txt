@@ -100,6 +100,8 @@ if (MSVC)
   if(ENABLE_PEDANTIC_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
+  
+  set(VIENNAMESH_WITH_VGMODELER OFF)
 endif()
 
 
