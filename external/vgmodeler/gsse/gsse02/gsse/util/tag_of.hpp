@@ -12,7 +12,7 @@
 #include <set>
 #include <list>
 #include <map>
-#include<valarray>
+#include <valarray>
 #include <tr1/unordered_map>
 // *** BOOST includes
 #include <boost/array.hpp>

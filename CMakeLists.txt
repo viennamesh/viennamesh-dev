@@ -61,7 +61,7 @@ if(BUILD_MANUAL)
   find_package(LATEX REQUIRED)
 endif()
 
-find_package(Boost COMPONENTS thread program_options)
+find_package(Boost COMPONENTS)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
@@ -83,9 +83,25 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
   set(ENABLE_PEDANTIC_FLAGS 1)
 endif()
 
-if(ENABLE_PEDANTIC_FLAGS)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+  if(ENABLE_PEDANTIC_FLAGS)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+  endif()
+
+  IF(NOT BUILD_SHARED_LIBS)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  ENDIF(NOT BUILD_SHARED_LIBS)
 endif()
+
+if (MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /wd4503")
+
+  if(ENABLE_PEDANTIC_FLAGS)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+  endif()
+endif()
+
+
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STRICT_ANSI__")
 SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
@@ -102,9 +118,7 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/include)
 # libviennamesh
 ################
 
-IF(NOT BUILD_SHARED_LIBS)
-  SET(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -fPIC")
-ENDIF(NOT BUILD_SHARED_LIBS)
+
 
 
 set(EXTERNAL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/)

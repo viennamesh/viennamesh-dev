@@ -165,206 +165,201 @@ namespace netgen
       Either the container takes care of memory allocation and deallocation,
       or the user provides one block of data.
   */
-  template <class T, int BASE = 0, typename TIND = int>
+//  template <class T, int BASE = 0, typename TIND = int>
+//  class Array : public FlatArray<T, BASE, TIND>
+//  {
+//  protected:
+//    using FlatArray<T,BASE,TIND>::size;
+//    using FlatArray<T,BASE,TIND>::data;
+//
+//    /// physical size of array
+//    int allocsize;
+//    /// memory is responsibility of container
+//    bool ownmem;
+//
+//  public:
+//
+//    /// Generate array of logical and physical size asize
+//    explicit Array()
+//      : FlatArray<T, BASE, TIND> (0, NULL)
+//    {
+//      allocsize = 0;
+//      ownmem = 1;
+//    }
+//
+//    explicit Array(int asize)
+//      : FlatArray<T, BASE, TIND> (asize, new T[asize])
+//    {
+//      allocsize = asize;
+//      ownmem = 1;
+//    }
+//
+//    /// Generate array in user data
+//    Array(TIND asize, T* adata)
+//      : FlatArray<T, BASE, TIND> (asize, adata)
+//    {
+//      allocsize = asize;
+//      ownmem = 0;
+//    }
+//
+//    /// array copy
+//    explicit Array (const Array<T,BASE,TIND> & a2)
+//      : FlatArray<T, BASE, TIND> (a2.Size(), a2.Size() ? new T[a2.Size()] : 0)
+//    {
+//      allocsize = size;
+//      ownmem = 1;
+//      for (TIND i = BASE; i < size+BASE; i++)
+//	(*this)[i] = a2[i];
+//    }
+//
+//
+//
+//    /// if responsible, deletes memory
+//    ~Array()
+//    {
+//      if (ownmem)
+//	delete [] data;
+//    }
+//
+//    /// Change logical size. If necessary, do reallocation. Keeps contents.
+//    void SetSize(int nsize)
+//    {
+//      if (nsize > allocsize)
+//	ReSize (nsize);
+//      size = nsize;
+//    }
+//
+//    /// Change physical size. Keeps logical size. Keeps contents.
+//    void SetAllocSize (int nallocsize)
+//    {
+//      if (nallocsize > allocsize)
+//	ReSize (nallocsize);
+//    }
+//
+//
+//    /// Add element at end of array. reallocation if necessary.
+//    int Append (const T & el)
+//    {
+//      if (size == allocsize)
+//	ReSize (size+1);
+//      data[size] = el;
+//      size++;
+//      return size;
+//    }
+//
+//    template <typename T2, int B2>
+//    void Append (FlatArray<T2, B2> a2)
+//    {
+//      if (size+a2.Size() > allocsize)
+//	ReSize (size+a2.Size());
+//      for (int i = 0; i < a2.Size(); i++)
+//	data[size+i] = a2[i+B2];
+//      size += a2.Size();
+//    }
+//
+//
+//    /// Delete element i (0-based). Move last element to position i.
+//    void Delete (TIND i)
+//    {
+//#ifdef CHECK_Array_RANGE
+//      RangeCheck (i+1);
+//#endif
+//
+//      data[i] = data[size-1];
+//      size--;
+//      //    DeleteElement (i+1);
+//    }
+//
+//
+//    /// Delete element i (1-based). Move last element to position i.
+//    void DeleteElement (TIND i)
+//    {
+//#ifdef CHECK_Array_RANGE
+//      RangeCheck (i);
+//#endif
+//
+//      data[i-1] = data[size-1];
+//      size--;
+//    }
+//
+//    /// Delete last element.
+//    void DeleteLast ()
+//    {
+//      size--;
+//    }
+//
+//    /// Deallocate memory
+//    void DeleteAll ()
+//    {
+//      if (ownmem)
+//	delete [] data;
+//      data = 0;
+//      size = allocsize = 0;
+//    }
+//
+//    /// Fill array with val
+//    Array & operator= (const T & val)
+//    {
+//      FlatArray<T, BASE, TIND>::operator= (val);
+//      return *this;
+//    }
+//
+//    /// array copy
+//    Array & operator= (const Array & a2)
+//    {
+//      SetSize (a2.Size());
+//      for (TIND i (BASE); i < size+BASE; i++)
+//	(*this)[i] = a2[i];
+//      return *this;
+//    }
+//
+//    /// array copy
+//    Array & operator= (const FlatArray<T> & a2)
+//    {
+//      SetSize (a2.Size());
+//      for (TIND i = BASE; i < size+BASE; i++)
+//	(*this)[i] = a2[i];
+//      return *this;
+//    }
+//
+//
+//  private:
+//
+//    /// resize array, at least to size minsize. copy contents
+//    void ReSize (int minsize)
+//    {
+//      int nsize = 2 * allocsize;
+//      if (nsize < minsize) nsize = minsize;
+//
+//      if (data)
+//	{
+//	  T * p = new T[nsize];
+//
+//	  int mins = (nsize < size) ? nsize : size;
+//
+//    std::copy(data, data+mins, p);
+//// 	  memcpy (p, data, mins * sizeof(T));
+//
+//	  if (ownmem)
+//	    delete [] data;
+//	  ownmem = 1;
+//	  data = p;
+//	}
+//      else
+//	{
+//	  data = new T[nsize];
+//	  ownmem = 1;
+//	}
+//
+//      allocsize = nsize;
+//    }
+//  };
+
+
+
+template <class T, int BASE = 0, typename TIND = int>
   class Array : public FlatArray<T, BASE, TIND>
   {
-  protected:
-    using FlatArray<T,BASE,TIND>::size;
-    using FlatArray<T,BASE,TIND>::data;
-
-    /// physical size of array
-    int allocsize;
-    /// memory is responsibility of container
-    bool ownmem;
-
-  public:
-
-    /// Generate array of logical and physical size asize
-    explicit Array()
-      : FlatArray<T, BASE, TIND> (0, NULL)
-    {
-      allocsize = 0;
-      ownmem = 1;
-    }
-
-    explicit Array(int asize)
-      : FlatArray<T, BASE, TIND> (asize, new T[asize])
-    {
-      allocsize = asize;
-      ownmem = 1;
-    }
-
-    /// Generate array in user data
-    Array(TIND asize, T* adata)
-      : FlatArray<T, BASE, TIND> (asize, adata)
-    {
-      allocsize = asize;
-      ownmem = 0;
-    }
-
-    /// array copy
-    explicit Array (const Array<T,BASE,TIND> & a2)
-      : FlatArray<T, BASE, TIND> (a2.Size(), a2.Size() ? new T[a2.Size()] : 0)
-    {
-      allocsize = size;
-      ownmem = 1;
-      for (TIND i = BASE; i < size+BASE; i++)
-	(*this)[i] = a2[i];
-    }
-
-
-
-    /// if responsible, deletes memory
-    ~Array()
-    {
-      if (ownmem)
-	delete [] data;
-    }
-
-    /// Change logical size. If necessary, do reallocation. Keeps contents.
-    void SetSize(int nsize)
-    {
-      if (nsize > allocsize)
-	ReSize (nsize);
-      size = nsize;
-    }
-
-    /// Change physical size. Keeps logical size. Keeps contents.
-    void SetAllocSize (int nallocsize)
-    {
-      if (nallocsize > allocsize)
-	ReSize (nallocsize);
-    }
-
-
-    /// Add element at end of array. reallocation if necessary.
-    int Append (const T & el)
-    {
-      if (size == allocsize)
-	ReSize (size+1);
-      data[size] = el;
-      size++;
-      return size;
-    }
-
-    template <typename T2, int B2>
-    void Append (FlatArray<T2, B2> a2)
-    {
-      if (size+a2.Size() > allocsize)
-	ReSize (size+a2.Size());
-      for (int i = 0; i < a2.Size(); i++)
-	data[size+i] = a2[i+B2];
-      size += a2.Size();
-    }
-
-
-    /// Delete element i (0-based). Move last element to position i.
-    void Delete (TIND i)
-    {
-#ifdef CHECK_Array_RANGE
-      RangeCheck (i+1);
-#endif
-
-      data[i] = data[size-1];
-      size--;
-      //    DeleteElement (i+1);
-    }
-
-
-    /// Delete element i (1-based). Move last element to position i.
-    void DeleteElement (TIND i)
-    {
-#ifdef CHECK_Array_RANGE
-      RangeCheck (i);
-#endif
-
-      data[i-1] = data[size-1];
-      size--;
-    }
-
-    /// Delete last element.
-    void DeleteLast ()
-    {
-      size--;
-    }
-
-    /// Deallocate memory
-    void DeleteAll ()
-    {
-      if (ownmem)
-	delete [] data;
-      data = 0;
-      size = allocsize = 0;
-    }
-
-    /// Fill array with val
-    Array & operator= (const T & val)
-    {
-      FlatArray<T, BASE, TIND>::operator= (val);
-      return *this;
-    }
-
-    /// array copy
-    Array & operator= (const Array & a2)
-    {
-      SetSize (a2.Size());
-      for (TIND i (BASE); i < size+BASE; i++)
-	(*this)[i] = a2[i];
-      return *this;
-    }
-
-    /// array copy
-    Array & operator= (const FlatArray<T> & a2)
-    {
-      SetSize (a2.Size());
-      for (TIND i = BASE; i < size+BASE; i++)
-	(*this)[i] = a2[i];
-      return *this;
-    }
-
-
-  private:
-
-    /// resize array, at least to size minsize. copy contents
-    void ReSize (int minsize)
-    {
-      int nsize = 2 * allocsize;
-      if (nsize < minsize) nsize = minsize;
-
-      if (data)
-	{
-	  T * p = new T[nsize];
-
-	  int mins = (nsize < size) ? nsize : size;
-
-    std::copy(data, data+mins, p);
-// 	  memcpy (p, data, mins * sizeof(T));
-
-	  if (ownmem)
-	    delete [] data;
-	  ownmem = 1;
-	  data = p;
-	}
-      else
-	{
-	  data = new T[nsize];
-	  ownmem = 1;
-	}
-
-      allocsize = nsize;
-    }
-  };
-
-
-
-
-  template <typename T>
-  class AutoPtr;
-
-  template <class U, int BASE, typename TIND>
-  class Array< AutoPtr<U>, BASE, TIND > : public FlatArray<AutoPtr<U>, BASE, TIND>
-  {
-    typedef AutoPtr<U> T;
   protected:
     using FlatArray<T,BASE,TIND>::size;
     using FlatArray<T,BASE,TIND>::data;

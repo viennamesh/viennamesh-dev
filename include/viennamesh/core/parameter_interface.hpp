@@ -101,9 +101,9 @@ namespace viennamesh
 
   enum RequirementFlag
   {
-    REQUIRED,
-    OPTIONAL,
-    DEFAULT
+    REQUIRED_FLAG,
+    OPTIONAL_FLAG,
+    DEFAULT_FLAG
   };
 
   class base_input_parameter_interface : public base_parameter_interface
@@ -123,7 +123,7 @@ namespace viennamesh
 
     const_parameter_handle get() const
     {
-      if (requirement_flag() == REQUIRED)
+      if (requirement_flag() == REQUIRED_FLAG)
         return get_required_impl();
       else
         return get_impl();
@@ -132,16 +132,18 @@ namespace viennamesh
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get() const
     {
-      if (requirement_flag() == REQUIRED)
+      if (requirement_flag() == REQUIRED_FLAG)
         return get_required_impl<ValueT>();
       else
         return get_impl<ValueT>();
     }
 
     bool valid() const
-    { return get(); }
+    {
+      return get().get() != 0;
+    }
 
-    virtual std::string default_value() const { return "no default value"; }
+    virtual std::string default_value_string() const { return "no default value"; }
     virtual std::string check_string() const { return "no value checking"; }
 
   private:
@@ -201,7 +203,7 @@ namespace viennamesh
   public:
     dynamic_required_input_parameter_interface(base_algorithm & algorithm,
                                                parameter_information const & information_) :
-        base_input_parameter_interface(algorithm, information_, REQUIRED) {}
+        base_input_parameter_interface(algorithm, information_, REQUIRED_FLAG) {}
   };
 
   class dynamic_optional_input_parameter_interface : public base_input_parameter_interface
@@ -209,7 +211,7 @@ namespace viennamesh
   public:
     dynamic_optional_input_parameter_interface(base_algorithm & algorithm,
                                                parameter_information const & information_) :
-        base_input_parameter_interface(algorithm, information_, OPTIONAL) {}
+                                               base_input_parameter_interface(algorithm, information_, OPTIONAL_FLAG) {}
   };
 
 
@@ -296,7 +298,7 @@ namespace viennamesh
 
     ValueT const & operator()() const
     {
-      if (!valid() && (requirement_flag() == DEFAULT))
+      if (!valid() && (requirement_flag() == DEFAULT_FLAG))
         return default_();
 
       return native_handle();
@@ -311,10 +313,10 @@ namespace viennamesh
     bool valid() const
     {
       fetch();
-      return native_handle;
+      return native_handle.get() != 0;
     }
 
-    std::string default_value() const { return default_.to_string(); }
+    std::string default_value_string() const { return default_.to_string(); }
     std::string check_string() const { return check_.to_string(); }
 
   private:
@@ -351,12 +353,12 @@ namespace viennamesh
   public:
     required_input_parameter_interface(base_algorithm & algorithm,
                                        parameter_information const & information_) :
-        input_parameter_interface<ValueT, CheckT>(algorithm, information_, REQUIRED) {}
+                                       input_parameter_interface<ValueT, CheckT>(algorithm, information_, REQUIRED_FLAG) {}
 
     required_input_parameter_interface(base_algorithm & algorithm,
                                        parameter_information const & information_,
                                        CheckT const & check_in) :
-        input_parameter_interface<ValueT, CheckT>(algorithm, information_, REQUIRED, check_in) {}
+                                       input_parameter_interface<ValueT, CheckT>(algorithm, information_, REQUIRED_FLAG, check_in) {}
   };
 
   template<typename ValueT, typename CheckT = no_check<ValueT> >
@@ -365,12 +367,12 @@ namespace viennamesh
   public:
     optional_input_parameter_interface(base_algorithm & algorithm,
                                        parameter_information const & information_) :
-        input_parameter_interface<ValueT, CheckT>(algorithm, information_, OPTIONAL) {}
+                                       input_parameter_interface<ValueT, CheckT>(algorithm, information_, OPTIONAL_FLAG) {}
 
     optional_input_parameter_interface(base_algorithm & algorithm,
                                        parameter_information const & information_,
                                        CheckT const & check_in) :
-        input_parameter_interface<ValueT, CheckT>(algorithm, information_, OPTIONAL, check_in) {}
+                                       input_parameter_interface<ValueT, CheckT>(algorithm, information_, OPTIONAL_FLAG, check_in) {}
   };
 
   template<typename ValueT, typename CheckT = no_check<ValueT> >
@@ -380,13 +382,13 @@ namespace viennamesh
     default_input_parameter_interface(base_algorithm & algorithm,
                                       parameter_information const & information_,
                                       ValueT const & default_) :
-        input_parameter_interface<ValueT, CheckT, default_value<ValueT> >(algorithm, information_, DEFAULT, default_value<ValueT>(default_)) {}
+                                      input_parameter_interface<ValueT, CheckT, default_value<ValueT> >(algorithm, information_, DEFAULT_FLAG, default_value<ValueT>(default_)) {}
 
     default_input_parameter_interface(base_algorithm & algorithm,
                                       parameter_information const & information_,
                                       CheckT const & check_in,
                                       ValueT const & default_) :
-        input_parameter_interface<ValueT, CheckT, default_value<ValueT> >(algorithm, information_, DEFAULT, check_in, default_value<ValueT>(default_)) {}
+                                      input_parameter_interface<ValueT, CheckT, default_value<ValueT> >(algorithm, information_, DEFAULT_FLAG, check_in, default_value<ValueT>(default_)) {}
   };
 
 

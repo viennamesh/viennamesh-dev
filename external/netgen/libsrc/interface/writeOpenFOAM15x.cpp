@@ -594,218 +594,218 @@ namespace netgen
 
 
 
-   void WriteOpenFOAM15xFormat (const Mesh & mesh, const string & casename, const bool compressed)
-   {
-      bool error = false;
-      char casefiles[256];
+   //void WriteOpenFOAM15xFormat (const Mesh & mesh, const string & casename, const bool compressed)
+   //{
+   //   bool error = false;
+   //   char casefiles[256];
 
-      // Make sure that the mesh data has been updated
-      const_cast<Mesh&> (mesh).Compress();
-      const_cast<Mesh&> (mesh).CalcSurfacesOfNode();
-      const_cast<Mesh&> (mesh).RebuildSurfaceElementLists();
-      const_cast<Mesh&> (mesh).BuildElementSearchTree();
-
-
-      int np = mesh.GetNP();
-      int nse = mesh.GetNSE();
-      int ne = mesh.GetNE();
-
-      cout << "Write OpenFOAM 1.5+ Mesh Files....\n";
-
-      // Abort if there are no points, surface elements or volume elements
-      if((np <= 0) || (ne <= 0) || (nse <= 0))
-      {
-         cout << "Export Error: Invalid mesh.... Aborting!\n";
-         return;
-      }
-
-      // OpenFOAM only supports linear meshes!
-      if(mparam.secondorder || mesh.GetCurvedElements().IsHighOrder())
-      {
-         cout << "Export Error: OpenFOAM 1.5+ does not support non-linear elements.... Aborting!\n";
-         return;
-      }
-
-      if(( (mesh.SurfaceElement(nse/2).GetType() != TRIG) 
-	   && (mesh.SurfaceElement(nse/2).GetType() != QUAD) )
-         || (mesh.VolumeElement(ne/2).GetType() == TET10)
-         || (mesh.VolumeElement(ne/2).GetType() == PRISM12))
-      {
-         cout << "Export Error: OpenFOAM 1.5+ does not support non-linear elements.... Aborting!\n";
-         return;
-      }
+   //   // Make sure that the mesh data has been updated
+   //   const_cast<Mesh&> (mesh).Compress();
+   //   const_cast<Mesh&> (mesh).CalcSurfacesOfNode();
+   //   const_cast<Mesh&> (mesh).RebuildSurfaceElementLists();
+   //   const_cast<Mesh&> (mesh).BuildElementSearchTree();
 
 
-      cout << "Writing OpenFOAM 1.5+ Mesh files to case: " << casename << "\n";
+   //   int np = mesh.GetNP();
+   //   int nse = mesh.GetNSE();
+   //   int ne = mesh.GetNE();
 
-      // Create the case directory if it does not already exist
-      // NOTE: This needs to be improved for the Linux variant....!!!
-   #ifdef WIN32
-      char casedir[256];
-      sprintf(casedir, "mkdir %s\\constant\\polyMesh", casename.c_str());
-      system(casedir);
-   #else
-      char casedir[256];
-      mkdir(casename.c_str(), S_IRWXU|S_IRWXG);
-      sprintf(casedir, "%s/constant", casename.c_str());
-      mkdir(casedir, S_IRWXU|S_IRWXG);
-      sprintf(casedir, "%s/constant/polyMesh", casename.c_str());
-      mkdir(casedir, S_IRWXU|S_IRWXG);
-   #endif
+   //   cout << "Write OpenFOAM 1.5+ Mesh Files....\n";
 
-      // Open handles to the five required mesh files
-      // points
-      // faces
-      // owner
-      // neighbour
-      // boundary
-	  ostream *outfile_pnts;
-	  ostream *outfile_faces;
-	  ostream *outfile_own;
-	  ostream *outfile_nei;
-	  ostream *outfile_bnd;
+   //   // Abort if there are no points, surface elements or volume elements
+   //   if((np <= 0) || (ne <= 0) || (nse <= 0))
+   //   {
+   //      cout << "Export Error: Invalid mesh.... Aborting!\n";
+   //      return;
+   //   }
 
-	  if(compressed)
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/points.gz", casename.c_str());
-		  outfile_pnts = new ogzstream(casefiles);
-	  }
-	  else
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/points", casename.c_str());
-		  outfile_pnts = new ofstream(casefiles);
-	  }
+   //   // OpenFOAM only supports linear meshes!
+   //   if(mparam.secondorder || mesh.GetCurvedElements().IsHighOrder())
+   //   {
+   //      cout << "Export Error: OpenFOAM 1.5+ does not support non-linear elements.... Aborting!\n";
+   //      return;
+   //   }
 
-	  if(compressed)
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/faces.gz", casename.c_str());
-		  outfile_faces = new ogzstream(casefiles);
-	  }
-	  else
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/faces", casename.c_str());
-		  outfile_faces = new ofstream(casefiles);
-	  }
-
-	  if(compressed)
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/owner.gz", casename.c_str()); 
-		  outfile_own = new ogzstream(casefiles);
-	  }
-	  else
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/owner", casename.c_str()); 
-		  outfile_own = new ofstream(casefiles);
-	  }
-
-	  if(compressed)
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/neighbour.gz", casename.c_str());
-		  outfile_nei = new ogzstream(casefiles);
-	  }
-	  else
-	  {
-		  sprintf(casefiles, "%s/constant/polyMesh/neighbour", casename.c_str());
-		  outfile_nei = new ofstream(casefiles);
-	  }
-
-	  // Note... the boundary file is not compressed
-      sprintf(casefiles, "%s/constant/polyMesh/boundary", casename.c_str()); 
-      outfile_bnd = new ofstream(casefiles);
-
-      ResetTime();
-
-      // Build the owner, neighbour, faces and boundary lists 
-      // from the Netgen mesh
-      cout << "\nBuilding Owner, Neighbour and Face Lists: ";
-
-      error = BuildOwnerNeighbourLists(mesh);
-
-      cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
+   //   if(( (mesh.SurfaceElement(nse/2).GetType() != TRIG) 
+	  // && (mesh.SurfaceElement(nse/2).GetType() != QUAD) )
+   //      || (mesh.VolumeElement(ne/2).GetType() == TET10)
+   //      || (mesh.VolumeElement(ne/2).GetType() == PRISM12))
+   //   {
+   //      cout << "Export Error: OpenFOAM 1.5+ does not support non-linear elements.... Aborting!\n";
+   //      return;
+   //   }
 
 
-      // Write the "owner" file
-      if(outfile_own->good() && !error)
-      {
-         cout << "Writing the owner file: ";
-         WriteOwnerFile(outfile_own);
-         delete outfile_own;
-         cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
-      }
-      else
-      {
-         cout << "Export Error: Error creating file: owner.... Aborting\n";
-         error = true;
-      }
+   //   cout << "Writing OpenFOAM 1.5+ Mesh files to case: " << casename << "\n";
+
+   //   // Create the case directory if it does not already exist
+   //   // NOTE: This needs to be improved for the Linux variant....!!!
+   //#ifdef WIN32
+   //   char casedir[256];
+   //   sprintf(casedir, "mkdir %s\\constant\\polyMesh", casename.c_str());
+   //   system(casedir);
+   //#else
+   //   char casedir[256];
+   //   mkdir(casename.c_str(), S_IRWXU|S_IRWXG);
+   //   sprintf(casedir, "%s/constant", casename.c_str());
+   //   mkdir(casedir, S_IRWXU|S_IRWXG);
+   //   sprintf(casedir, "%s/constant/polyMesh", casename.c_str());
+   //   mkdir(casedir, S_IRWXU|S_IRWXG);
+   //#endif
+
+   //   // Open handles to the five required mesh files
+   //   // points
+   //   // faces
+   //   // owner
+   //   // neighbour
+   //   // boundary
+	  //ostream *outfile_pnts;
+	  //ostream *outfile_faces;
+	  //ostream *outfile_own;
+	  //ostream *outfile_nei;
+	  //ostream *outfile_bnd;
+
+	  //if(compressed)
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/points.gz", casename.c_str());
+		 // outfile_pnts = new ogzstream(casefiles);
+	  //}
+	  //else
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/points", casename.c_str());
+		 // outfile_pnts = new ofstream(casefiles);
+	  //}
+
+	  //if(compressed)
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/faces.gz", casename.c_str());
+		 // outfile_faces = new ogzstream(casefiles);
+	  //}
+	  //else
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/faces", casename.c_str());
+		 // outfile_faces = new ofstream(casefiles);
+	  //}
+
+	  //if(compressed)
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/owner.gz", casename.c_str()); 
+		 // outfile_own = new ogzstream(casefiles);
+	  //}
+	  //else
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/owner", casename.c_str()); 
+		 // outfile_own = new ofstream(casefiles);
+	  //}
+
+	  //if(compressed)
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/neighbour.gz", casename.c_str());
+		 // outfile_nei = new ogzstream(casefiles);
+	  //}
+	  //else
+	  //{
+		 // sprintf(casefiles, "%s/constant/polyMesh/neighbour", casename.c_str());
+		 // outfile_nei = new ofstream(casefiles);
+	  //}
+
+	  //// Note... the boundary file is not compressed
+   //   sprintf(casefiles, "%s/constant/polyMesh/boundary", casename.c_str()); 
+   //   outfile_bnd = new ofstream(casefiles);
+
+   //   ResetTime();
+
+   //   // Build the owner, neighbour, faces and boundary lists 
+   //   // from the Netgen mesh
+   //   cout << "\nBuilding Owner, Neighbour and Face Lists: ";
+
+   //   error = BuildOwnerNeighbourLists(mesh);
+
+   //   cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
 
 
-      // Write the "neighbour" file
-      if(outfile_nei->good() && !error)
-      {
-         cout << "Writing the neighbour file: ";
-         WriteNeighbourFile(outfile_nei);
-         delete outfile_nei;
-         cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
-      }
-      else
-      {
-         cout << "Export Error: Error creating file: neighbour.... Aborting\n";
-         error = true;
-      }
+   //   // Write the "owner" file
+   //   if(outfile_own->good() && !error)
+   //   {
+   //      cout << "Writing the owner file: ";
+   //      WriteOwnerFile(outfile_own);
+   //      delete outfile_own;
+   //      cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
+   //   }
+   //   else
+   //   {
+   //      cout << "Export Error: Error creating file: owner.... Aborting\n";
+   //      error = true;
+   //   }
 
 
-      // Write the "faces" file
-      if(outfile_faces->good() && !error)
-      {
-         cout << "Writing the faces file: ";
-         WriteFacesFile(outfile_faces, mesh);
-         delete outfile_faces;
-         cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
-      }
-      else
-      {
-         cout << "Export Error: Error creating file: faces.... Aborting\n";
-         error = true;
-      }
+   //   // Write the "neighbour" file
+   //   if(outfile_nei->good() && !error)
+   //   {
+   //      cout << "Writing the neighbour file: ";
+   //      WriteNeighbourFile(outfile_nei);
+   //      delete outfile_nei;
+   //      cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
+   //   }
+   //   else
+   //   {
+   //      cout << "Export Error: Error creating file: neighbour.... Aborting\n";
+   //      error = true;
+   //   }
 
 
-      // Write the "points" file
-      if(outfile_pnts->good() && !error)
-      {
-         cout << "Writing the points file: ";
-         WritePointsFile(outfile_pnts,mesh);
-         delete outfile_pnts;
-         cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
-      }
-      else
-      {
-         cout << "Export Error: Error creating file: points.... Aborting\n";
-         error = true;
-      }
+   //   // Write the "faces" file
+   //   if(outfile_faces->good() && !error)
+   //   {
+   //      cout << "Writing the faces file: ";
+   //      WriteFacesFile(outfile_faces, mesh);
+   //      delete outfile_faces;
+   //      cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
+   //   }
+   //   else
+   //   {
+   //      cout << "Export Error: Error creating file: faces.... Aborting\n";
+   //      error = true;
+   //   }
 
 
-      // Write the "boundary" file
-      if(outfile_bnd->good() && !error)
-      {
-         cout << "Writing the boundary file: ";
-         WriteBoundaryFile(outfile_bnd);
-         delete outfile_bnd;
-         cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
-      }
-      else
-      {
-         cout << "Export Error: Error creating file: boundary.... Aborting\n";
-         error = true;
-      }
+   //   // Write the "points" file
+   //   if(outfile_pnts->good() && !error)
+   //   {
+   //      cout << "Writing the points file: ";
+   //      WritePointsFile(outfile_pnts,mesh);
+   //      delete outfile_pnts;
+   //      cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
+   //   }
+   //   else
+   //   {
+   //      cout << "Export Error: Error creating file: points.... Aborting\n";
+   //      error = true;
+   //   }
 
-      if(!error)
-      {
-         cout << "OpenFOAM 1.5+ Export successfully completed (Time elapsed = " << GetTime() << " sec) !\n";
-      }
-      else
-      {
-         cout << "Error in OpenFOAM 1.5+ Export.... Aborted!\n";
-      }
-   }
+
+   //   // Write the "boundary" file
+   //   if(outfile_bnd->good() && !error)
+   //   {
+   //      cout << "Writing the boundary file: ";
+   //      WriteBoundaryFile(outfile_bnd);
+   //      delete outfile_bnd;
+   //      cout << "Done! (Time Elapsed = " << GetTime() << " sec)\n";
+   //   }
+   //   else
+   //   {
+   //      cout << "Export Error: Error creating file: boundary.... Aborting\n";
+   //      error = true;
+   //   }
+
+   //   if(!error)
+   //   {
+   //      cout << "OpenFOAM 1.5+ Export successfully completed (Time elapsed = " << GetTime() << " sec) !\n";
+   //   }
+   //   else
+   //   {
+   //      cout << "Error in OpenFOAM 1.5+ Export.... Aborted!\n";
+   //   }
+   //}
 }
 

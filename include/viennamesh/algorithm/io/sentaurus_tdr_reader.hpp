@@ -126,10 +126,9 @@ namespace viennamesh
 
     void read_vertex(const DataSet &vert)
     {
-//       const DataSpace &dataspace = vert.getSpace();
-//       int rank = dataspace.getSimpleExtentNdims();
+      const DataSpace &dataspace = vert.getSpace();
       hsize_t dims[10];
-//       int ndims = dataspace.getSimpleExtentDims( dims, NULL);
+      dataspace.getSimpleExtentDims( dims, NULL);
       if (nvertices!=dims[0])
         mythrow("nvertices not equal vertices.dim");
 
@@ -205,7 +204,7 @@ namespace viennamesh
     {
       string name0=read_string(reg,"name");
       string name;
-      unsigned int i;
+      string::size_type i;
       while ((i=name0.find_first_of("_."))!=name0.npos)
       {
         name=name+name0.substr(0,i);
@@ -233,13 +232,14 @@ namespace viennamesh
          std::cerr << "I do not throw, I only skip\n";
           return;
       }
-      const int nparts=read_int(reg,"number of parts");
-      if (nparts!=1)
-      {
-        //mythrow("Number of parts not one");
-       std::cerr << "Number of parts not one\n";
-       std::cerr << "I only skip this\n";
-      }
+
+//       const int nparts=read_int(reg,"number of parts");
+//       if (nparts!=1)
+//       {
+//         //mythrow("Number of parts not one");
+//        std::cerr << "Number of parts not one (" << nparts << ")\n";
+//        std::cerr << "I only skip this\n";
+//       }
 
       region[name].regnr=regnr;
       region[name].name=name;
@@ -247,22 +247,22 @@ namespace viennamesh
       const int n=reg.getNumObjs();
       for (int i=0; i<n; i++)
       {
-        if (reg.getObjnameByIdx(i)=="elements_0")
+        std::string objname = reg.getObjnameByIdx(i);
+        if (objname.find("elements_") == 0)
         {
-          const DataSet &ds=reg.openDataSet("elements_0");
+          const DataSet &ds=reg.openDataSet(objname);
           region[name].nelements=read_int(ds,"number of elements");
           read_elements(region[name],ds);
-          return;
         }
-        if (reg.getObjnameByIdx(i)=="part_0")
+
+        if (objname.find("part_") == 0)
         {
-          const Group &part=reg.openGroup("part_0");
+          const Group &part=reg.openGroup(objname);
           region[name].nelements=read_int(part,"number of elements");
           read_elements(region[name],part.openDataSet("elements"));
-          return;
         }
       }
-      mythrow("No elements found on region " << name);
+
     }
 
     region_t &find_region(int regnr)

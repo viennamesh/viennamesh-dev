@@ -15,8 +15,8 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennagrid/algorithm/angle.hpp"
 #include "viennamesh/statistic/forwards.hpp"
+#include "viennagrid/algorithm/angle.hpp"
 
 namespace viennamesh
 {

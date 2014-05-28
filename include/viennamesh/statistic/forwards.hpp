@@ -15,6 +15,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
+#include "viennamesh/forwards.hpp"
 #include "viennamesh/core/exceptions.hpp"
 
 namespace viennamesh

@@ -39,7 +39,7 @@ namespace viennamesh
     return std_capture_;
   }
 
-
+#ifndef _WIN32
   void * reader(void * data)
   {
     // Form descriptor
@@ -85,7 +85,7 @@ namespace viennamesh
     return NULL;
   }
 
-
+#endif
 
   template<typename OutputFormaterT>
   StdOutCallback<OutputFormaterT>::StdOutCallback() {}
@@ -93,10 +93,15 @@ namespace viennamesh
   template<typename OutputFormaterT>
   void StdOutCallback<OutputFormaterT>::write(std::string const & message)
   {
+#ifndef _WIN32
     if (std_capture().capturing())
       ::write( std_capture().old_stdout(), message.c_str(), message.length()+1 );
     else
       std::cout << message;
+#else
+    std::cout << message;
+#endif
   }
+
 
 }

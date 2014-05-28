@@ -15,6 +15,8 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
+#ifdef VIENNAMESH_WITH_NETGEN
+
 #include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/algorithm/netgen/netgen_mesh.hpp"
 
@@ -46,6 +48,6 @@ namespace viennamesh
 
 }
 
-
+#endif
 
 #endif
