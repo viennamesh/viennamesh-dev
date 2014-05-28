@@ -754,7 +754,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @PROJECT_SOURCE_DIR@/changelog @PROJECT_SOURCE_DIR@/LICENSE @PROJECT_SOURCE_DIR@/doc/manual/ @PROJECT_SOURCE_DIR@/build_release/pyviennamesh/pyviennamesh.py
+INPUT                  = @PROJECT_SOURCE_DIR@/changelog @PROJECT_SOURCE_DIR@/LICENSE @PROJECT_SOURCE_DIR@/doc/manual/ ../pyviennamesh/pyviennamesh.py
 # @PROJECT_SOURCE_DIR@/include/viennamesh/ @PROJECT_SOURCE_DIR@/src/viennamesh/
 
 
