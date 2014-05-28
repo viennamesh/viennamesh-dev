@@ -30,7 +30,7 @@ The algorithm type is specified by its id (see \ref section-list-of-algorithms f
 <tr> <td>dynamic</td> <td>A path to the output parameter of another algorithm.</td> <td>[algorithm_name]/[parameter_name]</td> </tr>
 </table>
 
-\section section-tools-vmesh-example
+\section section-tools-vmesh-example A VMesh XML example
 
 A simple pipeline configuration file is presented here:
 
