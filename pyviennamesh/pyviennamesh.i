@@ -29,14 +29,10 @@
 
 namespace viennamesh
 {
-  %ignore _object;
-
   class base_algorithm;
 
   typedef boost::shared_ptr<base_algorithm> algorithm_handle;
   typedef boost::shared_ptr<const base_algorithm> const_algorithm_handle;
-
-
 
 
   %nodefaultctor base_parameter_interface;
