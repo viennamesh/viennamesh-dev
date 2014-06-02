@@ -100,7 +100,7 @@ if (MSVC)
   if(ENABLE_PEDANTIC_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-  
+
   set(VIENNAMESH_WITH_VGMODELER OFF)
 endif()
 
@@ -136,10 +136,7 @@ add_subdirectory(src)
 # Python Layer
 ################
 
-if (BUILD_PYVIENNAMESH)
-  add_subdirectory(pyviennamesh)
-endif()
-
+add_subdirectory(pyviennamesh)
 
 
 # Subdirectories
