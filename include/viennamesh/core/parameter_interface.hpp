@@ -129,8 +129,15 @@ namespace viennamesh
         return get_impl();
     }
 
+
     template<typename ValueT>
     typename result_of::const_parameter_handle<ValueT>::type get() const
+    {
+      return get_impl<ValueT>();
+    }
+
+    template<typename ValueT>
+    typename result_of::const_parameter_handle<ValueT>::type get_checked() const
     {
       if (requirement_flag() == REQUIRED_FLAG)
         return get_required_impl<ValueT>();
@@ -195,6 +202,7 @@ namespace viennamesh
       return result;
     }
 
+  private:
     RequirementFlag requirement_flag_;
   };
 
@@ -330,7 +338,7 @@ namespace viennamesh
     {
       if (!fetched)
       {
-        native_handle = base_input_parameter_interface::get<ValueT>();
+        native_handle = base_input_parameter_interface::get_checked<ValueT>();
 
         if (native_handle)
           check_(native_handle());

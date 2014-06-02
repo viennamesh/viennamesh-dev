@@ -54,6 +54,7 @@ namespace viennamesh
     }
   };
 
+
   template<>
   struct type_information<double>
   {
@@ -68,6 +69,27 @@ namespace viennamesh
     }
   };
 
+
+
+  template<>
+  struct type_information<dynamic_point>
+  {
+    static bool string_to_point_conversion( std::string const & input, dynamic_point & output )
+    {
+      output = dynamic_point_from_string(input);
+      return true;
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, dynamic_point>( &string_to_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "dynamic_point";
+    }
+  };
 
   template<>
   struct type_information<std::string>

@@ -67,6 +67,8 @@ namespace viennamesh
     algorithm_factory_t();
 
     algorithm_handle create_by_id(std::string const & algorithm_id) const;
+    std::size_t registered_algorithms_size() const { return algorithms.size(); }
+    std::string const & registered_algorithm_name(std::size_t algorithm_index) const;
 
 //     std::list<AlgorithmInformationHandle> matching_algorithms( std::string const & expression ) const;
 //     algorithm_handle create_by_expression(std::string const & expression) const;
