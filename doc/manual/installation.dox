@@ -39,19 +39,13 @@ Execute
 
 to obtain a Makefile and type
 
-    $> make vmesh
+    $> make
 
-to build the standalone executable.
+to build ViennaMesh and
 
-If ViennaMesh is used as a meshing library, it is sufficient to copy the source folders
-src/, include/, and viennagrid/ either into your project folder or
-to your global system include path. If ViennaGrid is already
-installed on your system, the respective folder can be skipped.
+    $> make install
 
-On Unix-like operating systems, the global system include path is usually /usr/include/ or /usr/local/include/.
-On Windows, the situation strongly depends on your development environment.
-We advise to consult the documentation of the compiler on how to set the include path correctly.
-With Visual Studio 9.0 this is usually something like C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include and can be set in Tools -> Options -> Projects and Solutions -> VC++-Directories.
+to install the the tools and the python layer (you probably have to run make install with root/superuser privileges).
 
   \section manual-installation-examples Building the Examples
 
