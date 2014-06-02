@@ -64,6 +64,7 @@ namespace metis { extern "C" {
 
 /*** Windows headers ***/
 #ifdef WIN32
+#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #ifndef NO_PARALLEL_THREADS
 #include <afxwin.h>

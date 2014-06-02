@@ -11,7 +11,7 @@ int main()
       std::cout << "  " << (*it).name() << std::endl;
       std::cout << "    Type: " << (*it).type() << std::endl;
       std::cout << "    Description: " << (*it).description() << std::endl;
-      std::cout << "    Default: " << (*it).default_value() << std::endl;
+      std::cout << "    Default: " << (*it).default_value_string() << std::endl;
       std::cout << "    Check: " << (*it).check_string() << std::endl;
     }
 

@@ -23,8 +23,10 @@
 #include <fstream>
 #include <iostream>
 
+#ifndef _WIN32
 #include <fcntl.h>
 #include <unistd.h>
+#endif
 
 #include "viennamesh/utils/string_tools.hpp"
 #include "viennamesh/utils/timer.hpp"
@@ -585,7 +587,7 @@ namespace viennamesh
 
 
 
-
+#ifndef _WIN32
   // http://stackoverflow.com/questions/5419356/redirect-stdout-stderr-to-a-string
   // http://stackoverflow.com/questions/5911147/how-to-redirect-printf-output-back-into-code
   // http://ashishgrover.com/linux-multi-threading-fifos-or-named-pipes/
@@ -605,10 +607,10 @@ namespace viennamesh
           m_pipe[WRITE] = 0;
           if (pipe(m_pipe) == -1)
               return;
-  #ifndef _WIN32
+//  #ifndef _WIN32
           // Reading pipe has to be set to non-blocking
           fcntl(m_pipe[READ], F_SETFL, fcntl(m_pipe[READ], F_GETFL) | O_NONBLOCK);
-  #endif
+//  #endif
 
           m_oldStdOut = dup(fileno(stdout));
           m_oldStdErr = dup(fileno(stderr));
@@ -684,9 +686,25 @@ namespace viennamesh
       int m_oldStdOut;
       int m_oldStdErr;
   };
+#else
+	class StdCapture
+	{
+  public:
+
+    StdCapture() {}
+    ~StdCapture() {}
+
+    void start() {}
+    bool finish() { return true; }
+
+    bool capturing() const { return false; }
+    int old_stdout() const { return -1; }
+
+  private:
+	};
+#endif
 
   StdCapture & std_capture();
-
 
   template<typename OutputFormaterT>
   struct StdOutCallback : public BaseCallback
@@ -694,12 +712,12 @@ namespace viennamesh
     StdOutCallback();
 
     virtual std::string make(
-              Logger const & logger,
-              std::string const & tag_name,
-              std::string const & colored_tag_name,
-              int log_level,
-              std::string const & category,
-              std::string const & message) const
+      Logger const & logger,
+      std::string const & tag_name,
+      std::string const & colored_tag_name,
+      int log_level,
+      std::string const & category,
+      std::string const & message) const
     {
       return formater.make(logger, tag_name, colored_tag_name, log_level, category, message);
     }
@@ -709,7 +727,7 @@ namespace viennamesh
     OutputFormaterT formater;
   };
 
-
 }
+
 
 #endif

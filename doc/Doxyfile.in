@@ -44,7 +44,7 @@ PROJECT_NUMBER         = 1.0.0
 # for a project that appears at the top of each page and should give viewer a
 # quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "Free open-source meshing framework."
+PROJECT_BRIEF          = "The Vienna Meshing Framework."
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is included in
 # the documentation. The maximum height of the logo should not exceed 55 pixels
@@ -683,7 +683,7 @@ LAYOUT_FILE            =
 # search path. Do not use file names with spaces, bibtex cannot handle them. See
 # also \cite for info how to create references.
 
-CITE_BIB_FILES         = @PROJECT_SOURCE_DIR@/doc/manual/viennamesh.bib
+CITE_BIB_FILES         =
 
 #---------------------------------------------------------------------------
 # Configuration options related to warning and progress messages
@@ -754,7 +754,8 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @PROJECT_SOURCE_DIR@/doc/manual/ @PROJECT_SOURCE_DIR@/include/viennamesh/ @PROJECT_SOURCE_DIR@/src/viennamesh/ @PROJECT_SOURCE_DIR@/examples/tutorials @PROJECT_SOURCE_DIR@/pyviennamesh/
+INPUT                  = @PROJECT_SOURCE_DIR@/changelog @PROJECT_SOURCE_DIR@/LICENSE @PROJECT_SOURCE_DIR@/doc/manual/ ../pyviennamesh/pyviennamesh.py
+# @PROJECT_SOURCE_DIR@/include/viennamesh/ @PROJECT_SOURCE_DIR@/src/viennamesh/
 
 
 # This tag can be used to specify the character encoding of the source files
@@ -817,13 +818,13 @@ EXCLUDE_PATTERNS       =
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories use the pattern */test/*
 
-EXCLUDE_SYMBOLS        =
+EXCLUDE_SYMBOLS        = __init__ swig_import_helper _pyviennamesh _newclass SHARED_PTR_DISOWN base_parameter_interface_swigregister output_parameter_interface_swigregister base_input_parameter_interface_swigregister base_algorithm_swigregister algorithm_factory_t_swigregister
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@/examples/tutorials/
+EXAMPLE_PATH           =
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and

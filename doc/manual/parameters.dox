@@ -1,0 +1,38 @@
+/**
+
+\page manual-page-parameters Parameters
+
+In ViennaMesh, data is transfered via parameters. Each algorithm has a set of input and output parameters. Parameters are identified with names, a parameter name is unique within the set of input parameters or output parameters respectively. So for example an input parameter can be named "mesh", but there cannot be another input parameter of the same algorithm with this name. Although, there can be an output parameter with this name. (which is often the case).
+
+Input parameters can be set by the user or linked to output parameters of another algorithm. Additionally, each algorithm has a default source algorithm. If a specific parameter of an algorithm is not explicitly set or linked to another parameter, the an output parameter of the default algorithm with the same name as the input parameter is used (if available). If an input parameter is present but in a different representation, conversion is performed automatically if supported.
+
+\section section-list-of-parameter-types List of Parameter Types
+
+A list of supported parameter types is presented here:
+
+<table>
+<tr> <td><b>Type</b></td> <td><b>Description</b></td> <td><b>Conversion available to</b></td> </tr>
+<tr> <td>bool</td> <td>A simple boolean, can be true or false</td> <td></td> </tr>
+<tr> <td>int</td> <td>An integer</td> <td>double</td> </tr>
+<tr> <td>double</td> <td>A double</td> <td>int</td> </tr>
+<tr> <td>string</td> <td>A text string</td> <td></td> </tr>
+<tr> <td>Dynamic Point</td> <td>A vector/point with arbitrary dimension</td> <td></td> </tr>
+<tr> <td>Mesh Quantities</td> <td>Quantities on vertices and cells</td> <td></td> </tr>
+<tr> <td>Seed Point Container</td> <td>A container of pairs of a point and a segment id, supported in 1d, 2d and 3d</td> <td></td> </tr>
+<tr> <td>Point Container</td> <td>A container of points, supported in 1d, 2d and 3d</td> <td></td> </tr>
+<tr> <td>ViennaGrid 2d triangular mesh</td><td>A ViennaGrid triangular 2d mesh</td> <td></td></tr>
+<tr> <td>ViennaGrid 3d triangular hull mesh</td> <td>A ViennaGrid triangular 3d hull mesh</td> <td>Tetgen input mesh</td></tr>
+<tr> <td>Oriented ViennaGrid 3d triangular hull mesh</td> <td>A ViennaGrid triangular 3d hull mesh with orientation</td> <td>Netgen mesh</td></tr>
+<tr> <td>ViennaGrid 3d tetrahedral mesh</td> <td>A ViennaGrid tetrahedral 3d mesh</td> <td></td></tr>
+<tr> <td>ViennaGrid 2d brep mesh</td> <td>2d boundary representation mesh/2d line mesh</td> <td>Triangle input Mesh</td></tr>
+<tr> <td>ViennaGrid 3d brep mesh</td> <td>3d boundary representation mesh/3d plc mesh</td> <td>Triangle 3d input Mesh, Tetgen input mesh</td></tr>
+<tr> <td>Triangle input mesh</td> <td>Input mesh for the Triangle algorithm</td> <td></td></tr>
+<tr> <td>Triangle output mesh</td> <td>Output mesh for the Triangle algorithm</td> <td>ViennaGrid 2d triangular mesh</td></tr>
+<tr> <td>Triangle 3d input mesh</td> <td>Input mesh for the Triangle 3d hull algorithm</td> <td></td></tr>
+<tr> <td>Triangle 3d output mesh</td> <td>Output mesh for the Triangle 3d hull algorithm</td> <td>ViennaGrid 3d triangular hull mesh</td></tr>
+<tr> <td>Tetgen input mesh</td> <td>Input mesh for the Tetgen algorithm</td> <td></td></tr>
+<tr> <td>Tetgen output mesh</td> <td>Output mesh for the Tetgen algorithm</td> <td>ViennaGrid 3d tetrahedral mesh</td></tr>
+<tr> <td>Netgen mesh</td> <td>Mesh for the Netgen algorithm</td> <td>ViennaGrid 3d tetrahedral mesh</td></tr>
+</table>
+
+*/

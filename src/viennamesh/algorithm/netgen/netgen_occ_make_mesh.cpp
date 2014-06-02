@@ -33,7 +33,7 @@ namespace viennamesh
       curvature_safety_factor(*this, parameter_information("curvature_safety_factor","double","A safety factor for curvatures"), 2.0),
       segments_per_edge(*this, parameter_information("segments_per_edge","double","An edge should be split into how many segments"), 1.0),
       grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), 0.3),
-      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, segmented tetrahedral 3d")) {}
+      output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, netgen::mesh")) {}
 
     std::string occ_make_mesh::name() const { return "Netgen 5.1 OpenCascade mesher"; }
     std::string occ_make_mesh::id() const { return "netgen_occ_make_mesh"; }

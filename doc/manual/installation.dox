@@ -2,36 +2,36 @@
 
 /**
 
-   \page manual-page-installation    Installation
+\page manual-page-installation    Installation
 
-The necessary steps for compiling and running the various examples in ViennaSHE are outlined for several different platforms in the following.
+The necessary steps for compiling and running the various examples in ViennaMesh are outlined for several different platforms in the following.
 Although we run nightly tests on various platforms, we cannot check every possible combination of hardware, operating system, and compiler.
-If you experience any trouble, do not hesitate to ask for help at our mailinglist: viennashe-support@lists.sourceforge.net
+If you experience any trouble, do not hesitate to ask for help at our mailinglist: viennamesh-support@lists.sourceforge.net
 
- \section Dependencies
- To simplify installation, the required dependencies for using ViennaSHE are kept as small as possible:
+\section Dependencies
+To simplify installation, the required dependencies for using ViennaMesh are kept as small as possible:
 
-  <table>
-  <tr><td> A recent C++ compiler </td><td> GCC version 4.2.x or above, Clang 3.0 or above, and Visual C++ 2005 or above are known to work.</td></tr>
-  <tr><td> <a href="http://viennacl.sourceforge.net">ViennaCL</a>     </td><td> The ViennaCL sources are included in the ViennaSHE package, no separate installation required. </td></tr>
-  <tr><td> <a href="http://viennagrid.sourceforge.net">ViennaGrid</a> </td><td> The ViennaGrid sources are included in the ViennaSHE package, no separate installation required. </td></tr>
-  </table>
+<table>
+<tr><td> A recent C++ compiler </td><td> GCC version 4.2.x or above, Clang 3.0 or above, and Visual C++ 2005 or above are known to work.</td></tr>
+<tr><td> <a href="http://viennagrid.sourceforge.net">ViennaGrid</a> </td><td> The ViennaGrid sources are included in the ViennaMesh package, no separate installation required. </td></tr>
+<tr><td> <a href="http://www.boost.org/">Boost</a> </td><td> The Boost Libraries, the following modules are required: Smart Ptr, Function, and Bind </td></tr>
+<tr><td> <a href="http://www.python.org/">Python</a> </td><td> The Python Programming Language, required if the Python layer PyViennaMesh is enabled </td></tr>
+<tr><td> <a href="http://www.swig.org/">SWIG</a> </td><td> Simplified Wrapper and Interface Generator, required if the Python layer PyViennaMesh is enabled </td></tr>
+</table>
 
- Moreover, the following optional components are necessary to unleash the full potential of ViennaSHE:
+Moreover, the following optional components are necessary to unleash the full potential of ViennaMesh:
 
-  <table>
-  <tr><td> <a href="http://www.cmake.org/">CMake</a>     </td><td> Using CMake as a build system makes it easy to configure your builds appropriately. </td></tr>
-  <tr><td> OpenCL </td><td> If you intend to leverage GPU acceleration through ViennaCL, make sure you installed an OpenCL-capable vendor driver.  </td></tr>
-  <tr><td> OpenMP </td><td> This comes with your compiler. GCC 4.2.x and some versions of Visual Studio include support for OpenMP. Please consult your compiler manual.</td></tr>
-  </table>
+<table>
+<tr><td> <a href="http://www.cmake.org/">CMake</a>     </td><td> Using CMake as a build system makes it easy to configure your builds appropriately. </td></tr>
+</table>
 
 
- \section Generic Installation
+\section Generic-Installation Generic Installation
 
-If ViennaSHE is to be used as a standalone executable simulator with XML file-based
+If ViennaMesh is to be used as a standalone executable meshing tool with XML file-based
 control, type
 
-    $> cd /your-ViennaSHE-path/build/
+    $> cd /your-ViennaMesh-path/build/
 
 Execute
 
@@ -39,13 +39,13 @@ Execute
 
 to obtain a Makefile and type
 
-    $> make vshe
+    $> make vmesh
 
 to build the standalone executable.
 
-If ViennaSHE is used as a simulator library, it is sufficient to copy the source folders
-src/, viennashe/, viennacl/, and viennagrid/ either into your project folder or
-to your global system include path. If ViennaCL or ViennaGrid is already
+If ViennaMesh is used as a meshing library, it is sufficient to copy the source folders
+src/, include/, and viennagrid/ either into your project folder or
+to your global system include path. If ViennaGrid is already
 installed on your system, the respective folder can be skipped.
 
 On Unix-like operating systems, the global system include path is usually /usr/include/ or /usr/local/include/.
@@ -53,7 +53,7 @@ On Windows, the situation strongly depends on your development environment.
 We advise to consult the documentation of the compiler on how to set the include path correctly.
 With Visual Studio 9.0 this is usually something like C:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\include and can be set in Tools -> Options -> Projects and Solutions -> VC++-Directories.
 
-  \section manual-installation-exa Building the Examples
+  \section manual-installation-examples Building the Examples
 
 For building the examples, we suppose that CMake is properly set up on your system.
 The instructions for the various operating systems are as follows
@@ -62,7 +62,7 @@ The instructions for the various operating systems are as follows
 
 To build the examples, open a terminal and change to:
 
-    $> cd /your-ViennaSHE-path/build/
+    $> cd /your-ViennaMesh-path/build/
 
 Execute
 
@@ -74,7 +74,7 @@ to obtain a Makefile and type
 
 to build the examples and the standalone executable. If desired, one can build each example separately instead:
 
-    $> make nin-diode-1d      #builds the 1d nin-diode example
+    $> make vmesh      #builds the vmesh tool
 
 You may speed up the building process by using multiple concurrent jobs, e.g. make -j4.
 
@@ -84,21 +84,40 @@ You may speed up the building process by using multiple concurrent jobs, e.g. ma
 For the GCC compiler the Xcode \cite xcode package has to be installed. To install CMake, external portation
 tools such as Fink \cite fink, DarwinPorts \cite darwinports, or MacPorts \cite macports have to be used.
 
-The build process of ViennaSHE is similar to Linux.
+The build process of ViennaMesh is similar to Linux.
 
   \subsection manual-installation-windows  Windows
 
 In the following the procedure is outlined for Visual Studio: Assuming that CMake is
 already installed, Visual Studio solution and project files can be created using CMake:
     - Open the CMake GUI.
-    - Set the ViennaSHE base directory as source directory.
+    - Set the ViennaMesh base directory as source directory.
     - Set the build/ directory as build directory.
+    - If you want to enable the Python layer PyViennaMesh, you have to set the directories now, see below
     - Click on ’Configure’ and select the appropriate generator (e.g. Visual Studio 9 2008)
     - Click on 'Configure' again
     - Click on ’Generate’
-    - The project files can now be found in the ViennaSHE build directory, where they can be opened and compiled with Visual Studio (provided that the include and library paths are set correctly.
+    - The project files can now be found in the ViennaMesh build directory, where they can be opened and compiled with Visual Studio (provided that the include and library paths are set correctly.
+
+Compiling and installing ViennaMesh with its Python layer is a little bit tricky for Windows but not hard at all. First of all you have to install <a href="http://www.python.org">Python</a> (Version 3.4.1 was successfully tested) for Windows. Additionally you need <a href="http://www.swig.org">SWIG</a> (Version 3.0.1 was successfully tested). Download the swigwin package and extract it to a directory of your choice.
+Now you will need the Python installation directory as well as the swigwin directory. After setting the source directory and the build directory in the CMake GUI you have to set some directories explicitly to tell CMake where you Python and SWIG installation is located. Before pressing Configure, you have to add the following entries (do this by clicking on "Add Entry"):
+
+<table>
+<tr><td><b>Name</b></td><td><b>Type</b></td><td><b>Value</b></td></tr>
+<tr><td>PYTHON_INCLUDE_DIR</td><td>PATH</td><td>The include directory of your Python installation, e.g.: c:/Python34/include</td></tr>
+<tr><td>PYTHON_LIBRARY</td><td>FILEPATH</td><td>The library of your Python installation, is located within the libs direectory e.g.: c:/Python34/libs/python34.lib</td></tr>
+<tr><td>SWIG_DIR</td><td>PATH</td><td>The directory of your SWIG installation (the directory where you extracted the swigwin package) e.g.: c:/swig</td></tr>
+<tr><td>SWIG_EXECUTABLE</td><td>FILEPATH</td><td>The SWIG executable, is located in the directory of your SWIG installation e.g.: c:/swig/swig.exe</td></tr>
+</table>
+
+If you have added all these entries, proceed as noted above.
+
+
 
 Note that the examples should be executed from the build/ folder in order to access the correct input files.
+
+ViennaMesh is tested with Visual Studio 2013. Currently the following parts of ViennaMesh does not work with Windows:
+  - VgModeler algorithm
 
 
 */

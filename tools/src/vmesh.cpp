@@ -1,3 +1,17 @@
+/* ============================================================================
+   Copyright (c) 2011-2014, Institute for Microelectronics,
+                            Institute for Analysis and Scientific Computing,
+                            TU Wien.
+
+                            -----------------
+                ViennaMesh - The Vienna Meshing Framework
+                            -----------------
+
+                    http://viennamesh.sourceforge.net/
+
+   License:         MIT (X11), see file LICENSE in the base directory
+=============================================================================== */
+
 #include "viennamesh/core/algorithm_pipeline.hpp"
 #include "viennamesh/core/algorithm_factory.hpp"
 #include <tclap/CmdLine.h>
@@ -6,7 +20,7 @@ int main(int argc, char **argv)
 {
   try
   {
-    TCLAP::CmdLine cmd("Extracts a hull of a mesh", ' ', "1.0");
+    TCLAP::CmdLine cmd("ViennaMesh VMesh application, reads and executes a pipeline", ' ', "1.0");
 
     TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is convert.log)", false, "vmesh.log", "string");
     cmd.add( log_filename );

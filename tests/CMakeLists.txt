@@ -8,6 +8,7 @@ endif (VIENNAMESH_WITH_NETGEN)
 
 foreach(PROG ${TEST_PROGRAMS})
   add_executable(${PROG}-test src/${PROG}.cpp)
+  SET_PROPERTY(TARGET ${PROG}-test APPEND_STRING PROPERTY COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
   target_link_libraries(${PROG}-test viennamesh)
   add_test(${PROG} ${PROG}-test)
 endforeach(PROG)
