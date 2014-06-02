@@ -36,6 +36,9 @@ namespace viennamesh
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
+      if (viennagrid::is_boundary(mesh, *vit))
+        continue;
+
       bool is_on_boundary = false;
       for (typename SegmentationT::const_iterator sit = segmentation.begin(); sit != segmentation.end(); ++sit)
       {
