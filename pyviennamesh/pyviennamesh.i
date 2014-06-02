@@ -15,17 +15,32 @@
 
 #define VIENNAMESH_USES_BOOST
 
+%include <cpointer.i>
 %include <std_string.i>
 %include <boost_shared_ptr.i>
 %shared_ptr(viennamesh::base_algorithm)
 
 %{
   #include <boost/shared_ptr.hpp>
-  #include "../include/viennamesh/forwards.hpp"
-  #include "../include/viennamesh/core/parameter.hpp"
-  #include "../include/viennamesh/core/algorithm.hpp"
-  #include "../include/viennamesh/core/algorithm_factory.hpp"
+  #include "viennamesh/forwards.hpp"
+  #include "viennamesh/core/parameter.hpp"
+  #include "viennamesh/core/algorithm.hpp"
+  #include "viennamesh/core/algorithm_factory.hpp"
 %}
+
+
+
+%include "viennagrid/point.hpp"
+%include "viennagrid/storage/static_array.hpp"
+%template(static_array_1d) viennagrid::static_array<double, viennagrid::cartesian_cs<1>::dim>;
+%template(static_array_2d) viennagrid::static_array<double, viennagrid::cartesian_cs<2>::dim>;
+%template(static_array_3d) viennagrid::static_array<double, viennagrid::cartesian_cs<3>::dim>;
+%template(point_1d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<1> >;
+%template(point_2d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<2> >;
+%template(point_3d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<3> >;
+
+%pointer_functions(double, doublep);
+
 
 namespace viennamesh
 {
@@ -102,6 +117,12 @@ namespace viennamesh
   public:
     %feature("docstring") { Creates an algorithm based on the algorithm id (see \ref section-list-of-algorithms for algorithm ids). }
     algorithm_handle create_by_id(std::string const & algorithm_id) const;
+
+    %feature("docstring") { Returns the number of registered algorithms }
+    std::size_t registered_algorithms_size() const { return algorithms.size(); }
+
+    %feature("docstring") { Returns the the name of a registered algorithm based on its index }
+    std::string const & registered_algorithm_name(std::size_t algorithm_index) const;
   };
 
   %feature("docstring") { Returns the algorithm factory. }
