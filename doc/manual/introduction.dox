@@ -26,7 +26,7 @@ TODO: Image conversion
 
 \section section-how-to-use-viennamesh How To Use ViennaMesh?
 
-Currently, there are three ways how to use ViennaMesh:
+Currently, there are two ways how to use ViennaMesh:
   - \ref manual-page-tools "Command line tools"
   - \ref manual-page-pyviennamesh "Python Layer"
 
