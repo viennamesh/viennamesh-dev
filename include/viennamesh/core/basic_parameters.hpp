@@ -69,6 +69,18 @@ namespace viennamesh
     }
   };
 
+  template<>
+  struct type_information<std::string>
+  {
+    typedef std::string SelfT;
+
+    static void init() {}
+
+    static std::string name()
+    {
+      return "string";
+    }
+  };
 
 
   template<>
@@ -92,15 +104,221 @@ namespace viennamesh
   };
 
   template<>
-  struct type_information<std::string>
+  struct type_information< std::map<std::string, std::string> >
   {
-    typedef std::string SelfT;
+    static bool string_to_point_conversion( std::string const & input, std::map<std::string, std::string> & output )
+    {
+      output.clear();
 
-    static void init() {}
+      std::list<std::string> split_mappings = stringtools::split_string( input, ";" );
+      for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
+      {
+        std::list<std::string> from_to = stringtools::split_string( *mit, "," );
+
+        if (from_to.size() != 2)
+          return false;
+
+        std::list<std::string>::const_iterator it = from_to.begin();
+
+        std::string src = *it++;
+        std::string dst = *it;
+
+        output[src] = dst;
+      }
+
+      return true;
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, std::map<std::string, std::string> >( &string_to_point_conversion );
+    }
 
     static std::string name()
     {
-      return "string";
+      return "std::map<std::string, std::string>";
+    }
+  };
+
+
+  template<unsigned int dim>
+  bool string_to_point_container( std::string const & input, typename viennamesh::result_of::point_container< typename viennamesh::result_of::point<dim>::type >::type & output )
+  {
+    output.clear();
+    typedef typename viennamesh::result_of::point<dim>::type PointType;
+    std::list<std::string> split_mappings = stringtools::split_string_brackets( input, "," );
+    for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
+    {
+      std::vector<double> tmp = stringtools::vector_from_string<double>(*mit);
+      PointType point;
+
+      if (tmp.size() != point.size())
+      {
+        error(1) << "String to point container conversion: dimension missmatch" << std::endl;
+        return false;
+      }
+
+      std::copy( tmp.begin(), tmp.end(), point.begin() );
+      output.push_back(point);
+    }
+
+    return true;
+  }
+
+
+  template<>
+  struct type_information<point_1d_container>
+  {
+    static bool string_to_point_conversion( std::string const & input, point_1d_container & output )
+    {
+      return string_to_point_container<1>(input, output);
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, point_1d_container>( &string_to_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "point_1d_container";
+    }
+  };
+
+  template<>
+  struct type_information<point_2d_container>
+  {
+    static bool string_to_point_conversion( std::string const & input, point_2d_container & output )
+    {
+      return string_to_point_container<2>(input, output);
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, point_2d_container>( &string_to_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "point_2d_container";
+    }
+  };
+
+  template<>
+  struct type_information<point_3d_container>
+  {
+    static bool string_to_point_conversion( std::string const & input, point_3d_container & output )
+    {
+      return string_to_point_container<3>(input, output);
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, point_3d_container>( &string_to_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "point_3d_container";
+    }
+  };
+
+
+  template<unsigned int dim>
+  bool string_to_seed_point_container( std::string const & input, typename viennamesh::result_of::seed_point_container< typename viennamesh::result_of::point<dim>::type >::type & output )
+  {
+    output.clear();
+    typedef typename viennamesh::result_of::point<dim>::type PointType;
+    std::list<std::string> split_mappings = stringtools::split_string_brackets( input, ";" );
+    for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
+    {
+      std::cout << "Seed Point string: " << *mit << std::endl;
+      std::list<std::string> from_to = stringtools::split_string_brackets( *mit, "," );
+
+      if (from_to.size() != 2)
+      {
+        error(1) << "String to seed point container conversion: an entry has no point and no segment id: " << *mit << std::endl;
+        return false;
+      }
+
+      std::list<std::string>::const_iterator it = from_to.begin();
+
+      std::string point_string = *it;
+      ++it;
+      std::string segment_id = *it;
+
+      std::cout << "Point string: " << point_string << std::endl;
+      std::vector<double> tmp = stringtools::vector_from_string<double>(point_string);
+      PointType point;
+
+      if (tmp.size() != point.size())
+      {
+        error(1) << "Seed point to string conversion: dimension missmatch" << std::endl;
+        return false;
+      }
+
+      std::copy( tmp.begin(), tmp.end(), point.begin() );
+      output.push_back( std::make_pair(point, lexical_cast<int>(segment_id)) );
+    }
+
+    return true;
+  }
+
+  template<>
+  struct type_information<seed_point_1d_container>
+  {
+    static bool string_to_seed_point_conversion( std::string const & input, seed_point_1d_container & output )
+    {
+      return string_to_seed_point_container<1>(input, output);
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, seed_point_1d_container>( &string_to_seed_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "seed_point_1d_container";
+    }
+  };
+
+  template<>
+  struct type_information<seed_point_2d_container>
+  {
+    static bool string_to_seed_point_conversion( std::string const & input, seed_point_2d_container & output )
+    {
+      return string_to_seed_point_container<2>(input, output);
+    }
+
+    static void init()
+    {
+      std::cout << "AFFDASEFDDDDDEFEFAEAFE" << std::endl;
+      converter::get().register_conversion<std::string, seed_point_2d_container>( &string_to_seed_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "seed_point_2d_container";
+    }
+  };
+
+  template<>
+  struct type_information<seed_point_3d_container>
+  {
+    static bool string_to_seed_point_conversion( std::string const & input, seed_point_3d_container & output )
+    {
+      return string_to_seed_point_container<3>(input, output);
+    }
+
+    static void init()
+    {
+      converter::get().register_conversion<std::string, seed_point_3d_container>( &string_to_seed_point_conversion );
+    }
+
+    static std::string name()
+    {
+      return "seed_point_3d_container";
     }
   };
 
