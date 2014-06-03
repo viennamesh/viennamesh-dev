@@ -14,7 +14,6 @@ System requirements for the developer version:
 How to build ViennaMesh:
 <pre>
 $> cd viennamesh-dev
-$> mkdir build
 $> cd build
 $> cmake ..
 $> make
