@@ -18,3 +18,5 @@ IF (DEFINED VIENNAMESH_WITH_TDR AND VIENNAMESH_WITH_TDR)
   find_package(HDF5 COMPONENTS CXX)
   target_link_libraries(viennamesh ${HDF5_LIBRARIES})
 ENDIF()
+
+install(TARGETS viennamesh DESTINATION lib)

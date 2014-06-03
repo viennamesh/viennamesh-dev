@@ -1,6 +1,4 @@
-option(BUILD_DOXYGEN_DOCS "Build the doxygen documentation" FALSE)
-
-if(BUILD_DOXYGEN_DOCS)
+if(BUILD_MANUAL)
   find_package(Doxygen REQUIRED)
 
   configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -13,17 +11,17 @@ if(BUILD_DOXYGEN_DOCS)
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM)
   # Runs only once
-  add_custom_target(apidoc-all ALL
+  add_custom_target(manual-all ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/doxygen/html/index.html)
   # For manual updates
-  add_custom_target(apidoc
+  add_custom_target(manual
     COMMAND ${DOXYGEN_EXECUTABLE}
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     VERBATIM)
 
   if (BUILD_PYVIENNAMESH)
-    add_dependencies(apidoc _pyviennamesh)
+    add_dependencies(manual _pyviennamesh)
   endif()
 endif()
 
