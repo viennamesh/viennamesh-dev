@@ -6,8 +6,6 @@
 
 Each algorithm has a set of input parameters and a set of output parameters. Inputs have to be set before algorithm execution and afterwards the algorithms set its output parameters. Input parameters are constant in the scope of the algorithm which means that it cannot be altered by the algorithm.
 
-TODO: Image algorithm (with inputs and outputs)
-
 \section section-list-of-algorithms List of Algorithms
 
 Currently, ViennaMesh supports the following list of algorithms:
