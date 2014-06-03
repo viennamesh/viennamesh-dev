@@ -15,11 +15,12 @@ A list of supported parameter types is presented here:
 <tr> <td>bool</td> <td>A simple boolean, can be true or false</td> <td></td> </tr>
 <tr> <td>int</td> <td>An integer</td> <td>double</td> </tr>
 <tr> <td>double</td> <td>A double</td> <td>int</td> </tr>
-<tr> <td>string</td> <td>A text string</td> <td></td> </tr>
+<tr> <td>string</td> <td>A text string</td> <td>string-string-map, Seed Point Container, Point Container</td> </tr>
+<tr> <td>string-string-map</td> <td>A mapping for strings to string</td> <td></td> </tr>
 <tr> <td>Dynamic Point</td> <td>A vector/point with arbitrary dimension</td> <td></td> </tr>
 <tr> <td>Mesh Quantities</td> <td>Quantities on vertices and cells</td> <td></td> </tr>
-<tr> <td>Seed Point Container</td> <td>A container of pairs of a point and a segment id, supported in 1d, 2d and 3d</td> <td></td> </tr>
-<tr> <td>Point Container</td> <td>A container of points, supported in 1d, 2d and 3d</td> <td></td> </tr>
+<tr> <td>Seed Point Container</td> <td>A container of pairs of a point and a segment id, supported in 1d, 2d and 3d. String syntax: "(x,y,x),segmend_name;(x,y,z),segmend_name"</td> <td></td> </tr>
+<tr> <td>Point Container</td> <td>A container of points, supported in 1d, 2d and 3d. String syntax: "(x,y,x),(x,y,z)"</td> <td></td> </tr>
 <tr> <td>ViennaGrid 2d triangular mesh</td><td>A ViennaGrid triangular 2d mesh</td> <td></td></tr>
 <tr> <td>ViennaGrid 3d triangular hull mesh</td> <td>A ViennaGrid triangular 3d hull mesh</td> <td>Tetgen input mesh</td></tr>
 <tr> <td>Oriented ViennaGrid 3d triangular hull mesh</td> <td>A ViennaGrid triangular 3d hull mesh with orientation</td> <td>Netgen mesh</td></tr>
