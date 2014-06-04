@@ -33,7 +33,7 @@ option(VIENNAMESH_WITH_VGMODELER "Build the VGModeler library" ON)
 option(VIENNAMESH_WITH_TDR "Build the TDR reader" OFF)
 
 option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" OFF)
-option(BUILD_EXAMPLES "Build the ViennaMesh examples" ON)
+option(BUILD_EXAMPLES "Build the ViennaMesh examples" OFF)
 option(BUILD_TOOLS "Build the ViennaMesh tools" ON)
 option(BUILD_MANUAL "Build the Doxygen-generated manual docs" OFF)
 

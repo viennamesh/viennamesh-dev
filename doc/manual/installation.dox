@@ -4,6 +4,8 @@
 
 \page manual-page-installation    Installation
 
+\tableofcontents
+
 The necessary steps for compiling and running the various examples in ViennaMesh are outlined for several different platforms in the following.
 Although we run nightly tests on various platforms, we cannot check every possible combination of hardware, operating system, and compiler.
 If you experience any trouble, do not hesitate to ask for help at our mailinglist: viennamesh-support@lists.sourceforge.net
@@ -13,16 +15,11 @@ To simplify installation, the required dependencies for using ViennaMesh are kep
 
 <table>
 <tr><td> A recent C++ compiler </td><td> GCC version 4.2.x or above, Clang 3.0 or above, and Visual C++ 2005 or above are known to work.</td></tr>
+<tr><td> <a href="http://www.cmake.org/">CMake</a>     </td><td> Using CMake as a build system makes it easy to configure your builds appropriately. </td></tr>
 <tr><td> <a href="http://viennagrid.sourceforge.net">ViennaGrid</a> </td><td> The ViennaGrid sources are included in the ViennaMesh package, no separate installation required. </td></tr>
 <tr><td> <a href="http://www.boost.org/">Boost</a> </td><td> The Boost Libraries, the following modules are required: Smart Ptr, Function, and Bind </td></tr>
-<tr><td> <a href="http://www.python.org/">Python</a> </td><td> The Python Programming Language, required if the Python layer PyViennaMesh is enabled </td></tr>
-<tr><td> <a href="http://www.swig.org/">SWIG</a> </td><td> Simplified Wrapper and Interface Generator, required if the Python layer PyViennaMesh is enabled </td></tr>
-</table>
-
-Moreover, the following optional components are necessary to unleash the full potential of ViennaMesh:
-
-<table>
-<tr><td> <a href="http://www.cmake.org/">CMake</a>     </td><td> Using CMake as a build system makes it easy to configure your builds appropriately. </td></tr>
+<tr><td> <a href="http://www.python.org/">Python</a> </td><td> The Python Programming Language, required if the Python module PyViennaMesh is enabled </td></tr>
+<tr><td> <a href="http://www.swig.org/">SWIG</a> </td><td> Simplified Wrapper and Interface Generator, required if the Python module PyViennaMesh is enabled </td></tr>
 </table>
 
 
@@ -45,55 +42,47 @@ to build ViennaMesh and
 
     $> make install
 
-to install the the tools and the python layer (you probably have to run make install with root/superuser privileges).
+to install the the tools and the python module (you probably have to run make install with root/superuser privileges).
 
-  \section manual-installation-examples Building the Examples
+\subsection manual-installation-build-options Building Options
 
-For building the examples, we suppose that CMake is properly set up on your system.
-The instructions for the various operating systems are as follows
+ViennaMesh provides these compile switches/options which can be set by CMake
 
-  \subsection manual-installation-linux Linux
+<table>
+<tr> <td><b>CMake option name</b></td> <td><b>Default</b></td> <td><b>Description</b></td> </tr>
+<tr> <td>VIENNAMESH_WITH_TRIANGLE</td> <td>ON</td> <td>Enables algorithms Triangle: triangle_make_mesh, triangle_make_hull</td> </tr>
+<tr> <td>VIENNAMESH_WITH_TETGEN</td> <td>ON</td> <td>Enables Tetgen algorithms: tetgen_make_mesh</td> </tr>
+<tr> <td>VIENNAMESH_WITH_NETGEN</td> <td>ON</td> <td>Enables Netgen algorithms: netgen_make_mesh, netgen_csg_make_mesh</td> </tr>
+<tr> <td>VIENNAMESH_NETGEN_WITH_OPENCASCADE</td> <td>OFF</td> <td>Enables algorithms Netgen with OpenCascade support (requires installation of OpenCascade): netgen_occ_make_mesh</td> </tr>
+<tr> <td>VIENNAMESH_WITH_VGMODELER</td> <td>ON</td> <td>Enables VgModeler algorithms (currently doesn't work in Windows): vgmodeler_adapt_hull</td> </tr>
+<tr> <td>VIENNAMESH_WITH_TDR</td> <td>OFF</td> <td>Enables reading of Sentaurus TDR files (requires HDF5 development files installed)</td> </tr>
+<tr> <td>BUILD_PYVIENNAMESH</td> <td>OFF</td> <td>Builds the ViennaMesh Python module \ref manual-page-pyviennamesh "PyViennaMesh" (requires Python and SWIG installed)</td> </tr>
+<tr> <td>BUILD_EXAMPLES</td> <td>OFF</td> <td>Builds C++ examples</td> </tr>
+<tr> <td>BUILD_TOOLS</td> <td>ON</td> <td>Builds the \ref manual-page-tools "meshing tools"</td> </tr>
+<tr> <td>BUILD_MANUAL</td> <td>OFF</td> <td>Builds the doxygen documentation (requires Doxygen installed)</td> </tr>
+</table>
 
-To build the examples, open a terminal and change to:
-
-    $> cd /your-ViennaMesh-path/build/
-
-Execute
-
-    $> cmake ..
-
-to obtain a Makefile and type
-
-    $> make
-
-to build the examples and the standalone executable. If desired, one can build each example separately instead:
-
-    $> make vmesh      #builds the vmesh tool
-
-You may speed up the building process by using multiple concurrent jobs, e.g. make -j4.
-
-
-  \subsection manual-installation-mac  Mac OS X
+\subsection manual-installation-mac  Mac OS X
 
 For the GCC compiler the Xcode \cite xcode package has to be installed. To install CMake, external portation
 tools such as Fink \cite fink, DarwinPorts \cite darwinports, or MacPorts \cite macports have to be used.
 
 The build process of ViennaMesh is similar to Linux.
 
-  \subsection manual-installation-windows  Windows
+\subsection manual-installation-windows  Windows
 
 In the following the procedure is outlined for Visual Studio: Assuming that CMake is
 already installed, Visual Studio solution and project files can be created using CMake:
     - Open the CMake GUI.
     - Set the ViennaMesh base directory as source directory.
     - Set the build/ directory as build directory.
-    - If you want to enable the Python layer PyViennaMesh, you have to set the directories now, see below
+    - If you want to enable the Python module PyViennaMesh, you have to set the directories now, see below
     - Click on ’Configure’ and select the appropriate generator (e.g. Visual Studio 9 2008)
     - Click on 'Configure' again
     - Click on ’Generate’
     - The project files can now be found in the ViennaMesh build directory, where they can be opened and compiled with Visual Studio (provided that the include and library paths are set correctly.
 
-Compiling and installing ViennaMesh with its Python layer is a little bit tricky for Windows but not hard at all. First of all you have to install <a href="http://www.python.org">Python</a> (Version 3.4.1 was successfully tested) for Windows. Additionally you need <a href="http://www.swig.org">SWIG</a> (Version 3.0.1 was successfully tested). Download the swigwin package and extract it to a directory of your choice.
+Compiling and installing ViennaMesh with its Python module is a little bit tricky for Windows but not hard at all. First of all you have to install <a href="http://www.python.org">Python</a> (Version 3.4.1 was successfully tested) for Windows. Additionally you need <a href="http://www.swig.org">SWIG</a> (Version 3.0.1 was successfully tested). Download the swigwin package and extract it to a directory of your choice.
 Now you will need the Python installation directory as well as the swigwin directory. After setting the source directory and the build directory in the CMake GUI you have to set some directories explicitly to tell CMake where you Python and SWIG installation is located. Before pressing Configure, you have to add the following entries (do this by clicking on "Add Entry"):
 
 <table>
