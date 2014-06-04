@@ -229,14 +229,82 @@ namespace viennamesh
   class no_check
   {
   public:
-    void operator()(ValueT const &) const {}
-//     {
-//           std::stringstream ss;
-//           ss << "Check of parameter \"" << name() << "\" failed. Value: " << native_handle() << "(" << check_string() << ")";
-//           throw interface_check_failed_exception( ss.str() );
-//     }
-
+    bool operator()(ValueT const &) const { return true; }
     std::string to_string() const { return "no value checking"; }
+  };
+
+  template<typename ValueT>
+  class greater_check
+  {
+  public:
+    greater_check(ValueT min_) : min(min_) {}
+
+    bool operator()(ValueT const & value) const { return min < value; }
+    std::string to_string() const { return "no value checking"; }
+  private:
+    ValueT min;
+  };
+
+  template<typename ValueT>
+  class greater_equal_check
+  {
+  public:
+    greater_equal_check(ValueT min_) : min(min_) {}
+
+    bool operator()(ValueT const & value) const { return min <= value; }
+    std::string to_string() const { return "no value checking"; }
+  private:
+    ValueT min;
+  };
+
+  template<typename ValueT>
+  class less_check
+  {
+  public:
+    less_check(ValueT max_) : max(max_) {}
+
+    bool operator()(ValueT const & value) const { return value < max; }
+    std::string to_string() const { return "no value checking"; }
+  private:
+    ValueT max;
+  };
+
+  template<typename ValueT>
+  class less_equal_check
+  {
+  public:
+    less_equal_check(ValueT max_) : max(max_) {}
+
+    bool operator()(ValueT const & value) const { return value <= max; }
+    std::string to_string() const { return "no value checking"; }
+  private:
+    ValueT max;
+  };
+
+  template<typename ValueT>
+  class open_interval_check
+  {
+  public:
+    open_interval_check(ValueT min_, ValueT max_) : min(std::min(min_, max_)), max(std::max(min_, max_)) {}
+
+    bool operator()(ValueT const & value) const { return (min < value) && (value < max); }
+    std::string to_string() const { return "no value checking"; }
+  private:
+    ValueT min;
+    ValueT max;
+  };
+
+  template<typename ValueT>
+  class closed_interval_check
+  {
+  public:
+    closed_interval_check(ValueT min_, ValueT max_) : min(std::min(min_, max_)), max(std::max(min_, max_)) {}
+
+    bool operator()(ValueT const & value) const { return (min <= value) && (value <= max); }
+    std::string to_string() const { return "no value checking"; }
+  private:
+    ValueT min;
+    ValueT max;
   };
 
   template<typename ValueT>
@@ -341,7 +409,14 @@ namespace viennamesh
         native_handle = base_input_parameter_interface::get_checked<ValueT>();
 
         if (native_handle)
-          check_(native_handle());
+        {
+          if (!check_(native_handle()))
+          {
+            std::stringstream ss;
+            ss << "Check of parameter \"" << name() << "\" failed. Value: " << native_handle() << "(" << check_string() << ")";
+            throw interface_check_failed_exception( ss.str() );
+          }
+        }
 
         fetched = true;
       }

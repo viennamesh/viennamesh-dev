@@ -51,6 +51,12 @@ namespace viennamesh
       InternalMeshType * m;
     };
 
+    inline std::ostream & operator<<( std::ostream & os, mesh const & m )
+    {
+      os << "netgen-mesh";
+      return os;
+    }
+
 
     template<typename MeshT, typename SegmentationT>
     bool convert(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input, netgen::mesh & output)
