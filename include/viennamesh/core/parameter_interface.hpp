@@ -240,7 +240,7 @@ namespace viennamesh
     greater_check(ValueT min_) : min(min_) {}
 
     bool operator()(ValueT const & value) const { return min < value; }
-    std::string to_string() const { return "no value checking"; }
+    std::string to_string() const { return "Value should be greater than " + lexical_cast<string>(min); }
   private:
     ValueT min;
   };
@@ -252,7 +252,7 @@ namespace viennamesh
     greater_equal_check(ValueT min_) : min(min_) {}
 
     bool operator()(ValueT const & value) const { return min <= value; }
-    std::string to_string() const { return "no value checking"; }
+    std::string to_string() const { return "Value should be greater than or equal to " + lexical_cast<string>(min); }
   private:
     ValueT min;
   };
@@ -264,7 +264,7 @@ namespace viennamesh
     less_check(ValueT max_) : max(max_) {}
 
     bool operator()(ValueT const & value) const { return value < max; }
-    std::string to_string() const { return "no value checking"; }
+    std::string to_string() const { return "Value should be less than " + lexical_cast<string>(max); }
   private:
     ValueT max;
   };
@@ -276,7 +276,7 @@ namespace viennamesh
     less_equal_check(ValueT max_) : max(max_) {}
 
     bool operator()(ValueT const & value) const { return value <= max; }
-    std::string to_string() const { return "no value checking"; }
+    std::string to_string() const { return "Value should be less than or equal to " + lexical_cast<string>(max); }
   private:
     ValueT max;
   };
@@ -288,7 +288,7 @@ namespace viennamesh
     open_interval_check(ValueT min_, ValueT max_) : min(std::min(min_, max_)), max(std::max(min_, max_)) {}
 
     bool operator()(ValueT const & value) const { return (min < value) && (value < max); }
-    std::string to_string() const { return "no value checking"; }
+    std::string to_string() const { return "Value should be in interval (" + lexical_cast<string>(min) + "," + lexical_cast<string>(max) + ")"; }
   private:
     ValueT min;
     ValueT max;
@@ -301,7 +301,7 @@ namespace viennamesh
     closed_interval_check(ValueT min_, ValueT max_) : min(std::min(min_, max_)), max(std::max(min_, max_)) {}
 
     bool operator()(ValueT const & value) const { return (min <= value) && (value <= max); }
-    std::string to_string() const { return "no value checking"; }
+    std::string to_string() const { return "Value should be in interval [" + lexical_cast<string>(min) + "," + lexical_cast<string>(max) + "]"; }
   private:
     ValueT min;
     ValueT max;
@@ -413,7 +413,7 @@ namespace viennamesh
           if (!check_(native_handle()))
           {
             std::stringstream ss;
-            ss << "Check of parameter \"" << name() << "\" failed. Value: " << native_handle() << "(" << check_string() << ")";
+            ss << "Check of parameter \"" << name() << "\" failed. Value: " << native_handle() << " (" << check_string() << ")";
             throw interface_check_failed_exception( ss.str() );
           }
         }
