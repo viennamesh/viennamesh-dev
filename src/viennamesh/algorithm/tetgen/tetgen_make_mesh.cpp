@@ -160,10 +160,11 @@ namespace viennamesh
         info(1) << "Using seed points" << std::endl;
       }
 
-      std_capture().start();
-      options.init();
-      tetrahedralize(&options, &tmp, &output);
-      std_capture().finish();
+      {
+        StdCaptureHandle capture_handle;
+        options.init();
+        tetrahedralize(&options, &tmp, &output);
+      }
 
       delete[] tmp.regionlist;
       delete[] tmp.holelist;

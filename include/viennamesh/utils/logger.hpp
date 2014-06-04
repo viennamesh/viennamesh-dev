@@ -586,110 +586,122 @@ namespace viennamesh
 
 
 
+  class StdCaptureHandle;
 
 #ifndef _WIN32
   // http://stackoverflow.com/questions/5419356/redirect-stdout-stderr-to-a-string
   // http://stackoverflow.com/questions/5911147/how-to-redirect-printf-output-back-into-code
   // http://ashishgrover.com/linux-multi-threading-fifos-or-named-pipes/
 
-  void * reader(void * data);
+
 
   class StdCapture
   {
-    friend void * reader(void * data);
-  public:
+  private:
+    static void * reader(void * data);
 
-      pthread_t readerThread;
+    friend class StdCaptureHandle;
+    static StdCapture & get();
 
-      StdCapture(): m_capturing(false), m_init(false), m_oldStdOut(0), m_oldStdErr(0)
-      {
-          m_pipe[READ] = 0;
-          m_pipe[WRITE] = 0;
-          if (pipe(m_pipe) == -1)
-              return;
+    template<typename OutputFormaterT>
+    friend struct StdOutCallback;
+
+    StdCapture(): m_capturing(false), m_init(false), m_oldStdOut(0), m_oldStdErr(0)
+    {
+        m_pipe[READ] = 0;
+        m_pipe[WRITE] = 0;
+        if (pipe(m_pipe) == -1)
+            return;
 //  #ifndef _WIN32
-          // Reading pipe has to be set to non-blocking
-          fcntl(m_pipe[READ], F_SETFL, fcntl(m_pipe[READ], F_GETFL) | O_NONBLOCK);
+        // Reading pipe has to be set to non-blocking
+        fcntl(m_pipe[READ], F_SETFL, fcntl(m_pipe[READ], F_GETFL) | O_NONBLOCK);
 //  #endif
 
-          m_oldStdOut = dup(fileno(stdout));
-          m_oldStdErr = dup(fileno(stderr));
-          if (m_oldStdOut == -1 || m_oldStdErr == -1)
-              return;
+        m_oldStdOut = dup(fileno(stdout));
+        m_oldStdErr = dup(fileno(stderr));
+        if (m_oldStdOut == -1 || m_oldStdErr == -1)
+            return;
 
-          m_init = true;
-      }
+        m_init = true;
+    }
 
-      ~StdCapture()
-      {
-          if (m_capturing)
-          {
-              finish();
-          }
-          if (m_oldStdOut > 0)
-              close(m_oldStdOut);
-          if (m_oldStdErr > 0)
-              close(m_oldStdErr);
-          if (m_pipe[READ] > 0)
-              close(m_pipe[READ]);
-          if (m_pipe[WRITE] > 0)
-              close(m_pipe[WRITE]);
-      }
+    ~StdCapture()
+    {
+        if (m_capturing)
+        {
+            finish();
+        }
+        if (m_oldStdOut > 0)
+            close(m_oldStdOut);
+        if (m_oldStdErr > 0)
+            close(m_oldStdErr);
+        if (m_pipe[READ] > 0)
+            close(m_pipe[READ]);
+        if (m_pipe[WRITE] > 0)
+            close(m_pipe[WRITE]);
+    }
 
 
-      void start()
-      {
-          if (!m_init)
-              return;
-          if (m_capturing)
-              finish();
-          fflush(stdout);
-          fflush(stderr);
-          dup2(m_pipe[WRITE], fileno(stdout));
-          dup2(m_pipe[WRITE], fileno(stderr));
+    void start()
+    {
+        if (!m_init)
+            return;
+        if (m_capturing)
+            finish();
+        fflush(stdout);
+        fflush(stderr);
+        dup2(m_pipe[WRITE], fileno(stdout));
+        dup2(m_pipe[WRITE], fileno(stderr));
 
-          m_capturing = true;
-          thread_running = true;
-          pthread_create( &readerThread, NULL, &reader, (void*) (this));
-      }
+        m_capturing = true;
+        thread_running = true;
+        pthread_create( &readerThread, NULL, &reader, (void*) (this));
+    }
 
-      bool finish()
-      {
-          if (!m_init)
-              return false;
-          if (!m_capturing)
-              return false;
-          fflush(stdout);
-          fflush(stderr);
+    bool finish()
+    {
+        if (!m_init)
+            return false;
+        if (!m_capturing)
+            return false;
+        fflush(stdout);
+        fflush(stderr);
 
-          thread_running = false;
-          pthread_join( readerThread, NULL );
-          m_capturing = false;
+        thread_running = false;
+        pthread_join( readerThread, NULL );
+        m_capturing = false;
 
-          dup2(m_oldStdOut, fileno(stdout));
-          dup2(m_oldStdErr, fileno(stderr));
+        dup2(m_oldStdOut, fileno(stdout));
+        dup2(m_oldStdErr, fileno(stderr));
 
-          return true;
-      }
+        return true;
+    }
 
-      bool capturing() const { return m_capturing; }
-      int old_stdout() const { return m_oldStdOut; }
+    bool capturing() const { return m_capturing; }
+    int old_stdout() const { return m_oldStdOut; }
 
-  private:
-      enum PIPES { READ, WRITE };
-      int m_pipe[2];
+//   private:
+    pthread_t readerThread;
 
-      bool thread_running;
-      bool m_capturing;
-      bool m_init;
+    enum PIPES { READ, WRITE };
+    int m_pipe[2];
 
-      int m_oldStdOut;
-      int m_oldStdErr;
+    bool thread_running;
+    bool m_capturing;
+    bool m_init;
+
+    int m_oldStdOut;
+    int m_oldStdErr;
   };
 #else
 	class StdCapture
 	{
-  public:
+  private:
+    friend class StdCaptureHandle;
+    static StdCapture & get();
+
+    template<typename OutputFormaterT>
+    friend struct StdOutCallback;
 
     StdCapture() {}
     ~StdCapture() {}
@@ -699,12 +711,19 @@ namespace viennamesh
 
     bool capturing() const { return false; }
     int old_stdout() const { return -1; }
-
-  private:
 	};
 #endif
 
-  StdCapture & std_capture();
+  class StdCaptureHandle
+  {
+  public:
+    StdCaptureHandle() { StdCapture::get().start(); }
+    ~StdCaptureHandle() { StdCapture::get().finish(); }
+  };
+
+
+
+
 
   template<typename OutputFormaterT>
   struct StdOutCallback : public BaseCallback

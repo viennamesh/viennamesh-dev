@@ -33,7 +33,7 @@ namespace viennamesh
     {
       output_parameter_proxy<netgen::mesh> omp(output_mesh);
 
-      std_capture().start();
+      StdCaptureHandle capture_handle;
 
       if (omp != input_mesh)
         omp() = input_mesh();
@@ -47,8 +47,6 @@ namespace viennamesh
       MeshVolume (mesh_parameters, omp()());
       RemoveIllegalElements (omp()());
       OptimizeVolume (mesh_parameters, omp()());
-
-      std_capture().finish();
 
       return true;
     }
