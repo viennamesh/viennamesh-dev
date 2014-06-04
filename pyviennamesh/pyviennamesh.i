@@ -30,16 +30,16 @@
 
 
 
-%include "viennagrid/point.hpp"
-%include "viennagrid/storage/static_array.hpp"
-%template(static_array_1d) viennagrid::static_array<double, viennagrid::cartesian_cs<1>::dim>;
-%template(static_array_2d) viennagrid::static_array<double, viennagrid::cartesian_cs<2>::dim>;
-%template(static_array_3d) viennagrid::static_array<double, viennagrid::cartesian_cs<3>::dim>;
-%template(point_1d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<1> >;
-%template(point_2d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<2> >;
-%template(point_3d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<3> >;
+// %include "viennagrid/point.hpp"
+// %include "viennagrid/storage/static_array.hpp"
+// %template(static_array_1d) viennagrid::static_array<double, viennagrid::cartesian_cs<1>::dim>;
+// %template(static_array_2d) viennagrid::static_array<double, viennagrid::cartesian_cs<2>::dim>;
+// %template(static_array_3d) viennagrid::static_array<double, viennagrid::cartesian_cs<3>::dim>;
+// %template(point_1d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<1> >;
+// %template(point_2d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<2> >;
+// %template(point_3d) viennagrid::spatial_point<double, viennagrid::cartesian_cs<3> >;
 
-%pointer_functions(double, doublep);
+// %pointer_functions(double, doublep);
 
 
 namespace viennamesh
