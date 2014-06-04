@@ -36,18 +36,26 @@
 #include "viennamesh/algorithm/make_line_mesh.hpp"
 
 // Triangle algorithms
-#include "viennamesh/algorithm/triangle/triangle_make_mesh.hpp"
-#include "viennamesh/algorithm/triangle/triangle_make_hull.hpp"
+#ifdef VIENNAMESH_WITH_TRIANGLE
+  #include "viennamesh/algorithm/triangle/triangle_make_mesh.hpp"
+  #include "viennamesh/algorithm/triangle/triangle_make_hull.hpp"
+#endif
 
 // Tetgen algorithms
-#include "viennamesh/algorithm/tetgen/tetgen_make_mesh.hpp"
+#ifdef VIENNAMESH_WITH_TETGEN
+  #include "viennamesh/algorithm/tetgen/tetgen_make_mesh.hpp"
+#endif
 
 // Netgen algorithms
-#include "viennamesh/algorithm/netgen/netgen_make_mesh.hpp"
-#include "viennamesh/algorithm/netgen/netgen_csg_make_mesh.hpp"
-#include "viennamesh/algorithm/netgen/netgen_occ_make_mesh.hpp"
+#ifdef VIENNAMESH_WITH_NETGEN
+  #include "viennamesh/algorithm/netgen/netgen_make_mesh.hpp"
+  #include "viennamesh/algorithm/netgen/netgen_csg_make_mesh.hpp"
+  #include "viennamesh/algorithm/netgen/netgen_occ_make_mesh.hpp"
+#endif
 
 // VGModeler algorithms
-#include "viennamesh/algorithm/vgmodeler/vgmodeler_adapt_hull.hpp"
+#ifdef VIENNAMESH_WITH_VGMODELER
+  #include "viennamesh/algorithm/vgmodeler/vgmodeler_adapt_hull.hpp"
+#endif
 
 #endif
