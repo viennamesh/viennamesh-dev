@@ -32,7 +32,7 @@ namespace viennamesh
       cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
       curvature_safety_factor(*this, parameter_information("curvature_safety_factor","double","A safety factor for curvatures"), 2.0),
       segments_per_edge(*this, parameter_information("segments_per_edge","double","An edge should be split into how many segments"), 1.0),
-      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), 0.3),
+      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), greater_check<double>(0.0), 0.3),
       output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, netgen::mesh")) {}
 
     std::string occ_make_mesh::name() const { return "Netgen 5.1 OpenCascade mesher"; }

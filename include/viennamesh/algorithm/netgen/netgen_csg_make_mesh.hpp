@@ -35,7 +35,7 @@ namespace viennamesh
       required_input_parameter_interface<std::string>   input_csg_source;
       default_input_parameter_interface<double>         relative_find_identic_surface_eps;
       optional_input_parameter_interface<double>        cell_size;
-      default_input_parameter_interface<double>         grading;
+      default_input_parameter_interface<double, greater_check<double> >         grading;
       default_input_parameter_interface<int>            optimization_steps;
       default_input_parameter_interface<bool>           delaunay;
       optional_input_parameter_interface<std::string>   optimize_string;

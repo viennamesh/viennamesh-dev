@@ -25,7 +25,7 @@ namespace viennamesh
       input_csg_source(*this, parameter_information("csg","string","The constructive solid geometry string in Netgen syntax")),
       relative_find_identic_surface_eps(*this, parameter_information("relative_find_identic_surface_eps","double","A relative value for finding identic surfaces"), 1e-8),
       cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
-      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), 0.3),
+      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), greater_check<double>(0.0), 0.3),
       optimization_steps(*this, parameter_information("optimization_steps","int","Number of optimization steps"), 3),
       delaunay(*this, parameter_information("delaunay","bool","Determines if the output mesh should be delaunay"), true),
       optimize_string(*this, parameter_information("optimize_string","string","The Netgen optimization string")),
