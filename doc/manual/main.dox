@@ -20,7 +20,7 @@ ViennaMesh is an open source meshing framework which aims to support a wide rang
 
 \section manual-page-what-is-viennamesh What is ViennaMesh?
 
-ViennaMesh is a software framework which aims to provide a flexible infrastructure for meshing applications. ViennaMesh uses ViennaGrid as a common data structure and provides interfaces to external meshing tools as well as a set of mesh related algorithms implemented on top of ViennaGrid.
+ViennaMesh is a software framework which aims to provide a flexible infrastructure for meshing applications. ViennaMesh uses ViennaGrid as a common data structure and provides interfaces to external \ref manual-page-algorithms-external "meshing tools" as well as a set of mesh related \ref manual-page-algorithms-viennagrid "algorithms implemented on top of ViennaGrid".
 
 ViennaMesh currently provides two user-interfaces: a set of command line tools and a Python module.
 
