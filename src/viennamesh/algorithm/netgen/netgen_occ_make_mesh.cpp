@@ -46,68 +46,76 @@ namespace viennamesh
       else
         ft = io::from_filename( filename() );
 
-      output_parameter_proxy<netgen::mesh> omp(output_mesh);
-      ::netgen::OCCGeometry * geometry;
-
-      if (ft == io::OCC_STEP)
-        geometry = ::netgen::LoadOCC_STEP( filename().c_str() );
-      else if (ft == io::OCC_IGES)
-        geometry = ::netgen::LoadOCC_IGES( filename().c_str() );
-      else
+      try
       {
-        error(1) << "File type \"" << io::to_string(ft) << "\" is not supported" << std::endl;
+        output_parameter_proxy<netgen::mesh> omp(output_mesh);
+        ::netgen::OCCGeometry * geometry;
+
+        if (ft == io::OCC_STEP)
+          geometry = ::netgen::LoadOCC_STEP( filename().c_str() );
+        else if (ft == io::OCC_IGES)
+          geometry = ::netgen::LoadOCC_IGES( filename().c_str() );
+        else
+        {
+          error(1) << "File type \"" << io::to_string(ft) << "\" is not supported" << std::endl;
+          return false;
+        }
+
+        // http://sourceforge.net/p/netgen-mesher/discussion/905307/thread/7176bc7d/
+        TopTools_IndexedMapOfShape FMap;
+        FMap.Assign( geometry->fmap );
+        if (!FMap.Extent())
+        {
+          std::cout << "Error retrieving Face map... (OpenCascade error)" << endl;
+          return false;
+        }
+
+        ::netgen::MeshingParameters mp;
+
+        mp.elementorder = 0;
+        mp.quad = 0;
+        mp.inverttets = 0;
+        mp.inverttrigs = 0;
+
+        if (cell_size.valid())
+        {
+          mp.uselocalh = 1;
+          mp.maxh = cell_size();
+        }
+
+
+        mp.curvaturesafety = curvature_safety_factor();
+        mp.segmentsperedge = segments_per_edge();
+        mp.grading = grading();
+
+        int perfstepsend = 6;
+
+        omp()().geomtype = ::netgen::Mesh::GEOM_OCC;
+        ::netgen::occparam.resthcloseedgeenable = 0; //mp.closeedgeenable;
+        ::netgen::occparam.resthcloseedgefac = 1.0; //mp.closeedgefact;
+
+        ::netgen::mparam = mp;
+
+        omp()().DeleteMesh();
+        ::netgen::OCCSetLocalMeshSize( *geometry, omp()() );
+
+
+        ::netgen::OCCFindEdges(*geometry, omp()());
+
+        ::netgen::OCCMeshSurface(*geometry, omp()(), perfstepsend);
+        omp()().CalcSurfacesOfNode();
+
+        ::netgen::MeshVolume(mp, omp()());
+        ::netgen::RemoveIllegalElements( omp()() );
+        ::netgen::MeshQuality3d( omp()() );
+
+        ::netgen::OptimizeVolume(mp, omp()() );
+      }
+      catch (::netgen::NgException const & ex)
+      {
+        error(1) << "Netgen Error: " << ex.What() << std::endl;
         return false;
       }
-
-      // http://sourceforge.net/p/netgen-mesher/discussion/905307/thread/7176bc7d/
-      TopTools_IndexedMapOfShape FMap;
-      FMap.Assign( geometry->fmap );
-      if (!FMap.Extent())
-      {
-        std::cout << "Error retrieving Face map... (OpenCascade error)" << endl;
-        return false;
-      }
-
-      ::netgen::MeshingParameters mp;
-
-      mp.elementorder = 0;
-      mp.quad = 0;
-      mp.inverttets = 0;
-      mp.inverttrigs = 0;
-
-      if (cell_size.valid())
-      {
-        mp.uselocalh = 1;
-        mp.maxh = cell_size();
-      }
-
-
-      mp.curvaturesafety = curvature_safety_factor();
-      mp.segmentsperedge = segments_per_edge();
-      mp.grading = grading();
-
-      int perfstepsend = 6;
-
-      omp()().geomtype = ::netgen::Mesh::GEOM_OCC;
-      ::netgen::occparam.resthcloseedgeenable = 0; //mp.closeedgeenable;
-      ::netgen::occparam.resthcloseedgefac = 1.0; //mp.closeedgefact;
-
-      ::netgen::mparam = mp;
-
-      omp()().DeleteMesh();
-      ::netgen::OCCSetLocalMeshSize( *geometry, omp()() );
-
-
-      ::netgen::OCCFindEdges(*geometry, omp()());
-
-      ::netgen::OCCMeshSurface(*geometry, omp()(), perfstepsend);
-      omp()().CalcSurfacesOfNode();
-
-      ::netgen::MeshVolume(mp, omp()());
-      ::netgen::RemoveIllegalElements( omp()() );
-      ::netgen::MeshQuality3d( omp()() );
-
-      ::netgen::OptimizeVolume(mp, omp()() );
 
       return true;
     }

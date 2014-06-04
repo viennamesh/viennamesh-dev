@@ -40,25 +40,36 @@ namespace viennamesh
 
       StdCaptureHandle capture_handle;
 
-      std::istringstream csg_stream(input_csg_source());
-      ::netgen::CSGeometry * geom = ::netgen::ParseCSG( csg_stream );
+      ::netgen::CSGeometry * geom;
 
-      geom->FindIdenticSurfaces(relative_find_identic_surface_eps() * geom->MaxSize());
-      ::netgen::MeshingParameters mesh_parameters;
+      try
+      {
+        std::istringstream csg_stream(input_csg_source());
+        geom = ::netgen::ParseCSG( csg_stream );
 
-      if (cell_size.valid())
-        mesh_parameters.maxh = cell_size();
+        geom->FindIdenticSurfaces(relative_find_identic_surface_eps() * geom->MaxSize());
+        ::netgen::MeshingParameters mesh_parameters;
 
-      mesh_parameters.grading = grading();
-      mesh_parameters.optsteps3d = optimization_steps();
-      mesh_parameters.delaunay = delaunay();
+        if (cell_size.valid())
+          mesh_parameters.maxh = cell_size();
 
-      if (optimize_string.valid())
-        mesh_parameters.optimize3d = optimize_string().c_str();
+        mesh_parameters.grading = grading();
+        mesh_parameters.optsteps3d = optimization_steps();
+        mesh_parameters.delaunay = delaunay();
 
-      geom->GenerateMesh(output().mesh_ptr(), mesh_parameters, 1, 5);
+        if (optimize_string.valid())
+          mesh_parameters.optimize3d = optimize_string().c_str();
 
-      delete geom;
+        geom->GenerateMesh(output().mesh_ptr(), mesh_parameters, 1, 5);
+
+        delete geom;
+      }
+      catch (::netgen::NgException const & ex)
+      {
+        error(1) << "Netgen Error: " << ex.What() << std::endl;
+        delete geom;
+        return false;
+      }
 
       return true;
     }
