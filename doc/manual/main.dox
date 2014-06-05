@@ -26,7 +26,7 @@ ViennaMesh currently provides two user-interfaces: a set of command line tools a
 
 \section motivation Motivation
 
-Several libraries providing mesh related algorithms, like <a href="http://www.tetgen.org">Tetgen</a> or <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a>, are available but they usually do not provide interfaces to each other. The main goal of ViennaMesh is to provide such interfaces enable the use of different mesh related algorithms.
+Several libraries providing mesh related algorithms, like <a href="http://www.tetgen.org">Tetgen</a> or <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a>, are available but they usually do not provide interfaces to each other. The main goal of ViennaMesh is to provide such interfaces to enable the use of different mesh related algorithms.
 
 \section manual-page-overview Overview
 
