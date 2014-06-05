@@ -102,17 +102,18 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
 SET(VGMODELER_GSSE1_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/ ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse01/external/mauch)
-SET(VGMODELER_GSSE2_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/ ${CMAKE_CURRENT_SOURCE_DIR}/gsse/gsse02/external/)
+
+add_subdirectory(cmake.stl)
 
 # note: we have to use specific include paths for these sources, as they won't compile
 # if gsse01 and gsse02 is used together in the global INCLUDE_DIRECTORIES path
-ADD_LIBRARY(viennamesh-vgmodeler-meshstl stlgeom/meshstlsurface.cpp)
-SET_PROPERTY(TARGET viennamesh-vgmodeler-meshstl APPEND_STRING PROPERTY COMPILE_FLAGS "${VGMODELER_COMPILE_FLAGS}")
-SET_PROPERTY(TARGET viennamesh-vgmodeler-meshstl APPEND PROPERTY INCLUDE_DIRECTORIES ${VGMODELER_GSSE2_INCLUDE_DIRS})
+
+include_directories(${VGMODELER_GSSE1_INCLUDE_DIRS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VGMODELER_COMPILE_FLAGS}")
 
 ADD_LIBRARY(viennamesh-vgmodeler ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG} stlgeom/stltopology.cpp vgmodeler.cpp)
-SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND_STRING PROPERTY COMPILE_FLAGS "${VGMODELER_COMPILE_FLAGS}")
-SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND PROPERTY INCLUDE_DIRECTORIES ${VGMODELER_GSSE1_INCLUDE_DIRS})
+# SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND_STRING PROPERTY COMPILE_FLAGS "${VGMODELER_COMPILE_FLAGS}")
+# SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND PROPERTY INCLUDE_DIRECTORIES ${VGMODELER_GSSE1_INCLUDE_DIRS})
 target_link_libraries(viennamesh-vgmodeler viennamesh-vgmodeler-meshstl)
 
 

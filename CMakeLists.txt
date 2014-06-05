@@ -116,8 +116,9 @@ add_subdirectory(src)
 # Python Layer
 ################
 
-
-add_subdirectory(pyviennamesh)
+if (BUILD_PYVIENNAMESH)
+  add_subdirectory(pyviennamesh)
+endif (BUILD_PYVIENNAMESH)
 
 
 # Subdirectories
