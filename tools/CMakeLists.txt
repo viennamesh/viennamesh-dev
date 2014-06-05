@@ -9,10 +9,11 @@ if (VIENNAMESH_WITH_TETGEN)
   set(TOOL_PROGRAMS ${TOOL_PROGRAMS} tetgen_make_mesh)
 endif(VIENNAMESH_WITH_TETGEN)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LIBVIENNAMESH_COMPILE_FLAGS}")
+message(STATUS "Tools compile flags: ${CMAKE_CXX_FLAGS}")
 
 foreach(PROG ${TOOL_PROGRAMS})
   add_executable(${PROG} src/${PROG}.cpp)
-  SET_PROPERTY(TARGET ${PROG} APPEND_STRING PROPERTY COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS}")
   target_link_libraries(${PROG} viennamesh)
   install(TARGETS ${PROG} DESTINATION bin)
 endforeach(PROG)

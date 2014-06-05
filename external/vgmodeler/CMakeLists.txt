@@ -111,9 +111,9 @@ add_subdirectory(cmake.stl)
 include_directories(${VGMODELER_GSSE1_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VGMODELER_COMPILE_FLAGS}")
 
+message(STATUS "VgModeler compile flags: ${CMAKE_CXX_FLAGS}")
+
 ADD_LIBRARY(viennamesh-vgmodeler ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG} stlgeom/stltopology.cpp vgmodeler.cpp)
-# SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND_STRING PROPERTY COMPILE_FLAGS "${VGMODELER_COMPILE_FLAGS}")
-# SET_PROPERTY(TARGET viennamesh-vgmodeler APPEND PROPERTY INCLUDE_DIRECTORIES ${VGMODELER_GSSE1_INCLUDE_DIRS})
 target_link_libraries(viennamesh-vgmodeler viennamesh-vgmodeler-meshstl)
 
 
