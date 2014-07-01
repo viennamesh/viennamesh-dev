@@ -55,6 +55,7 @@ namespace viennamesh
     register_algorithm<viennamesh::laplace_smooth>();
     register_algorithm<viennamesh::line_coarsening>();
     register_algorithm<viennamesh::seed_point_segmenting>();
+    register_algorithm<viennamesh::remove_degenerate_cells>();
 
     register_algorithm<viennamesh::map_segments>();
     register_algorithm<viennamesh::merge_meshes>();
