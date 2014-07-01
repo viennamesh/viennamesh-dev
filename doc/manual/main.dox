@@ -32,6 +32,17 @@ Several libraries providing mesh related algorithms, like <a href="http://www.te
 
 The main entity of ViennaMesh is the algorithm. An algorithm processes a set of input parameters and optionally generates a set of output parameters. Typical input and output parameters are meshes. For example the mesh_reader algorithm requires a string input parameter to read a mesh which is then provided as an output parameter. Usually, output parameters of one algorithm are used as input parameters of another. ViennaMesh supports linking input parameters to output parameters.
 
+<center>
+<table>
+<tr>
+<td>![](algorithm.svg)</td>
+</tr>
+<tr>
+<td><center><b>An algorithm with its input and output parameter</b></center></td>
+</tr>
+</table>
+</center>
+
 ViennaMesh supports a wide range of \ref manual-page-algorithms "Algorithms" which can be used and linked together to generate or modify meshes. For more information on parameters see \ref manual-page-parameters.
 
 \section section-viennamesh-infrastructure ViennaMesh Infrastructure
