@@ -8,8 +8,6 @@
 
 This algorithm uses the <a href="http://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> library to generate a triangle mesh based on a boundary representation. This algorithm supports local element size using the \ref section-element-sizing-framework "Element Sizing Framework".
 
-TODO: picture source -> destination
-
 \subsection section-algorithm-triangle-make-mesh-inputs Triangle Mesh Generator Inputs
 
 <table>
@@ -39,8 +37,6 @@ TODO: picture source -> destination
 
 This algorithm uses the <a href="http://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> library to generate a triangle hull mesh based on a PLC boundary representation geometry. To ensure element connectivity, a trivial triangulation is generated.
 
-TODO: picture source -> destination
-
 \subsection section-algorithm-triangle-make-hull-inputs Triangle Hull Mesh Generator Inputs
 
 <table>
@@ -60,8 +56,6 @@ TODO: picture source -> destination
 \section section-algorithm-tetgen-make-mesh Tetgen Mesh Generator
 
 This algorithm uses the <a href="http://www.tetgen.org">Tetgen</a> library to generate a tetrahedron mesh based on a PLC boundary representation geometry or a triangular hull mesh. This algorithm supports local element size using the \ref section-element-sizing-framework "Element Sizing Framework".
-
-TODO: picture source -> destination
 
 \subsection section-algorithm-tetgen-make-mesh-inputs Tetgen Mesh Generator Inputs
 
@@ -93,8 +87,6 @@ TODO: picture source -> destination
 
 This algorithm uses the <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a> library to generate a tetrahedron mesh based on an oriented triangle hull mesh.
 
-TODO: picture source -> destination
-
 \subsection section-algorithm-netgen-make-mesh-inputs Netgen Mesh Generator Inputs
 
 <table>
@@ -116,8 +108,6 @@ TODO: picture source -> destination
 \section section-algorithm-netgen-csg-make-mesh Netgen CSG Mesh Generator
 
 This algorithm uses the <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a> library to generate a tetrahedron mesh based on CSG represented in Netgen CSG syntax.
-
-TODO: picture source -> destination
 
 \subsection section-algorithm-netgen-csg-make-mesh-inputs Netgen CSG Mesh Generator Inputs
 
@@ -145,8 +135,6 @@ TODO: picture source -> destination
 
 This algorithm uses the <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a> library to generate a tetrahedron mesh based on a OpenCascade STEP or IGES file.
 
-TODO: picture source -> destination
-
 \subsection section-algorithm-netgen-occ-make-mesh-inputs Netgen OpenCascade Mesh Generator Inputs
 
 <table>
@@ -171,8 +159,6 @@ TODO: picture source -> destination
 \section section-algorithm-vgmodeler-adapt-hull VgModeler Hull Adaption
 
 This algorithm uses the VgModeler library, a modified Netgen library, to adapt an oriented triangle hull mesh. A desired element size can be specified.
-
-TODO: picture source -> destination
 
 \subsection section-algorithm-vgmodeler-adapt-hull-inputs VgModeler Hull Adaption Inputs
 

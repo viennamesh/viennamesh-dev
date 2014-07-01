@@ -1,32 +1,20 @@
-add_executable(convert_mesh src/convert_mesh.cpp)
-target_link_libraries(convert_mesh viennamesh)
+set (TOOL_PROGRAMS convert_mesh extract_boundary transform_mesh project_mesh coarsen_linemesh hyperplane_clip merge_meshes map_segments vmesh)
 
-add_executable(triangle_make_mesh src/triangle_make_mesh.cpp)
-target_link_libraries(triangle_make_mesh viennamesh)
 
-add_executable(tetgen_make_mesh src/tetgen_make_mesh.cpp)
-target_link_libraries(tetgen_make_mesh viennamesh)
+if (VIENNAMESH_WITH_TRIANGLE)
+  set(TOOL_PROGRAMS ${TOOL_PROGRAMS} triangle_make_mesh)
+endif(VIENNAMESH_WITH_TRIANGLE)
 
-add_executable(extract_boundary src/extract_boundary.cpp)
-target_link_libraries(extract_boundary viennamesh)
+if (VIENNAMESH_WITH_TETGEN)
+  set(TOOL_PROGRAMS ${TOOL_PROGRAMS} tetgen_make_mesh)
+endif(VIENNAMESH_WITH_TETGEN)
 
-add_executable(transform_mesh src/transform_mesh.cpp)
-target_link_libraries(transform_mesh viennamesh)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LIBVIENNAMESH_COMPILE_FLAGS}")
+message(STATUS "Tools compile flags: ${CMAKE_CXX_FLAGS}")
 
-add_executable(project_mesh src/project_mesh.cpp)
-target_link_libraries(project_mesh viennamesh)
+foreach(PROG ${TOOL_PROGRAMS})
+  add_executable(${PROG} src/${PROG}.cpp)
+  target_link_libraries(${PROG} viennamesh)
+  install(TARGETS ${PROG} DESTINATION bin)
+endforeach(PROG)
 
-add_executable(coarsen_linemesh src/coarsen_linemesh.cpp)
-target_link_libraries(coarsen_linemesh viennamesh)
-
-add_executable(hyperplane_clip src/hyperplane_clip.cpp)
-target_link_libraries(hyperplane_clip viennamesh)
-
-add_executable(merge_meshes src/merge_meshes.cpp)
-target_link_libraries(merge_meshes viennamesh)
-
-add_executable(map_segments src/map_segments.cpp)
-target_link_libraries(map_segments viennamesh)
-
-add_executable(vmesh src/vmesh.cpp)
-target_link_libraries(vmesh viennamesh)

@@ -582,10 +582,12 @@ namespace vgmnetgen
     TriangleIndexType() {}
     TriangleIndexType(int i0_, int i1_, int i2_)
     {
-      ordered_indices.resize(3);
-      ordered_indices[0] = i0_;
-      ordered_indices[1] = i1_;
-      ordered_indices[2] = i2_;
+      original_indices.resize(3);
+      original_indices[0] = i0_;
+      original_indices[1] = i1_;
+      original_indices[2] = i2_;
+
+      ordered_indices = original_indices;
 
       std::sort( ordered_indices.begin(), ordered_indices.end() );
     }
@@ -600,6 +602,7 @@ namespace vgmnetgen
     }
 
     std::vector<int> ordered_indices;
+    std::vector<int> original_indices;
   };
 
 
@@ -3610,48 +3613,27 @@ int STLSurfaceMeshing (STLGeometry & geom,
 
     for( size_t ci = 0; ci < gsse::size( cell_cont ); ci++ )
     {
-//          VertexType *vertices[viennagrid::topology::bndcells<CellTag, 0>::num];
-//          vertices[0] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][0] ]);
-//          vertices[1] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][1] ]);
-//          vertices[2] = &(viennagrid::ncells<0>(domain)[ cell_cont[ci][2] ]);
-//          CellType cell;
-//          cell.vertices(vertices);
-//          domain.segments()[si].push_back(cell);
+      TriangleIndexType index( cell_cont[ci][0], cell_cont[ci][1], cell_cont[ci][2] );
+      std::map<TriangleIndexType, TriangleHandleType>::iterator tit = triangle_handle_map.find(index);
 
+      TriangleHandleType triangle_handle;
+      if (tit != triangle_handle_map.end())
+      {
+        viennagrid::add( segment, tit->second );
+        triangle_handle = tit->second;
 
-        TriangleIndexType index( cell_cont[ci][0], cell_cont[ci][1], cell_cont[ci][2] );
-        std::map<TriangleIndexType, TriangleHandleType>::iterator tit = triangle_handle_map.find(index);
-
-        TriangleHandleType triangle_handle;
-        if (tit != triangle_handle_map.end())
-        {
-          viennagrid::add( segment, tit->second );
-          triangle_handle = tit->second;
-        }
-        else
-        {
-          triangle_handle = viennagrid::make_triangle( segment,
-                                    viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][0] ),
-                                    viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][1] ),
-                                    viennagrid::elements<viennagrid::vertex_tag>(vgrid_mesh).handle_at( cell_cont[ci][2] )
-                                    );
-          triangle_handle_map[index] = triangle_handle;
-        }
-
-
-
-
-//         typedef viennagrid::triangular_hull_3d_segmentation segmentation_type;
-//          typedef segmentation_type::element_segment_info_type element_segment_info_type;
-//          typedef segmentation_type::segment_id_type segment_id_type;
-
-//          element_segment_info const & seg_info = segmentation.segment_info( viennagrid::dereference_handle(domain, triangle_handle) );
-
+        *viennagrid::segment_element_info( segment, viennagrid::dereference_handle(vgrid_mesh, triangle_handle) ) = (index.original_indices == tit->first.original_indices);
+      }
+      else
+      {
+        triangle_handle = viennagrid::make_triangle( segment,
+                                  viennagrid::vertices(vgrid_mesh).handle_at( cell_cont[ci][0] ),
+                                  viennagrid::vertices(vgrid_mesh).handle_at( cell_cont[ci][1] ),
+                                  viennagrid::vertices(vgrid_mesh).handle_at( cell_cont[ci][2] ) );
+        triangle_handle_map[index] = triangle_handle;
 
         *viennagrid::segment_element_info( segment, viennagrid::dereference_handle(vgrid_mesh, triangle_handle) ) = true;
-//          segmentation.set_segment_info( viennagrid::dereference_handle(domain, triangle_handle), element_segment_info_type( geom.segment_id_map[si], segment_id_type() ) );
-
-//          viennamesh::add_face_to_segment( domain, viennagrid::dereference_handle(domain, triangle_handle), geom.segment_id_map[si], true );
+      }
     }
   }
 

@@ -15,8 +15,11 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
+#include <iostream>
 #include <string>
+#include <vector>
 #include <list>
+#include <sstream>
 
 namespace stringtools
 {
@@ -126,61 +129,11 @@ namespace stringtools
 
 
 
-  inline std::list<std::string> split_string( std::string const & str, std::string const & delimiter )
-  {
-    std::list<std::string> tokens;
+  std::list<std::string> split_string( std::string const & str, std::string const & delimiter );
+  std::list<std::string> split_string_brackets( std::string const & str, std::string const & delimiter );
+  std::string remove_begin_end_chars( std::string const & str );
+  void erase_all( std::string & str, std::string const & to_erase );
 
-    std::string::size_type pos = 0;
-    while (pos < str.size())
-    {
-      std::string::size_type new_pos = str.find(delimiter, pos);
-      if (new_pos == std::string::npos)
-      {
-          tokens.push_back( str.substr(pos, str.size()-pos) );
-          return tokens;
-      }
-
-      tokens.push_back( str.substr(pos, new_pos-pos) );
-      pos = new_pos+delimiter.size();
-    }
-
-    if (pos == str.size())
-      return tokens;
-
-    std::cout << "something went wrong..." << std::endl;
-
-    return std::list<std::string>();
-  }
-
-  inline std::string remove_begin_end_chars( std::string const & str )
-  {
-    std::string::size_type start = 0;
-    for (; start != str.size(); ++start)
-    {
-      char const & cur = str[start];
-      if ((cur != ' ') && (cur != '\n') && (cur != '\t'))
-          break;
-    }
-
-    std::string::size_type end = str.size()-1;
-    for (; end != std::size_t(-1); --end)
-    {
-      char const & cur = str[end];
-      if ((cur != ' ') && (cur != '\n') && (cur != '\t'))
-          break;
-    }
-
-    return str.substr( start, end-start+1 );
-  }
-
-
-
-  inline void erase_all( std::string & str, std::string const & to_erase )
-  {
-    std::string::size_type pos;
-    while ( (pos = str.find(to_erase)) != std::string::npos)
-      str.erase(pos, to_erase.size());
-  }
 
   template<typename NumericT>
   std::vector<NumericT> vector_from_string( std::string str )
@@ -200,7 +153,7 @@ namespace stringtools
 
 
   template<typename stream_type>
-  inline std::string read_stream( stream_type & stream )
+  std::string read_stream( stream_type & stream )
   {
     std::string line;
     std::string tmp;
@@ -212,26 +165,8 @@ namespace stringtools
   }
 
 
-
-  inline std::string extract_filename( std::string const & path )
-  {
-    std::string path_delimiters = "\\/";
-
-    std::size_t pos = path.find_last_of(path_delimiters);
-    if (pos == std::string::npos)
-      return path;
-    return path.substr(pos+1, std::string::npos);
-  }
-
-  inline std::string extract_path( std::string const & path )
-  {
-    std::string path_delimiters = "\\/";
-
-    std::size_t pos = path.find_last_of(path_delimiters);
-    if (pos == std::string::npos)
-      return "";
-    return path.substr(0, pos+1);
-  }
+  std::string extract_filename( std::string const & path );
+  std::string extract_path( std::string const & path );
 
 }
 

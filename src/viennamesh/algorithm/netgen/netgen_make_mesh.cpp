@@ -33,22 +33,49 @@ namespace viennamesh
     {
       output_parameter_proxy<netgen::mesh> omp(output_mesh);
 
-      std_capture().start();
+      StdCaptureHandle capture_handle;
 
       if (omp != input_mesh)
         omp() = input_mesh();
 
+
       ::netgen::MeshingParameters mesh_parameters;
 
       if (cell_size.valid())
+      {
+        ::netgen::Point3d pmin;
+        ::netgen::Point3d pmax;
+        omp()().GetBox(pmin, pmax);
+
+        double bb_volume = std::abs( (pmax.X() - pmin.X()) * (pmax.Y() - pmin.Y()) * (pmax.Z() - pmin.Z()) );
+        double cell_volume = cell_size()*cell_size()*cell_size();
+        double max_cell_count = 100000000;
+
+        if ( cell_volume * max_cell_count < bb_volume )
+        {
+          warning(1) << "Cell size is too small and might result in too much elements" << std::endl;
+          warning(1) << "Cell size                = " << cell_size() << std::endl;
+          warning(1) << "Mesh max cell count      = " << max_cell_count << std::endl;
+          warning(1) << "Mesh bounding box        = " << pmin << "," << pmax << std::endl;
+          warning(1) << "Mesh bounding box volume = " << bb_volume << std::endl;
+          warning(1) << "Mesh max cell volume     = " << cell_volume * max_cell_count << std::endl;
+        }
+
         mesh_parameters.maxh = cell_size();
+      }
 
-      omp()().CalcLocalH(mesh_parameters.grading);
-      MeshVolume (mesh_parameters, omp()());
-      RemoveIllegalElements (omp()());
-      OptimizeVolume (mesh_parameters, omp()());
-
-      std_capture().finish();
+      try
+      {
+        omp()().CalcLocalH(mesh_parameters.grading);
+        MeshVolume (mesh_parameters, omp()());
+        RemoveIllegalElements (omp()());
+        OptimizeVolume (mesh_parameters, omp()());
+      }
+      catch (::netgen::NgException const & ex)
+      {
+        error(1) << "Netgen Error: " << ex.What() << std::endl;
+        return false;
+      }
 
       return true;
     }

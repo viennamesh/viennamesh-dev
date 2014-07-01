@@ -8,8 +8,6 @@
 
 This algorithm generates a 1D line mesh based on a boundary representation, which is in case of a one dimensional space a set of points.
 
-TODO: picture source -> destination
-
 \subsection section-algorithm-make-line-mesh-inputs 1D Line Mesh Generator Inputs
 
 <table>
@@ -37,7 +35,17 @@ TODO: picture source -> destination
 
 Transforms a mesh based on a affine transformation represented by matrix and a translation vector.
 
-TODO: picture source -> destination
+<center>
+<table>
+<tr>
+<td>![Before](cubes.png)</td>
+<td>![After](affine_transformation_after.png)</td>
+</tr>
+<tr>
+<td colspan="2"><center><b>Mesh before and after using the affine transform algorithm with a matrix of (0.3,0,0 , 0,1,0 , 0,0,1) </b></center></td>
+</tr>
+</table>
+</center>
 
 \subsection section-algorithm-affine-transform-inputs Affine Transform Inputs
 
@@ -62,7 +70,17 @@ TODO: picture source -> destination
 
 Extracts the boundary of a volume mesh, for example extracting the triangular hull of tetrahedral volume mesh.
 
-TODO: picture source -> destination
+<center>
+<table>
+<tr>
+<td>![Before](extract_boundary_before.png)</td>
+<td>![After](extract_boundary_after.png)</td>
+</tr>
+<tr>
+<td colspan="2"><center><b>Before and after extraction of boundary, the mesh is visualized cut</b></center></td>
+</tr>
+</table>
+</center>
 
 \subsection section-algorithm-extract-boundary-inputs Extract Boundary Inputs
 
@@ -107,7 +125,17 @@ Extract the boundary representation geometry, represented by a PLC, from a 3D tr
 
 This algorithm removes all elements on the positive side of a hyperplane. Elements, which intersect the hyperplane, are cut and the sub-elements on the positive side of the hyperplane are removed. The hyperplane is represented by a point of the hyperplane and the normal vector which points to the positive side.
 
-TODO: picture source -> destination
+<center>
+<table>
+<tr>
+<td>![Before](cubes.png)</td>
+<td>![After](hyperplane_clip_after.png)</td>
+</tr>
+<tr>
+<td colspan="2"><center><b>Mesh before and after using the hyperplane clipping algorithm. The hyperplane is defined by the point (0,0,10) and the normal (1,0,1).</b></center></td>
+</tr>
+</table>
+</center>
 
 \subsection section-algorithm-hyperplane-clip-inputs Hyperplane Clip Inputs
 
@@ -130,8 +158,6 @@ TODO: picture source -> destination
 \section section-algorithm-laplace-smooth Laplacian Smooth
 
 This algorithm smooths all vertices based on a laplacian smoothing, the smoothing parameter and the number of smoothing steps can be specified. Vertices, which are on any mesh or segment boundary, are not altered.
-
-TODO: picture source -> destination
 
 \subsection section-algorithm-laplace-smooth-inputs Laplacian Smooth Inputs
 
@@ -176,8 +202,6 @@ This algorithm adds 3D triangles to segments based on seed points and also calcu
 
 This algorithm re-maps/renames mesh segments.
 
-TODO: picture source -> destination
-
 \subsection section-algorithm-map-segments-inputs Map Segments Inputs
 
 <table>
@@ -198,8 +222,6 @@ TODO: picture source -> destination
 \section section-algorithm-merge-meshes Merge Meshes
 
 This algorithm merges two meshes to a single mesh.
-
-TODO: picture source -> destination
 
 \subsection section-algorithm-merge-meshes-inputs Merge Meshes
 

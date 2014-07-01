@@ -56,7 +56,17 @@ namespace viennamesh
     typedef mesh_3d<input_cell_3d> input_mesh_3d;
     typedef mesh_3d<output_cell_3d> output_mesh_3d;
 
+    inline std::ostream & operator<<( std::ostream & os, input_mesh_3d const & m )
+    {
+      os << "triangle-input-3d-mesh";
+      return os;
+    }
 
+    inline std::ostream & operator<<( std::ostream & os, output_mesh_3d const & m )
+    {
+      os << "triangle-output-3d-mesh";
+      return os;
+    }
 
 
 

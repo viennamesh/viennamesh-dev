@@ -25,7 +25,7 @@ namespace viennamesh
       input_csg_source(*this, parameter_information("csg","string","The constructive solid geometry string in Netgen syntax")),
       relative_find_identic_surface_eps(*this, parameter_information("relative_find_identic_surface_eps","double","A relative value for finding identic surfaces"), 1e-8),
       cell_size(*this, parameter_information("cell_size","double","The desired maximum size of tetrahedrons, all tetrahedrons will be at most this size")),
-      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), 0.3),
+      grading(*this, parameter_information("grading","double","The grading defines change of element size, 0 -> uniform mesh, 1 -> agressive local mesh"), greater_check<double>(0.0), 0.3),
       optimization_steps(*this, parameter_information("optimization_steps","int","Number of optimization steps"), 3),
       delaunay(*this, parameter_information("delaunay","bool","Determines if the output mesh should be delaunay"), true),
       optimize_string(*this, parameter_information("optimize_string","string","The Netgen optimization string")),
@@ -38,29 +38,38 @@ namespace viennamesh
     {
       output_parameter_proxy<netgen::mesh> output(output_mesh);
 
-      std_capture().start();
+      StdCaptureHandle capture_handle;
 
-      std::istringstream csg_stream(input_csg_source());
-      ::netgen::CSGeometry * geom = ::netgen::ParseCSG( csg_stream );
+      ::netgen::CSGeometry * geom;
 
-      geom->FindIdenticSurfaces(relative_find_identic_surface_eps() * geom->MaxSize());
-      ::netgen::MeshingParameters mesh_parameters;
+      try
+      {
+        std::istringstream csg_stream(input_csg_source());
+        geom = ::netgen::ParseCSG( csg_stream );
 
-      if (cell_size.valid())
-        mesh_parameters.maxh = cell_size();
+        geom->FindIdenticSurfaces(relative_find_identic_surface_eps() * geom->MaxSize());
+        ::netgen::MeshingParameters mesh_parameters;
 
-      mesh_parameters.grading = grading();
-      mesh_parameters.optsteps3d = optimization_steps();
-      mesh_parameters.delaunay = delaunay();
+        if (cell_size.valid())
+          mesh_parameters.maxh = cell_size();
 
-      if (optimize_string.valid())
-        mesh_parameters.optimize3d = optimize_string().c_str();
+        mesh_parameters.grading = grading();
+        mesh_parameters.optsteps3d = optimization_steps();
+        mesh_parameters.delaunay = delaunay();
 
-      geom->GenerateMesh(output().mesh_ptr(), mesh_parameters, 1, 5);
+        if (optimize_string.valid())
+          mesh_parameters.optimize3d = optimize_string().c_str();
 
-      delete geom;
+        geom->GenerateMesh(output().mesh_ptr(), mesh_parameters, 1, 5);
 
-      std_capture().finish();
+        delete geom;
+      }
+      catch (::netgen::NgException const & ex)
+      {
+        error(1) << "Netgen Error: " << ex.What() << std::endl;
+        delete geom;
+        return false;
+      }
 
       return true;
     }

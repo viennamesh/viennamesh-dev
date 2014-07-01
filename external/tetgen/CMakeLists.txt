@@ -1,14 +1,7 @@
-# Set  the minimum  required version  of cmake  for a  project.
-cmake_minimum_required(VERSION 2.6)
+SET(TETGEN_SRC ${TETGEN_SOURCE_DIR}/tetgen.cxx ${TETGEN_SOURCE_DIR}/predicates.cxx)
 
-# Add an executable to the project using the specified source files.
-add_executable(tetgen tetgen.cxx predicates.cxx)
+include_directories(${TETGEN_SOURCE_DIR}/)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LIBVIENNAMESH_COMPILE_FLAGS} -DTETLIBRARY")
+message(STATUS "Tetgen compile flags: ${CMAKE_CXX_FLAGS}")
 
-#Add a library to the project using the specified source files. 
-# In Linux/Unix, it will creates the libtet.a
-add_library(tet STATIC tetgen.cxx predicates.cxx)
-
-#Set properties on a target. 
-#We use this here to set -DTETLIBRARY for when compiling the
-#library
-set_target_properties(tet PROPERTIES "COMPILE_DEFINITIONS" TETLIBRARY)
+ADD_LIBRARY(viennamesh-tetgen ${TETGEN_SRC})

@@ -67,9 +67,10 @@ namespace viennamesh
         char * buffer = new char[options.str().length()];
         std::strcpy(buffer, options.str().c_str());
 
-        std_capture().start();
-        triangulate( buffer, &tmp, &omp().cells[i].plc.triangle_mesh, NULL);
-        std_capture().finish();
+        {
+          StdCaptureHandle capture_handle;
+          triangulate( buffer, &tmp, &omp().cells[i].plc.triangle_mesh, NULL);
+        }
 
         omp().cells[i].vertex_ids = input_mesh().cells[i].vertex_ids;
         omp().cells[i].segment_ids = input_mesh().cells[i].segment_ids;

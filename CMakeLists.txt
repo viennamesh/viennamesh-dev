@@ -32,15 +32,14 @@ option(VIENNAMESH_NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" OF
 option(VIENNAMESH_WITH_VGMODELER "Build the VGModeler library" ON)
 option(VIENNAMESH_WITH_TDR "Build the TDR reader" OFF)
 
-option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" ON)
-option(BUILD_EXAMPLES "Build the ViennaMesh examples" ON)
+option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" OFF)
+option(BUILD_EXAMPLES "Build the ViennaMesh examples" OFF)
 option(BUILD_TOOLS "Build the ViennaMesh tools" ON)
-option(BUILD_DOXYGEN_DOCS "Build the Doxygen-generated API docs" OFF)
-option(BUILD_MANUAL "Build the PDF manual" OFF)
+option(BUILD_MANUAL "Build the Doxygen-generated manual docs" OFF)
 
-cmake_dependent_option(ENABLE_DIST "Enable the the distribution tarball target" ON "BUILD_DOXYGEN_DOCS;BUILD_MANUAL" OFF)
+cmake_dependent_option(ENABLE_DIST "Enable the the distribution tarball target" ON "BUILD_MANUAL" OFF)
 
-mark_as_advanced(BUILD_DOXYGEN_DOCS BUILD_MANUAL ENABLE_DIST)
+mark_as_advanced(BUILD_MANUAL ENABLE_DIST)
 
 # Find prerequisites
 ####################
@@ -52,32 +51,15 @@ ELSE()
  SET (CMAKE_BUILD_TYPE "Release")
 ENDIF()
 
-
-if(BUILD_DOXYGEN_DOCS)
-  find_package(Doxygen REQUIRED)
-endif()
-
-if(BUILD_MANUAL)
-  find_package(LATEX REQUIRED)
-endif()
-
-find_package(Boost COMPONENTS)
+find_package(Boost REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
 
-# FIND_PACKAGE(CGAL)
-# IF(CGAL_FOUND)
-#   MESSAGE(STATUS "CGAL detected")
-#   set(CGAL_DONT_OVERRIDE_CMAKE_FLAGS TRUE)
-# #   INCLUDE(${CGAL_USE_FILE})
-#   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CGAL_CXX_FLAGS_DEBUG_INIT} -DCGAL_CFG_ARRAY_MEMBER_INITIALIZATION_BUG")
-#   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CGAL_CXX_FLAGS_RELEASE_INIT} -DCGAL_CFG_ARRAY_MEMBER_INITIALIZATION_BUG")
-# ENDIF(CGAL_FOUND)
-
 # Compile options
 #################
+
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
   set(ENABLE_PEDANTIC_FLAGS 1)
@@ -114,21 +96,19 @@ message( STATUS "RELEASE FLAGS = ${CMAKE_CXX_FLAGS_RELEASE}" )
 message( STATUS "DEBUG FLAGS = ${CMAKE_CXX_FLAGS_DEBUG}" )
 
 
-# include_directories(BEFORE ${PROJECT_SOURCE_DIR})
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/include)
+
 
 # libviennamesh
 ################
-
-
 
 
 set(EXTERNAL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/external/)
 set(VIENNAMESH_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/)
 
 add_subdirectory(external)
-include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
 
+include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
 add_subdirectory(src)
 
 
@@ -137,12 +117,12 @@ add_subdirectory(src)
 
 if (BUILD_PYVIENNAMESH)
   add_subdirectory(pyviennamesh)
-endif()
-
+endif (BUILD_PYVIENNAMESH)
 
 
 # Subdirectories
 ################
+
 
 FILE(GLOB_RECURSE EXAMPLE_MESHES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/ examples/data/*)
 FILE(GLOB_RECURSE EXAMPLE_PIPELINES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/ examples/pipelines/*)
@@ -153,96 +133,118 @@ foreach(f IN LISTS EXAMPLE_DATA)
 endforeach()
 
 if(BUILD_EXAMPLES)
-   add_subdirectory(examples)
+  add_subdirectory(examples)
 endif()
 
 if(BUILD_TOOLS)
-   include_directories(${PROJECT_SOURCE_DIR}/external/tclap/include/)
-   add_subdirectory(tools)
+  include_directories(${PROJECT_SOURCE_DIR}/external/tclap/include/)
+  add_subdirectory(tools)
 endif()
 
 if(BUILD_TESTING)
-   INCLUDE(CTest)
-   add_subdirectory(tests)
+  INCLUDE(CTest)
+  add_subdirectory(tests)
 endif()
 
-add_subdirectory(doc)
 
 # Install
 #########
 
-install(DIRECTORY viennamesh ${CMAKE_CURRENT_BINARY_DIR}/viennamesh
-   DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev
-   FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+
+add_subdirectory(doc)
+
+
+# Install
+#########
+
+
+# install(DIRECTORY include ${CMAKE_CURRENT_BINARY_DIR}
+#         DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev
+#         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+
 
 # Dist target
 #############
 
+
 if(ENABLE_DIST)
-   file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/dist")
+  file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/dist")
 
-   set(DISTDIR "${PROJECT_BINARY_DIR}/dist/ViennaMesh-${VERSION}-all-arch")
-   configure_file(cmake/CMakeLists.txt.in "${DISTDIR}/CMakeLists.txt" @ONLY)
+  set(DISTDIR "${PROJECT_BINARY_DIR}/dist/ViennaMesh-${VERSION}-all-arch")
+#   configure_file(cmake/CMakeLists.txt.in "${DISTDIR}/CMakeLists.txt" @ONLY)
 
-   #
-   # Full package:
-   #
-   add_custom_target(dist
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}"
+  #
+  # Full package:
+  #
+  add_custom_target(dist
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/build"
 
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/LICENSE" "${DISTDIR}/LICENSE"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/CMakeLists.txt" "${DISTDIR}/CMakeLists.txt"
 
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/changelog" "${DISTDIR}/changelog"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/LICENSE" "${DISTDIR}/LICENSE"
 
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/README" "${DISTDIR}/README"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/changelog" "${DISTDIR}/changelog"
 
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/build"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/build/README" "${DISTDIR}/build/README"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/README.md" "${DISTDIR}/README.md"
 
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/cmake"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/cmake/copymanual.cmake" "${DISTDIR}/cmake/copymanual.cmake"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/cmake/ViennaMeshCommon.cmake" "${DISTDIR}/cmake/ViennaMeshCommon.cmake"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/cmake/ViennaMeshConfig.cmake.in" "${DISTDIR}/cmake/ViennaMeshConfig.cmake.in"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/cmake/ViennaMeshConfigVersion.cmake.in" "${DISTDIR}/cmake/ViennaMeshConfigVersion.cmake.in"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/cmake"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/cmake/copymanual.cmake" "${DISTDIR}/cmake/copymanual.cmake"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/cmake/ViennaMeshCommon.cmake" "${DISTDIR}/cmake/ViennaMeshCommon.cmake"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/cmake/ViennaMeshConfig.cmake.in" "${DISTDIR}/cmake/ViennaMeshConfig.cmake.in"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/cmake/ViennaMeshConfigVersion.cmake.in" "${DISTDIR}/cmake/ViennaMeshConfigVersion.cmake.in"
 
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/doc"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/doc/viennamesh.pdf" "${DISTDIR}/doc/viennamesh.pdf"
-      COMMAND "${CMAKE_COMMAND}" -E copy_directory
-         "${CMAKE_CURRENT_BINARY_DIR}/doc/doxygen"
-         "${DISTDIR}/doc/doxygen"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/doc/viennamesh.pdf" "${DISTDIR}/doc/viennamesh.pdf"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/doc"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${CMAKE_CURRENT_BINARY_DIR}/doc/doxygen"
+        "${DISTDIR}/doc/doxygen"
 
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/doc/Doxyfile.in" "${DISTDIR}/doc/Doxyfile.in"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/doc/Doxyfile.in" "${DISTDIR}/doc/Doxyfile.in"
 
-      COMMAND "${CMAKE_COMMAND}" -E copy_directory
-         "${PROJECT_SOURCE_DIR}/examples" "${DISTDIR}/examples"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/examples" "${DISTDIR}/examples"
 
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/tests"
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/tests/src"
-      COMMAND "${CMAKE_COMMAND}" -E copy_directory
-         "${PROJECT_SOURCE_DIR}/tests/src" "${DISTDIR}/tests/src"
-      COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-         "${PROJECT_SOURCE_DIR}/tests/CMakeLists.txt" "${DISTDIR}/tests/CMakeLists.txt"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/tests"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/tests/src"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/tests/src" "${DISTDIR}/tests/src"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${PROJECT_SOURCE_DIR}/tests/CMakeLists.txt" "${DISTDIR}/tests/CMakeLists.txt"
 
-      COMMAND "${CMAKE_COMMAND}" -E copy_directory
-         "${PROJECT_SOURCE_DIR}/viennamesh" "${DISTDIR}/viennamesh"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/include/viennamesh"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/include/viennamesh" "${DISTDIR}/include/viennamesh"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/src" "${DISTDIR}/src"
 
-      COMMAND "${CMAKE_COMMAND}" -E tar czf ViennaMesh-${VERSION}-all-arch.tar.gz
-           ViennaMesh-${VERSION}-all-arch
-      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/dist"
-      COMMENT "Generating dist/ViennaMesh-${VERSION}-all-arch.tar.gz"
-      VERBATIM)
-   add_dependencies(dist apidoc manual)
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/external" "${DISTDIR}/external"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/pyviennamesh" "${DISTDIR}/pyviennamesh"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/tools" "${DISTDIR}/tools"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${PROJECT_SOURCE_DIR}/doc" "${DISTDIR}/doc"
+
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${DISTDIR}/include/viennagrid"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "$ENV{VIENNAGRIDPATH}/viennagrid" "${DISTDIR}/include/viennagrid"
+
+
+    COMMAND "${CMAKE_COMMAND}" -E tar czf ViennaMesh-${VERSION}-all-arch.tar.gz
+          ViennaMesh-${VERSION}-all-arch
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/dist"
+    COMMENT "Generating dist/ViennaMesh-${VERSION}-all-arch.tar.gz"
+    VERBATIM)
+  add_dependencies(dist manual)
 
 endif()

@@ -45,7 +45,23 @@ namespace viennamesh
     };
 
 
+    inline std::ostream & operator<<( std::ostream & os, input_mesh const & m )
+    {
+      os << "tetgen-input-mesh";
+      return os;
+    }
 
+    inline std::ostream & operator<<( std::ostream & os, output_mesh const & m )
+    {
+      os << "tetgen-output-mesh";
+      return os;
+    }
+
+    inline std::ostream & operator<<( std::ostream & os, viennagrid::segmented_mesh<input_mesh, input_segmentation> const & m )
+    {
+      os << "segmented tetgen-input-mesh";
+      return os;
+    }
 
 
     template<typename PointContainerT>

@@ -33,14 +33,14 @@ namespace viennamesh
   }
 
 
-  StdCapture & std_capture()
+  StdCapture & StdCapture::get()
   {
     static StdCapture std_capture_;
     return std_capture_;
   }
 
 #ifndef _WIN32
-  void * reader(void * data)
+  void * StdCapture::reader(void * data)
   {
     // Form descriptor
     StdCapture & std_capture = *(StdCapture*)(data);
@@ -94,8 +94,8 @@ namespace viennamesh
   void StdOutCallback<OutputFormaterT>::write(std::string const & message)
   {
 #ifndef _WIN32
-    if (std_capture().capturing())
-      ::write( std_capture().old_stdout(), message.c_str(), message.length()+1 );
+    if (StdCapture::get().capturing())
+      ::write( StdCapture::get().old_stdout(), message.c_str(), message.length()+1 );
     else
       std::cout << message;
 #else

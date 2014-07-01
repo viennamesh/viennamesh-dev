@@ -130,9 +130,10 @@ namespace viennamesh
       char * options_buffer = new char[options.length()];
       std::strcpy(options_buffer, options.c_str());
 
-      std_capture().start();
-      triangulate( options_buffer, &tmp, &output.triangle_mesh, NULL);
-      std_capture().finish();
+      {
+        StdCaptureHandle capture_handle;
+        triangulate( options_buffer, &tmp, &output.triangle_mesh, NULL);
+      }
 
       delete[] tmp.regionlist;
       delete[] tmp.holelist;

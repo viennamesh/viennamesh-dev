@@ -85,8 +85,20 @@ namespace viennamesh
   {
     std::map<std::string, AlgorithmInformationHandle>::const_iterator it = algorithms.find(algorithm_id);
     if (it == algorithms.end())
+    {
+      error(1) << "There is no algorithm with id \"" << algorithm_id << "\"" << std::endl;
       return algorithm_handle();
+    }
+
     return it->second->create();
+  }
+
+  std::string const & algorithm_factory_t::registered_algorithm_name(std::size_t algorithm_index) const
+  {
+    assert(algorithm_index < registered_algorithms_size());
+    std::map<std::string, AlgorithmInformationHandle>::const_iterator it = algorithms.begin();
+    std::advance(it, algorithm_index);
+    return it->first;
   }
 
 

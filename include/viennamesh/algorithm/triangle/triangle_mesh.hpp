@@ -122,10 +122,23 @@ namespace viennamesh
     };
 
 
+    inline std::ostream & operator<<( std::ostream & os, input_mesh const & m )
+    {
+      os << "triangle-input-mesh";
+      return os;
+    }
 
+    inline std::ostream & operator<<( std::ostream & os, output_mesh const & m )
+    {
+      os << "triangle-output-mesh";
+      return os;
+    }
 
-
-
+    inline std::ostream & operator<<( std::ostream & os, viennagrid::segmented_mesh<input_mesh,input_segmentation> const & m )
+    {
+      os << "segmented triangle-input-mesh";
+      return os;
+    }
 
 
 

@@ -1,19 +1,47 @@
-
 /**
 
-\page usermanual User Manual
+\page usermanual    User Manual
 
-This manual describes the use of the open source meshing framework %ViennaMesh and consists of multiple parts:
-   - \subpage manual-page-introduction  Provides a first overview of ViennaMesh
+\tableofcontents
+
+ViennaMesh is an open source meshing framework which aims to support a wide range of different mesh related algorithms. A brief description about ViennaMesh is given in \ref manual-page-what-is-viennamesh.
+
+\section manual-page-contents Contents
+
    - \subpage manual-page-installation  How to install ViennaMesh
    - \subpage manual-page-parameters       A description of the available parameter types.
    - \subpage manual-page-algorithms       A description of the available algorithms of ViennaMesh
-   - \subpage manual-page-features       A description of ViennaMesh features.
    - \subpage manual-page-tools       A description of the available tools of ViennaMesh
    - \subpage manual-page-pyviennamesh       A description of the python layer
-   - \subpage manual-page-api       A description of the C++ API
    - \subpage changelog
    - \subpage manual-page-license
 
-*/
 
+
+\section manual-page-what-is-viennamesh What is ViennaMesh?
+
+ViennaMesh is a software framework which aims to provide a flexible infrastructure for meshing applications. ViennaMesh uses ViennaGrid as a common data structure and provides interfaces to external \ref manual-page-algorithms-external "meshing tools" as well as a set of mesh related \ref manual-page-algorithms-viennagrid "algorithms implemented on top of ViennaGrid".
+
+ViennaMesh currently provides two user-interfaces: a set of command line tools and a Python module.
+
+\section motivation Motivation
+
+Several libraries providing mesh related algorithms, like <a href="http://www.tetgen.org">Tetgen</a> or <a href="https://sourceforge.net/projects/netgen-mesher/">Netgen</a>, are available but they usually do not provide interfaces to each other. The main goal of ViennaMesh is to provide such interfaces enable the use of different mesh related algorithms.
+
+\section manual-page-overview Overview
+
+The main entity of ViennaMesh is the algorithm. An algorithm processes a set of input parameters and optionally generates a set of output parameters. Typical input and output parameters are meshes. For example the mesh_reader algorithm requires a string input parameter to read a mesh which is then provided as an output parameter. Usually, output parameters of one algorithm are used as input parameters of another. ViennaMesh supports linking input parameters to output parameters.
+
+ViennaMesh supports a wide range of \ref manual-page-algorithms "Algorithms" which can be used and linked together to generate or modify meshes. For more information on parameters see \ref manual-page-parameters.
+
+\section section-viennamesh-infrastructure ViennaMesh Infrastructure
+
+Parameters are encapsulated using wrappers within ViennaMesh. Internally, the ViennaMesh infrastructure offers a automatic conversion mechanism to ensure that each algorithm get its inputs in the requested representation. For example, the Tetgen mesh generation algorithm requires an input mesh in Tetgen mesh type representation while the output mesh of a mesh_reader algorithm is available in ViennaGrid representation. ViennaMesh automatically takes care of conversions if they are needed.
+
+\section section-how-to-use-viennamesh How To Use ViennaMesh?
+
+Currently, there are two ways how to use ViennaMesh:
+  - \ref manual-page-tools "Command line tools"
+  - \ref manual-page-pyviennamesh "Python Layer"
+
+*/

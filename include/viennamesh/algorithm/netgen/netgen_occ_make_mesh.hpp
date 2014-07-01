@@ -37,7 +37,7 @@ namespace viennamesh
       optional_input_parameter_interface<double>         cell_size;
       default_input_parameter_interface<double>          curvature_safety_factor;
       default_input_parameter_interface<double>          segments_per_edge;
-      default_input_parameter_interface<double>          grading;
+      default_input_parameter_interface<double, greater_check<double> >          grading;
 
       output_parameter_interface                         output_mesh;
     };
