@@ -33,6 +33,8 @@ namespace viennamesh
 
   private:
     dynamic_required_input_parameter_interface    input_mesh;
+    default_input_parameter_interface<double>     coplanar_tolerance;
+    default_input_parameter_interface<double>     colinear_tolerance;
 
     output_parameter_interface                    output_mesh;
   };

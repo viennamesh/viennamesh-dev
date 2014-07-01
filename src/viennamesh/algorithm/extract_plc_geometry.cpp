@@ -61,15 +61,20 @@ namespace viennamesh
 
 
 
-  template<typename MeshT, typename SegmentationT, typename OutputMeshT>
+  template<typename MeshT, typename SegmentationT, typename OutputMeshT, typename NumericConfigT>
   void extract_plcs(MeshT const & mesh, SegmentationT const & segmentation,
-                    OutputMeshT & output_mesh)
+                    OutputMeshT & output_mesh, NumericConfigT numeric_config)
   {
     typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
 
     typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+
+    typedef typename viennagrid::result_of::const_line_range<MeshT>::type ConstLineRangeType;
+    typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
+    typedef typename viennagrid::result_of::line_id<MeshT>::type LineIDType;
+    typedef typename viennagrid::result_of::line_handle<OutputMeshT>::type LineHandleType;
 
     ConstCellRangeType cells(mesh);
 
@@ -96,15 +101,10 @@ namespace viennamesh
 
       NeighbourRangeType neighgbours = viennagrid::neighbor_elements<CellType, viennagrid::line_tag>(mesh, cit.handle());
       for (NeighbourRangeIterator it = neighgbours.begin(); it != neighgbours.end(); ++it)
-        recursively_add_neighbours( mesh, segmentation, it.handle(), lowest_plc_id, normal_vector, viennagrid::segment_ids(segmentation, *cit), cell_visited, plc_ids, 1e-6 );
+        recursively_add_neighbours( mesh, segmentation, it.handle(), lowest_plc_id, normal_vector, viennagrid::segment_ids(segmentation, *cit), cell_visited, plc_ids, numeric_config );
 
       lowest_plc_id++;
     }
-
-    typedef typename viennagrid::result_of::const_line_range<MeshT>::type ConstLineRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
-    typedef typename viennagrid::result_of::line_id<MeshT>::type LineIDType;
-    typedef typename viennagrid::result_of::line_handle<OutputMeshT>::type LineHandleType;
 
     viennagrid::vertex_copy_map<MeshT, OutputMeshT> vertex_map(output_mesh);
 
@@ -175,10 +175,6 @@ namespace viennamesh
 //         for (int j = 0; j < hole_points_3d.size(); ++j)
 //           std::cout << "Found hole point! " << hole_points_3d[j] << std::endl;
       }
-
-
-
-
 
 
       // extract PLC lines
@@ -272,8 +268,8 @@ namespace viennamesh
     return vertex_handle;
   }
 
-  template<typename MeshT, typename OutputMeshT>
-  void coarsen_plc_mesh(MeshT const & mesh, OutputMeshT & output_mesh)
+  template<typename MeshT, typename OutputMeshT, typename NumericConfigT>
+  void coarsen_plc_mesh(MeshT const & mesh, OutputMeshT & output_mesh, NumericConfigT numeric_config)
   {
     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
     typedef typename viennagrid::result_of::line<MeshT>::type LineType;
@@ -302,8 +298,8 @@ namespace viennamesh
 
       typedef typename viennagrid::result_of::const_vertex_handle<MeshT>::type ConstVertexHandle;
 
-      ConstVertexHandle first = get_endpoint( mesh, viennagrid::vertices(*lit).handle_at(0), lit.handle(), direction, line_to_new_line_index, new_line_id, 1e-6 );
-      ConstVertexHandle second = get_endpoint( mesh, viennagrid::vertices(*lit).handle_at(1), lit.handle(), direction, line_to_new_line_index, new_line_id, 1e-6 );
+      ConstVertexHandle first = get_endpoint( mesh, viennagrid::vertices(*lit).handle_at(0), lit.handle(), direction, line_to_new_line_index, new_line_id, numeric_config );
+      ConstVertexHandle second = get_endpoint( mesh, viennagrid::vertices(*lit).handle_at(1), lit.handle(), direction, line_to_new_line_index, new_line_id, numeric_config );
 
       new_line_handles.push_back( viennagrid::make_line(output_mesh,
                                                         vertex_map(viennagrid::dereference_handle(mesh, first)), vertex_map(viennagrid::dereference_handle(mesh, second)) ));
@@ -334,6 +330,15 @@ namespace viennamesh
 
       viennagrid::hole_points(viennagrid::dereference_handle(output_mesh, cell_handle)) = viennagrid::hole_points(*cit);
 
+      if (new_plc_line_handles.size() < 3)
+      {
+        warning(1) << "One PLC has less than three lines" << std::endl;
+        warning(1) << "Old PLC:" << std::endl;
+        warning(1) << *cit << std::endl;
+        warning(1) << "New PLC:" << std::endl;
+        warning(1) << viennagrid::dereference_handle(mesh, cell_handle) << std::endl;
+      }
+
 //       std::cout << "PLC" << std::endl;
 //       for (int i = 0; i < viennagrid::hole_points(*cit).size(); ++i)
 //         std::cout << "  " << viennagrid::hole_points(*cit)[i] << std::endl;
@@ -349,6 +354,8 @@ namespace viennamesh
 
    extract_plc::extract_plc() :
     input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 3d mesh supported")),
+    coplanar_tolerance(*this, parameter_information("coplanar_tolerance", "double", "Tolerance for detecting co-planar elements"), 1e-6),
+    colinear_tolerance(*this, parameter_information("colinear_tolerance", "double", "Tolerance for detecting co-linear elements"), 1e-6),
     output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, plc 3d mesh")) {}
 
   std::string extract_plc::name() const { return "ViennaGrid Extract PLC geometry"; }
@@ -367,8 +374,8 @@ namespace viennamesh
       output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
       OutputMeshType tmp;
-      extract_plcs(imp().mesh, imp().segmentation, tmp);
-      coarsen_plc_mesh(tmp, omp());
+      extract_plcs(imp().mesh, imp().segmentation, tmp, coplanar_tolerance());
+      coarsen_plc_mesh(tmp, omp(), colinear_tolerance());
 
       return true;
     }
