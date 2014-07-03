@@ -32,7 +32,7 @@
 #include "viennamesh/algorithm/project_mesh.hpp"
 #include "viennamesh/algorithm/make_statistic.hpp"
 #include "viennamesh/algorithm/seed_point_segmenting.hpp"
-
+#include "viennamesh/algorithm/remove_duplicate_cells.hpp"
 #include "viennamesh/algorithm/make_line_mesh.hpp"
 
 // Triangle algorithms
