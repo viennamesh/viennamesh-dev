@@ -68,6 +68,9 @@ namespace viennamesh
       if ( extension_found(filename, "tdr") )
         return SENTAURUS_TDR;
 
+      if ( extension_found(filename, "str") )
+        return SILVACO_STR;
+
       return UNKNOWN;
     }
 
@@ -102,6 +105,9 @@ namespace viennamesh
       if (str == "SENTAURUS_TDR")
         return SENTAURUS_TDR;
 
+      if (str == "SILVACO_STR")
+        return SILVACO_STR;
+
       return UNKNOWN;
     }
 
@@ -135,6 +141,9 @@ namespace viennamesh
 
         case SENTAURUS_TDR:
           return "SENTAURUS_TDR";
+
+        case SILVACO_STR:
+          return "SILVACO_STR";
 
         default:
           return "UNKNOWN";

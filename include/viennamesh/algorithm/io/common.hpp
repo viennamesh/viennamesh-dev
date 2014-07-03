@@ -34,7 +34,8 @@ namespace viennamesh
       NEPER_TESS,
       OCC_STEP,
       OCC_IGES,
-      SENTAURUS_TDR
+      SENTAURUS_TDR,
+      SILVACO_STR
     };
 
     FileType from_filename( std::string filename );

@@ -22,6 +22,7 @@
 #include "viennagrid/io/neper_tess_reader.hpp"
 
 #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
+#include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
 #ifdef VIENNAMESH_WITH_TDR
   #include "viennamesh/algorithm/io/sentaurus_tdr_reader.hpp"
 #endif
@@ -292,6 +293,19 @@ namespace viennamesh
           else
             unset_output("seed_points");
 
+
+          return true;
+        }
+
+      case SILVACO_STR:
+        {
+          info(5) << "Found .str extension, using ViennaGrid Silvaco str Reader" << std::endl;
+          typedef viennagrid::triangular_3d_mesh MeshType;
+
+          output_parameter_proxy<MeshType> omp(output_mesh);
+
+          viennagrid::io::silvaco_str_reader reader;
+          reader(omp(), filename);
 
           return true;
         }
