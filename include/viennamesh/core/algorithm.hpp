@@ -54,6 +54,8 @@ namespace viennamesh
     friend class base_input_parameter_interface;
     friend class output_parameter_interface;
 
+  protected:
+    base_algorithm(bool allow_unregistered_parameters_ = false) : allow_unregistered_parameters(allow_unregistered_parameters_) {}
 
   public:
     virtual ~base_algorithm() {}
@@ -74,14 +76,14 @@ namespace viennamesh
 
     void set_input_impl( std::string const & name, const_parameter_handle const & parameter )
     {
-      if (!is_input_registered(name))
+      if (!allow_unregistered_parameters && !is_input_registered(name))
         warning(1) << "Input parameter \"" << name << "\" is set but was not registered" << std::endl;
       inputs.set(name, parameter);
     }
 
     void set_input_impl( std::string const & name, parameter_handle const & parameter )
     {
-      if (!is_input_registered(name))
+      if (!allow_unregistered_parameters && !is_input_registered(name))
         warning(1) << "Input parameter \"" << name << "\" is set but was not registered" << std::endl;
       inputs.set(name, parameter);
     }
@@ -222,6 +224,8 @@ namespace viennamesh
 
   private:
 
+    bool allow_unregistered_parameters;
+
     typedef std::map<std::string, base_input_parameter_interface *> RegisteredInputParameterMapType;
     RegisteredInputParameterMapType input_parameters;
 
@@ -233,6 +237,9 @@ namespace viennamesh
 
     void register_input_parameter( base_input_parameter_interface & input_parameter );
     void register_output_parameter( output_parameter_interface & output_parameter );
+
+    void unregister_input_parameter( base_input_parameter_interface & input_parameter );
+    void unregister_output_parameter( output_parameter_interface & output_parameter );
 
   public:
 
