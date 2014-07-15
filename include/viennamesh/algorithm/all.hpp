@@ -36,6 +36,10 @@
 #include "viennamesh/algorithm/remove_duplicate_cells.hpp"
 #include "viennamesh/algorithm/make_line_mesh.hpp"
 
+#ifdef VIENNAMESH_WITH_GEOMETRY_GENERATOR
+  #include "viennamesh/algorithm/geometry_generator/geometry_generator.hpp"
+#endif
+
 // Triangle algorithms
 #ifdef VIENNAMESH_WITH_TRIANGLE
   #include "viennamesh/algorithm/triangle/triangle_make_mesh.hpp"

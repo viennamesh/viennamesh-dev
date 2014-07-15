@@ -30,7 +30,8 @@ option(VIENNAMESH_WITH_TETGEN "Build the Tetgen library" ON)
 option(VIENNAMESH_WITH_NETGEN "Build the Netgen library" ON)
 option(VIENNAMESH_NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" OFF)
 option(VIENNAMESH_WITH_VGMODELER "Build the VGModeler library" ON)
-option(VIENNAMESH_WITH_TDR "Build the TDR reader" OFF)
+option(VIENNAMESH_WITH_TDR "Build the TDR reader (requires libhdf5)" OFF)
+option(VIENNAMESH_WITH_GEOMETRY_GENERATOR "Build the ViennaMesh template based geometry generator" OFF)
 
 option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" OFF)
 option(BUILD_EXAMPLES "Build the ViennaMesh examples" OFF)
@@ -59,6 +60,10 @@ endif()
 
 # Compile options
 #################
+
+if (DEFINED VIENNAMESH_WITH_GEOMETRY_GENERATOR AND VIENNAMESH_WITH_GEOMETRY_GENERATOR)
+  set(LIBVIENNAMESH_COMPILE_FLAGS "${LIBVIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_GEOMETRY_GENERATOR")
+endif()
 
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
