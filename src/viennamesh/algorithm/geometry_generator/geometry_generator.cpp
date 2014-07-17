@@ -1,3 +1,5 @@
+#ifdef VIENNAMESH_WITH_GEOMETRY_GENERATOR
+
 #include "viennamesh/algorithm/geometry_generator/geometry_generator.hpp"
 
 #include <Python.h>
@@ -737,3 +739,5 @@ namespace viennamesh
   }
 
 }
+
+#endif
