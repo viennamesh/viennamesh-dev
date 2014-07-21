@@ -245,25 +245,7 @@ namespace viennamesh
       }
     }
 
-    static boost::shared_ptr<base_geometry_generator> make(pugi::xml_node const & node)
-    {
-      pugi::xml_attribute xml_dimension = node.attribute("dimension");
-      int dimension = xml_dimension.as_int();
-
-      pugi::xml_attribute xml_geometry_type = node.attribute("geometry_type");
-      std::string geometry_type = xml_geometry_type.as_string();
-      std::transform(geometry_type.begin(), geometry_type.end(), geometry_type.begin(), ::toupper);
-
-      if (dimension == 3 && geometry_type == "BREP")
-      {
-        boost::shared_ptr<base_geometry_generator> generator(new geometry_generator_brep_3d);
-        generator->read(node);
-        return generator;
-      }
-
-      error(1) << "No generator found for dimension " << dimension << " and geometry type \"" << geometry_type << "\"" << std::endl;
-      return boost::shared_ptr<base_geometry_generator>();
-    }
+    static boost::shared_ptr<base_geometry_generator> make(pugi::xml_node const & node);
 
 
   protected:
@@ -374,7 +356,7 @@ namespace viennamesh
   {
   public:
 
-    geometry_generator_brep_3d(pugi::xml_node const & node) : interpreter_(0) {}
+    geometry_generator_brep_3d() {}
 
     void read_impl(pugi::xml_node const & node)
     {
@@ -427,8 +409,7 @@ namespace viennamesh
     }
 
 
-    base_parameter_handle run(output_parameter_interface & opi)
-//     bool run_impl( viennagrid::brep_3d_mesh & mesh )
+    void run_impl(output_parameter_interface & opi)
     {
       output_parameter_proxy<viennagrid::brep_3d_mesh> mesh(opi);
 
@@ -478,8 +459,6 @@ namespace viennamesh
 
         viennagrid::make_plc(mesh(), line_handles.begin(), line_handles.end());
       }
-
-      return true;
     }
 
   private:
@@ -497,7 +476,25 @@ namespace viennamesh
 
 
 
+  boost::shared_ptr<base_geometry_generator> base_geometry_generator::make(pugi::xml_node const & node)
+  {
+    pugi::xml_attribute xml_dimension = node.attribute("dimension");
+    int dimension = xml_dimension.as_int();
 
+    pugi::xml_attribute xml_geometry_type = node.attribute("geometry_type");
+    std::string geometry_type = xml_geometry_type.as_string();
+    std::transform(geometry_type.begin(), geometry_type.end(), geometry_type.begin(), ::toupper);
+
+    if (dimension == 3 && geometry_type == "BREP")
+    {
+      boost::shared_ptr<base_geometry_generator> generator(new geometry_generator_brep_3d);
+      generator->read(node);
+      return generator;
+    }
+
+    error(1) << "No generator found for dimension " << dimension << " and geometry type \"" << geometry_type << "\"" << std::endl;
+    return boost::shared_ptr<base_geometry_generator>();
+  }
 
 
 
@@ -532,8 +529,8 @@ namespace viennamesh
 
 //     output_parameter_proxy<viennagrid::brep_3d_mesh> omp(output_mesh);
 
-    generator.set_parameters(*this);
-    generator.run(output_mesh);
+    generator->set_parameters(*this);
+    generator->run(output_mesh);
 
     return true;
   }
