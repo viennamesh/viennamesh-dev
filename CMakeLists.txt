@@ -25,14 +25,17 @@ include(ViennaMeshCommon)
 
 # User options
 ##############
-option(VIENNAMESH_WITH_TRIANGLE "Build the Triangle library" ON)
-option(VIENNAMESH_WITH_TETGEN "Build the Tetgen library" ON)
-option(VIENNAMESH_WITH_NETGEN "Build the Netgen library" ON)
-option(VIENNAMESH_NETGEN_WITH_OPENCASCADE "Build the Netgen with OpenCascade" OFF)
-option(VIENNAMESH_WITH_VGMODELER "Build the VGModeler library" ON)
-option(VIENNAMESH_WITH_TDR "Build the TDR reader" OFF)
 
-option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyVienneMesh" OFF)
+option(ENABLE_TRIANGLE                 "Enables the Triangle library" ON)
+option(ENABLE_TETGEN                   "Enables the Tetgen library" ON)
+option(ENABLE_NETGEN                   "Enables the Netgen library" ON)
+option(ENABLE_NETGEN_OPENCASCADE       "Enables the OpenCascade for the Netgen library" ON)
+option(ENABLE_VGMODELER                "Enables the VgModeler library" ON)
+option(ENABLE_TDR_READER               "Enables the TDR reader" ON)
+option(ENABLE_GEOMETRY_GENERATOR       "Enables the Geometry Generator" ON)
+
+
+option(BUILD_PYVIENNAMESH "Build the ViennaMesh Python Wrapper PyViennaMesh" OFF)
 option(BUILD_EXAMPLES "Build the ViennaMesh examples" OFF)
 option(BUILD_TOOLS "Build the ViennaMesh tools" ON)
 option(BUILD_MANUAL "Build the Doxygen-generated manual docs" OFF)
@@ -40,6 +43,206 @@ option(BUILD_MANUAL "Build the Doxygen-generated manual docs" OFF)
 cmake_dependent_option(ENABLE_DIST "Enable the the distribution tarball target" ON "BUILD_MANUAL" OFF)
 
 mark_as_advanced(BUILD_MANUAL ENABLE_DIST)
+
+
+
+
+
+find_package(Boost)
+if(Boost_FOUND)
+  message(STATUS "Found Boost")
+  message(STATUS "Boost include directories: ${BOOST_INCLUDE_DIRS}")
+  message(STATUS "Boost libraries: ${BOOST_LIBRARIES}")
+
+  set(VIENNAMESH_INCLUDE_DIRECTORIES ${VIENNAMESH_INCLUDE_DIRECTORIES} ${BOOST_INCLUDE_DIRS})
+  set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${BOOST_LIBRARIES})
+
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_HAS_BOOST")
+  set(VIENNAMESH_HAS_BOOST TRUE)
+else()
+  message(STATUS "Boost not found")
+endif()
+
+
+find_package(PythonLibs 2)
+if (PYTHONLIBS_FOUND)
+  message(STATUS "Found Python")
+  message(STATUS "Python include directories: ${PYTHON_INCLUDE_DIRS}")
+  message(STATUS "Python libraries: ${PYTHON_LIBRARIES}")
+
+  set(VIENNAMESH_INCLUDE_DIRECTORIES ${VIENNAMESH_INCLUDE_DIRECTORIES} ${PYTHON_INCLUDE_DIRS})
+  set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${PYTHON_LIBRARIES})
+
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_HAS_PYTHON")
+  set(VIENNAMESH_HAS_PYTHON TRUE)
+else()
+  message(STATUS "Python not found")
+endif()
+
+
+find_package(HDF5 COMPONENTS CXX)
+if (HDF5_FOUND)
+  message(STATUS "Found HDF5")
+  message(STATUS "HDF5 include directories: ${HDF5_INCLUDE_DIRS}")
+  message(STATUS "HDF5 libraries: ${HDF5_LIBRARIES}")
+
+  set(VIENNAMESH_INCLUDE_DIRECTORIES ${VIENNAMESH_INCLUDE_DIRECTORIES} ${HDF5_INCLUDE_DIRS})
+  set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${HDF5_LIBRARIES})
+
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_HAS_HDF5")
+  set(VIENNAMESH_HAS_HDF5 TRUE)
+else()
+  message(STATUS "HDF5 not found")
+endif()
+
+
+
+find_package(OCE)
+if (OCE_FOUND)
+  message(STATUS "Found OCE")
+  message(STATUS "OCE include directories: ${OCE_INCLUDE_DIRS}")
+
+  # HACK!!!
+  set(OCE_LIBRARIES TKernel TKGeomBase TKMath TKG2d TKG3d TKXSBase TKOffset TKFillet TKShHealing TKMesh TKTopAlgo TKGeomAlgo TKBool TKPrim TKBO TKIGES TKBRep TKSTEPBase TKSTEP TKSTL TKSTEPAttr TKSTEP209 TKXDESTEP TKXDEIGES TKXCAF TKLCAF FWOSPlugin)
+  # HACK!!!
+
+  message(STATUS "OCE libraries: ${OCE_LIBRARIES}")
+
+  set(VIENNAMESH_INCLUDE_DIRECTORIES ${VIENNAMESH_INCLUDE_DIRECTORIES} ${OCE_INCLUDE_DIRS})
+  set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${OCE_LIBRARIES})
+
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_HAS_OCE")
+  set(VIENNAMESH_HAS_OCE TRUE)
+else()
+  message(STATUS "OCE not found")
+endif()
+
+
+find_package(SWIG)
+if(SWIG_FOUND)
+  message(STATUS "Found SWIG")
+  set(VIENNAMESH_HAS_SWIG TRUE)
+else()
+  message(STATUS "SWIG not found")
+endif()
+
+
+
+
+
+
+
+set(VIENNAMESH_WITH_TRIANGLE FALSE)
+if (ENABLE_TRIANGLE)
+  message(STATUS "Triangle ENABLED")
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_TRIANGLE")
+  set(VIENNAMESH_WITH_TRIANGLE TRUE)
+else()
+  message(STATUS "Triangle DISABLED")
+endif()
+
+
+set(VIENNAMESH_WITH_TETGEN FALSE)
+if (ENABLE_TETGEN)
+  message(STATUS "Tetgen ENABLED")
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_TETGEN")
+  set(VIENNAMESH_WITH_TETGEN TRUE)
+else()
+  message(STATUS "Tetgen DISABLED")
+endif()
+
+
+set(VIENNAMESH_WITH_NETGEN FALSE)
+if (ENABLE_NETGEN)
+  message(STATUS "Netgen ENABLED")
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_NETGEN")
+  set(VIENNAMESH_WITH_NETGEN TRUE)
+else()
+  message(STATUS "Netgen DISABLED")
+endif()
+
+
+set(VIENNAMESH_WITH_VGMODELER FALSE)
+if (ENABLE_VGMODELER)
+  if (NOT MSVC)
+    message(STATUS "VgModeler ENABLED")
+    set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_VGMODELER")
+    set(VIENNAMESH_WITH_VGMODELER TRUE)
+  else()
+    message(WARNING "VgModeler not supported for MSVC, disabling")
+  endif()
+else()
+  message(STATUS "VgModeler DISABLED")
+endif()
+
+
+set(VIENNAMESH_NETGEN_WITH_OPENCASCADE FALSE)
+if (ENABLE_NETGEN_OPENCASCADE)
+  if (VIENNAMESH_HAS_OCE)
+    message(STATUS "Netgen OpenCascade ENABLED")
+    set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_NETGEN_OPENCASCADE")
+    set(VIENNAMESH_NETGEN_WITH_OPENCASCADE TRUE)
+  else()
+    message(WARNING "ENABLE_NETGEN_OPENCASCADE has been enabled but OCE was not found, disabling ENABLE_NETGEN_OPENCASCADE")
+  endif()
+else()
+  message(STATUS "Netgen OpenCascade DISABLED")
+endif()
+
+
+set(VIENNAMESH_WITH_GEOMETRY_GENERATOR FALSE)
+if (ENABLE_GEOMETRY_GENERATOR)
+  if (VIENNAMESH_HAS_PYTHON)
+    message(STATUS "Geometry Generator ENABLED")
+    set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_GEOMETRY_GENERATOR")
+    set(VIENNAMESH_WITH_GEOMETRY_GENERATOR TRUE)
+  else()
+    message(WARNING "ENABLE_GEOMETRY_GENERATOR has been enabled but Python was not found, disabling ENABLE_GEOMETRY_GENERATOR")
+  endif()
+else()
+  message(STATUS "Geometry Generator DISABLED")
+endif()
+
+
+set(VIENNAMESH_WITH_TDR FALSE)
+if (ENABLE_TDR_READER)
+  if (VIENNAMESH_HAS_HDF5)
+    message(STATUS "TDR Reader ENABLED")
+    set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_WITH_TDR_READER")
+    set(VIENNAMESH_WITH_TDR TRUE)
+  else()
+    message(WARNING "ENABLE_TDR_READER has been enabled but TDR5 was not found, disabling ENABLE_TDR_READER")
+  endif()
+else()
+  message(STATUS "TDR Reader DISABLED")
+endif()
+
+
+if (BUILD_PYVIENNAMESH)
+  if (NOT VIENNAMESH_HAS_PYTHON)
+    message(WARNING "BUILD_PYVIENNAMESH has been enabled but Python was not found, disabling BUILD_PYVIENNAMESH")
+    set (BUILD_PYVIENNAMESH OFF)
+  else()
+    if (NOT VIENNAMESH_HAS_SWIG)
+      message(WARNING "BUILD_PYVIENNAMESH has been enabled but SWIG was not found, disabling BUILD_PYVIENNAMESH")
+      set (BUILD_PYVIENNAMESH OFF)
+    else()
+      message(STATUS "PyViennaMesh ENABLED")
+    endif()
+  endif()
+else()
+  message(STATUS "PyViennaMesh DISABLED")
+endif()
+
+
+
+
+message(STATUS "Include Directories: ${VIENNAMESH_INCLUDE_DIRECTORIES}")
+include_directories(${VIENNAMESH_INCLUDE_DIRECTORIES})
+
+
+
+
 
 # Find prerequisites
 ####################
@@ -51,15 +254,10 @@ ELSE()
  SET (CMAKE_BUILD_TYPE "Release")
 ENDIF()
 
-find_package(Boost REQUIRED)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-endif()
 
 
 # Compile options
 #################
-
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
   set(ENABLE_PEDANTIC_FLAGS 1)
@@ -82,8 +280,6 @@ if (MSVC)
   if(ENABLE_PEDANTIC_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-
-  set(VIENNAMESH_WITH_VGMODELER OFF)
 endif()
 
 
@@ -110,6 +306,8 @@ set(VIENNAMESH_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/)
 add_subdirectory(external)
 
 include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRS})
+message(STATUS "External include directories: ${VIENNAMESH_EXTERNAL_INCLUDE_DIRS}")
+
 add_subdirectory(src)
 
 
@@ -138,7 +336,6 @@ if(BUILD_EXAMPLES)
 endif()
 
 if(BUILD_TOOLS)
-  include_directories(${PROJECT_SOURCE_DIR}/external/tclap/include/)
   add_subdirectory(tools)
 endif()
 
