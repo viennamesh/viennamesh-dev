@@ -59,9 +59,9 @@ namespace viennamesh
         return "vec2";
       case PARAMETER_TYPE_VEC3:
         return "vec3";
+      default:
+        return "unknown";
     }
-
-    return "unknown";
   }
 
 
@@ -166,7 +166,7 @@ namespace viennamesh
       }
     }
 
-    virtual void run(output_parameter_interface & opi) = 0;
+    virtual void run_impl(output_parameter_interface & opi) = 0;
     void run(output_parameter_interface & opi)
     {
       for (std::map<std::string, InputParameter>::iterator it = input_parameters.begin(); it != input_parameters.end(); ++it)
@@ -174,12 +174,12 @@ namespace viennamesh
         if (!it->second.set)
         {
           error(1) << "ERROR: parameter " << it->first << " not set" << std::endl;
-          return false;
+          //TODO throw
 
           if (it->second.default_value.empty())
           {
             error(1) << "ERROR: parameter without default value was not set" << std::endl;
-            return false;
+            //TODO throw
           }
         }
       }
@@ -190,7 +190,7 @@ namespace viennamesh
         if (!interpreter_->evaluate_bool( restrictions[i] ))
         {
           error(1) << "ERROR: Restriction \"" << restrictions[i] << "\" failed" << std::endl;
-          return false;
+          //TODO throw
         }
       }
 
