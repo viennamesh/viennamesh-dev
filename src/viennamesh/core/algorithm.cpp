@@ -59,6 +59,19 @@ namespace viennamesh
       error(1) << "Output parameter \"" << output_parameter.name() << "\" of algorithm \"" << name() << "\" registered twice. This is a bug, please report!" << std::endl;
   }
 
+  void base_algorithm::unregister_input_parameter( base_input_parameter_interface & parameter )
+  {
+    if ( input_parameters.erase(parameter.name()) != 1 )
+      error(1) << "Unregistering input parameter \"" << parameter.name() << "\" of algorithm \"" << name() << "\" which was not registered. This is a bug, please report!" << std::endl;
+  }
+
+  void base_algorithm::unregister_output_parameter( output_parameter_interface & parameter )
+  {
+    if ( output_parameters.erase(parameter.name()) != 1 )
+      error(1) << "Unregistering output parameter \"" << parameter.name() << "\" of algorithm \"" << name() << "\" which was not registered. This is a bug, please report!" << std::endl;
+  }
+
+
   bool base_algorithm::is_input_registered(std::string const & name) const
   {
     return input_parameters.find(name) != input_parameters.end();
