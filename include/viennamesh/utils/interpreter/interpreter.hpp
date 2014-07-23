@@ -2,7 +2,8 @@
 #define VIENNAMESH_INTERPRETER_HPP
 
 
-#include <viennagrid/config/default_configs.hpp>
+#include "viennagrid/config/default_configs.hpp"
+#include "viennamesh/forwards.hpp"
 
 
 namespace viennamesh
@@ -52,6 +53,8 @@ namespace viennamesh
     virtual double evaluate_double(std::string const & expression) = 0;
     virtual std::string evaluate_string(std::string const & expression) = 0;
 
+    static boost::shared_ptr<interpreter> make(std::string const & interpreter_type);
+
   private:
 
   };
@@ -73,6 +76,8 @@ namespace viennamesh
     virtual vec2 evaluate_vec2_coordinates(std::string const & expression) = 0;
     virtual vec3 evaluate_vec3(std::string const & expression) = 0;
     virtual vec3 evaluate_vec3_coordinates(std::string const & expression) = 0;
+
+    static boost::shared_ptr<vector_interpreter> make(std::string const & interpreter_type);
 
   private:
 

@@ -3,7 +3,7 @@
 
 #ifdef VIENNAMESH_HAS_PYTHON
 
-#include "viennamesh/algorithm/geometry_generator/interpreter.hpp"
+#include "viennamesh/utils/interpreter/interpreter.hpp"
 #include <Python.h>
 
 

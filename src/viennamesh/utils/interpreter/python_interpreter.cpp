@@ -1,6 +1,6 @@
 #ifdef VIENNAMESH_HAS_PYTHON
 
-#include "viennamesh/algorithm/geometry_generator/python_interpreter.hpp"
+#include "viennamesh/utils/interpreter/python_interpreter.hpp"
 #include "viennamesh/utils/string_tools.hpp"
 using stringtools::lexical_cast;
 
