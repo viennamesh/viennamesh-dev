@@ -232,7 +232,6 @@ namespace viennamesh
     std::list<std::string> split_mappings = stringtools::split_string_brackets( input, ";" );
     for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
     {
-      std::cout << "Seed Point string: " << *mit << std::endl;
       std::list<std::string> from_to = stringtools::split_string_brackets( *mit, "," );
 
       if (from_to.size() != 2)
@@ -247,7 +246,6 @@ namespace viennamesh
       ++it;
       std::string segment_id = *it;
 
-      std::cout << "Point string: " << point_string << std::endl;
       std::vector<double> tmp = stringtools::vector_from_string<double>(point_string);
       PointType point;
 
@@ -293,7 +291,6 @@ namespace viennamesh
 
     static void init()
     {
-      std::cout << "AFFDASEFDDDDDEFEFAEAFE" << std::endl;
       converter::get().register_conversion<std::string, seed_point_2d_container>( &string_to_seed_point_conversion );
     }
 

@@ -19,6 +19,8 @@ namespace viennamesh
     required_input_parameter_interface<std::string>         filename;
 
     output_parameter_interface                              output_mesh;
+    output_parameter_interface                              output_hole_points;
+    output_parameter_interface                              output_seed_points;
   };
 }
 

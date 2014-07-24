@@ -51,12 +51,18 @@ namespace viennamesh
     else
       run_script(name + " = false");
   }
+  void python_interpreter::set_bool(std::string const & name, std::string const & value)
+  { run_script(name + " = " + value); }
 
   void python_interpreter::set_int(std::string const & name, int value)
   { run_script(name + " = int(" + lexical_cast<std::string>(value) + ")"); }
+  void python_interpreter::set_int(std::string const & name, std::string const & value)
+  { run_script(name + " = int(" + value + ")"); }
 
   void python_interpreter::set_double(std::string const & name, double value)
   { run_script(name + " = float(" + lexical_cast<std::string>(value) + ")"); }
+  void python_interpreter::set_double(std::string const & name, std::string const & value)
+  { run_script(name + " = float(" + value + ")"); }
 
   void python_interpreter::set_string(std::string const & name, std::string const & value)
   { run_script(name + " = '" + value + "'"); }
@@ -238,24 +244,41 @@ namespace viennamesh
   void numpy_vector_interpreter::set_vec2(std::string const & name, vec2 const & value)
   {
     std::stringstream ss;
-    python_interpreter::run_script(name + " = vector([" + lexical_cast<std::string>(value[0]) + "," +
-                                      lexical_cast<std::string>(value[1]) + "])");
+    ss << name << " = vector([" << lexical_cast<std::string>(value[0]) << "," <<
+                                   lexical_cast<std::string>(value[1]) << "])";
+    python_interpreter::run_script(ss.str());
   }
+  void numpy_vector_interpreter::set_vec2(std::string const & name, std::string const & value)
+  { python_interpreter::run_script(name + " = " + value); }
+  void numpy_vector_interpreter::set_vec2_coordinated(std::string const & name, std::string const & value)
+  { python_interpreter::run_script(name + " = vector([" + value + "])"); }
+
 
   void numpy_vector_interpreter::set_vec3(std::string const & name, vec3 const & value)
   {
+    std::stringstream ss;
+    ss << name << " = vector([" << lexical_cast<std::string>(value[0]) << "," <<
+                                   lexical_cast<std::string>(value[1]) << "," <<
+                                   lexical_cast<std::string>(value[2]) << "])";
+    python_interpreter::run_script(ss.str());
+
     python_interpreter::run_script(name + " = vector([" + lexical_cast<std::string>(value[0]) + "," +
                                       lexical_cast<std::string>(value[1]) + "," +
                                       lexical_cast<std::string>(value[2]) + "])");
   }
+  void numpy_vector_interpreter::set_vec3(std::string const & name, std::string const & value)
+  { python_interpreter::run_script(name + " = " + value); }
+  void numpy_vector_interpreter::set_vec3_coordinated(std::string const & name, std::string const & value)
+  { python_interpreter::run_script(name + " = vector([" + value + "])"); }
 
-  interpreter::vec2 numpy_vector_interpreter::get_vec2(std::string const & name) { return evaluate_vec2(name); }
-  interpreter::vec3 numpy_vector_interpreter::get_vec3(std::string const & name) { return evaluate_vec3(name); }
+
+  vec2 numpy_vector_interpreter::get_vec2(std::string const & name) { return evaluate_vec2(name); }
+  vec3 numpy_vector_interpreter::get_vec3(std::string const & name) { return evaluate_vec3(name); }
 
 
 
 
-  interpreter::vec2 numpy_vector_interpreter::evaluate_vec2(std::string const & expression)
+  vec2 numpy_vector_interpreter::evaluate_vec2(std::string const & expression)
   {
     py_object_wrapper py_result = PyRun_String(expression.c_str(), Py_eval_input, py_globals, py_globals);
     if (!py_result)
@@ -281,12 +304,12 @@ namespace viennamesh
     return vec2(x,y);
   }
 
-  interpreter::vec2 numpy_vector_interpreter::evaluate_vec2_coordinates(std::string const & expression)
+  vec2 numpy_vector_interpreter::evaluate_vec2_coordinated(std::string const & expression)
   {
     return evaluate_vec2("vector([" + expression + "])");
   }
 
-  interpreter::vec3 numpy_vector_interpreter::evaluate_vec3(std::string const & expression)
+  vec3 numpy_vector_interpreter::evaluate_vec3(std::string const & expression)
   {
     py_object_wrapper py_result = PyRun_String(expression.c_str(), Py_eval_input, py_globals, py_globals);
     if (!py_result)
@@ -319,7 +342,7 @@ namespace viennamesh
     return vec3(x,y,z);
   }
 
-  interpreter::vec3 numpy_vector_interpreter::evaluate_vec3_coordinates(std::string const & expression)
+  vec3 numpy_vector_interpreter::evaluate_vec3_coordinated(std::string const & expression)
   {
     return evaluate_vec3("vector([" + expression + "])");
   }

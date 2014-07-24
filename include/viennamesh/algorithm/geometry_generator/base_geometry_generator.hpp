@@ -2,7 +2,6 @@
 #define VIENNAMESH_ALGORITHM_BASE_GEOMETRY_GENERATOR_HPP
 
 #include <stdexcept>
-#include <CGAL/Direction_2.h>
 #include "pugixml/pugixml.hpp"
 #include "viennagrid/config/default_configs.hpp"
 
@@ -19,8 +18,51 @@ namespace viennamesh
     PARAMETER_TYPE_DOUBLE,
     PARAMETER_TYPE_STRING,
     PARAMETER_TYPE_VEC2,
-    PARAMETER_TYPE_VEC3,
+    PARAMETER_TYPE_VEC3
   };
+
+  namespace result_of
+  {
+    template<typename T>
+    struct to_parameter;
+
+    template<>
+    struct to_parameter<bool>
+    {
+      static const ParameterType value = PARAMETER_TYPE_BOOL;
+    };
+
+    template<>
+    struct to_parameter<int>
+    {
+      static const ParameterType value = PARAMETER_TYPE_INT;
+    };
+
+    template<>
+    struct to_parameter<double>
+    {
+      static const ParameterType value = PARAMETER_TYPE_DOUBLE;
+    };
+
+    template<>
+    struct to_parameter<std::string>
+    {
+      static const ParameterType value = PARAMETER_TYPE_STRING;
+    };
+
+    template<>
+    struct to_parameter<vec2>
+    {
+      static const ParameterType value = PARAMETER_TYPE_VEC2;
+    };
+
+    template<>
+    struct to_parameter<vec3>
+    {
+      static const ParameterType value = PARAMETER_TYPE_VEC3;
+    };
+
+  }
 
   ParameterType parameter_type_from_string(std::string const & str);
   std::string parameter_type_to_string(ParameterType ptype);
@@ -29,7 +71,7 @@ namespace viennamesh
   struct InputParameter
   {
     ParameterType type;
-    std::string default_value;
+    std::string default_value_expression;
     bool set;
   };
 
@@ -47,10 +89,6 @@ namespace viennamesh
   {
   public:
 
-    typedef viennagrid::config::point_type_2d vec2;
-    typedef viennagrid::config::point_type_3d vec3;
-
-
     base_geometry_generator() {}
     virtual ~base_geometry_generator() {}
 
@@ -61,6 +99,7 @@ namespace viennamesh
       restrictions.clear();
 
       scripts.clear();
+      clear_impl();
     }
 
     void reset()
@@ -72,11 +111,17 @@ namespace viennamesh
       }
     }
 
-    virtual void read_impl(pugi::xml_node const & node) = 0;
+    virtual void read_geometry(pugi::xml_node const & node) = 0;
     void read(pugi::xml_node const & node);
 
-    virtual void run_impl(output_parameter_interface & opi) = 0;
-    void run(output_parameter_interface & opi);
+    virtual void evaluate_geometry(output_parameter_interface & opi_mesh,
+                                   output_parameter_interface & opi_hole_points,
+                                   output_parameter_interface & opi_seed_points) = 0;
+    void evaluate(output_parameter_interface & opi_mesh,
+                  output_parameter_interface & opi_hole_points,
+                  output_parameter_interface & opi_seed_points);
+
+
 
     template<typename T>
     void set_parameter(std::string const & parameter_name, T value)
@@ -84,11 +129,37 @@ namespace viennamesh
       std::map<std::string, InputParameter>::iterator it = input_parameters.find(parameter_name);
       if (it != input_parameters.end())
       {
-        set_paramater_impl(it, parameter_name, value);
+        if (it->second.type == result_of::to_parameter<T>::value)
+          set_paramater_impl(parameter_name, value);
+        else
+          throw base_geometry_generator_exception("Parameter type missmatch. Expected bool, got \"" + parameter_type_to_string(it->second.type) + "\"");
+
         it->second.set = true;
       }
       else
-        std::cout << "ERROR: parameter \"" << parameter_name << "\" not found" << std::endl;
+        throw base_geometry_generator_exception("Parameter \"" + parameter_name + "\" not found");
+    }
+
+    void set_parameter(std::string const & parameter_name, std::string const & value)
+    {
+      std::map<std::string, InputParameter>::iterator it = input_parameters.find(parameter_name);
+      if (it != input_parameters.end())
+      {
+        if (it->second.type == PARAMETER_TYPE_BOOL)
+          interpreter_->set_bool(parameter_name, value);
+        else if (it->second.type == PARAMETER_TYPE_INT)
+          interpreter_->set_int(parameter_name, value);
+        else if (it->second.type == PARAMETER_TYPE_DOUBLE)
+          interpreter_->set_double(parameter_name, value);
+        else if (it->second.type == PARAMETER_TYPE_STRING)
+          interpreter_->set_string(parameter_name, value);
+        else
+          throw base_geometry_generator_exception("Parameter \"" + parameter_name + "\" has not supported type \"" + parameter_type_to_string(it->second.type) + "\"");
+
+        it->second.set = true;
+      }
+      else
+        throw base_geometry_generator_exception("Parameter \"" + parameter_name + "\" not found");
     }
 
     void set_parameters(base_algorithm & algorithm);
@@ -98,63 +169,20 @@ namespace viennamesh
 
   protected:
 
-    void set_paramater_impl(std::map<std::string, InputParameter>::iterator it, std::string const & parameter_name, bool value)
-    {
-      if (it->second.type == PARAMETER_TYPE_BOOL)
-        interpreter_->set_bool(parameter_name, value);
-      else
-      {
-        error(1) << "ERROR: parameter type missmatch. Expected bool, got \"" << parameter_type_to_string(it->second.type) << "\"" << std::endl;
-        // TODO: throw
-      }
-    }
-
-    void set_paramater_impl(std::map<std::string, InputParameter>::iterator it, std::string const & parameter_name, int value)
-    {
-      if (it->second.type == PARAMETER_TYPE_INT)
-        interpreter_->set_int(parameter_name, value);
-      else
-      {
-        error(1) << "ERROR: parameter type missmatch. Expected int, got \"" << parameter_type_to_string(it->second.type) << "\"" << std::endl;
-        // TODO: throw
-      }
-    }
-
-    void set_paramater_impl(std::map<std::string, InputParameter>::iterator it, std::string const & parameter_name, double value)
-    {
-      if (it->second.type == PARAMETER_TYPE_DOUBLE)
-        interpreter_->set_double(parameter_name, value);
-      else
-      {
-        error(1) << "ERROR: parameter type missmatch. Expected double, got \"" << parameter_type_to_string(it->second.type) << "\"" << std::endl;
-        // TODO: throw
-      }
-    }
-
-    void set_paramater_impl(std::map<std::string, InputParameter>::iterator it, std::string const & parameter_name, vec2 value)
-    {
-      if (it->second.type == PARAMETER_TYPE_VEC2)
-        interpreter_->set_vec2(parameter_name, value);
-      else
-      {
-        error(1) << "ERROR: parameter type missmatch. Expected vec2, got \"" << parameter_type_to_string(it->second.type) << "\"" << std::endl;
-        // TODO: throw
-      }
-    }
-
-    void set_paramater_impl(std::map<std::string, InputParameter>::iterator it, std::string const & parameter_name, vec3 value)
-    {
-      if (it->second.type == PARAMETER_TYPE_VEC3)
-        interpreter_->set_vec3(parameter_name, value);
-      else
-      {
-        error(1) << "ERROR: parameter type missmatch. Expected vec3, got \"" << parameter_type_to_string(it->second.type) << "\"" << std::endl;
-        // TODO: throw
-      }
-    }
 
 
-
+    void set_paramater_impl(std::string const & parameter_name, bool value)
+    { interpreter_->set_bool(parameter_name, value); }
+    void set_paramater_impl(std::string const & parameter_name, int value)
+    { interpreter_->set_int(parameter_name, value); }
+    void set_paramater_impl(std::string const & parameter_name, double value)
+    { interpreter_->set_double(parameter_name, value); }
+    void set_paramater_impl(std::string const & parameter_name, std::string const & value)
+    { interpreter_->set_string(parameter_name, value); }
+    void set_paramater_impl(std::string const & parameter_name, vec2 const & value)
+    { interpreter_->set_vec2(parameter_name, value); }
+    void set_paramater_impl(std::string const & parameter_name, vec3 const & value)
+    { interpreter_->set_vec3(parameter_name, value); }
 
 
     boost::shared_ptr<vector_interpreter> interpreter_;

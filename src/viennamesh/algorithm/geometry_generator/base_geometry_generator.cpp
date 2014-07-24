@@ -1,7 +1,7 @@
 #include "viennamesh/algorithm/geometry_generator/base_geometry_generator.hpp"
 #include "viennamesh/utils/interpreter/python_interpreter.hpp"
 
-#include "viennamesh/algorithm/geometry_generator/geometry_generator_brep_3d.hpp"
+#include "viennamesh/algorithm/geometry_generator/geometry_generator_brep.hpp"
 
 namespace viennamesh
 {
@@ -53,32 +53,41 @@ namespace viennamesh
     clear();
 
     pugi::xml_attribute xml_scripting_language = node.attribute("scripting_language");
+    if (!xml_scripting_language)
+      throw base_geometry_generator_exception("XML Attribute scripting_language not found");
     std::string scripting_language = xml_scripting_language.as_string();
 
     interpreter_ = vector_interpreter::make(scripting_language);
+    if (!interpreter_)
+      throw base_geometry_generator_exception("Failed to create interpreter: \"" + scripting_language + "\"");
+
 
     pugi::xml_node xml_input_parameters = node.child("input_parameters");
+    if (!xml_input_parameters)
+      throw base_geometry_generator_exception("XML node \"input_parameters\" not found");
 
     for (pugi::xml_node xml_parameter = xml_input_parameters.child("parameter");
                         xml_parameter;
                         xml_parameter = xml_parameter.next_sibling("parameter"))
     {
       pugi::xml_attribute xml_parameter_name = xml_parameter.attribute("name");
+      if (!xml_parameter_name)
+        throw base_geometry_generator_exception("Input parameter: XML attribute \"name\" not found");
       std::string parameter_name = xml_parameter_name.as_string();
 
       pugi::xml_attribute xml_parameter_type = xml_parameter.attribute("type");
+      if (!xml_parameter_type)
+        throw base_geometry_generator_exception("Input parameter: XML attribute \"type\" not found");
       std::string parameter_type = xml_parameter_type.as_string();
 
       InputParameter input_parameter;
       input_parameter.type = parameter_type_from_string(parameter_type);
 
       if (xml_parameter.child_value("default"))
-        input_parameter.default_value = xml_parameter.child_value("default");
+        input_parameter.default_value_expression = xml_parameter.child_value("default");
 
       input_parameters[parameter_name] = input_parameter;
     }
-
-
 
     for (pugi::xml_node xml_restriction = xml_input_parameters.child("restriction");
                         xml_restriction;
@@ -87,33 +96,36 @@ namespace viennamesh
       restrictions.push_back( xml_restriction.first_child().value() );
     }
 
-
-
-
     for (pugi::xml_node xml_script = node.child("script");
                         xml_script;
                         xml_script = xml_script.next_sibling("script"))
     {
       scripts.push_back( xml_script.first_child().value() );
     }
+
+    read_geometry(node);
   }
 
 
 
-  void base_geometry_generator::run(output_parameter_interface & opi)
+  void base_geometry_generator::evaluate(output_parameter_interface & opi_mesh,
+                                         output_parameter_interface & opi_seed_points,
+                                         output_parameter_interface & opi_hole_points)
   {
     for (std::map<std::string, InputParameter>::iterator it = input_parameters.begin(); it != input_parameters.end(); ++it)
     {
       if (!it->second.set)
       {
-        error(1) << "ERROR: parameter " << it->first << " not set" << std::endl;
-        //TODO throw
 
-        if (it->second.default_value.empty())
+
+//         throw base_geometry_generator_exception("Parameter " + it->first + " not set");
+
+        if (it->second.default_value_expression.empty())
         {
-          error(1) << "ERROR: parameter without default value was not set" << std::endl;
-          //TODO throw
+          throw base_geometry_generator_exception("Parameter without default value was not set");
         }
+
+        set_parameter(it->first, it->second.default_value_expression);
       }
     }
 
@@ -122,8 +134,7 @@ namespace viennamesh
     {
       if (!interpreter_->evaluate_bool( restrictions[i] ))
       {
-        error(1) << "ERROR: Restriction \"" << restrictions[i] << "\" failed" << std::endl;
-        //TODO throw
+        throw base_geometry_generator_exception("Restriction \"" + restrictions[i] + "\" failed");
       }
     }
 
@@ -133,7 +144,7 @@ namespace viennamesh
       interpreter_->run_script( scripts[i] );
 
 
-    run_impl(opi);
+    evaluate_geometry(opi_mesh, opi_seed_points, opi_hole_points);
   }
 
 
@@ -162,7 +173,7 @@ namespace viennamesh
           set_parameter(it->first, param());
       }
       else
-        error(1) << "Parameter type \"" << it->second.type << "\" unsupported" << std::endl;
+        throw base_geometry_generator_exception("Parameter type \"" + parameter_type_to_string(it->second.type) + "\" unsupported");
     }
   }
 
@@ -185,7 +196,13 @@ namespace viennamesh
 
     if (dimension == 3 && geometry_type == "BREP")
     {
-      boost::shared_ptr<base_geometry_generator> generator(new geometry_generator_brep_3d::geometry_generator());
+      boost::shared_ptr<base_geometry_generator> generator(new geometry_generator_brep::brep_3d_geometry_generator());
+      generator->read(node);
+      return generator;
+    }
+    else if (dimension == 2 && geometry_type == "BREP")
+    {
+      boost::shared_ptr<base_geometry_generator> generator(new geometry_generator_brep::brep_2d_geometry_generator());
       generator->read(node);
       return generator;
     }
