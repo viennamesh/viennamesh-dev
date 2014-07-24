@@ -2,7 +2,8 @@
 #define VIENNAMESH_INTERPRETER_HPP
 
 
-#include <viennagrid/config/default_configs.hpp>
+#include "viennagrid/config/default_configs.hpp"
+#include "viennamesh/forwards.hpp"
 
 
 namespace viennamesh
@@ -20,9 +21,6 @@ namespace viennamesh
   {
   public:
 
-    typedef viennagrid::config::point_type_2d vec2;
-    typedef viennagrid::config::point_type_3d vec3;
-
     interpreter() {}
     virtual ~interpreter() {}
 
@@ -38,8 +36,14 @@ namespace viennamesh
     virtual void run_script(std::string const & script) = 0;
 
     virtual void set_bool(std::string const & name, bool value) = 0;
+    virtual void set_bool(std::string const & name, std::string const & value) = 0;
+
     virtual void set_int(std::string const & name, int value) = 0;
+    virtual void set_int(std::string const & name, std::string const & value) = 0;
+
     virtual void set_double(std::string const & name, double value) = 0;
+    virtual void set_double(std::string const & name, std::string const & value) = 0;
+
     virtual void set_string(std::string const & name, std::string const & value) = 0;
 
     virtual bool get_bool(std::string const & name) = 0;
@@ -51,6 +55,8 @@ namespace viennamesh
     virtual int evaluate_int(std::string const & expression) = 0;
     virtual double evaluate_double(std::string const & expression) = 0;
     virtual std::string evaluate_string(std::string const & expression) = 0;
+
+    static boost::shared_ptr<interpreter> make(std::string const & interpreter_type);
 
   private:
 
@@ -64,15 +70,22 @@ namespace viennamesh
     virtual ~vector_interpreter() {}
 
     virtual void set_vec2(std::string const & name, vec2 const & value) = 0;
+    virtual void set_vec2(std::string const & name, std::string const & value) = 0;
+    virtual void set_vec2_coordinated(std::string const & name, std::string const & value) = 0;
+
     virtual void set_vec3(std::string const & name, vec3 const & value) = 0;
+    virtual void set_vec3(std::string const & name, std::string const & value) = 0;
+    virtual void set_vec3_coordinated(std::string const & name, std::string const & value) = 0;
 
     virtual vec2 get_vec2(std::string const & name) = 0;
     virtual vec3 get_vec3(std::string const & name) = 0;
 
     virtual vec2 evaluate_vec2(std::string const & expression) = 0;
-    virtual vec2 evaluate_vec2_coordinates(std::string const & expression) = 0;
+    virtual vec2 evaluate_vec2_coordinated(std::string const & expression) = 0;
     virtual vec3 evaluate_vec3(std::string const & expression) = 0;
-    virtual vec3 evaluate_vec3_coordinates(std::string const & expression) = 0;
+    virtual vec3 evaluate_vec3_coordinated(std::string const & expression) = 0;
+
+    static boost::shared_ptr<vector_interpreter> make(std::string const & interpreter_type);
 
   private:
 

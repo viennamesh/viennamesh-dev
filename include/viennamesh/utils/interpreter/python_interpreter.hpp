@@ -3,7 +3,7 @@
 
 #ifdef VIENNAMESH_HAS_PYTHON
 
-#include "viennamesh/algorithm/geometry_generator/interpreter.hpp"
+#include "viennamesh/utils/interpreter/interpreter.hpp"
 #include <Python.h>
 
 
@@ -89,10 +89,15 @@ namespace viennamesh
     void run_script(std::string const & script);
 
     void set_bool(std::string const & name, bool value);
-    void set_int(std::string const & name, int value);
-    void set_double(std::string const & name, double value);
-    void set_string(std::string const & name, std::string const & value);
+    void set_bool(std::string const & name, std::string const & value);
 
+    void set_int(std::string const & name, int value);
+    void set_int(std::string const & name, std::string const & value);
+
+    void set_double(std::string const & name, double value);
+    void set_double(std::string const & name, std::string const & value);
+
+    void set_string(std::string const & name, std::string const & value);
 
     bool get_bool(std::string const & name);
     int get_int(std::string const & name);
@@ -157,16 +162,21 @@ namespace viennamesh
     void deinit();
 
     void set_vec2(std::string const & name, vec2 const & value);
+    void set_vec2(std::string const & name, std::string const & value);
+    void set_vec2_coordinated(std::string const & name, std::string const & value);
+
     void set_vec3(std::string const & name, vec3 const & value);
+    void set_vec3(std::string const & name, std::string const & value);
+    void set_vec3_coordinated(std::string const & name, std::string const & value);
 
     vec2 get_vec2(std::string const & name);
     vec3 get_vec3(std::string const & name);
 
     vec2 evaluate_vec2(std::string const & expression);
-    vec2 evaluate_vec2_coordinates(std::string const & expression);
+    vec2 evaluate_vec2_coordinated(std::string const & expression);
 
     vec3 evaluate_vec3(std::string const & expression);
-    vec3 evaluate_vec3_coordinates(std::string const & expression);
+    vec3 evaluate_vec3_coordinated(std::string const & expression);
 
   private:
 
