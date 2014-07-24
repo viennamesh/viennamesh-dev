@@ -37,7 +37,7 @@ namespace viennamesh
 #ifdef VIENNAMESH_WITH_NETGEN
     register_algorithm<viennamesh::netgen::make_mesh>();
     register_algorithm<viennamesh::netgen::csg_make_mesh>();
-  #ifdef VIENNAMESH_NETGEN_WITH_OPENCASCADE
+  #ifdef VIENNAMESH_WITH_NETGEN_OPENCASCADE
     register_algorithm<viennamesh::netgen::occ_make_mesh>();
   #endif
 #endif

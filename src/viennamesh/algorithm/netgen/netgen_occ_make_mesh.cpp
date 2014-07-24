@@ -1,4 +1,4 @@
-#if defined(VIENNAMESH_WITH_NETGEN) && defined(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+#if defined(VIENNAMESH_WITH_NETGEN) && defined(VIENNAMESH_WITH_NETGEN_OPENCASCADE)
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
