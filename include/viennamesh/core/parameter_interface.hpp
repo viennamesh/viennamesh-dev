@@ -50,6 +50,8 @@ namespace viennamesh
   struct parameter_information
   {
 //     parameter_information() {}
+    parameter_information(std::string const & name_) : name(name_) {}
+
     parameter_information(std::string const & name_,
                           std::string const & type_,
                           std::string const & description_) : name(name_), type(type_), description(description_) {}
@@ -97,6 +99,11 @@ namespace viennamesh
       {
         algorithm.register_output_parameter(*this);
       }
+
+    virtual ~output_parameter_interface()
+    {
+      algorithm().unregister_output_parameter(*this);
+    }
   };
 
   enum RequirementFlag
@@ -114,9 +121,14 @@ namespace viennamesh
                               RequirementFlag requirement_flag_in) :
         base_parameter_interface(algorithm, information_),
         requirement_flag_(requirement_flag_in)
-    { algorithm.register_input_parameter(*this); }
+    {
+      algorithm.register_input_parameter(*this);
+    }
 
-    virtual ~base_input_parameter_interface() {}
+    virtual ~base_input_parameter_interface()
+    {
+      algorithm().unregister_input_parameter(*this);
+    }
 
     RequirementFlag requirement_flag() const
     { return requirement_flag_; }
