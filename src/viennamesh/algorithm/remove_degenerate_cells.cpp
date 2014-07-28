@@ -89,20 +89,6 @@ namespace viennamesh
       }
     }
 
-
-
-
-//     if (imp)
-//     {
-//       output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
-//
-//
-//
-// //       map_segments_impl( imp().mesh, imp().segmentation, omp().mesh, omp().segmentation, segment_mapping );
-//
-//       return true;
-//     }
-
     return false;
   }
 
