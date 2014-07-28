@@ -48,10 +48,10 @@ namespace stringtools
         --bc;
     }
 
-    std::cout << str << std::endl;
-    for (pos = 0; pos != str.size(); ++pos)
-      std::cout << bracket_count[pos];
-    std::cout << std::endl;
+//     std::cout << str << std::endl;
+//     for (pos = 0; pos != str.size(); ++pos)
+//       std::cout << bracket_count[pos];
+//     std::cout << std::endl;
 
     pos = 0;
     std::string::size_type old_pos = 0;
@@ -59,25 +59,25 @@ namespace stringtools
     {
       std::string::size_type new_pos = str.find(delimiter, pos);
 
-      std::cout << "Found on " << new_pos << std::endl;
+//       std::cout << "Found on " << new_pos << std::endl;
 
       if (new_pos == std::string::npos)
       {
         tokens.push_back( str.substr(old_pos, str.size()-old_pos) );
-        std::cout << "Added " << tokens.back() << std::endl;
+//         std::cout << "Added " << tokens.back() << std::endl;
         return tokens;
       }
 
       if (bracket_count[new_pos] != 0)
       {
-        std::cout << "bracket count not 0 -> skipping" << std::endl;
+//         std::cout << "bracket count not 0 -> skipping" << std::endl;
         pos = new_pos+delimiter.size();
         continue;
       }
 
 
       tokens.push_back( str.substr(old_pos, new_pos-old_pos) );
-      std::cout << "Added " << tokens.back() << std::endl;
+//       std::cout << "Added " << tokens.back() << std::endl;
       pos = new_pos+delimiter.size();
       old_pos = pos;
     }
