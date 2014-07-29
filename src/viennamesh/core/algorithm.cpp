@@ -24,7 +24,7 @@ namespace viennamesh
 
   bool base_algorithm::run()
   {
-    LoggingStack stack( std::string("Algoritm: ") + name() );
+    LoggingStack stack( std::string("Algorithm: ") + name() );
     outputs.clear_non_references();
 
     for (RegisteredInputParameterMapType::iterator ipit = input_parameters.begin(); ipit != input_parameters.end(); ++ipit)
