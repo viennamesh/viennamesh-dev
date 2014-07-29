@@ -13,6 +13,7 @@
 =============================================================================== */
 
 #include "viennamesh/algorithm/merge_duplicate_points.hpp"
+#include "viennamesh/algorithm/healing/remove_duplicate_points.hpp"
 
 namespace viennamesh
 {
@@ -38,11 +39,8 @@ namespace viennamesh
       {
         output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-        viennagrid::vertex_copy_map<MeshT, MeshT> vertex_map( omp().mesh, tolerance() );
-        viennagrid::copy( vertex_map,
-                          imp().mesh, imp().segmentation,
-                          omp().mesh, omp().segmentation,
-                          viennagrid::true_functor() );
+        remove_duplicate_points_heal_functor<double> functor( tolerance() );
+        functor( imp(), omp() );
 
         info(1) << "Vertex count before removing degenerate elements: " << viennagrid::vertices(imp().mesh).size() << std::endl;
         info(1) << "Vertex count after removing degenerate elements: " << viennagrid::vertices(omp().mesh).size() << std::endl;
@@ -59,8 +57,8 @@ namespace viennamesh
       {
         output_parameter_proxy<MeshT> omp(output_mesh);
 
-        viennagrid::vertex_copy_map<MeshT, MeshT> vertex_map( omp(), tolerance() );
-        viennagrid::copy( vertex_map, imp(), omp(), viennagrid::true_functor() );
+        remove_duplicate_points_heal_functor<double> functor( tolerance() );
+        functor( imp(), omp() );
 
         info(1) << "Vertex count before removing degenerate elements: " << viennagrid::vertices(imp()).size() << std::endl;
         info(1) << "Vertex count after removing degenerate elements: " << viennagrid::vertices(omp()).size() << std::endl;

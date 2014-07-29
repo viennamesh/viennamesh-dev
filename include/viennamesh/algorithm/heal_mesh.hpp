@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_HEAL_INTERFACES_HPP
-#define VIENNAMESH_ALGORITHM_HEAL_INTERFACES_HPP
+#ifndef VIENNAMESH_ALGORITHM_HEAL_MESH_HPP
+#define VIENNAMESH_ALGORITHM_HEAL_MESH_HPP
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
@@ -19,10 +19,10 @@
 
 namespace viennamesh
 {
-  class heal_interfaces : public base_algorithm
+  class heal_mesh : public base_algorithm
   {
   public:
-    heal_interfaces();
+    heal_mesh();
 
     std::string name() const;
     std::string id() const;
@@ -32,6 +32,7 @@ namespace viennamesh
   private:
     dynamic_required_input_parameter_interface    input_mesh;
     default_input_parameter_interface<double>     tolerance;
+    default_input_parameter_interface<int>        max_heal_iteration_count;
 
     output_parameter_interface                    output_mesh;
   };

@@ -13,56 +13,10 @@
 =============================================================================== */
 
 #include "viennamesh/algorithm/remove_duplicate_cells.hpp"
+#include "viennamesh/algorithm/healing/remove_duplicate_cells.hpp"
 
 namespace viennamesh
 {
-
-  template<typename MeshT>
-  struct remove_duplicte_cells_copy_functor
-  {
-    typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
-
-    remove_duplicte_cells_copy_functor(MeshT const & mesh) : copy_flags(copy_flags_container)
-    {
-      typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
-      typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
-
-      ConstCellRangeType cells(mesh);
-      copy_flags_container.resize( cells.size() );
-
-      typedef viennagrid::element_key<CellType> CellKey;
-      typedef std::set<CellKey> CellSetType;
-      CellSetType cell_set;
-
-      for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
-      {
-        typename CellSetType::const_iterator it = cell_set.find( CellKey(*cit) );
-        if (it == cell_set.end())
-        {
-          copy_flags(*cit) = true;
-          cell_set.insert( CellKey(*cit) );
-        }
-        else
-        {
-          copy_flags(*cit) = false;
-        }
-      }
-    }
-
-    template<typename CellT>
-    bool operator()(CellT const & cell) const
-    {
-      return copy_flags(cell);
-    }
-
-    typedef std::vector<bool> FlagContainerType;
-    typedef typename viennagrid::result_of::accessor<FlagContainerType, CellType>::type FlagAccessorType;
-    FlagContainerType copy_flags_container;
-    FlagAccessorType copy_flags;
-  };
-
-
-
   remove_duplicate_cells::remove_duplicate_cells() :
     input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
     output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
@@ -84,7 +38,7 @@ namespace viennamesh
       {
         output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-        viennagrid::copy( imp().mesh, imp().segmentation, omp().mesh, omp().segmentation, remove_duplicte_cells_copy_functor<MeshT>(imp().mesh) );
+        remove_duplicate_cells_heal_functor()( imp(), omp() );
 
         info(1) << "Cells count before removing degenerate elements: " << viennagrid::cells(imp().mesh).size() << std::endl;
         info(1) << "Cells count after removing degenerate elements: " << viennagrid::cells(omp().mesh).size() << std::endl;
@@ -101,7 +55,7 @@ namespace viennamesh
       {
         output_parameter_proxy<MeshT> omp(output_mesh);
 
-        viennagrid::copy( imp(), omp(), remove_duplicte_cells_copy_functor<MeshT>(imp()) );
+        remove_duplicate_cells_heal_functor()( imp(), omp() );
 
         info(1) << "Cells count before removing degenerate elements: " << viennagrid::cells(imp()).size() << std::endl;
         info(1) << "Cells count after removing degenerate elements: " << viennagrid::cells(omp()).size() << std::endl;

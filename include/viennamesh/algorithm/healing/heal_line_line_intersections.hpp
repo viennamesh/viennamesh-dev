@@ -20,7 +20,7 @@ namespace viennamesh
     line_line_intersection_heal_functor(NumericConfigT nc_) : nc(nc_) {}
 
     template<typename MeshT>
-    bool operator()(MeshT const & input_mesh, MeshT & output_mesh)
+    bool operator()(MeshT const & input_mesh, MeshT & output_mesh) const
     {
       typedef typename viennagrid::result_of::cell_tag<MeshT>::type CellTag;
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
@@ -87,7 +87,7 @@ namespace viennamesh
         }
       }
 
-      info(1) << "Found line-line intersections: " << intersection_count << std::endl;
+      info(1) << "Healed " << intersection_count << " line-line intersections" << std::endl;
 
       if (intersection_count > 0)
       {
