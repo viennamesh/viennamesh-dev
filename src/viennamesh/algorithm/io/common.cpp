@@ -71,6 +71,9 @@ namespace viennamesh
       if ( extension_found(filename, "str") )
         return SILVACO_STR;
 
+      if ( extension_found(filename, "stl") )
+        return STL;
+
       return UNKNOWN;
     }
 
@@ -108,6 +111,13 @@ namespace viennamesh
       if (str == "SILVACO_STR")
         return SILVACO_STR;
 
+      if (str == "STL")
+        return STL;
+      if (str == "STL_ASCII")
+        return STL_ASCII;
+      if (str == "STL_BINARY")
+        return STL_BINARY;
+
       return UNKNOWN;
     }
 
@@ -144,6 +154,13 @@ namespace viennamesh
 
         case SILVACO_STR:
           return "SILVACO_STR";
+
+        case STL:
+          return "STL";
+        case STL_ASCII:
+          return "STL_ASCII";
+        case STL_BINARY:
+          return "STL_BINARY";
 
         default:
           return "UNKNOWN";
