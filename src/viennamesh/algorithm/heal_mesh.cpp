@@ -17,35 +17,120 @@ namespace viennamesh
   template<typename NumericConfigT>
   struct hull_heal_functor
   {
-    hull_heal_functor(NumericConfigT nc) : duplicate_points(nc), line_line_intersection(nc), point_line_intersection(nc) {}
+    hull_heal_functor(NumericConfigT nc) : duplicate_points_healer(nc), point_line_intersection_healer(nc), line_line_intersection_healer(nc) {}
 
 
     template<typename MeshT>
-    bool operator()(MeshT const & input_mesh, MeshT & output_mesh) const
+    std::size_t operator()(MeshT const & mesh)
+    {
+      std::size_t bads;
+
+      bads = duplicate_points_healer(mesh);
+      info(1) << bads << " duplicate point bads" << std::endl;
+      if (bads > 0)
+        return bads;
+
+      bads = degenerate_cells_healer(mesh);
+      info(1) << bads << " degenerate cell bads" << std::endl;
+      if (bads > 0)
+        return bads;
+
+      bads = duplicate_cells_healer(mesh);
+      info(1) << bads << " duplicate cell bads" << std::endl;
+      if (bads > 0)
+        return bads;
+
+      bads = point_line_intersection_healer(mesh);
+      info(1) << bads << " point-line intersection bads" << std::endl;
+      if (bads > 0)
+        return bads;
+
+      bads = line_line_intersection_healer(mesh);
+      info(1) << bads << " line-line intersection bads" << std::endl;
+      if (bads > 0)
+        return bads;
+
+      return 0;
+    }
+
+    template<typename MeshT>
+    void operator()(MeshT const & input_mesh, MeshT & output_mesh) const
     {
       MeshT tmp;
 
-      bool good = true;
-      good |= duplicate_points(input_mesh, output_mesh);
-      good |= degenerate_cells(output_mesh, tmp);
-      good |= duplicate_cells(tmp, output_mesh);
-      good |= line_line_intersection(output_mesh, tmp);
-      good |= point_line_intersection(tmp, output_mesh);
+      viennagrid::copy(input_mesh, tmp);
 
-      return good;
+      MeshT * src = &tmp;
+      MeshT * dst = &output_mesh;
+
+      apply_topologic(src, dst);
+
+      std::size_t bads;
+
+      bads = point_line_intersection_healer(*src);
+      info(1) << bads << " point-line intersection bads" << std::endl;
+      if ( bads > 0 )
+      {
+        point_line_intersection_healer(*src, *dst);
+        std::swap(src, dst);
+      }
+
+      apply_topologic(src, dst);
+
+      bads = line_line_intersection_healer(*src);
+      info(1) << bads << " line-line intersection bads" << std::endl;
+      if ( bads > 0 )
+      {
+        line_line_intersection_healer(*src, *dst);
+        std::swap(src, dst);
+      }
+
+      apply_topologic(src, dst);
+
+      if (src != &output_mesh)
+        viennagrid::copy(*src, output_mesh);
     }
 
 
-    remove_duplicate_points_heal_functor<NumericConfigT> duplicate_points;
-    remove_degenerate_cells_heal_functor degenerate_cells;
-    remove_duplicate_cells_heal_functor duplicate_cells;
+    template<typename MeshT>
+    void apply_topologic( MeshT* & src, MeshT* & dst ) const
+    {
+      std::size_t bads;
 
-    line_line_intersection_heal_functor<NumericConfigT> line_line_intersection;
-    point_line_intersection_heal_functor<NumericConfigT> point_line_intersection;
+      bads = duplicate_points_healer(*src);
+      info(1) << bads << " duplicate point bads" << std::endl;
+      if ( bads > 0 )
+      {
+        duplicate_points_healer(*src, *dst);
+        std::swap(src, dst);
+      }
+
+      bads = duplicate_cells_healer(*src);
+      info(1) << bads << " degenerate cell bads" << std::endl;
+      if ( bads > 0 )
+      {
+        degenerate_cells_healer(*src, *dst);
+        std::swap(src, dst);
+      }
+
+      bads = duplicate_cells_healer(*src);
+      info(1) << bads << " duplicate cell bads" << std::endl;
+      if ( bads > 0 )
+      {
+        duplicate_cells_healer(*src, *dst);
+        std::swap(src, dst);
+      }
+    }
+
+
+    remove_duplicate_points_heal_functor<NumericConfigT> duplicate_points_healer;
+    remove_degenerate_cells_heal_functor degenerate_cells_healer;
+    remove_duplicate_cells_heal_functor duplicate_cells_healer;
+
+    point_line_intersection_heal_functor<NumericConfigT> point_line_intersection_healer;
+    line_line_intersection_heal_functor<NumericConfigT> line_line_intersection_healer;
+
   };
-
-
-
 
   heal_mesh::heal_mesh() :
     input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 3d mesh supported")),
@@ -70,6 +155,10 @@ namespace viennamesh
       output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
       iteratively_heal( imp(), omp(), max_heal_iteration_count(), hull_heal_functor<double>( tolerance() ) );
+
+//       (remove_duplicate_points_heal_functor<double>( tolerance() )) ( imp(), omp() );
+//       (remove_degenerate_cells_heal_functor()) ( imp(), omp() );
+//       (remove_duplicate_cells_heal_functor()) ( imp(), omp() );
 
       return true;
     }

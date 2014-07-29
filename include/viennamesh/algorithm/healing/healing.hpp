@@ -11,30 +11,25 @@ namespace viennamesh
                         HealFunctorT heal_functor)
   {
     MeshT tmp;
-    bool good;
+    viennagrid::copy(input_mesh, output_mesh);
 
-    {
-      LoggingStack stack( std::string("Healing iteration 1") );
-      good = heal_functor(input_mesh, output_mesh);
-    }
-    std::size_t iteration_count = 1;
 
     MeshT * src = &output_mesh;
     MeshT * dst = &tmp;
 
-    while (!good && iteration_count <= max_iterations)
+    std::size_t iteration_count = 1;
+    while (heal_functor(*src) > 0 && iteration_count <= max_iterations)
     {
-      ++iteration_count;
       LoggingStack stack( std::string("Healing iteration ") + lexical_cast<std::string>(iteration_count) );
-      viennagrid::clear(*dst);
-      good = heal_functor(*src, *dst);
+      ++iteration_count;
+      heal_functor(*src, *dst);
       std::swap(src, dst);
     }
 
-    if (good && dst != &output_mesh)
+    if (src != &output_mesh)
       viennagrid::copy(tmp, output_mesh);
 
-    return good;
+    return iteration_count <= max_iterations || heal_functor(*src);
   }
 }
 

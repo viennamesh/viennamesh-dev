@@ -53,24 +53,36 @@ namespace viennamesh
   struct remove_duplicate_cells_heal_functor
   {
     template<typename MeshT>
-    bool operator()(MeshT const & input_mesh, MeshT & output_mesh) const
+    std::size_t operator()(MeshT const & mesh) const
+    {
+      typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
+      typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
+
+      remove_duplicte_cells_copy_functor<MeshT> f(mesh);
+      std::size_t bad_cells_count = 0;
+      ConstCellRangeType cells(mesh);
+      for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+      {
+        if ( !f(*cit) )
+          ++bad_cells_count;
+      }
+
+      return bad_cells_count;
+    }
+
+    template<typename MeshT>
+    void operator()(MeshT const & input_mesh, MeshT & output_mesh) const
     {
       viennagrid::copy( input_mesh, output_mesh, remove_duplicte_cells_copy_functor<MeshT>(input_mesh) );
-
-      info(1) << "Removed " << viennagrid::cells(input_mesh).size()-viennagrid::cells(output_mesh).size() << " duplicate cells" << std::endl;
-      return true;
     }
 
     template<typename MeshT, typename SegmentationT>
-    bool operator()(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input_mesh,
+    void operator()(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input_mesh,
                     viennagrid::segmented_mesh<MeshT, SegmentationT> & output_mesh) const
     {
       viennagrid::copy( input_mesh.mesh, input_mesh.segmentation,
                         output_mesh.mesh, output_mesh.segmentation,
                         remove_duplicte_cells_copy_functor<MeshT>(input_mesh.mesh) );
-
-      info(1) << "Removed " << viennagrid::cells(input_mesh.mesh).size()-viennagrid::cells(output_mesh.mesh).size() << " duplicate cells" << std::endl;
-      return true;
     }
   };
 

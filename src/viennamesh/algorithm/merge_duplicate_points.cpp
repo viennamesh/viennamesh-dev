@@ -39,8 +39,7 @@ namespace viennamesh
       {
         output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-        remove_duplicate_points_heal_functor<double> functor( tolerance() );
-        functor( imp(), omp() );
+        (remove_duplicate_points_heal_functor<double>( tolerance() )) ( imp(), omp() );
 
         info(1) << "Vertex count before removing degenerate elements: " << viennagrid::vertices(imp().mesh).size() << std::endl;
         info(1) << "Vertex count after removing degenerate elements: " << viennagrid::vertices(omp().mesh).size() << std::endl;
@@ -57,8 +56,7 @@ namespace viennamesh
       {
         output_parameter_proxy<MeshT> omp(output_mesh);
 
-        remove_duplicate_points_heal_functor<double> functor( tolerance() );
-        functor( imp(), omp() );
+        (remove_duplicate_points_heal_functor<double>( tolerance() )) ( imp(), omp() );
 
         info(1) << "Vertex count before removing degenerate elements: " << viennagrid::vertices(imp()).size() << std::endl;
         info(1) << "Vertex count after removing degenerate elements: " << viennagrid::vertices(omp()).size() << std::endl;
