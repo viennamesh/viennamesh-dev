@@ -20,8 +20,10 @@
 #include "viennagrid/io/tetgen_poly_reader.hpp"
 #include "viennagrid/io/bnd_reader.hpp"
 #include "viennagrid/io/neper_tess_reader.hpp"
+#include "viennagrid/io/stl_reader.hpp"
 
 #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
+#include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
 #ifdef VIENNAMESH_WITH_TDR
   #include "viennamesh/algorithm/io/sentaurus_tdr_reader.hpp"
 #endif
@@ -292,6 +294,39 @@ namespace viennamesh
           else
             unset_output("seed_points");
 
+
+          return true;
+        }
+
+      case STL:
+      case STL_ASCII:
+      case STL_BINARY:
+        {
+          info(5) << "Found .stl extension, using ViennaGrid STL Reader" << std::endl;
+          typedef viennagrid::triangular_3d_mesh MeshType;
+
+          output_parameter_proxy<MeshType> omp(output_mesh);
+
+          viennagrid::io::stl_reader reader;
+          if (filetype == STL)
+            reader(omp(), filename);
+          else if (filetype == STL_ASCII)
+            reader.read_ascii(omp(), filename);
+          else if (filetype == STL_BINARY)
+            reader.read_binary(omp(), filename);
+
+          return true;
+        }
+
+      case SILVACO_STR:
+        {
+          info(5) << "Found .str extension, using ViennaGrid Silvaco str Reader" << std::endl;
+          typedef viennagrid::triangular_3d_mesh MeshType;
+
+          output_parameter_proxy<MeshType> omp(output_mesh);
+
+          viennagrid::io::silvaco_str_reader reader;
+          reader(omp(), filename);
 
           return true;
         }

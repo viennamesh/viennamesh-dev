@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_IO_COMMON_HPP
-#define VIENNAMESH_ALGORITHM_IO_COMMON_HPP
+#ifndef VIENNAMESH_ALGORITHM_VIENNAGRID_REMOVE_DEGENERATE_CELLS_HPP
+#define VIENNAMESH_ALGORITHM_VIENNAGRID_REMOVE_DEGENERATE_CELLS_HPP
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
@@ -15,38 +15,27 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/forwards.hpp"
+#include "viennamesh/core/algorithm.hpp"
 
 namespace viennamesh
 {
-  namespace io
+  class remove_degenerate_cells : public base_algorithm
   {
-    enum FileType
-    {
-      UNKNOWN,
-      VTK,
-      VMESH,
-      TETGEN_POLY,
-      NETGEN_MESH,
-      GTS_DEVA,
-      SYNOPSIS_BND,
-      COMSOL_MPHTXT,
-      NEPER_TESS,
-      OCC_STEP,
-      OCC_IGES,
-      SENTAURUS_TDR,
-      SILVACO_STR,
-      STL,
-      STL_ASCII,
-      STL_BINARY
-    };
+  public:
+    remove_degenerate_cells();
 
-    FileType from_filename( std::string filename );
-    FileType from_string( std::string str );
-    std::string to_string( FileType file_type );
-  }
+    std::string name() const;
+    std::string id() const;
+
+    template<typename MeshT, typename SegmentationT>
+    bool generic_run();
+    bool run_impl();
+
+  private:
+    dynamic_required_input_parameter_interface                                  input_mesh;
+
+    output_parameter_interface                                                  output_mesh;
+  };
 }
-
-
 
 #endif
