@@ -18,9 +18,12 @@ namespace viennamesh
     MeshT * dst = &tmp;
 
     std::size_t iteration_count = 1;
-    while (heal_functor(*src) > 0 && iteration_count <= max_iterations)
+    std::size_t bads;
+
+    while ( (bads = heal_functor(*src)) > 0 && iteration_count <= max_iterations)
     {
       LoggingStack stack( std::string("Healing iteration ") + lexical_cast<std::string>(iteration_count) );
+      info(1) << "Healing " << bads << " bads" << std::endl;
       ++iteration_count;
       heal_functor(*src, *dst);
       std::swap(src, dst);
