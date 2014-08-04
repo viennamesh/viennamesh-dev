@@ -356,9 +356,9 @@ add_subdirectory(doc)
 #########
 
 
-# install(DIRECTORY include ${CMAKE_CURRENT_BINARY_DIR}
-#         DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev
-#         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+install(DIRECTORY include ${CMAKE_CURRENT_BINARY_DIR}/viennamesh
+        DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
 
 # Dist target
