@@ -23,34 +23,30 @@ namespace viennamesh
     template<typename MeshT>
     std::size_t operator()(MeshT const & mesh)
     {
+      std::size_t total_bads = 0;
       std::size_t bads;
 
       bads = duplicate_points_healer(mesh);
+      total_bads += bads;
       info(1) << bads << " duplicate point bads" << std::endl;
-      if (bads > 0)
-        return bads;
 
       bads = degenerate_cells_healer(mesh);
+      total_bads += bads;
       info(1) << bads << " degenerate cell bads" << std::endl;
-      if (bads > 0)
-        return bads;
 
       bads = duplicate_cells_healer(mesh);
+      total_bads += bads;
       info(1) << bads << " duplicate cell bads" << std::endl;
-      if (bads > 0)
-        return bads;
 
       bads = point_line_intersection_healer(mesh);
+      total_bads += bads;
       info(1) << bads << " point-line intersection bads" << std::endl;
-      if (bads > 0)
-        return bads;
 
       bads = line_line_intersection_healer(mesh);
+      total_bads += bads;
       info(1) << bads << " line-line intersection bads" << std::endl;
-      if (bads > 0)
-        return bads;
 
-      return 0;
+      return total_bads;
     }
 
     template<typename MeshT>
@@ -67,21 +63,22 @@ namespace viennamesh
 
       std::size_t bads;
 
-      bads = point_line_intersection_healer(*src);
-      info(1) << bads << " point-line intersection bads" << std::endl;
-      if ( bads > 0 )
-      {
-        point_line_intersection_healer(*src, *dst);
-        std::swap(src, dst);
-      }
-
-      apply_topologic(src, dst);
 
       bads = line_line_intersection_healer(*src);
       info(1) << bads << " line-line intersection bads" << std::endl;
       if ( bads > 0 )
       {
         line_line_intersection_healer(*src, *dst);
+        std::swap(src, dst);
+      }
+
+      apply_topologic(src, dst);
+
+      bads = point_line_intersection_healer(*src);
+      info(1) << bads << " point-line intersection bads" << std::endl;
+      if ( bads > 0 )
+      {
+        point_line_intersection_healer(*src, *dst);
         std::swap(src, dst);
       }
 
@@ -155,10 +152,6 @@ namespace viennamesh
       output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
       iteratively_heal( imp(), omp(), max_heal_iteration_count(), hull_heal_functor<double>( tolerance() ) );
-
-//       (remove_duplicate_points_heal_functor<double>( tolerance() )) ( imp(), omp() );
-//       (remove_degenerate_cells_heal_functor()) ( imp(), omp() );
-//       (remove_duplicate_cells_heal_functor()) ( imp(), omp() );
 
       return true;
     }
