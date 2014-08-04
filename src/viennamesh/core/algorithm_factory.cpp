@@ -46,6 +46,10 @@ namespace viennamesh
     register_algorithm<viennamesh::vgmodeler::adapt_hull>();
 #endif
 
+#ifdef VIENNAMESH_WITH_GEOMETRY_GENERATOR
+    register_algorithm<viennamesh::geometry_generator>();
+#endif
+
     register_algorithm<viennamesh::make_line_mesh>();
 
     register_algorithm<viennamesh::affine_transform>();

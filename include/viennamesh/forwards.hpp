@@ -181,6 +181,10 @@ namespace viennamesh
   typedef result_of::point<2>::type point_2d;
   typedef result_of::point<3>::type point_3d;
 
+  typedef point_1d vec1;
+  typedef point_2d vec2;
+  typedef point_3d vec3;
+
   typedef result_of::point_container<point_1d>::type point_1d_container;
   typedef result_of::point_container<point_2d>::type point_2d_container;
   typedef result_of::point_container<point_3d>::type point_3d_container;
