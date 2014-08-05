@@ -17,6 +17,7 @@ namespace viennamesh
   };
 
 
+
   class interpreter
   {
   public:
@@ -56,8 +57,6 @@ namespace viennamesh
     virtual double evaluate_double(std::string const & expression) = 0;
     virtual std::string evaluate_string(std::string const & expression) = 0;
 
-    static boost::shared_ptr<interpreter> make(std::string const & interpreter_type);
-
   private:
 
   };
@@ -85,11 +84,24 @@ namespace viennamesh
     virtual vec3 evaluate_vec3(std::string const & expression) = 0;
     virtual vec3 evaluate_vec3_coordinated(std::string const & expression) = 0;
 
-    static boost::shared_ptr<vector_interpreter> make(std::string const & interpreter_type);
-
   private:
 
   };
+
+
+  class interpreter_factory_t
+  {
+  public:
+
+    boost::shared_ptr<interpreter> get_interpreter( std::string const & interpreter_type );
+    boost::shared_ptr<vector_interpreter> get_vector_interpreter( std::string const & interpreter_type );
+
+  private:
+    std::map<std::string, boost::shared_ptr<interpreter> > interpreters;
+    std::map<std::string, boost::shared_ptr<vector_interpreter> > vector_interpreters;
+  };
+
+  interpreter_factory_t & interpreter_factory();
 
 }
 
