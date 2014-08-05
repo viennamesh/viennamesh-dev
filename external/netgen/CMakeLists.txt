@@ -51,3 +51,5 @@ ADD_LIBRARY(viennamesh-netgen ${NETGEN_SRC})
 if (VIENNAMESH_NETGEN_WITH_OPENCASCADE)
   target_link_libraries(viennamesh-netgen ${OCE_LIBRARIES} )
 endif(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+
+install(TARGETS viennamesh-netgen DESTINATION lib)

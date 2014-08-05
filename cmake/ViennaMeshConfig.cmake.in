@@ -19,4 +19,11 @@ find_package(ViennaGrid REQUIRED)
 
 # Set up variables
 set(VIENNAMESH_INCLUDE_DIRS ${VIENNAMESH_INCLUDE_DIR} ${VIENNAGRID_INCLUDE_DIRS} ${VIENNAMESH_INCLUDE_DIR}/external ${VIENNAMESH_INCLUDE_DIR}/external/netgen/libsrc/include)
-find_library(VIENNAMESH_LIBRARIES viennamesh ${VIENNAMESH_CMAKE_DIR})
+
+
+set(VIENNAMESH_LIBRARIES viennamesh)
+set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} @VIENNAMESH_LIBRARIES@)
+set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} @VIENNAMESH_EXTERNAL_LIBRARIES@)
+
+
+# find_library(VIENNAMESH_LIBRARIES viennamesh viennamesh-triangle viennamesh-netgen viennamesh-tetgen viennamesh-vgmodeler viennamesh-vgmodeler-meshstl ${VIENNAMESH_CMAKE_DIR})

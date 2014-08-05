@@ -44,20 +44,3 @@ if(ENABLE_PEDANTIC_FLAGS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
 endif()
 
-
-# Export
-########
-
-configure_file(cmake/ViennaMeshConfig.cmake.in
-   ${PROJECT_BINARY_DIR}/ViennaMeshConfig.cmake @ONLY)
-
-configure_file(cmake/ViennaMeshConfigVersion.cmake.in
-   ${PROJECT_BINARY_DIR}/ViennaMeshConfigVersion.cmake @ONLY)
-
-# Install
-#########
-
-install(FILES
-   ${PROJECT_BINARY_DIR}/ViennaMeshConfig.cmake
-   ${PROJECT_BINARY_DIR}/ViennaMeshConfigVersion.cmake
-   DESTINATION ${INSTALL_CMAKE_DIR} COMPONENT dev)

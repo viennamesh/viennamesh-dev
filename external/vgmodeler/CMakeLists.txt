@@ -116,4 +116,5 @@ message(STATUS "VgModeler compile flags: ${CMAKE_CXX_FLAGS}")
 ADD_LIBRARY(viennamesh-vgmodeler ${GENERAL} ${INTERFACE} ${LINALG} ${OPTI} ${MESHING} ${GPRIM} ${STLGEOM} ${GEOM2D} ${CSG} stlgeom/stltopology.cpp vgmodeler.cpp)
 target_link_libraries(viennamesh-vgmodeler viennamesh-vgmodeler-meshstl)
 
+install(TARGETS viennamesh-vgmodeler DESTINATION lib)
 
