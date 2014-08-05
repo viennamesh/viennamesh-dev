@@ -7,3 +7,5 @@ set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
 message(STATUS "Triangle compile flags: ${CMAKE_CXX_FLAGS}")
 
 ADD_LIBRARY(viennamesh-triangle ${TRIANGLE_SRC})
+
+install(TARGETS viennamesh-triangle DESTINATION lib)

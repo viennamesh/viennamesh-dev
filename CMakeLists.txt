@@ -45,8 +45,6 @@ mark_as_advanced(BUILD_MANUAL ENABLE_DIST)
 
 
 
-
-
 find_package(Boost)
 if(Boost_FOUND)
   message(STATUS "Found Boost")
@@ -354,9 +352,31 @@ add_subdirectory(doc)
 #########
 
 
-install(DIRECTORY include ${CMAKE_CURRENT_BINARY_DIR}/viennamesh
+install(DIRECTORY include/viennamesh
         DESTINATION ${INSTALL_INCLUDE_DIR} COMPONENT dev
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
+
+
+
+
+
+# Export
+########
+
+configure_file(cmake/ViennaMeshConfig.cmake.in
+   ${PROJECT_BINARY_DIR}/ViennaMeshConfig.cmake @ONLY)
+
+configure_file(cmake/ViennaMeshConfigVersion.cmake.in
+   ${PROJECT_BINARY_DIR}/ViennaMeshConfigVersion.cmake @ONLY)
+
+# Install
+#########
+
+install(FILES
+   ${PROJECT_BINARY_DIR}/ViennaMeshConfig.cmake
+   ${PROJECT_BINARY_DIR}/ViennaMeshConfigVersion.cmake
+   DESTINATION ${INSTALL_CMAKE_DIR} COMPONENT dev)
+
 
 
 # Dist target

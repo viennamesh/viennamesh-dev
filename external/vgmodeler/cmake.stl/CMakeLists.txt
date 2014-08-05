@@ -4,3 +4,4 @@ include_directories(${VGMODELER_GSSE2_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VGMODELER_COMPILE_FLAGS}")
 
 ADD_LIBRARY(viennamesh-vgmodeler-meshstl ../stlgeom/meshstlsurface.cpp)
+install(TARGETS viennamesh-vgmodeler-meshstl DESTINATION lib)

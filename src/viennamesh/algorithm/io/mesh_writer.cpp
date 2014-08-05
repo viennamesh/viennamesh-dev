@@ -19,7 +19,7 @@
 #include "viennagrid/io/vtk_writer.hpp"
 #include "viennagrid/io/mphtxt_writer.hpp"
 
-#include "pugixml/pugixml.hpp"
+#include "viennamesh/utils/pugixml/pugixml.hpp"
 
 
 
