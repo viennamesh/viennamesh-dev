@@ -57,7 +57,7 @@ namespace viennamesh
       throw base_geometry_generator_exception("XML Attribute scripting_language not found");
     std::string scripting_language = xml_scripting_language.as_string();
 
-    interpreter_ = vector_interpreter::make(scripting_language);
+    interpreter_ = interpreter_factory().get_vector_interpreter(scripting_language);
     if (!interpreter_)
       throw base_geometry_generator_exception("Failed to create interpreter: \"" + scripting_language + "\"");
 
