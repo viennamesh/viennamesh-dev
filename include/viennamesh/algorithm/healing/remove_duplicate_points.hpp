@@ -11,24 +11,26 @@ namespace viennamesh
     remove_duplicate_points_heal_functor(NumericConfigT nc_) : nc(nc_) {}
 
     template<typename MeshT>
-    std::size_t operator()(MeshT const & mesh) const
+    bool operator()(MeshT const & mesh) const
     {
       // TODO optimize!!
       MeshT tmp;
       (*this)(mesh, tmp);
-      return viennagrid::vertices(mesh).size() - viennagrid::vertices(tmp).size();
+      return viennagrid::vertices(mesh).size() == viennagrid::vertices(tmp).size();
     }
 
     template<typename MeshT>
-    void operator()(MeshT const & input_mesh, MeshT & output_mesh) const
+    std::size_t operator()(MeshT const & input_mesh, MeshT & output_mesh) const
     {
       viennagrid::vertex_copy_map<MeshT, MeshT> vertex_map( output_mesh, nc );
       viennagrid::copy( vertex_map, input_mesh, output_mesh,
                         viennagrid::true_functor() );
+
+      return viennagrid::vertices(input_mesh).size() == viennagrid::vertices(output_mesh).size();
     }
 
     template<typename MeshT, typename SegmentationT>
-    void operator()(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input_mesh,
+    std::size_t operator()(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input_mesh,
                     viennagrid::segmented_mesh<MeshT, SegmentationT> & output_mesh) const
     {
       viennagrid::vertex_copy_map<MeshT, MeshT> vertex_map( output_mesh.mesh, nc );
@@ -36,6 +38,8 @@ namespace viennamesh
                         input_mesh.mesh, input_mesh.segmentation,
                         output_mesh.mesh, output_mesh.segmentation,
                         viennagrid::true_functor() );
+
+      return viennagrid::vertices(input_mesh.mesh).size() == viennagrid::vertices(output_mesh.mesh).size();
     }
 
     NumericConfigT nc;

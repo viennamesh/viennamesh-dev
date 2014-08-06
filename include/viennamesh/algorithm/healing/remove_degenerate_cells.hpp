@@ -43,25 +43,27 @@ namespace viennamesh
       for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
         if ( !f(*cit) )
-          ++bad_cells_count;
+          return false;
       }
 
-      return bad_cells_count;
+      return true;
     }
 
     template<typename MeshT>
-    void operator()(MeshT const & input_mesh, MeshT & output_mesh) const
+    std::size_t operator()(MeshT const & input_mesh, MeshT & output_mesh) const
     {
       viennagrid::copy( input_mesh, output_mesh, remove_degenerate_cells_copy_functor() );
+      return viennagrid::cells(input_mesh).size() - viennagrid::cells(output_mesh).size();
     }
 
     template<typename MeshT, typename SegmentationT>
-    void operator()(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input_mesh,
+    std::size_t operator()(viennagrid::segmented_mesh<MeshT, SegmentationT> const & input_mesh,
                     viennagrid::segmented_mesh<MeshT, SegmentationT> & output_mesh) const
     {
       viennagrid::copy( input_mesh.mesh, input_mesh.segmentation,
                         output_mesh.mesh, output_mesh.segmentation,
                         remove_degenerate_cells_copy_functor() );
+      return viennagrid::cells(input_mesh.mesh).size() - viennagrid::cells(output_mesh.mesh).size();
     }
   };
 

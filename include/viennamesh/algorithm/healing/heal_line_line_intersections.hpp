@@ -21,7 +21,7 @@ namespace viennamesh
 
 
     template<typename MeshT>
-    std::size_t operator()(MeshT const & mesh) const
+    bool operator()(MeshT const & mesh) const
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
 
@@ -29,8 +29,6 @@ namespace viennamesh
       typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineRangeIterator;
 
       ConstLineRangeType lines(mesh);
-
-      std::size_t intersection_count = 0;
 
       for (ConstLineRangeIterator lit0 = lines.begin(); lit0 != lines.end(); ++lit0)
       {
@@ -43,26 +41,22 @@ namespace viennamesh
           PointType const & line1_start = viennagrid::point( viennagrid::vertices(*lit1)[0] );
           PointType const & line1_end = viennagrid::point( viennagrid::vertices(*lit1)[1] );
 
-
           if ( is_equal(line0_start, line1_start, nc) || is_equal(line0_end, line1_end, nc) ||
                is_equal(line0_start, line1_end, nc) || is_equal(line0_end, line1_start, nc) )
             continue;
 
           std::pair<PointType, PointType> closest_points = viennagrid::closest_points( *lit0, *lit1 );
           if ( is_equal(closest_points.first, closest_points.second, nc) )
-          {
-            ++intersection_count;
-            break;
-          }
+            return false;
         }
       }
 
-      return intersection_count;
+      return true;
     }
 
 
     template<typename MeshT>
-    void operator()(MeshT const & input_mesh, MeshT & output_mesh) const
+    std::size_t operator()(MeshT const & input_mesh, MeshT & output_mesh) const
     {
       viennagrid::clear(output_mesh);
 
@@ -85,6 +79,7 @@ namespace viennamesh
 
       viennagrid::vertex_copy_map<MeshT, MeshT> vertex_map(output_mesh);
 
+      std::size_t intersection_count = 0;
       ConstLineRangeType lines(input_mesh);
       for (ConstLineRangeIterator lit0 = lines.begin(); lit0 != lines.end(); ++lit0)
       {
@@ -111,6 +106,7 @@ namespace viennamesh
           std::pair<PointType, PointType> closest_points = viennagrid::closest_points( *lit0, *lit1 );
           if ( is_equal(closest_points.first, closest_points.second, nc) )
           {
+            ++intersection_count;
             line_refinement_tag_accessor(*lit0) = true;
             line_refinement_tag_accessor(*lit1) = true;
 
@@ -127,6 +123,8 @@ namespace viennamesh
                                           vertex_map,
                                           line_refinement_tag_accessor,
                                           line_refinement_vertex_handle_accessor);
+
+      return intersection_count;
     }
 
     NumericConfigT nc;
