@@ -22,48 +22,109 @@
 
 namespace viennamesh
 {
-  template<typename MeshT, typename SegmentationT, typename CellHandleT,
-           typename PointT, typename SegmentIDRangeT,
-           typename VisitedAccessorT, typename PLCIDAccessorT,
-           typename NumericConfigT>
-  void recursively_add_neighbours( MeshT const & mesh, SegmentationT const & segmentation,
-                                   CellHandleT const & cell_handle, int plc_id,
-                                   PointT const & normal_vector,
-                                   SegmentIDRangeT const & segment_ids,
+
+  template<typename SegmentationT>
+  class same_segments_functor
+  {
+  public:
+    same_segments_functor(SegmentationT const & segmentation_) : segmentation(&segmentation_) {}
+
+    template<typename CellT>
+    bool operator()(CellT const & lhs, CellT const & rhs) const
+    {
+      return viennagrid::segment_ids(*segmentation, lhs).is_equal( viennagrid::segment_ids(*segmentation, rhs) );
+    }
+
+  private:
+    SegmentationT const * segmentation;
+  };
+
+  template<typename NumericConfigT>
+  class same_orientation_functor
+  {
+  public:
+    same_orientation_functor(NumericConfigT nc_) : nc(nc_) {}
+
+    template<typename CellT>
+    bool operator()(CellT const & lhs, CellT const & rhs) const
+    {
+      typedef typename viennagrid::result_of::point<CellT>::type PointType;
+
+      PointType lhs_normal = viennagrid::normal_vector(lhs);
+      lhs_normal /= viennagrid::norm_2(lhs_normal);
+
+      PointType rhs_normal = viennagrid::normal_vector(rhs);
+      rhs_normal /= viennagrid::norm_2(rhs_normal);
+
+      return std::abs(viennagrid::inner_prod(lhs_normal, rhs_normal)) >=
+             1.0-viennagrid::detail::absolute_tolerance<double>(nc);
+    }
+
+  private:
+    NumericConfigT nc;
+  };
+
+
+  template<typename Functor1T, typename Functor2T>
+  class same_cell_combine_functor
+  {
+  public:
+    same_cell_combine_functor(Functor1T const & f1_, Functor2T const & f2_) : f1(f1_), f2(f2_) {}
+
+    template<typename CellT>
+    bool operator()(CellT const & lhs, CellT const & rhs) const
+    {
+      return f1(lhs, rhs) && f2(lhs, rhs);
+    }
+
+  private:
+    Functor1T f1;
+    Functor2T f2;
+  };
+
+
+
+
+
+  template<typename MeshT, typename CellT, typename SamePLCCellFunctorT,
+           typename VisitedAccessorT, typename PLCIDAccessorT>
+  void recursively_add_neighbours( MeshT const & mesh,
+                                   CellT const & cell,
+                                   SamePLCCellFunctorT same_cell_functor,
                                    VisitedAccessorT & visited_accessor,
                                    PLCIDAccessorT & plc_id_accessor,
-                                   NumericConfigT numeric_config)
+                                   int plc_id)
   {
-    typedef typename viennagrid::detail::result_of::value_type<CellHandleT>::type     CellType;
-    CellType const & cell = viennagrid::dereference_handle( mesh, cell_handle );
+    typedef typename viennagrid::result_of::point<MeshT>::type PointType;
 
     if ( visited_accessor(cell) )
-        return;
+      return;
 
-    PointT current_normal_vector = viennagrid::normal_vector( cell );
-    current_normal_vector /= viennagrid::norm_2(current_normal_vector);
+    visited_accessor(cell) = true;
+    plc_id_accessor(cell) = plc_id;
 
-    if (std::abs(viennagrid::inner_prod(normal_vector, current_normal_vector)) >=
-                  1.0-viennagrid::detail::absolute_tolerance<double>(numeric_config))
+    PointType normal_vector = viennagrid::normal_vector( cell );
+    normal_vector /= viennagrid::norm_2(normal_vector);
+
+    typedef typename viennagrid::result_of::const_neighbor_range<MeshT, CellT, viennagrid::line_tag>::type NeighbourRangeType;
+    typedef typename viennagrid::result_of::iterator<NeighbourRangeType>::type NeighbourRangeIterator;
+
+    NeighbourRangeType neighbors(mesh, cell);
+    for (NeighbourRangeIterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
-      visited_accessor(cell) = true;
-      plc_id_accessor(cell) = plc_id;
+      if ( visited_accessor(*it) )
+        continue;
 
-      typedef typename viennagrid::result_of::const_neighbor_range<MeshT, CellType, viennagrid::line_tag>::type NeighbourRangeType;
-      typedef typename viennagrid::result_of::iterator<NeighbourRangeType>::type NeighbourRangeIterator;
-
-      NeighbourRangeType neighgbours = viennagrid::neighbor_elements<CellType, viennagrid::line_tag>(mesh, cell_handle);
-      for (NeighbourRangeIterator it = neighgbours.begin(); it != neighgbours.end(); ++it)
-          recursively_add_neighbours( mesh, segmentation, it.handle(), plc_id, normal_vector, segment_ids, visited_accessor, plc_id_accessor, numeric_config );
+      if ( same_cell_functor(cell, *it) )
+        recursively_add_neighbours( mesh, *it, same_cell_functor, visited_accessor, plc_id_accessor, plc_id );
     }
   }
 
 
 
 
-  template<typename MeshT, typename SegmentationT, typename OutputMeshT, typename NumericConfigT>
-  void extract_plcs(MeshT const & mesh, SegmentationT const & segmentation,
-                    OutputMeshT & output_mesh, NumericConfigT numeric_config)
+  template<typename MeshT, typename OutputMeshT, typename SamePLCFunctorT>
+  void extract_plcs(MeshT const & mesh, OutputMeshT & output_mesh, SamePLCFunctorT same_plc_functor)
   {
     typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
 
@@ -90,20 +151,7 @@ namespace viennamesh
       if ( cell_visited(*cit) )
         continue;
 
-      cell_visited(*cit) = true;
-      plc_ids(*cit) = lowest_plc_id;
-
-      typedef typename viennagrid::result_of::const_neighbor_range<MeshT, CellType, viennagrid::line_tag>::type NeighbourRangeType;
-      typedef typename viennagrid::result_of::iterator<NeighbourRangeType>::type NeighbourRangeIterator;
-
-      PointType normal_vector = viennagrid::normal_vector(*cit);
-      normal_vector /= viennagrid::norm_2(normal_vector);
-
-      NeighbourRangeType neighgbours = viennagrid::neighbor_elements<CellType, viennagrid::line_tag>(mesh, cit.handle());
-      for (NeighbourRangeIterator it = neighgbours.begin(); it != neighgbours.end(); ++it)
-        recursively_add_neighbours( mesh, segmentation, it.handle(), lowest_plc_id, normal_vector, viennagrid::segment_ids(segmentation, *cit), cell_visited, plc_ids, numeric_config );
-
-      lowest_plc_id++;
+      recursively_add_neighbours( mesh, *cit, same_plc_functor, cell_visited, plc_ids, lowest_plc_id++ );
     }
 
     viennagrid::vertex_copy_map<MeshT, OutputMeshT> vertex_map(output_mesh);
@@ -171,9 +219,6 @@ namespace viennamesh
 
 
         projection_functor.unproject( hole_points_2d.begin(), hole_points_2d.end(), std::back_inserter(hole_points_3d) );
-
-//         for (int j = 0; j < hole_points_3d.size(); ++j)
-//           std::cout << "Found hole point! " << hole_points_3d[j] << std::endl;
       }
 
 
@@ -338,12 +383,6 @@ namespace viennamesh
         warning(1) << "New PLC:" << std::endl;
         warning(1) << viennagrid::dereference_handle(mesh, cell_handle) << std::endl;
       }
-
-//       std::cout << "PLC" << std::endl;
-//       for (int i = 0; i < viennagrid::hole_points(*cit).size(); ++i)
-//         std::cout << "  " << viennagrid::hole_points(*cit)[i] << std::endl;
-
-      //TODO copy loose points and hole points
     }
   }
 
@@ -364,20 +403,48 @@ namespace viennamesh
 
   bool extract_plc::run_impl()
   {
-    typedef viennagrid::segmented_mesh<viennagrid::triangular_3d_mesh, viennagrid::triangular_3d_segmentation> InputMeshType;
+    typedef viennagrid::triangular_3d_mesh MeshType;
+    typedef viennagrid::triangular_3d_segmentation SegmentationType;
+
+    typedef viennagrid::segmented_mesh<MeshType, SegmentationType> InputSegmentedMeshType;
     typedef viennagrid::plc_3d_mesh OutputMeshType;
 
-    viennamesh::result_of::const_parameter_handle<InputMeshType>::type imp = input_mesh.get<InputMeshType>();
-
-    if (imp)
     {
-      output_parameter_proxy<OutputMeshType> omp(output_mesh);
+      viennamesh::result_of::const_parameter_handle<InputSegmentedMeshType>::type imp = input_mesh.get<InputSegmentedMeshType>();
 
-      OutputMeshType tmp;
-      extract_plcs(imp().mesh, imp().segmentation, tmp, coplanar_tolerance());
-      coarsen_plc_mesh(tmp, omp(), colinear_tolerance());
+      if (imp)
+      {
+        output_parameter_proxy<OutputMeshType> omp(output_mesh);
 
-      return true;
+        typedef same_segments_functor<viennagrid::triangular_3d_segmentation> Functor1Type;
+        typedef same_orientation_functor<double> Functor2Type;
+
+        same_cell_combine_functor< Functor1Type, Functor2Type > functor( Functor1Type(imp().segmentation), Functor2Type(coplanar_tolerance()) );
+
+        OutputMeshType tmp;
+        extract_plcs(imp().mesh, tmp, functor);
+        coarsen_plc_mesh(tmp, omp(), colinear_tolerance());
+
+        std::cout << "Extracted " << viennagrid::cells(omp()).size() << " PLCs" << std::endl;
+        return true;
+      }
+    }
+
+    {
+      viennamesh::result_of::const_parameter_handle<MeshType>::type imp = input_mesh.get<MeshType>();
+
+      if (imp)
+      {
+        output_parameter_proxy<OutputMeshType> omp(output_mesh);
+        same_orientation_functor<double>  functor( coplanar_tolerance() );
+
+        OutputMeshType tmp;
+        extract_plcs(imp(), tmp, functor);
+        coarsen_plc_mesh(tmp, omp(), colinear_tolerance());
+
+        std::cout << "Extracted " << viennagrid::cells(omp()).size() << " PLCs" << std::endl;
+        return true;
+      }
     }
 
     error(1) << "Input Parameter 'default' (type: mesh) is missing or of non-convertable type" << std::endl;
