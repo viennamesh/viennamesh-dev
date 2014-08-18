@@ -6,14 +6,10 @@
 #include "viennagrid/algorithm/detail/numeric.hpp"
 #include "viennagrid/algorithm/refine.hpp"
 
+// #include "viennamesh/algorithm/healing/common.hpp"
+
 namespace viennamesh
 {
-  template<typename PointT, typename NumericConfigT>
-  bool is_equal(PointT const & p0, PointT const & p1, NumericConfigT nc)
-  {
-    return viennagrid::norm_2(p0 - p1) < viennagrid::detail::relative_tolerance(nc, viennagrid::norm_2(p0));
-  }
-
   template<typename NumericConfigT>
   struct line_line_intersection_heal_functor
   {
@@ -41,13 +37,20 @@ namespace viennamesh
           PointType const & line1_start = viennagrid::point( viennagrid::vertices(*lit1)[0] );
           PointType const & line1_end = viennagrid::point( viennagrid::vertices(*lit1)[1] );
 
-          if ( is_equal(line0_start, line1_start, nc) || is_equal(line0_end, line1_end, nc) ||
-               is_equal(line0_start, line1_end, nc) || is_equal(line0_end, line1_start, nc) )
+          if ( viennagrid::detail::is_equal_point(line0_start, line1_start, nc) ||
+               viennagrid::detail::is_equal_point(line0_end, line1_end, nc) ||
+               viennagrid::detail::is_equal_point(line0_start, line1_end, nc) ||
+               viennagrid::detail::is_equal_point(line0_end, line1_start, nc) )
             continue;
 
           std::pair<PointType, PointType> closest_points = viennagrid::closest_points( *lit0, *lit1 );
-          if ( is_equal(closest_points.first, closest_points.second, nc) )
+          if ( viennagrid::detail::is_equal_point(closest_points.first, closest_points.second, nc) )
+          {
+            info(1) << "Found line-line intersection: " << std::endl;
+            info(1) << "  [" << line0_start << "," << line0_end << "]"  << std::endl;
+            info(1) << "  [" << line1_start << "," << line1_end << "]"  << std::endl;
             return false;
+          }
         }
       }
 
@@ -99,12 +102,14 @@ namespace viennamesh
           PointType const & line1_end = viennagrid::point( viennagrid::vertices(*lit1)[1] );
 
 
-          if ( is_equal(line0_start, line1_start, nc) || is_equal(line0_end, line1_end, nc) ||
-               is_equal(line0_start, line1_end, nc) || is_equal(line0_end, line1_start, nc) )
+          if ( viennagrid::detail::is_equal_point(line0_start, line1_start, nc) ||
+               viennagrid::detail::is_equal_point(line0_end, line1_end, nc) ||
+               viennagrid::detail::is_equal_point(line0_start, line1_end, nc) ||
+               viennagrid::detail::is_equal_point(line0_end, line1_start, nc) )
             continue;
 
           std::pair<PointType, PointType> closest_points = viennagrid::closest_points( *lit0, *lit1 );
-          if ( is_equal(closest_points.first, closest_points.second, nc) )
+          if ( viennagrid::detail::is_equal_point(closest_points.first, closest_points.second, nc) )
           {
             ++intersection_count;
             line_refinement_tag_accessor(*lit0) = true;
