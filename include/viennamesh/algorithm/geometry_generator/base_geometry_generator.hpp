@@ -70,6 +70,8 @@ namespace viennamesh
 
   struct InputParameter
   {
+    InputParameter() : set(false) {}
+
     ParameterType type;
     std::string default_value_expression;
     bool set;
