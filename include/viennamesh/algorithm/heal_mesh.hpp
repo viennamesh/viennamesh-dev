@@ -31,7 +31,10 @@ namespace viennamesh
 
   private:
     dynamic_required_input_parameter_interface    input_mesh;
-    default_input_parameter_interface<double>     tolerance;
+    default_input_parameter_interface<double>     duplicte_points_tolerance;
+    default_input_parameter_interface<double>     point_triangle_intersection_tolerance;
+    default_input_parameter_interface<double>     point_line_intersection_tolerance;
+    default_input_parameter_interface<double>     line_line_intersection_tolerance;
     default_input_parameter_interface<int>        max_heal_iteration_count;
 
     output_parameter_interface                    output_mesh;
