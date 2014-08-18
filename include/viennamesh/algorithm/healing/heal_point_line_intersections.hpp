@@ -18,6 +18,35 @@ namespace viennamesh
   }
 
 
+  template<typename PointT, typename NumericConfigT>
+  std::pair<double, bool> distance_point_line(PointT const & point,
+                             PointT const & line_start, PointT const & line_end,
+                             NumericConfigT nc)
+  {
+    PointT line_direction = line_end - line_start;
+    PointT vector_to_point = point - line_start;
+
+    double alpha = viennagrid::inner_prod(line_direction, vector_to_point) /
+                   viennagrid::inner_prod(line_direction, line_direction);
+//     std::cout << "alpha = " << alpha << std::endl;
+
+    double line_length = viennagrid::norm_2(line_end-line_start);
+
+    if ( (alpha > -viennagrid::detail::absolute_tolerance<double>(nc)) &&
+         (alpha < 1.0 + viennagrid::detail::absolute_tolerance<double>(nc)) )
+    {
+      PointT projection = vector_to_point - line_direction*alpha;
+      return std::make_pair( viennagrid::norm_2(point - projection), true );
+    }
+    else
+    {
+      return std::make_pair( std::min(viennagrid::norm_2(point-line_start),
+                                      viennagrid::norm_2(point-line_end)),
+                             false);
+    }
+  }
+
+
 
   template<typename NumericConfigT>
   struct point_line_intersection_heal_functor
@@ -52,7 +81,12 @@ namespace viennamesh
           PointType const & point = viennagrid::point(*vit);
 
           if (point_line_intersect(point, line_start, line_end, nc))
+          {
+            info(1) << "Found point-line intersection: " << std::endl;
+            info(1) << "  " << point << std::endl;
+            info(1) << "  [" << line_start << "," << line_end << "]"  << std::endl;
             return false;
+          }
         }
       }
 
@@ -94,6 +128,7 @@ namespace viennamesh
       {
         PointType const & line_start = viennagrid::point( viennagrid::vertices(*lit)[0] );
         PointType const & line_end = viennagrid::point( viennagrid::vertices(*lit)[1] );
+        double line_size = viennagrid::volume(*lit);
 
         line_refinement_tag_accessor(*lit) = false;
         for (ConstVertexRangeIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
@@ -104,6 +139,8 @@ namespace viennamesh
 
           PointType const & point = viennagrid::point(*vit);
 
+//           std::pair<double,bool> distance = distance_point_line(point, line_start, line_end, inside_line_nc);
+//           if (distance.second && distance.first < viennagrid::detail::relative_tolerance<double>(distance_nc, line_size) )
           if (point_line_intersect(point, line_start, line_end, nc))
           {
             ++intersection_count;

@@ -43,7 +43,11 @@ namespace viennamesh
       for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
         if ( !f(*cit) )
+        {
+          info(1) << "Found degenerate cell: " << std::endl;
+          info(1) << "  " << *cit << std::endl;
           return false;
+        }
       }
 
       return true;
