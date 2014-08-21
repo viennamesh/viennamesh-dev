@@ -25,7 +25,6 @@ include(ViennaMeshCommon)
 
 # User options
 ##############
-
 option(ENABLE_TRIANGLE                 "Enables the Triangle library" ON)
 option(ENABLE_TETGEN                   "Enables the Tetgen library" ON)
 option(ENABLE_NETGEN                   "Enables the Netgen library" ON)
