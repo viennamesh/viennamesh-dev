@@ -35,7 +35,10 @@ namespace viennamesh
       OCC_STEP,
       OCC_IGES,
       SENTAURUS_TDR,
-      SILVACO_STR
+      SILVACO_STR,
+      STL,
+      STL_ASCII,
+      STL_BINARY
     };
 
     FileType from_filename( std::string filename );

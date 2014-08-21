@@ -20,6 +20,7 @@
 #include "viennagrid/io/tetgen_poly_reader.hpp"
 #include "viennagrid/io/bnd_reader.hpp"
 #include "viennagrid/io/neper_tess_reader.hpp"
+#include "viennagrid/io/stl_reader.hpp"
 
 #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
 #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
@@ -293,6 +294,26 @@ namespace viennamesh
           else
             unset_output("seed_points");
 
+
+          return true;
+        }
+
+      case STL:
+      case STL_ASCII:
+      case STL_BINARY:
+        {
+          info(5) << "Found .stl extension, using ViennaGrid STL Reader" << std::endl;
+          typedef viennagrid::triangular_3d_mesh MeshType;
+
+          output_parameter_proxy<MeshType> omp(output_mesh);
+
+          viennagrid::io::stl_reader reader;
+          if (filetype == STL)
+            reader(omp(), filename);
+          else if (filetype == STL_ASCII)
+            reader.read_ascii(omp(), filename);
+          else if (filetype == STL_BINARY)
+            reader.read_binary(omp(), filename);
 
           return true;
         }

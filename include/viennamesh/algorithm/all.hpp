@@ -34,6 +34,8 @@
 #include "viennamesh/algorithm/seed_point_segmenting.hpp"
 #include "viennamesh/algorithm/remove_degenerate_cells.hpp"
 #include "viennamesh/algorithm/remove_duplicate_cells.hpp"
+#include "viennamesh/algorithm/heal_mesh.hpp"
+#include "viennamesh/algorithm/merge_duplicate_points.hpp"
 #include "viennamesh/algorithm/make_line_mesh.hpp"
 
 #ifdef VIENNAMESH_WITH_GEOMETRY_GENERATOR

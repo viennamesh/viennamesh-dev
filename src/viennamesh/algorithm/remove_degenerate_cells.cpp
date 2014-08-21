@@ -13,34 +13,10 @@
 =============================================================================== */
 
 #include "viennamesh/algorithm/remove_degenerate_cells.hpp"
+#include "viennamesh/algorithm/healing/remove_degenerate_cells.hpp"
 
 namespace viennamesh
 {
-
-  struct remove_degenerate_cells_copy_functor
-  {
-    template<typename CellT>
-    bool operator()(CellT const & cell) const
-    {
-      typedef typename viennagrid::result_of::const_vertex_range<CellT>::type ConstVertexRangeType;
-      typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
-
-      ConstVertexRangeType vertices(cell);
-      for (ConstVertexRangeIterator vit1 = vertices.begin(); vit1 != vertices.end(); ++vit1)
-      {
-        ConstVertexRangeIterator vit2 = vit1; ++vit2;
-        for (; vit2 != vertices.end(); ++vit2)
-        {
-          if ( (*vit1).id() == (*vit2).id() )
-            return false;
-        }
-      }
-
-      return true;
-    }
-  };
-
-
 
   remove_degenerate_cells::remove_degenerate_cells() :
     input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
@@ -63,7 +39,7 @@ namespace viennamesh
       {
         output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-        viennagrid::copy( imp().mesh, imp().segmentation, omp().mesh, omp().segmentation, remove_degenerate_cells_copy_functor() );
+        remove_degenerate_cells_heal_functor()( imp(), omp() );
 
         info(1) << "Cells count before removing degenerate elements: " << viennagrid::cells(imp().mesh).size() << std::endl;
         info(1) << "Cells count after removing degenerate elements: " << viennagrid::cells(omp().mesh).size() << std::endl;
@@ -80,7 +56,7 @@ namespace viennamesh
       {
         output_parameter_proxy<MeshT> omp(output_mesh);
 
-        viennagrid::copy( imp(), omp(), remove_degenerate_cells_copy_functor() );
+        remove_degenerate_cells_heal_functor()( imp(), omp() );
 
         info(1) << "Cells count before removing degenerate elements: " << viennagrid::cells(imp()).size() << std::endl;
         info(1) << "Cells count after removing degenerate elements: " << viennagrid::cells(omp()).size() << std::endl;

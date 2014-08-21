@@ -12,22 +12,23 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/algorithm/remove_duplicate_cells.hpp"
-#include "viennamesh/algorithm/healing/remove_duplicate_cells.hpp"
+#include "viennamesh/algorithm/merge_duplicate_points.hpp"
+#include "viennamesh/algorithm/healing/remove_duplicate_points.hpp"
 
 namespace viennamesh
 {
-  remove_duplicate_cells::remove_duplicate_cells() :
+  merge_duplicate_points::merge_duplicate_points() :
     input_mesh(*this, parameter_information("mesh","mesh","The input mesh, segmented triangular 2d mesh, segmented triangular 3d mesh, segmented quadrilateral 2d mesh, segmented quadrilateral 3d mesh, segmented tetrahedral 3d mesh and segmented hexahedral 3d mesh supported")),
+    tolerance(*this, parameter_information("tolerance","double","Relative tolerance for merging points"), 1e-6),
     output_mesh(*this, parameter_information("mesh", "mesh", "The output mesh, same type of mesh as input mesh")) {}
 
-  std::string remove_duplicate_cells::name() const { return "ViennaGrid Remove Duplicate Cells"; }
-  std::string remove_duplicate_cells::id() const { return "remove_duplicate_cells"; }
+  std::string merge_duplicate_points::name() const { return "ViennaGrid Merge Duplicate Vertices"; }
+  std::string merge_duplicate_points::id() const { return "merge_duplicate_points"; }
 
 
 
   template<typename MeshT, typename SegmentationT>
-  bool remove_duplicate_cells::generic_run()
+  bool merge_duplicate_points::generic_run()
   {
     typedef viennagrid::segmented_mesh<MeshT, SegmentationT> SegmentedMeshType;
 
@@ -38,10 +39,10 @@ namespace viennamesh
       {
         output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
 
-        remove_duplicate_cells_heal_functor()( imp(), omp() );
+        (remove_duplicate_points_heal_functor<double>( tolerance() )) ( imp(), omp() );
 
-        info(1) << "Cells count before removing degenerate elements: " << viennagrid::cells(imp().mesh).size() << std::endl;
-        info(1) << "Cells count after removing degenerate elements: " << viennagrid::cells(omp().mesh).size() << std::endl;
+        info(1) << "Vertex count before removing degenerate elements: " << viennagrid::vertices(imp().mesh).size() << std::endl;
+        info(1) << "Vertex count after removing degenerate elements: " << viennagrid::vertices(omp().mesh).size() << std::endl;
 
         return true;
       }
@@ -55,10 +56,10 @@ namespace viennamesh
       {
         output_parameter_proxy<MeshT> omp(output_mesh);
 
-        remove_duplicate_cells_heal_functor()( imp(), omp() );
+        (remove_duplicate_points_heal_functor<double>( tolerance() )) ( imp(), omp() );
 
-        info(1) << "Cells count before removing degenerate elements: " << viennagrid::cells(imp()).size() << std::endl;
-        info(1) << "Cells count after removing degenerate elements: " << viennagrid::cells(omp()).size() << std::endl;
+        info(1) << "Vertex count before removing degenerate elements: " << viennagrid::vertices(imp()).size() << std::endl;
+        info(1) << "Vertex count after removing degenerate elements: " << viennagrid::vertices(omp()).size() << std::endl;
 
         return true;
       }
@@ -67,7 +68,7 @@ namespace viennamesh
     return false;
   }
 
-  bool remove_duplicate_cells::run_impl()
+  bool merge_duplicate_points::run_impl()
   {
     if (generic_run<viennagrid::triangular_2d_mesh, viennagrid::triangular_2d_segmentation>())
       return true;
