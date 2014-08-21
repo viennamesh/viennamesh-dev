@@ -40,15 +40,15 @@ int main(int argc, char **argv)
 
     if (!result)
     {
-      error(1) << "Error loading or parsing XML file " << pipeline_filename.getValue().c_str() << std::endl;
-      error(1) << "XML error: " << result.description() << std::endl;
+      viennamesh::error(1) << "Error loading or parsing XML file " << pipeline_filename.getValue().c_str() << std::endl;
+      viennamesh::error(1) << "XML error: " << result.description() << std::endl;
       return 0;
     }
 
     viennamesh::algorithm_pipeline pipeline;
     if (!pipeline.from_xml( pipeline_xml ))
     {
-      error(1) << "Error loading creating pipeline from XML" << std::endl;
+      viennamesh::error(1) << "Error loading creating pipeline from XML" << std::endl;
       return 0;
     }
 
