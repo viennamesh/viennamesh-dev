@@ -2,7 +2,7 @@
 #define VIENNAMESH_ALGORITHM_BASE_GEOMETRY_GENERATOR_HPP
 
 #include <stdexcept>
-#include "pugixml/pugixml.hpp"
+#include "viennamesh/utils/pugixml/pugixml.hpp"
 #include "viennagrid/config/default_configs.hpp"
 
 #include "viennamesh/core/parameter_interface.hpp"

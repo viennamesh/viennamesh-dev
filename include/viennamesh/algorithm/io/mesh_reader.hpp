@@ -17,7 +17,7 @@
 
 #include "viennamesh/core/algorithm.hpp"
 #include "viennamesh/algorithm/io/common.hpp"
-#include "pugixml/pugixml.hpp"
+#include "viennamesh/utils/pugixml/pugixml.hpp"
 
 namespace viennamesh
 {

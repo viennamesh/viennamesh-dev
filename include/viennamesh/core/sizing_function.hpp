@@ -22,7 +22,7 @@
 #include "viennagrid/algorithm/geometry.hpp"
 #include "viennagrid/io/vtk_reader.hpp"
 
-#include "pugixml/pugixml.hpp"
+#include "viennamesh/utils/pugixml/pugixml.hpp"
 
 namespace viennamesh
 {

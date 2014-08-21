@@ -5,3 +5,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LIBVIENNAMESH_COMPILE_FLAGS} -DTETLIBR
 message(STATUS "Tetgen compile flags: ${CMAKE_CXX_FLAGS}")
 
 ADD_LIBRARY(viennamesh-tetgen ${TETGEN_SRC})
+
+install(TARGETS viennamesh-tetgen DESTINATION lib)
