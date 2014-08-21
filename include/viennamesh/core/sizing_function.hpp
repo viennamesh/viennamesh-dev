@@ -297,13 +297,33 @@ namespace viennamesh
         typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
 
         if (segment_names.empty())
-          return;
+          throw create_sizing_function_exception( "distance_to_segment_boundaries_functor: No segment names specified" );
 
         std::vector<std::string>::const_iterator seg_it = segment_names.begin();
         ConstElementRangeType elements( mesh().segmentation(*seg_it++) );
 
         if (elements.empty())
-          return;
+          throw create_sizing_function_exception( "distance_to_segment_boundaries_functor: No elements found in mesh" );
+
+        for (std::vector<std::string>::const_iterator snit = segment_names.begin(); snit != segment_names.end(); ++snit)
+        {
+          if ( !mesh().segmentation.segment_present( *snit ) )
+          {
+            std::stringstream ss;
+
+            ss << "distance_to_segment_boundaries_functor: Segment \"" << *snit << "\" not found in segmentation" << std::endl;
+            ss << "Available segments: ";
+
+            for (typename SegmentationT::const_iterator sit = mesh().segmentation.begin(); sit != mesh().segmentation.end(); ++sit)
+            {
+              if (sit != mesh().segmentation.begin())
+                ss << ", ";
+              ss << "\"" << (*sit).name() << "\"";
+            }
+
+            throw create_sizing_function_exception(ss.str());
+          }
+        }
 
         for (ConstElementIteratorType fit = elements.begin(); fit != elements.end(); ++fit)
         {
@@ -319,6 +339,22 @@ namespace viennamesh
 
           if (is_on_all_boundaries)
             boundary_handles->push_back( fit.handle() );
+        }
+
+        if (boundary_handles->empty())
+        {
+          std::stringstream ss;
+
+          ss << "distance_to_segment_boundaries_functor: no elements found which are boundary elements of the segments: ";
+
+          for (std::vector<std::string>::const_iterator snit = segment_names.begin(); snit != segment_names.end(); ++snit)
+          {
+            if (snit != segment_names.begin())
+              ss << ", ";
+            ss << "\"" << *snit << "\"";
+          }
+
+          throw create_sizing_function_exception(ss.str());
         }
       }
 
@@ -404,7 +440,28 @@ namespace viennamesh
       is_in_segments_functor( ConstMeshParameterType mesh_,
                               std::vector<std::string> const & segment_names_,
                               SizingFunctionType const & function_) :
-                              mesh(mesh_), segment_names(segment_names_), function(function_) {}
+                              mesh(mesh_), segment_names(segment_names_), function(function_)
+      {
+        for (std::vector<std::string>::const_iterator snit = segment_names.begin(); snit != segment_names.end(); ++snit)
+        {
+          if ( !mesh().segmentation.segment_present( *snit ) )
+          {
+            std::stringstream ss;
+
+            ss << "distance_to_segment_boundaries_functor: Segment \"" << *snit << "\" not found in segmentation" << std::endl;
+            ss << "Available segments: ";
+
+            for (typename SegmentationT::const_iterator sit = mesh().segmentation.begin(); sit != mesh().segmentation.end(); ++sit)
+            {
+              if (sit != mesh().segmentation.begin())
+                ss << ", ";
+              ss << "\"" << (*sit).name() << "\"";
+            }
+
+            throw create_sizing_function_exception(ss.str());
+          }
+        }
+      }
 
       NumericType operator()( PointType const & pt ) const
       {
@@ -675,7 +732,13 @@ namespace viennamesh
         if (segment_names.empty())
           throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no segment names specified" );
 
-        return viennamesh::bind( distance_to_segment_boundaries_functor<viennagrid::line_tag, MeshT, SegmentationT>(mesh, segment_names), _1 );
+        std::string element_type = node.child_value("element_type");
+        if (element_type == "line")
+          return viennamesh::bind( distance_to_segment_boundaries_functor<viennagrid::line_tag, MeshT, SegmentationT>(mesh, segment_names), _1 );
+        else if (element_type == "facet")
+          return viennamesh::bind( distance_to_segment_boundaries_functor<typename viennagrid::result_of::facet_tag<MeshT>::type, MeshT, SegmentationT>(mesh, segment_names), _1 );
+        else
+          throw create_sizing_function_exception( "distance_to_segment_boundaries: Element type \"" + element_type + "\" not supported" );
       }
       else if (name == "distance_to_interface")
       {
