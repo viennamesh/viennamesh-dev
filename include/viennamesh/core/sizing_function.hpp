@@ -424,6 +424,95 @@ namespace viennamesh
 
 
 
+    template<typename SegmentationT, typename ElementT>
+    bool is_bounday_of_any_segment(SegmentationT const & segmentation, ElementT const & element)
+    {
+      typename SegmentationT::const_iterator sit = segmentation.begin();
+      for (; sit != segmentation.end(); ++sit)
+      {
+        if ( viennagrid::is_boundary(*sit, element) )
+          return true;
+      }
+
+      return false;
+    }
+
+
+
+    template<typename MeshT, typename SegmentationT>
+    struct local_feature_size_2d_functor
+    {
+      typedef typename viennamesh::result_of::const_parameter_handle< viennagrid::segmented_mesh<MeshT, SegmentationT> >::type ConstMeshParameterType;
+      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentType;
+
+      local_feature_size_2d_functor( ConstMeshParameterType const & mesh_ ) : mesh(mesh_) {}
+
+      typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef NumericType result_type;
+
+      NumericType operator()( PointType const & pt ) const
+      {
+        typedef typename viennagrid::result_of::const_vertex_range<MeshT>::type ConstVertexRangeType;
+        typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
+
+        typedef typename viennagrid::result_of::const_line_range<MeshT>::type ConstLineRangeType;
+        typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineRangeIterator;
+
+//         typedef typename viennagrid::result_of::point<Mesht>::type PointType;
+
+        ConstVertexRangeType vertices( mesh().mesh );
+        ConstLineRangeType lines( mesh().mesh );
+
+        NumericType lfs = -1.0;
+
+        for (ConstLineRangeIterator lit0 = lines.begin(); lit0 != lines.end(); ++lit0)
+        {
+          if (!is_bounday_of_any_segment(mesh().segmentation, *lit0))
+            continue;
+
+          std::pair<PointType, PointType> cp = viennagrid::detail::closest_points_point_line(pt, viennagrid::point(viennagrid::vertices(*lit0)[0]), viennagrid::point(viennagrid::vertices(*lit0)[1]));
+
+          NumericType distance_to_lit0 = viennagrid::norm_2(cp.first - cp.second);
+
+          ConstLineRangeIterator lit1 = lit0; ++lit1;
+          for (; lit1 != lines.end(); ++lit1)
+          {
+            if (!is_bounday_of_any_segment(mesh().segmentation, *lit1))
+              continue;
+
+            if (viennagrid::vertices(*lit0).handle_at(0) == viennagrid::vertices(*lit1).handle_at(0) ||
+                viennagrid::vertices(*lit0).handle_at(0) == viennagrid::vertices(*lit1).handle_at(1) ||
+                viennagrid::vertices(*lit0).handle_at(1) == viennagrid::vertices(*lit1).handle_at(0) ||
+                viennagrid::vertices(*lit0).handle_at(1) == viennagrid::vertices(*lit1).handle_at(1))
+            {
+              continue;
+            }
+
+            cp = viennagrid::detail::closest_points_point_line(pt, viennagrid::point(viennagrid::vertices(*lit1)[0]), viennagrid::point(viennagrid::vertices(*lit1)[1]));
+
+            NumericType distance_to_lit1 = viennagrid::norm_2(cp.first - cp.second);
+
+            NumericType max_distance = std::max(distance_to_lit0, distance_to_lit1);
+
+            if (lfs < 0)
+              lfs = max_distance;
+            else if (max_distance < lfs)
+              max_distance = lfs;
+          }
+
+        }
+
+        return lfs;
+      }
+
+      ConstMeshParameterType mesh;
+    };
+
+
+
+
+
     template<typename MeshT, typename SegmentationT>
     struct is_in_segments_functor
     {
@@ -750,6 +839,10 @@ namespace viennamesh
           throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no segment names specified" );
 
         return viennamesh::bind( distance_to_interface_functor<MeshT, SegmentationT>(mesh, segment_names[0], segment_names[1]), _1 );
+      }
+      else if (name == "local_feature_size_2d")
+      {
+        return viennamesh::bind( local_feature_size_2d_functor<MeshT, SegmentationT>(mesh), _1 );
       }
       else if (name == "is_in_segments")
       {
