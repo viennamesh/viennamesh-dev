@@ -471,9 +471,7 @@ namespace viennamesh
           if (!is_bounday_of_any_segment(mesh().segmentation, *lit0))
             continue;
 
-          std::pair<PointType, PointType> cp = viennagrid::detail::closest_points_point_line(pt, viennagrid::point(viennagrid::vertices(*lit0)[0]), viennagrid::point(viennagrid::vertices(*lit0)[1]));
-
-          NumericType distance_to_lit0 = viennagrid::norm_2(cp.first - cp.second);
+          NumericType distance_to_lit0 = viennagrid::distance(*lit0, pt);
 
           ConstLineRangeIterator lit1 = lit0; ++lit1;
           for (; lit1 != lines.end(); ++lit1)
@@ -489,16 +487,12 @@ namespace viennamesh
               continue;
             }
 
-            cp = viennagrid::detail::closest_points_point_line(pt, viennagrid::point(viennagrid::vertices(*lit1)[0]), viennagrid::point(viennagrid::vertices(*lit1)[1]));
-
-            NumericType distance_to_lit1 = viennagrid::norm_2(cp.first - cp.second);
+            NumericType distance_to_lit1 = viennagrid::distance(*lit1, pt);
 
             NumericType max_distance = std::max(distance_to_lit0, distance_to_lit1);
 
-            if (lfs < 0)
+            if (lfs < 0 || max_distance < lfs)
               lfs = max_distance;
-            else if (max_distance < lfs)
-              max_distance = lfs;
           }
 
         }
