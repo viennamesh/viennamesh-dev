@@ -45,6 +45,22 @@ mark_as_advanced(BUILD_MANUAL ENABLE_DIST)
 
 
 
+find_package (Threads)
+if (Threads_FOUND)
+  message(STATUS "Found Threads")
+#   message(STATUS "Threads include directories: ${BOOST_INCLUDE_DIRS}")
+  message(STATUS "Threads libraries: ${CMAKE_THREAD_LIBS_INIT}")
+
+#   set(VIENNAMESH_INCLUDE_DIRECTORIES ${VIENNAMESH_INCLUDE_DIRECTORIES} ${BOOST_INCLUDE_DIRS})
+  set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+  set(VIENNAMESH_COMPILE_FLAGS "${VIENNAMESH_COMPILE_FLAGS} -DVIENNAMESH_HAS_THREADS")
+  set(VIENNAMESH_HAS_THREADS TRUE)
+else()
+  message(STATUS "Threads not found")
+endif()
+
+
 find_package(Boost)
 if(Boost_FOUND)
   message(STATUS "Found Boost")
