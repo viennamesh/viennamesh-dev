@@ -1,5 +1,0 @@
-for f in *.png
-do
-  echo "Resizing $f"
-  convert $f -resize 400 $f  
-done
