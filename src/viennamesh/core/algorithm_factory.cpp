@@ -59,6 +59,7 @@ namespace viennamesh
     register_algorithm<viennamesh::remove_duplicate_cells>();
     register_algorithm<viennamesh::heal_mesh>();
     register_algorithm<viennamesh::merge_duplicate_points>();
+    register_algorithm<viennamesh::remove_overlapping_surfaces>();
 
     register_algorithm<viennamesh::map_segments>();
     register_algorithm<viennamesh::merge_meshes>();

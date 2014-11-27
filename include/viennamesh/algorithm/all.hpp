@@ -37,6 +37,7 @@
 #include "viennamesh/algorithm/heal_mesh.hpp"
 #include "viennamesh/algorithm/merge_duplicate_points.hpp"
 #include "viennamesh/algorithm/make_line_mesh.hpp"
+#include "viennamesh/algorithm/remove_overlapping_surfaces.hpp"
 
 // Triangle algorithms
 #ifdef VIENNAMESH_WITH_TRIANGLE
