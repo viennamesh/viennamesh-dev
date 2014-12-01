@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<VTKFile type="Collection" version="0.1" byte_order="LittleEndian" compressor="vtkZLibDataCompressor">
+<Collection>
+    <DataSet part="0" file="half-trigate_0.vtu" name="Segment_0"/>
+    <DataSet part="1" file="half-trigate_1.vtu" name="Segment_1"/>
+    <DataSet part="2" file="half-trigate_2.vtu" name="Segment_2"/>
+    <DataSet part="3" file="half-trigate_3.vtu" name="Segment_3"/>
+    <DataSet part="4" file="half-trigate_4.vtu" name="Segment_4"/>
+    <DataSet part="5" file="half-trigate_5.vtu" name="Segment_5"/>
+    <DataSet part="6" file="half-trigate_6.vtu" name="Segment_6"/>
+    <DataSet part="7" file="half-trigate_7.vtu" name="Segment_7"/>
+    <DataSet part="8" file="half-trigate_8.vtu" name="Segment_8"/>
+  </Collection>
+</VTKFile>
