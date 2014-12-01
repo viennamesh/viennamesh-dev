@@ -35,10 +35,12 @@ struct viennamesh_algorithm_wrapper_t
 {
 public:
 
-  viennamesh_algorithm_wrapper_t() : use_count_(1) {}
-  viennamesh_algorithm_wrapper_t(viennamesh::algorithm_template algorithm_template_in) : algorithm_template_(algorithm_template_in), use_count_(1)
+  viennamesh_algorithm_wrapper_t() : default_source(0), use_count_(1) {}
+  viennamesh_algorithm_wrapper_t(viennamesh::algorithm_template algorithm_template_in) : default_source(0), algorithm_template_(algorithm_template_in), use_count_(1)
   {
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
     std::cout << "New algorithm at " << this << std::endl;
+#endif
   }
 
   ~viennamesh_algorithm_wrapper_t()
@@ -67,6 +69,7 @@ public:
   viennamesh_algorithm internal_algorithm() { return internal_algorithm_; }
   void set_internal_algorithm(viennamesh_algorithm internal_algorithm_in) { internal_algorithm_ = internal_algorithm_in; }
   viennamesh::algorithm_template algorithm_template() { return algorithm_template_; }
+  std::string const & name();
   viennamesh_context context();
 
   void retain() { ++use_count_; }
@@ -120,11 +123,14 @@ namespace viennamesh
   {
   public:
 
-    void set_functions(viennamesh_algorithm_make_function make_function_in,
-                       viennamesh_algorithm_delete_function delete_function_in,
-                       viennamesh_algorithm_init_function init_function_in,
-                       viennamesh_algorithm_run_function run_function_in)
+    void init(std::string const & algorithm_name_in,
+              viennamesh_algorithm_make_function make_function_in,
+              viennamesh_algorithm_delete_function delete_function_in,
+              viennamesh_algorithm_init_function init_function_in,
+              viennamesh_algorithm_run_function run_function_in)
     {
+      algorithm_name_ = algorithm_name_in;
+
       make_function_ = make_function_in;
       delete_function_ = delete_function_in;
 
@@ -137,7 +143,7 @@ namespace viennamesh
       viennamesh_algorithm algorithm;
       int result = make_function_(&algorithm);
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error(result);
+        throw viennamesh::error_t(result);
       return algorithm;
     }
 
@@ -145,7 +151,7 @@ namespace viennamesh
     {
       int result = delete_function_( algorithm );
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error(result);
+        throw viennamesh::error_t(result);
     }
 
     void init(viennamesh_algorithm_wrapper algorithm) const
@@ -159,10 +165,14 @@ namespace viennamesh
     }
 
     viennamesh_context context() { return context_; }
+    std::string const & name() const { return algorithm_name_; }
     void set_context(viennamesh_context context_in) { context_ = context_in; }
 
   private:
     viennamesh_context context_;
+
+    std::string algorithm_id_;
+    std::string algorithm_name_;
 
     viennamesh_algorithm_make_function make_function_;
     viennamesh_algorithm_delete_function delete_function_;

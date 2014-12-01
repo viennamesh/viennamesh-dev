@@ -1,4 +1,113 @@
+#include <cstdlib>
+
+#include "viennagrid/backend/api.h"
+
 #include "viennamesh/backend/backend_context.hpp"
+
+
+
+namespace viennamesh
+{
+  namespace backend
+  {
+    template<typename T>
+    int generic_make(viennamesh_data * data)
+    {
+      T * tmp = new T;
+      *data = tmp;
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+    template<typename T>
+    int generic_delete(viennamesh_data data)
+    {
+      delete (T*)data;
+      return VIENNAMESH_SUCCESS;
+    }
+
+
+    int make_string(viennamesh_data * data)
+    {
+      char ** tmp = new char*;
+      *data = tmp;
+      *tmp = 0;
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+    int delete_string(viennamesh_data data)
+    {
+      char ** tmp = (char **)data;
+      if (*tmp)
+        free(*tmp);
+      delete tmp;
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+
+    int make_mesh(viennamesh_data * data)
+    {
+      viennagrid_mesh_hierarchy mesh_hierarchy;
+      viennagrid_mesh * mesh = new viennagrid_mesh;
+
+      viennagrid_mesh_hierarchy_create(&mesh_hierarchy);
+      viennagrid_mesh_hierarchy_get_root(mesh_hierarchy, mesh);
+
+      *data = mesh;
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+    int delete_mesh(viennamesh_data data)
+    {
+      viennagrid_mesh * mesh = (viennagrid_mesh *)data;
+
+      viennagrid_mesh_hierarchy mesh_hierarchy;
+      viennagrid_mesh_get_mesh_hierarchy(*mesh, &mesh_hierarchy);
+      viennagrid_mesh_hierarchy_release(mesh_hierarchy);
+
+      delete mesh;
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+
+
+    template<typename FromT, typename ToT>
+    int generic_convert(viennamesh_data from_, viennamesh_data to_)
+    {
+      *static_cast<ToT*>(to_) = *static_cast<FromT*>(from_);
+      return VIENNAMESH_SUCCESS;
+    }
+  }
+}
+
+
+viennamesh_context_t::viennamesh_context_t() : use_count_(1)
+{
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
+  std::cout << "New context at " << this << std::endl;
+#endif
+
+  register_data_type("bool", "", viennamesh::backend::generic_make<bool>, viennamesh::backend::generic_delete<bool>);
+  register_data_type("int", "", viennamesh::backend::generic_make<int>, viennamesh::backend::generic_delete<int>);
+  register_data_type("double", "", viennamesh::backend::generic_make<double>, viennamesh::backend::generic_delete<double>);
+  register_data_type("char*", "", viennamesh::backend::make_string, viennamesh::backend::delete_string);
+  register_data_type("viennagrid_mesh", "", viennamesh::backend::make_mesh, viennamesh::backend::delete_mesh);
+
+  register_conversion_function("int","","double","",viennamesh::backend::generic_convert<int, double>);
+  register_conversion_function("double","","int","",viennamesh::backend::generic_convert<double, int>);
+}
+
+viennamesh_context_t::~viennamesh_context_t()
+{
+  for (std::set<viennamesh_plugin>::iterator it = loaded_plugins.begin(); it != loaded_plugins.end(); ++it)
+    dlclose(*it);
+}
+
+
 
 int viennamesh_context_t::registered_data_type_count() const { return data_types.size(); }
 
@@ -16,19 +125,10 @@ viennamesh::data_template_t & viennamesh_context_t::get_data_type(std::string co
 {
   std::map<std::string, viennamesh::data_template_t>::iterator it = data_types.find(data_type_name_);
   if (it == data_types.end())
-    throw viennamesh::error(VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED);
+    throw viennamesh::error_t(VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED);
 
   return it->second;
 }
-
-// viennamesh::data_template_t const & viennamesh_context::get_data_type(std::string const & data_type_name_) const
-// {
-//   std::map<std::string, viennamesh::data_template_t>::const_iterator it = data_types.find(data_type_name_);
-//   if (it == data_types.end())
-//     throw viennamesh::error(VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED);
-//
-//   return it->second;
-// }
 
 void viennamesh_context_t::register_data_type(std::string const & data_type_name_,
                                             std::string const & data_type_binary_format_,
@@ -48,6 +148,8 @@ void viennamesh_context_t::register_data_type(std::string const & data_type_name
   }
 
   it->second.register_data_type(data_type_binary_format_, make_function_, delete_function_);
+
+  viennamesh::backend::info(1) << "Data type \"" << data_type_name_ << "\" with binary format \"" << data_type_binary_format_ << "\" sucessfully registered" << std::endl;
 }
 
 viennamesh_data_wrapper viennamesh_context_t::make_data(std::string const & data_type_name_,
@@ -74,6 +176,8 @@ void viennamesh_context_t::register_conversion_function(std::string const & data
                                   viennamesh_data_convert_function convert_function)
 {
   get_data_type(data_type_from).get_binary_format_template(binary_format_from).add_conversion_function(data_type_to, binary_format_to, convert_function);
+
+  viennamesh::backend::info(1) << "Conversion function from data type \"" << data_type_from << "\" with binary format \"" << binary_format_from << "\" to data type \"" << data_type_to << "\" with binary format \"" << binary_format_to << "\" sucessfully registered" << std::endl;
 }
 
 void viennamesh_context_t::convert(viennamesh_data_wrapper from, viennamesh_data_wrapper to)
@@ -97,17 +201,7 @@ viennamesh::algorithm_template viennamesh_context_t::get_algorithm_template(std:
 {
   std::map<std::string, viennamesh::algorithm_template_t>::iterator it = algorithm_templates.find(algorithm_name_);
   if (it == algorithm_templates.end())
-    throw viennamesh::error(VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED);
+    throw viennamesh::error_t(VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED);
 
   return &it->second;
 }
-
-// viennamesh::algorithm_template const & viennamesh_context::get_algorithm_template(std::string const & algorithm_name_) const
-// {
-//   std::map<std::string, viennamesh::algorithm_template>::const_iterator it = algorithm_templates.find(algorithm_name_);
-//   if (it == algorithm_templates.end())
-//     throw viennamesh::error(VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED);
-//
-//   return it->second;
-// }
-

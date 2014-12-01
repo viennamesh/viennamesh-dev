@@ -1,8 +1,13 @@
 #ifndef _VIENNAMESH_ALGORITHM_HPP_
 #define _VIENNAMESH_ALGORITHM_HPP_
 
+#include <cstdlib>
+#include <cstring>
+
 #include "viennamesh/forwards.hpp"
+#include "viennamesh/context.hpp"
 #include "viennamesh/data.hpp"
+#include "viennamesh/logger.hpp"
 
 namespace viennamesh
 {
@@ -37,9 +42,47 @@ namespace viennamesh
     }
 
 
-    void set_input(std::string const & name, abstract_data_handle data)
+    void set_default_source(algorithm_handle const & source_algorithm)
+    {
+      viennamesh_algorithm_set_default_source( internal(), source_algorithm.internal() );
+    }
+
+    void unset_default_source()
+    {
+      viennamesh_algorithm_unset_default_source( internal() );
+    }
+
+
+    void set_input(std::string const & name, abstract_data_handle const & data)
     {
       viennamesh_algorithm_set_input(algorithm, name.c_str(), data.internal());
+    }
+
+    template<typename T>
+    void set_input(std::string const & name, data_handle<T> const & data)
+    {
+      viennamesh_algorithm_set_input(algorithm, name.c_str(), data.internal());
+    }
+
+    template<typename T>
+    void set_input(std::string const & name, T data)
+    {
+      data_handle<T> tmp = context().make_data<T>();
+      tmp() = data;
+      set_input(name, tmp);
+    }
+
+    void set_input(std::string const & name, const char * string)
+    {
+      data_handle<char*> tmp = context().make_data<char*>();
+      tmp() = (char*)malloc( strlen(string)+1 );
+      strcpy( tmp(), string );
+      set_input(name, tmp);
+    }
+
+    void set_input(std::string const & name, std::string const & string)
+    {
+      set_input(name, string.c_str());
     }
 
     void link_input(std::string const & name, algorithm_handle const & source_algorithm, std::string const & source_name)
@@ -66,6 +109,9 @@ namespace viennamesh
 
       return data_handle<DataT>(data_, false);
     }
+
+
+
 
 
     void set_output(std::string const & name, abstract_data_handle data)
@@ -109,6 +155,12 @@ namespace viennamesh
     context_handle context();
 
     viennamesh_algorithm_wrapper internal() const { return const_cast<viennamesh_algorithm_wrapper>(algorithm); }
+    std::string name() const
+    {
+      const char * name_;
+      viennamesh_algorithm_get_name(internal(), &name_);
+      return name_;
+    }
 
   private:
 

@@ -39,7 +39,9 @@ void viennamesh_data_wrapper_t::release_internal_data()
 
 void viennamesh_data_wrapper_t::delete_this()
 {
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
   std::cout << "Delete data at " << this << std::endl;
+#endif
   release_internal_data();
   delete this;
 }

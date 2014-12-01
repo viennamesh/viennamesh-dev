@@ -16,7 +16,9 @@ public:
   viennamesh_data_wrapper_t() : internal_data_(0), own_internal_data(true), use_count_(1) {}
   viennamesh_data_wrapper_t(viennamesh::binary_format_template binary_format_template_in) : internal_data_(0), binary_format_template_(binary_format_template_in), own_internal_data(true), use_count_(1)
   {
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
     std::cout << "New data at " << this << std::endl;
+#endif
   }
 
   std::string type_name();
@@ -69,7 +71,7 @@ namespace viennamesh
       viennamesh_data data;
       int result = make_function_(&data);
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error(result);
+        throw viennamesh::error_t(result);
       return data;
     }
 
@@ -77,7 +79,7 @@ namespace viennamesh
     {
       int result = delete_function_( data );
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error(result);
+        throw viennamesh::error_t(result);
     }
 
     void set_make_delete_function(viennamesh_data_make_function make_function_in, viennamesh_data_delete_function delete_function_in)
@@ -97,11 +99,11 @@ namespace viennamesh
     {
       DataTypeBinaryFormatConvertFunctionMap::const_iterator it = convert_functions.find( to->type_name() );
       if (it == convert_functions.end())
-        throw viennamesh::error(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE);
+        throw viennamesh::error_t(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE);
 
       BinaryFormatConvertFunctionMap::const_iterator jt = it->second.find( to->binary_format() );
       if (jt == it->second.end())
-        throw viennamesh::error(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE_WITH_BINARY_FORMAT);
+        throw viennamesh::error_t(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE_WITH_BINARY_FORMAT);
 
       jt->second( from->data(), to->data() );
     }
@@ -135,14 +137,14 @@ namespace viennamesh
     {
       std::map<std::string, binary_format_template_t>::iterator it = binary_format_templates.find(data_type_binary_format_);
       if (it == binary_format_templates.end())
-        throw viennamesh::error(VIENNAMESH_ERROR_BINARY_FORMAT_FOR_DATA_TYPE_NOT_REGISTERED);
+        throw viennamesh::error_t(VIENNAMESH_ERROR_BINARY_FORMAT_FOR_DATA_TYPE_NOT_REGISTERED);
       return it->second;
     }
     binary_format_template_t const & get_binary_format_template(std::string const & data_type_binary_format_) const
     {
       std::map<std::string, binary_format_template_t>::const_iterator it = binary_format_templates.find(data_type_binary_format_);
       if (it == binary_format_templates.end())
-        throw viennamesh::error(VIENNAMESH_ERROR_BINARY_FORMAT_FOR_DATA_TYPE_NOT_REGISTERED);
+        throw viennamesh::error_t(VIENNAMESH_ERROR_BINARY_FORMAT_FOR_DATA_TYPE_NOT_REGISTERED);
       return it->second;
     }
 
@@ -152,7 +154,7 @@ namespace viennamesh
     {
       std::map<std::string, binary_format_template_t>::iterator it = binary_format_templates.find(data_type_binary_format_);
       if (it != binary_format_templates.end())
-        throw viennamesh::error(VIENNAMESH_ERROR_BINARY_FORMAT_FOR_DATA_TYPE_ALREADY_REGISTERED);
+        throw viennamesh::error_t(VIENNAMESH_ERROR_BINARY_FORMAT_FOR_DATA_TYPE_ALREADY_REGISTERED);
 
       binary_format_templates[data_type_binary_format_].set_make_delete_function(make_function_, delete_function_);
       binary_format_templates[data_type_binary_format_].set_data_template(this);

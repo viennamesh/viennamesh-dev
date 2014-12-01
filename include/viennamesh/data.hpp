@@ -1,7 +1,9 @@
 #ifndef _VIENNAMESH_DATA_HPP_
 #define _VIENNAMESH_DATA_HPP_
 
+#include <cassert>
 #include "viennamesh/forwards.hpp"
+#include "viennamesh/basic_data.hpp"
 
 namespace viennamesh
 {
@@ -36,6 +38,9 @@ namespace viennamesh
       retain();
       return *this;
     }
+
+    bool valid() const { return data != 0; }
+    operator bool() const { return valid(); }
 
     viennamesh_data_wrapper internal() const { return const_cast<viennamesh_data_wrapper>(data); }
 
@@ -142,6 +147,8 @@ namespace viennamesh
   {
     viennamesh_data_wrapper_convert( from.data, to.data );
   }
+
+
 
 
 

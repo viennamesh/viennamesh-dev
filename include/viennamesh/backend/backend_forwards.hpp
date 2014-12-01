@@ -3,12 +3,14 @@
 
 #include "viennamesh/backend/api.h"
 
+// #define VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
+
 namespace viennamesh
 {
-  class error
+  class error_t
   {
   public:
-    error(int error_code_) : error_code(error_code_) {}
+    error_t(int error_code_) : error_code(error_code_) {}
     operator int() const { return error_code; }
 
   private:

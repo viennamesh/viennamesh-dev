@@ -1,8 +1,10 @@
 #ifndef _VIENNAMESH_CONTEXT_HPP_
 #define _VIENNAMESH_CONTEXT_HPP_
 
+#include <vector>
+
 #include "viennamesh/forwards.hpp"
-#include "viennamesh/algorithm.hpp"
+// #include "viennamesh/algorithm.hpp"
 
 namespace viennamesh
 {
@@ -90,14 +92,10 @@ namespace viennamesh
     }
 
 
+    algorithm_handle make_algorithm(std::string const & algorithm_name);
+    void load_plugin(std::string const & plugin_filename);
 
-
-    algorithm_handle make_algorithm(std::string const & algorithm_name)
-    {
-      algorithm_handle tmp;
-      tmp.make(ctx, algorithm_name);
-      return tmp;
-    }
+    viennamesh_context internal() const { return const_cast<viennamesh_context>(ctx); }
 
   private:
 
@@ -122,7 +120,17 @@ namespace viennamesh
     }
 
     viennamesh_context ctx;
+    std::vector<void *> loaded_plugins;
   };
+
+
+
+
+
+
+
+
+
 
 }
 

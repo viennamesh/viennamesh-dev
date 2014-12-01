@@ -30,19 +30,24 @@ typedef int viennamesh_error;
 #define VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE 6
 #define VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE_WITH_BINARY_FORMAT 7
 #define VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED 8
-#define VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED 9
-#define VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT 10
+#define VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED 9
+#define VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED 10
+#define VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT 11
 
 
 
 typedef struct viennamesh_context_t * viennamesh_context;
 typedef const char * (*viennamesh_build_environment_function)();
 
-
 DYNAMIC_EXPORT int viennamesh_context_make(viennamesh_context * context);
 DYNAMIC_EXPORT int viennamesh_context_retain(viennamesh_context context);
 DYNAMIC_EXPORT int viennamesh_context_release(viennamesh_context context);
 
+typedef void * viennamesh_plugin;
+DYNAMIC_EXPORT int viennamesh_context_load_plugin(viennamesh_context context,
+                                                  const char * plugin_filename,
+                                                  viennamesh_plugin * plugin);
+// DYNAMIC_EXPORT int viennamesh_context_unload_plugin(viennamesh_context context, viennamesh_plugin * plugin);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,11 +152,17 @@ DYNAMIC_EXPORT int viennamesh_algorithm_make(viennamesh_context context,
 DYNAMIC_EXPORT int viennamesh_algorithm_retain(viennamesh_algorithm_wrapper algorithm);
 DYNAMIC_EXPORT int viennamesh_algorithm_release(viennamesh_algorithm_wrapper algorithm);
 
+DYNAMIC_EXPORT int viennamesh_algorithm_get_name(viennamesh_algorithm_wrapper algorithm,
+                                                 const char ** algorithm_name);
 DYNAMIC_EXPORT int viennamesh_algorithm_get_context(viennamesh_algorithm_wrapper algorithm,
                                                     viennamesh_context * context);
 
 DYNAMIC_EXPORT int viennamesh_algorithm_get_internal_algorithm(viennamesh_algorithm_wrapper algorithm,
                                                                viennamesh_algorithm * internal_algorithm);
+
+DYNAMIC_EXPORT int viennamesh_algorithm_set_default_source(viennamesh_algorithm_wrapper algorithm,
+                                                           viennamesh_algorithm_wrapper source_algorithm);
+DYNAMIC_EXPORT int viennamesh_algorithm_unset_default_source(viennamesh_algorithm_wrapper algorithm);
 
 DYNAMIC_EXPORT int viennamesh_algorithm_unset_input(viennamesh_algorithm_wrapper algorithm,
                                                     const char * name);
@@ -188,6 +199,23 @@ DYNAMIC_EXPORT int viennamesh_algorithm_get_output_with_type(viennamesh_algorith
 
 DYNAMIC_EXPORT int viennamesh_algorithm_init(viennamesh_algorithm_wrapper algorithm);
 DYNAMIC_EXPORT int viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorithm);
+
+
+
+
+
+
+DYNAMIC_EXPORT int viennamesh_log_info_line(const char * message, int log_level, const char * category);
+DYNAMIC_EXPORT int viennamesh_log_error_line(const char * message, int log_level, const char * category);
+DYNAMIC_EXPORT int viennamesh_log_warning_line(const char * message, int log_level, const char * category);
+DYNAMIC_EXPORT int viennamesh_log_debug_line(const char * message, int log_level, const char * category);
+DYNAMIC_EXPORT int viennamesh_log_stack_line(const char * message, int log_level, const char * category);
+
+DYNAMIC_EXPORT int viennamesh_log_increase_indentation();
+DYNAMIC_EXPORT int viennamesh_log_decrease_indentation();
+
+
+
 
 
 #endif

@@ -60,9 +60,16 @@ viennamesh_context viennamesh_algorithm_wrapper_t::context()
   return algorithm_template_->context();
 }
 
+std::string const & viennamesh_algorithm_wrapper_t::name()
+{
+  return algorithm_template()->name();
+}
+
 void viennamesh_algorithm_wrapper_t::delete_this()
 {
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
   std::cout << "Delete algorithm at " << this << std::endl;
+#endif
   algorithm_template()->delete_algorithm( internal_algorithm() );
   delete this;
 }
@@ -78,7 +85,7 @@ void viennamesh_algorithm_wrapper_t::unset_input(std::string const & name)
 void viennamesh_algorithm_wrapper_t::set_input(std::string const & name, viennamesh_data_wrapper input)
 {
   if (input->context() != context())
-    throw viennamesh::error(VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT);
+    throw viennamesh::error_t(VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT);
 
   inputs[name].set(input);
 }
@@ -86,7 +93,7 @@ void viennamesh_algorithm_wrapper_t::set_input(std::string const & name, viennam
 void viennamesh_algorithm_wrapper_t::link_input(std::string const & name, viennamesh_algorithm_wrapper source_algorithm, std::string const & source_name)
 {
   if (source_algorithm->context() != context())
-    throw viennamesh::error(VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT);
+    throw viennamesh::error_t(VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT);
 
   inputs[name].link(source_algorithm, source_name);
 }
@@ -134,7 +141,7 @@ viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string co
 void viennamesh_algorithm_wrapper_t::set_output(std::string const & name, viennamesh_data_wrapper output)
 {
   if (output->context() != context())
-    throw viennamesh::error(VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT);
+    throw viennamesh::error_t(VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT);
 
   OutputMapType::iterator it = outputs.find(name);
   if (it != outputs.end())

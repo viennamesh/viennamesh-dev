@@ -1,18 +1,20 @@
 #ifndef _VIENNAMESH_BACKEND_CONTEXT_HPP_
 #define _VIENNAMESH_BACKEND_CONTEXT_HPP_
 
+#include <set>
+#include <dlfcn.h>
+
 #include "viennamesh/backend/backend_forwards.hpp"
 #include "viennamesh/backend/backend_data.hpp"
 #include "viennamesh/backend/backend_algorithm.hpp"
+#include "viennamesh/backend/backend_logger.hpp"
 
 class viennamesh_context_t
 {
 public:
 
-  viennamesh_context_t() : use_count_(1)
-  {
-    std::cout << "New context at " << this << std::endl;
-  }
+  viennamesh_context_t();
+  ~viennamesh_context_t();
 
   int registered_data_type_count() const;
   std::string const & registered_data_type_name(int index_) const;
@@ -47,7 +49,6 @@ public:
 
 
   viennamesh::algorithm_template get_algorithm_template(std::string const & algorithm_name_);
-//   viennamesh::algorithm_template const & get_algorithm_template(std::string const & algorithm_name_) const;
 
   void register_algorithm(std::string const & algorithm_name,
                           viennamesh_algorithm_make_function make_function,
@@ -61,8 +62,9 @@ public:
 
     viennamesh::algorithm_template_t & algorithm_template = algorithm_templates[algorithm_name];
     algorithm_template.set_context(this);
-    algorithm_template.set_functions(make_function, delete_function,
-                                     init_function, run_function);
+    algorithm_template.init(algorithm_name,
+                            make_function, delete_function,
+                            init_function, run_function);
   }
 
   viennamesh_algorithm_wrapper make_algorithm(std::string const & algorithm_name)
@@ -90,6 +92,39 @@ public:
   }
 
 
+
+
+  viennamesh_plugin load_plugin(std::string const & plugin_filename)
+  {
+    void * dl = dlopen(plugin_filename.c_str(), RTLD_NOW);
+    if (!dl)
+    {
+      viennamesh::backend::error(1) << "Could not load plugin \"" << plugin_filename << "\"" << std::endl;
+      viennamesh::backend::error(1) << dlerror() << std::endl;
+      return 0;
+    }
+
+
+    typedef int (*init_function)(viennamesh_context);
+    init_function f = (init_function)dlsym(dl, "viennamesh_plugin_init");
+    if (!f)
+    {
+      dlclose(dl);
+      viennamesh::backend::error(1) << "Plugin \"" << plugin_filename << "\" does not have a init function" << std::endl;
+      return 0;
+    }
+
+    f( this );
+    loaded_plugins.insert(dl);
+
+    viennamesh::backend::info(1) << "Plugin \"" << plugin_filename << "\" successfully loaded" << std::endl;
+
+    return dl;
+  }
+
+
+
+
   void retain() { ++use_count_; }
   bool release()
   {
@@ -106,7 +141,7 @@ private:
 
   void handle_error(int error_code) const
   {
-    throw viennamesh::error(error_code);
+    throw viennamesh::error_t(error_code);
   }
 
   std::map<std::string, viennamesh::data_template_t> data_types;
@@ -114,11 +149,15 @@ private:
 
   void delete_this()
   {
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
     std::cout << "Delete context at " << this << std::endl;
+#endif
     delete this;
   }
 
-  mutable int use_count_;
+  std::set<viennamesh_plugin> loaded_plugins;
+
+  int use_count_;
 };
 
 #endif
