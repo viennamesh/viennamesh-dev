@@ -65,6 +65,8 @@ public:
     algorithm_template.init(algorithm_name,
                             make_function, delete_function,
                             init_function, run_function);
+
+    viennamesh::backend::info(1) << "Algorithm \"" << algorithm_name << "\" sucessfully registered" << std::endl;
   }
 
   viennamesh_algorithm_wrapper make_algorithm(std::string const & algorithm_name)
@@ -92,37 +94,8 @@ public:
   }
 
 
-
-
-  viennamesh_plugin load_plugin(std::string const & plugin_filename)
-  {
-    void * dl = dlopen(plugin_filename.c_str(), RTLD_NOW);
-    if (!dl)
-    {
-      viennamesh::backend::error(1) << "Could not load plugin \"" << plugin_filename << "\"" << std::endl;
-      viennamesh::backend::error(1) << dlerror() << std::endl;
-      return 0;
-    }
-
-
-    typedef int (*init_function)(viennamesh_context);
-    init_function f = (init_function)dlsym(dl, "viennamesh_plugin_init");
-    if (!f)
-    {
-      dlclose(dl);
-      viennamesh::backend::error(1) << "Plugin \"" << plugin_filename << "\" does not have a init function" << std::endl;
-      return 0;
-    }
-
-    f( this );
-    loaded_plugins.insert(dl);
-
-    viennamesh::backend::info(1) << "Plugin \"" << plugin_filename << "\" successfully loaded" << std::endl;
-
-    return dl;
-  }
-
-
+  viennamesh_plugin load_plugin(std::string const & plugin_filename);
+  void load_plugins_in_directory(std::string directory_name);
 
 
   void retain() { ++use_count_; }

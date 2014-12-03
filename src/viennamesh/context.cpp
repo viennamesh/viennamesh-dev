@@ -17,4 +17,9 @@ namespace viennamesh
     viennamesh_context_load_plugin( internal(), plugin_filename.c_str(), &plugin);
   }
 
+  void context_handle::load_plugins_in_directory(std::string const & directory_name)
+  {
+    viennamesh_context_load_plugins_in_directory( internal(), directory_name.c_str());
+  }
+
 }

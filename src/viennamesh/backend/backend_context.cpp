@@ -1,10 +1,8 @@
 #include <cstdlib>
+#include <dirent.h>
 
 #include "viennagrid/backend/api.h"
-
 #include "viennamesh/backend/backend_context.hpp"
-
-
 
 namespace viennamesh
 {
@@ -29,19 +27,17 @@ namespace viennamesh
 
     int make_string(viennamesh_data * data)
     {
-      char ** tmp = new char*;
-      *data = tmp;
-      *tmp = 0;
+      viennamesh_string * string = new viennamesh_string;
+      viennamesh_string_make(string);
+      *data = string;
 
       return VIENNAMESH_SUCCESS;
     }
 
     int delete_string(viennamesh_data data)
     {
-      char ** tmp = (char **)data;
-      if (*tmp)
-        free(*tmp);
-      delete tmp;
+      viennamesh_string * string = (viennamesh_string*)data;
+      viennamesh_string_free(*string);
 
       return VIENNAMESH_SUCCESS;
     }
@@ -94,7 +90,7 @@ viennamesh_context_t::viennamesh_context_t() : use_count_(1)
   register_data_type("bool", "", viennamesh::backend::generic_make<bool>, viennamesh::backend::generic_delete<bool>);
   register_data_type("int", "", viennamesh::backend::generic_make<int>, viennamesh::backend::generic_delete<int>);
   register_data_type("double", "", viennamesh::backend::generic_make<double>, viennamesh::backend::generic_delete<double>);
-  register_data_type("char*", "", viennamesh::backend::make_string, viennamesh::backend::delete_string);
+  register_data_type("viennamesh_string", "", viennamesh::backend::make_string, viennamesh::backend::delete_string);
   register_data_type("viennagrid_mesh", "", viennamesh::backend::make_mesh, viennamesh::backend::delete_mesh);
 
   register_conversion_function("int","","double","",viennamesh::backend::generic_convert<int, double>);
@@ -205,3 +201,81 @@ viennamesh::algorithm_template viennamesh_context_t::get_algorithm_template(std:
 
   return &it->second;
 }
+
+
+viennamesh_plugin viennamesh_context_t::load_plugin(std::string const & plugin_filename)
+{
+  viennamesh::backend::LoggingStack stack("Loading plugin \"" + plugin_filename + "\"");
+
+  void * dl = dlopen(plugin_filename.c_str(), RTLD_NOW);
+  if (!dl)
+  {
+    viennamesh::backend::error(1) << "Could not load plugin \"" << plugin_filename << "\"" << std::endl;
+    viennamesh::backend::error(1) << dlerror() << std::endl;
+    return 0;
+  }
+
+  typedef int (*viennamesh_plugin_init_function)(viennamesh_context ctx_);
+  typedef int (*viennamesh_version_function)();
+
+  viennamesh_plugin_init_function init_function = (viennamesh_plugin_init_function)dlsym(dl, "viennamesh_plugin_init");
+  if (!init_function)
+  {
+    dlclose(dl);
+    viennamesh::backend::error(1) << "Plugin \"" << plugin_filename << "\" does not have a viennamesh_plugin_init function" << std::endl;
+    return 0;
+  }
+
+  viennamesh_version_function version_function = (viennamesh_version_function)dlsym(dl, "viennamesh_version");
+  if (!version_function)
+  {
+    dlclose(dl);
+    viennamesh::backend::error(1) << "Plugin \"" << plugin_filename << "\" does not have a viennamesh_version function" << std::endl;
+    return 0;
+  }
+
+  if (version_function() > VIENNAMESH_VERSION)
+  {
+    dlclose(dl);
+    viennamesh::backend::error(1) << "Plugin \"" << plugin_filename << "\" has version missmatch. Plugin ViennaMesh version: " << version_function() << ", ViennaMesh version: " << VIENNAMESH_VERSION << std::endl;
+    return 0;
+  }
+
+  init_function( this );
+  loaded_plugins.insert(dl);
+
+//   viennamesh::backend::info(1) << "Plugin \"" << plugin_filename << "\" successfully loaded" << std::endl;
+
+  return dl;
+}
+
+
+void viennamesh_context_t::load_plugins_in_directory(std::string directory_name)
+{
+  DIR *dir;
+  struct dirent *ent;
+
+  if (directory_name[directory_name.size()-1] != '/')
+    directory_name += '/';
+
+  dir = opendir(directory_name.c_str());
+
+  if (dir != NULL) {
+    /* print all the files and directories within directory */
+    while ((ent = readdir (dir)) != NULL)
+    {
+      std::string filename = ent->d_name;
+      if ( (filename.size() > 3) && (filename.find(".so") == filename.size()-3) )
+        load_plugin(directory_name + filename);
+    }
+    closedir (dir);
+  }
+  else
+  {
+    viennamesh::backend::error(1) << "Failed to open directory \"" << directory_name << "\"" << std::endl;
+  }
+}
+
+
+
+

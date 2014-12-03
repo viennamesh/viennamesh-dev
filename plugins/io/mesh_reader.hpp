@@ -16,7 +16,7 @@
 =============================================================================== */
 
 #include "common.hpp"
-#include "viennamesh/plugin.hpp"
+#include "viennamesh_plugin.hpp"
 
 namespace viennamesh
 {

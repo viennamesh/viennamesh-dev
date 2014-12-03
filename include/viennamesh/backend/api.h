@@ -21,6 +21,13 @@
 
 typedef int viennamesh_error;
 
+#define VIENNAMESH_VERSION_MAJOR 0
+#define VIENNAMESH_VERSION_MINOR 1
+#define VIENNAMESH_VERSION_PATCH 0
+
+#define VIENNAMESH_VERSION VIENNAMESH_VERSION_MAJOR*10000 + VIENNAMESH_VERSION_MINOR * 100 + VIENNAMESH_VERSION_PATCH
+
+
 #define VIENNAMESH_SUCCESS 0
 #define VIENNAMESH_ERROR_INVALID_CONTEXT 1
 #define VIENNAMESH_ERROR_INVALID_ARGUMENT 2
@@ -36,6 +43,26 @@ typedef int viennamesh_error;
 
 
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                Strings and arrays
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct viennamesh_string_t * viennamesh_string;
+
+DYNAMIC_EXPORT int viennamesh_string_make(viennamesh_string * string);
+DYNAMIC_EXPORT int viennamesh_string_free(viennamesh_string string);
+DYNAMIC_EXPORT int viennamesh_string_set(viennamesh_string string, const char * cstr);
+DYNAMIC_EXPORT int viennamesh_string_get(viennamesh_string string, const char ** cstr);
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                Context
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 typedef struct viennamesh_context_t * viennamesh_context;
 typedef const char * (*viennamesh_build_environment_function)();
 
@@ -47,6 +74,8 @@ typedef void * viennamesh_plugin;
 DYNAMIC_EXPORT int viennamesh_context_load_plugin(viennamesh_context context,
                                                   const char * plugin_filename,
                                                   viennamesh_plugin * plugin);
+DYNAMIC_EXPORT int viennamesh_context_load_plugins_in_directory(viennamesh_context context,
+                                                                const char * directory_name);
 // DYNAMIC_EXPORT int viennamesh_context_unload_plugin(viennamesh_context context, viennamesh_plugin * plugin);
 
 

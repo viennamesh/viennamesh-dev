@@ -74,9 +74,12 @@ namespace viennamesh
 
     void set_input(std::string const & name, const char * string)
     {
-      data_handle<char*> tmp = context().make_data<char*>();
-      tmp() = (char*)malloc( strlen(string)+1 );
-      strcpy( tmp(), string );
+      data_handle<viennamesh_string> tmp = context().make_data<viennamesh_string>();
+      tmp.set(string);
+
+//       viennamesh_string_set( tmp(), string );
+//       tmp() = (char*)malloc( strlen(string)+1 );
+//       strcpy( tmp(), string );
       set_input(name, tmp);
     }
 

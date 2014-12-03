@@ -156,9 +156,14 @@ namespace viennamesh
                             generic_algorithm_init<AlgorithmT>,
                             generic_algorithm_run<AlgorithmT> );
   }
+
+
+  void plugin_init( context_handle & context );
 }
 
 
 DYNAMIC_EXPORT int viennamesh_plugin_init(viennamesh_context ctx_);
+DYNAMIC_EXPORT int viennamesh_version();
+
 
 #endif

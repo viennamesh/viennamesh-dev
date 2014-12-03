@@ -94,6 +94,7 @@ namespace viennamesh
 
     algorithm_handle make_algorithm(std::string const & algorithm_name);
     void load_plugin(std::string const & plugin_filename);
+    void load_plugins_in_directory(std::string const & directory_name);
 
     viennamesh_context internal() const { return const_cast<viennamesh_context>(ctx); }
 

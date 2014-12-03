@@ -320,9 +320,9 @@ namespace viennamesh
 
   bool mesh_reader::run(viennamesh::algorithm_handle &)
   {
-    data_handle<char*> filename = get_input<char*>("filename");
-    data_handle<char*> filetype = get_input<char*>("filetype");
-    data_handle<char*> base_path = get_input<char*>("base_path");
+    data_handle<viennamesh_string> filename = get_input<viennamesh_string>("filename");
+    data_handle<viennamesh_string> filetype = get_input<viennamesh_string>("filetype");
+    data_handle<viennamesh_string> base_path = get_input<viennamesh_string>("base_path");
 
     FileType ft;
     if (filetype)

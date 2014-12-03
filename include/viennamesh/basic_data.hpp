@@ -30,9 +30,9 @@ namespace viennamesh
     };
 
     template<>
-    struct data_information<char*>
+    struct data_information<viennamesh_string>
     {
-      static std::string type_name() { return "char*"; }
+      static std::string type_name() { return "viennamesh_string"; }
       static std::string local_binary_format() { return ""; }
     };
 

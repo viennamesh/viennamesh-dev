@@ -6,6 +6,41 @@
 #include "viennamesh/backend/backend_logger.hpp"
 
 
+struct viennamesh_string_t
+{
+  std::string string;
+};
+
+
+
+int viennamesh_string_make(viennamesh_string * string)
+{
+  *string = new viennamesh_string_t;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_string_free(viennamesh_string string)
+{
+  delete string;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_string_set(viennamesh_string string, const char * cstr)
+{
+  string->string = std::string(cstr);
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_string_get(viennamesh_string string, const char ** cstr)
+{
+  *cstr = string->string.c_str();
+  return VIENNAMESH_SUCCESS;
+}
+
+
+
+
+
 int viennamesh_context_make(viennamesh_context * context)
 {
   try
@@ -62,7 +97,12 @@ int viennamesh_context_load_plugin(viennamesh_context context,
   return VIENNAMESH_SUCCESS;
 }
 
-
+int viennamesh_context_load_plugins_in_directory(viennamesh_context context,
+                                                 const char * directory_name)
+{
+  context->load_plugins_in_directory(directory_name);
+  return VIENNAMESH_SUCCESS;
+}
 
 
 int viennamesh_registered_data_type_get_count(viennamesh_context context,
