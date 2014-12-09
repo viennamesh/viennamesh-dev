@@ -143,10 +143,9 @@ namespace viennamesh
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
         MeshHandleType mesh_handle = make_mesh();
-        MeshType mesh( mesh_handle() );
 
         viennagrid::io::netgen_reader reader;
-        reader(mesh, filename);
+        reader(mesh_handle(), filename);
         set_output("mesh", mesh_handle);
 
         return true;
@@ -156,11 +155,52 @@ namespace viennamesh
         info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
 
         MeshHandleType mesh_handle = make_mesh();
-        MeshType mesh( mesh_handle() );
+
+        std::vector<viennagrid::point_t> tmp_hole_points;
+        std::vector< std::pair<viennagrid::point_t, int> > tmp_seed_points;
 
         viennagrid::io::tetgen_poly_reader reader;
-        reader(mesh, filename);
+        reader(mesh_handle(), filename, tmp_hole_points, tmp_seed_points);
+
         set_output("mesh", mesh_handle);
+
+        viennagrid_int point_dim = viennagrid::geometric_dimension(mesh_handle());
+
+        if (!tmp_hole_points.empty())
+        {
+          PointContainerHandleType hole_points = make_point_container();
+
+          std::vector<double> hole_point_buffer( point_dim * tmp_hole_points.size() );
+          for (std::size_t i = 0; i != tmp_hole_points.size(); ++i)
+            std::copy( hole_point_buffer.begin()+point_dim*i,
+                       hole_point_buffer.begin()+point_dim*(i+1),
+                       tmp_hole_points[i].begin() );
+
+          viennamesh_point_container_set( hole_points(), &hole_point_buffer[0], point_dim, tmp_hole_points.size() );
+
+          set_output("hole_points", hole_points);
+        }
+
+        if (!tmp_seed_points.empty())
+        {
+          SeedPointContainerHandleType seed_points = make_seed_point_container();
+
+          std::vector<double> seed_point_buffer( point_dim * tmp_seed_points.size() );
+          std::vector<int> seed_point_region_buffer( tmp_seed_points.size() );
+
+          for (std::size_t i = 0; i != tmp_seed_points.size(); ++i)
+          {
+            std::copy( seed_point_buffer.begin()+point_dim*i,
+                       seed_point_buffer.begin()+point_dim*(i+1),
+                       tmp_seed_points[i].first.begin() );
+            seed_point_region_buffer[i] = tmp_seed_points[i].second;
+          }
+
+          viennamesh_seed_point_container_set( seed_points(), &seed_point_buffer[0], &seed_point_region_buffer[0], point_dim, tmp_seed_points.size() );
+
+          set_output("seed_points", seed_points);
+        }
+
 
         return true;
       }
@@ -297,10 +337,9 @@ namespace viennamesh
         info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
 
         MeshHandleType mesh_handle = make_mesh();
-        MeshType mesh( mesh_handle() );
 
-        viennagrid::io::vtk_reader<MeshType> reader;
-        reader(mesh, filename);
+        viennagrid::io::vtk_reader<viennagrid::mesh_t> reader;
+        reader(mesh_handle(), filename);
         set_output("mesh", mesh_handle);
 
         return true;

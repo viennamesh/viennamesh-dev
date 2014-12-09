@@ -2,6 +2,7 @@
 #define _VIENNAMESH_PLUGIN_PLUGIN_HPP_
 
 #include "viennamesh/core.hpp"
+#include "viennagrid/core.hpp"
 
 namespace viennamesh
 {
@@ -10,7 +11,9 @@ namespace viennamesh
   public:
 
     typedef data_handle<viennagrid_mesh> MeshHandleType;
-    typedef viennagrid::mesh_t MeshType;
+    typedef data_handle<viennamesh_point_container> PointContainerHandleType;
+    typedef data_handle<viennamesh_seed_point_container> SeedPointContainerHandleType;
+
 
     bool init(viennamesh::algorithm_handle algorithm_in)
     {
@@ -25,6 +28,12 @@ namespace viennamesh
     MeshHandleType make_mesh()
     { return algorithm().context().make_data<viennagrid_mesh>(); }
 
+    PointContainerHandleType make_point_container()
+    { return algorithm().context().make_data<viennamesh_point_container>(); }
+
+    SeedPointContainerHandleType make_seed_point_container()
+    { return algorithm().context().make_data<viennamesh_seed_point_container>(); }
+
 
     abstract_data_handle get_input(std::string const & name)
     { return algorithm().get_input(name); }
@@ -35,6 +44,12 @@ namespace viennamesh
 
     MeshHandleType get_input_mesh(std::string const & name)
     { return algorithm().get_input<viennagrid_mesh>(name); }
+
+    PointContainerHandleType get_input_point_container(std::string const & name)
+    { return algorithm().get_input<viennamesh_point_container>(name); }
+
+    SeedPointContainerHandleType get_input_seed_point_container(std::string const & name)
+    { return algorithm().get_input<viennamesh_seed_point_container>(name); }
 
 
 
@@ -158,6 +173,7 @@ namespace viennamesh
   }
 
 
+  std::string local_binary_format();
   void plugin_init( context_handle & context );
 }
 

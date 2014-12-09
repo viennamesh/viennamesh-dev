@@ -1,13 +1,21 @@
 #ifndef _VIENNAMESH_BASIC_DATA_HPP_
 #define _VIENNAMESH_BASIC_DATA_HPP_
 
-#include "viennamesh/forwards.hpp"
-#include "viennagrid/core.hpp"
+#include <string>
+
+typedef struct viennamesh_string_t * viennamesh_string;
+typedef struct viennamesh_point_container_t * viennamesh_point_container;
+typedef struct viennamesh_seed_point_container_t * viennamesh_seed_point_container;
+typedef struct viennagrid_mesh_ * viennagrid_mesh;
+
 
 namespace viennamesh
 {
   namespace result_of
   {
+    template<typename T>
+    struct data_information;
+
     template<>
     struct data_information<bool>
     {
@@ -33,6 +41,20 @@ namespace viennamesh
     struct data_information<viennamesh_string>
     {
       static std::string type_name() { return "viennamesh_string"; }
+      static std::string local_binary_format() { return ""; }
+    };
+
+    template<>
+    struct data_information<viennamesh_point_container>
+    {
+      static std::string type_name() { return "viennamesh_point_container"; }
+      static std::string local_binary_format() { return ""; }
+    };
+
+    template<>
+    struct data_information<viennamesh_seed_point_container>
+    {
+      static std::string type_name() { return "viennamesh_seed_point_container"; }
       static std::string local_binary_format() { return ""; }
     };
 

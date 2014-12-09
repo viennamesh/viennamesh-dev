@@ -285,8 +285,8 @@ namespace viennamesh
     MeshHandleType mesh_handle = get_input_mesh("mesh");
     if (mesh_handle)
     {
-      MeshType mesh( mesh_handle() );
-      WriterProxyT()(mesh, filename, *this);
+//       MeshType mesh( mesh_handle() );
+      WriterProxyT()(mesh_handle(), filename, *this);
       return true;
     }
     else
@@ -298,12 +298,10 @@ namespace viennamesh
     MeshHandleType mesh_handle = get_input_mesh("mesh");
     if (mesh_handle)
     {
-      MeshType mesh( mesh_handle() );
-
-      if ( viennagrid::geometric_dimension(mesh) != 3 || viennagrid::cell_dimension(mesh) != 3)
+      if ( viennagrid::geometric_dimension(mesh_handle()) != 3 || viennagrid::cell_dimension(mesh_handle()) != 3)
         return false;
 
-      mphtxt_writer_proxy()(mesh, filename, *this);
+      mphtxt_writer_proxy()(mesh_handle(), filename, *this);
       return true;
     }
     else
@@ -316,7 +314,6 @@ namespace viennamesh
     data_handle<viennamesh_string> filename = get_input<viennamesh_string>("filename");
     data_handle<viennamesh_string> filetype = get_input<viennamesh_string>("filetype");
 
-//     const_parameter_handle mesh = input_mesh.get();
     info(1) << "Writing mesh to file \"" << filename() << "\"" << std::endl;
 
     FileType ft;

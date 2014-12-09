@@ -43,22 +43,6 @@ typedef int viennamesh_error;
 
 
 
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                Strings and arrays
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct viennamesh_string_t * viennamesh_string;
-
-DYNAMIC_EXPORT int viennamesh_string_make(viennamesh_string * string);
-DYNAMIC_EXPORT int viennamesh_string_free(viennamesh_string string);
-DYNAMIC_EXPORT int viennamesh_string_set(viennamesh_string string, const char * cstr);
-DYNAMIC_EXPORT int viennamesh_string_get(viennamesh_string string, const char ** cstr);
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                Context
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,11 +133,46 @@ DYNAMIC_EXPORT int viennamesh_data_wrapper_convert_to(viennamesh_data_wrapper da
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                Special Data Types
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct viennamesh_string_t * viennamesh_string;
+DYNAMIC_EXPORT int viennamesh_string_make(viennamesh_string * string);
+DYNAMIC_EXPORT int viennamesh_string_free(viennamesh_string string);
+DYNAMIC_EXPORT int viennamesh_string_set(viennamesh_string string, const char * cstr);
+DYNAMIC_EXPORT int viennamesh_string_get(viennamesh_string string, const char ** cstr);
+
+
+typedef struct viennamesh_point_container_t * viennamesh_point_container;
+DYNAMIC_EXPORT int viennamesh_point_container_make(viennamesh_point_container * point_container);
+DYNAMIC_EXPORT int viennamesh_point_container_free(viennamesh_point_container point_container);
+DYNAMIC_EXPORT int viennamesh_point_container_set(viennamesh_point_container point_container,
+                                                  double * points,
+                                                  int dimension, int count);
+DYNAMIC_EXPORT int viennamesh_point_container_get(viennamesh_point_container point_container,
+                                                  double ** points,
+                                                  int * dimension, int * count);
+
+
+typedef struct viennamesh_seed_point_container_t * viennamesh_seed_point_container;
+DYNAMIC_EXPORT int viennamesh_seed_point_container_make(viennamesh_seed_point_container * seed_point_container);
+DYNAMIC_EXPORT int viennamesh_seed_point_container_free(viennamesh_seed_point_container seed_point_container);
+DYNAMIC_EXPORT int viennamesh_seed_point_container_set(viennamesh_seed_point_container seed_point_container,
+                                                       double * points,
+                                                       int * regions,
+                                                       int dimension, int count);
+DYNAMIC_EXPORT int viennamesh_seed_point_container_get(viennamesh_seed_point_container seed_point_container,
+                                                       double ** points,
+                                                       int ** regions,
+                                                       int * dimension, int * count);
 
 
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                Algorithm
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -230,7 +249,9 @@ DYNAMIC_EXPORT int viennamesh_algorithm_init(viennamesh_algorithm_wrapper algori
 DYNAMIC_EXPORT int viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorithm);
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                Logging
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -243,6 +264,8 @@ DYNAMIC_EXPORT int viennamesh_log_stack_line(const char * message, int log_level
 DYNAMIC_EXPORT int viennamesh_log_increase_indentation();
 DYNAMIC_EXPORT int viennamesh_log_decrease_indentation();
 
+DYNAMIC_EXPORT int viennamesh_log_enable_capturing();
+DYNAMIC_EXPORT int viennamesh_log_disable_capturing();
 
 
 

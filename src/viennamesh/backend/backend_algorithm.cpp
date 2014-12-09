@@ -101,15 +101,16 @@ void viennamesh_algorithm_wrapper_t::link_input(std::string const & name, vienna
 viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string const & name)
 {
   InputMapType::const_iterator it = inputs.find(name);
+
+  viennamesh_data_wrapper result = 0;
+
   if (it == inputs.end())
   {
     if (default_source)
-      return default_source->get_output(name);
-    else
-      return 0;
+      result = default_source->get_output(name);
   }
-
-  viennamesh_data_wrapper result = it->second.unpack();
+  else
+    result = it->second.unpack();
 
   if (result)
   {
@@ -132,8 +133,19 @@ viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string co
   if ((input->type_name() == type_name) && (input->binary_format() == binary_format))
     return input;
 
+
+
+
+
   input->release();
-  return context()->convert_to(input, type_name, binary_format);
+
+  viennamesh::backend::info(1) << "Requested input \"" << name << "\" of type \"" << type_name << "\" and binary format \"" << binary_format << "\" but input is of type \"" << input->type_name() << "\" with binary format \"" << input->binary_format() << "\"" << std::endl;
+
+  viennamesh_data_wrapper result = context()->convert_to(input, type_name, binary_format);
+
+  viennamesh::backend::info(1) << "; conversion: " << ((result)?"success":"failed");
+
+  return result;
 }
 
 

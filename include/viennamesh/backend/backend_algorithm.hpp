@@ -47,6 +47,8 @@ public:
   {
     for (OutputMapType::iterator it = outputs.begin(); it != outputs.end(); ++it)
       it->second->release();
+
+    unset_default_source();
   }
 
   void init();

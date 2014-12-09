@@ -3,6 +3,7 @@
 
 #include "viennagrid/backend/api.h"
 #include "viennamesh/backend/backend_context.hpp"
+#include "viennamesh/basic_data.hpp"
 
 namespace viennamesh
 {
@@ -25,21 +26,58 @@ namespace viennamesh
     }
 
 
-    int make_string(viennamesh_data * data)
+
+    template<typename DataT, typename MakeFunctionT>
+    int make_viennamesh_data(viennamesh_data * data, MakeFunctionT make_function_)
     {
-      viennamesh_string * string = new viennamesh_string;
-      viennamesh_string_make(string);
-      *data = string;
+      DataT * internal_data = new DataT;
+      make_function_(internal_data);
+      *data = internal_data;
 
       return VIENNAMESH_SUCCESS;
     }
 
-    int delete_string(viennamesh_data data)
+    template<typename DataT, typename MakeFunctionT>
+    int delete_viennamesh_data(viennamesh_data data, MakeFunctionT free_function_)
     {
-      viennamesh_string * string = (viennamesh_string*)data;
-      viennamesh_string_free(*string);
+      DataT * internal_data = (DataT*)data;
+      free_function_(*internal_data);
+      delete internal_data;
 
       return VIENNAMESH_SUCCESS;
+    }
+
+
+    int make_string(viennamesh_data * data)
+    {
+      return make_viennamesh_data<viennamesh_string>(data, viennamesh_string_make);
+    }
+
+    int delete_string(viennamesh_data data)
+    {
+      return delete_viennamesh_data<viennamesh_string>(data, viennamesh_string_free);
+    }
+
+
+    int make_point_container(viennamesh_data * data)
+    {
+      return make_viennamesh_data<viennamesh_point_container>(data, viennamesh_point_container_make);
+    }
+
+    int delete_point_container(viennamesh_data data)
+    {
+      return delete_viennamesh_data<viennamesh_point_container>(data, viennamesh_point_container_free);
+    }
+
+
+    int make_seed_point_container(viennamesh_data * data)
+    {
+      return make_viennamesh_data<viennamesh_seed_point_container>(data, viennamesh_seed_point_container_make);
+    }
+
+    int delete_seed_point_container(viennamesh_data data)
+    {
+      return delete_viennamesh_data<viennamesh_seed_point_container>(data, viennamesh_seed_point_container_free);
     }
 
 
@@ -87,11 +125,40 @@ viennamesh_context_t::viennamesh_context_t() : use_count_(1)
   std::cout << "New context at " << this << std::endl;
 #endif
 
-  register_data_type("bool", "", viennamesh::backend::generic_make<bool>, viennamesh::backend::generic_delete<bool>);
-  register_data_type("int", "", viennamesh::backend::generic_make<int>, viennamesh::backend::generic_delete<int>);
-  register_data_type("double", "", viennamesh::backend::generic_make<double>, viennamesh::backend::generic_delete<double>);
-  register_data_type("viennamesh_string", "", viennamesh::backend::make_string, viennamesh::backend::delete_string);
-  register_data_type("viennagrid_mesh", "", viennamesh::backend::make_mesh, viennamesh::backend::delete_mesh);
+  register_data_type(viennamesh::result_of::data_information<bool>::type_name(),
+                     viennamesh::result_of::data_information<bool>::local_binary_format(),
+                     viennamesh::backend::generic_make<bool>,
+                     viennamesh::backend::generic_delete<bool>);
+
+  register_data_type(viennamesh::result_of::data_information<int>::type_name(),
+                     viennamesh::result_of::data_information<int>::local_binary_format(),
+                     viennamesh::backend::generic_make<int>,
+                     viennamesh::backend::generic_delete<int>);
+
+  register_data_type(viennamesh::result_of::data_information<double>::type_name(),
+                     viennamesh::result_of::data_information<double>::local_binary_format(),
+                     viennamesh::backend::generic_make<double>,
+                     viennamesh::backend::generic_delete<double>);
+
+  register_data_type(viennamesh::result_of::data_information<viennamesh_string>::type_name(),
+                     viennamesh::result_of::data_information<viennamesh_string>::local_binary_format(),
+                     viennamesh::backend::make_string,
+                     viennamesh::backend::delete_string);
+
+  register_data_type(viennamesh::result_of::data_information<viennamesh_point_container>::type_name(),
+                     viennamesh::result_of::data_information<viennamesh_point_container>::local_binary_format(),
+                     viennamesh::backend::make_point_container,
+                     viennamesh::backend::delete_point_container);
+
+  register_data_type(viennamesh::result_of::data_information<viennamesh_seed_point_container>::type_name(),
+                     viennamesh::result_of::data_information<viennamesh_seed_point_container>::local_binary_format(),
+                     viennamesh::backend::make_seed_point_container,
+                     viennamesh::backend::delete_seed_point_container);
+
+  register_data_type(viennamesh::result_of::data_information<viennagrid_mesh>::type_name(),
+                     viennamesh::result_of::data_information<viennagrid_mesh>::local_binary_format(),
+                     viennamesh::backend::make_mesh,
+                     viennamesh::backend::delete_mesh);
 
   register_conversion_function("int","","double","",viennamesh::backend::generic_convert<int, double>);
   register_conversion_function("double","","int","",viennamesh::backend::generic_convert<double, int>);

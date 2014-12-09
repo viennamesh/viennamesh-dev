@@ -104,6 +104,14 @@ namespace viennamesh
 
 
 
+    class StdCaptureHandle
+    {
+    public:
+      StdCaptureHandle() { viennamesh_log_enable_capturing(); }
+      ~StdCaptureHandle() { viennamesh_log_disable_capturing(); }
+    };
+
+
 
 }
 

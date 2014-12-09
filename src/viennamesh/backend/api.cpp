@@ -40,6 +40,110 @@ int viennamesh_string_get(viennamesh_string string, const char ** cstr)
 
 
 
+struct viennamesh_point_container_t
+{
+  std::vector<double> points;
+  int count;
+
+  int dimension() const { return points.size()/count; }
+};
+
+
+
+int viennamesh_point_container_make(viennamesh_point_container * point_container)
+{
+  *point_container = new viennamesh_point_container_t;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_point_container_free(viennamesh_point_container point_container)
+{
+  delete point_container;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_point_container_set(viennamesh_point_container point_container, double * points, int dimension, int count)
+{
+  point_container->points.resize( dimension * count );
+  std::copy(points, points + dimension*count, point_container->points.begin());
+  point_container->count = count;
+  return VIENNAMESH_SUCCESS;
+}
+
+
+int viennamesh_point_container_get(viennamesh_point_container point_container, double ** points, int * dimension, int * count)
+{
+  *points = &point_container->points[0];
+  *dimension = point_container->dimension();
+  *count = point_container->count;
+  return VIENNAMESH_SUCCESS;
+}
+
+
+
+
+struct viennamesh_seed_point_container_t
+{
+  std::vector<double> points;
+  std::vector<int> regions;
+  int count;
+
+  int dimension() const { return regions.size(); }
+};
+
+
+int viennamesh_seed_point_container_make(viennamesh_seed_point_container * seed_point_container)
+{
+  *seed_point_container = new viennamesh_seed_point_container_t;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_seed_point_container_free(viennamesh_seed_point_container seed_point_container)
+{
+  delete seed_point_container;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_seed_point_container_set(viennamesh_seed_point_container seed_point_container,
+                                                       double * points,
+                                                       int * regions,
+                                                       int dimension, int count)
+{
+  seed_point_container->points.resize( dimension * count );
+  seed_point_container->regions.resize( count );
+
+  std::copy(points, points + dimension*count, seed_point_container->points.begin());
+  std::copy(regions, regions + count, seed_point_container->regions.begin());
+
+  seed_point_container->count = count;
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_seed_point_container_get(viennamesh_seed_point_container seed_point_container,
+                                                       double ** points,
+                                                       int ** regions,
+                                                       int * dimension, int * count)
+{
+  *points = &seed_point_container->points[0];
+  *regions = &seed_point_container->regions[0];
+  *dimension = seed_point_container->dimension();
+  *count = seed_point_container->count;
+  return VIENNAMESH_SUCCESS;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int viennamesh_context_make(viennamesh_context * context)
 {
@@ -655,6 +759,20 @@ int viennamesh_log_decrease_indentation()
   viennamesh::backend::logger().decrease_indentation();
   return VIENNAMESH_SUCCESS;
 }
+
+int viennamesh_log_enable_capturing()
+{
+  viennamesh::backend::StdCapture::get().start();
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_disable_capturing()
+{
+  viennamesh::backend::StdCapture::get().finish();
+  return VIENNAMESH_SUCCESS;
+}
+
+
 
 
 

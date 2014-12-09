@@ -599,7 +599,7 @@ namespace viennamesh
 
     class StdCapture
     {
-    private:
+    public:
       static void * reader(void * data);
 
       friend class StdCaptureHandle;
