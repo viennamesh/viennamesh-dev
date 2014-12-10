@@ -25,7 +25,6 @@ int main()
   mesher.run();
 
 
-
   viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
   mesh_writer.set_default_source(mesher);
   mesh_writer.set_input( "filename", "bla.vtu" );

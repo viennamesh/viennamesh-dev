@@ -115,10 +115,42 @@ namespace viennamesh
     typedef input_mesh_t input_mesh;
     typedef output_mesh_t output_mesh;
 
+
+    template<typename TriangleMeshT>
+    struct base_cell_3d
+    {
+      TriangleMeshT plc;
+
+      std::vector<point_t> hole_points_2d;
+
+      std::vector<int> vertex_ids;
+      std::vector<int> segment_ids;
+    };
+
+    typedef base_cell_3d<input_mesh> input_cell_3d;
+    typedef base_cell_3d<output_mesh> output_cell_3d;
+
+    template<typename CellT>
+    class mesh_3d
+    {
+    public:
+      mesh_3d() : is_segmented(false) {}
+
+      std::vector<CellT> cells;
+      std::map<int, point_t> vertex_points_3d;
+
+      bool is_segmented;
+    };
+
+    typedef mesh_3d<input_cell_3d> input_mesh_3d;
+    typedef mesh_3d<output_cell_3d> output_mesh_3d;
   }
 
   int convert_to_triangle(viennamesh_data input_, viennamesh_data output_);
   int convert_from_triangle(viennamesh_data input_, viennamesh_data output_);
+
+  int convert_to_triangle_3d(viennamesh_data input_, viennamesh_data output_);
+  int convert_from_triangle_3d(viennamesh_data input_, viennamesh_data output_);
 
   namespace result_of
   {
@@ -133,6 +165,22 @@ namespace viennamesh
     struct data_information<triangle::output_mesh>
     {
       static std::string type_name() { return "triangle::output_mesh"; }
+      static std::string local_binary_format() { return viennamesh::local_binary_format(); }
+    };
+
+
+
+    template<>
+    struct data_information<triangle::input_mesh_3d>
+    {
+      static std::string type_name() { return "triangle::input_mesh_3d"; }
+      static std::string local_binary_format() { return viennamesh::local_binary_format(); }
+    };
+
+    template<>
+    struct data_information<triangle::output_mesh_3d>
+    {
+      static std::string type_name() { return "triangle::output_mesh_3d"; }
       static std::string local_binary_format() { return viennamesh::local_binary_format(); }
     };
   }

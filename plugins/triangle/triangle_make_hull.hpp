@@ -15,28 +15,19 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/core/algorithm.hpp"
-#include "viennamesh/algorithm/triangle/triangle_3d_mesh.hpp"
+#include "viennamesh_plugin.hpp"
 
 namespace viennamesh
 {
   namespace triangle
   {
-    class make_hull : public base_algorithm
+    class make_hull : public plugin_algorithm
     {
     public:
       make_hull();
 
-      std::string name() const;
-      std::string id() const;
-
-      bool run_impl();
-
-    private:
-      typedef triangle::input_mesh_3d InputMeshType;
-      required_input_parameter_interface<InputMeshType>             input_mesh;
-
-      output_parameter_interface output_mesh;
+      static std::string name();
+      bool run(viennamesh::algorithm_handle &);
     };
   }
 }

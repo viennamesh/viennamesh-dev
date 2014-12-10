@@ -20,7 +20,7 @@ int main()
   mesh_reader.run();
 
 
-  viennamesh::algorithm_handle mesher = context.make_algorithm("tetgen_make_mesh");
+  viennamesh::algorithm_handle mesher = context.make_algorithm("triangle_make_hull");
   mesher.set_default_source(mesh_reader);
   mesher.run();
 

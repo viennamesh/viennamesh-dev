@@ -14,7 +14,7 @@
 
 #include "triangle_mesh.hpp"
 #include "triangle_make_mesh.hpp"
-// #include "viennagrid/algorithm/extract_seed_points.hpp"
+#include "viennagrid/algorithm/extract_seed_points.hpp"
 // #include "viennamesh/core/sizing_function.hpp"
 
 namespace viennamesh
@@ -141,9 +141,9 @@ namespace viennamesh
 
 
 
-//     void extract_seed_points( triangle::input_segmentation const & segmentation,
-//                               point_2d_container const & hole_points,
-//                               seed_point_2d_container & seed_points )
+//     void extract_seed_points( triangle::input_mesh const & mesh,
+//                               std::vector<viennagrid::point_t> const & hole_points,
+//                               std::vector< std::pair<viennagrid::point_t, int> > & seed_points )
 //     {
 //       if (segmentation.segments.empty())
 //         return;

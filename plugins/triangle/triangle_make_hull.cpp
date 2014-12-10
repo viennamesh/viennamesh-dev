@@ -1,5 +1,3 @@
-#ifdef VIENNAMESH_WITH_TRIANGLE
-
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
@@ -14,40 +12,36 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/algorithm/triangle/triangle_3d_mesh.hpp"
-#include "viennamesh/algorithm/triangle/triangle_make_hull.hpp"
+#include "triangle_mesh.hpp"
+#include "triangle_make_hull.hpp"
 
 
 namespace viennamesh
 {
   namespace triangle
   {
-    make_hull::make_hull() :
-      input_mesh(*this, parameter_information("mesh","mesh","The input mesh, triangle input_mesh_3d supported")),
-      output_mesh(*this, parameter_information("mesh","mesh","The output mesh, triangle output_mesh_3d")) {}
+    make_hull::make_hull() {}
 
-    std::string make_hull::name() const { return "Triangle 1.6 hull mesher"; }
-    std::string make_hull::id() const { return "triangle_make_hull"; }
+    std::string make_hull::name() { return "triangle_make_hull"; }
 
-
-    bool make_hull::run_impl()
+    bool make_hull::run(viennamesh::algorithm_handle &)
     {
-      typedef triangle::output_mesh_3d OutputMeshType;
-      output_parameter_proxy<OutputMeshType> omp(output_mesh);
+      data_handle<triangle::input_mesh_3d> input_mesh = get_input<triangle::input_mesh_3d>("mesh");
+      data_handle<triangle::output_mesh_3d> output_mesh = make_data<triangle::output_mesh_3d>();
 
       std::ostringstream options;
       options << "zpQ";
 
-      omp().cells.resize( input_mesh().cells.size() );
-      omp().vertex_points_3d = input_mesh().vertex_points_3d;
-      omp().is_segmented = input_mesh().is_segmented;
+      output_mesh().cells.resize( input_mesh().cells.size() );
+      output_mesh().vertex_points_3d = input_mesh().vertex_points_3d;
+      output_mesh().is_segmented = input_mesh().is_segmented;
 
       for (unsigned int i = 0; i < input_mesh().cells.size(); ++i)
       {
         triangulateio tmp = input_mesh().cells[i].plc.triangle_mesh;
         REAL * tmp_holelist = NULL;
 
-        std::vector<point_2d> const & hole_points_2d = input_mesh().cells[i].hole_points_2d;
+        std::vector<point_t> const & hole_points_2d = input_mesh().cells[i].hole_points_2d;
 
         if (!hole_points_2d.empty())
         {
@@ -69,16 +63,18 @@ namespace viennamesh
 
         {
           StdCaptureHandle capture_handle;
-          triangulate( buffer, &tmp, &omp().cells[i].plc.triangle_mesh, NULL);
+          triangulate( buffer, &tmp, &output_mesh().cells[i].plc.triangle_mesh, NULL);
         }
 
-        omp().cells[i].vertex_ids = input_mesh().cells[i].vertex_ids;
-        omp().cells[i].segment_ids = input_mesh().cells[i].segment_ids;
+        output_mesh().cells[i].vertex_ids = input_mesh().cells[i].vertex_ids;
+        output_mesh().cells[i].segment_ids = input_mesh().cells[i].segment_ids;
 
         delete[] buffer;
         if (!hole_points_2d.empty())
           free(tmp_holelist);
       }
+
+      set_output("mesh", output_mesh);
 
       return true;
     }
@@ -88,5 +84,3 @@ namespace viennamesh
   }
 }
 
-
-#endif

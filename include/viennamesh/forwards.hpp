@@ -2,6 +2,7 @@
 #define _VIENNAMESH_FORWARDS_HPP_
 
 #include "viennamesh/backend/api.h"
+#include "viennagrid/point.hpp"
 #include <string>
 
 namespace viennamesh
@@ -15,7 +16,7 @@ namespace viennamesh
 
   class algorithm_handle;
 
-
+  using viennagrid::point_t;
 
 
   namespace result_of
