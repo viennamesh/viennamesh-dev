@@ -269,50 +269,45 @@ namespace viennamesh
 
 
 
-
-
-
   mesh_writer::mesh_writer() {}
-
   std::string mesh_writer::name() { return "mesh_writer"; }
 
-
   template<typename WriterProxyT>
-  bool mesh_writer::write_all( std::string const & filename_ )
+  bool mesh_writer::write_all( mesh_handle input_mesh, std::string const & filename_ )
   {
     std::string filename = filename_.substr(0, filename_.rfind("."));
 
-    MeshHandleType mesh_handle = get_input_mesh("mesh");
-    if (mesh_handle)
-    {
-//       MeshType mesh( mesh_handle() );
-      WriterProxyT()(mesh_handle(), filename, *this);
-      return true;
-    }
-    else
-      return false;
+    WriterProxyT()(input_mesh(), filename, *this);
+    return true;
   }
 
-  bool mesh_writer::write_mphtxt( std::string const & filename )
+  bool mesh_writer::write_mphtxt( mesh_handle input_mesh, std::string const & filename )
   {
-    MeshHandleType mesh_handle = get_input_mesh("mesh");
-    if (mesh_handle)
-    {
-      if ( viennagrid::geometric_dimension(mesh_handle()) != 3 || viennagrid::cell_dimension(mesh_handle()) != 3)
-        return false;
-
-      mphtxt_writer_proxy()(mesh_handle(), filename, *this);
-      return true;
-    }
-    else
+    if ( viennagrid::geometric_dimension(input_mesh()) != 3 || viennagrid::cell_dimension(input_mesh()) != 3)
       return false;
+
+    mphtxt_writer_proxy()(input_mesh(), filename, *this);
+    return true;
   }
 
 
   bool mesh_writer::run(viennamesh::algorithm_handle &)
   {
-    data_handle<viennamesh_string> filename = get_input<viennamesh_string>("filename");
-    data_handle<viennamesh_string> filetype = get_input<viennamesh_string>("filetype");
+    string_handle filename = get_required_input<string_handle>("filename");
+    string_handle filetype = get_required_input<string_handle>("filetype");
+    mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
+
+    if (!filename)
+    {
+      error(1) << "Input parameter \"filename\" not found" << std::endl;
+      return false;
+    }
+
+    if (!input_mesh)
+    {
+      error(1) << "Input parameter \"mesh\" not found" << std::endl;
+      return false;
+    }
 
     info(1) << "Writing mesh to file \"" << filename() << "\"" << std::endl;
 
@@ -339,11 +334,11 @@ namespace viennamesh
       switch (ft)
       {
         case VTK:
-          return write_all<vtk_writer_proxy>( filename() );
+          return write_all<vtk_writer_proxy>( input_mesh, filename() );
 //         case VMESH:
 //           return write_all<vmesh_writer_proxy>( mesh, filename(), geometric_dimension, cell_type, is_segmented );
         case COMSOL_MPHTXT:
-          return write_mphtxt( filename() );
+          return write_mphtxt( input_mesh, filename() );
         default:
           return false;
       }

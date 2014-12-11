@@ -1,6 +1,7 @@
 #ifndef _VIENNAMESH_BASIC_DATA_HPP_
 #define _VIENNAMESH_BASIC_DATA_HPP_
 
+#include "viennamesh/forwards.hpp"
 #include <string>
 
 typedef struct viennamesh_string_t * viennamesh_string;
@@ -11,6 +12,20 @@ typedef struct viennagrid_mesh_ * viennagrid_mesh;
 
 namespace viennamesh
 {
+  typedef std::vector<point_t> PointContainerType;
+  typedef std::vector< std::pair<point_t, int> > SeedPointContainerType;
+
+  void convert( PointContainerType const & points, viennamesh_point_container internal_points );
+  void convert( viennamesh_point_container internal_points, PointContainerType & points );
+
+  void convert( point_t const & point, viennamesh_point_container internal_points );
+  void convert( viennamesh_point_container internal_points, point_t & point );
+
+  void convert( SeedPointContainerType const & seed_points, viennamesh_seed_point_container internal_seed_points );
+  void convert( viennamesh_seed_point_container internal_seed_points, SeedPointContainerType & seed_points );
+
+
+
   namespace result_of
   {
     template<typename T>

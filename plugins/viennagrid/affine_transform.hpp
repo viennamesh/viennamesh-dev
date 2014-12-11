@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_TETGEN_MAKE_MESH_HPP
-#define VIENNAMESH_ALGORITHM_TETGEN_MAKE_MESH_HPP
+#ifndef VIENNAMESH_ALGORITHM_AFFINE_TRANSFORM_HPP
+#define VIENNAMESH_ALGORITHM_AFFINE_TRANSFORM_HPP
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
@@ -19,20 +19,14 @@
 
 namespace viennamesh
 {
-  namespace tetgen
+  class affine_transform : public plugin_algorithm
   {
-    class make_mesh : public plugin_algorithm
-    {
-    public:
-      make_mesh();
+  public:
+    affine_transform();
 
-      static std::string name();
-      bool run(viennamesh::algorithm_handle &);
-    };
-  }
-
+    static std::string name();
+    bool run(viennamesh::algorithm_handle &);
+  };
 }
-
-
 
 #endif

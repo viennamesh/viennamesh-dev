@@ -6,13 +6,30 @@
 
 namespace viennamesh
 {
+  namespace result_of
+  {
+    template<typename ValueT>
+    struct unpack_data
+    {
+      typedef ValueT type;
+    };
+
+    template<typename ValueT>
+    struct unpack_data< viennamesh::data_handle<ValueT> >
+    {
+      typedef ValueT type;
+    };
+  }
+
+
   class plugin_algorithm
   {
   public:
 
-    typedef data_handle<viennagrid_mesh> MeshHandleType;
-    typedef data_handle<viennamesh_point_container> PointContainerHandleType;
-    typedef data_handle<viennamesh_seed_point_container> SeedPointContainerHandleType;
+    typedef data_handle<viennagrid_mesh> mesh_handle;
+    typedef data_handle<viennamesh_string> string_handle;
+    typedef data_handle<viennamesh_point_container> point_container_handle;
+    typedef data_handle<viennamesh_seed_point_container> seed_point_container_handle;
 
 
     bool init(viennamesh::algorithm_handle algorithm_in)
@@ -21,36 +38,30 @@ namespace viennamesh
       return true;
     }
 
-    template<typename DataT>
-    data_handle<DataT> make_data()
-    { return algorithm().context().make_data<DataT>(); }
-
-    MeshHandleType make_mesh()
-    { return algorithm().context().make_data<viennagrid_mesh>(); }
-
-    PointContainerHandleType make_point_container()
-    { return algorithm().context().make_data<viennamesh_point_container>(); }
-
-    SeedPointContainerHandleType make_seed_point_container()
-    { return algorithm().context().make_data<viennamesh_seed_point_container>(); }
+    template<typename SomethingT>
+    typename result_of::data_handle<SomethingT>::type make_data()
+    { return algorithm().context().make_data<typename result_of::unpack_data<SomethingT>::type>(); }
 
 
     abstract_data_handle get_input(std::string const & name)
     { return algorithm().get_input(name); }
 
-    template<typename DataT>
-    data_handle<DataT> get_input(std::string const & name)
-    { return algorithm().get_input<DataT>(name); }
+    template<typename SomethingT>
+    typename result_of::data_handle<SomethingT>::type get_input(std::string const & name)
+    { return algorithm().get_input<typename result_of::unpack_data<SomethingT>::type>(name); }
 
-    MeshHandleType get_input_mesh(std::string const & name)
-    { return algorithm().get_input<viennagrid_mesh>(name); }
+    template<typename SomethingT>
+    typename result_of::data_handle<SomethingT>::type get_required_input(std::string const & name)
+    {
+      typename result_of::data_handle<SomethingT>::type result = algorithm().get_input<typename result_of::unpack_data<SomethingT>::type>(name);
 
-    PointContainerHandleType get_input_point_container(std::string const & name)
-    { return algorithm().get_input<viennamesh_point_container>(name); }
+      if (!result)
+      {
+        // TODO throw
+      }
 
-    SeedPointContainerHandleType get_input_seed_point_container(std::string const & name)
-    { return algorithm().get_input<viennamesh_seed_point_container>(name); }
-
+      return result;
+    }
 
 
     void set_output(std::string const & name, abstract_data_handle data)

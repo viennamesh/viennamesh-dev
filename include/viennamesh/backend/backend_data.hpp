@@ -100,7 +100,7 @@ namespace viennamesh
 
     void convert(viennamesh_data_wrapper from, viennamesh_data_wrapper to) const
     {
-      std::cout << "FROM: \"" << from->type_name() << "\"/\"" << from->binary_format() << "\" TO: \"" << to->type_name() << "\"/\"" << to->binary_format() << "\"" << std::endl;
+//       std::cout << "FROM: \"" << from->type_name() << "\"/\"" << from->binary_format() << "\" TO: \"" << to->type_name() << "\"/\"" << to->binary_format() << "\"" << std::endl;
 
       DataTypeBinaryFormatConvertFunctionMap::const_iterator it = convert_functions.find( to->type_name() );
       if (it == convert_functions.end())

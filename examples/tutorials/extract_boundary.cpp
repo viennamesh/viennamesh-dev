@@ -25,9 +25,14 @@ int main()
   mesher.run();
 
 
+  viennamesh::algorithm_handle extract_boundary = context.make_algorithm("extract_boundary");
+  extract_boundary.set_default_source(mesher);
+  extract_boundary.run();
+
+
   viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
-  mesh_writer.set_default_source(mesher);
-  mesh_writer.set_input( "filename", "tetgen.vtu" );
+  mesh_writer.set_default_source(extract_boundary);
+  mesh_writer.set_input( "filename", "boundary.vtu" );
   mesh_writer.run();
 
   return -1;

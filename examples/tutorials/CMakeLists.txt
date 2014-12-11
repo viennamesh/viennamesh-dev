@@ -12,3 +12,6 @@ target_link_libraries(triangle_hull_mesher viennamesh)
 
 add_executable(tetgen_mesher tetgen_mesher.cpp)
 target_link_libraries(tetgen_mesher viennamesh)
+
+add_executable(extract_boundary extract_boundary.cpp)
+target_link_libraries(extract_boundary viennamesh)

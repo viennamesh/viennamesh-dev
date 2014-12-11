@@ -112,8 +112,8 @@ namespace viennamesh
 
     void make_mesh_impl(tetgen::input_mesh const & input,
                         tetgen::output_mesh & output,
-                        std::vector<viennagrid::point_t> const & hole_points,
-                        std::vector< std::pair<viennagrid::point_t, int> > const & seed_points,
+                        PointContainerType const & hole_points,
+                        SeedPointContainerType const & seed_points,
                         tetgenbehavior options)
     {
       tetgenio & tmp = (tetgenio&)(input);
@@ -269,8 +269,8 @@ namespace viennamesh
 
 
       data_handle<tetgen::input_mesh> input_mesh = get_input<tetgen::input_mesh>("mesh");
-      PointContainerHandleType input_hole_points = get_input_point_container("hole_points");
-      SeedPointContainerHandleType input_seed_points = get_input_seed_point_container("seed_points");
+      point_container_handle input_hole_points = get_input<point_container_handle>("hole_points");
+      seed_point_container_handle input_seed_points = get_input<seed_point_container_handle>("seed_points");
 
       data_handle<tetgen::output_mesh> output_mesh = make_data<tetgen::output_mesh>();
 
@@ -337,20 +337,11 @@ namespace viennamesh
 
       tetgenio const & im = (tetgenio&)(input_mesh());
 
-      std::vector<viennagrid::point_t> hole_points;
+      PointContainerType hole_points;
       // exttract hole points from input interface
       if (input_hole_points.valid())
       {
-        int hole_point_dimension = 0;
-        int hole_point_count = 0;
-        double * hole_point_data = 0;
-        if (input_hole_points)
-          viennamesh_point_container_get(input_hole_points(), &hole_point_data,
-                                         &hole_point_dimension, &hole_point_count);
-
-        for (int i = 0; i != hole_point_count; ++i)
-          hole_points.push_back( viennagrid::make_point(hole_point_data[3*i+0], hole_point_data[3*i+1], hole_point_data[3*i+2]) );
-
+        convert(input_hole_points(), hole_points);
         info(5) << "Found hole " << hole_points.size() << " points" << std::endl;
       }
       // hole points from mesh
@@ -358,27 +349,11 @@ namespace viennamesh
         hole_points.push_back( viennagrid::make_point(im.holelist[3*i+0], im.holelist[3*i+1], im.holelist[3*i+2]) );
 
 
-      std::vector< std::pair<viennagrid::point_t, int> > seed_points;
+      SeedPointContainerType seed_points;
       // seed points from input interface
       if (input_seed_points.valid())
       {
-        int seed_point_dimension = 0;
-        int seed_point_count = 0;
-        double * seed_point_data = 0;
-        int * seed_point_regions = 0;
-        if (input_seed_points)
-          viennamesh_seed_point_container_get(input_seed_points(), &seed_point_data, &seed_point_regions, &seed_point_dimension, &seed_point_count);
-
-        for (int i = 0; i != seed_point_count; ++i)
-        {
-          seed_points.push_back(
-            std::make_pair(
-              viennagrid::make_point(seed_point_data[3*i+0], seed_point_data[3*i+1], seed_point_data[3*i+2]),
-              seed_point_regions[i]
-            )
-          );
-        }
-
+        convert(input_seed_points(), seed_points);
         info(5) << "Found seed " << seed_points.size() << " points" << std::endl;
       }
       // seed points from mesh

@@ -34,9 +34,9 @@ namespace viennamesh
   private:
 
     template<typename WriterProxyT>
-    bool write_all( std::string const & filename );
+    bool write_all( mesh_handle input_mesh, std::string const & filename );
 
-    bool write_mphtxt( std::string const & filename );
+    bool write_mphtxt( mesh_handle input_mesh, std::string const & filename );
   };
 
 }

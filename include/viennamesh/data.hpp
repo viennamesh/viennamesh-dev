@@ -62,7 +62,11 @@ namespace viennamesh
     viennamesh_data_wrapper data;
   };
 
+  inline bool operator==(abstract_data_handle const & lhs, abstract_data_handle const & rhs)
+  { return lhs.internal() == rhs.internal(); }
 
+  inline bool operator!=(abstract_data_handle const & lhs, abstract_data_handle const & rhs)
+  { return !(lhs==rhs); }
 
 
 
@@ -89,10 +93,8 @@ namespace viennamesh
 
     data_handle & operator=(data_handle<DataT> const & handle_)
     {
-      release();
-      data = handle_.data;
+      static_cast<abstract_data_handle &>(*this) = static_cast<abstract_data_handle const &>(handle_);
       internal_data = handle_.internal_data;
-      retain();
       return *this;
     }
 
@@ -169,10 +171,8 @@ namespace viennamesh
 
     data_handle & operator=(data_handle<viennagrid_mesh> const & handle_)
     {
-      release();
-      data = handle_.data;
+      static_cast<abstract_data_handle &>(*this) = static_cast<abstract_data_handle const &>(handle_);
       internal_data = handle_.internal_data;
-      retain();
       return *this;
     }
 
@@ -306,7 +306,23 @@ namespace viennamesh
   }
 
 
+  namespace result_of
+  {
 
+    template<typename DataT>
+    struct data_handle
+    {
+      typedef viennamesh::data_handle<DataT> type;
+    };
+
+    template<typename DataT>
+    struct data_handle< viennamesh::data_handle<DataT> >
+    {
+      typedef viennamesh::data_handle<DataT> type;
+    };
+
+
+  }
 
 
 }

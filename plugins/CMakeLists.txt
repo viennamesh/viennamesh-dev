@@ -4,16 +4,16 @@ set(VIENNAMESH_PLUGIN_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/viennamesh_plugin.cpp)
 
 FUNCTION(VIENNAMESH_ADD_PLUGIN PLUGIN_NAME)
 
-#   list(GET ARGV 0 PLUGIN_NAME)
-#   message(STATUS "ADDED PLUGIN: ${PLUGIN_NAME}")
-#   list(REMOVE_AT ARGV 0)
-#   set(PLUGIN_SOURCES ${ARGV} ${VIENNAMESH_PLUGIN_SOURCES})
-#   message(STATUS "  SOURCES: ${PLUGIN_SOURCES}")
-#
-#   include_directories(${VIENNAMESH_PLUGIN_INCLUDES})
-#
-#   add_library(${PLUGIN_NAME} MODULE ${PLUGIN_SOURCES})
-#   set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "")
+  list(GET ARGV 0 PLUGIN_NAME)
+  message(STATUS "ADDED PLUGIN: ${PLUGIN_NAME}")
+  list(REMOVE_AT ARGV 0)
+  set(PLUGIN_SOURCES ${ARGV} ${VIENNAMESH_PLUGIN_SOURCES})
+  message(STATUS "  SOURCES: ${PLUGIN_SOURCES}")
+
+  include_directories(${VIENNAMESH_PLUGIN_INCLUDES})
+
+  add_library(${PLUGIN_NAME} MODULE ${PLUGIN_SOURCES})
+  set_target_properties(${PLUGIN_NAME} PROPERTIES PREFIX "")
 
   add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/../${PLUGIN_NAME}.so)
   add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND ln -s ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/..)
@@ -26,3 +26,4 @@ include_directories(${VIENNAMESH_PLUGIN_INCLUDES})
 add_subdirectory(io)
 add_subdirectory(triangle)
 add_subdirectory(tetgen)
+add_subdirectory(viennagrid)

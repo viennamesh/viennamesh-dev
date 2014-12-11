@@ -88,7 +88,7 @@ struct viennamesh_seed_point_container_t
   std::vector<int> regions;
   int count;
 
-  int dimension() const { return regions.size(); }
+  int dimension() const { return points.size()/count; }
 };
 
 

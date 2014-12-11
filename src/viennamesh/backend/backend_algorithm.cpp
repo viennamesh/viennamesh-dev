@@ -139,11 +139,11 @@ viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string co
 
   input->release();
 
-  viennamesh::backend::info(1) << "Requested input \"" << name << "\" of type \"" << type_name << "\" and binary format \"" << binary_format << "\" but input is of type \"" << input->type_name() << "\" with binary format \"" << input->binary_format() << "\"" << std::endl;
+  viennamesh::backend::info(1) << "Requested input \"" << name << "\" of type \"" << type_name << "\"/\"" << binary_format << "\" but input is of type \"" << input->type_name() << "\"/\"" << input->binary_format() << "\"";
 
   viennamesh_data_wrapper result = context()->convert_to(input, type_name, binary_format);
 
-  viennamesh::backend::info(1) << "; conversion: " << ((result)?"success":"failed");
+  viennamesh::backend::info(1) << "; conversion: " << ((result)?"success":"failed") << std::endl;
 
   return result;
 }
