@@ -28,7 +28,7 @@ namespace viennamesh
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    int point_dimension = viennagrid::geometric_dimension( input_mesh() );
+    int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
 
     int matrix_vector_dimension = 0;
     int matrix_vector_count = 0;
@@ -41,13 +41,13 @@ namespace viennamesh
     viennamesh_point_container_get(input_translate(), &translate_data, &translate_dimension, &translate_count);
 
 
-    if ( point_dimension != matrix_vector_dimension )
+    if ( geometric_dimension != matrix_vector_dimension )
       return false;
 
-    if ( point_dimension >= matrix_vector_count || point_dimension <= 0 )
+    if ( geometric_dimension >= matrix_vector_count || geometric_dimension <= 0 )
       return false;
 
-    if ( point_dimension != translate_dimension )
+    if ( geometric_dimension != translate_dimension )
       return false;
 
 
