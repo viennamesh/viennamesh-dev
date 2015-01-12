@@ -15,3 +15,9 @@ target_link_libraries(tetgen_mesher viennamesh)
 
 add_executable(extract_boundary extract_boundary.cpp)
 target_link_libraries(extract_boundary viennamesh)
+
+add_executable(symmetry_2d symmetry_2d.cpp)
+target_link_libraries(symmetry_2d viennamesh)
+
+add_executable(symmetry_3d symmetry_3d.cpp)
+target_link_libraries(symmetry_3d viennamesh)
