@@ -58,7 +58,7 @@ namespace viennamesh
           tmp.holelist = tmp_holelist;
         }
 
-        char * buffer = new char[options.str().length()];
+        char * buffer = new char[options.str().length()+1];
         std::strcpy(buffer, options.str().c_str());
 
         {
