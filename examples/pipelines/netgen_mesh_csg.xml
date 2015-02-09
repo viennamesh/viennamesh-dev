@@ -1,0 +1,13 @@
+<algorithm id="netgen_csg_make_mesh" name="mesher">
+  <parameter type="string" name="csg">
+    algebraic3d
+    solid cube = orthobrick (0, 0, 0; 1, 10, 1);
+    tlo cube;
+  </parameter>
+</algorithm>
+
+<algorithm id="mesh_writer" name="output">
+  <default_source>mesher</default_source>
+  <parameter name="filename" type="string">blub.vtu</parameter>
+</algorithm>
+

@@ -11,7 +11,7 @@
 int main()
 {
   viennamesh::context_handle context;
-  context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
+//   context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
 
 
   viennamesh::algorithm_handle mesh_reader = context.make_algorithm("mesh_reader");

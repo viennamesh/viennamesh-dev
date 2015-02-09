@@ -37,8 +37,10 @@ namespace viennamesh
       typedef viennagrid::result_of::iterator<ConstLineOnCellRange>::type ConstLineOnCellIterator;
 
       tetgenio::facet & facet = output->facetlist[index];
+      facet.holelist = 0;
 
-      tetgen::set_hole_points( facet, viennagrid::hole_points(*cit) );
+      if ( (*cit).tag().is_plc() )
+        tetgen::set_hole_points( facet, viennagrid::hole_points(*cit) );
 
       ConstLineOnCellRange lines(*cit);
       facet.numberofpolygons = lines.size();

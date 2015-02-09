@@ -42,7 +42,11 @@ namespace viennamesh
     bool operator()(ElementT const & element) const
     {
       PointT centroid = viennagrid::centroid(element);
-      return on_positive_hyperplane_side(hyperplane_point, hyperplane_normal, centroid, numeric_config);
+      bool tmp = on_positive_hyperplane_side(hyperplane_point, hyperplane_normal, centroid, numeric_config);
+
+//       std::cout << "On positive side: " << std::boolalpha << tmp << std::endl;
+
+      return tmp;
     }
 
     PointT hyperplane_point;
@@ -72,6 +76,9 @@ namespace viennamesh
 
     if ( (point_dimension != hyperplane_point.size()) || (point_dimension != hyperplane_normal.size()) )
       return false;
+
+    info(1) << "Hyperplane point: " << hyperplane_point << std::endl;
+    info(1) << "Hyperplane normal: " << hyperplane_normal << std::endl;
 
     mesh_handle tmp = make_data<mesh_handle>();
     mesh_handle output_mesh = make_data<mesh_handle>();

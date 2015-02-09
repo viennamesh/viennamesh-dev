@@ -200,6 +200,11 @@ DYNAMIC_EXPORT int viennamesh_algorithm_make(viennamesh_context context,
 DYNAMIC_EXPORT int viennamesh_algorithm_retain(viennamesh_algorithm_wrapper algorithm);
 DYNAMIC_EXPORT int viennamesh_algorithm_release(viennamesh_algorithm_wrapper algorithm);
 
+DYNAMIC_EXPORT int viennamesh_algorithm_set_base_path(viennamesh_algorithm_wrapper algorithm,
+                                                      const char * path);
+DYNAMIC_EXPORT int viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper algorithm,
+                                                      const char ** path);
+
 DYNAMIC_EXPORT int viennamesh_algorithm_get_name(viennamesh_algorithm_wrapper algorithm,
                                                  const char ** algorithm_name);
 DYNAMIC_EXPORT int viennamesh_algorithm_get_context(viennamesh_algorithm_wrapper algorithm,

@@ -19,7 +19,7 @@
 #include "viennagrid/io/tetgen_poly_reader.hpp"
 // #include "viennagrid/io/bnd_reader.hpp"
 // #include "viennagrid/io/neper_tess_reader.hpp"
-// #include "viennagrid/io/stl_reader.hpp"
+#include "viennagrid/io/stl_reader.hpp"
 
 // #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
 // #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
@@ -125,6 +125,9 @@ namespace viennamesh
 
     info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 
+    mesh_handle output_mesh = make_data<mesh_handle>();
+    bool success = false;
+
     switch (filetype)
     {
 //     case SYNOPSIS_BND:
@@ -142,27 +145,22 @@ namespace viennamesh
     case NETGEN_MESH:
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
-        mesh_handle output_mesh = make_data<mesh_handle>();
 
         viennagrid::io::netgen_reader reader;
         reader(output_mesh(), filename);
-        set_output("mesh", output_mesh);
 
-        return true;
+        success = true;
+        break;
       }
     case TETGEN_POLY:
       {
         info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
-
-        mesh_handle output_mesh = make_data<mesh_handle>();
 
         PointContainerType tmp_hole_points;
         SeedPointContainerType tmp_seed_points;
 
         viennagrid::io::tetgen_poly_reader reader;
         reader(output_mesh(), filename, tmp_hole_points, tmp_seed_points);
-
-        set_output("mesh", output_mesh);
 
         viennagrid_int point_dim = viennagrid::geometric_dimension(output_mesh());
 
@@ -180,8 +178,8 @@ namespace viennamesh
           set_output("seed_points", seed_points);
         }
 
-
-        return true;
+        success = true;
+        break;
       }
 
 
@@ -210,25 +208,28 @@ namespace viennamesh
 //         return true;
 //       }
 
-//     case STL:
-//     case STL_ASCII:
-//     case STL_BINARY:
-//       {
-//         info(5) << "Found .stl extension, using ViennaGrid STL Reader" << std::endl;
-//         typedef viennagrid::triangular_3d_mesh MeshType;
-//
-//         output_parameter_proxy<MeshType> omp(output_mesh);
-//
-//         viennagrid::io::stl_reader reader;
-//         if (filetype == STL)
-//           reader(omp(), filename);
-//         else if (filetype == STL_ASCII)
-//           reader.read_ascii(omp(), filename);
-//         else if (filetype == STL_BINARY)
-//           reader.read_binary(omp(), filename);
-//
-//         return true;
-//       }
+    case STL:
+    case STL_ASCII:
+    case STL_BINARY:
+      {
+        info(5) << "Found .stl extension, using ViennaGrid STL Reader" << std::endl;
+
+        data_handle<double> vertex_tolerance = get_input<double>("vertex_tolerance");
+
+        viennagrid::io::stl_reader<> reader;
+        if (vertex_tolerance)
+          reader = viennagrid::io::stl_reader<>( vertex_tolerance() );
+
+        if (filetype == STL)
+          reader(output_mesh(), filename);
+        else if (filetype == STL_ASCII)
+          reader.read_ascii(output_mesh(), filename);
+        else if (filetype == STL_BINARY)
+          reader.read_binary(output_mesh(), filename);
+
+        success = true;
+        break;
+      }
 
 //     case SILVACO_STR:
 //       {
@@ -315,13 +316,11 @@ namespace viennamesh
       {
         info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
 
-        mesh_handle output_mesh = make_data<mesh_handle>();
-
         viennagrid::io::vtk_reader<viennagrid::mesh_t> reader;
         reader(output_mesh(), filename);
-        set_output("mesh", output_mesh);
 
-        return true;
+        success = true;
+        break;
       }
     default:
       {
@@ -330,7 +329,15 @@ namespace viennamesh
       }
     }
 
-    return false;
+    if (success)
+    {
+      info(1) << "Successfully read a mesh with " << viennagrid::vertices(output_mesh()).size() << " vertices and " <<
+        viennagrid::cells(output_mesh()).size() << " cells" << std::endl;
+
+      set_output("mesh", output_mesh);
+    }
+
+    return success;
   }
 
 

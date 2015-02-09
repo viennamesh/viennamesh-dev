@@ -1,5 +1,5 @@
 #include "viennamesh/context.hpp"
-#include "viennamesh/algorithm.hpp"
+#include "viennamesh/core.hpp"
 
 namespace viennamesh
 {
@@ -17,9 +17,12 @@ namespace viennamesh
     viennamesh_context_load_plugin( internal(), plugin_filename.c_str(), &plugin);
   }
 
-  void context_handle::load_plugins_in_directory(std::string const & directory_name)
+  void context_handle::load_plugins_in_directories(std::string const & directory_name, std::string const & delimiter)
   {
-    viennamesh_context_load_plugins_in_directory( internal(), directory_name.c_str());
+    std::list<std::string> directories = stringtools::split_string(directory_name, delimiter);
+
+    for (std::list<std::string>::const_iterator dit = directories.begin(); dit != directories.end(); ++dit)
+      viennamesh_context_load_plugins_in_directory( internal(), (*dit).c_str());
   }
 
 }

@@ -41,6 +41,11 @@ namespace viennamesh
       return *this;
     }
 
+    bool valid() const
+    {
+      return algorithm != NULL;
+    }
+
 
     void set_default_source(algorithm_handle const & source_algorithm)
     {
@@ -150,9 +155,10 @@ namespace viennamesh
       viennamesh_algorithm_init(algorithm);
     }
 
-    void run()
+    bool run()
     {
       viennamesh_algorithm_run(algorithm);
+      return true;
     }
 
     context_handle context();
@@ -164,6 +170,21 @@ namespace viennamesh
       viennamesh_algorithm_get_name(internal(), &name_);
       return name_;
     }
+
+
+    std::string base_path() const
+    {
+      const char * base_path_;
+      viennamesh_algorithm_get_base_path(algorithm, &base_path_);
+      return std::string(base_path_);
+    }
+
+    void set_base_path(std::string const & base_path_)
+    {
+      viennamesh_algorithm_set_base_path(algorithm, base_path_.c_str());
+    }
+
+
 
   private:
 

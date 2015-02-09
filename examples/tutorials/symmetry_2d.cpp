@@ -11,7 +11,7 @@
 int main()
 {
   viennamesh::context_handle context;
-  context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
+//   context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
 
 
   typedef viennagrid::mesh_t MeshType;

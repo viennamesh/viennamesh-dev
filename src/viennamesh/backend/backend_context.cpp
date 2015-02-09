@@ -339,7 +339,7 @@ void viennamesh_context_t::load_plugins_in_directory(std::string directory_name)
   }
   else
   {
-    viennamesh::backend::error(1) << "Failed to open directory \"" << directory_name << "\"" << std::endl;
+    viennamesh::backend::warning(1) << "Loading plugins in directory \"" << directory_name << "\" failed" << std::endl;
   }
 }
 

@@ -102,8 +102,14 @@ public:
   }
 
 
+  std::string const & base_path() const { return base_path_; }
+  void set_base_path(std::string const & base_path_in) { base_path_ = base_path_in; }
+
+
 private:
   viennamesh_algorithm_wrapper default_source;
+
+  std::string base_path_;
 
   viennamesh::algorithm_template algorithm_template_;
   viennamesh_algorithm internal_algorithm_;

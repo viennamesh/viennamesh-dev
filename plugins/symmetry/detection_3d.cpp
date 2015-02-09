@@ -756,15 +756,15 @@ namespace viennamesh
     MeshType quad_mesh;
 
     PointType points[8];
-    points[0] = viennagrid::make_point( -1, -1, -2 );
-    points[1] = viennagrid::make_point( -1,  1, -2 );
-    points[2] = viennagrid::make_point(  1, -1, -2 );
-    points[3] = viennagrid::make_point(  1,  1, -2 );
+    points[0] = viennagrid::make_point( -1, -1, -1 );
+    points[1] = viennagrid::make_point( -1,  1, -1 );
+    points[2] = viennagrid::make_point(  1, -1, -1 );
+    points[3] = viennagrid::make_point(  1,  1, -1 );
 
-    points[4] = viennagrid::make_point( -1, -1,  2 );
-    points[5] = viennagrid::make_point( -1,  1,  2 );
-    points[6] = viennagrid::make_point(  1, -1,  2 );
-    points[7] = viennagrid::make_point(  1,  1,  2 );
+    points[4] = viennagrid::make_point( -1, -1,  1 );
+    points[5] = viennagrid::make_point( -1,  1,  1 );
+    points[6] = viennagrid::make_point(  1, -1,  1 );
+    points[7] = viennagrid::make_point(  1,  1,  1 );
 
     typedef viennagrid::result_of::element<MeshType>::type VertexType;
 
@@ -791,8 +791,8 @@ namespace viennamesh
     std::ofstream file("matrix.mat");
 
 
-    int theta_count = 32;
-    int phi_count = 32;
+    int theta_count = 128;
+    int phi_count = 128;
 
     int two_p = 4;
 

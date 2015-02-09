@@ -297,6 +297,9 @@ namespace viennamesh
     string_handle filetype = get_required_input<string_handle>("filetype");
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
+    info(1) << "Number of vertices of mesh to write " << viennagrid::vertices(input_mesh()).size() << std::endl;
+    info(1) << "Number of cells of mesh to write " << viennagrid::cells(input_mesh()).size() << std::endl;
+
     if (!filename)
     {
       error(1) << "Input parameter \"filename\" not found" << std::endl;

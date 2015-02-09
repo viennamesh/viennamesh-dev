@@ -18,6 +18,10 @@ FUNCTION(VIENNAMESH_ADD_PLUGIN PLUGIN_NAME)
   add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND rm -f ${CMAKE_CURRENT_BINARY_DIR}/../${PLUGIN_NAME}.so)
   add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND ln -s ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so ${CMAKE_CURRENT_BINARY_DIR}/..)
 
+  install(TARGETS ${PLUGIN_NAME}
+   DESTINATION ${INSTALL_PLUGIN_DIR}
+   COMPONENT lib)
+
 ENDFUNCTION(VIENNAMESH_ADD_PLUGIN)
 
 
@@ -28,3 +32,4 @@ add_subdirectory(triangle)
 add_subdirectory(tetgen)
 add_subdirectory(viennagrid)
 add_subdirectory(symmetry)
+add_subdirectory(mesh_healing)

@@ -8,7 +8,6 @@
 
 namespace viennamesh
 {
-
   class abstract_data_handle
   {
     friend class context_handle;
@@ -320,8 +319,24 @@ namespace viennamesh
     {
       typedef viennamesh::data_handle<DataT> type;
     };
+    
+    template<typename DataT>
+    struct is_data_handle
+    {
+      static const bool value = false;
+    };
 
+    template<>
+    struct is_data_handle<abstract_data_handle>
+    {
+      static const bool value = true;
+    };
 
+    template<typename DataT>
+    struct is_data_handle< data_handle<DataT> >
+    {
+      static const bool value = true;
+    };
   }
 
 

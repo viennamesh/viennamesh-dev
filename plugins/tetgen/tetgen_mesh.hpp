@@ -35,12 +35,6 @@ namespace viennamesh
     class output_mesh : public tetgenio
     {};
 
-    class input_segmentation
-    {
-    public:
-      std::list<input_mesh> segments;
-    };
-
     template<typename PointContainerT>
     void set_hole_points( tetgenio::facet & facet, PointContainerT const & hole_points )
     {

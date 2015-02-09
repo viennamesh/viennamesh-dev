@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "viennamesh/forwards.hpp"
-// #include "viennamesh/algorithm.hpp"
 
 namespace viennamesh
 {
@@ -12,7 +11,11 @@ namespace viennamesh
   {
   public:
 
-    context_handle() : ctx(0) { make(); }
+    context_handle() : ctx(0)
+    {
+      make();
+      load_plugins_in_directories(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY, ";");
+    }
     context_handle(viennamesh_context ctx_) : ctx(ctx_) { retain(); }
     context_handle(context_handle const & handle_) : ctx(handle_.ctx) { retain(); }
 
@@ -94,7 +97,7 @@ namespace viennamesh
 
     algorithm_handle make_algorithm(std::string const & algorithm_name);
     void load_plugin(std::string const & plugin_filename);
-    void load_plugins_in_directory(std::string const & directory_name);
+    void load_plugins_in_directories(std::string const & directory_name, std::string const & delimiter);
 
     viennamesh_context internal() const { return const_cast<viennamesh_context>(ctx); }
 

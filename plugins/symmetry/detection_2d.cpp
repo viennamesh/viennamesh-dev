@@ -449,13 +449,16 @@ template<typename NumericConfigT>
   template<typename LineIteratorT, typename NumericConfigT>
   void detect_symmetries_lines(LineIteratorT lines_begin, LineIteratorT lines_end,
                                NumericConfigT nc,
+                               point_t & centroid,
                                std::vector<double> & mirror_axis, std::vector<int> & rotational_frequencies)
   {
     typedef double NumericType;
     typedef point_t PointType;
 
+    mirror_axis.clear();
+    rotational_frequencies.clear();
 
-    std::set<point_t> points;
+    std::set<PointType> points;
 
     PointType centroid_lines = viennagrid::make_point(0,0);
     int line_count = 0;
@@ -473,13 +476,17 @@ template<typename NumericConfigT>
     centroid_lines /= line_centroid_weight_sum;
 
 
-    PointType centroid = viennagrid::make_point(0,0);
-    for (std::set<point_t>::const_iterator it = points.begin(); it != points.end(); ++it)
+    centroid = viennagrid::make_point(0,0);
+    for (std::set<PointType>::const_iterator it = points.begin(); it != points.end(); ++it)
       centroid += *it;
     centroid /= static_cast<NumericType>(points.size());
 
-
-
+//     if ( !viennagrid::detail::is_equal(nc, centroid, centroid_lines) )
+//     {
+//
+//
+// //       return;
+//     }
 
 
     std::vector< std::vector<line_triple> > line_triples;
@@ -579,13 +586,13 @@ template<typename NumericConfigT>
     }
 
 
-    std::cout << "Global mirror axis: " << std::endl;
-    for (std::size_t i = 0; i != mirror_axis.size(); ++i)
-      std::cout << "  " << mirror_axis[i] << std::endl;
-
-    std::cout << "Global rotational frequencies: " << std::endl;
-    for (std::size_t i = 0; i != rotational_frequencies.size(); ++i)
-      std::cout << "  " << rotational_frequencies[i] << std::endl;
+//     std::cout << "Global mirror axis: " << std::endl;
+//     for (std::size_t i = 0; i != mirror_axis.size(); ++i)
+//       std::cout << "  " << mirror_axis[i] << std::endl;
+//
+//     std::cout << "Global rotational frequencies: " << std::endl;
+//     for (std::size_t i = 0; i != rotational_frequencies.size(); ++i)
+//       std::cout << "  " << rotational_frequencies[i] << std::endl;
 
   }
 
@@ -605,28 +612,40 @@ template<typename NumericConfigT>
     if (geometric_dimension != 2)
       return false;
 
+
+//     std::vector<PointType> points;
+//
+//     typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRange;
+//     typedef viennagrid::result_of::iterator<ConstVertexRange>::type ConstVertexIterator;
+//     ConstVertexRange vertices( input_mesh() );
+//     for (ConstVertexIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
+//       points.push_back( viennagrid::get_point(*vit) );
+//
+//     std::vector<double> mirror_axis_points;
+//     std::vector<int> rotational_frequencies_points;
+//     detect_symmetries_points( points.begin(), points.end(), 1e-6, mirror_axis_points, rotational_frequencies_points );
+
     typedef viennagrid::mesh_t MeshType;
     typedef point_t PointType;
-    std::vector<PointType> points;
-
-    typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRange;
-    typedef viennagrid::result_of::iterator<ConstVertexRange>::type ConstVertexIterator;
-
-    ConstVertexRange vertices( input_mesh() );
-    for (ConstVertexIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
-      points.push_back( viennagrid::get_point(*vit) );
+    typedef viennagrid::result_of::const_element_range<MeshType, 1>::type ConstLineRange;
+    ConstLineRange lines( input_mesh() );
 
     std::vector<double> mirror_axis;
     std::vector<int> rotational_frequencies;
+    PointType centroid;
+    detect_symmetries_lines( lines.begin(), lines.end(), 1e-6, centroid, mirror_axis, rotational_frequencies );
 
-    detect_symmetries_points( points.begin(), points.end(), 1e-6, mirror_axis, rotational_frequencies );
+    info(1) << " Found global mirror axis: " << std::endl;
+    for (std::size_t i = 0; i != mirror_axis.size(); ++i)
+      info(1) << "  " << mirror_axis[i] << std::endl;
 
+    info(1) << "Found global rotational frequencies: " << std::endl;
+    for (std::size_t i = 0; i != rotational_frequencies.size(); ++i)
+      info(1) << "  " << rotational_frequencies[i] << std::endl;
 
-    typedef viennagrid::result_of::const_element_range<MeshType, 1>::type ConstLineRange;
-
-    ConstLineRange lines( input_mesh() );
-    detect_symmetries_lines( lines.begin(), lines.end(), 1e-6, mirror_axis, rotational_frequencies );
-
+    set_output( "centroid", centroid );
+    set_output_vector( "mirror_axis", mirror_axis );
+    set_output_vector( "rotational_frequencies", rotational_frequencies );
 
     return true;
   }

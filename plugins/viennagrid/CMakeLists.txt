@@ -1,1 +1,1 @@
-VIENNAMESH_ADD_PLUGIN(viennamesh-module-viennagrid plugin.cpp affine_transform.cpp extract_boundary.cpp extract_plc_geometry.cpp hyperplane_clip.cpp laplace_smooth.cpp map_segments.cpp merge_meshes.cpp)
+VIENNAMESH_ADD_PLUGIN(viennamesh-module-viennagrid plugin.cpp affine_transform.cpp extract_boundary.cpp extract_plc_geometry.cpp hyperplane_clip.cpp laplace_smooth.cpp map_regions.cpp merge_meshes.cpp hull_set_regions.cpp split_mesh.cpp make_boundary_box.cpp)

@@ -12,7 +12,7 @@ int main()
 {
   viennamesh::context_handle context;
 
-  context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
+//   context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
 
   viennamesh::data_handle<int> my_int = context.make_data<int>();
   viennamesh::data_handle<double> my_double = context.make_data<double>();

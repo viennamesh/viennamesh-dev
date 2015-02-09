@@ -42,18 +42,90 @@ namespace viennamesh
     typename result_of::data_handle<SomethingT>::type make_data()
     { return algorithm().context().make_data<typename result_of::unpack_data<SomethingT>::type>(); }
 
+    template<typename SomethingT>
+    typename result_of::data_handle<SomethingT>::type make_data(SomethingT const & data)
+    {
+      typename result_of::data_handle<SomethingT>::type handle = make_data<SomethingT>();
+      handle() = data;
+      return handle;
+    }
+
+
+
+    std::size_t input_count(std::string const & name)
+    {
+      if ( get_input(name) )
+        return 1;
+
+      std::size_t count = 0;
+      abstract_data_handle tmp = get_input(name + "[" + lexical_cast<std::string>(count++) + "]");
+      while (tmp)
+        tmp = get_input(name + "[" + lexical_cast<std::string>(count++) + "]");
+
+      return count-1;
+    }
+
+    template<typename DataT>
+    std::size_t input_count(std::string const & name)
+    {
+      if ( get_input<typename result_of::unpack_data<DataT>::type>(name) )
+        return 1;
+
+      std::size_t count = 0;
+      abstract_data_handle tmp = get_input<typename result_of::unpack_data<DataT>::type>(name + "[" + lexical_cast<std::string>(count++) + "]");
+      while (tmp)
+        tmp = get_input<typename result_of::unpack_data<DataT>::type>(name + "[" + lexical_cast<std::string>(count++) + "]");
+
+      return count-1;
+    }
+
 
     abstract_data_handle get_input(std::string const & name)
     { return algorithm().get_input(name); }
 
-    template<typename SomethingT>
-    typename result_of::data_handle<SomethingT>::type get_input(std::string const & name)
-    { return algorithm().get_input<typename result_of::unpack_data<SomethingT>::type>(name); }
+    abstract_data_handle get_input(std::string const & name, std::size_t pos)
+    { return get_input(name + "[" + lexical_cast<std::string>(pos) + "]"); }
 
-    template<typename SomethingT>
-    typename result_of::data_handle<SomethingT>::type get_required_input(std::string const & name)
+    template<typename DataT>
+    typename result_of::data_handle<DataT>::type get_input(std::string const & name)
+    { return algorithm().get_input<typename result_of::unpack_data<DataT>::type>(name); }
+
+    template<typename DataT>
+    typename result_of::data_handle<DataT>::type get_input(std::string const & name, std::size_t pos)
+    { return get_input<typename result_of::unpack_data<DataT>::type>(name + "[" + lexical_cast<std::string>(pos) + "]"); }
+
+    template<typename DataT>
+    std::vector<DataT> get_input_vector(std::string const & name)
     {
-      typename result_of::data_handle<SomethingT>::type result = algorithm().get_input<typename result_of::unpack_data<SomethingT>::type>(name);
+      std::vector<DataT> tmp( input_count<DataT>(name) );
+      if (tmp.empty())
+        return tmp;
+
+      if (tmp.size() == 1)
+      {
+        if (get_input<DataT>(name))
+        {
+          tmp[0] = get_input<DataT>(name)();
+          return tmp;
+        }
+        if (get_input<DataT>(name, 0))
+        {
+          tmp[0] = get_input<DataT>(name, 0)();
+          return tmp;
+        }
+      }
+
+      for (typename std::vector<DataT>::size_type pos = 0; pos != tmp.size(); ++pos)
+        tmp[pos] = get_input<DataT>(name, pos)();
+
+      return tmp;
+    }
+
+
+    template<typename DataT>
+    typename result_of::data_handle<DataT>::type get_required_input(std::string const & name)
+    {
+      typename result_of::data_handle<DataT>::type result = algorithm().get_input<typename result_of::unpack_data<DataT>::type>(name);
 
       if (!result)
       {
@@ -64,8 +136,45 @@ namespace viennamesh
     }
 
 
+
     void set_output(std::string const & name, abstract_data_handle data)
     { algorithm().set_output(name, data); }
+    void set_output(std::string const & name, std::size_t pos, abstract_data_handle data)
+    { algorithm().set_output(name + "[" + lexical_cast<std::string>(pos) + "]", data); }
+
+    template<typename DataT>
+    void set_output(std::string const & name, data_handle<DataT> data)
+    { set_output(name, static_cast<abstract_data_handle>(data) ); }
+    template<typename DataT>
+    void set_output(std::string const & name, std::size_t pos, data_handle<DataT> data)
+    { set_output(name, pos, static_cast<abstract_data_handle>(data) ); }
+
+    template<typename DataT>
+    void set_output(std::string const & name, DataT data)
+    { set_output( name, make_data<DataT>(data) ); }
+    template<typename DataT>
+    void set_output(std::string const & name, std::size_t pos, DataT data)
+    { set_output( name, pos, make_data<DataT>(data) ); }
+
+    void set_output(std::string const & name, point_t const & point)
+    {
+      data_handle<viennamesh_point_container> tmp = make_data<viennamesh_point_container>();
+      convert(point, tmp());
+      set_output(name, tmp);
+    }
+    void set_output(std::string const & name, std::size_t pos, point_t const & point)
+    {
+      data_handle<viennamesh_point_container> tmp = make_data<viennamesh_point_container>();
+      convert(point, tmp());
+      set_output(name, pos, tmp);
+    }
+
+    template<typename DataT>
+    void set_output_vector(std::string const & name, std::vector<DataT> const & data_vector)
+    {
+      for (typename std::vector<DataT>::size_type i = 0; i != data_vector.size(); ++i)
+        set_output( name, i, make_data<DataT>(data_vector[i]) );
+    }
 
   private:
 

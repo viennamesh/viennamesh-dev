@@ -529,6 +529,22 @@ int viennamesh_algorithm_release(viennamesh_algorithm_wrapper algorithm)
   return VIENNAMESH_SUCCESS;
 }
 
+
+int viennamesh_algorithm_set_base_path(viennamesh_algorithm_wrapper algorithm,
+                                       const char * path)
+{
+  algorithm->set_base_path(path);
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper algorithm,
+                                       const char ** path)
+{
+  *path = algorithm->base_path().c_str();
+  return VIENNAMESH_SUCCESS;
+}
+
+
 int viennamesh_algorithm_get_name(viennamesh_algorithm_wrapper algorithm,
                                   const char ** algorithm_name)
 {
