@@ -79,12 +79,18 @@ namespace viennamesh
     std::vector<double> values;
   };
 
+  struct element_t
+  {
+    viennagrid_element_tag element_tag;
+    std::vector<int> vertex_indices;
+  };
+
   struct region_t
   {
     int regnr;
     string name,material;
     int nelements,npointidx;
-    std::vector<std::vector<int> > elements;
+    std::vector<element_t> elements;
     std::map<string,dataset_t> dataset;
   };
 
@@ -96,11 +102,11 @@ namespace viennamesh
   };
 
 
-  template<typename VertexHandleT>
+  template<typename VertexT>
   struct region_contacts
   {
-    string segment_name;
-    std::vector< std::vector<VertexHandleT> > vertex_handles;
+    string region_name;
+    std::vector<element_t> elements;
   };
 
   struct tdr_geometry
@@ -181,20 +187,33 @@ namespace viennamesh
       unsigned int elct=0;
       while (elct<dims[0])
       {
-        region.elements.push_back(std::vector<int>());
+        element_t element;
         switch (el[elct++])
         {
-          case 1: for (int i=0; i<2; i++)
-              region.elements.back().push_back(el[elct++]);
+          case 1:
+            element.element_tag = VIENNAGRID_ELEMENT_TAG_LINE;
+            for (int i=0; i<2; i++)
+              element.vertex_indices.push_back(el[elct++]);
             break;
-          case 2: for (int i=0; i<3; i++)
-              region.elements.back().push_back(el[elct++]);
+          case 2:
+            element.element_tag = VIENNAGRID_ELEMENT_TAG_TRIANGLE;
+            for (int i=0; i<3; i++)
+              element.vertex_indices.push_back(el[elct++]);
             break;
-          case 5: for (int i=0; i<4; i++)
-              region.elements.back().push_back(el[elct++]);
+          case 3:
+            element.element_tag = VIENNAGRID_ELEMENT_TAG_QUADRILATERAL;
+            for (int i=0; i<4; i++)
+              element.vertex_indices.push_back(el[elct++]);
+            break;
+          case 5:
+            element.element_tag = VIENNAGRID_ELEMENT_TAG_TETRAHEDRON;
+            for (int i=0; i<4; i++)
+              element.vertex_indices.push_back(el[elct++]);
             break;
           default:mythrow("Element type " << el[elct-1] << " in region " << region.name << " not known");
         }
+
+        region.elements.push_back(element);
       }
 
       delete[] el;
@@ -430,98 +449,96 @@ namespace viennamesh
       return viennagrid::cross_prod( p1-p0, p2-p0 );
     }
 
-    template<typename MeshT, typename SegmentationT>
-    bool to_viennagrid(MeshT & mesh, SegmentationT & segmentation, bool extrude_contacts = true)
+    template<typename MeshT>
+    bool to_viennagrid(MeshT const & mesh, bool extrude_contacts = true)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-      typedef typename viennagrid::result_of::vertex<MeshT>::type VertexType;
-      typedef typename viennagrid::result_of::vertex_handle<MeshT>::type VertexHandleType;
-      typedef typename viennagrid::result_of::cell_tag<MeshT>::type CellTag;
+      typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
 
-      const int mesh_vertices_per_element = viennagrid::boundary_elements<CellTag, viennagrid::vertex_tag>::num;
-      const int mesh_dimension = viennagrid::result_of::geometric_dimension<MeshT>::value;
-
-      if (mesh_dimension != dim)
-        return false;
-
-      std::vector<VertexHandleType> vertex_handles( nvertices );
+      std::vector<VertexType> vertices( nvertices );
 
       for (unsigned int i=0; i<nvertices; i++)
       {
-        PointType point;
+        PointType point(dim);
         for (int j = 0; j < dim; ++j)
           point[j] = vertex[dim*i+j];
 
-        vertex_handles[i] = viennagrid::make_vertex(mesh, point);
+        vertices[i] = viennagrid::make_vertex(mesh, point);
       }
 
-      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
 
-      typedef typename viennagrid::result_of::vertex_id<MeshT>::type VertexIDType;
+      viennagrid_element_tag cell_tag = VIENNAGRID_ELEMENT_TAG_VERTEX;
+      for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
+      {
+        std::vector<element_t> &elements=S->second.elements;
+        for (std::vector<element_t>::iterator E=elements.begin(); E!=elements.end(); E++)
+        {
+          element_t const & e = *E;
+          cell_tag = viennagrid_topological_max( cell_tag, e.element_tag );
+        }
+      }
 
 
-
-      std::map<string, region_contacts<VertexHandleType> > contact_elements;
-
+      std::map<string, region_contacts<VertexType> > contact_elements;
 
       for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
       {
-        string segment_name = S->second.name;
+        string region_name = S->second.name;
 
-        std::vector<std::vector<int> > &elements=S->second.elements;
-        for (std::vector<std::vector<int> >::iterator E=elements.begin(); E!=elements.end(); E++)
+        std::vector<element_t> &elements=S->second.elements;
+        for (std::vector<element_t>::iterator E=elements.begin(); E!=elements.end(); E++)
         {
-          const std::vector<int> &e=*E;
+          element_t const & e = *E;
 
-          std::vector<VertexHandleType> handles(e.size());
-          for (std::size_t i = 0; i < e.size(); ++i)
-            handles[i] = vertex_handles[e[i]];
+          std::vector<VertexType> cell_vertices(e.vertex_indices.size());
+          for (std::size_t i = 0; i < e.vertex_indices.size(); ++i)
+            cell_vertices[i] = vertices[e.vertex_indices[i]];
 
-          if (e.size() == mesh_vertices_per_element)
-            viennagrid::make_cell( segmentation(segment_name), handles.begin(), handles.end() );
+          if (e.element_tag == cell_tag)
+          {
+            viennagrid::make_element( mesh.get_make_region(region_name),
+                                      viennagrid::element_tag_t::from_internal(e.element_tag),
+                                      cell_vertices.begin(), cell_vertices.end() );
+          }
           else
           {
-            contact_elements[segment_name].segment_name = segment_name + "_contact";
-            contact_elements[segment_name].vertex_handles.push_back(handles);
+            contact_elements[region_name].region_name = region_name + "_contact";
+            contact_elements[region_name].elements.push_back(e);
           }
         }
       }
 
       if (extrude_contacts)
       {
-        for (typename std::map<string, region_contacts<VertexHandleType> >::iterator rc = contact_elements.begin(); rc != contact_elements.end(); ++rc)
+        for (typename std::map<string, region_contacts<VertexType> >::iterator rc = contact_elements.begin(); rc != contact_elements.end(); ++rc)
         {
-          for (std::size_t i = 0; i < rc->second.vertex_handles.size(); ++i)
+          for (std::size_t i = 0; i < rc->second.elements.size(); ++i)
           {
-            std::vector<VertexHandleType> handles = rc->second.vertex_handles[i];
+            element_t const & element = rc->second.elements[i];
+//             std::vector<VertexType> handles = rc->second.vertex_handles[i];
 
             PointType center;
             PointType normal;
             double size = 0;
 
-            if (handles.size() == 2)
+            viennagrid_element_tag contact_tag;
+            if (element.element_tag == VIENNAGRID_ELEMENT_TAG_LINE)
             {
-              VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
-              VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
-
-              PointType const & p0 = viennagrid::point(v0);
-              PointType const & p1 = viennagrid::point(v1);
+              PointType p0 = viennagrid::get_point( vertices[element.vertex_indices[0]] );
+              PointType p1 = viennagrid::get_point( vertices[element.vertex_indices[1]] );
 
               center = (p0+p1)/2;
               normal = normal_vector(p0, p1);
 
               size = std::max(size, viennagrid::distance(center, p0));
               size = std::max(size, viennagrid::distance(center, p1));
+              contact_tag = VIENNAGRID_ELEMENT_TAG_TRIANGLE;
             }
-            else if (handles.size() == 3)
+            else if (element.element_tag == VIENNAGRID_ELEMENT_TAG_TRIANGLE)
             {
-              VertexType const & v0 = viennagrid::dereference_handle(mesh, handles[0]);
-              VertexType const & v1 = viennagrid::dereference_handle(mesh, handles[1]);
-              VertexType const & v2 = viennagrid::dereference_handle(mesh, handles[2]);
-
-              PointType const & p0 = viennagrid::point(v0);
-              PointType const & p1 = viennagrid::point(v1);
-              PointType const & p2 = viennagrid::point(v2);
+              PointType p0 = viennagrid::get_point( vertices[element.vertex_indices[0]] );
+              PointType p1 = viennagrid::get_point( vertices[element.vertex_indices[1]] );
+              PointType p2 = viennagrid::get_point( vertices[element.vertex_indices[2]] );
 
               center = (p0+p1+p2)/3;
               normal = normal_vector(p0, p1, p2);
@@ -529,6 +546,7 @@ namespace viennamesh
               size = std::max(size, viennagrid::distance(center, p0));
               size = std::max(size, viennagrid::distance(center, p1));
               size = std::max(size, viennagrid::distance(center, p2));
+              contact_tag = VIENNAGRID_ELEMENT_TAG_TETRAHEDRON;
             }
             else
             {
@@ -554,10 +572,14 @@ namespace viennamesh
             if (cit != cells.end())
               other_vertex = center - normal;
 
-            typedef typename viennagrid::result_of::cell_handle<MeshT>::type CellHandleType;
+            std::vector<VertexType> cell_vertices;
+            for (auto index : element.vertex_indices)
+              cell_vertices.push_back( vertices[index] );
+            cell_vertices.push_back( viennagrid::make_vertex(mesh, other_vertex) );
 
-            handles.push_back( viennagrid::make_vertex(mesh, other_vertex) );
-            viennagrid::make_cell( segmentation( rc->second.segment_name ), handles.begin(), handles.end() );
+            viennagrid::make_element( mesh.get_make_region(rc->second.region_name),
+                                      viennagrid::element_tag_t::from_internal(contact_tag),
+                                      cell_vertices.begin(), cell_vertices.end() );
           }
         }
       }
@@ -567,46 +589,46 @@ namespace viennamesh
     }
 
 
-    template<typename MeshT, typename SegmentationT, typename SegmentedMeshQuantitiesType>
-    void to_mesh_quantities( MeshT const & mesh, SegmentationT const & segmentation,
-                             SegmentedMeshQuantitiesType & quantites )
-    {
-      typedef typename viennagrid::result_of::vertex<MeshT>::type VertexType;
-      typedef typename viennagrid::result_of::cell<MeshT>::type CellType;
-      typedef typename viennagrid::result_of::segment_handle<SegmentationT>::type SegmentHandleType;
-
-      for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-      {
-        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-        {
-          if (D->second.nvalues!=D->second.values.size())
-            mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
-
-          string segment_name = R->second.name;
-          string quantity_name = D->second.name;
-
-          SegmentHandleType const & segment = segmentation(segment_name);
-
-          typedef typename viennagrid::result_of::field<
-              typename SegmentedMeshQuantitiesType::VertexValueContainerType,
-              VertexType,
-              viennagrid::base_id_unpack>::type FieldType;
-
-          FieldType field = quantites.template get_vertex_field<MeshT>( segment.id(), quantity_name );
-
-          typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
-          typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
-
-          ConstVertexRangeType vertices( segment );
-
-          std::map<typename VertexType::id_type, double> tmp;
-
-          int i = 0;
-          for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
-            field(*vit) = D->second.values[i];
-        }
-      }
-    }
+//     template<typename MeshT, typename SegmentedMeshQuantitiesType>
+//     void to_mesh_quantities( MeshT const & mesh,
+//                              SegmentedMeshQuantitiesType & quantites )
+//     {
+//       typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
+//       typedef typename viennagrid::result_of::element<MeshT>::type CellType;
+//       typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
+//
+//       for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
+//       {
+//         for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
+//         {
+//           if (D->second.nvalues!=D->second.values.size())
+//             mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
+//
+//           string region_name = R->second.name;
+//           string quantity_name = D->second.name;
+//
+//           RegionType segment = mesh.get_region(region_name);
+//
+//           typedef typename viennagrid::result_of::field<
+//               typename SegmentedMeshQuantitiesType::VertexValueContainerType,
+//               VertexType,
+//               viennagrid::base_id_unpack>::type FieldType;
+//
+//           FieldType field = quantites.template get_vertex_field<MeshT>( segment.id(), quantity_name );
+//
+//           typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
+//           typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
+//
+//           ConstVertexRangeType vertices( segment );
+//
+//           std::map<typename VertexType::id_type, double> tmp;
+//
+//           int i = 0;
+//           for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
+//             field(*vit) = D->second.values[i];
+//         }
+//       }
+//     }
 
     void correct_vertices()
     {
@@ -616,8 +638,8 @@ namespace viennamesh
       {
         for (unsigned int j=0; j<R->second.elements.size(); j++)
         {
-          for (unsigned int i=0; i<R->second.elements[j].size(); i++)
-            hakerl[R->second.elements[j][i]];
+          for (unsigned int i=0; i<R->second.elements[j].vertex_indices.size(); i++)
+            hakerl[R->second.elements[j].vertex_indices[i]];
         }
       }
       int ct=0;
@@ -638,10 +660,10 @@ namespace viennamesh
       {
         for (unsigned int j=0; j<R->second.elements.size(); j++)
         {
-          for (unsigned int i=0; i<R->second.elements[j].size(); i++)
+          for (unsigned int i=0; i<R->second.elements[j].vertex_indices.size(); i++)
           {
-            int idx=hakerl[R->second.elements[j][i]];
-            R->second.elements[j][i]=idx;
+            int idx=hakerl[R->second.elements[j].vertex_indices[i]];
+            R->second.elements[j].vertex_indices[i]=idx;
           }
         }
       }

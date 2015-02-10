@@ -257,61 +257,6 @@ namespace viennamesh
 //         return true;
 //       }
 
-// #ifdef VIENNAMESH_WITH_TDR
-//     case SENTAURUS_TDR:
-//       {
-//         info(5) << "Found .tdr extension, using Sentaurus TDR Reader" << std::endl;
-//
-//         shared_ptr<H5File> file( new H5File(filename.c_str(), H5F_ACC_RDWR) );
-//
-//         if (file->getNumObjs()!=1)
-//         {
-//           error(1) << "File has not only collection" << std::endl;
-//           return false;
-//         }
-//
-//         tdr_geometry geometry;
-//         geometry.read_collection(file->openGroup("collection"));
-//
-//         geometry.correct_vertices();
-//
-//         if (geometry.dim == 2)
-//         {
-//           typedef viennagrid::triangular_2d_mesh MeshType;
-//           typedef viennagrid::triangular_2d_segmentation SegmentationType;
-//           typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
-//
-//           output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
-//           geometry.to_viennagrid( omp().mesh, omp().segmentation );
-//
-//           typedef viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
-//           output_parameter_proxy<SegmentedMeshQuantitiesType> oqp(output_quantities);
-//           geometry.to_mesh_quantities( omp().mesh, omp().segmentation, oqp() );
-//
-//           return true;
-//         }
-//         else if (geometry.dim == 3)
-//         {
-//           typedef viennagrid::tetrahedral_3d_mesh MeshType;
-//           typedef viennagrid::tetrahedral_3d_segmentation SegmentationType;
-//           typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
-//
-//           output_parameter_proxy<SegmentedMeshType> omp(output_mesh);
-//           geometry.to_viennagrid( omp().mesh, omp().segmentation );
-//
-//           typedef viennamesh::result_of::segmented_mesh_quantities<MeshType, SegmentationType>::type SegmentedMeshQuantitiesType;
-//           output_parameter_proxy<SegmentedMeshQuantitiesType> oqp(output_quantities);
-//           geometry.to_mesh_quantities( omp().mesh, omp().segmentation, oqp() );
-//
-//           return true;
-//         }
-//
-//         error(1) << "Dimension not supported" << std::endl;
-//
-//         return false;
-//       }
-// #endif
-
     case VTK:
       {
         info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
@@ -347,7 +292,6 @@ namespace viennamesh
   {
     string_handle filename = get_required_input<string_handle>("filename");
     string_handle filetype = get_required_input<string_handle>("filetype");
-    string_handle base_path = get_required_input<string_handle>("base_path");
 
     FileType ft;
     if (filetype)
@@ -356,9 +300,7 @@ namespace viennamesh
       ft = from_filename( filename() );
     info(1) << "Using file type " << to_string(ft) << std::endl;
 
-    std::string path;
-    if (base_path)
-      path = base_path();
+    std::string path = base_path();
 
     if (!path.empty())
     {

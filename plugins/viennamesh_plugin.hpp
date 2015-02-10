@@ -176,6 +176,11 @@ namespace viennamesh
         set_output( name, i, make_data<DataT>(data_vector[i]) );
     }
 
+    std::string base_path()
+    {
+      return algorithm().base_path();
+    }
+
   private:
 
     algorithm_handle algorithm() { return algorithm_handle(algorithm_wrapper); }

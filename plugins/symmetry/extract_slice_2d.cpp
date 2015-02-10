@@ -37,6 +37,8 @@ namespace viennamesh
     if (geometric_dimension != 2)
       return false;
 
+    double tol = 1e-6;
+
     typedef viennagrid::mesh_t MeshType;
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
@@ -62,10 +64,18 @@ namespace viennamesh
     for (auto vertex : viennagrid::vertices(input_mesh()))
       max_distance = std::max(max_distance, viennagrid::distance(vertex, centroid));
 
+
+    mesh_handle output_mesh = make_data<mesh_handle>();
+    viennagrid::result_of::element_copy_map<>::type copy_map( output_mesh(), tol );
+
+
+
     if (rotational_frequencies.empty() && !mirror_axis.empty())
     {
       info(1) << "Only using mirror symmetry, no rotational symmetry" << std::endl;
       double used_axis = mirror_axis.front();
+      set_output( "mirror_axis", used_axis );
+      set_output( "centroid", centroid );
 
       PointType vector = viennagrid::make_point( std::cos(used_axis), std::sin(used_axis) );
       PointType normal = vector;
@@ -76,22 +86,7 @@ namespace viennamesh
       PointType mirror_axis_end = centroid + vector*max_distance*1.2;
 
       info(1) << "Using mirror axis: " << mirror_axis_start << " - " << mirror_axis_end << std::endl;
-      mesh_handle output_mesh = make_data<mesh_handle>();
-      viennagrid::result_of::element_copy_map<>::type copy_map( output_mesh() );
-
-//       std::vector<ElementType> vertices_on_mirror_axis;
       std::map<double, ElementType> vertices_on_mirror_axis;
-
-//       for (auto vertex : viennagrid::vertices(input_mesh()))
-//       {
-//         std::pair<PointType, PointType> cp = viennagrid::detail::closest_points_point_line(
-//           viennagrid::get_point(vertex),
-//           mirror_axis_start, mirror_axis_end
-//         );
-//
-//         if ( viennagrid::detail::is_equal(1e-8, cp.first, cp.second) )
-//           vertices_on_mirror_axis.push_back( copy_map(vertex) );
-//       }
 
       for (auto line : viennagrid::elements(input_mesh(),1))
       {
@@ -100,24 +95,24 @@ namespace viennamesh
           mirror_axis_start, mirror_axis_end
         );
 
-        if ( viennagrid::detail::is_equal(1e-8, cp.first, cp.second) )
+        if ( viennagrid::detail::is_equal(tol, cp.first, cp.second) )
         {
 
-          if (viennagrid::detail::is_equal(1e-8, viennagrid::get_point(line,0), cp.first) ||
-              viennagrid::detail::is_equal(1e-8, viennagrid::get_point(line,1), cp.first))
+          if (viennagrid::detail::is_equal(tol, viennagrid::get_point(line,0), cp.first) ||
+              viennagrid::detail::is_equal(tol, viennagrid::get_point(line,1), cp.first))
           {
             // one point of the line is on the mirror axis
             if (viennagrid::inner_prod(viennagrid::centroid(line)-centroid, normal) > 0)
               copy_map(line);
 
-            if (viennagrid::detail::is_equal(1e-8, viennagrid::get_point(line,0), cp.first))
+            if (viennagrid::detail::is_equal(tol, viennagrid::get_point(line,0), cp.first))
               vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(line)[0]);
             else
               vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(line)[1]);
           }
           else
           {
-            ElementType new_vertex = viennagrid::make_unique_vertex( output_mesh(), cp.first, 1e-6 );
+            ElementType new_vertex = viennagrid::make_unique_vertex( output_mesh(), cp.first, tol );
             vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = new_vertex;
 
             if (viennagrid::inner_prod(viennagrid::get_point(line,0)-centroid, normal) > 0)
@@ -149,9 +144,6 @@ namespace viennamesh
           ++it_prev;
         }
       }
-
-
-      set_output( "mesh", output_mesh );
     }
 
 
@@ -162,6 +154,10 @@ namespace viennamesh
 
       double used_axis = mirror_axis.front();
       int rotational_frequency = rotational_frequencies.back();
+
+      set_output( "rotational_frequency", rotational_frequency);
+      set_output( "mirror_axis", used_axis );
+      set_output( "centroid", centroid );
 
       PointType vector_mirror = viennagrid::make_point( std::cos(used_axis), std::sin(used_axis) );
       PointType vector_angle = viennagrid::make_point( std::cos(used_axis + M_PI/rotational_frequency), std::sin(used_axis + M_PI/rotational_frequency) );
@@ -183,10 +179,18 @@ namespace viennamesh
       info(1) << "Using angle axis: " << centroid << " - " << angle_axis_end << std::endl;
 
 
+      std::map<double, ElementType> vertices_on_mirror_axis;
+      std::map<double, ElementType> vertices_on_angle_axis;
+
+      ElementType centrod_vertex = viennagrid::make_vertex( output_mesh(), centroid );
+      vertices_on_mirror_axis[0] = centrod_vertex;
+      vertices_on_angle_axis[0] = centrod_vertex;
 
 
       for (auto line : viennagrid::elements(input_mesh(),1))
       {
+        std::cout << line << std::endl;
+
         std::pair<PointType, PointType> cp_mirror = viennagrid::detail::closest_points_line_line(
           viennagrid::get_point(line,0), viennagrid::get_point(line,1),
           centroid, mirror_axis_end
@@ -194,58 +198,102 @@ namespace viennamesh
 
         std::pair<PointType, PointType> cp_angle = viennagrid::detail::closest_points_line_line(
           viennagrid::get_point(line,0), viennagrid::get_point(line,1),
-          centroid, mirror_axis_end
+          centroid, angle_axis_end
         );
 
-//         if ( viennagrid::detail::is_equal(1e-8, cp.first, cp.second) )
-//         {
-//
-//           if (viennagrid::detail::is_equal(1e-8, viennagrid::get_point(line,0), cp.first) ||
-//               viennagrid::detail::is_equal(1e-8, viennagrid::get_point(line,1), cp.first))
-//           {
-//             // one point of the line is on the mirror axis
-//             if (viennagrid::inner_prod(viennagrid::centroid(line)-centroid, normal) > 0)
-//               copy_map(line);
-//
-//             if (viennagrid::detail::is_equal(1e-8, viennagrid::get_point(line,0), cp.first))
-//               vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(line)[0]);
-//             else
-//               vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(line)[1]);
-//           }
-//           else
-//           {
-//             ElementType new_vertex = viennagrid::make_unique_vertex( output_mesh(), cp.first, 1e-6 );
-//             vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = new_vertex;
-//
-//             if (viennagrid::inner_prod(viennagrid::get_point(line,0)-centroid, normal) > 0)
-//               viennagrid::make_line( output_mesh(), new_vertex, viennagrid::vertices(line)[0] );
-//             else
-//               viennagrid::make_line( output_mesh(), new_vertex, viennagrid::vertices(line)[1] );
-//           }
-//         }
-//         else
-//         {
-//           if (viennagrid::inner_prod(viennagrid::centroid(line)-centroid, normal) > 0)
-//             copy_map(line);
-//         }
+        if ( viennagrid::detail::is_equal(tol, cp_mirror.first, cp_mirror.second) &&
+             viennagrid::detail::is_equal(tol, cp_angle.first, cp_angle.second) )
+        {
+          std::cout << "  Line crosses mirror and angle axis at " << cp_mirror.first << " and " << cp_angle.first << std::endl;
+
+          ElementType v_mirror = viennagrid::make_unique_vertex( output_mesh(), cp_mirror.first, tol );
+          vertices_on_mirror_axis[ viennagrid::inner_prod(cp_mirror.first-centroid, vector_mirror) ] = v_mirror;
+
+          ElementType v_angle = viennagrid::make_unique_vertex( output_mesh(), cp_angle.first, tol );
+          vertices_on_angle_axis[ viennagrid::inner_prod(cp_angle.first-centroid, vector_angle) ] = v_angle;
+
+          viennagrid::make_line(  output_mesh(), v_mirror, v_angle );
+        }
+        else
+        {
+          if ( viennagrid::detail::is_equal(tol, cp_mirror.first, cp_mirror.second) )
+          {
+            std::cout << "  Line crosses mirror axis at " << cp_mirror.first << std::endl;
+
+            ElementType v_mirror = viennagrid::make_unique_vertex( output_mesh(), cp_mirror.first, tol );
+            vertices_on_mirror_axis[ viennagrid::inner_prod(cp_mirror.first-centroid, vector_mirror) ] = v_mirror;
+
+            if (viennagrid::inner_prod( viennagrid::get_point(line,0)-centroid, normal_mirror ) > 0)
+              viennagrid::make_line( output_mesh(), v_mirror, copy_map(viennagrid::vertices(line)[0]) );
+            else
+              viennagrid::make_line( output_mesh(), v_mirror, copy_map(viennagrid::vertices(line)[1]) );
+          }
+          else if ( viennagrid::detail::is_equal(tol, cp_angle.first, cp_angle.second) )
+          {
+            std::cout << "  Line crosses angle axis at " << cp_angle.first << std::endl;
+
+            ElementType v_angle = viennagrid::make_unique_vertex( output_mesh(), cp_angle.first, tol );
+            vertices_on_angle_axis[ viennagrid::inner_prod(cp_angle.first-centroid, vector_angle) ] = v_angle;
+
+            if (viennagrid::inner_prod( viennagrid::get_point(line,0)-centroid, normal_angle ) < 0)
+              viennagrid::make_line( output_mesh(), v_angle, copy_map(viennagrid::vertices(line)[0]) );
+            else
+              viennagrid::make_line( output_mesh(), v_angle, copy_map(viennagrid::vertices(line)[1]) );
+          }
+          else
+          {
+            std::cout << "  Line crosses no axis" << std::endl;
+            std::cout << viennagrid::inner_prod( viennagrid::centroid(line)-centroid, normal_mirror ) << " " << viennagrid::inner_prod( viennagrid::centroid(line)-centroid, normal_angle ) << std::endl;
+
+            if ( (viennagrid::inner_prod( viennagrid::centroid(line)-centroid, normal_mirror ) > 0) &&
+                 (viennagrid::inner_prod( viennagrid::centroid(line)-centroid, normal_angle ) < 0) )
+            {
+              copy_map(line);
+            }
+
+          }
+        }
+
+
       }
 
 
+      std::cout << "Number of vertices on mirror axis: " << vertices_on_mirror_axis.size() << std::endl;
+      if (!vertices_on_mirror_axis.empty())
+      {
+        std::map<double, ElementType>::iterator it = vertices_on_mirror_axis.begin();
+        std::map<double, ElementType>::iterator it_prev = it;
+        ++it;
+
+        while (it != vertices_on_mirror_axis.end())
+        {
+          viennagrid::make_line( output_mesh(), it->second, it_prev->second );
+          ++it;
+          ++it_prev;
+        }
+      }
+
+      std::cout << "Number of vertices on angle axis: " << vertices_on_angle_axis.size() << std::endl;
+      if (!vertices_on_angle_axis.empty())
+      {
+        std::map<double, ElementType>::iterator it = vertices_on_angle_axis.begin();
+        std::map<double, ElementType>::iterator it_prev = it;
+        ++it;
+
+        while (it != vertices_on_angle_axis.end())
+        {
+          viennagrid::make_line( output_mesh(), it->second, it_prev->second );
+          ++it;
+          ++it_prev;
+        }
+      }
     }
 
 
+    std::cout << "Number of vertices: " << viennagrid::vertices( output_mesh() ).size() << std::endl;
+    std::cout << "Number of lines: " << viennagrid::cells( output_mesh() ).size() << std::endl;
 
-
-//     if (mirror_axis.empty() || )
-
-
-//     std::sort( mirror_axis.begin(), mirror_axis.end() );
-//     std::sort( rotational_frequencies.begin(), rotational_frequencies.end() );
-//
-//     int highest_rotational_frequency = rotational_frequencies.back();
-//     double rotation_angle = 2*M_PI / static_cast<double>(highest_rotational_frequency);
-//     double mirror_axis = mirror_axis.front();
-
+    set_output( "mesh", output_mesh );
 
     return true;
   }

@@ -1,5 +1,3 @@
-#ifdef VIENNAMESH_WITH_TDR
-
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
@@ -14,7 +12,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/algorithm/io/sentaurus_tdr_reader.hpp"
+#include "sentaurus_tdr_reader.hpp"
 
 namespace viennamesh
 {
@@ -57,5 +55,3 @@ namespace viennamesh
   }
 
 }
-
-#endif
