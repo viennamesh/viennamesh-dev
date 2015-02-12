@@ -23,9 +23,6 @@
 
 // #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
 // #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
-// #ifdef VIENNAMESH_WITH_TDR
-//   #include "viennamesh/algorithm/io/sentaurus_tdr_reader.hpp"
-// #endif
 
 // #include "viennamesh/core/mesh_quantities.hpp"
 // #include "viennamesh/utils/pugixml/pugixml.hpp"
@@ -262,6 +259,11 @@ namespace viennamesh
         info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
 
         viennagrid::io::vtk_reader<viennagrid::mesh_t> reader;
+
+        data_handle<bool> use_local_points = get_input<bool>("use_local_points");
+        if (use_local_points)
+          reader.set_use_local_points( use_local_points() );
+
         reader(output_mesh(), filename);
 
         success = true;
