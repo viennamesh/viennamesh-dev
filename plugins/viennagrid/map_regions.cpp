@@ -29,8 +29,6 @@ namespace viennamesh
 
     viennagrid::result_of::element_copy_map<>::type copy_map(dst_mesh);
 
-    typedef typename viennagrid::result_of::element<SrcMeshType>::type CellType;
-
     typedef typename viennagrid::result_of::const_cell_range<SrcMeshType>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
