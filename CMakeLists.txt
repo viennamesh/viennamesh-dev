@@ -4,9 +4,16 @@ project(viennamesh_2)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+
+option(ENABLE_PEDANTIC_FLAGS "Enable pedantic compiler flags" ON)
+if(ENABLE_PEDANTIC_FLAGS)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")
+endif()
 
 message( STATUS "BUILD TYPE = ${CMAKE_BUILD_TYPE}" )
+message( STATUS "CXX FLAGS = ${CMAKE_CXX_FLAGS}" )
+message( STATUS "C FLAGS = ${CMAKE_C_FLAGS}" )
 message( STATUS "RELEASE FLAGS = ${CMAKE_CXX_FLAGS_RELEASE}" )
 message( STATUS "DEBUG FLAGS = ${CMAKE_CXX_FLAGS_DEBUG}" )
 
@@ -14,8 +21,8 @@ set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} dl)
 
 find_package(ViennaGrid 3.0.0 REQUIRED)
 if (ViennaGrid_FOUND)
-  message("ViennaGrid include directories: ${VIENNAGRID_INCLUDE_DIRS}")
-  message("ViennaGrid libraries: ${VIENNAGRID_LIBRARIES}")
+  message( STATUS "ViennaGrid include directories: ${VIENNAGRID_INCLUDE_DIRS}")
+  message( STATUS "ViennaGrid libraries: ${VIENNAGRID_LIBRARIES}")
 
   include_directories(${VIENNAGRID_INCLUDE_DIRS})
   set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${VIENNAGRID_LIBRARIES})
@@ -39,7 +46,7 @@ include_directories(include)
 add_subdirectory(external)
 include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRECTORIES})
 set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} ${VIENNAMESH_EXTERNAL_LIBRARIES})
-message("External include directories: ${VIENNAMESH_EXTERNAL_INCLUDE_DIRECTORIES}")
+message(STATUS "External include directories: ${VIENNAMESH_EXTERNAL_INCLUDE_DIRECTORIES}")
 
 add_subdirectory(src)
 add_subdirectory(plugins)
