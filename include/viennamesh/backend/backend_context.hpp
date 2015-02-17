@@ -9,7 +9,7 @@
 #include "viennamesh/backend/backend_algorithm.hpp"
 #include "viennamesh/backend/backend_logger.hpp"
 
-class viennamesh_context_t
+struct viennamesh_context_t
 {
 public:
 
@@ -71,8 +71,6 @@ public:
 
   viennamesh_algorithm_wrapper make_algorithm(std::string const & algorithm_name)
   {
-    std::map<std::string, viennamesh::algorithm_template_t>::const_iterator atit = algorithm_templates.begin();
-
     viennamesh::algorithm_template algorithm_template = get_algorithm_template(algorithm_name);
     viennamesh_algorithm internal_algorithm = algorithm_template->make_algorithm();
 

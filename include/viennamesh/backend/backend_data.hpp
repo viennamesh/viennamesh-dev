@@ -15,7 +15,7 @@ struct viennamesh_data_wrapper_t
 public:
 
   viennamesh_data_wrapper_t() : internal_data_(0), own_internal_data(true), use_count_(1) {}
-  viennamesh_data_wrapper_t(viennamesh::binary_format_template binary_format_template_in) : internal_data_(0), binary_format_template_(binary_format_template_in), own_internal_data(true), use_count_(1)
+  viennamesh_data_wrapper_t(viennamesh::binary_format_template binary_format_template_in) : binary_format_template_(binary_format_template_in), internal_data_(0), own_internal_data(true), use_count_(1)
   {
 #ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
     std::cout << "New data at " << this << std::endl;

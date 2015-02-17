@@ -110,10 +110,10 @@ template<typename NumericConfigT>
   template<typename ContainerT, typename NumericConfigT>
   bool is_equal(ContainerT const & container, int rotate, NumericConfigT nc)
   {
-    for (int i = 0; i != container.size(); ++i)
+    for (std::size_t i = 0; i != container.size(); ++i)
     {
-      int i0 = i;
-      int i1 = i+rotate;
+      std::size_t  i0 = i;
+      std::size_t  i1 = i+rotate;
 
       if (!viennagrid::detail::is_equal(nc, cyclic_access(container, i0), cyclic_access(container, i1)))
         return false;
@@ -130,7 +130,7 @@ template<typename NumericConfigT>
   {
     std::vector<double> result;
 
-    for (int i = 0; i < string.size()/4; ++i)
+    for (std::size_t i = 0; i < string.size()/4; ++i)
     {
       if (is_palindrome(string, 2*i, nc))
       {
@@ -171,7 +171,7 @@ template<typename NumericConfigT>
   {
     std::vector<int> result;
 
-    for (int i = 2; i < string.size(); ++i)
+    for (std::size_t i = 2; i < string.size(); ++i)
     {
       if ( (string.size()/2) % i != 0 )
         continue;
@@ -411,7 +411,7 @@ template<typename NumericConfigT>
   {
     std::vector<double> result;
 
-    for (int i = 2; i < string.size()/2; i+=3)
+    for (std::size_t i = 2; i < string.size()/2; i+=3)
     {
       if (is_line_palindrome(string, i, nc))
       {

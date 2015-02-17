@@ -159,7 +159,7 @@ namespace viennamesh
         viennagrid::io::tetgen_poly_reader reader;
         reader(output_mesh(), filename, tmp_hole_points, tmp_seed_points);
 
-        viennagrid_int point_dim = viennagrid::geometric_dimension(output_mesh());
+//         viennagrid_int point_dim = viennagrid::geometric_dimension(output_mesh());
 
         if (!tmp_hole_points.empty())
         {
@@ -293,7 +293,7 @@ namespace viennamesh
   bool mesh_reader::run(viennamesh::algorithm_handle &)
   {
     string_handle filename = get_required_input<string_handle>("filename");
-    string_handle filetype = get_required_input<string_handle>("filetype");
+    string_handle filetype = get_input<string_handle>("filetype");
 
     FileType ft;
     if (filetype)

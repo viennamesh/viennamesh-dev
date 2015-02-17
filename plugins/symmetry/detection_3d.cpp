@@ -281,7 +281,7 @@ namespace viennamesh
 
 
   std::complex<double> D(double l, double m, double m_,
-                             double alpha, double beta, double gamma)
+                         double /*alpha*/, double beta, double gamma)
   {
     assert(m == 0);
 
@@ -308,8 +308,8 @@ namespace viennamesh
     if (two_p%2 != 0)
       abort();
 
-    int p = two_p/2;
-    int l = two_l/2;
+//     int p = two_p/2;
+//     int l = two_l/2;
 
     double s_theta;
     double s_phi;

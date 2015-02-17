@@ -29,7 +29,7 @@ namespace viennamesh
   bool extract_boundary::run(viennamesh::algorithm_handle &)
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
-    int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
+//     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 

@@ -74,7 +74,8 @@ namespace viennamesh
     convert( input_hyperplane_point(), hyperplane_point );
     convert( input_hyperplane_normal(), hyperplane_normal );
 
-    if ( (point_dimension != hyperplane_point.size()) || (point_dimension != hyperplane_normal.size()) )
+    if ( (point_dimension != static_cast<int>(hyperplane_point.size())) ||
+         (point_dimension != static_cast<int>(hyperplane_normal.size())) )
       return false;
 
     info(1) << "Hyperplane point: " << hyperplane_point << std::endl;

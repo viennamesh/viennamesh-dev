@@ -57,9 +57,9 @@ namespace viennamesh
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
-    int rotational_frequency;
+    int rotational_frequency = 0;
     bool rotational_frequency_used = false;
-    double mirror_axis;
+    double mirror_axis = 0.0;
     bool mirror_axis_used = false;
 
     if (get_input<int>("rotational_frequency"))

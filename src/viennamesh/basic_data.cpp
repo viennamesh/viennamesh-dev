@@ -12,7 +12,7 @@ namespace viennamesh
     std::vector<double> point_buffer;
     for (std::size_t i = 0; i != points.size(); ++i)
     {
-      if (points[i].size() != geometric_dimension)
+      if (static_cast<int>(points[i].size()) != geometric_dimension)
       {
         // TODO throw
         return;
@@ -77,7 +77,7 @@ namespace viennamesh
 
     for (std::size_t i = 0; i != seed_points.size(); ++i)
     {
-      if (seed_points[i].first.size() != geometric_dimension)
+      if (static_cast<int>(seed_points[i].first.size()) != geometric_dimension)
       {
         // TODO throw
         return;
