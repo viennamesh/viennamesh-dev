@@ -152,6 +152,11 @@ namespace viennamesh
     {
       info(1) << "Only using mirror symmetry and rotational symmetry" << std::endl;
 
+      int mirror_axis_index = 0;
+      data_handle<int> mirror_axis_index_input = get_input<int>("mirror_axis_index");
+      if (mirror_axis_index_input)
+        mirror_axis_index = mirror_axis_index_input();
+
       double used_axis = mirror_axis.front();
       int rotational_frequency = rotational_frequencies.back();
 
