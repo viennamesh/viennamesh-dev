@@ -25,7 +25,7 @@ namespace viennamesh
     struct data_information;
   }
 
-  static std::string local_binary_format()
+  inline std::string local_binary_format()
   {
     return __VERSION__;
   }
