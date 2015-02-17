@@ -125,6 +125,8 @@ viennamesh_context_t::viennamesh_context_t() : use_count_(1)
   std::cout << "New context at " << this << std::endl;
 #endif
 
+  viennamesh::backend::LoggingStack logging_stack("Registering built-in data types");
+
   register_data_type(viennamesh::result_of::data_information<bool>::type_name(),
                      viennamesh::result_of::data_information<bool>::local_binary_format(),
                      viennamesh::backend::generic_make<bool>,
@@ -319,6 +321,8 @@ viennamesh_plugin viennamesh_context_t::load_plugin(std::string const & plugin_f
 
 void viennamesh_context_t::load_plugins_in_directory(std::string directory_name)
 {
+
+
   DIR *dir;
   struct dirent *ent;
 
@@ -327,13 +331,22 @@ void viennamesh_context_t::load_plugins_in_directory(std::string directory_name)
 
   dir = opendir(directory_name.c_str());
 
-  if (dir != NULL) {
+  if (dir != NULL)
+  {
     /* print all the files and directories within directory */
-    while ((ent = readdir (dir)) != NULL)
+    ent = readdir (dir);
+    if (!ent)
+      return;
+
+    viennamesh::backend::LoggingStack stack("Loading all plugins in directory \"" + directory_name + "\"");
+
+    while (ent != NULL)
     {
       std::string filename = ent->d_name;
       if ( (filename.size() > 3) && (filename.find(".so") == filename.size()-3) )
         load_plugin(directory_name + filename);
+
+      ent = readdir (dir);
     }
     closedir (dir);
   }
