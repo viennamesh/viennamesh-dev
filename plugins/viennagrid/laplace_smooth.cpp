@@ -30,9 +30,11 @@ namespace viennamesh
     typedef typename viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
     typedef typename viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
 
+    viennagrid_dimension dim = viennagrid::geometric_dimension(mesh);
+
     VertexRangeType vertices(mesh);
 
-    std::vector<PointType> vertex_offset_container(vertices.size(), PointType());
+    std::vector<PointType> vertex_offset_container(vertices.size(), PointType(dim));
     typename viennagrid::result_of::accessor<std::vector<PointType>, VertexType>::type vertex_offset(vertex_offset_container);
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
@@ -43,7 +45,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::coboundary_range<MeshType>::type CoboundaryVertexRangeType;
       typedef typename viennagrid::result_of::iterator<CoboundaryVertexRangeType>::type CoboundaryLineIteratorType;
 
-      PointType sum;
+      PointType sum(dim);
       PointType point = viennagrid::get_point(*vit);
 
       CoboundaryVertexRangeType coboundary_lines(mesh, *vit, 1);
