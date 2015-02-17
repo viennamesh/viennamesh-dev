@@ -334,25 +334,30 @@ void viennamesh_context_t::load_plugins_in_directory(std::string directory_name)
   if (dir != NULL)
   {
     /* print all the files and directories within directory */
-    ent = readdir (dir);
-    if (!ent)
-      return;
+    std::vector<std::string> plugins_in_directory;
 
-    viennamesh::backend::LoggingStack stack("Loading all plugins in directory \"" + directory_name + "\"");
-
-    while (ent != NULL)
+    while ((ent = readdir (dir)) != NULL)
     {
       std::string filename = ent->d_name;
       if ( (filename.size() > 3) && (filename.find(".so") == filename.size()-3) )
-        load_plugin(directory_name + filename);
-
-      ent = readdir (dir);
+        plugins_in_directory.push_back( filename );
     }
+
     closedir (dir);
+
+    if (plugins_in_directory.empty())
+    {
+      viennamesh::backend::info(1) << "No plugins in directory \"" << directory_name << "\" -> skipping" << std::endl;
+      return;
+    }
+
+    viennamesh::backend::LoggingStack stack("Loading all plugins in directory \"" + directory_name + "\"");
+    for (std::size_t i = 0; i != plugins_in_directory.size(); ++i)
+      load_plugin(directory_name + plugins_in_directory[i]);
   }
   else
   {
-    viennamesh::backend::warning(1) << "Loading plugins in directory \"" << directory_name << "\" failed" << std::endl;
+    viennamesh::backend::warning(1) << "Opening directory \"" << directory_name << "\" for plugin loading failed" << std::endl;
   }
 }
 
