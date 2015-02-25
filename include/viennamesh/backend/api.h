@@ -8,6 +8,8 @@
 #endif
 
 
+#include "viennagrid/backend/api.h"
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -139,14 +141,14 @@ DYNAMIC_EXPORT int viennamesh_data_wrapper_convert_to(viennamesh_data_wrapper da
 
 typedef struct viennamesh_string_t * viennamesh_string;
 DYNAMIC_EXPORT int viennamesh_string_make(viennamesh_string * string);
-DYNAMIC_EXPORT int viennamesh_string_free(viennamesh_string string);
+DYNAMIC_EXPORT int viennamesh_string_delete(viennamesh_string string);
 DYNAMIC_EXPORT int viennamesh_string_set(viennamesh_string string, const char * cstr);
 DYNAMIC_EXPORT int viennamesh_string_get(viennamesh_string string, const char ** cstr);
 
 
 typedef struct viennamesh_point_container_t * viennamesh_point_container;
 DYNAMIC_EXPORT int viennamesh_point_container_make(viennamesh_point_container * point_container);
-DYNAMIC_EXPORT int viennamesh_point_container_free(viennamesh_point_container point_container);
+DYNAMIC_EXPORT int viennamesh_point_container_delete(viennamesh_point_container point_container);
 DYNAMIC_EXPORT int viennamesh_point_container_set(viennamesh_point_container point_container,
                                                   double * points,
                                                   int dimension, int count);
@@ -157,7 +159,7 @@ DYNAMIC_EXPORT int viennamesh_point_container_get(viennamesh_point_container poi
 
 typedef struct viennamesh_seed_point_container_t * viennamesh_seed_point_container;
 DYNAMIC_EXPORT int viennamesh_seed_point_container_make(viennamesh_seed_point_container * seed_point_container);
-DYNAMIC_EXPORT int viennamesh_seed_point_container_free(viennamesh_seed_point_container seed_point_container);
+DYNAMIC_EXPORT int viennamesh_seed_point_container_delete(viennamesh_seed_point_container seed_point_container);
 DYNAMIC_EXPORT int viennamesh_seed_point_container_set(viennamesh_seed_point_container seed_point_container,
                                                        double * points,
                                                        int * regions,
@@ -166,7 +168,6 @@ DYNAMIC_EXPORT int viennamesh_seed_point_container_get(viennamesh_seed_point_con
                                                        double ** points,
                                                        int ** regions,
                                                        int * dimension, int * count);
-
 
 
 

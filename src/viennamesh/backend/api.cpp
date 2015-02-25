@@ -19,7 +19,7 @@ int viennamesh_string_make(viennamesh_string * string)
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_string_free(viennamesh_string string)
+int viennamesh_string_delete(viennamesh_string string)
 {
   delete string;
   return VIENNAMESH_SUCCESS;
@@ -56,7 +56,7 @@ int viennamesh_point_container_make(viennamesh_point_container * point_container
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_point_container_free(viennamesh_point_container point_container)
+int viennamesh_point_container_delete(viennamesh_point_container point_container)
 {
   delete point_container;
   return VIENNAMESH_SUCCESS;
@@ -98,7 +98,7 @@ int viennamesh_seed_point_container_make(viennamesh_seed_point_container * seed_
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_seed_point_container_free(viennamesh_seed_point_container seed_point_container)
+int viennamesh_seed_point_container_delete(viennamesh_seed_point_container seed_point_container)
 {
   delete seed_point_container;
   return VIENNAMESH_SUCCESS;
@@ -130,10 +130,6 @@ int viennamesh_seed_point_container_get(viennamesh_seed_point_container seed_poi
   *count = seed_point_container->count;
   return VIENNAMESH_SUCCESS;
 }
-
-
-
-
 
 
 
