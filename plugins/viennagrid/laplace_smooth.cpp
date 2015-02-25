@@ -63,11 +63,11 @@ namespace viennamesh
       sum /= coboundary_lines.size();
       sum *= lambda;
 
-      vertex_offset(*vit) = sum;
+      vertex_offset.set(*vit, sum);
     }
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-      viennagrid::set_point( *vit, viennagrid::get_point(*vit) + vertex_offset(*vit) );
+      viennagrid::set_point( *vit, viennagrid::get_point(*vit) + vertex_offset.get(*vit) );
   }
 
 
@@ -155,11 +155,11 @@ namespace viennamesh
 
       if (point_count != 0)
         offset /= point_count;
-      vertex_offset(*vit) = offset * lambda;
+      vertex_offset.set(*vit, offset * lambda);
     }
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-      viennagrid::set_point( *vit, viennagrid::get_point(*vit) + vertex_offset(*vit) );
+      viennagrid::set_point( *vit, viennagrid::get_point(*vit) + vertex_offset.get(*vit) );
   }
 
 

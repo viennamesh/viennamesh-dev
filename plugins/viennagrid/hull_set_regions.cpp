@@ -30,10 +30,10 @@ namespace viennamesh
                      ToSetT invalid,
                      viennagrid_int connector_topologic_dimension)
   {
-    if (accessor(element) != invalid)
+    if (accessor.get(element) != invalid)
       return;
 
-    accessor(element) = to_set;
+    accessor.set(element, to_set);
 
     typedef typename viennagrid::result_of::const_element_range<ElementT, 1>::type ConstBoundaryLineRangeType;
     typedef typename viennagrid::result_of::iterator<ConstBoundaryLineRangeType>::type ConstBoundaryLineRangeIterator;
@@ -116,7 +116,7 @@ namespace viennamesh
     int region_count = 0;
     for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
     {
-      if (cell_region(*cit) == -1)
+      if (cell_region.get(*cit) == -1)
         set_neighbors( input_mesh(), *cit, cell_region, region_count++, -1, 2 );
     }
 
@@ -126,7 +126,7 @@ namespace viennamesh
     for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
     {
       ElementType new_element = copy_map(*cit);
-      viennagrid::add( output_mesh().get_make_region( cell_region(*cit) ), new_element);
+      viennagrid::add( output_mesh().get_make_region( cell_region.get(*cit) ), new_element);
     }
 
 

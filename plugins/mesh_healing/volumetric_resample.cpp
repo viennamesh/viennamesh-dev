@@ -168,7 +168,7 @@ namespace viennamesh
 
     for (CellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
     {
-      if ( region(*cit) != NOT_SPECIFIED )
+      if ( region.get(*cit) != NOT_SPECIFIED )
         continue;
 
       point_t pt_a = viennagrid::get_point( viennagrid::vertices(*cit)[0] );
@@ -228,7 +228,7 @@ namespace viennamesh
       int region_id = max - weights.begin();
 
       if (*max > 0.9*sample_count() && region_id != region_count)
-        region(*cit) = region_id;
+        region.set(*cit, region_id);
 
 //       if (region_id != region_count)
 //       {
@@ -244,10 +244,10 @@ namespace viennamesh
 
     for (CellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
     {
-      if ( region(*cit) != NOT_SPECIFIED && region(*cit) != OUTSIDE_MESH )
+      if ( region.get(*cit) != NOT_SPECIFIED && region.get(*cit) != OUTSIDE_MESH )
       {
         ElementType element = copy_map(*cit);
-        viennagrid::add( output_mesh().get_make_region(region(*cit)), element );
+        viennagrid::add( output_mesh().get_make_region(region.get(*cit)), element );
       }
     }
 

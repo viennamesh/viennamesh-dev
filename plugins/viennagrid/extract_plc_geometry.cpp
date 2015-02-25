@@ -96,11 +96,11 @@ namespace viennamesh
   {
     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
 
-    if ( visited_accessor(cell) )
+    if ( visited_accessor.get(cell) )
       return;
 
-    visited_accessor(cell) = true;
-    plc_id_accessor(cell) = plc_id;
+    visited_accessor.set(cell, true);
+    plc_id_accessor.set(cell, plc_id);
 
     PointType normal_vector = viennagrid::normal_vector( cell );
     normal_vector /= viennagrid::norm_2(normal_vector);
@@ -111,7 +111,7 @@ namespace viennamesh
     NeighbourRangeType neighbors(mesh, cell, 2, viennagrid::topologic_dimension(mesh));
     for (NeighbourRangeIterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
-      if ( visited_accessor(*it) )
+      if ( visited_accessor.get(*it) )
         continue;
 
       if ( same_cell_functor(cell, *it) )
@@ -152,7 +152,7 @@ namespace viennamesh
 
     for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
     {
-      if ( cell_visited(*cit) )
+      if ( cell_visited.get(*cit) )
         continue;
 
       recursively_add_neighbours( mesh, *cit, same_plc_functor, cell_visited, plc_ids, lowest_plc_id++ );
@@ -173,7 +173,7 @@ namespace viennamesh
 
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
         {
-          if (plc_ids(*cit) == i)
+          if (plc_ids.get(*cit) == i)
           {
             typedef typename viennagrid::result_of::const_vertex_range<CellType>::type VertexOnCellRangeType;
             typedef typename viennagrid::result_of::iterator<VertexOnCellRangeType>::type VertexOnCellIteratorType;
@@ -207,7 +207,7 @@ namespace viennamesh
 
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
         {
-          if (plc_ids(*cit) == i)
+          if (plc_ids.get(*cit) == i)
           {
             viennagrid::make_triangle(
               mesh2d,
@@ -239,7 +239,7 @@ namespace viennamesh
         int triangle_in_plc_count = 0;
         for (ConstCoboundaryRangeIterator ctit = triangles.begin(); ctit != triangles.end(); ++ctit)
         {
-          if (plc_ids(*ctit) == i)
+          if (plc_ids.get(*ctit) == i)
             ++triangle_in_plc_count;
         }
 
@@ -301,7 +301,7 @@ namespace viennamesh
     if ( std::abs(viennagrid::inner_prod(direction, other_direction)) >=
          1.0-viennagrid::detail::absolute_tolerance<double>(numeric_config))
     {
-      new_line_accessor(other_line) = new_line_id;
+      new_line_accessor.set(other_line, new_line_id);
 
       VertexT other_vertex_handle;
       if ( viennagrid::vertices(other_line)[0] == vertex )
@@ -342,7 +342,7 @@ namespace viennamesh
     {
       int new_line_id = new_lines.size();
 
-      line_to_new_line_index(*lit) = new_line_id;
+      line_to_new_line_index.set(*lit, new_line_id);
 
       PointType direction = viennagrid::get_point(viennagrid::vertices(*lit)[0]) -
                             viennagrid::get_point(viennagrid::vertices(*lit)[1]);
@@ -371,8 +371,8 @@ namespace viennamesh
       ConstLineOnCellRangeType lines_on_cell(*cit);
       for (ConstLineOnCellIteratorType locit = lines_on_cell.begin(); locit != lines_on_cell.end(); ++locit)
       {
-        if (used_lines_indices.insert( line_to_new_line_index(*locit) ).second)
-          new_plc_lines.push_back( new_lines[line_to_new_line_index(*locit)] );
+        if (used_lines_indices.insert( line_to_new_line_index.get(*locit) ).second)
+          new_plc_lines.push_back( new_lines[line_to_new_line_index.get(*locit)] );
       }
 
       CellType cell= viennagrid::make_plc(output_mesh, new_plc_lines.begin(), new_plc_lines.end() );
