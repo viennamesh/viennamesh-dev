@@ -110,7 +110,7 @@ namespace viennamesh
         }
         else if (parameter_type == "bool")
         {
-          algorithm.set_input( parameter_name, lexical_cast<bool>(parameter_value) );
+          algorithm.set_input( parameter_name, lexical_cast<stringtools::boolalpha_bool>(parameter_value) );
         }
         else if (parameter_type == "int")
         {
