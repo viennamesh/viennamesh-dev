@@ -55,7 +55,7 @@ namespace viennamesh
 
     int delete_string(viennamesh_data data)
     {
-      return delete_viennamesh_data<viennamesh_string>(data, viennamesh_string_free);
+      return delete_viennamesh_data<viennamesh_string>(data, viennamesh_string_delete);
     }
 
 
@@ -66,7 +66,7 @@ namespace viennamesh
 
     int delete_point_container(viennamesh_data data)
     {
-      return delete_viennamesh_data<viennamesh_point_container>(data, viennamesh_point_container_free);
+      return delete_viennamesh_data<viennamesh_point_container>(data, viennamesh_point_container_delete);
     }
 
 
@@ -77,7 +77,17 @@ namespace viennamesh
 
     int delete_seed_point_container(viennamesh_data data)
     {
-      return delete_viennamesh_data<viennamesh_seed_point_container>(data, viennamesh_seed_point_container_free);
+      return delete_viennamesh_data<viennamesh_seed_point_container>(data, viennamesh_seed_point_container_delete);
+    }
+
+    int make_quantities(viennamesh_data * data)
+    {
+      return make_viennamesh_data<viennagrid_quantity_field>(data, viennagrid_quantity_field_make);
+    }
+
+    int delete_quantities(viennamesh_data data)
+    {
+      return delete_viennamesh_data<viennagrid_quantity_field>(data, viennagrid_quantity_field_release);
     }
 
 
@@ -156,6 +166,11 @@ viennamesh_context_t::viennamesh_context_t() : use_count_(1)
                      viennamesh::result_of::data_information<viennamesh_seed_point_container>::local_binary_format(),
                      viennamesh::backend::make_seed_point_container,
                      viennamesh::backend::delete_seed_point_container);
+
+  register_data_type(viennamesh::result_of::data_information<viennagrid_quantity_field>::type_name(),
+                     viennamesh::result_of::data_information<viennagrid_quantity_field>::local_binary_format(),
+                     viennamesh::backend::make_quantities,
+                     viennamesh::backend::delete_quantities);
 
   register_data_type(viennamesh::result_of::data_information<viennagrid_mesh>::type_name(),
                      viennamesh::result_of::data_information<viennagrid_mesh>::local_binary_format(),

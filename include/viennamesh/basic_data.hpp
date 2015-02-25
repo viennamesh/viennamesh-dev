@@ -74,6 +74,13 @@ namespace viennamesh
     };
 
     template<>
+    struct data_information<viennagrid_quantity_field>
+    {
+      static std::string type_name() { return "viennagrid_quantity_field"; }
+      static std::string local_binary_format() { return ""; }
+    };
+
+    template<>
     struct data_information<viennagrid_mesh>
     {
       static std::string type_name() { return "viennagrid_mesh"; }
