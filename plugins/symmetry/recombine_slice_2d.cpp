@@ -78,19 +78,22 @@ namespace viennamesh
     PointType centroid;
     convert( input_centroid(), centroid );
 
-    std::cout << "rotational_frequency " << rotational_frequency << std::endl;
-    std::cout << "mirror_axis " << mirror_axis << std::endl;
-    std::cout << "centroid " << centroid << std::endl;
+    if (rotational_frequency_used)
+      info(1) << "rotational_frequency " << rotational_frequency << std::endl;
+    if (mirror_axis_used)
+      info(1) << "mirror_axis " << mirror_axis << std::endl;
+    info(1) << "centroid " << centroid << std::endl;
 
     mesh_handle output_mesh = make_data<mesh_handle>();
     viennagrid::result_of::element_copy_map<>::type copy_map( output_mesh(), tol );
 
-    if (rotational_frequency_used && mirror_axis_used)
+    for (auto triangle : viennagrid::cells( input_mesh() ))
     {
-      PointType mirror_vector = viennagrid::make_point( std::cos(mirror_axis), std::sin(mirror_axis) );
-      for (auto triangle : viennagrid::cells( input_mesh() ))
+      copy_map(triangle);
+
+      if (mirror_axis_used)
       {
-        copy_map(triangle);
+        PointType mirror_vector = viennagrid::make_point( std::cos(mirror_axis), std::sin(mirror_axis) );
 
         ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(triangle, 0), centroid, mirror_vector), tol );
         ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(triangle, 1), centroid, mirror_vector), tol );
@@ -98,27 +101,25 @@ namespace viennamesh
 
         viennagrid::make_triangle( output_mesh(), v0, v1, v2 );
       }
-
-      std::vector<ElementType> slice_triangles;
-      for (auto triangle : viennagrid::cells( output_mesh() ) )
-        slice_triangles.push_back(triangle);
-
-      for (auto triangle : slice_triangles)
-      {
-        for (int i = 1; i != rotational_frequency; ++i)
-        {
-          double angle = 2*M_PI*static_cast<double>(i)/static_cast<double>(rotational_frequency);
-
-          ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 0), centroid, angle), tol );
-          ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 1), centroid, angle), tol );
-          ElementType v2 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 2), centroid, angle), tol );
-
-          viennagrid::make_triangle( output_mesh(), v0, v1, v2 );
-        }
-      }
     }
 
+    std::vector<ElementType> slice_triangles;
+    for (auto triangle : viennagrid::cells( output_mesh() ) )
+      slice_triangles.push_back(triangle);
 
+    for (auto triangle : slice_triangles)
+    {
+      for (int i = 1; i != rotational_frequency; ++i)
+      {
+        double angle = 2*M_PI*static_cast<double>(i)/static_cast<double>(rotational_frequency);
+
+        ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 0), centroid, angle), tol );
+        ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 1), centroid, angle), tol );
+        ElementType v2 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 2), centroid, angle), tol );
+
+        viennagrid::make_triangle( output_mesh(), v0, v1, v2 );
+      }
+    }
 
     set_output( "mesh", output_mesh );
 
