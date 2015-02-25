@@ -218,6 +218,7 @@ namespace viennamesh
       data_handle<double> cell_size = get_input<double>("cell_size");
       data_handle<bool> delaunay = get_input<bool>("delaunay");
       data_handle<viennamesh_string> algorithm_type = get_input<viennamesh_string>("algorithm_type");
+      data_handle<bool> no_points_on_boundary = get_input<bool>("no_points_on_boundary");
 
       data_handle<triangle::input_mesh> input_mesh = get_required_input<triangle::input_mesh>("mesh");
       point_container_handle input_hole_points = get_input<point_container_handle>("hole_points");
@@ -241,6 +242,9 @@ namespace viennamesh
 
       if ( !delaunay.valid() || (delaunay.valid() && delaunay()) )
         options << "D";
+
+      if ( no_points_on_boundary.valid() && no_points_on_boundary() )
+        options << "Y";
 
       if (algorithm_type.valid())
       {
@@ -331,7 +335,12 @@ namespace viennamesh
 //       }
 
 //       make_mesh_impl( input_mesh(), output_mesh(), hole_points(), seed_points(), options.str() );
+
+
+      info(1) << "Making mesh with option string " << options.str() << std::endl;
       make_mesh_impl( input_mesh(), output_mesh(), hole_points, seed_points, options.str() );
+
+
 
 
       set_output("mesh", output_mesh);
