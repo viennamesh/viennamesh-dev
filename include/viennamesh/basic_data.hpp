@@ -2,6 +2,7 @@
 #define _VIENNAMESH_BASIC_DATA_HPP_
 
 #include "viennamesh/forwards.hpp"
+#include "viennagrid/quantity_field.hpp"
 #include <string>
 
 typedef struct viennamesh_string_t * viennamesh_string;
