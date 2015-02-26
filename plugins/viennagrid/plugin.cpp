@@ -9,6 +9,7 @@
 #include "merge_meshes.hpp"
 #include "split_mesh.hpp"
 #include "make_boundary_box.hpp"
+#include "simplexify.hpp"
 
 namespace viennamesh
 {
@@ -25,5 +26,7 @@ namespace viennamesh
     viennamesh::register_algorithm<viennamesh::split_mesh>(context);
 
     viennamesh::register_algorithm<viennamesh::make_boundary_box>(context);
+
+    viennamesh::register_algorithm<viennamesh::simplexify>(context);
   }
 }
