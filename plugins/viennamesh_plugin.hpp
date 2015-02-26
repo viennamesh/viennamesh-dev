@@ -19,6 +19,18 @@ namespace viennamesh
     {
       typedef ValueT type;
     };
+
+
+    template<typename T>
+    struct vector_input
+    {
+      typedef std::vector<
+        typename result_of::cpp_type<T>::type
+      > type;
+    };
+
+
+
   }
 
 
@@ -27,6 +39,8 @@ namespace viennamesh
   public:
 
     typedef data_handle<viennagrid_mesh> mesh_handle;
+    typedef data_handle<viennagrid_quantity_field> quantity_field_handle;
+
     typedef data_handle<viennamesh_string> string_handle;
     typedef data_handle<viennamesh_point_container> point_container_handle;
     typedef data_handle<viennamesh_seed_point_container> seed_point_container_handle;
@@ -45,8 +59,11 @@ namespace viennamesh
     template<typename SomethingT>
     typename result_of::data_handle<SomethingT>::type make_data(SomethingT const & data)
     {
-      typename result_of::data_handle<SomethingT>::type handle = make_data<SomethingT>();
-      handle() = data;
+      typedef typename result_of::data_handle<SomethingT>::type HandleType;
+      typedef typename result_of::c_type<SomethingT>::type CType;
+
+      HandleType handle = make_data<CType>();
+      handle.set( data );
       return handle;
     }
 
@@ -94,10 +111,12 @@ namespace viennamesh
     typename result_of::data_handle<DataT>::type get_input(std::string const & name, std::size_t pos)
     { return get_input<typename result_of::unpack_data<DataT>::type>(name + "[" + lexical_cast<std::string>(pos) + "]"); }
 
+
+
     template<typename DataT>
-    std::vector<DataT> get_input_vector(std::string const & name)
+    typename result_of::vector_input<DataT>::type get_input_vector(std::string const & name)
     {
-      std::vector<DataT> tmp( input_count<DataT>(name) );
+      typename result_of::vector_input<DataT>::type tmp( input_count<DataT>(name) );
       if (tmp.empty())
         return tmp;
 
@@ -115,12 +134,14 @@ namespace viennamesh
         }
       }
 
-      for (typename std::vector<DataT>::size_type pos = 0; pos != tmp.size(); ++pos)
-        tmp[pos] = get_input<DataT>(name, pos)();
+      for (typename result_of::vector_input<DataT>::type::size_type pos = 0; pos != tmp.size(); ++pos)
+      {
+        typename result_of::data_handle<DataT>::type bla = get_input<DataT>(name, pos);
+        tmp[pos] = bla();
+      }
 
       return tmp;
     }
-
 
     template<typename DataT>
     typename result_of::data_handle<DataT>::type get_required_input(std::string const & name)
@@ -151,10 +172,10 @@ namespace viennamesh
 
     template<typename DataT>
     void set_output(std::string const & name, DataT data)
-    { set_output( name, make_data<DataT>(data) ); }
+    { set_output( name, make_data(data) ); }
     template<typename DataT>
     void set_output(std::string const & name, std::size_t pos, DataT data)
-    { set_output( name, pos, make_data<DataT>(data) ); }
+    { set_output( name, pos, make_data(data) ); }
 
     void set_output(std::string const & name, point_t const & point)
     {
@@ -175,6 +196,28 @@ namespace viennamesh
       for (typename std::vector<DataT>::size_type i = 0; i != data_vector.size(); ++i)
         set_output( name, i, make_data<DataT>(data_vector[i]) );
     }
+
+    template<typename DataT>
+    void set_output_vector(std::string const & name, std::vector< data_handle<DataT> > const & data_vector)
+    {
+      for (typename std::vector<DataT>::size_type i = 0; i != data_vector.size(); ++i)
+        set_output( name, i, data_vector[i] );
+    }
+
+    void set_output_vector(std::string const & name, std::vector<viennagrid::mesh_t> const & data_vector)
+    {
+      for (std::vector<viennagrid::mesh_t>::size_type i = 0; i != data_vector.size(); ++i)
+        set_output( name, i, data_vector[i] );
+    }
+
+    void set_output_vector(std::string const & name, std::vector<viennagrid::quantity_field> const & data_vector)
+    {
+      for (std::vector<viennagrid::quantity_field>::size_type i = 0; i != data_vector.size(); ++i)
+      {
+        set_output( name, i, data_vector[i] );
+      }
+    }
+
 
     std::string base_path()
     {
