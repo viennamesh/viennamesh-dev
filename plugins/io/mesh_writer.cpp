@@ -252,7 +252,7 @@ namespace viennamesh
                                                                  it != quantity_fields.end();
                                                                ++it)
           {
-            info(1) << "Found quantity field \"" << (*it).name() << "\" with cell dimension " << (*it).topologic_dimension() << " and values dimension " << (*it).values_dimension() << "   " << (*it).internal() << "   value count = " << (*it).size() << std::endl;
+            info(1) << "Found quantity field \"" << (*it).name() << "\" with cell dimension " << (*it).topologic_dimension() << " and values dimension " << (*it).values_dimension() << std::endl;
 
 //             for (int i = 0; i != (*it).size(); ++i)
 //               std::cout << "  " << (*it).get(i) << std::endl;
