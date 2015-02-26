@@ -119,6 +119,11 @@ namespace viennamesh
       return *internal_data;
     }
 
+    void set(DataT const & data)
+    {
+      *internal_data = data;
+    }
+
   private:
 
     int make(viennamesh_context context,
@@ -189,6 +194,13 @@ namespace viennamesh
       return viennagrid::mesh_t(*internal_data);
     }
 
+    void set(viennagrid::mesh_t const & mesh)
+    {
+      viennagrid_mesh_hierarchy_release( (*this)().internal_mesh_hierarchy() );
+      *internal_data = mesh.internal();
+      viennagrid_mesh_hierarchy_retain( mesh.internal_mesh_hierarchy() );
+    }
+
   private:
 
     int make(viennamesh_context context,
@@ -213,6 +225,88 @@ namespace viennamesh
 
     viennagrid_mesh * internal_data;
   };
+
+
+
+
+
+
+  template<>
+  class data_handle<viennagrid_quantity_field> : public abstract_data_handle
+  {
+    template<typename FromT, typename ToT>
+    friend void convert(data_handle<FromT> const & from, data_handle<ToT> const & to);
+
+    friend class context_handle;
+    friend class algorithm_handle;
+
+    data_handle() : internal_data(0) {}
+    data_handle(viennamesh_data_wrapper data_, bool retain_ = true) : abstract_data_handle(data_, retain_), internal_data(0)
+    {
+      if (data)
+        viennamesh_data_wrapper_internal_get(data, (viennamesh_data*)&internal_data);
+    }
+
+  public:
+
+    data_handle(data_handle<viennagrid_quantity_field> const & handle_) : abstract_data_handle(handle_.data), internal_data(handle_.internal_data) {}
+
+    data_handle & operator=(data_handle<viennagrid_quantity_field> const & handle_)
+    {
+      release();
+      data = handle_.data;
+      internal_data = handle_.internal_data;
+      retain();
+      return *this;
+    }
+
+    void use(viennagrid_quantity_field & data_reference)
+    {
+      if (data)
+        viennamesh_data_wrapper_internal_set(data, (viennamesh_data)&data_reference);
+
+      internal_data = &data_reference;
+    }
+
+
+    viennagrid::quantity_field operator()() const
+    {
+      assert(internal_data);
+      return viennagrid::quantity_field(*internal_data);
+    }
+
+    void set(viennagrid::quantity_field const & quantity_field)
+    {
+      viennagrid_quantity_field_release( (*this)().internal() );
+      *internal_data = quantity_field.internal();
+      viennagrid_quantity_field_retain( quantity_field.internal() );
+    }
+
+  private:
+
+    int make(viennamesh_context context,
+             std::string const & binary_format)
+    {
+      release();
+      int result = viennamesh_data_wrapper_make(context,
+                                  result_of::data_information<viennagrid_quantity_field>::type_name().c_str(),
+                                  binary_format.c_str(),
+                                  &data );
+
+      if (result != VIENNAMESH_SUCCESS)
+        return result;
+
+      return viennamesh_data_wrapper_internal_get(data, (viennamesh_data*)&internal_data);
+    }
+
+    int make(viennamesh_context context)
+    {
+      return make( context, result_of::data_information<viennagrid_quantity_field>::local_binary_format() );
+    }
+
+    viennagrid_quantity_field * internal_data;
+  };
+
 
 
 
@@ -308,18 +402,64 @@ namespace viennamesh
   namespace result_of
   {
 
+
+    template<typename T>
+    struct c_type
+    {
+      typedef T type;
+    };
+
+    template<>
+    struct c_type<viennagrid::mesh_t>
+    {
+      typedef viennagrid_mesh type;
+    };
+
+    template<>
+    struct c_type<viennagrid::quantity_field>
+    {
+      typedef viennagrid_quantity_field type;
+    };
+
+
+
+
+    template<typename T>
+    struct cpp_type
+    {
+      typedef T type;
+    };
+
+    template<>
+    struct cpp_type<viennagrid_mesh>
+    {
+      typedef viennagrid::mesh_t type;
+    };
+
+    template<>
+    struct cpp_type<viennagrid_quantity_field>
+    {
+      typedef viennagrid::quantity_field type;
+    };
+
+
+
     template<typename DataT>
     struct data_handle
     {
-      typedef viennamesh::data_handle<DataT> type;
+      typedef viennamesh::data_handle<
+        typename result_of::c_type<DataT>::type
+      > type;
     };
 
     template<typename DataT>
     struct data_handle< viennamesh::data_handle<DataT> >
     {
-      typedef viennamesh::data_handle<DataT> type;
+      typedef viennamesh::data_handle<
+        typename result_of::c_type<DataT>::type
+      > type;
     };
-    
+
     template<typename DataT>
     struct is_data_handle
     {
