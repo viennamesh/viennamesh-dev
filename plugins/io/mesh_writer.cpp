@@ -23,53 +23,17 @@
 
 namespace viennamesh
 {
-  struct vtk_writer_proxy
-  {
-    template<typename MeshT>
-    void operator() (MeshT const & mesh,
-                      std::string const & filename,
-                      mesh_writer const &)
-    {
-      viennagrid::io::vtk_writer<MeshT> writer;
-      writer(mesh, filename);
-    }
-
-//       template<typename MeshT, typename SegmentationT>
-//       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-//                        std::string const & filename,
-//                        mesh_writer const &)
-//       {
-//         viennagrid::io::vtk_writer<MeshT, SegmentationT> writer;
-//         writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename);
-//       }
+//   void add_xml_text_child( pugi::xml_node & parent, std::string const & element_name, std::string const & value  )
+//   {
+//     pugi::xml_node tmp = parent.append_child( element_name.c_str() );
+//     tmp.append_child( pugi::node_pcdata ).set_value( value.c_str() );
+//   }
 //
-//       template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
-//       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-//                        viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const & quantities,
-//                        std::string const & filename,
-//                        mesh_writer const &)
-//       {
-//         viennagrid::io::vtk_writer<MeshT, SegmentationT> writer;
-//         quantities.template toWriter<MeshT>(writer);
-//         writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename);
-//       }
-  };
-
-
-
-
-
-  void add_xml_text_child( pugi::xml_node & parent, std::string const & element_name, std::string const & value  )
-  {
-    pugi::xml_node tmp = parent.append_child( element_name.c_str() );
-    tmp.append_child( pugi::node_pcdata ).set_value( value.c_str() );
-  }
-
-  template<typename TypeT>
-  void add_xml_text_child( pugi::xml_node & parent, std::string const & element_name, TypeT const & value  )
-  {
-    add_xml_text_child( parent, element_name, lexical_cast<std::string>(value) );
-  }
+//   template<typename TypeT>
+//   void add_xml_text_child( pugi::xml_node & parent, std::string const & element_name, TypeT const & value  )
+//   {
+//     add_xml_text_child( parent, element_name, lexical_cast<std::string>(value) );
+//   }
 
 //     struct vmesh_writer_proxy
 //     {
@@ -234,61 +198,8 @@ namespace viennamesh
 
 
 
-
-
-  struct mphtxt_writer_proxy
-  {
-    template<typename MeshT>
-    void operator() (MeshT const & mesh,
-                      std::string const & filename,
-                      mesh_writer const &)
-    {
-      viennagrid::io::mphtxt_writer writer;
-      writer(mesh, filename);
-    }
-
-//       template<typename MeshT, typename SegmentationT>
-//       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-//                        std::string const & filename,
-//                        mesh_writer const &)
-//       {
-//         viennagrid::io::mphtxt_writer writer;
-//         writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename);
-//       }
-//
-//       template<typename MeshT, typename SegmentationT, typename SegmentIDT, typename VertexKeyT, typename CellKeyT, typename ValueT>
-//       void operator() (viennagrid::segmented_mesh<MeshT, SegmentationT> const & segmented_mesh,
-//                        viennamesh::segmented_mesh_quantities<SegmentIDT, VertexKeyT, CellKeyT, ValueT> const &,
-//                        std::string const & filename,
-//                        mesh_writer const &)
-//       {
-//         viennagrid::io::mphtxt_writer writer;
-//         writer(segmented_mesh.mesh, segmented_mesh.segmentation, filename);
-//       }
-  };
-
-
-
   mesh_writer::mesh_writer() {}
   std::string mesh_writer::name() { return "mesh_writer"; }
-
-  template<typename WriterProxyT>
-  bool mesh_writer::write_all( mesh_handle input_mesh, std::string const & filename_ )
-  {
-    std::string filename = filename_.substr(0, filename_.rfind("."));
-
-    WriterProxyT()(input_mesh(), filename, *this);
-    return true;
-  }
-
-  bool mesh_writer::write_mphtxt( mesh_handle input_mesh, std::string const & filename )
-  {
-    if ( viennagrid::geometric_dimension(input_mesh()) != 3 || viennagrid::cell_dimension(input_mesh()) != 3)
-      return false;
-
-    mphtxt_writer_proxy()(input_mesh(), filename, *this);
-    return true;
-  }
 
 
   bool mesh_writer::run(viennamesh::algorithm_handle &)
@@ -322,26 +233,88 @@ namespace viennamesh
 
     info(1) << "Using file type " << to_string(ft) << std::endl;
 
-//     int geometric_dimension = lexical_cast<int>(mesh->get_property("geometric_dimension").first);
-//     std::string cell_type = mesh->get_property("cell_type").first;
-//     bool is_segmented = lexical_cast< stringtools::boolalpha_bool >(mesh->get_property("is_segmented").first);
+    viennagrid_dimension geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
+    viennagrid_dimension cell_dimension = viennagrid::topologic_dimension( input_mesh() );
 
-
-//     info(1) << "Found geometric dimension: " << geometric_dimension << std::endl;
-//     info(1) << "Found cell type: " << cell_type << std::endl;
-//     info(1) << "Is segmented: " << std::boolalpha << is_segmented << std::endl;
-
+    info(1) << "Found geometric dimension: " << geometric_dimension << std::endl;
+    info(1) << "Found cell dimension: " << cell_dimension << std::endl;
 
     try
     {
       switch (ft)
       {
         case VTK:
-          return write_all<vtk_writer_proxy>( input_mesh, filename() );
+        {
+          viennagrid::io::vtk_writer<viennagrid::mesh_t> writer;
+
+          std::vector<viennagrid::quantity_field> quantity_fields = get_input_vector<viennagrid_quantity_field>("quantities");
+          for (std::vector<viennagrid::quantity_field>::iterator it = quantity_fields.begin();
+                                                                 it != quantity_fields.end();
+                                                               ++it)
+          {
+            info(1) << "Found quantity field \"" << (*it).name() << "\" with cell dimension " << (*it).topologic_dimension() << " and values dimension " << (*it).values_dimension() << "   " << (*it).internal() << "   value count = " << (*it).size() << std::endl;
+
+//             for (int i = 0; i != (*it).size(); ++i)
+//               std::cout << "  " << (*it).get(i) << std::endl;
+
+
+            if ( ((*it).topologic_dimension() != 0) && ((*it).topologic_dimension() != cell_dimension) )
+            {
+              error(1) << "Values dimension " << (*it).values_dimension() << " for quantitiy field \"" << (*it).name() << "\" not supported -> skipping" << std::endl;
+              continue;
+            }
+
+            if ( ((*it).values_dimension() != 1) && ((*it).values_dimension() != 3) )
+            {
+              error(1) << "Values dimension " << (*it).values_dimension() << " for quantitiy field \"" << (*it).name() << "\" not supported -> skipping" << std::endl;
+              continue;
+            }
+
+
+            if ( (*it).topologic_dimension() == 0 )
+            {
+              if ( (*it).values_dimension() == 1 )
+              {
+                writer.add_scalar_data_on_vertices( *it, (*it).name() );
+              }
+              else
+              {
+                writer.add_vector_data_on_vertices( *it, (*it).name() );
+              }
+            }
+            else if ( (*it).topologic_dimension() == cell_dimension )
+            {
+              if ( (*it).values_dimension() == 1 )
+              {
+                writer.add_scalar_data_on_cells( *it, (*it).name() );
+              }
+              else
+              {
+                writer.add_vector_data_on_cells( *it, (*it).name() );
+              }
+            }
+          }
+
+          std::string fn = filename().substr(0, filename().rfind("."));
+          writer( input_mesh(), fn );
+          return true;
+        }
 //         case VMESH:
+//         {
 //           return write_all<vmesh_writer_proxy>( mesh, filename(), geometric_dimension, cell_type, is_segmented );
+//         }
         case COMSOL_MPHTXT:
-          return write_mphtxt( input_mesh, filename() );
+        {
+          if ( geometric_dimension != 3 || cell_dimension != 3)
+          {
+            error(1) << "MPHTXT writer not supported for geometric dimension " << geometric_dimension << " and cell dimension " << cell_dimension << std::endl;
+            return false;
+          }
+
+          viennagrid::io::mphtxt_writer writer;
+          writer(input_mesh(), filename());
+          return true;
+        }
         default:
           return false;
       }
