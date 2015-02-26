@@ -267,38 +267,10 @@ namespace viennamesh
         reader(output_mesh(), filename);
 
 
-        std::vector<viennagrid::quantity_field> quantity_fields;
+        std::vector<viennagrid::quantity_field> quantity_fields = reader.quantity_fields();
 
-        for (auto quantity_name : reader.scalar_vertex_data_names())
-          quantity_fields.push_back( reader.scalar_vertex_quantity_field(quantity_name) );
-
-        for (auto quantity_name : reader.vector_vertex_data_names())
-          quantity_fields.push_back( reader.vector_vertex_quantity_field(quantity_name) );
-
-        for (auto quantity_name : reader.scalar_cell_data_names())
-          quantity_fields.push_back( reader.scalar_cell_quantity_field(quantity_name) );
-
-        for (auto quantity_name : reader.vector_cell_data_names())
-          quantity_fields.push_back( reader.vector_cell_quantity_field(quantity_name) );
-
-
-        for (auto it = quantity_fields.begin(); it != quantity_fields.end(); )
-        {
-          if ( !(*it).is_valid() )
-            it = quantity_fields.erase(it);
-
-          info(1) << "Found quantity for topologic dimension " << (*it).topologic_dimension() <<
-            " with name \"" << (*it).name() << "\"" << std::endl;
-
-//           for (int i = 0; i != (*it).size(); ++i)
-//             std::cout << "  " << (*it).get(i) << std::endl;
-
-          ++it;
-        }
-
-        set_output_vector( "quantities", quantity_fields );
-
-
+        if (!quantity_fields.empty())
+          set_output_vector( "quantities", quantity_fields );
 
         success = true;
         break;
