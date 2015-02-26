@@ -73,7 +73,8 @@ namespace viennamesh
     void set_input(std::string const & name, T data)
     {
       data_handle<T> tmp = context().make_data<T>();
-      tmp() = data;
+//       tmp() = data;
+      tmp.set(data);
       set_input(name, tmp);
     }
 
