@@ -23,20 +23,11 @@ namespace viennamesh
 
   class mesh_writer : public plugin_algorithm
   {
-    friend struct vmesh_writer_proxy;
-
   public:
 
     mesh_writer();
     static std::string name();
     bool run(viennamesh::algorithm_handle &);
-
-  private:
-
-    template<typename WriterProxyT>
-    bool write_all( mesh_handle input_mesh, std::string const & filename );
-
-    bool write_mphtxt( mesh_handle input_mesh, std::string const & filename );
   };
 
 }
