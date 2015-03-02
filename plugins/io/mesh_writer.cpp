@@ -254,10 +254,6 @@ namespace viennamesh
           {
             info(1) << "Found quantity field \"" << (*it).name() << "\" with cell dimension " << (*it).topologic_dimension() << " and values dimension " << (*it).values_dimension() << std::endl;
 
-//             for (int i = 0; i != (*it).size(); ++i)
-//               std::cout << "  " << (*it).get(i) << std::endl;
-
-
             if ( ((*it).topologic_dimension() != 0) && ((*it).topologic_dimension() != cell_dimension) )
             {
               error(1) << "Values dimension " << (*it).values_dimension() << " for quantitiy field \"" << (*it).name() << "\" not supported -> skipping" << std::endl;
