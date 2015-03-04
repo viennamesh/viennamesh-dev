@@ -146,8 +146,16 @@ namespace viennamesh
     typedef mesh_3d<output_cell_3d> output_mesh_3d;
   }
 
+
+  int convert(viennagrid::mesh_t const & input, triangle::input_mesh & output);
+  int convert(triangle::output_mesh const & input, viennagrid::mesh_t const & output);
+
   int convert_to_triangle(viennamesh_data input_, viennamesh_data output_);
   int convert_from_triangle(viennamesh_data input_, viennamesh_data output_);
+
+
+  int convert(viennagrid::mesh_t const & input, triangle::input_mesh_3d & output);
+  int convert(triangle::output_mesh_3d const & input, viennagrid::mesh_t const & output);
 
   int convert_to_triangle_3d(viennamesh_data input_, viennamesh_data output_);
   int convert_from_triangle_3d(viennamesh_data input_, viennamesh_data output_);
