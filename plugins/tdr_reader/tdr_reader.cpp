@@ -24,6 +24,89 @@ namespace viennamesh
   std::string tdr_reader::name() { return "tdr_reader"; }
 
 
+
+
+
+
+  template<typename MeshT>
+  void fill_triangle_contacts(MeshT const & mesh)
+  {
+    typedef typename viennagrid::result_of::element<MeshT>::type ElementType;
+
+    typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
+    typedef typename viennagrid::result_of::id<RegionType>::type RegionIDType;
+
+    typedef typename viennagrid::result_of::region_range<MeshT>::type RegionRangeType;
+    typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
+
+    RegionRangeType regions(mesh);
+    std::vector<RegionIDType> region_contacts;
+    for (RegionRangeIterator rit = regions.begin(); rit != regions.end(); ++rit)
+    {
+      if ( (*rit).name().find("_contact") != std::string::npos )
+        region_contacts.push_back( (*rit).id() );
+    }
+
+    typedef typename viennagrid::result_of::element_range<RegionType>::type ElementRangeType;
+    typedef typename viennagrid::result_of::iterator<ElementRangeType>::type ElementRangeIterator;
+
+
+
+    for (std::size_t i = 0; i != region_contacts.size(); ++i)
+    {
+      RegionType region = mesh.get_region( region_contacts[i] );
+      ElementRangeType triangles(region, 2);
+
+      std::set< std::vector<ElementType> > new_triangles;
+
+      for (ElementRangeIterator tit = triangles.begin(); tit != triangles.end(); ++tit)
+      {
+        typedef typename viennagrid::result_of::neighbor_range<RegionType>::type NeighborElementRangeType;
+        typedef typename viennagrid::result_of::iterator<NeighborElementRangeType>::type NeighborElementRangeIterator;
+
+        NeighborElementRangeType neighbor_triangles(region, *tit, 0, 2);
+        for (NeighborElementRangeIterator ntit = neighbor_triangles.begin(); ntit != neighbor_triangles.end(); ++ntit)
+        {
+          std::vector<ElementType> triangle(3);
+
+          ElementType shared_vertex;
+          for (int i = 0; i != 3; ++i)
+            for (int j = 0; j != 3; ++j)
+            {
+              if ( viennagrid::vertices(*tit)[i] == viennagrid::vertices(*ntit)[j] )
+                triangle[0] = viennagrid::vertices(*tit)[i];
+            }
+
+//           ElementType vertex_t;
+          for (int i = 0; i != 3; ++i)
+          {
+            if (viennagrid::regions(mesh, viennagrid::vertices(*tit)[i]).size() == 1)
+              triangle[1] = viennagrid::vertices(*tit)[i];
+          }
+
+//           ElementType vertex_nt;
+          for (int i = 0; i != 3; ++i)
+          {
+            if (viennagrid::regions(mesh, viennagrid::vertices(*ntit)[i]).size() == 1)
+              triangle[2] = viennagrid::vertices(*ntit)[i];
+          }
+
+          std::sort( triangle.begin(), triangle.end() );
+
+          new_triangles.insert(triangle);
+
+//           ElementType triangle = viennagrid::make_triangle( region, shared_vertex, vertex_t, vertex_nt );
+        }
+      }
+
+      for (typename std::set< std::vector<ElementType> >::iterator it = new_triangles.begin(); it != new_triangles.end(); ++it)
+        viennagrid::make_triangle( region, (*it)[0], (*it)[1], (*it)[2] );
+    }
+  }
+
+
+
+
   bool tdr_reader::run(viennamesh::algorithm_handle &)
   {
     string_handle filename = get_required_input<string_handle>("filename");
@@ -56,6 +139,14 @@ namespace viennamesh
 
     mesh_handle output_mesh = make_data<mesh_handle>();
     geometry.to_viennagrid( output_mesh() );
+    fill_triangle_contacts( output_mesh() );
+
+    std::vector<viennagrid::quantity_field> quantity_fields = geometry.quantity_fields( output_mesh() );
+
+    if (!quantity_fields.empty())
+      set_output_vector( "quantities", quantity_fields );
+
+
     set_output("mesh", output_mesh);
 
     return true;

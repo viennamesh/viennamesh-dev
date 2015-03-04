@@ -38,6 +38,7 @@ using namespace H5;
 
 
 #include "viennagrid/mesh/element_creation.hpp"
+#include "viennagrid/quantity_field.hpp"
 
 #include "viennagrid/algorithm/cross_prod.hpp"
 #include "viennagrid/algorithm/centroid.hpp"
@@ -116,6 +117,7 @@ namespace viennamesh
     std::vector<double> vertex;
     std::map<string,region_t> region;
     double trans_matrix[9],trans_move[3];
+    std::map< int, std::vector<int> > newly_created_vertices;
 
     void read_transformation(const Group &trans)
     {
@@ -573,9 +575,15 @@ namespace viennamesh
               other_vertex = center - normal;
 
             std::vector<VertexType> cell_vertices;
+            std::vector<int> other_vertex_indices;
+
             for (auto index : element.vertex_indices)
+            {
               cell_vertices.push_back( vertices[index] );
+              other_vertex_indices.push_back( vertices[index].id() );
+            }
             cell_vertices.push_back( viennagrid::make_vertex(mesh, other_vertex) );
+            newly_created_vertices[ cell_vertices.back().id() ] = other_vertex_indices;
 
             viennagrid::make_element( mesh.get_make_region(rc->second.region_name),
                                       viennagrid::element_tag_t::from_internal(contact_tag),
@@ -589,46 +597,61 @@ namespace viennamesh
     }
 
 
-//     template<typename MeshT, typename SegmentedMeshQuantitiesType>
-//     void to_mesh_quantities( MeshT const & mesh,
-//                              SegmentedMeshQuantitiesType & quantites )
-//     {
-//       typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
-//       typedef typename viennagrid::result_of::element<MeshT>::type CellType;
-//       typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
-//
-//       for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
-//       {
-//         for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
-//         {
-//           if (D->second.nvalues!=D->second.values.size())
-//             mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
-//
-//           string region_name = R->second.name;
-//           string quantity_name = D->second.name;
-//
-//           RegionType segment = mesh.get_region(region_name);
-//
-//           typedef typename viennagrid::result_of::field<
-//               typename SegmentedMeshQuantitiesType::VertexValueContainerType,
-//               VertexType,
-//               viennagrid::base_id_unpack>::type FieldType;
-//
-//           FieldType field = quantites.template get_vertex_field<MeshT>( segment.id(), quantity_name );
-//
-//           typedef typename viennagrid::result_of::const_vertex_range<SegmentHandleType>::type ConstVertexRangeType;
-//           typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
-//
-//           ConstVertexRangeType vertices( segment );
-//
-//           std::map<typename VertexType::id_type, double> tmp;
-//
-//           int i = 0;
-//           for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
-//             field(*vit) = D->second.values[i];
-//         }
-//       }
-//     }
+    template<typename MeshT>
+    std::vector<viennagrid::quantity_field> quantity_fields(MeshT const & mesh) const
+    {
+      typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
+      typedef typename viennagrid::result_of::element<MeshT>::type CellType;
+      typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
+
+      std::vector<viennagrid::quantity_field> results;
+
+      for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
+      {
+        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
+        {
+          if (D->second.nvalues!=D->second.values.size())
+            mythrow("Number of values for dataset " << D->second.name << " on region " << R->second.name << " not ok");
+
+          string region_name = R->second.name;
+          string quantity_name = D->second.name;
+
+          RegionType region = mesh.get_region(region_name);
+
+          viennagrid::quantity_field quantities;
+          quantities.set_name(quantity_name);
+          quantities.set_topologic_dimension(0);
+          quantities.set_values_dimension(1);
+
+          typedef typename viennagrid::result_of::const_vertex_range<RegionType>::type ConstVertexRangeType;
+          typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
+
+          ConstVertexRangeType vertices(region);
+
+          std::map<typename VertexType::id_type, double> tmp;
+
+          int i = 0;
+          for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
+            quantities.set(*vit, D->second.values[i]);
+
+          for (std::map< int, std::vector<int> >::const_iterator nvit = newly_created_vertices.begin();
+                                                                 nvit != newly_created_vertices.end();
+                                                               ++nvit)
+          {
+            double val = 0.0;
+            for (std::size_t i = 0; i != (*nvit).second.size(); ++i)
+              val += quantities.get( (*nvit).second[i] );
+            val /= (*nvit).second.size();
+
+            quantities.set( (*nvit).first, val );
+          }
+
+          results.push_back(quantities);
+        }
+      }
+
+      return results;
+    }
 
     void correct_vertices()
     {
