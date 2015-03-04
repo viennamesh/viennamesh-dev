@@ -14,70 +14,74 @@
 
 #include "triangle_mesh.hpp"
 #include "triangle_make_mesh.hpp"
+#include "viennagrid/static_array.hpp"
 #include "viennagrid/algorithm/extract_seed_points.hpp"
-// #include "viennamesh/core/sizing_function.hpp"
+#include "viennamesh/sizing_function.hpp"
 
 namespace viennamesh
 {
   namespace triangle
   {
-//     viennamesh::sizing_function_2d triangle_sizing_function;
-//
-//     int should_triangle_be_refined_function(double * triorg, double * tridest, double * triapex, double)
-//     {
-//       REAL dxoa, dxda, dxod;
-//       REAL dyoa, dyda, dyod;
-//       REAL oalen, dalen, odlen;
-//       REAL maxlen;
-//
-//       dxoa = triorg[0] - triapex[0];
-//       dyoa = triorg[1] - triapex[1];
-//       dxda = tridest[0] - triapex[0];
-//       dyda = tridest[1] - triapex[1];
-//       dxod = triorg[0] - tridest[0];
-//       dyod = triorg[1] - tridest[1];
-//       /* Find the squares of the lengths of the triangle's three edges. */
-//       oalen = dxoa * dxoa + dyoa * dyoa;
-//       dalen = dxda * dxda + dyda * dyda;
-//       odlen = dxod * dxod + dyod * dyod;
-//       /* Find the square of the length of the longest edge. */
-//       maxlen = (dalen > oalen) ? dalen : oalen;
-//       maxlen = (odlen > maxlen) ? odlen : maxlen;
-//
-//       point_2d pt;
-//       pt[0] = (triorg[0] + tridest[0] + triapex[0]) / 3;
-//       pt[1] = (triorg[1] + tridest[1] + triapex[1]) / 3;
-//
-//       viennagrid::static_array<double, 4> local_sizes;
-//
-//       local_sizes[0] = triangle_sizing_function( point_2d(triorg[0], triorg[1]) );
-//       local_sizes[1] = triangle_sizing_function( point_2d(tridest[0], tridest[1]) );
-//       local_sizes[2] = triangle_sizing_function( point_2d(triapex[0], triapex[1]) );
-//       local_sizes[3] = triangle_sizing_function(pt);
-//
-//       double local_size = -1;
-//       for (int i = 0; i < 4; ++i)
-//       {
-//         if (local_sizes[i] > 0)
-//         {
-//           if (local_size < 0)
-//             local_size = local_sizes[i];
-//           else
-//             local_size = std::min( local_size, local_sizes[i] );
-//         }
-//       }
-//
-//       if (local_size > 0 && maxlen > local_size*local_size)
-//         return 1;
-//       else
-//         return 0;
-//     }
+    SizingFunctionType triangle_sizing_function;
+
+    int should_triangle_be_refined_function(double * triorg, double * tridest, double * triapex, double)
+    {
+      REAL dxoa, dxda, dxod;
+      REAL dyoa, dyda, dyod;
+      REAL oalen, dalen, odlen;
+      REAL maxlen;
+
+      dxoa = triorg[0] - triapex[0];
+      dyoa = triorg[1] - triapex[1];
+      dxda = tridest[0] - triapex[0];
+      dyda = tridest[1] - triapex[1];
+      dxod = triorg[0] - tridest[0];
+      dyod = triorg[1] - tridest[1];
+      /* Find the squares of the lengths of the triangle's three edges. */
+      oalen = dxoa * dxoa + dyoa * dyoa;
+      dalen = dxda * dxda + dyda * dyda;
+      odlen = dxod * dxod + dyod * dyod;
+      /* Find the square of the length of the longest edge. */
+      maxlen = (dalen > oalen) ? dalen : oalen;
+      maxlen = (odlen > maxlen) ? odlen : maxlen;
+
+      viennagrid::point_t pt(2);
+      pt[0] = (triorg[0] + tridest[0] + triapex[0]) / 3;
+      pt[1] = (triorg[1] + tridest[1] + triapex[1]) / 3;
+
+      viennagrid::static_array<double, 4> local_sizes;
+
+      local_sizes[0] = triangle_sizing_function( viennagrid::make_point(triorg[0], triorg[1]) );
+      local_sizes[1] = triangle_sizing_function( viennagrid::make_point(tridest[0], tridest[1]) );
+      local_sizes[2] = triangle_sizing_function( viennagrid::make_point(triapex[0], triapex[1]) );
+      local_sizes[3] = triangle_sizing_function( pt );
+
+      double local_size = -1;
+      for (int i = 0; i < 4; ++i)
+      {
+        if (local_sizes[i] > 0)
+        {
+          if (local_size < 0)
+            local_size = local_sizes[i];
+          else
+            local_size = std::min( local_size, local_sizes[i] );
+        }
+      }
+
+      if (local_size > 0)
+        std::cout << "Local size = " << local_size*local_size << "   maxlen = " << maxlen << std::endl;
+
+      if (local_size > 0 && maxlen > local_size*local_size)
+        return 1;
+      else
+        return 0;
+    }
 
 
 
 
 
-    void make_mesh_impl(triangle::input_mesh & input,
+    void make_mesh_impl(triangle::input_mesh const & input,
                         triangle::output_mesh & output,
                         PointContainerType const & hole_points,
                         SeedPointContainerType const & seed_points,
@@ -182,27 +186,28 @@ namespace viennamesh
 
 
 
-//     template<typename SizingFunctionRepresentationT>
-//     sizing_function_2d make_sizing_function(triangle::input_mesh const & mesh,
-//                                             point_2d_container const & hole_points,
-//                                             seed_point_2d_container const & seed_points,
-//                                             SizingFunctionRepresentationT const & sf,
-//                                             std::string const & base_path)
-//     {
-//       typedef viennagrid::triangular_2d_mesh MeshType;
+    template<typename SizingFunctionRepresentationT>
+    SizingFunctionType make_sizing_function(triangle::input_mesh const & mesh,
+                                            PointContainerType const & hole_points,
+                                            SeedPointContainerType const & seed_points,
+                                            SizingFunctionRepresentationT const & sf,
+                                            std::string const & base_path)
+    {
+      typedef viennagrid::mesh_t MeshType;
+      MeshType simple_mesh;
 //       typedef viennagrid::triangular_2d_segmentation SegmentationType;
-//
+
 //       typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
 //       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
-//
-//       std::string options = "zpQ";
-//       triangle::output_mesh tmp_mesh;
-//
-//       make_mesh_impl(mesh, tmp_mesh, hole_points, seed_points, options);
-//       viennamesh::triangle::convert( tmp_mesh, simple_mesh() );
-//
-//       return viennamesh::sizing_function::from_xml(sf, simple_mesh, base_path);
-//     }
+
+      std::string options = "zpQ";
+      triangle::output_mesh tmp_mesh;
+
+      make_mesh_impl(mesh, tmp_mesh, hole_points, seed_points, options);
+      viennamesh::convert( tmp_mesh, simple_mesh );
+
+      return viennamesh::sizing_function::from_xml(sf, simple_mesh, base_path);
+    }
 
 
 
@@ -302,6 +307,26 @@ namespace viennamesh
 //       }
 
 
+
+
+
+      data_handle<viennamesh_string> sizing_function = get_input<viennamesh_string>("sizing_function");
+      if (sizing_function)
+      {
+        info(5) << "Using user-defined XML string sizing function" << std::endl;
+        info(5) << sizing_function() << std::endl;
+        triangle_sizing_function = make_sizing_function(
+                                    input_mesh(), hole_points, seed_points,
+                                    sizing_function(), base_path());
+        options << "u";
+        should_triangle_be_refined = should_triangle_be_refined_function;
+      }
+
+
+
+
+
+//       abstract_data_handle sizing_function = get_input<>("sizing_function");
 //       if (sizing_function.valid())
 //       {
 //         if (sizing_function.get<sizing_function_2d>())
@@ -311,7 +336,8 @@ namespace viennamesh
 //           options << "u";
 //           should_triangle_be_refined = should_triangle_be_refined_function;
 //         }
-//         else if (sizing_function.get<pugi::xml_node>())
+//         else
+//         if (sizing_function.get<pugi::xml_node>())
 //         {
 //           info(5) << "Using user-defined XML sizing function" << std::endl;
 //           triangle_sizing_function = make_sizing_function(
