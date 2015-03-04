@@ -125,6 +125,130 @@ namespace viennamesh
       *static_cast<ToT*>(to_) = *static_cast<FromT*>(from_);
       return VIENNAMESH_SUCCESS;
     }
+
+
+
+
+    int string_to_point_container_convert(viennamesh_data from_, viennamesh_data to_)
+    {
+      viennamesh_string * string = static_cast<viennamesh_string*>(from_);
+      viennamesh_point_container * point_container = static_cast<viennamesh_point_container*>(to_);
+
+      const char * tmpptr;
+      viennamesh_string_get(*string, &tmpptr);
+      std::string str = tmpptr;
+
+      std::vector<viennagrid_numeric> points;
+      int dimension = -1;
+
+
+      std::list<std::string> split_mappings = stringtools::split_string_brackets( str, "," );
+      for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
+      {
+        std::vector<double> tmp = stringtools::vector_from_string<double>(*mit);
+
+        if (dimension == -1)
+          dimension = tmp.size();
+
+        if (dimension != static_cast<int>(tmp.size()))
+          return VIENNAMESH_CONVERSION_FAILED;
+
+
+        for (int i = 0; i != dimension; ++i)
+          points.push_back( tmp[i] );
+      }
+
+      viennamesh_point_container_set(*point_container, &points[0], dimension, points.size()/dimension);
+
+
+
+
+//       viennamesh_string * string = static_cast<viennamesh_string*>(from_);
+//       viennamesh_point_container * point_container = static_cast<viennamesh_point_container*>(to_);
+//
+//       const char * tmpptr;
+//       viennamesh_string_get(*string, &tmpptr);
+//       std::string str = tmpptr;
+//
+//       std::vector<viennagrid_numeric> points;
+//       int dimension = -1;
+//
+//
+//       std::list<std::string> split_mappings = stringtools::split_string_brackets(str, ",");
+//       for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
+//       {
+//         std::vector<double> tmp = stringtools::vector_from_string<double>(*mit);
+//
+//         if (dimension == -1)
+//           dimension = tmp.size();
+//
+//         if (dimension != static_cast<int>(tmp.size()))
+//           return VIENNAMESH_CONVERSION_FAILED;
+//
+//         for (int i = 0; i != dimension; ++i)
+//           points.push_back( tmp[i] );
+//       }
+//
+//       viennamesh_point_container_set(*point_container, &points[0], dimension, points.size()/dimension);
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+
+    int string_to_seed_point_container_convert(viennamesh_data from_, viennamesh_data to_)
+    {
+      viennamesh_string * string = static_cast<viennamesh_string*>(from_);
+      viennamesh_seed_point_container * point_container = static_cast<viennamesh_seed_point_container*>(to_);
+
+      const char * tmpptr;
+      viennamesh_string_get(*string, &tmpptr);
+      std::string str = tmpptr;
+
+      std::vector<viennagrid_numeric> points;
+      std::vector<int> regions;
+      int dimension = -1;
+
+
+      std::list<std::string> split_mappings = stringtools::split_string_brackets( str, ";" );
+      for (std::list<std::string>::const_iterator mit = split_mappings.begin(); mit != split_mappings.end(); ++mit)
+      {
+        std::list<std::string> from_to = stringtools::split_string_brackets( *mit, "," );
+
+        if (from_to.size() != 2)
+        {
+          error(1) << "String to seed point container conversion: an entry has no point and no segment id: " << *mit << std::endl;
+          return VIENNAMESH_CONVERSION_FAILED;
+        }
+
+        std::list<std::string>::const_iterator it = from_to.begin();
+
+        std::string point_string = *it;
+        ++it;
+        std::string segment_id = *it;
+
+        std::vector<double> tmp = stringtools::vector_from_string<double>(point_string);
+
+        if (dimension == -1)
+          dimension = tmp.size();
+
+        if (dimension != static_cast<int>(tmp.size()))
+          return VIENNAMESH_CONVERSION_FAILED;
+
+
+        for (int i = 0; i != dimension; ++i)
+          points.push_back( tmp[i] );
+        regions.push_back( stringtools::lexical_cast<int>(segment_id) );
+      }
+
+      viennamesh_seed_point_container_set(*point_container, &points[0], &regions[0], dimension, regions.size());
+
+      return VIENNAMESH_SUCCESS;
+    }
+
+
+
+
+
   }
 }
 
@@ -179,6 +303,8 @@ viennamesh_context_t::viennamesh_context_t() : use_count_(1)
 
   register_conversion_function("int","","double","",viennamesh::backend::generic_convert<int, double>);
   register_conversion_function("double","","int","",viennamesh::backend::generic_convert<double, int>);
+  register_conversion_function("viennamesh_string","","viennamesh_point_container","",viennamesh::backend::string_to_point_container_convert);
+  register_conversion_function("viennamesh_string","","viennamesh_seed_point_container","",viennamesh::backend::string_to_seed_point_container_convert);
 }
 
 viennamesh_context_t::~viennamesh_context_t()
