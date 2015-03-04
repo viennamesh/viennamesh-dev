@@ -20,8 +20,8 @@
 // #include "viennagrid/io/bnd_reader.hpp"
 // #include "viennagrid/io/neper_tess_reader.hpp"
 #include "viennagrid/io/stl_reader.hpp"
+#include "viennagrid/io/gts_deva_reader.hpp"
 
-// #include "viennamesh/algorithm/io/gts_deva_geometry_reader.hpp"
 // #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
 
 // #include "viennamesh/core/mesh_quantities.hpp"
@@ -241,18 +241,22 @@ namespace viennamesh
 //         return true;
 //       }
 
-//     case GTS_DEVA:
-//       {
-//         info(5) << "Found .deva extension, using ViennaMesh GTS deva Reader" << std::endl;
-//         typedef viennagrid::segmented_mesh<viennagrid::line_2d_mesh, viennagrid::line_2d_segmentation> MeshType;
-//
-//         output_parameter_proxy<MeshType> omp(output_mesh);
-//
-//         gts_deva_geometry_reader reader;
-//         reader(omp().mesh, omp().segmentation, filename);
-//
-//         return true;
-//       }
+    case GTS_DEVA:
+      {
+        info(5) << "Found .deva extension, using ViennaMesh GTS deva Reader" << std::endl;
+
+        data_handle<bool> input_load_geometry = get_input<bool>("load_geometry");
+        bool load_geometry = false;
+
+        if (input_load_geometry.valid())
+          load_geometry = input_load_geometry();
+
+        viennagrid::io::gts_deva_reader reader;
+        reader(output_mesh(), filename, load_geometry);
+
+        success = true;
+        break;
+      }
 
     case VTK:
       {
@@ -284,8 +288,11 @@ namespace viennamesh
 
     if (success)
     {
-      info(1) << "Successfully read a mesh with " << viennagrid::vertices(output_mesh()).size() << " vertices and " <<
-        viennagrid::cells(output_mesh()).size() << " cells" << std::endl;
+      info(1) << "Successfully read a mesh" << std::endl;
+      info(1) << "  Geometric dimension = " << viennagrid::geometric_dimension(output_mesh()) << std::endl;
+      info(1) << "  Cell dimension = " << viennagrid::cell_dimension(output_mesh()) << std::endl;
+      info(1) << "  Vertex count =  " << viennagrid::vertices(output_mesh()).size() << std::endl;
+      info(1) << "  Cell count = " << viennagrid::cells(output_mesh()).size() << std::endl;
 
       set_output("mesh", output_mesh);
     }
