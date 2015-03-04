@@ -81,8 +81,15 @@ namespace viennamesh
       std::string parameter_value = paramater_node.text().as_string();
 
 
-//       if (parameter_type == "xml")
-//       {
+      if (parameter_type == "xml")
+      {
+        std::stringstream ss;
+
+        for (pugi::xml_node child = paramater_node.first_child(); child; child = child.next_sibling())
+          child.print(ss);
+
+        algorithm.set_input( parameter_name, ss.str() );
+
 //         size_t number_of_children = std::distance(paramater_node.children().begin(), paramater_node.children().end());
 //
 //         if ( number_of_children == 0 )
@@ -95,8 +102,8 @@ namespace viennamesh
 //           warning(1) << "Parameter \"" << parameter_name << "\" is type xml but has more than one children" << std::endl;
 //
 //         algorithm.set_input( parameter_name, paramater_node.first_child() );
-//       }
-//       else
+      }
+      else
       {
         if (parameter_value.empty())
         {
