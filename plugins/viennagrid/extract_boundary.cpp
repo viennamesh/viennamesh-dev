@@ -62,7 +62,7 @@ namespace viennamesh
 
       seed_point_container_handle output_seed_points = make_data<seed_point_container_handle>();
       convert(seed_points, output_seed_points());
-      set_output( "hole_points", output_seed_points );
+      set_output( "seed_points", output_seed_points );
     }
 
     return true;
