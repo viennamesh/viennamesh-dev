@@ -10,6 +10,7 @@
 #include "split_mesh.hpp"
 #include "make_boundary_box.hpp"
 #include "simplexify.hpp"
+#include "line_coarsening.hpp"
 
 namespace viennamesh
 {
@@ -28,5 +29,6 @@ namespace viennamesh
     viennamesh::register_algorithm<viennamesh::make_boundary_box>(context);
 
     viennamesh::register_algorithm<viennamesh::simplexify>(context);
+    viennamesh::register_algorithm<viennamesh::line_coarsening>(context);
   }
 }
