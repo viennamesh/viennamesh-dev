@@ -25,14 +25,16 @@ namespace viennamesh
 {
 
 
-  char & access(std::vector<char> & array,
+  template<typename ValueT>
+  ValueT & access(std::vector<ValueT> & array,
                 std::vector<int> const & size,
                 std::vector<int> const & pos)
   {
     return array[ pos[2]*size[0]*size[1] + pos[1]*size[0] + pos[0] ];
   }
 
-  char & access_symmetric(std::vector<char> & array,
+  template<typename ValueT>
+  ValueT & access_symmetric(std::vector<ValueT> & array,
                           std::vector<int> const & size,
                           std::vector<int> pos)
   {
@@ -42,7 +44,8 @@ namespace viennamesh
     return access(array, size, pos);
   }
 
-  char & access_symmetric(std::vector<char> & array,
+  template<typename ValueT>
+  ValueT & access_symmetric(std::vector<ValueT> & array,
                           std::vector<int> const & size,
                           int x, int y, int z)
   {
@@ -152,7 +155,8 @@ namespace viennamesh
 
 
 
-    void make_lines(std::map<int,int> & region_priority)
+//     void make_lines(std::map<int,int> & region_priority)
+    void make_lines(std::vector<int> const & region_priority)
     {
       for (int f = 0; f != 6; ++f)
       {
@@ -189,11 +193,14 @@ namespace viennamesh
               // the two diagonal vertices have the same region, region with higher priority is connected
 
               // ensure region_id0 has higher priority
-              if (region_priority[region_id0] < region_priority[region_id1])
+
+              if ( (region_id1 < 0) ||
+                   ((region_id0 >= 0) && region_priority[region_id0] < region_priority[region_id1]) )
               {
                 std::swap(region_id0, region_id1);
                 std::swap(region_count0, region_count1);
               }
+
 
               if ( region_ids[face.vertex_indices[0]] == region_id0 )
               {
@@ -581,26 +588,57 @@ namespace viennamesh
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
+
+    data_handle<int> size_add = get_required_input<int>("size_add");
+    data_handle<double> region_scale = get_required_input<double>("region_scale");
+    data_handle<double> is_inside_tolerance = get_required_input<double>("is_inside_tolerance");
+
+
+
+
+    MeshType mesh;
+    viennagrid::copy( input_mesh(), mesh );
+
+    for (auto region : viennagrid::regions(mesh))
+    {
+      int vertex_count = 0;
+      PointType center = viennagrid::make_point(0,0,0);
+
+      for (auto vertex : viennagrid::vertices(region))
+      {
+        center += viennagrid::get_point(vertex);
+        ++vertex_count;
+      }
+      center /= vertex_count;
+
+      for (auto vertex : viennagrid::vertices(region))
+        viennagrid::set_point( vertex, (viennagrid::get_point(vertex)-center)*region_scale()+center );
+    }
+
+
+    info(1) << "Finished regional re-scaling" << std::endl;
+
+
+//     MeshType mesh = tmp;
+
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    std::map<int, int> region_priority;
-    int counter = input_mesh().region_count();
-    for (auto region : viennagrid::regions(input_mesh()))
+    int region_count = input_mesh().region_count();
+
+
+    int max_region_id = 0;
+    for (auto region : viennagrid::regions(mesh))
+      max_region_id = std::max(region.id(), max_region_id);
+
+    std::vector<int> region_priority(max_region_id);
+
+    int counter = region_count;
+    for (auto region : viennagrid::regions(mesh))
       region_priority[region.id()] = counter--;
-    region_priority[-1] = 0;
 
 
 
-
-
-
-
-
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
-
-    std::pair<PointType, PointType> bounding_box = viennagrid::bounding_box( input_mesh() );
+    std::pair<PointType, PointType> bounding_box = viennagrid::bounding_box( mesh );
     PointType center = (bounding_box.first + bounding_box.second) / 2.0;
     PointType size = bounding_box.second - bounding_box.first;
 
@@ -608,12 +646,14 @@ namespace viennamesh
     PointType sample_size;
     convert( input_sample_size(), sample_size );
 
+
+
     size += sample_size*2;
 
     std::vector<int> sample_count(3);
     for (int i = 0; i != 3; ++i)
     {
-      sample_count[i] = size[i] / sample_size[i] + 1.0 ;
+      sample_count[i] = size[i] / sample_size[i] + 1.0 + size_add();
       if (sample_count[i] % 2 == 0)
         ++sample_count[i];
     }
@@ -623,7 +663,7 @@ namespace viennamesh
     int total_sample_size = sample_count[0] * sample_count[1] * sample_count[2];
     std::vector<char> sample_regions(total_sample_size, -1);
 
-    for (auto cell : viennagrid::cells( input_mesh() ))
+    for (auto cell : viennagrid::cells( mesh ))
     {
       std::pair<PointType, PointType> cell_bb = viennagrid::bounding_box(cell);
 
@@ -640,14 +680,14 @@ namespace viennamesh
         if (cell_bb.second[i] < 0)
           --max_index[i];
 
-        min_index[i] -= 2;
-        max_index[i] += 2;
+        min_index[i] -= 3;
+        max_index[i] += 3;
 
         min_index[i] = std::max(min_index[i], -sample_count[i]/2);
         max_index[i] = std::min(max_index[i],  sample_count[i]/2);
       }
 
-      auto regions = viennagrid::regions(input_mesh(), cell);
+      auto regions = viennagrid::regions(mesh, cell);
       if (regions.size() != 1)
         error(1) << "ERROR, one cell is on more than one region" << std::endl;
 
@@ -663,10 +703,10 @@ namespace viennamesh
             pos[2] = z;
 
             PointType sample_point = center;
-            for (int i = 0; i != 3; ++i)
-              sample_point[i] += pos[i]*sample_size[i];
+            for (int j = 0; j != 3; ++j)
+              sample_point[j] += pos[j]*sample_size[j];
 
-            if (viennagrid::is_inside(cell, sample_point))
+            if (viennagrid::is_inside(cell, sample_point, is_inside_tolerance()))
             {
               char & sample = access_symmetric(sample_regions, sample_count, pos);
 
@@ -681,19 +721,23 @@ namespace viennamesh
 
 
 
+    typedef viennagrid::result_of::region<MeshType>::type RegionType;
+    std::vector<RegionType> regions;
+
+    std::vector<char> & used_samples = sample_regions;
 
     for (int z = -sample_count[2]/2; z < sample_count[2]/2; ++z)
       for (int y = -sample_count[1]/2; y < sample_count[1]/2; ++y)
         for (int x = -sample_count[0]/2; x < sample_count[0]/2; ++x)
         {
-          int r0 = access_symmetric(sample_regions, sample_count, x  , y  , z  );
-          int r1 = access_symmetric(sample_regions, sample_count, x+1, y  , z  );
-          int r2 = access_symmetric(sample_regions, sample_count, x  , y+1, z  );
-          int r3 = access_symmetric(sample_regions, sample_count, x+1, y+1, z  );
-          int r4 = access_symmetric(sample_regions, sample_count, x  , y  , z+1);
-          int r5 = access_symmetric(sample_regions, sample_count, x+1, y  , z+1);
-          int r6 = access_symmetric(sample_regions, sample_count, x  , y+1, z+1);
-          int r7 = access_symmetric(sample_regions, sample_count, x+1, y+1, z+1);
+          int r0 = access_symmetric(used_samples, sample_count, x  , y  , z  );
+          int r1 = access_symmetric(used_samples, sample_count, x+1, y  , z  );
+          int r2 = access_symmetric(used_samples, sample_count, x  , y+1, z  );
+          int r3 = access_symmetric(used_samples, sample_count, x+1, y+1, z  );
+          int r4 = access_symmetric(used_samples, sample_count, x  , y  , z+1);
+          int r5 = access_symmetric(used_samples, sample_count, x+1, y  , z+1);
+          int r6 = access_symmetric(used_samples, sample_count, x  , y+1, z+1);
+          int r7 = access_symmetric(used_samples, sample_count, x+1, y+1, z+1);
 
           if (r0 == r1 && r0 == r2 && r0 == r3 && r0 == r4 && r0 == r5 && r0 == r6 && r0 == r7)
             continue;
@@ -720,12 +764,16 @@ namespace viennamesh
           {
             poly_line const & pl = poly_lines[i];
 
-            ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), mc.point(pl.vertex_indices[0], p), 1e-6 );
-            ElementType v_prev = viennagrid::make_unique_vertex( output_mesh(), mc.point(pl.vertex_indices[1], p), 1e-6 );
+//             ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), mc.point(pl.vertex_indices[0], p), 1e-6 );
+//             ElementType v_prev = viennagrid::make_unique_vertex( output_mesh(), mc.point(pl.vertex_indices[1], p), 1e-6 );
+
+            ElementType v0 = viennagrid::make_vertex( output_mesh(), mc.point(pl.vertex_indices[0], p) );
+            ElementType v_prev = viennagrid::make_vertex( output_mesh(), mc.point(pl.vertex_indices[1], p) );
 
             for (std::size_t j = 2; j != pl.vertex_indices.size(); ++j)
             {
-              ElementType v_cur = viennagrid::make_unique_vertex( output_mesh(), mc.point(pl.vertex_indices[j], p), 1e-6 );
+              ElementType v_cur = viennagrid::make_vertex( output_mesh(), mc.point(pl.vertex_indices[j], p) );
+//               ElementType v_cur = viennagrid::make_unique_vertex( output_mesh(), mc.point(pl.vertex_indices[j], p), 1e-6 );
               ElementType triangle = viennagrid::make_triangle( output_mesh(), v0, v_prev, v_cur );
               v_prev = v_cur;
 
