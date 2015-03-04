@@ -42,13 +42,22 @@ namespace viennamesh
 
 
     if ( geometric_dimension != matrix_vector_dimension )
+    {
+      error(1) << "Dimension mismatch: geometric_dimension = " << geometric_dimension << " matrix_vector_dimension = " << matrix_vector_dimension << std::endl;
       return false;
+    }
 
-    if ( geometric_dimension >= matrix_vector_count || geometric_dimension <= 0 )
+    if ( geometric_dimension > matrix_vector_count || geometric_dimension <= 0 )
+    {
+      error(1) << "Argument error: matrix_vector_count = " << matrix_vector_count  << " geometric_dimension = " << geometric_dimension << std::endl;
       return false;
+    }
 
     if ( geometric_dimension != translate_dimension )
+    {
+      error(1) << "Dimension mismatch: geometric_dimension = " << geometric_dimension << " translate_dimension = " << matrix_vector_dimension << std::endl;
       return false;
+    }
 
 
     point_t translate;
