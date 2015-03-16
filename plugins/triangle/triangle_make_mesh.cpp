@@ -49,29 +49,36 @@ namespace viennamesh
       pt[0] = (triorg[0] + tridest[0] + triapex[0]) / 3;
       pt[1] = (triorg[1] + tridest[1] + triapex[1]) / 3;
 
-      viennagrid::static_array<double, 4> local_sizes;
 
-      local_sizes[0] = triangle_sizing_function( viennagrid::make_point(triorg[0], triorg[1]) );
-      local_sizes[1] = triangle_sizing_function( viennagrid::make_point(tridest[0], tridest[1]) );
-      local_sizes[2] = triangle_sizing_function( viennagrid::make_point(triapex[0], triapex[1]) );
-      local_sizes[3] = triangle_sizing_function( pt );
 
-      double local_size = -1;
-      for (int i = 0; i < 4; ++i)
+
+      viennagrid::static_array<viennagrid::point_t, 4> sample_points;
+      sample_points[0] = viennagrid::make_point(triorg[0], triorg[1]);
+      sample_points[1] = viennagrid::make_point(tridest[0], tridest[1]);
+      sample_points[2] = viennagrid::make_point(triapex[0], triapex[1]);
+      sample_points[3] = pt;
+
+
+      SizingFunctionReturnType local_size;
+      for (int i = 0; i != 4; ++i)
       {
-        if (local_sizes[i] > 0)
+        SizingFunctionReturnType current_size = triangle_sizing_function( sample_points[i] );
+        if (current_size)
         {
-          if (local_size < 0)
-            local_size = local_sizes[i];
+          if (!local_size)
+            local_size = current_size;
           else
-            local_size = std::min( local_size, local_sizes[i] );
+          {
+            if (current_size.get() < local_size.get() )
+              local_size = current_size;
+          }
         }
       }
 
-      if (local_size > 0)
-        std::cout << "Local size = " << local_size*local_size << "   maxlen = " << maxlen << std::endl;
+//       if (local_size)
+//         std::cout << "Local size = " << local_size.get()*local_size.get() << "   maxlen = " << maxlen << std::endl;
 
-      if (local_size > 0 && maxlen > local_size*local_size)
+      if (local_size && maxlen > local_size.get()*local_size.get())
         return 1;
       else
         return 0;
