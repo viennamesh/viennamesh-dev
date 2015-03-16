@@ -452,7 +452,7 @@ namespace viennamesh
     }
 
     template<typename MeshT>
-    bool to_viennagrid(MeshT const & mesh, bool extrude_contacts = true)
+    bool to_viennagrid(MeshT const & mesh, bool extrude_contacts = true, double extrude_contacts_scale = 1.0)
     {
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
@@ -556,7 +556,7 @@ namespace viennamesh
             }
 
             normal /= viennagrid::norm_2(normal);
-            normal *= size;
+            normal *= size * extrude_contacts_scale;
 
             PointType other_vertex = center + normal;
 
