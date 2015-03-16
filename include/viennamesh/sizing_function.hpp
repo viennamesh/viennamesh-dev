@@ -219,11 +219,11 @@ namespace viennamesh
           int min_index_y = index_y(bb.first);
           int max_index_y = index_y(bb.second)+1;
 
-          assert(min_index_x >= 0 && min_index_x < count_x);
-          assert(max_index_x >= 0 && max_index_x < count_x);
+          assert(min_index_x >= 0 && min_index_x <= count_x);
+          assert(max_index_x >= 0 && max_index_x <= count_x);
 
-          assert(min_index_y >= 0 && min_index_y < count_y);
-          assert(max_index_y >= 0 && max_index_y < count_y);
+          assert(min_index_y >= 0 && min_index_y <= count_y);
+          assert(max_index_y >= 0 && max_index_y <= count_y);
 
           for (int y = min_index_y; y != max_index_y; ++y)
           {
@@ -1090,17 +1090,17 @@ namespace viennamesh
         std::string quantity_name = node.child_value("quantity_name");
 
         int resolution_x = 100;
-        if ( node.child_value("resolution_x") )
+        if ( node.child("resolution_x") )
           resolution_x = lexical_cast<int>(node.child_value("resolution_x"));
         int resolution_y = 100;
-        if ( node.child_value("resolution_x") )
+        if ( node.child("resolution_x") )
           resolution_y = lexical_cast<int>(node.child_value("resolution_x"));
 
         double mesh_bounding_box_scale = 1.01;
-        if ( node.child_value("mesh_bounding_box_scale") )
+        if ( node.child("mesh_bounding_box_scale") )
           mesh_bounding_box_scale = lexical_cast<double>(node.child_value("mesh_bounding_box_scale"));
         double cell_scale = 1.01;
-        if ( node.child_value("cell_scale") )
+        if ( node.child("cell_scale") )
           cell_scale = lexical_cast<double>(node.child_value("cell_scale"));
 
         return std::bind( mesh_quantity_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
@@ -1119,17 +1119,17 @@ namespace viennamesh
         std::string quantity_name = node.child_value("quantity_name");
 
         int resolution_x = 100;
-        if ( node.child_value("resolution_x") )
+        if ( node.child("resolution_x") )
           resolution_x = lexical_cast<int>(node.child_value("resolution_x"));
         int resolution_y = 100;
-        if ( node.child_value("resolution_x") )
+        if ( node.child("resolution_x") )
           resolution_y = lexical_cast<int>(node.child_value("resolution_x"));
 
         double mesh_bounding_box_scale = 1.01;
-        if ( node.child_value("mesh_bounding_box_scale") )
+        if ( node.child("mesh_bounding_box_scale") )
           mesh_bounding_box_scale = lexical_cast<double>(node.child_value("mesh_bounding_box_scale"));
         double cell_scale = 1.01;
-        if ( node.child_value("cell_scale") )
+        if ( node.child("cell_scale") )
           cell_scale = lexical_cast<double>(node.child_value("cell_scale"));
 
         return std::bind( mesh_gradient_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
