@@ -4,7 +4,8 @@
 namespace viennamesh
 {
 
-  int convert_to_tetgen(viennamesh_data input_, viennamesh_data output_)
+
+  int convert(viennagrid::mesh_t const & input, tetgen::input_mesh & output)
   {
     typedef viennagrid::mesh_t ViennaGridMeshType;
 
@@ -14,21 +15,18 @@ namespace viennamesh
     typedef viennagrid::result_of::const_element_range<ViennaGridMeshType, 2>::type ConstCellRangeType;
     typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
-    ViennaGridMeshType input( *(viennagrid_mesh*)input_ );
-    tetgen::input_mesh* output = (tetgen::input_mesh*)output_;
-
     std::map<ConstVertexType, int> vertex_handle_to_tetgen_index_map;
 
-    output->firstnumber = 0;
-    output->numberofpoints = 0;
-    output->pointlist = new REAL[ viennagrid::vertices(input).size() * 3 ];
+    output.firstnumber = 0;
+    output.numberofpoints = 0;
+    output.pointlist = new REAL[ viennagrid::vertices(input).size() * 3 ];
 
     int index = 0;
 
     ConstCellRangeType cells(input);
 
-    output->numberoffacets = cells.size();
-    output->facetlist = new tetgenio::facet[output->numberoffacets];
+    output.numberoffacets = cells.size();
+    output.facetlist = new tetgenio::facet[output.numberoffacets];
 
     index = 0;
     for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit, ++index)
@@ -36,7 +34,7 @@ namespace viennamesh
       typedef viennagrid::result_of::const_element_range<ConstCellType, 1>::type ConstLineOnCellRange;
       typedef viennagrid::result_of::iterator<ConstLineOnCellRange>::type ConstLineOnCellIterator;
 
-      tetgenio::facet & facet = output->facetlist[index];
+      tetgenio::facet & facet = output.facetlist[index];
       facet.holelist = 0;
 
       if ( (*cit).tag().is_plc() )
@@ -62,14 +60,14 @@ namespace viennamesh
           }
           else
           {
-            output->pointlist[output->numberofpoints*3+0] = viennagrid::get_point(viennagrid::vertices(*lcit)[i])[0];
-            output->pointlist[output->numberofpoints*3+1] = viennagrid::get_point(viennagrid::vertices(*lcit)[i])[1];
-            output->pointlist[output->numberofpoints*3+2] = viennagrid::get_point(viennagrid::vertices(*lcit)[i])[2];
+            output.pointlist[output.numberofpoints*3+0] = viennagrid::get_point(viennagrid::vertices(*lcit)[i])[0];
+            output.pointlist[output.numberofpoints*3+1] = viennagrid::get_point(viennagrid::vertices(*lcit)[i])[1];
+            output.pointlist[output.numberofpoints*3+2] = viennagrid::get_point(viennagrid::vertices(*lcit)[i])[2];
 
-            polygon.vertexlist[i] = output->numberofpoints;
-            vertex_handle_to_tetgen_index_map[viennagrid::vertices(*lcit)[i]] = output->numberofpoints;
+            polygon.vertexlist[i] = output.numberofpoints;
+            vertex_handle_to_tetgen_index_map[viennagrid::vertices(*lcit)[i]] = output.numberofpoints;
 
-            ++output->numberofpoints;
+            ++output.numberofpoints;
           }
         }
       }
@@ -80,43 +78,60 @@ namespace viennamesh
 
 
 
-  int convert_from_tetgen(viennamesh_data input_, viennamesh_data output_)
+
+  int convert_to_tetgen(viennamesh_data input_, viennamesh_data output_)
+  {
+    typedef viennagrid::mesh_t MeshType;
+    MeshType input( *(viennagrid_mesh*)input_ );
+    tetgen::input_mesh* output = (tetgen::input_mesh*)output_;
+    return convert(input, *output);
+  }
+
+
+
+
+  int convert(tetgen::output_mesh const & input, viennagrid::mesh_t const & output)
   {
     typedef viennagrid::mesh_t MeshType;
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type VertexType;
     typedef viennagrid::result_of::element<MeshType>::type CellType;
 
-    tetgen::output_mesh* input = (tetgen::output_mesh*)input_;
-    MeshType output( *(viennagrid_mesh*)output_ );
+    std::vector<VertexType> vertex_handles(input.numberofpoints);
 
-    std::vector<VertexType> vertex_handles(input->numberofpoints);
-
-    for (int i = 0; i < input->numberofpoints; ++i)
+    for (int i = 0; i < input.numberofpoints; ++i)
     {
       vertex_handles[i] = viennagrid::make_vertex( output,
-        viennagrid::make_point(input->pointlist[3*i+0], input->pointlist[3*i+1], input->pointlist[3*i+2])
+        viennagrid::make_point(input.pointlist[3*i+0], input.pointlist[3*i+1], input.pointlist[3*i+2])
       );
     }
 
-    for (int i = 0; i < input->numberoftetrahedra; ++i)
+    for (int i = 0; i < input.numberoftetrahedra; ++i)
     {
       CellType cell = viennagrid::make_tetrahedron(
         output,
-        vertex_handles[ input->tetrahedronlist[4*i+0] ],
-        vertex_handles[ input->tetrahedronlist[4*i+1] ],
-        vertex_handles[ input->tetrahedronlist[4*i+2] ],
-        vertex_handles[ input->tetrahedronlist[4*i+3] ]
+        vertex_handles[ input.tetrahedronlist[4*i+0] ],
+        vertex_handles[ input.tetrahedronlist[4*i+1] ],
+        vertex_handles[ input.tetrahedronlist[4*i+2] ],
+        vertex_handles[ input.tetrahedronlist[4*i+3] ]
       );
 
-      if (input->numberoftetrahedronattributes != 0)
+      if (input.numberoftetrahedronattributes != 0)
       {
-        int segment_id = input->tetrahedronattributelist[i] + 0.5;
+        int segment_id = input.tetrahedronattributelist[i] + 0.5;
         viennagrid::add(output.get_make_region(segment_id), cell);
       }
     }
 
     return VIENNAMESH_SUCCESS;
+  }
+
+  int convert_from_tetgen(viennamesh_data input_, viennamesh_data output_)
+  {
+    typedef viennagrid::mesh_t MeshType;
+    tetgen::output_mesh* input = (tetgen::output_mesh*)input_;
+    MeshType output( *(viennagrid_mesh*)output_ );
+    return convert(*input, output);
   }
 
 }

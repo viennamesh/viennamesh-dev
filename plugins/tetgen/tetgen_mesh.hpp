@@ -62,7 +62,8 @@ namespace viennamesh
 
 
 
-
+  int convert(viennagrid::mesh_t const & input, tetgen::input_mesh & output);
+  int convert(tetgen::output_mesh const & input, viennagrid::mesh_t const & output);
 
   int convert_to_tetgen(viennamesh_data input_, viennamesh_data output_);
   int convert_from_tetgen(viennamesh_data input_, viennamesh_data output_);
