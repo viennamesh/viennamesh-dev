@@ -22,12 +22,12 @@ namespace viennamesh
   template<bool mesh_is_const, typename SegmentIDMapT>
   void map_regions_impl(viennagrid::base_mesh<mesh_is_const> const & src_mesh,
                          viennagrid::mesh_t const & dst_mesh,
-                         SegmentIDMapT const & segment_id_map)
+                         SegmentIDMapT const & region_id_map)
   {
     typedef viennagrid::base_mesh<mesh_is_const> SrcMeshType;
     typedef viennagrid::mesh_t DstMeshType;
 
-    viennagrid::result_of::element_copy_map<>::type copy_map(dst_mesh);
+    viennagrid::result_of::element_copy_map<>::type copy_map(dst_mesh, false);
 
     typedef typename viennagrid::result_of::const_cell_range<SrcMeshType>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
@@ -39,14 +39,14 @@ namespace viennamesh
 
     typedef typename viennagrid::result_of::element<DstMeshType>::type CellType;
 
-    std::map<SrcRegionIDType, std::string> segment_id_name_map;
-    std::map<std::string, DstRegionIDType> segment_name_id_map;
+    std::map<SrcRegionIDType, std::string> region_id_name_map;
+    std::map<std::string, DstRegionIDType> region_name_id_map;
 
     SrcRegionRangeType src_regions(src_mesh);
     for (SrcRegionRangeIterator rit = src_regions.begin(); rit != src_regions.end(); ++rit)
     {
-      segment_id_name_map[ (*rit).id() ]   = (*rit).name();
-      segment_name_id_map[ (*rit).name() ] = (*rit).id();
+      region_id_name_map[ (*rit).id() ]   = (*rit).name();
+      region_name_id_map[ (*rit).name() ] = (*rit).id();
     }
 
 
@@ -59,15 +59,15 @@ namespace viennamesh
       SrcRegionRangeType element_regions(src_mesh, *cit);
       for (SrcRegionRangeIterator rit = element_regions.begin(); rit != element_regions.end(); ++rit)
       {
-        typename SegmentIDMapT::const_iterator dst_segment_id_it = segment_id_map.find( segment_id_name_map[(*rit).id()] );
-        if (dst_segment_id_it != segment_id_map.end())
-          dst_region_ids.insert( segment_name_id_map[dst_segment_id_it->second] );
+        typename SegmentIDMapT::const_iterator dst_region_id_it = region_id_map.find( region_id_name_map[(*rit).id()] );
+        if (dst_region_id_it != region_id_map.end())
+          dst_region_ids.insert( region_name_id_map[dst_region_id_it->second] );
         else
           dst_region_ids.insert( (*rit).id() );
       }
 
-      for (typename std::set<DstRegionIDType>::const_iterator dst_segment_id_it = dst_region_ids.begin(); dst_segment_id_it != dst_region_ids.end(); ++dst_segment_id_it)
-        viennagrid::add( dst_mesh.get_make_region(*dst_segment_id_it), cell );
+      for (typename std::set<DstRegionIDType>::const_iterator dst_region_id_it = dst_region_ids.begin(); dst_region_id_it != dst_region_ids.end(); ++dst_region_id_it)
+        viennagrid::add( dst_mesh.get_make_region(*dst_region_id_it), cell );
     }
   }
 
@@ -79,11 +79,11 @@ namespace viennamesh
   bool map_regions::run(viennamesh::algorithm_handle &)
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
-    string_handle input_segment_mapping = get_required_input<string_handle>("segment_mapping");
+    string_handle input_region_mapping = get_required_input<string_handle>("region_mapping");
 
-    std::map<std::string, std::string> segment_mapping;
+    std::map<std::string, std::string> region_mapping;
     {
-      std::list<std::string> mappings = stringtools::split_string( input_segment_mapping(), ";" );
+      std::list<std::string> mappings = stringtools::split_string( input_region_mapping(), ";" );
       for (std::list<std::string>::const_iterator sit = mappings.begin(); sit != mappings.end(); ++sit)
       {
         std::list<std::string> from_to = stringtools::split_string( *sit, "," );
@@ -97,13 +97,18 @@ namespace viennamesh
         ++it;
         std::string to = *it;
 
-        segment_mapping[from] = to;
+        region_mapping[from] = to;
       }
+    }
+
+    for (std::map<std::string, std::string>::const_iterator it = region_mapping.begin(); it != region_mapping.end(); ++it)
+    {
+      info(1) << "Mapping region " << it->first << " to " << it->second << std::endl;
     }
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    map_regions_impl( input_mesh(), output_mesh(), segment_mapping );
+    map_regions_impl( input_mesh(), output_mesh(), region_mapping );
 
     set_output( "mesh", output_mesh );
     return true;

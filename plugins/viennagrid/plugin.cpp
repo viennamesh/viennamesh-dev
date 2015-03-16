@@ -12,6 +12,7 @@
 #include "simplexify.hpp"
 #include "line_coarsening.hpp"
 #include "interpolate_quantities.hpp"
+#include "map_regions.hpp"
 
 namespace viennamesh
 {
@@ -26,6 +27,7 @@ namespace viennamesh
 
     viennamesh::register_algorithm<viennamesh::merge_meshes>(context);
     viennamesh::register_algorithm<viennamesh::split_mesh>(context);
+    viennamesh::register_algorithm<viennamesh::map_regions>(context);
 
     viennamesh::register_algorithm<viennamesh::make_boundary_box>(context);
 
