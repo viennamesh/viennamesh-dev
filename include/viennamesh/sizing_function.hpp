@@ -27,11 +27,18 @@
 
 #include "pugixml.hpp"
 
+
+#include <boost/optional.hpp>
+
+
 namespace viennamesh
 {
   using std::placeholders::_1;
   using std::placeholders::_2;
-  typedef std::function< double( viennagrid::point_t const & ) > SizingFunctionType;
+
+
+  typedef boost::optional<viennagrid_numeric> SizingFunctionReturnType;
+  typedef std::function< SizingFunctionReturnType(viennagrid::point_t const &) > SizingFunctionType;
 
 
 
@@ -115,6 +122,10 @@ namespace viennamesh
 
   namespace sizing_function
   {
+
+
+
+
 //     template<typename MeshT, typename RegionationT, typename FieldT>
 //     struct mesh_interpolate_functor : public base_sizing_function<MeshT, RegionationT>
 //     {
@@ -160,6 +171,204 @@ namespace viennamesh
 //     };
 
 
+
+
+    class fast_is_inside
+    {
+    public:
+
+      typedef viennagrid::mesh_t MeshType;
+      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
+      typedef typename viennagrid::result_of::element<MeshType>::type ElementType;
+
+      typedef std::vector<ElementType> ElementContainerType;
+
+      fast_is_inside(MeshType const & mesh_,
+                     int count_x_, int count_y_,
+                     double mesh_bounding_box_scale, double cell_scale) :
+          mesh(mesh_), count_x(count_x_), count_y(count_y_)
+      {
+        // ensure that bounding box is large enough
+        if (mesh_bounding_box_scale <= 1.0)
+          mesh_bounding_box_scale = 1.01;
+        mesh_bounding_box_scale *= cell_scale;
+
+        grid_elements.resize(count_x*count_y);
+
+        typedef typename viennagrid::result_of::cell_range<MeshType>::type CellRangeType;
+        typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellRangeIterator;
+
+        std::pair<PointType, PointType> bb = viennagrid::bounding_box(mesh);
+        min = bb.first;
+        max = bb.second;
+
+        min = (min+max)/2.0 + (min-max)/2.0 * mesh_bounding_box_scale;
+        max = (min+max)/2.0 + (max-min)/2.0 * mesh_bounding_box_scale;
+
+        CellRangeType cells(mesh);
+        for (CellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+        {
+          std::pair<PointType, PointType> bb = viennagrid::bounding_box(*cit);
+
+          bb.first = (bb.first+bb.second)/2.0 + (bb.first-bb.second)/2.0 * cell_scale;
+          bb.second = (bb.first+bb.second)/2.0 + (bb.second-bb.first)/2.0 * cell_scale;
+
+          int min_index_x = index_x(bb.first);
+          int max_index_x = index_x(bb.second)+1;
+
+          int min_index_y = index_y(bb.first);
+          int max_index_y = index_y(bb.second)+1;
+
+          assert(min_index_x >= 0 && min_index_x < count_x);
+          assert(max_index_x >= 0 && max_index_x < count_x);
+
+          assert(min_index_y >= 0 && min_index_y < count_y);
+          assert(max_index_y >= 0 && max_index_y < count_y);
+
+          for (int y = min_index_y; y != max_index_y; ++y)
+          {
+            for (int x = min_index_x; x != max_index_x; ++x)
+            {
+              grid_elements[y*count_x+x].push_back( *cit );
+            }
+          }
+        }
+      }
+
+      ElementContainerType operator()(PointType const & p) const
+      {
+//         ElementContainerType slow_result;
+//
+//         typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
+//         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
+//
+//         ConstCellRangeType cells(mesh);
+//         for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+//         {
+//           if ( viennagrid::is_inside(*cit, p) )
+//           {
+//             slow_result.push_back(*cit);
+//           }
+//         }
+//
+//         return slow_result;
+
+
+        ElementContainerType fast_result;
+        {
+          int i = index(p);
+
+          if (i >= 0 && i < static_cast<int>(grid_elements.size()))
+          {
+            ElementContainerType const & tmp = grid_elements[i];
+            for (ElementContainerType::const_iterator cit = tmp.begin(); cit != tmp.end(); ++cit)
+            {
+              if ( viennagrid::is_inside(*cit, p) )
+              {
+                fast_result.push_back(*cit);
+              }
+            }
+          }
+        }
+
+        return fast_result;
+      }
+
+    private:
+
+      int index_x(PointType const & p) const
+      {
+        return (p[0]-min[0]) * (static_cast<double>(count_x)/(max[0]-min[0]));
+      }
+
+      int index_y(PointType const & p) const
+      {
+        return (p[1]-min[1]) * (static_cast<double>(count_y)/(max[1]-min[1]));
+      }
+
+      int index(PointType const & p) const
+      {
+        return index_y(p)*count_x+index_x(p);
+      }
+
+      MeshType mesh;
+      std::vector<ElementContainerType> grid_elements;
+
+      PointType min;
+      PointType max;
+
+      int count_x;
+      int count_y;
+    };
+
+
+
+
+
+
+    struct mesh_quantity_functor
+    {
+      typedef viennagrid::mesh_t MeshType;
+      typedef viennagrid::result_of::element<MeshType>::type ElementType;
+
+      typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
+      typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+
+      typedef viennagrid::quantity_field QuantityFieldType;
+
+
+
+      mesh_quantity_functor( std::string const & filename,
+                             std::string const & quantity_name,
+                             int resolution_x, int resolution_y,
+                             double mesh_bounding_box_scale, double cell_scale)
+      {
+        viennagrid::io::vtk_reader<MeshType> reader;
+        viennagrid::io::add_scalar_data_on_vertices( reader, quantities, quantity_name );
+        reader( mesh, filename );
+
+        ii = std::make_shared<fast_is_inside>( mesh, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale );
+      }
+
+      typedef typename viennagrid::result_of::element<MeshType>::type VertexType;
+      typedef typename viennagrid::result_of::element<MeshType>::type CellType;
+
+      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef SizingFunctionReturnType result_type;
+
+      result_type operator()( PointType const & pt ) const
+      {
+
+        fast_is_inside::ElementContainerType cells = (*ii)(pt);
+        if (cells.empty())
+          return result_type();
+
+        CellType cell = cells[0];
+        PointType p0 = viennagrid::get_point( viennagrid::vertices(cell)[0] );
+        PointType p1 = viennagrid::get_point( viennagrid::vertices(cell)[1] );
+        PointType p2 = viennagrid::get_point( viennagrid::vertices(cell)[2] );
+
+        NumericType f0 = viennagrid::spanned_volume( pt, p1, p2 );
+        NumericType f1 = viennagrid::spanned_volume( p0, pt, p2 );
+        NumericType f2 = viennagrid::spanned_volume( p0, p1, pt );
+
+        NumericType s0 = quantities.get(viennagrid::vertices(cell)[0]);
+        NumericType s1 = quantities.get(viennagrid::vertices(cell)[1]);
+        NumericType s2 = quantities.get(viennagrid::vertices(cell)[2]);
+
+        NumericType val = (s0*f0 + s1*f1 + s2*f2) / (f0 + f1 + f2);
+
+        return val;
+      }
+
+      std::shared_ptr<fast_is_inside> ii;
+
+      MeshType mesh;
+      QuantityFieldType quantities;
+    };
+
+
     struct mesh_gradient_functor
     {
       typedef viennagrid::mesh_t MeshType;
@@ -172,7 +381,9 @@ namespace viennamesh
 
 
 
-      mesh_gradient_functor( std::string const & filename, std::string const & quantity_name )
+      mesh_gradient_functor( std::string const & filename, std::string const & quantity_name,
+                             int resolution_x, int resolution_y,
+                             double mesh_bounding_box_scale, double cell_scale )
       {
         QuantityFieldType quantities;
         viennagrid::io::vtk_reader<MeshType> reader;
@@ -187,31 +398,42 @@ namespace viennamesh
         {
           gradient_accessor.set(*cit, viennamesh::gradient(*cit, quantities));
         }
+
+        ii = std::make_shared<fast_is_inside>( mesh, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale );
       }
 
       typedef typename viennagrid::result_of::element<MeshType>::type VertexType;
 
       typedef typename viennagrid::result_of::point<MeshType>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
-      typedef NumericType result_type;
+      typedef SizingFunctionReturnType result_type;
 
-      NumericType operator()( PointType const & pt ) const
+      result_type operator()( PointType const & pt ) const
       {
 
-        ConstCellRangeType cells(mesh);
-        for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
-        {
-          if ( viennagrid::is_inside( *cit, pt ) )
-          {
-            NumericType grad = gradient_accessor.get(*cit);
-//             info(1) << "  gradient = " << grad << std::endl;
-            return grad;
-          }
-//             return gradient( *cit, quantities );
-        }
+        fast_is_inside::ElementContainerType cells = (*ii)(pt);
+        if (cells.empty())
+          return result_type();
 
-        return -1;
+        NumericType grad = gradient_accessor.get(cells[0]);
+        return grad;
+
+//         ConstCellRangeType cells(mesh);
+//         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+//         {
+//           if ( viennagrid::is_inside( *cit, pt ) )
+//           {
+//             NumericType grad = gradient_accessor.get(*cit);
+// //             info(1) << "  gradient = " << grad << std::endl;
+//             return grad;
+//           }
+// //             return gradient( *cit, quantities );
+//         }
+//
+//         return result_type();
       }
+
+      std::shared_ptr<fast_is_inside> ii;
 
       MeshType mesh;
 
@@ -525,7 +747,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::point<MeshType>::type PointType;
       typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
 
-      typedef NumericType result_type;
+      typedef SizingFunctionReturnType result_type;
 
 
       is_in_regions_functor(MeshType mesh_,
@@ -558,7 +780,7 @@ namespace viennamesh
         }
       }
 
-      NumericType operator()( PointType const & pt ) const
+      result_type operator()( PointType const & pt ) const
       {
         typedef typename viennagrid::result_of::const_cell_range<RegionType>::type ConstCellRangeType;
         typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
@@ -573,7 +795,7 @@ namespace viennamesh
           }
         }
 
-        return -1;
+        return result_type();
       }
 
       MeshType mesh;
@@ -631,26 +853,26 @@ namespace viennamesh
     struct min_functor
     {
       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
-      typedef NumericType result_type;
+      typedef SizingFunctionReturnType result_type;
 
       typedef std::vector<SizingFunctionType> SizingFunctionContainerType;
 
       min_functor(SizingFunctionContainerType const & functions_) : functions(functions_) {}
 
-      NumericType operator()( PointT const & pt ) const
+      result_type operator()( PointT const & pt ) const
       {
-        NumericType val = -1;
+        result_type val;
 
         for (typename SizingFunctionContainerType::const_iterator fit = functions.begin(); fit != functions.end(); ++fit)
         {
-          NumericType val_f = (*fit)(pt);
-          if (val_f < 0)
+          result_type current = (*fit)(pt);
+          if (!current)
             continue;
 
-          if (val < 0)
-            val = val_f;
-          else if (val_f < val)
-            val = val_f;
+          if (!val)
+            val = current;
+          else if (current.get() < val.get())
+            val = current;
         }
 
         return val;
@@ -665,26 +887,26 @@ namespace viennamesh
     struct max_functor
     {
       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
-      typedef NumericType result_type;
+      typedef SizingFunctionReturnType result_type;
 
       typedef std::vector<SizingFunctionType> SizingFunctionContainerType;
 
       max_functor(SizingFunctionContainerType const & functions_) : functions(functions_) {}
 
-      NumericType operator()( PointT const & pt ) const
+      result_type operator()( PointT const & pt ) const
       {
-        NumericType val = -1;
+        result_type val;
 
         for (typename SizingFunctionContainerType::const_iterator fit = functions.begin(); fit != functions.end(); ++fit)
         {
-          NumericType val_f = (*fit)(pt);
-          if (val_f < 0)
+          result_type current = (*fit)(pt);
+          if (!current)
             continue;
 
-          if (val < 0)
-            val = val_f;
-          else if (val_f > val)
-            val = val_f;
+          if (val)
+            val = current;
+          else if (current.get() > val.get())
+            val = current;
         }
 
         return val;
@@ -715,22 +937,22 @@ namespace viennamesh
     struct linear_interpolate_functor
     {
       typedef typename viennagrid::result_of::coord<PointT>::type NumericType;
-      typedef NumericType result_type;
+      typedef SizingFunctionReturnType result_type;
 
       linear_interpolate_functor(SizingFunctionType const & function_, NumericType lower_, NumericType upper_, NumericType lower_to_, NumericType upper_to_) : function(function_), lower(lower_), upper(upper_), lower_to(lower_to_), upper_to(upper_to_) {}
 
-      NumericType operator()( PointT const & pt ) const
+      result_type operator()( PointT const & pt ) const
       {
-        NumericType tmp = function(pt);
-        if (tmp <= 0)
+        result_type tmp = function(pt);
+        if (!tmp)
           return tmp;
 
-        if (tmp < lower)
+        if (tmp.get() < lower)
           return lower_to;
-        if (tmp > upper)
+        if (tmp.get() >= upper)
           return upper_to;
 
-        return lower_to + (tmp-lower)/(upper-lower)*(upper_to-lower_to);
+        return lower_to + (tmp.get()-lower)/(upper-lower)*(upper_to-lower_to);
       }
 
       SizingFunctionType function;
@@ -854,6 +1076,35 @@ namespace viennamesh
 
         return std::bind( is_in_regions_functor(mesh, region_names, source), _1 );
       }
+      else if (name == "mesh_quantity")
+      {
+        if ( !node.child_value("mesh_file") )
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"mesh_file\" missing" );
+        if ( !node.child_value("quantity_name") )
+          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
+
+        std::string mesh_file = node.child_value("mesh_file");
+        if (!base_path.empty())
+          mesh_file = base_path + "/" + mesh_file;
+
+        std::string quantity_name = node.child_value("quantity_name");
+
+        int resolution_x = 100;
+        if ( node.child_value("resolution_x") )
+          resolution_x = lexical_cast<int>(node.child_value("resolution_x"));
+        int resolution_y = 100;
+        if ( node.child_value("resolution_x") )
+          resolution_y = lexical_cast<int>(node.child_value("resolution_x"));
+
+        double mesh_bounding_box_scale = 1.01;
+        if ( node.child_value("mesh_bounding_box_scale") )
+          mesh_bounding_box_scale = lexical_cast<double>(node.child_value("mesh_bounding_box_scale"));
+        double cell_scale = 1.01;
+        if ( node.child_value("cell_scale") )
+          cell_scale = lexical_cast<double>(node.child_value("cell_scale"));
+
+        return std::bind( mesh_quantity_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
+      }
       else if (name == "mesh_gradient")
       {
         if ( !node.child_value("mesh_file") )
@@ -867,7 +1118,21 @@ namespace viennamesh
 
         std::string quantity_name = node.child_value("quantity_name");
 
-        return std::bind( mesh_gradient_functor(mesh_file, quantity_name), _1 );
+        int resolution_x = 100;
+        if ( node.child_value("resolution_x") )
+          resolution_x = lexical_cast<int>(node.child_value("resolution_x"));
+        int resolution_y = 100;
+        if ( node.child_value("resolution_x") )
+          resolution_y = lexical_cast<int>(node.child_value("resolution_x"));
+
+        double mesh_bounding_box_scale = 1.01;
+        if ( node.child_value("mesh_bounding_box_scale") )
+          mesh_bounding_box_scale = lexical_cast<double>(node.child_value("mesh_bounding_box_scale"));
+        double cell_scale = 1.01;
+        if ( node.child_value("cell_scale") )
+          cell_scale = lexical_cast<double>(node.child_value("cell_scale"));
+
+        return std::bind( mesh_gradient_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
       }
 
       throw create_sizing_function_exception( "Sizing function functor \"" + name + "\" not supported" );
