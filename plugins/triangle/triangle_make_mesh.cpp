@@ -76,7 +76,7 @@ namespace viennamesh
       }
 
 //       if (local_size)
-//         std::cout << "Local size = " << local_size.get()*local_size.get() << "   maxlen = " << maxlen << std::endl;
+//         std::cout << "Requested size = " << local_size.get() << "   current triangle size = " << std::sqrt(maxlen) << std::endl;
 
       if (local_size && maxlen > local_size.get()*local_size.get())
         return 1;
