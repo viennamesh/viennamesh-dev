@@ -33,11 +33,10 @@ namespace viennamesh
     }
 
     void register_data_type(std::string const & data_type,
-                            std::string const & binary_format,
                             viennamesh_data_make_function make_function,
                             viennamesh_data_delete_function delete_function)
     {
-      viennamesh_data_type_register(ctx, data_type.c_str(), binary_format.c_str(), make_function, delete_function);
+      viennamesh_data_type_register(ctx, data_type.c_str(), make_function, delete_function);
     }
 
     template<typename DataT>
@@ -45,26 +44,21 @@ namespace viennamesh
                             viennamesh_data_delete_function delete_function)
     {
       register_data_type(result_of::data_information<DataT>::type_name(),
-                         result_of::data_information<DataT>::local_binary_format(),
                          make_function, delete_function);
     }
 
     void register_conversion(std::string const & data_type_from,
-                             std::string const & binary_format_from,
                              std::string const & data_type_to,
-                             std::string const & binary_format_to,
                              viennamesh_data_convert_function convert_function)
     {
-      viennamesh_data_conversion_register(ctx, data_type_from.c_str(), binary_format_from.c_str(), data_type_to.c_str(), binary_format_to.c_str(), convert_function);
+      viennamesh_data_conversion_register(ctx, data_type_from.c_str(), data_type_to.c_str(), convert_function);
     }
 
     template<typename FromT, typename ToT>
     void register_conversion(viennamesh_data_convert_function convert_function)
     {
       register_conversion(result_of::data_information<FromT>::type_name(),
-                          result_of::data_information<FromT>::local_binary_format(),
                           result_of::data_information<ToT>::type_name(),
-                          result_of::data_information<ToT>::local_binary_format(),
                           convert_function);
     }
 

@@ -59,14 +59,12 @@ public:
   void link_input(std::string const & name, viennamesh_algorithm_wrapper source_algorithm, std::string const & source_name);
   viennamesh_data_wrapper get_input(std::string const & name);
   viennamesh_data_wrapper get_input(std::string const & name,
-                                   std::string const & type_name,
-                                   std::string const & binary_format);
+                                   std::string const & type_name);
 
   void set_output(std::string const & name, viennamesh_data_wrapper output);
   viennamesh_data_wrapper get_output(std::string const & name);
   viennamesh_data_wrapper get_output(std::string const & name,
-                                    std::string const & type_name,
-                                    std::string const & binary_format);
+                                    std::string const & type_name);
 
   viennamesh_algorithm internal_algorithm() { return internal_algorithm_; }
   void set_internal_algorithm(viennamesh_algorithm internal_algorithm_in) { internal_algorithm_ = internal_algorithm_in; }

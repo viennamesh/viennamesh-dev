@@ -250,7 +250,6 @@ int viennamesh_registered_data_type_get_name(viennamesh_context context,
 
 int viennamesh_data_type_register(viennamesh_context context,
                                   const char * data_type_name,
-                                  const char * data_type_binary_format,
                                   viennamesh_data_make_function make_function,
                                   viennamesh_data_delete_function delete_function)
 {
@@ -262,7 +261,7 @@ int viennamesh_data_type_register(viennamesh_context context,
     if (!data_type_name)
       throw viennamesh::error_t(VIENNAMESH_ERROR_INVALID_ARGUMENT);
 
-    context->register_data_type( std::string(data_type_name), data_type_binary_format ? data_type_binary_format : "", make_function, delete_function);
+    context->register_data_type( std::string(data_type_name), make_function, delete_function);
   }
   catch (viennamesh::error_t err)
   {
@@ -277,7 +276,6 @@ int viennamesh_data_type_register(viennamesh_context context,
 
 int viennamesh_data_wrapper_make(viennamesh_context context,
                          const char * data_type_name,
-                         const char * data_type_binary_format,
                          viennamesh_data_wrapper * data)
 {
   try
@@ -288,7 +286,7 @@ int viennamesh_data_wrapper_make(viennamesh_context context,
     if (!data || !data_type_name)
       throw viennamesh::error_t(VIENNAMESH_ERROR_INVALID_ARGUMENT);
 
-    *data = context->make_data( std::string(data_type_name), data_type_binary_format ? data_type_binary_format : "" );
+    *data = context->make_data( std::string(data_type_name) );
   }
   catch (viennamesh::error_t err)
   {
@@ -372,9 +370,7 @@ int viennamesh_data_wrapper_release(viennamesh_data_wrapper data)
 
 int viennamesh_data_conversion_register(viennamesh_context context,
                                         const char * data_type_from,
-                                        const char * binary_format_from,
                                         const char * data_type_to,
-                                        const char * binary_format_to,
                                         viennamesh_data_convert_function convert_function)
 {
   try
@@ -385,7 +381,7 @@ int viennamesh_data_conversion_register(viennamesh_context context,
     if (!data_type_from || !data_type_to)
       throw viennamesh::error_t(VIENNAMESH_ERROR_INVALID_ARGUMENT);
 
-    context->register_conversion_function(data_type_from, binary_format_from ? binary_format_from : "", data_type_to, binary_format_to ? binary_format_to : "", convert_function );
+    context->register_conversion_function(data_type_from, data_type_to, convert_function);
   }
   catch (viennamesh::error_t err)
   {
@@ -424,24 +420,7 @@ int viennamesh_data_type_get_name(viennamesh_data_wrapper data,
     if (!data || !data_type_name)
       throw viennamesh::error_t(VIENNAMESH_ERROR_INVALID_ARGUMENT);
 
-    *data_type_name = data->binary_format_template()->data_template()->name().c_str();
-  }
-  catch (viennamesh::error_t err)
-  {
-    return err;
-  }
-  return VIENNAMESH_SUCCESS;
-}
-
-int viennamesh_data_type_get_binary_format(viennamesh_data_wrapper data,
-                                           const char ** data_type_binary_format)
-{
-  try
-  {
-    if (!data || !data_type_binary_format)
-      throw viennamesh::error_t(VIENNAMESH_ERROR_INVALID_ARGUMENT);
-
-    *data_type_binary_format = data->binary_format_template()->binary_format().c_str();
+    *data_type_name = data->data_template()->name().c_str();
   }
   catch (viennamesh::error_t err)
   {
@@ -657,7 +636,6 @@ int viennamesh_algorithm_get_input(viennamesh_algorithm_wrapper algorithm,
 int viennamesh_algorithm_get_input_with_type(viennamesh_algorithm_wrapper algorithm,
                                              const char * name,
                                              const char * data_type,
-                                             const char * binary_format,
                                              viennamesh_data_wrapper * data)
 {
   try
@@ -665,7 +643,7 @@ int viennamesh_algorithm_get_input_with_type(viennamesh_algorithm_wrapper algori
     if (!algorithm || !name || !data_type || !data)
       throw viennamesh::error_t(VIENNAMESH_ERROR_INVALID_ARGUMENT);
 
-    *data = algorithm->get_input(name, data_type, binary_format ? binary_format : "");
+    *data = algorithm->get_input(name, data_type);
   }
   catch (viennamesh::error_t err)
   {
@@ -691,13 +669,12 @@ int viennamesh_algorithm_get_output(viennamesh_algorithm_wrapper algorithm,
   return VIENNAMESH_SUCCESS;
 }
 
-DYNAMIC_EXPORT int viennamesh_algorithm_get_output_with_type(viennamesh_algorithm_wrapper algorithm,
-                                                            const char * name,
-                                                            const char * data_type,
-                                                            const char * binary_format,
-                                                            viennamesh_data_wrapper * data)
+int viennamesh_algorithm_get_output_with_type(viennamesh_algorithm_wrapper algorithm,
+                                              const char * name,
+                                              const char * data_type,
+                                                           viennamesh_data_wrapper * data)
 {
-  *data = algorithm->get_output(name, data_type, binary_format ? binary_format : "");
+  *data = algorithm->get_output(name, data_type);
   return VIENNAMESH_SUCCESS;
 }
 

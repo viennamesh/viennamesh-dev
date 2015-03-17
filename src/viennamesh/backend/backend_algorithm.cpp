@@ -122,26 +122,22 @@ viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string co
 }
 
 viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string const & name,
-                                            std::string const & type_name,
-                                            std::string const & binary_format)
+                                            std::string const & type_name)
 {
   viennamesh_data_wrapper input = get_input(name);
 
   if (!input)
     return 0;
 
-  if ((input->type_name() == type_name) && (input->binary_format() == binary_format))
+  if (input->type_name() == type_name)
     return input;
-
-
-
 
 
   input->release();
 
-  viennamesh::backend::info(1) << "Requested input \"" << name << "\" of type \"" << type_name << "\"/\"" << binary_format << "\" but input is of type \"" << input->type_name() << "\"/\"" << input->binary_format() << "\"";
+  viennamesh::backend::info(1) << "Requested input \"" << name << "\" of type \"" << type_name << "\" but input is of type \"" << input->type_name() << "\"";
 
-  viennamesh_data_wrapper result = context()->convert_to(input, type_name, binary_format);
+  viennamesh_data_wrapper result = context()->convert_to(input, type_name);
 
   viennamesh::backend::info(1) << "; conversion: " << ((result)?"success":"failed") << std::endl;
 
@@ -174,15 +170,14 @@ viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_output(std::string c
 }
 
 viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_output(std::string const & name,
-                                        std::string const & type_name,
-                                        std::string const & binary_format)
+                                        std::string const & type_name)
 {
   OutputMapType::iterator it = outputs.find(name);
   if (it == outputs.end())
     return 0;
 
-  if ((it->second->type_name() == type_name) && (it->second->binary_format() == binary_format))
+  if (it->second->type_name() == type_name)
     return it->second;
 
-  return context()->convert_to(it->second, type_name, binary_format);
+  return context()->convert_to(it->second, type_name);
 }

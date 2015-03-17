@@ -89,19 +89,6 @@ namespace viennamesh
           child.print(ss);
 
         algorithm.set_input( parameter_name, ss.str() );
-
-//         size_t number_of_children = std::distance(paramater_node.children().begin(), paramater_node.children().end());
-//
-//         if ( number_of_children == 0 )
-//         {
-//           error(1) << "Parameter \"" << parameter_name << "\" is type xml but has no children." << std::endl;
-//           return false;
-//         }
-//
-//         if ( number_of_children != 1 )
-//           warning(1) << "Parameter \"" << parameter_name << "\" is type xml but has more than one children" << std::endl;
-//
-//         algorithm.set_input( parameter_name, paramater_node.first_child() );
       }
       else
       {

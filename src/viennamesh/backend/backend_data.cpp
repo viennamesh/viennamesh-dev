@@ -2,17 +2,12 @@
 
 std::string viennamesh_data_wrapper_t::type_name()
 {
-  return binary_format_template()->data_template()->name();
-}
-
-std::string viennamesh_data_wrapper_t::binary_format()
-{
-  return binary_format_template()->binary_format();
+  return data_template()->name();
 }
 
 viennamesh_context viennamesh_data_wrapper_t::context()
 {
-  return binary_format_template()->data_template()->context();
+  return data_template()->context();
 }
 
 void viennamesh_data_wrapper_t::set_data( viennamesh_data internal_data_in )
@@ -27,14 +22,14 @@ void viennamesh_data_wrapper_t::make_data()
 {
   release_internal_data();
 
-  internal_data_ = binary_format_template_->make_data();
+  internal_data_ = data_template()->make_data();
   own_internal_data = true;
 }
 
 void viennamesh_data_wrapper_t::release_internal_data()
 {
   if (own_internal_data && internal_data_)
-    binary_format_template()->delete_data( internal_data_ );
+    data_template()->delete_data( internal_data_ );
 }
 
 void viennamesh_data_wrapper_t::delete_this()

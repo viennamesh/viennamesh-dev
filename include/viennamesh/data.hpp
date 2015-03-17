@@ -126,24 +126,17 @@ namespace viennamesh
 
   private:
 
-    int make(viennamesh_context context,
-             std::string const & binary_format)
+    int make(viennamesh_context context)
     {
       release();
       int result = viennamesh_data_wrapper_make(context,
                                   result_of::data_information<DataT>::type_name().c_str(),
-                                  binary_format.c_str(),
                                   &data );
 
       if (result != VIENNAMESH_SUCCESS)
         return result;
 
       return viennamesh_data_wrapper_internal_get(data, (viennamesh_data*)&internal_data);
-    }
-
-    int make(viennamesh_context context)
-    {
-      return make( context, result_of::data_information<DataT>::local_binary_format() );
     }
 
     DataT * internal_data;
@@ -203,24 +196,17 @@ namespace viennamesh
 
   private:
 
-    int make(viennamesh_context context,
-             std::string const & binary_format)
+    int make(viennamesh_context context)
     {
       release();
       int result = viennamesh_data_wrapper_make(context,
                                   result_of::data_information<viennagrid_mesh>::type_name().c_str(),
-                                  binary_format.c_str(),
                                   &data );
 
       if (result != VIENNAMESH_SUCCESS)
         return result;
 
       return viennamesh_data_wrapper_internal_get(data, (viennamesh_data*)&internal_data);
-    }
-
-    int make(viennamesh_context context)
-    {
-      return make( context, result_of::data_information<viennamesh_string>::local_binary_format() );
     }
 
     viennagrid_mesh * internal_data;
@@ -284,24 +270,17 @@ namespace viennamesh
 
   private:
 
-    int make(viennamesh_context context,
-             std::string const & binary_format)
+    int make(viennamesh_context context)
     {
       release();
       int result = viennamesh_data_wrapper_make(context,
                                   result_of::data_information<viennagrid_quantity_field>::type_name().c_str(),
-                                  binary_format.c_str(),
                                   &data );
 
       if (result != VIENNAMESH_SUCCESS)
         return result;
 
       return viennamesh_data_wrapper_internal_get(data, (viennamesh_data*)&internal_data);
-    }
-
-    int make(viennamesh_context context)
-    {
-      return make( context, result_of::data_information<viennagrid_quantity_field>::local_binary_format() );
     }
 
     viennagrid_quantity_field * internal_data;
@@ -366,24 +345,17 @@ namespace viennamesh
 
   private:
 
-    int make(viennamesh_context context,
-             std::string const & binary_format)
+    int make(viennamesh_context context)
     {
       release();
       int result = viennamesh_data_wrapper_make(context,
                                   result_of::data_information<viennamesh_string>::type_name().c_str(),
-                                  binary_format.c_str(),
                                   &data );
 
       if (result != VIENNAMESH_SUCCESS)
         return result;
 
       return viennamesh_data_wrapper_internal_get(data, (viennamesh_data*)&internal_data);
-    }
-
-    int make(viennamesh_context context)
-    {
-      return make( context, result_of::data_information<viennamesh_string>::local_binary_format() );
     }
 
     viennamesh_string * internal_data;

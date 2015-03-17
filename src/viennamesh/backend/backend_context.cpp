@@ -262,49 +262,41 @@ viennamesh_context_t::viennamesh_context_t() : use_count_(1)
   viennamesh::backend::LoggingStack logging_stack("Registering built-in data types");
 
   register_data_type(viennamesh::result_of::data_information<bool>::type_name(),
-                     viennamesh::result_of::data_information<bool>::local_binary_format(),
                      viennamesh::backend::generic_make<bool>,
                      viennamesh::backend::generic_delete<bool>);
 
   register_data_type(viennamesh::result_of::data_information<int>::type_name(),
-                     viennamesh::result_of::data_information<int>::local_binary_format(),
                      viennamesh::backend::generic_make<int>,
                      viennamesh::backend::generic_delete<int>);
 
   register_data_type(viennamesh::result_of::data_information<double>::type_name(),
-                     viennamesh::result_of::data_information<double>::local_binary_format(),
                      viennamesh::backend::generic_make<double>,
                      viennamesh::backend::generic_delete<double>);
 
   register_data_type(viennamesh::result_of::data_information<viennamesh_string>::type_name(),
-                     viennamesh::result_of::data_information<viennamesh_string>::local_binary_format(),
                      viennamesh::backend::make_string,
                      viennamesh::backend::delete_string);
 
   register_data_type(viennamesh::result_of::data_information<viennamesh_point_container>::type_name(),
-                     viennamesh::result_of::data_information<viennamesh_point_container>::local_binary_format(),
                      viennamesh::backend::make_point_container,
                      viennamesh::backend::delete_point_container);
 
   register_data_type(viennamesh::result_of::data_information<viennamesh_seed_point_container>::type_name(),
-                     viennamesh::result_of::data_information<viennamesh_seed_point_container>::local_binary_format(),
                      viennamesh::backend::make_seed_point_container,
                      viennamesh::backend::delete_seed_point_container);
 
   register_data_type(viennamesh::result_of::data_information<viennagrid_quantity_field>::type_name(),
-                     viennamesh::result_of::data_information<viennagrid_quantity_field>::local_binary_format(),
                      viennamesh::backend::make_quantities,
                      viennamesh::backend::delete_quantities);
 
   register_data_type(viennamesh::result_of::data_information<viennagrid_mesh>::type_name(),
-                     viennamesh::result_of::data_information<viennagrid_mesh>::local_binary_format(),
                      viennamesh::backend::make_mesh,
                      viennamesh::backend::delete_mesh);
 
-  register_conversion_function("int","","double","",viennamesh::backend::generic_convert<int, double>);
-  register_conversion_function("double","","int","",viennamesh::backend::generic_convert<double, int>);
-  register_conversion_function("viennamesh_string","","viennamesh_point_container","",viennamesh::backend::string_to_point_container_convert);
-  register_conversion_function("viennamesh_string","","viennamesh_seed_point_container","",viennamesh::backend::string_to_seed_point_container_convert);
+  register_conversion_function("int","double",viennamesh::backend::generic_convert<int, double>);
+  register_conversion_function("double","int",viennamesh::backend::generic_convert<double, int>);
+  register_conversion_function("viennamesh_string","viennamesh_point_container",viennamesh::backend::string_to_point_container_convert);
+  register_conversion_function("viennamesh_string","viennamesh_seed_point_container",viennamesh::backend::string_to_seed_point_container_convert);
 }
 
 viennamesh_context_t::~viennamesh_context_t()
@@ -337,7 +329,7 @@ viennamesh::data_template_t & viennamesh_context_t::get_data_type(std::string co
 }
 
 void viennamesh_context_t::register_data_type(std::string const & data_type_name_,
-                                            std::string const & data_type_binary_format_,
+//                                             std::string const & data_type_binary_format_,
                                             viennamesh_data_make_function make_function_,
                                             viennamesh_data_delete_function delete_function_)
 {
@@ -351,17 +343,19 @@ void viennamesh_context_t::register_data_type(std::string const & data_type_name
     it = data_types.insert( std::make_pair(data_type_name_, viennamesh::data_template_t()) ).first;
     it->second.name() = data_type_name_;
     it->second.set_context(this);
+    it->second.set_make_delete_function(make_function_, delete_function_);
   }
 
-  it->second.register_data_type(data_type_binary_format_, make_function_, delete_function_);
-
-  viennamesh::backend::info(1) << "Data type \"" << data_type_name_ << "\" with binary format \"" << data_type_binary_format_ << "\" sucessfully registered" << std::endl;
+  viennamesh::backend::info(1) << "Data type \"" << data_type_name_ << "\" sucessfully registered" << std::endl;
 }
 
-viennamesh_data_wrapper viennamesh_context_t::make_data(std::string const & data_type_name_,
-                                                     std::string const & data_type_binary_format_)
+viennamesh_data_wrapper viennamesh_context_t::make_data(std::string const & data_type_name_/*,
+                                                     std::string const & data_type_binary_format_*/)
 {
-  viennamesh_data_wrapper result = new viennamesh_data_wrapper_t(&get_data_type(data_type_name_).get_binary_format_template(data_type_binary_format_));
+//   viennamesh_data_wrapper result = new viennamesh_data_wrapper_t(&get_data_type(data_type_name_).get_binary_format_template(data_type_binary_format_));
+
+  viennamesh_data_wrapper result = new viennamesh_data_wrapper_t( &get_data_type(data_type_name_) );
+
   try
   {
     result->make_data();
@@ -376,29 +370,25 @@ viennamesh_data_wrapper viennamesh_context_t::make_data(std::string const & data
 }
 
 void viennamesh_context_t::register_conversion_function(std::string const & data_type_from,
-                                  std::string const & binary_format_from,
                                   std::string const & data_type_to,
-                                  std::string const & binary_format_to,
                                   viennamesh_data_convert_function convert_function)
 {
-  get_data_type(data_type_from).get_binary_format_template(binary_format_from).add_conversion_function(data_type_to, binary_format_to, convert_function);
+  get_data_type(data_type_from).add_conversion_function(data_type_to, convert_function);
 
-  viennamesh::backend::info(1) << "Conversion function from data type \"" << data_type_from << "\" with binary format \"" << binary_format_from << "\" to data type \"" << data_type_to << "\" with binary format \"" << binary_format_to << "\" sucessfully registered" << std::endl;
+  viennamesh::backend::info(1) << "Conversion function from data type \"" << data_type_from << "\" to data type \"" << data_type_to << "\" sucessfully registered" << std::endl;
 }
 
 void viennamesh_context_t::convert(viennamesh_data_wrapper from, viennamesh_data_wrapper to)
 {
   std::string from_data_type_name = from->type_name();
-  std::string from_data_binary_format = from->binary_format();
 
-  get_data_type(from_data_type_name).get_binary_format_template(from_data_binary_format).convert( from, to );
+  get_data_type(from_data_type_name).convert( from, to );
 }
 
 viennamesh_data_wrapper viennamesh_context_t::convert_to(viennamesh_data_wrapper from,
-                            std::string const & data_type_name_,
-                            std::string const & data_type_binary_format_)
+                            std::string const & data_type_name_)
 {
-  viennamesh_data_wrapper result = make_data(data_type_name_, data_type_binary_format_);
+  viennamesh_data_wrapper result = make_data(data_type_name_);
   convert(from, result);
   return result;
 }

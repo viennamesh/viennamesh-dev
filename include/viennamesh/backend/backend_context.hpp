@@ -20,30 +20,25 @@ public:
   std::string const & registered_data_type_name(int index_) const;
 
   viennamesh::data_template_t & get_data_type(std::string const & data_type_name_);
-//   viennamesh::data_template_t const & get_data_type(std::string const & data_type_name_) const;
+  viennamesh::data_template_t const & get_data_type(std::string const & data_type_name_) const;
 
   void register_data_type(std::string const & data_type_name_,
-                          std::string const & data_type_binary_format_,
                           viennamesh_data_make_function make_function_,
                           viennamesh_data_delete_function delete_function_);
 
-  viennamesh_data_wrapper make_data(std::string const & data_type_name_,
-                                   std::string const & data_type_binary_format_);
+  viennamesh_data_wrapper make_data(std::string const & data_type_name_);
   void delete_data(viennamesh_data_wrapper data) const;
 
 
 
   void register_conversion_function(std::string const & data_type_from,
-                                    std::string const & binary_format_from,
                                     std::string const & data_type_to,
-                                    std::string const & binary_format_to,
                                     viennamesh_data_convert_function convert_function);
 
 
   void convert(viennamesh_data_wrapper from, viennamesh_data_wrapper to);
   viennamesh_data_wrapper convert_to(viennamesh_data_wrapper from,
-                                    std::string const & data_type_name_,
-                                    std::string const & data_type_binary_format_);
+                                    std::string const & data_type_name_);
 
 
 

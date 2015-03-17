@@ -113,7 +113,6 @@ namespace viennamesh
       viennamesh_data_wrapper data_;
       viennamesh_algorithm_get_input_with_type(algorithm, name.c_str(),
                                                result_of::data_information<DataT>::type_name().c_str(),
-                                               result_of::data_information<DataT>::local_binary_format().c_str(),
                                                &data_);
 
       return data_handle<DataT>(data_, false);

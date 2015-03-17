@@ -86,19 +86,16 @@ DYNAMIC_EXPORT int viennamesh_registered_data_type_get_name(viennamesh_context c
 
 DYNAMIC_EXPORT int viennamesh_data_type_register(viennamesh_context context,
                                                  const char * data_type_name,
-                                                 const char * data_type_binary_format,
                                                  viennamesh_data_make_function make_function,
                                                  viennamesh_data_delete_function delete_function);
 DYNAMIC_EXPORT int viennamesh_data_type_unregister(viennamesh_context context,
-                                                   const char * data_type_name,
-                                                   const char * data_type_binary_format);
+                                                   const char * data_type_name);
 
 
 
 
 DYNAMIC_EXPORT int viennamesh_data_wrapper_make(viennamesh_context context,
                                         const char * data_type_name,
-                                        const char * data_type_binary_format,
                                         viennamesh_data_wrapper * data);
 DYNAMIC_EXPORT int viennamesh_data_wrapper_internal_get(viennamesh_data_wrapper data,
                                                 viennamesh_data * internal_data);
@@ -110,8 +107,6 @@ DYNAMIC_EXPORT int viennamesh_data_wrapper_release(viennamesh_data_wrapper data)
 
 DYNAMIC_EXPORT int viennamesh_data_wrapper_type_get_name(viennamesh_data_wrapper data,
                                                  const char ** data_type_name);
-DYNAMIC_EXPORT int viennamesh_data_wrapper_type_get_binary_format(viennamesh_data_wrapper data,
-                                                          const char ** data_type_binary_format);
 
 
 // Conversion
@@ -121,9 +116,7 @@ typedef int (*viennamesh_data_convert_function)(viennamesh_data from, viennamesh
 
 DYNAMIC_EXPORT int viennamesh_data_conversion_register(viennamesh_context context,
                                                        const char * data_type_from,
-                                                       const char * binary_format_from,
                                                        const char * data_type_to,
-                                                       const char * binary_format_to,
                                                        viennamesh_data_convert_function convert_function);
 
 DYNAMIC_EXPORT int viennamesh_data_wrapper_convert(viennamesh_data_wrapper data_from,
@@ -131,7 +124,6 @@ DYNAMIC_EXPORT int viennamesh_data_wrapper_convert(viennamesh_data_wrapper data_
 
 DYNAMIC_EXPORT int viennamesh_data_wrapper_convert_to(viennamesh_data_wrapper data_from,
                                               const char * data_type_to,
-                                              const char * binary_format_to,
                                               viennamesh_data_wrapper * data_to);
 
 
@@ -234,7 +226,6 @@ DYNAMIC_EXPORT int viennamesh_algorithm_get_input(viennamesh_algorithm_wrapper a
 DYNAMIC_EXPORT int viennamesh_algorithm_get_input_with_type(viennamesh_algorithm_wrapper algorithm,
                                                             const char * name,
                                                             const char * data_type,
-                                                            const char * binary_format,
                                                             viennamesh_data_wrapper * data);
 
 
@@ -247,7 +238,6 @@ DYNAMIC_EXPORT int viennamesh_algorithm_get_output(viennamesh_algorithm_wrapper 
 DYNAMIC_EXPORT int viennamesh_algorithm_get_output_with_type(viennamesh_algorithm_wrapper algorithm,
                                                             const char * name,
                                                             const char * data_type,
-                                                            const char * binary_format,
                                                             viennamesh_data_wrapper * data);
 
 
