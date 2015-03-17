@@ -11,17 +11,16 @@ namespace viennamesh
   {
   public:
     typedef std::ostringstream collector_stream_type;
-    typedef int (*viennamesh_log_function_type)(const char *, int, const char *);
+    typedef int (*viennamesh_log_function_type)(const char *, int);
 
-    log_instance(viennamesh_log_function_type function, std::string const & category_, int log_level_) :
+    log_instance(viennamesh_log_function_type function, int log_level_) :
       os_( new collector_stream_type() ),
       function_(function),
-      category(category_),
       log_level(log_level_) {}
 
     ~log_instance()
     {
-      function_( os_->str().c_str(), log_level, category.c_str() );
+      function_( os_->str().c_str(), log_level );
       delete os_;
     }
 
@@ -41,7 +40,6 @@ namespace viennamesh
     collector_stream_type * os_;
 
     viennamesh_log_function_type function_;
-    std::string const & category;
     int log_level;
   };
 
@@ -49,16 +47,16 @@ namespace viennamesh
 
 
 
-  inline log_instance info(int log_level, std::string const & category  = "")
-  { return log_instance(viennamesh_log_info_line, category, log_level); }
-  inline log_instance error(int log_level, std::string const & category  = "")
-  { return log_instance(viennamesh_log_error_line, category, log_level); }
-  inline log_instance warning(int log_level, std::string const & category  = "")
-  { return log_instance(viennamesh_log_warning_line, category, log_level); }
-  inline log_instance debug(int log_level, std::string const & category  = "")
-  { return log_instance(viennamesh_log_debug_line, category, log_level); }
-  inline log_instance stack(int log_level, std::string const & category  = "")
-  { return log_instance(viennamesh_log_stack_line, category, log_level); }
+  inline log_instance info(int log_level)
+  { return log_instance(viennamesh_log_info_line, log_level); }
+  inline log_instance error(int log_level)
+  { return log_instance(viennamesh_log_error_line, log_level); }
+  inline log_instance warning(int log_level)
+  { return log_instance(viennamesh_log_warning_line, log_level); }
+  inline log_instance debug(int log_level)
+  { return log_instance(viennamesh_log_debug_line, log_level); }
+  inline log_instance stack(int log_level)
+  { return log_instance(viennamesh_log_stack_line, log_level); }
 
 
 

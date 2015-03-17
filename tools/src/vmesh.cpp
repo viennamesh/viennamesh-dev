@@ -21,8 +21,11 @@ int main(int argc, char **argv)
   {
     TCLAP::CmdLine cmd("ViennaMesh VMesh application, reads and executes a pipeline", ' ', "1.0");
 
-    TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name (default is convert.log)", false, "vmesh.log", "string");
+    TCLAP::ValueArg<std::string> log_filename("l","logfile", "Log file name", false, "", "string");
     cmd.add( log_filename );
+
+    TCLAP::ValueArg<int> info_loglevel("i","info-loglevel", "Info Loglevel (default is 5)", false, 5, "int");
+    cmd.add( info_loglevel );
 
 
     TCLAP::UnlabeledValueArg<std::string> pipeline_filename( "filename", "Pipeline file name", true, "", "PipelineFile"  );
@@ -30,8 +33,10 @@ int main(int argc, char **argv)
 
     cmd.parse( argc, argv );
 
+    if ( !log_filename.getValue().empty() )
+      viennamesh_log_add_logging_file(log_filename.getValue().c_str(), NULL);
 
-//     viennamesh::logger().register_callback( new viennamesh::FileStreamCallback<viennamesh::FileStreamFormater>( log_filename.getValue() ) );
+    viennamesh_log_set_info_level( info_loglevel.getValue() );
 
 
     pugi::xml_document pipeline_xml;

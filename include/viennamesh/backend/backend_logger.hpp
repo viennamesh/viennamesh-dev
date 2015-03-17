@@ -111,13 +111,6 @@ namespace viennamesh
     }
 
 
-    enum LoggerBehavior
-    {
-      use_global_loglevels = 0,
-      use_local_loglevels = 1,
-      use_category_loglevels = 2
-    };
-
     class Logger;
 
     template<typename LoggingTagT>
@@ -126,10 +119,10 @@ namespace viennamesh
     public:
       typedef std::ostringstream collector_stream_type;
 
-      log_instance(Logger & logger_obj_, std::string const & category_, int log_level_) :
+      log_instance(Logger & logger_obj_,
+                   int log_level_) :
         os_( new collector_stream_type() ),
         logger_obj(logger_obj_),
-        category(category_),
         log_level(log_level_) {}
 
       ~log_instance();
@@ -150,7 +143,6 @@ namespace viennamesh
       collector_stream_type * os_;
 
       Logger & logger_obj;
-      std::string const & category;
       int log_level;
     };
 
@@ -213,7 +205,6 @@ namespace viennamesh
                 std::string const & tag_name,
                 std::string const & colored_tag_name,
                 int log_level,
-                std::string const & category,
                 std::string const & message) const = 0;
 
       virtual void write(std::string const & message) = 0;
@@ -221,11 +212,7 @@ namespace viennamesh
       template<typename LoggingTagT>
       void log(Logger const & logger,
               int log_level,
-              std::string const & category,
               std::string const & message);
-
-      LoggingLevels< std::map<std::string, int> > category_log_levels;
-      LoggingLevels< int > local_log_levels;
     };
 
 
@@ -240,10 +227,9 @@ namespace viennamesh
                 std::string const & tag_name,
                 std::string const & colored_tag_name,
                 int log_level,
-                std::string const & category,
                 std::string const & message) const
       {
-        return formater.make(logger, tag_name, colored_tag_name, log_level, category, message);
+        return formater.make(logger, tag_name, colored_tag_name, log_level, message);
       }
 
       virtual void write(std::string const & message)
@@ -268,10 +254,9 @@ namespace viennamesh
                 std::string const & tag_name,
                 std::string const & colored_tag_name,
                 int log_level,
-                std::string const & category,
                 std::string const & message) const
       {
-        return formater.make(logger, tag_name, colored_tag_name, log_level, category, message);
+        return formater.make(logger, tag_name, colored_tag_name, log_level, message);
       }
 
       virtual void write(std::string const & message)
@@ -292,59 +277,58 @@ namespace viennamesh
     {
     public:
 
-      Logger() : behavior_(use_global_loglevels), indentation_count_(0), global_log_levels_(5) {}
+      Logger() : indentation_count_(0), log_levels_(5) {}
       ~Logger()
       {
-        for (std::list< BaseCallback * >::iterator it = callbacks.begin(); it != callbacks.end(); ++it)
+        for (std::vector<BaseCallback *>::iterator it = callbacks.begin(); it != callbacks.end(); ++it)
           delete *it;
       }
 
       template<typename LoggingTagT>
-      log_instance<LoggingTagT> stream(int log_level, std::string const & category = "")
-      { return log_instance<LoggingTagT>(*this, category, log_level); }
+      log_instance<LoggingTagT> stream(int log_level)
+      { return log_instance<LoggingTagT>(*this, log_level); }
 
-      log_instance<stack_tag> stack(int log_level, std::string const & category  = "")
-      { return stream<stack_tag>(log_level, category); }
+      log_instance<stack_tag> stack(int log_level)
+      { return stream<stack_tag>(log_level); }
 
-      log_instance<info_tag> info(int log_level, std::string const & category  = "")
-      { return stream<info_tag>(log_level, category); }
+      log_instance<info_tag> info(int log_level)
+      { return stream<info_tag>(log_level); }
 
-      log_instance<warning_tag> warning(int log_level, std::string const & category  = "")
-      { return stream<warning_tag>(log_level, category); }
+      log_instance<warning_tag> warning(int log_level)
+      { return stream<warning_tag>(log_level); }
 
-      log_instance<error_tag> error(int log_level, std::string const & category  = "")
-      { return stream<error_tag>(log_level, category); }
+      log_instance<error_tag> error(int log_level)
+      { return stream<error_tag>(log_level); }
 
-      log_instance<debug_tag> debug(int log_level, std::string const & category  = "")
-      { return stream<debug_tag>(log_level, category); }
+      log_instance<debug_tag> debug(int log_level)
+      { return stream<debug_tag>(log_level); }
 
 
 
       template<typename LoggingTagT>
       void log( int log_level,
-                    std::string const & category,
                     std::string const & message )
       {
-        for (std::list< BaseCallback * >::iterator it = callbacks.begin(); it != callbacks.end(); ++it)
-          (*it)->log<LoggingTagT>(*this, log_level, category, message);
+        for (std::vector< BaseCallback * >::iterator it = callbacks.begin(); it != callbacks.end(); ++it)
+          (*it)->log<LoggingTagT>(*this, log_level, message);
       }
 
-      std::list< BaseCallback * >::iterator register_callback( BaseCallback * callback )
+      int register_color_cout_callback();
+      int register_file_callback( std::string const & filename );
+      void unregister_callback( int callback_handle )
       {
-        callbacks.push_back( callback );
-        return --(callbacks.end());
+        delete callbacks[callback_handle];
+        callbacks.erase( callbacks.begin()+callback_handle );
       }
 
-      void unregister_callback( std::list< BaseCallback * >::iterator const & callback_handle )
-      {
-        callbacks.erase(callback_handle);
-      }
+      LoggingLevels< int > const & log_levels() const { return log_levels_; }
 
-      LoggerBehavior behavior() const { return behavior_; }
-      LoggingLevels< int > const & global_log_levels() const { return global_log_levels_; }
       template<typename LoggingTagT>
-      void set_log_level( int level ) { global_log_levels_.set<LoggingTagT>(level); }
-      void set_all_log_level( int level ) { global_log_levels_.set_all(level); }
+      int get_log_level() const { return log_levels_.get<LoggingTagT>(); }
+
+      template<typename LoggingTagT>
+      void set_log_level( int level ) { log_levels_.set<LoggingTagT>(level); }
+      void set_all_log_level( int level ) { log_levels_.set_all(level); }
 
       void increase_indentation() { ++indentation_count_; }
       void decrease_indentation() { --indentation_count_; }
@@ -352,12 +336,16 @@ namespace viennamesh
 
     private:
 
-      LoggerBehavior behavior_;
+      int register_callback( BaseCallback * callback )
+      {
+        callbacks.push_back( callback );
+        return callbacks.size()-1;
+      }
+
       int indentation_count_;
+      LoggingLevels< int > log_levels_;
 
-      LoggingLevels< int > global_log_levels_;
-
-      std::list< BaseCallback * > callbacks;
+      std::vector<BaseCallback *> callbacks;
     };
 
 
@@ -365,7 +353,7 @@ namespace viennamesh
       template<typename LoggingTagT>
       log_instance<LoggingTagT>::~log_instance()
       {
-        logger_obj.template log<LoggingTagT>( log_level, category, os_->str() );
+        logger_obj.template log<LoggingTagT>( log_level, os_->str() );
         delete os_;
       }
 
@@ -373,33 +361,10 @@ namespace viennamesh
       template<typename LoggingTagT>
       void BaseCallback::log(Logger const & logger,
                             int log_level,
-                            std::string const & category,
                             std::string const & message)
       {
-        if (logger.behavior() == use_global_loglevels)
-        {
-          if (log_level <= logger.global_log_levels().get<LoggingTagT>())
-            write( make(logger, LoggingTagT::name(), colored_name<LoggingTagT>(), log_level, category, message) );
-        }
-        else if (logger.behavior() == use_local_loglevels)
-        {
-          if (log_level <= local_log_levels.get<LoggingTagT>())
-            write( make(logger, LoggingTagT::name(), colored_name<LoggingTagT>(), log_level, category, message) );
-        }
-        else
-        {
-          std::map<std::string, int> const & level_map = category_log_levels.get<LoggingTagT>();
-          std::map<std::string, int>::const_iterator it = level_map.find(category);
-          if (it != level_map.end())
-          {
-            if (log_level <= it->second)
-              write( make(logger, LoggingTagT::name(), colored_name<LoggingTagT>(), log_level, category, message) );
-          }
-          else if (log_level <= local_log_levels.get<LoggingTagT>() )
-          {
-            write( make(logger, LoggingTagT::name(), colored_name<LoggingTagT>(), log_level, category, message) );
-          }
-        }
+        if (log_level <= logger.log_levels().get<LoggingTagT>())
+          write( make(logger, LoggingTagT::name(), colored_name<LoggingTagT>(), log_level, message) );
       }
 
 
@@ -415,14 +380,11 @@ namespace viennamesh
               std::string const &,
               std::string const & colored_tag_name,
               int log_level,
-              std::string const & category,
               std::ostream & stream) const
       {
         for (int i = 0; i < logger.indentation_count(); ++i)
           stream << "  ";
         stream <<  "(" << log_level << ") " << colored_tag_name;
-        if (!category.empty())
-          stream << " in '" << category << "'";
         stream << ": ";
       }
 
@@ -431,7 +393,6 @@ namespace viennamesh
                 std::string const & tag_name,
                 std::string const & colored_tag_name,
                 int log_level,
-                std::string const & category,
                 std::string const & message) const
       {
         std::ostringstream tmp;
@@ -441,7 +402,7 @@ namespace viennamesh
         {
           if (last_char_newline)
           {
-            make_header(logger, tag_name, colored_tag_name, log_level, category, tmp);
+            make_header(logger, tag_name, colored_tag_name, log_level, tmp);
             last_char_newline = false;
           }
 
@@ -478,14 +439,11 @@ namespace viennamesh
               std::string const & tag_name,
               std::string const &,
               int log_level,
-              std::string const & category,
               std::ostream & stream) const
       {
         for (int i = 0; i < logger.indentation_count(); ++i)
           stream << "  ";
         stream <<  "(" << log_level << ") " << tag_name;
-        if (!category.empty())
-          stream << " in '" << category << "'";
         stream << ": ";
       }
 
@@ -494,7 +452,6 @@ namespace viennamesh
                 std::string const & tag_name,
                 std::string const & colored_tag_name,
                 int log_level,
-                std::string const & category,
                 std::string const & message) const
       {
         std::ostringstream tmp;
@@ -504,7 +461,7 @@ namespace viennamesh
         {
           if (last_char_newline)
           {
-            make_header(logger, tag_name, colored_tag_name, log_level, category, tmp);
+            make_header(logger, tag_name, colored_tag_name, log_level, tmp);
             last_char_newline = false;
           }
 
@@ -533,14 +490,14 @@ namespace viennamesh
 
     Logger & logger();
 
-    inline log_instance<info_tag> info(int log_level, std::string const & category  = "")
-    { return logger().info(log_level, category); }
-    inline log_instance<error_tag> error(int log_level, std::string const & category  = "")
-    { return logger().error(log_level, category); }
-    inline log_instance<warning_tag> warning(int log_level, std::string const & category  = "")
-    { return logger().warning(log_level, category); }
-    inline log_instance<debug_tag> debug(int log_level, std::string const & category  = "")
-    { return logger().debug(log_level, category); }
+    inline log_instance<info_tag> info(int log_level)
+    { return logger().info(log_level); }
+    inline log_instance<error_tag> error(int log_level)
+    { return logger().error(log_level); }
+    inline log_instance<warning_tag> warning(int log_level)
+    { return logger().warning(log_level); }
+    inline log_instance<debug_tag> debug(int log_level)
+    { return logger().debug(log_level); }
 
 
 
@@ -737,10 +694,9 @@ namespace viennamesh
         std::string const & tag_name,
         std::string const & colored_tag_name,
         int log_level,
-        std::string const & category,
         std::string const & message) const
       {
-        return formater.make(logger, tag_name, colored_tag_name, log_level, category, message);
+        return formater.make(logger, tag_name, colored_tag_name, log_level, message);
       }
 
       void write(std::string const & message);

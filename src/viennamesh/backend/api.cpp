@@ -730,33 +730,33 @@ int viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorithm)
 
 
 
-int viennamesh_log_info_line(const char * message, int log_level, const char * category)
+int viennamesh_log_info_line(const char * message, int log_level)
 {
-  viennamesh::backend::info(log_level, category) << message;
+  viennamesh::backend::info(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_log_error_line(const char * message, int log_level, const char * category)
+int viennamesh_log_error_line(const char * message, int log_level)
 {
-  viennamesh::backend::error(log_level, category) << message;
+  viennamesh::backend::error(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_log_warning_line(const char * message, int log_level, const char * category)
+int viennamesh_log_warning_line(const char * message, int log_level)
 {
-  viennamesh::backend::warning(log_level, category) << message;
+  viennamesh::backend::warning(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_log_debug_line(const char * message, int log_level, const char * category)
+int viennamesh_log_debug_line(const char * message, int log_level)
 {
-  viennamesh::backend::debug(log_level, category) << message;
+  viennamesh::backend::debug(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
-int viennamesh_log_stack_line(const char * message, int log_level, const char * category)
+int viennamesh_log_stack_line(const char * message, int log_level)
 {
-  viennamesh::backend::logger().stack(log_level, category) << message;
+  viennamesh::backend::logger().stack(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
@@ -785,6 +785,74 @@ int viennamesh_log_disable_capturing()
 }
 
 
+int viennamesh_log_get_info_level(int * log_level)
+{
+  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::info_tag>();
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_get_error_level(int * log_level)
+{
+  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::error_tag>();
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_get_warning_level(int * log_level)
+{
+  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::warning_tag>();
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_get_debug_level(int * log_level)
+{
+  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::debug_tag>();
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_get_stack_level(int * log_level)
+{
+  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::stack_tag>();
+  return VIENNAMESH_SUCCESS;
+}
 
 
+
+int viennamesh_log_set_info_level(int log_level)
+{
+  viennamesh::backend::logger().set_log_level<viennamesh::backend::info_tag>(log_level);
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_set_error_level(int log_level)
+{
+  viennamesh::backend::logger().set_log_level<viennamesh::backend::error_tag>(log_level);
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_set_warning_level(int log_level)
+{
+  viennamesh::backend::logger().set_log_level<viennamesh::backend::warning_tag>(log_level);
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_set_debug_level(int log_level)
+{
+  viennamesh::backend::logger().set_log_level<viennamesh::backend::debug_tag>(log_level);
+  return VIENNAMESH_SUCCESS;
+}
+
+int viennamesh_log_set_stack_level(int log_level)
+{
+  viennamesh::backend::logger().set_log_level<viennamesh::backend::stack_tag>(log_level);
+  return VIENNAMESH_SUCCESS;
+}
+
+
+int viennamesh_log_add_logging_file(char const * filename, viennamesh_log_callback_handle * handle)
+{
+  viennamesh_log_callback_handle tmp = viennamesh::backend::logger().register_file_callback(filename);
+  if (handle)
+    *handle = tmp;
+  return VIENNAMESH_SUCCESS;
+}
 

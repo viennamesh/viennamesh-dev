@@ -261,12 +261,14 @@ DYNAMIC_EXPORT int viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorit
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+typedef int viennamesh_log_callback_handle;
 
-DYNAMIC_EXPORT int viennamesh_log_info_line(const char * message, int log_level, const char * category);
-DYNAMIC_EXPORT int viennamesh_log_error_line(const char * message, int log_level, const char * category);
-DYNAMIC_EXPORT int viennamesh_log_warning_line(const char * message, int log_level, const char * category);
-DYNAMIC_EXPORT int viennamesh_log_debug_line(const char * message, int log_level, const char * category);
-DYNAMIC_EXPORT int viennamesh_log_stack_line(const char * message, int log_level, const char * category);
+
+DYNAMIC_EXPORT int viennamesh_log_info_line(const char * message, int log_level);
+DYNAMIC_EXPORT int viennamesh_log_error_line(const char * message, int log_level);
+DYNAMIC_EXPORT int viennamesh_log_warning_line(const char * message, int log_level);
+DYNAMIC_EXPORT int viennamesh_log_debug_line(const char * message, int log_level);
+DYNAMIC_EXPORT int viennamesh_log_stack_line(const char * message, int log_level);
 
 DYNAMIC_EXPORT int viennamesh_log_increase_indentation();
 DYNAMIC_EXPORT int viennamesh_log_decrease_indentation();
@@ -274,6 +276,21 @@ DYNAMIC_EXPORT int viennamesh_log_decrease_indentation();
 DYNAMIC_EXPORT int viennamesh_log_enable_capturing();
 DYNAMIC_EXPORT int viennamesh_log_disable_capturing();
 
+
+DYNAMIC_EXPORT int viennamesh_log_get_info_level(int * log_level);
+DYNAMIC_EXPORT int viennamesh_log_get_error_level(int * log_level);
+DYNAMIC_EXPORT int viennamesh_log_get_warning_level(int * log_level);
+DYNAMIC_EXPORT int viennamesh_log_get_debug_level(int * log_level);
+DYNAMIC_EXPORT int viennamesh_log_get_stack_level(int * log_level);
+
+DYNAMIC_EXPORT int viennamesh_log_set_info_level(int log_level);
+DYNAMIC_EXPORT int viennamesh_log_set_error_level(int log_level);
+DYNAMIC_EXPORT int viennamesh_log_set_warning_level(int log_level);
+DYNAMIC_EXPORT int viennamesh_log_set_debug_level(int log_level);
+DYNAMIC_EXPORT int viennamesh_log_set_stack_level(int log_level);
+
+
+DYNAMIC_EXPORT int viennamesh_log_add_logging_file(char const * filename, viennamesh_log_callback_handle * handle);
 
 
 

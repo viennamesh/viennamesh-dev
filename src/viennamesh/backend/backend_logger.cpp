@@ -19,6 +19,17 @@ namespace viennamesh
 {
   namespace backend
   {
+
+    int Logger::register_color_cout_callback()
+    {
+      return register_callback( new StdOutCallback<CoutColorFormater>() );
+    }
+
+    int Logger::register_file_callback( std::string const & filename )
+    {
+      return register_callback( new FileStreamCallback<FileStreamFormater>(filename) );
+    }
+
     Logger & logger()
     {
       static bool is_init = false;
@@ -26,7 +37,7 @@ namespace viennamesh
 
       if (!is_init)
       {
-        logger_.register_callback( new StdOutCallback<CoutColorFormater>() );
+        logger_.register_color_cout_callback();
         is_init = true;
       }
 
@@ -79,7 +90,7 @@ namespace viennamesh
             bytesRead = read(std_capture.m_pipe[StdCapture::READ], &(*buf.begin()), bufSize);
           }
 
-          logger().log<info_tag>(5, "", m_captured);
+          logger().log<info_tag>(5, m_captured);
         }
       }
 
