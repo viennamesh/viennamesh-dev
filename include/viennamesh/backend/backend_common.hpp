@@ -1,6 +1,54 @@
 #ifndef _VIENNAMESH_BACKEND_COMMON_HPP_
 #define _VIENNAMESH_BACKEND_COMMON_HPP_
 
+#include <ostream>
+#include "viennamesh/backend/backend_forwards.hpp"
+
+namespace viennamesh
+{
+  class exception : public std::runtime_error
+  {
+  public:
+    exception(viennamesh_error error_code_in,
+              std::string const & function_in, std::string const & file_in, int line_in,
+              std::string const & message_in) :
+        std::runtime_error(message_in), error_code_(error_code_in), function_(function_in), file_(file_in), line_(line_in) {}
+    virtual ~exception() {}
+
+
+    viennamesh_error error_code() const { return error_code_; }
+    std::string const & function() const { return function_; }
+    std::string const & file() const { return file_; }
+    int line() const { return line_; }
+
+  private:
+    viennamesh_error error_code_;
+    std::string function_;
+    std::string file_;
+    int line_;
+  };
+}
+
+std::ostream & operator<<(std::ostream & stream, viennamesh_error error);
+std::ostream & operator<<(std::ostream & stream, viennamesh::exception const & ex);
+
+
+#define VIENNAMESH_ERROR(ERROR_CODE, MESSAGE) throw viennamesh::exception(ERROR_CODE, __func__, __FILE__, __LINE__, MESSAGE);
+// #define HANDLE_ERROR(TO_CHECK, OBJECT) viennamesh::handle_error(TO_CHECK, viennamesh::internal_context(OBJECT))
+
+namespace viennamesh
+{
+  viennamesh_error handle_error(viennamesh_context context);
+  void handle_error(viennamesh_error error, viennamesh_context context);
+}
+
+
+
+
+
+
+
+
 namespace viennamesh
 {
   template<typename T>

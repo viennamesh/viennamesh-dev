@@ -3,6 +3,7 @@
 
 #include <set>
 #include <dlfcn.h>
+#include <boost/concept_check.hpp>
 
 #include "viennamesh/backend/backend_forwards.hpp"
 #include "viennamesh/backend/backend_data.hpp"
@@ -53,7 +54,7 @@ public:
   {
     std::map<std::string, viennamesh::algorithm_template_t>::iterator it = algorithm_templates.find(algorithm_name);
     if (it != algorithm_templates.end())
-      handle_error(VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED);
+      VIENNAMESH_ERROR(VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED, "Algorithm \"" + algorithm_name + "\" already registered");
 
     viennamesh::algorithm_template_t & algorithm_template = algorithm_templates[algorithm_name];
     algorithm_template.set_context(this);
@@ -81,25 +82,35 @@ public:
     delete algorithm;
   }
 
-//   void run_algorithm(viennamesh_algorithm_wrapper algorithm)
-//   {
-//     algorithm->run();
-//   }
+  viennamesh_error error_code() const { return error_code_; }
+  std::string const & error_function() const { return error_function_; };
+  std::string const & error_file() const  { return error_file_; };
+  int error_line() const { return error_line_; }
+  std::string const & error_message() const { return error_message_; }
 
-
-  std::string const & error_message() const
+  void set_error(viennamesh_error error_code_in,
+                 std::string const & function_in, std::string const & file_in, int line_in,
+                 std::string const & error_message_in)
   {
-    return error_message_;
-  }
-
-  void set_error_message(std::string const & error_message_in)
-  {
+    error_code_ = error_code_in;
+    error_function_ = function_in;
+    error_file_ = file_in;
+    error_line_ = line_in;
     error_message_ = error_message_in;
     viennamesh::backend::error(1) << error_message() << std::endl;
   }
 
-  void clear_error_message()
+  void set_error(viennamesh::exception const & ex)
   {
+    set_error( ex.error_code(), ex.function(), ex.file(), ex.line(), ex.what() );
+  }
+
+  void clear_error()
+  {
+    error_code_ = VIENNAMESH_SUCCESS;
+    error_function_.clear();
+    error_file_.clear();
+    error_line_ = -1;
     error_message_.clear();
   }
 
@@ -123,12 +134,10 @@ public:
   }
 
 private:
-
-  void handle_error(viennamesh_error error_code) const
-  {
-    throw viennamesh::error_t(error_code);
-  }
-
+  viennamesh_error error_code_;
+  std::string error_function_;
+  std::string error_file_;
+  int error_line_;
   std::string error_message_;
 
   std::map<std::string, viennamesh::data_template_t> data_types;

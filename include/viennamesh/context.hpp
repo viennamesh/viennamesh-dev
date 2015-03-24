@@ -28,28 +28,16 @@ namespace viennamesh
   public:
 
     context_handle();
-    context_handle(viennamesh_context ctx_) : ctx(ctx_) { retain(); }
-    context_handle(context_handle const & handle_) : ctx(handle_.ctx) { retain(); }
+    context_handle(viennamesh_context ctx_);
+    context_handle(context_handle const & handle_);
 
-    ~context_handle()
-    {
-      release();
-    }
+    ~context_handle();
 
-    context_handle & operator=(context_handle const & handle_)
-    {
-      release();
-      ctx = handle_.ctx;
-      retain();
-      return *this;
-    }
+    context_handle & operator=(context_handle const & handle_);
 
     void register_data_type(std::string const & data_type,
                             viennamesh_data_make_function make_function,
-                            viennamesh_data_delete_function delete_function)
-    {
-      viennamesh_data_type_register(ctx, data_type.c_str(), make_function, delete_function);
-    }
+                            viennamesh_data_delete_function delete_function);
 
     template<typename DataT>
     void register_data_type()
@@ -61,10 +49,7 @@ namespace viennamesh
 
     void register_conversion(std::string const & data_type_from,
                              std::string const & data_type_to,
-                             viennamesh_data_convert_function convert_function)
-    {
-      viennamesh_data_conversion_register(ctx, data_type_from.c_str(), data_type_to.c_str(), convert_function);
-    }
+                             viennamesh_data_convert_function convert_function);
 
     template<typename FromT, typename ToT>
     void register_conversion(viennamesh_data_convert_function convert_function)
@@ -109,12 +94,7 @@ namespace viennamesh
                             viennamesh_algorithm_make_function make_function,
                             viennamesh_algorithm_delete_function delete_function,
                             viennamesh_algorithm_init_function init_function,
-                            viennamesh_algorithm_run_function run_function)
-    {
-      viennamesh_algorithm_register(ctx, algorithm_name.c_str(),
-                                    make_function, delete_function,
-                                    init_function, run_function);
-    }
+                            viennamesh_algorithm_run_function run_function);
 
     template<typename AlgorithmT>
     void register_algorithm()
@@ -131,33 +111,22 @@ namespace viennamesh
     void load_plugin(std::string const & plugin_filename);
     void load_plugins_in_directories(std::string const & directory_name, std::string const & delimiter);
 
-    viennamesh_context internal() const { return const_cast<viennamesh_context>(ctx); }
+    viennamesh_context internal() const;
 
   private:
 
-    void retain()
-    {
-      if (ctx)
-        viennamesh_context_retain(ctx);
-    }
-
-    void release()
-    {
-      if (ctx)
-        viennamesh_context_release(ctx);
-    }
-
-
-    void make()
-    {
-      if (ctx)
-        viennamesh_context_retain(ctx);
-      viennamesh_context_make(&ctx);
-    }
+    void retain();
+    void release();
+    void make();
 
     viennamesh_context ctx;
     std::vector<void *> loaded_plugins;
   };
+
+  inline viennamesh_context internal_context(context_handle const & ctx)
+  {
+    return ctx.internal();
+  }
 
 
 }

@@ -39,7 +39,7 @@ namespace viennamesh
     {
       algorithm = context.make_algorithm( algorithm_id );
     }
-    catch (exception::base_exception const & ex)
+    catch (viennamesh::exception const & ex)
     {
       error(1) << "Algorithm with id \"" << algorithm_id << "\" creation from factory failed" << std::endl;
       return false;

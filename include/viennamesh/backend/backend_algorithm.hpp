@@ -94,6 +94,9 @@ public:
 
   void set_default_source(viennamesh_algorithm_wrapper default_source_)
   {
+    if (context() != default_source_->context())
+      VIENNAMESH_ERROR(VIENNAMESH_ERROR_DIFFERENT_CONTEXT, "");
+
     unset_default_source();
     default_source = default_source_;
     default_source->retain();
@@ -149,7 +152,7 @@ namespace viennamesh
       viennamesh_algorithm algorithm;
       viennamesh_error result = make_function_(&algorithm);
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error_t(result);
+        VIENNAMESH_ERROR(result, "Algorithm creation failed");
       return algorithm;
     }
 
@@ -157,7 +160,7 @@ namespace viennamesh
     {
       viennamesh_error result = delete_function_( algorithm );
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error_t(result);
+        VIENNAMESH_ERROR(result, "Algorithm deletion failed");
     }
 
     void init(viennamesh_algorithm_wrapper algorithm) const

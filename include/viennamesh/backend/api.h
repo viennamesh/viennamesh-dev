@@ -36,14 +36,22 @@ enum viennamesh_error
 {
   VIENNAMESH_SUCCESS,
   VIENNAMESH_UNKNOWN_ERROR,
+  VIENNAMESH_ERROR_INVALID_CONTEXT,
+  VIENNAMESH_ERROR_ERROR_MANAGEMENT,
   VIENNAMESH_ERROR_INVALID_ARGUMENT,
+
+  VIENNAMESH_ERROR_DIFFERENT_CONTEXT,
   VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED,
   VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE,
+  VIENNAMESH_ERROR_CONVERSION_FAILED,
+
   VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED,
   VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED,
   VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED,
-  VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT,
-  VIENNAMESH_CONVERSION_FAILED
+
+  VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND,
+  VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE,
+  VIENNAMESH_ERROR_SIZING_FUNCTION,
 };
 
 
@@ -66,11 +74,19 @@ DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_load_plugins_in_director
                                                                 const char * directory_name);
 // DYNAMIC_EXPORT viennamesh_error viennamesh_context_unload_plugin(viennamesh_context context, viennamesh_plugin * plugin);
 
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_get_error_message(viennamesh_context context,
-                                                        const char ** error_message);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_set_error_message(viennamesh_context context,
-                                                        const char * error_message);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_clear_error_message(viennamesh_context context);
+DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_get_error(viennamesh_context context,
+                                                                  enum viennamesh_error * error_code,
+                                                                  const char ** error_function,
+                                                                  const char ** error_file,
+                                                                  int * error_line,
+                                                                  const char ** error_message);
+DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_set_error(viennamesh_context context,
+                                                                  enum viennamesh_error error_code,
+                                                                  const char * error_function,
+                                                                  const char * error_file,
+                                                                  int error_line,
+                                                                  const char * error_message);
+DYNAMIC_EXPORT enum viennamesh_error viennamesh_context_clear_error(viennamesh_context context);
 
 
 
@@ -105,6 +121,9 @@ DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_type_unregister(viennamesh_
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_make(viennamesh_context context,
                                         const char * data_type_name,
                                         viennamesh_data_wrapper * data);
+
+DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_get_context(viennamesh_data_wrapper data,
+                                                    viennamesh_context * context);
 
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_get_size(viennamesh_data_wrapper data,
                                                                  int * size);

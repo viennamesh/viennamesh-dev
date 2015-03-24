@@ -7,8 +7,40 @@
 #include "viennamesh/forwards.hpp"
 #include "viennamesh/backend/backend_common.hpp"
 
+
+
 namespace viennamesh
 {
+
+
+  inline viennamesh_context internal_context(viennamesh_context ctx) { return ctx; }
+  inline viennamesh_context internal_context(viennamesh_algorithm_wrapper algo)
+  {
+    viennamesh_context ctx;
+    viennamesh_algorithm_get_context( algo, &ctx );
+    return ctx;
+  }
+  inline viennamesh_context internal_context(viennamesh_data_wrapper data)
+  {
+    viennamesh_context ctx;
+    viennamesh_data_get_context( data, &ctx );
+    return ctx;
+  }
+
+  template<typename T>
+  viennamesh_context internal_context(T const & something)
+  {
+    return internal_context( something.internal() );
+  }
+
+  template<typename T>
+  void handle_error(viennamesh_error error, T const & something)
+  {
+    return handle_error(error, internal_context(something));
+  }
+
+
+
   namespace result_of
   {
     template<typename T>

@@ -25,7 +25,7 @@ int viennamesh_context_t::registered_data_type_count() const { return data_types
 std::string const & viennamesh_context_t::registered_data_type_name(int index_) const
 {
   if (index_ < 0 || index_ >= registered_data_type_count())
-    handle_error(VIENNAMESH_ERROR_INVALID_ARGUMENT);
+    VIENNAMESH_ERROR(VIENNAMESH_ERROR_INVALID_ARGUMENT, "viennamesh_context_t::registered_data_type_name invalid index: " + stringtools::lexical_cast<std::string>(index_));
 
   std::map<std::string, viennamesh::data_template_t>::const_iterator it = data_types.begin();
   std::advance(it, index_);
@@ -36,7 +36,7 @@ viennamesh::data_template_t & viennamesh_context_t::get_data_type(std::string co
 {
   std::map<std::string, viennamesh::data_template_t>::iterator it = data_types.find(data_type_name_);
   if (it == data_types.end())
-    throw viennamesh::error_t(VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED);
+    VIENNAMESH_ERROR( VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED, "Data type \"" + data_type_name_ + "\" is not registered" );
 
   return it->second;
 }
@@ -46,7 +46,7 @@ void viennamesh_context_t::register_data_type(std::string const & data_type_name
                                             viennamesh_data_delete_function delete_function_)
 {
   if (data_type_name_.empty())
-    handle_error(VIENNAMESH_ERROR_INVALID_ARGUMENT);
+    VIENNAMESH_ERROR(VIENNAMESH_ERROR_INVALID_ARGUMENT, "data_type_name_ is empty");
 
   std::map<std::string, viennamesh::data_template_t>::iterator it = data_types.find(data_type_name_);
   if (it == data_types.end())
@@ -86,6 +86,9 @@ void viennamesh_context_t::register_conversion_function(std::string const & data
 
 void viennamesh_context_t::convert(viennamesh_data_wrapper from, viennamesh_data_wrapper to)
 {
+  if (from->context() != to->context())
+    VIENNAMESH_ERROR(VIENNAMESH_ERROR_DIFFERENT_CONTEXT, "");
+
   std::string from_data_type_name = from->type_name();
 
   get_data_type(from_data_type_name).convert( from, to );
@@ -103,7 +106,7 @@ viennamesh::algorithm_template viennamesh_context_t::get_algorithm_template(std:
 {
   std::map<std::string, viennamesh::algorithm_template_t>::iterator it = algorithm_templates.find(algorithm_name_);
   if (it == algorithm_templates.end())
-    throw viennamesh::error_t(VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED);
+    VIENNAMESH_ERROR(VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED, "Algorithm \"" + algorithm_name_ + "\" not registered");
 
   return &it->second;
 }

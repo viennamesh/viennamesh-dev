@@ -130,18 +130,24 @@ viennamesh_error viennamesh_seed_point_get(viennamesh_seed_point seed_point,
 
 
 
+
+
+
+
+
+
 viennamesh_error viennamesh_context_make(viennamesh_context * context)
 {
   if (!context)
-    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
   try
   {
     *context = new viennamesh_context_t;
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return VIENNAMESH_UNKNOWN_ERROR;
   }
   return VIENNAMESH_SUCCESS;
 }
@@ -149,15 +155,15 @@ viennamesh_error viennamesh_context_make(viennamesh_context * context)
 viennamesh_error viennamesh_context_retain(viennamesh_context context)
 {
   if (!context)
-    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
   try
   {
     context->retain();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -166,15 +172,15 @@ viennamesh_error viennamesh_context_retain(viennamesh_context context)
 viennamesh_error viennamesh_context_release(viennamesh_context context)
 {
   if (!context)
-    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
   try
   {
     context->release();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -187,35 +193,114 @@ viennamesh_error viennamesh_context_load_plugin(viennamesh_context context,
                                    const char * plugin_filename,
                                    viennamesh_plugin * plugin)
 {
-  *plugin = context->load_plugin(plugin_filename);
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  try
+  {
+    *plugin = context->load_plugin(plugin_filename);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(context);
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_context_load_plugins_in_directory(viennamesh_context context,
                                                  const char * directory_name)
 {
-  context->load_plugins_in_directory(directory_name);
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  try
+  {
+    context->load_plugins_in_directory(directory_name);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(context);
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
 
-viennamesh_error viennamesh_context_get_error_message(viennamesh_context context,
-                                         const char ** error_message)
+
+
+
+viennamesh_error viennamesh_context_get_error(viennamesh_context context,
+                                              viennamesh_error * error_code,
+                                              const char ** error_function,
+                                              const char ** error_file,
+                                              int * error_line,
+                                              const char ** error_message)
 {
-  *error_message = context->error_message().c_str();
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  try
+  {
+    if (error_code)
+      *error_code = context->error_code();
+
+    if (error_function)
+      *error_function = context->error_function().c_str();
+
+    if (error_file)
+      *error_file = context->error_file().c_str();
+
+    if (error_line)
+      *error_line = context->error_line();
+
+    if (error_message)
+      *error_message = context->error_message().c_str();
+  }
+  catch (...)
+  {
+    return VIENNAMESH_ERROR_ERROR_MANAGEMENT;
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
-viennamesh_error viennamesh_context_set_error_message(viennamesh_context context,
-                                         const char * error_message)
+viennamesh_error viennamesh_context_set_error(viennamesh_context context,
+                                              viennamesh_error error_code,
+                                              const char * error_function,
+                                              const char * error_file,
+                                              int error_line,
+                                              const char * error_message)
 {
-  context->set_error_message(error_message);
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  try
+  {
+    context->set_error(error_code, error_function, error_file, error_line, error_message);
+  }
+  catch (...)
+  {
+    return VIENNAMESH_ERROR_ERROR_MANAGEMENT;
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
-viennamesh_error viennamesh_context_clear_error_message(viennamesh_context context)
+viennamesh_error viennamesh_context_clear_error(viennamesh_context context)
 {
-  context->clear_error_message();
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  try
+  {
+    context->clear_error();
+  }
+  catch (...)
+  {
+    return VIENNAMESH_ERROR_ERROR_MANAGEMENT;
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -225,16 +310,19 @@ viennamesh_error viennamesh_context_clear_error_message(viennamesh_context conte
 viennamesh_error viennamesh_registered_data_type_get_count(viennamesh_context context,
                                               int * count)
 {
-  if (!context || !count)
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!count)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
     *count = context->registered_data_type_count();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -245,16 +333,19 @@ viennamesh_error viennamesh_registered_data_type_get_name(viennamesh_context con
                                              int index,
                                              const char ** data_type_name)
 {
-  if (!context || !data_type_name)
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!data_type_name)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
     *data_type_name = context->registered_data_type_name(index).c_str();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -266,16 +357,19 @@ viennamesh_error viennamesh_data_type_register(viennamesh_context context,
                                   viennamesh_data_make_function make_function,
                                   viennamesh_data_delete_function delete_function)
 {
-  if (!context || !data_type_name)
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!data_type_name)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
     context->register_data_type( std::string(data_type_name), make_function, delete_function);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -289,20 +383,43 @@ viennamesh_error viennamesh_data_wrapper_make(viennamesh_context context,
                          const char * data_type_name,
                          viennamesh_data_wrapper * data)
 {
-  if (!context || !data || !data_type_name)
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!data || !data_type_name)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
     *data = context->make_data( std::string(data_type_name) );
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
 }
+
+viennamesh_error viennamesh_data_get_context(viennamesh_data_wrapper data,
+                                                    viennamesh_context * context)
+{
+  if (!data || !context)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *context = data->data_template()->context();
+  }
+  catch (...)
+  {
+    return VIENNAMESH_UNKNOWN_ERROR;
+  }
+
+  return VIENNAMESH_SUCCESS;
+}
+
+
 
 viennamesh_error viennamesh_data_wrapper_get_size(viennamesh_data_wrapper data,
                                                   int * size)
@@ -310,7 +427,16 @@ viennamesh_error viennamesh_data_wrapper_get_size(viennamesh_data_wrapper data,
   if (!data || !size)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
-  *size = data->size();
+  try
+  {
+    *size = data->size();
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(data->context());
+  }
+
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -320,7 +446,15 @@ viennamesh_error viennamesh_data_wrapper_resize(viennamesh_data_wrapper data,
   if (!data)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
-  data->resize(size);
+  try
+  {
+    data->resize(size);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(data->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -336,9 +470,9 @@ viennamesh_error viennamesh_data_wrapper_internal_get(viennamesh_data_wrapper da
   {
     *internal_data = data->data(position);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -356,9 +490,9 @@ viennamesh_error viennamesh_data_wrapper_internal_make(viennamesh_data_wrapper d
   {
     data->make_data(position);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -375,9 +509,9 @@ viennamesh_error viennamesh_data_wrapper_internal_set(viennamesh_data_wrapper da
   {
     data->set_data(position, internal_data);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -392,9 +526,9 @@ viennamesh_error viennamesh_data_wrapper_retain(viennamesh_data_wrapper data)
   {
     data->retain();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -409,9 +543,9 @@ viennamesh_error viennamesh_data_wrapper_release(viennamesh_data_wrapper data)
   {
     data->release();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -428,16 +562,19 @@ viennamesh_error viennamesh_data_conversion_register(viennamesh_context context,
                                         const char * data_type_to,
                                         viennamesh_data_convert_function convert_function)
 {
-  if (!context || !data_type_from || !data_type_to)
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!data_type_from || !data_type_to)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
     context->register_conversion_function(data_type_from, data_type_to, convert_function);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -450,17 +587,15 @@ viennamesh_error viennamesh_data_wrapper_convert(viennamesh_data_wrapper data_fr
   if (!data_from || !data_to)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
-  if (data_from->context() != data_to->context())
-    return VIENNAMESH_ERROR_NOT_THE_SAME_CONTEXT;
-
   try
   {
     data_from->context()->convert( data_from, data_to );
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data_from->context());
   }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -475,9 +610,9 @@ viennamesh_error viennamesh_data_type_get_name(viennamesh_data_wrapper data,
   {
     *data_type_name = data->data_template()->name().c_str();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(data->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -499,11 +634,22 @@ viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
                                   viennamesh_algorithm_run_function run_function)
 {
   if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!algorithm_name)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
-  context->register_algorithm(algorithm_name,
-                              make_function, delete_function,
-                              init_function, run_function);
+  try
+  {
+    context->register_algorithm(algorithm_name,
+                                make_function, delete_function,
+                                init_function, run_function);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(context);
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -512,16 +658,19 @@ viennamesh_error viennamesh_algorithm_make(viennamesh_context context,
                               const char * algorithm_name,
                               viennamesh_algorithm_wrapper * algorithm)
 {
-  if (!context || !algorithm || !algorithm_name)
+  if (!context)
+    return VIENNAMESH_ERROR_INVALID_CONTEXT;
+
+  if (!algorithm || !algorithm_name)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
     *algorithm = context->make_algorithm(algorithm_name);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(context);
   }
 
   return VIENNAMESH_SUCCESS;
@@ -536,9 +685,9 @@ viennamesh_error viennamesh_algorithm_retain(viennamesh_algorithm_wrapper algori
   {
     algorithm->retain();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -553,10 +702,11 @@ viennamesh_error viennamesh_algorithm_release(viennamesh_algorithm_wrapper algor
   {
     algorithm->release();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -564,14 +714,36 @@ viennamesh_error viennamesh_algorithm_release(viennamesh_algorithm_wrapper algor
 viennamesh_error viennamesh_algorithm_set_base_path(viennamesh_algorithm_wrapper algorithm,
                                        const char * path)
 {
-  algorithm->set_base_path(path);
+  if (!algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    algorithm->set_base_path(path);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper algorithm,
                                        const char ** path)
 {
-  *path = algorithm->base_path().c_str();
+  if (!algorithm || !path)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *path = algorithm->base_path().c_str();
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -579,14 +751,36 @@ viennamesh_error viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper
 viennamesh_error viennamesh_algorithm_get_name(viennamesh_algorithm_wrapper algorithm,
                                   const char ** algorithm_name)
 {
-  *algorithm_name = algorithm->name().c_str();
+  if (!algorithm || !algorithm_name)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *algorithm_name = algorithm->name().c_str();
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_algorithm_get_context(viennamesh_algorithm_wrapper algorithm,
                                                     viennamesh_context * context)
 {
-  *context = algorithm->context();
+  if (!algorithm || !context)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *context = algorithm->context();
+  }
+  catch (...)
+  {
+    return VIENNAMESH_UNKNOWN_ERROR;
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -594,7 +788,18 @@ viennamesh_error viennamesh_algorithm_get_context(viennamesh_algorithm_wrapper a
 viennamesh_error viennamesh_algorithm_get_internal_algorithm(viennamesh_algorithm_wrapper algorithm,
                                                 viennamesh_algorithm * internal_algorithm)
 {
-  *internal_algorithm = algorithm->internal_algorithm();
+  if (!algorithm || !internal_algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *internal_algorithm = algorithm->internal_algorithm();
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -605,13 +810,35 @@ viennamesh_error viennamesh_algorithm_get_internal_algorithm(viennamesh_algorith
 viennamesh_error viennamesh_algorithm_set_default_source(viennamesh_algorithm_wrapper algorithm,
                                                            viennamesh_algorithm_wrapper source_algorithm)
 {
-  algorithm->set_default_source(source_algorithm);
+  if (!algorithm || !source_algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    algorithm->set_default_source(source_algorithm);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_algorithm_unset_default_source(viennamesh_algorithm_wrapper algorithm)
 {
-  algorithm->unset_default_source();
+  if (!algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    algorithm->unset_default_source();
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -626,9 +853,9 @@ viennamesh_error viennamesh_algorithm_unset_input(viennamesh_algorithm_wrapper a
   {
     algorithm->unset_input(name);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -646,9 +873,9 @@ viennamesh_error viennamesh_algorithm_set_input(viennamesh_algorithm_wrapper alg
   {
     algorithm->set_input(name, data);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -666,9 +893,9 @@ viennamesh_error viennamesh_algorithm_link_input(viennamesh_algorithm_wrapper al
   {
     algorithm->link_input(name, source_algorithm, source_name);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -685,10 +912,11 @@ viennamesh_error viennamesh_algorithm_get_input(viennamesh_algorithm_wrapper alg
   {
     *data = algorithm->get_input(name);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -704,9 +932,9 @@ viennamesh_error viennamesh_algorithm_get_input_with_type(viennamesh_algorithm_w
   {
     *data = algorithm->get_input(name, data_type);
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
 
   return VIENNAMESH_SUCCESS;
@@ -717,7 +945,18 @@ viennamesh_error viennamesh_algorithm_set_output(viennamesh_algorithm_wrapper al
                                     const char * name,
                                     viennamesh_data_wrapper data)
 {
-  algorithm->set_output(name, data);
+  if (!algorithm || !name || !data)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    algorithm->set_output(name, data);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -725,7 +964,18 @@ viennamesh_error viennamesh_algorithm_get_output(viennamesh_algorithm_wrapper al
                                     const char * name,
                                     viennamesh_data_wrapper * data)
 {
-  *data = algorithm->get_output(name);
+  if (!algorithm || !name || !data)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *data = algorithm->get_output(name);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -734,14 +984,36 @@ viennamesh_error viennamesh_algorithm_get_output_with_type(viennamesh_algorithm_
                                               const char * data_type,
                                               viennamesh_data_wrapper * data)
 {
-  *data = algorithm->get_output(name, data_type);
+  if (!algorithm || !name || !data_type || !data)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    *data = algorithm->get_output(name, data_type);
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
 
 viennamesh_error viennamesh_algorithm_init(viennamesh_algorithm_wrapper algorithm)
 {
-  algorithm->init();
+  if (!algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  try
+  {
+    algorithm->init();
+  }
+  catch (...)
+  {
+    return viennamesh::handle_error(algorithm->context());
+  }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -754,10 +1026,11 @@ viennamesh_error viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorithm
   {
     algorithm->run();
   }
-  catch (viennamesh::error_t err)
+  catch (...)
   {
-    return err;
+    return viennamesh::handle_error(algorithm->context());
   }
+
   return VIENNAMESH_SUCCESS;
 }
 
@@ -769,31 +1042,36 @@ viennamesh_error viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorithm
 
 viennamesh_error viennamesh_log_info_line(const char * message, int log_level)
 {
-  viennamesh::backend::info(log_level) << message;
+  if (message)
+    viennamesh::backend::info(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_error_line(const char * message, int log_level)
 {
-  viennamesh::backend::error(log_level) << message;
+  if (message)
+    viennamesh::backend::error(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_warning_line(const char * message, int log_level)
 {
-  viennamesh::backend::warning(log_level) << message;
+  if (message)
+    viennamesh::backend::warning(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_debug_line(const char * message, int log_level)
 {
-  viennamesh::backend::debug(log_level) << message;
+  if (message)
+    viennamesh::backend::debug(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_stack_line(const char * message, int log_level)
 {
-  viennamesh::backend::logger().stack(log_level) << message;
+  if (message)
+    viennamesh::backend::logger().stack(log_level) << message;
   return VIENNAMESH_SUCCESS;
 }
 
@@ -824,31 +1102,36 @@ viennamesh_error viennamesh_log_disable_capturing()
 
 viennamesh_error viennamesh_log_get_info_level(int * log_level)
 {
-  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::info_tag>();
+  if (log_level)
+    *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::info_tag>();
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_get_error_level(int * log_level)
 {
-  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::error_tag>();
+  if (log_level)
+    *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::error_tag>();
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_get_warning_level(int * log_level)
 {
-  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::warning_tag>();
+  if (log_level)
+    *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::warning_tag>();
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_get_debug_level(int * log_level)
 {
-  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::debug_tag>();
+  if (log_level)
+    *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::debug_tag>();
   return VIENNAMESH_SUCCESS;
 }
 
 viennamesh_error viennamesh_log_get_stack_level(int * log_level)
 {
-  *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::stack_tag>();
+  if (log_level)
+    *log_level = viennamesh::backend::logger().get_log_level<viennamesh::backend::stack_tag>();
   return VIENNAMESH_SUCCESS;
 }
 
@@ -887,6 +1170,9 @@ viennamesh_error viennamesh_log_set_stack_level(int log_level)
 
 viennamesh_error viennamesh_log_add_logging_file(char const * filename, viennamesh_log_callback_handle * handle)
 {
+  if (!filename)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
   viennamesh_log_callback_handle tmp = viennamesh::backend::logger().register_file_callback(filename);
   if (handle)
     *handle = tmp;

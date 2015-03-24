@@ -15,65 +15,28 @@ namespace viennamesh
 
   protected:
 
-    abstract_data_handle() : data(0) {}
-    abstract_data_handle(viennamesh_data_wrapper data_, bool retain_ = true) : data(data_)
-    {
-      if (retain_)
-        retain();
-    }
+    abstract_data_handle();
+    abstract_data_handle(viennamesh_data_wrapper data_, bool retain_ = true);
 
   public:
 
-    abstract_data_handle(abstract_data_handle const & handle_) : data(handle_.data) { retain(); }
+    abstract_data_handle(abstract_data_handle const & handle_);
+    ~abstract_data_handle();
 
-    ~abstract_data_handle()
-    {
-      release();
-    }
+    abstract_data_handle & operator=(abstract_data_handle const & handle_);
 
-    abstract_data_handle & operator=(abstract_data_handle const & handle_)
-    {
-      release();
-      data = handle_.data;
-      retain();
-      return *this;
-    }
+    bool valid() const;
+    bool empty() const;
 
-    bool valid() const
-    {
-      return data != NULL && !empty();
-    }
-//     operator bool() const { return valid(); }
+    int size() const;
+    void resize(int size_);
 
-    bool empty() const { return size() == 0; }
-
-    int size() const
-    {
-      int size_;
-      viennamesh_data_wrapper_get_size(data, &size_);
-      return size_;
-    }
-
-    void resize(int size_)
-    {
-      viennamesh_data_wrapper_resize(data, size_);
-    }
-
-    viennamesh_data_wrapper internal() const { return const_cast<viennamesh_data_wrapper>(data); }
+    viennamesh_data_wrapper internal() const;
 
   protected:
 
-    void retain()
-    {
-      if (data)
-        viennamesh_data_wrapper_retain(data);
-    }
-
-    void release()
-    {
-      if (data)
-        viennamesh_data_wrapper_release(data);
-    }
+    void retain();
+    void release();
 
     viennamesh_data_wrapper data;
   };
@@ -83,7 +46,6 @@ namespace viennamesh
 
   inline bool operator!=(abstract_data_handle const & lhs, abstract_data_handle const & rhs)
   { return !(lhs==rhs); }
-
 
 
 
@@ -233,7 +195,7 @@ namespace viennamesh
 
     void set(int position, CPPType const & data_in)
     {
-      viennamesh_data_wrapper_internal_make(data, position);
+      handle_error(viennamesh_data_wrapper_internal_make(data, position), data);
       to_c( data_in, *get_ptr(position) );
     }
 
@@ -262,19 +224,19 @@ namespace viennamesh
     DataT * get_ptr(int position) const
     {
       DataT * internal_data;
-      viennamesh_data_wrapper_internal_get(data, position, (viennamesh_data*)&internal_data);
+      handle_error(viennamesh_data_wrapper_internal_get(data, position, (viennamesh_data*)&internal_data), data);
       assert(internal_data);
       return internal_data;
     }
 
-    int make(viennamesh_context context)
+    void make(viennamesh_context context)
     {
       release();
-      int result = viennamesh_data_wrapper_make(context,
+      handle_error(
+        viennamesh_data_wrapper_make(context,
                                   result_of::data_information<DataT>::type_name().c_str(),
-                                  &data );
-
-      return result;
+                                  &data ),
+        internal());
     }
 
   };
@@ -285,7 +247,7 @@ namespace viennamesh
   template<typename FromT, typename ToT>
   void convert(data_handle<FromT> const & from, data_handle<ToT> & to)
   {
-    viennamesh_data_wrapper_convert( from.data, to.data );
+    handle_error(viennamesh_data_wrapper_convert( from.data, to.data ), from);
   }
 
 }

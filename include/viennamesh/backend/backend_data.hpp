@@ -7,7 +7,7 @@
 #include <string>
 #include <iostream>
 
-#include "viennamesh/backend/backend_forwards.hpp"
+#include "viennamesh/backend/backend_common.hpp"
 #include "viennamesh/backend/backend_logger.hpp"
 
 
@@ -88,7 +88,7 @@ namespace viennamesh
       viennamesh_data data;
       viennamesh_error result = make_function_(&data);
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error_t(result);
+        VIENNAMESH_ERROR(result, "Data creation failed");
       return data;
     }
 
@@ -96,7 +96,7 @@ namespace viennamesh
     {
       viennamesh_error result = delete_function_( data );
       if (result != VIENNAMESH_SUCCESS)
-        throw viennamesh::error_t(result);
+        VIENNAMESH_ERROR(result, "Data deletion failed");
     }
 
     void set_make_delete_function(viennamesh_data_make_function make_function_in,
@@ -119,8 +119,8 @@ namespace viennamesh
       ConvertFunctionMap::const_iterator it = convert_functions.find( to->type_name() );
       if (it == convert_functions.end())
       {
-        viennamesh::backend::error(1) << "No conversion found from data type \"" << from->type_name() << "\" to \"" << to->type_name() << "\"" << std::endl;
-        throw viennamesh::error_t(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE);
+//         viennamesh::backend::error(1) << "No conversion found from data type \"" << from->type_name() << "\" to \"" << to->type_name() << "\"" << std::endl;
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE, "No conversion found from data type \"" + from->type_name() + "\" to \"" + to->type_name() + "\"");
       }
 
       to->resize( from->size() );
