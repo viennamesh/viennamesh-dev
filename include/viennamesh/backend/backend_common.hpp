@@ -84,22 +84,6 @@ namespace viennamesh
 
 
 
-
-
-//   template<typename DataT>
-//   viennamesh_error generic_heap_make(viennamesh_data * data)
-//   {
-//     return make_viennamesh_data<DataT*>(data, trivial_data_make<DataT>);
-//   }
-//
-//   template<typename DataT>
-//   viennamesh_error generic_heap_delete(viennamesh_data data)
-//   {
-//     return delete_viennamesh_data<DataT*>(data, trivial_data_delete<DataT>);
-//   }
-
-
-
   inline viennamesh_error make_string(viennamesh_data * data)
   { return make_viennamesh_data<viennamesh_string>(data, viennamesh_string_make); }
   inline viennamesh_error delete_string(viennamesh_data data)
