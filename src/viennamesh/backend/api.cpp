@@ -479,44 +479,6 @@ viennamesh_error viennamesh_data_wrapper_internal_get(viennamesh_data_wrapper da
 }
 
 
-
-viennamesh_error viennamesh_data_wrapper_internal_make(viennamesh_data_wrapper data,
-                                                       int position)
-{
-  if (!data)
-    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
-
-  try
-  {
-    data->make_data(position);
-  }
-  catch (...)
-  {
-    return viennamesh::handle_error(data->context());
-  }
-
-  return VIENNAMESH_SUCCESS;
-}
-
-viennamesh_error viennamesh_data_wrapper_internal_set(viennamesh_data_wrapper data,
-                                                      int position,
-                                                      viennamesh_data internal_data)
-{
-  if (!data || !internal_data)
-    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
-
-  try
-  {
-    data->set_data(position, internal_data);
-  }
-  catch (...)
-  {
-    return viennamesh::handle_error(data->context());
-  }
-
-  return VIENNAMESH_SUCCESS;
-}
-
 viennamesh_error viennamesh_data_wrapper_retain(viennamesh_data_wrapper data)
 {
   if (!data)

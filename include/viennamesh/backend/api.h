@@ -133,11 +133,6 @@ DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_resize(viennamesh_d
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_internal_get(viennamesh_data_wrapper data,
                                                                      int position,
                                                                      viennamesh_data * internal_data);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_internal_make(viennamesh_data_wrapper data,
-                                                                      int position);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_internal_set(viennamesh_data_wrapper data,
-                                                                     int position,
-                                                                     viennamesh_data internal_data);
 
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_retain(viennamesh_data_wrapper data);
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_release(viennamesh_data_wrapper data);
