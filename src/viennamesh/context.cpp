@@ -4,6 +4,29 @@
 namespace viennamesh
 {
 
+  context_handle::context_handle() : ctx(0)
+  {
+    make();
+
+    {
+      viennamesh::LoggingStack logging_stack("Registering built-in data types");
+
+      register_data_type<bool>();
+      register_data_type<int>();
+      register_data_type<double>();
+      register_data_type<viennamesh_string>();
+      register_data_type<viennamesh_point>();
+      register_data_type<viennamesh_seed_point>();
+      register_data_type<viennagrid_quantity_field>();
+      register_data_type<viennagrid_mesh>();
+
+      register_conversion<int,double>();
+      register_conversion<double,int>();
+    }
+
+    load_plugins_in_directories(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY, ";");
+  }
+
   algorithm_handle context_handle::make_algorithm(std::string const & algorithm_name)
   {
     algorithm_handle tmp;
