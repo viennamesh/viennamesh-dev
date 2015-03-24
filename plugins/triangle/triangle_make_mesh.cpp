@@ -88,19 +88,18 @@ namespace viennamesh
 
 
 
-    void make_mesh_impl(triangle::input_mesh const & input,
-                        triangle::output_mesh & output,
-                        PointContainerType const & hole_points,
-                        SeedPointContainerType const & seed_points,
+    void make_mesh_impl(triangle_mesh const & input,
+                        triangle_mesh & output,
+                        point_container_t const & hole_points,
+                        seed_point_container_t const & seed_points,
                         std::string options)
     {
-      triangulateio tmp = input.triangle_mesh;
-
+      triangulateio tmp = *input;
 
       if (!hole_points.empty())
       {
         tmp.numberofholes = hole_points.size();
-        tmp.holelist = new REAL[2 * hole_points.size()];
+        tmp.holelist = (REAL*)malloc( sizeof(REAL) * 2 * hole_points.size() );
 
         for (std::size_t i = 0; i < hole_points.size(); ++i)
         {
@@ -118,7 +117,7 @@ namespace viennamesh
       if (!seed_points.empty())
       {
         tmp.numberofregions = seed_points.size();
-        tmp.regionlist = new REAL[4 * seed_points.size()];
+        tmp.regionlist = (REAL*)malloc( sizeof(REAL) * 4 * seed_points.size() );
 
         for (std::size_t i = 0; i < seed_points.size(); ++i)
         {
@@ -142,12 +141,16 @@ namespace viennamesh
 
       {
         StdCaptureHandle capture_handle;
-        triangulate( options_buffer, &tmp, &(output.triangle_mesh), NULL);
+        triangulate( options_buffer, &tmp, output, NULL);
       }
 
-      delete[] tmp.regionlist;
-      delete[] tmp.holelist;
+      free(tmp.holelist);
+      free(tmp.regionlist);
+
       delete[] options_buffer;
+
+      output->holelist = NULL;
+      output->regionlist = NULL;
     }
 
 
@@ -194,9 +197,9 @@ namespace viennamesh
 
 
     template<typename SizingFunctionRepresentationT>
-    SizingFunctionType make_sizing_function(triangle::input_mesh const & mesh,
-                                            PointContainerType const & hole_points,
-                                            SeedPointContainerType const & seed_points,
+    SizingFunctionType make_sizing_function(triangle_mesh const & mesh,
+                                            point_container_t const & hole_points,
+                                            seed_point_container_t const & seed_points,
                                             SizingFunctionRepresentationT const & sf,
                                             std::string const & base_path)
     {
@@ -208,10 +211,10 @@ namespace viennamesh
 //       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
       std::string options = "zpQ";
-      triangle::output_mesh tmp_mesh;
+      triangle_mesh tmp_mesh;
 
       make_mesh_impl(mesh, tmp_mesh, hole_points, seed_points, options);
-      viennamesh::convert( tmp_mesh, simple_mesh );
+      viennamesh::convert( *tmp_mesh, simple_mesh );
 
       return viennamesh::sizing_function::from_xml(sf, simple_mesh, base_path);
     }
@@ -232,11 +235,9 @@ namespace viennamesh
       data_handle<viennamesh_string> algorithm_type = get_input<viennamesh_string>("algorithm_type");
       data_handle<bool> no_points_on_boundary = get_input<bool>("no_points_on_boundary");
 
-      data_handle<triangle::input_mesh> input_mesh = get_required_input<triangle::input_mesh>("mesh");
-      point_container_handle input_hole_points = get_input<point_container_handle>("hole_points");
-      seed_point_container_handle input_seed_points = get_input<seed_point_container_handle>("seed_points");
-
-      data_handle<triangle::output_mesh> output_mesh = make_data<triangle::output_mesh>();
+      data_handle<triangle_mesh> input_mesh = get_required_input<triangle_mesh>("mesh");
+      point_handle input_hole_points = get_input<point_handle>("hole_points");
+      seed_point_handle input_seed_points = get_input<seed_point_handle>("seed_points");
 
 
       std::ostringstream options;
@@ -276,38 +277,38 @@ namespace viennamesh
       }
 
 
-      triangulateio const & im = input_mesh().triangle_mesh;
+      triangle_mesh im = input_mesh();
 
-      PointContainerType hole_points;
-//       exttract hole points from input interface
+      point_container_t hole_points;
+//       extract hole points from input interface
       if (input_hole_points.valid())
       {
-        convert(input_hole_points(), hole_points);
+        hole_points = input_hole_points.get_vector();
         info(5) << "Found hole " << hole_points.size() << " points" << std::endl;
       }
       // hole points from mesh
-      for (int i = 0; i < im.numberofholes; ++i)
-        hole_points.push_back( viennagrid::make_point(im.holelist[2*i+0], im.holelist[2*i+1]) );
+      for (int i = 0; i < im->numberofholes; ++i)
+        hole_points.push_back( viennagrid::make_point(im->holelist[2*i+0], im->holelist[2*i+1]) );
 
 
-      SeedPointContainerType seed_points;
+      seed_point_container_t seed_points;
 //       seed points from input interface
       if (input_seed_points.valid())
       {
-        convert(input_seed_points(), seed_points);
-        info(5) << "Found seed " << seed_points.size() << " points" << std::endl;
+        seed_points = input_seed_points.get_vector();
+        info(5) << "Found " << input_seed_points.size() << " seed points" << std::endl;
       }
       // seed points from mesh
-      for (int i = 0; i < im.numberofregions; ++i)
+      for (int i = 0; i < im->numberofregions; ++i)
       {
         seed_points.push_back(
           std::make_pair(
-            viennagrid::make_point(im.regionlist[4*i+0], im.regionlist[4*i+1]),
-            static_cast<int>(im.regionlist[4*i+2])+0.5
+            viennagrid::make_point(im->regionlist[4*i+0], im->regionlist[4*i+1]),
+            static_cast<int>(im->regionlist[4*i+2])+0.5
           )
         );
       }
-      // seed points from segmentation
+//       seed points from segmentation
 //       if (extract_segment_seed_points())
 //       {
 //         extract_seed_points( input_mesh().segmentation, hole_points, seed_points );
@@ -318,7 +319,7 @@ namespace viennamesh
 
 
       data_handle<viennamesh_string> sizing_function = get_input<viennamesh_string>("sizing_function");
-      if (sizing_function)
+      if (sizing_function.valid())
       {
         info(5) << "Using user-defined XML string sizing function" << std::endl;
         info(5) << sizing_function() << std::endl;
@@ -330,52 +331,11 @@ namespace viennamesh
       }
 
 
-
-
-
-//       abstract_data_handle sizing_function = get_input<>("sizing_function");
-//       if (sizing_function.valid())
-//       {
-//         if (sizing_function.get<sizing_function_2d>())
-//         {
-//           info(5) << "Using user-defined sizing function" << std::endl;
-//           triangle_sizing_function = sizing_function.get<sizing_function_2d>()();
-//           options << "u";
-//           should_triangle_be_refined = should_triangle_be_refined_function;
-//         }
-//         else
-//         if (sizing_function.get<pugi::xml_node>())
-//         {
-//           info(5) << "Using user-defined XML sizing function" << std::endl;
-//           triangle_sizing_function = make_sizing_function(
-//                                       input_mesh().mesh, hole_points, seed_points,
-//                                       sizing_function.get<pugi::xml_node>()(), base_path());
-//           options << "u";
-//           should_triangle_be_refined = should_triangle_be_refined_function;
-//         }
-//         else if (sizing_function.get<std::string>())
-//         {
-//           info(5) << "Using user-defined XML string sizing function" << std::endl;
-//           info(5) << sizing_function.get<std::string>()() << std::endl;
-//           triangle_sizing_function = make_sizing_function(
-//                                       input_mesh().mesh, hole_points, seed_points,
-//                                       sizing_function.get<std::string>()(), base_path());
-//           options << "u";
-//           should_triangle_be_refined = should_triangle_be_refined_function;
-//         }
-//         else
-//           warning(5) << "Type of sizing function not supported" << std::endl;
-//       }
-
-//       make_mesh_impl( input_mesh(), output_mesh(), hole_points(), seed_points(), options.str() );
-
-
       info(1) << "Making mesh with option string " << options.str() << std::endl;
-      make_mesh_impl( input_mesh(), output_mesh(), hole_points, seed_points, options.str() );
 
 
-
-
+      data_handle<triangle_mesh> output_mesh = make_data<triangle_mesh>();
+      make_mesh_impl( input_mesh(), const_cast<triangle_mesh&>(output_mesh()), hole_points, seed_points, options.str() );
       set_output("mesh", output_mesh);
 
       return true;
