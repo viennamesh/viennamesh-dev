@@ -3,9 +3,7 @@
 
 namespace viennamesh
 {
-
-
-  int convert(viennagrid::mesh_t const & input, tetgen::input_mesh & output)
+  viennamesh_error convert(viennagrid::mesh_t const & input, tetgen::mesh & output)
   {
     typedef viennagrid::mesh_t ViennaGridMeshType;
 
@@ -77,20 +75,7 @@ namespace viennamesh
   }
 
 
-
-
-  int convert_to_tetgen(viennamesh_data input_, viennamesh_data output_)
-  {
-    typedef viennagrid::mesh_t MeshType;
-    MeshType input( *(viennagrid_mesh*)input_ );
-    tetgen::input_mesh* output = (tetgen::input_mesh*)output_;
-    return convert(input, *output);
-  }
-
-
-
-
-  int convert(tetgen::output_mesh const & input, viennagrid::mesh_t const & output)
+  viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh_t & output)
   {
     typedef viennagrid::mesh_t MeshType;
     typedef viennagrid::result_of::point<MeshType>::type PointType;
@@ -126,12 +111,22 @@ namespace viennamesh
     return VIENNAMESH_SUCCESS;
   }
 
-  int convert_from_tetgen(viennamesh_data input_, viennamesh_data output_)
+
+
+
+
+
+
+
+  template<>
+  viennamesh_error internal_convert<viennagrid_mesh, tetgen::mesh>(viennagrid_mesh const & input, tetgen::mesh & output)
+  { return convert( viennagrid::mesh_t(input), output ); }
+
+  template<>
+  viennamesh_error internal_convert<tetgen::mesh, viennagrid_mesh>(tetgen::mesh const & input, viennagrid_mesh & output)
   {
-    typedef viennagrid::mesh_t MeshType;
-    tetgen::output_mesh* input = (tetgen::output_mesh*)input_;
-    MeshType output( *(viennagrid_mesh*)output_ );
-    return convert(*input, output);
+    viennagrid::mesh_t output_pp(output);
+    return convert( input, output_pp );
   }
 
 }

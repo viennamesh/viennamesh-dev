@@ -110,10 +110,10 @@ namespace viennamesh
 
 
 
-    void make_mesh_impl(tetgen::input_mesh const & input,
-                        tetgen::output_mesh & output,
-                        PointContainerType const & hole_points,
-                        SeedPointContainerType const & seed_points,
+    void make_mesh_impl(tetgen::mesh const & input,
+                        tetgen::mesh & output,
+                        point_container_t const & hole_points,
+                        seed_point_container_t const & seed_points,
                         tetgenbehavior options)
     {
       tetgenio & tmp = (tetgenio&)(input);
@@ -268,11 +268,11 @@ namespace viennamesh
 
 
 
-      data_handle<tetgen::input_mesh> input_mesh = get_input<tetgen::input_mesh>("mesh");
-      point_container_handle input_hole_points = get_input<point_container_handle>("hole_points");
-      seed_point_container_handle input_seed_points = get_input<seed_point_container_handle>("seed_points");
+      data_handle<tetgen::mesh> input_mesh = get_input<tetgen::mesh>("mesh");
+      point_handle input_hole_points = get_input<point_handle>("hole_points");
+      seed_point_handle input_seed_points = get_input<seed_point_handle>("seed_points");
 
-      data_handle<tetgen::output_mesh> output_mesh = make_data<tetgen::output_mesh>();
+      data_handle<tetgen::mesh> output_mesh = make_data<tetgen::mesh>();
 
 
 
@@ -299,7 +299,12 @@ namespace viennamesh
       using_max_inscribed_radius_edge_ratio = false;
 
 
-      tetgenio & tmp = (tetgenio&)(input_mesh());
+//       tetgenio tmp = input_mesh();
+//       tetgenio & tmp = const_cast<tetgenio&>(input_mesh());
+      tetgen::mesh & im = const_cast<tetgen::mesh&>(input_mesh());
+
+
+
 
       if (max_radius_edge_ratio.valid())
       {
@@ -320,7 +325,7 @@ namespace viennamesh
         viennamesh::tetgen::max_edge_ratio = max_edge_ratio();
         using_max_edge_ratio = true;
         options.use_refinement_callback = 1;
-        tmp.tetunsuitable = should_tetrahedron_be_refined_function;
+        im.tetunsuitable = should_tetrahedron_be_refined_function;
         info(1) << "Using global max edge ratio: " << max_edge_ratio() << std::endl;
       }
 
@@ -329,19 +334,19 @@ namespace viennamesh
         viennamesh::tetgen::max_inscribed_radius_edge_ratio = max_inscribed_radius_edge_ratio();
         using_max_inscribed_radius_edge_ratio = true;
         options.use_refinement_callback = 1;
-        tmp.tetunsuitable = should_tetrahedron_be_refined_function;
+        im.tetunsuitable = should_tetrahedron_be_refined_function;
         info(1) << "Using global max inscribed radius edge ratio: " << max_inscribed_radius_edge_ratio() << std::endl;
       }
 
 
 
-      tetgenio const & im = (tetgenio&)(input_mesh());
 
-      PointContainerType hole_points;
-      // exttract hole points from input interface
+
+      point_container_t hole_points;
+//       extract hole points from input interface
       if (input_hole_points.valid())
       {
-        convert(input_hole_points(), hole_points);
+        hole_points = input_hole_points.get_vector();
         info(5) << "Found hole " << hole_points.size() << " points" << std::endl;
       }
       // hole points from mesh
@@ -349,12 +354,12 @@ namespace viennamesh
         hole_points.push_back( viennagrid::make_point(im.holelist[3*i+0], im.holelist[3*i+1], im.holelist[3*i+2]) );
 
 
-      SeedPointContainerType seed_points;
+      seed_point_container_t seed_points;
       // seed points from input interface
       if (input_seed_points.valid())
       {
-        convert(input_seed_points(), seed_points);
-        info(5) << "Found seed " << seed_points.size() << " points" << std::endl;
+        seed_points = input_seed_points.get_vector();
+        info(5) << "Found " << seed_points.size() << " seed points" << std::endl;
       }
       // seed points from mesh
       for (int i = 0; i < im.numberofregions; ++i)
@@ -420,8 +425,8 @@ namespace viennamesh
       }
 
 
-      make_mesh_impl( input_mesh(), output_mesh(), hole_points, seed_points, options );
-
+//       tetgen::output_mesh output_mesh;
+      make_mesh_impl( input_mesh(), const_cast<tetgen::mesh&>(output_mesh()), hole_points, seed_points, options );
       set_output("mesh", output_mesh);
 
 //       if (sizing_function.valid())

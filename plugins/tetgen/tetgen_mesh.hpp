@@ -28,12 +28,7 @@ namespace viennamesh
 {
   namespace tetgen
   {
-
-    class input_mesh : public tetgenio
-    {};
-
-    class output_mesh : public tetgenio
-    {};
+    typedef tetgenio mesh;
 
     template<typename PointContainerT>
     void set_hole_points( tetgenio::facet & facet, PointContainerT const & hole_points )
@@ -62,27 +57,23 @@ namespace viennamesh
 
 
 
-  int convert(viennagrid::mesh_t const & input, tetgen::input_mesh & output);
-  int convert(tetgen::output_mesh const & input, viennagrid::mesh_t const & output);
+  viennamesh_error convert(viennagrid::mesh_t const & input, tetgen::mesh & output);
+  viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh_t & output);
 
-  int convert_to_tetgen(viennamesh_data input_, viennamesh_data output_);
-  int convert_from_tetgen(viennamesh_data input_, viennamesh_data output_);
-
+  template<>
+  viennamesh_error internal_convert<viennagrid_mesh, tetgen::mesh>(viennagrid_mesh const & input, tetgen::mesh & output);
+  template<>
+  viennamesh_error internal_convert<tetgen::mesh, viennagrid_mesh>(tetgen::mesh const & input, viennagrid_mesh & output);
 
   namespace result_of
   {
     template<>
-    struct data_information<tetgen::input_mesh>
+    struct data_information<tetgen::mesh>
     {
-      static std::string type_name() { return "tetgen::input_mesh"; }
-      static std::string local_binary_format() { return viennamesh::local_binary_format(); }
-    };
+      static std::string type_name() { return "tetgen::mesh"; }
+      static viennamesh_data_make_function make_function() { return viennamesh::generic_make<tetgen::mesh>; }
+      static viennamesh_data_delete_function delete_function() { return viennamesh::generic_delete<tetgen::mesh>; }
 
-    template<>
-    struct data_information<tetgen::output_mesh>
-    {
-      static std::string type_name() { return "tetgen::output_mesh"; }
-      static std::string local_binary_format() { return viennamesh::local_binary_format(); }
     };
   }
 
