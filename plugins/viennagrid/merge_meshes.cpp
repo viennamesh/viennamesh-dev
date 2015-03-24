@@ -62,20 +62,29 @@ namespace viennamesh
   bool merge_meshes::run(viennamesh::algorithm_handle &)
   {
     mesh_handle output_mesh = make_data<mesh_handle>();
+    mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
-    mesh_handle input_mesh = get_input<mesh_handle>("mesh");
-    if (input_mesh)
-      merge_meshes_impl( input_mesh(), output_mesh() );
 
-    int index = 0;
-    input_mesh = get_input<mesh_handle>("mesh[" + lexical_cast<std::string>(index++) + "]");
-    while (input_mesh)
+    int mesh_count = input_mesh.size();
+    for (int i = 0; i != mesh_count; ++i)
     {
-      merge_meshes_impl( input_mesh(), output_mesh() );
-      input_mesh = get_input<mesh_handle>("mesh[" + lexical_cast<std::string>(index++) + "]");
+      merge_meshes_impl( input_mesh(i), output_mesh() );
     }
 
-    info(1) << "Merged " << index-1 << " meshes" << std::endl;
+
+
+//     if (input_mesh)
+//       merge_meshes_impl( input_mesh(), output_mesh() );
+//
+//     int index = 0;
+//     input_mesh = get_input<mesh_handle>("mesh[" + lexical_cast<std::string>(index++) + "]");
+//     while (input_mesh)
+//     {
+//       merge_meshes_impl( input_mesh(), output_mesh() );
+//       input_mesh = get_input<mesh_handle>("mesh[" + lexical_cast<std::string>(index++) + "]");
+//     }
+
+    info(1) << "Merged " << mesh_count << " meshes" << std::endl;
 
     set_output( "mesh", output_mesh );
 

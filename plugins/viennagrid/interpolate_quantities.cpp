@@ -29,14 +29,14 @@ namespace viennamesh
     mesh_handle src_mesh = get_required_input<mesh_handle>("src_mesh");
     mesh_handle dst_mesh = get_required_input<mesh_handle>("dst_mesh");
 
-    std::vector<viennagrid::quantity_field> src_quantity_fields = get_input_vector<viennagrid_quantity_field>("quantities");
+    quantity_field_handle src_quantity_fields = get_input<viennagrid_quantity_field>("quantities");
+    quantity_field_handle dst_quantity_fields = make_data<viennagrid::quantity_field>();
+    dst_quantity_fields.resize( src_quantity_fields.size() );
 
-    std::vector<viennagrid::quantity_field> dst_quantity_fields;
 
-
-    for (std::size_t i = 0; i != src_quantity_fields.size(); ++i)
+    for (int i = 0; i != src_quantity_fields.size(); ++i)
     {
-      viennagrid::quantity_field src_qf = src_quantity_fields[i];
+      viennagrid::quantity_field src_qf = src_quantity_fields(i);
       if (src_qf.topologic_dimension() != 0)
       {
         info(1) << "Quantity field \"" << src_qf.name() << "\" has unsupported topologic dimension = " << src_qf.topologic_dimension() << " -> skipping" << std::endl;
@@ -54,11 +54,11 @@ namespace viennamesh
 
       viennagrid::interpolate_vertex_quantity( src_mesh(), src_qf, dst_mesh(), dst_qf, 0 );
 
-      dst_quantity_fields.push_back(dst_qf);
+      dst_quantity_fields.set(i, dst_qf);
     }
 
 
-    set_output_vector( "quantities", dst_quantity_fields );
+    set_output( "quantities", dst_quantity_fields );
 
     return true;
   }

@@ -29,12 +29,10 @@ namespace viennamesh
   bool extract_boundary::run(viennamesh::algorithm_handle &)
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
-//     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
-
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    PointContainerType hole_points;
-    SeedPointContainerType seed_points;
+    point_container_t hole_points;
+    seed_point_container_t seed_points;
 
     viennagrid::extract_boundary( input_mesh(), output_mesh() );
     viennagrid::extract_seed_points( input_mesh(), seed_points );
@@ -45,23 +43,23 @@ namespace viennamesh
     if (!hole_points.empty())
     {
       info(1) << "Extracted " << hole_points.size() << " hole points" << std::endl;
-      for (PointContainerType::const_iterator it = hole_points.begin(); it != hole_points.end(); ++it)
+      for (point_container_t::const_iterator it = hole_points.begin(); it != hole_points.end(); ++it)
         info(1) << "   " << *it << std::endl;
 
-      point_container_handle output_hole_points = make_data<point_container_handle>();
-      convert(hole_points, output_hole_points());
+      point_handle output_hole_points = make_data<point_t>();
+      output_hole_points.set( hole_points );
       set_output( "hole_points", output_hole_points );
     }
 
     if (!seed_points.empty())
     {
       info(1) << "Extracted " << seed_points.size() << " seed points" << std::endl;
-      for (SeedPointContainerType::const_iterator it = seed_points.begin(); it != seed_points.end(); ++it)
+      for (seed_point_container_t::const_iterator it = seed_points.begin(); it != seed_points.end(); ++it)
         info(1) << "   " << (*it).first << " -> " << (*it).second << std::endl;
 
 
-      seed_point_container_handle output_seed_points = make_data<seed_point_container_handle>();
-      convert(seed_points, output_seed_points());
+      seed_point_handle output_seed_points = make_data<seed_point_t>();
+      output_seed_points.set( seed_points );
       set_output( "seed_points", output_seed_points );
     }
 

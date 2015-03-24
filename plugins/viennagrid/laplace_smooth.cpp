@@ -175,16 +175,16 @@ namespace viennamesh
     data_handle<int> iteration_count = get_required_input<int>("iteration_count");
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
-    if (!input_mesh)
+    if (!input_mesh.valid())
       return false;
 
     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
     int cell_dimension = viennagrid::cell_dimension( input_mesh() );
 
-    if (!lambda)
+    if (!lambda.valid())
       return false;
 
-    if (!iteration_count)
+    if (!iteration_count.valid())
       return false;
 
     mesh_handle output_mesh = make_data<mesh_handle>();

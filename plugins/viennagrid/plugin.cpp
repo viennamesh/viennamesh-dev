@@ -13,26 +13,28 @@
 #include "line_coarsening.hpp"
 #include "interpolate_quantities.hpp"
 #include "map_regions.hpp"
+#include "refine_plc_lines.hpp"
 
 namespace viennamesh
 {
   void plugin_init( context_handle & context )
   {
-    viennamesh::register_algorithm<viennamesh::affine_transform>(context);
-    viennamesh::register_algorithm<viennamesh::extract_boundary>(context);
-    viennamesh::register_algorithm<viennamesh::extract_plc_geometry>(context);
-    viennamesh::register_algorithm<viennamesh::hyperplane_clip>(context);
-    viennamesh::register_algorithm<viennamesh::laplace_smooth>(context);
-    viennamesh::register_algorithm<viennamesh::hull_set_regions>(context);
+    context.register_algorithm<viennamesh::affine_transform>();
+    context.register_algorithm<viennamesh::extract_boundary>();
+    context.register_algorithm<viennamesh::extract_plc_geometry>();
+    context.register_algorithm<viennamesh::hyperplane_clip>();
+    context.register_algorithm<viennamesh::laplace_smooth>();
+    context.register_algorithm<viennamesh::hull_set_regions>();
 
-    viennamesh::register_algorithm<viennamesh::merge_meshes>(context);
-    viennamesh::register_algorithm<viennamesh::split_mesh>(context);
-    viennamesh::register_algorithm<viennamesh::map_regions>(context);
+    context.register_algorithm<viennamesh::merge_meshes>();
+    context.register_algorithm<viennamesh::split_mesh>();
+    context.register_algorithm<viennamesh::map_regions>();
 
-    viennamesh::register_algorithm<viennamesh::make_boundary_box>(context);
+    context.register_algorithm<viennamesh::make_boundary_box>();
 
-    viennamesh::register_algorithm<viennamesh::simplexify>(context);
-    viennamesh::register_algorithm<viennamesh::line_coarsening>(context);
-    viennamesh::register_algorithm<viennamesh::interpolate_quantities>(context);
+    context.register_algorithm<viennamesh::simplexify>();
+    context.register_algorithm<viennamesh::line_coarsening>();
+    context.register_algorithm<viennamesh::interpolate_quantities>();
+    context.register_algorithm<viennamesh::refine_plc_lines>();
   }
 }

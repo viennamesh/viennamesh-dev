@@ -23,50 +23,47 @@ namespace viennamesh
   bool affine_transform::run(viennamesh::algorithm_handle &)
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
-    point_container_handle input_matrix = get_required_input<point_container_handle>("matrix");
-    point_container_handle input_translate = get_required_input<point_container_handle>("translate");
+    point_handle input_matrix = get_required_input<point_handle>("matrix");
+    point_handle input_translate = get_required_input<point_handle>("translate");
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 
     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
 
-    int matrix_vector_dimension = 0;
-    int matrix_vector_count = 0;
-    double * matrix_vector_data = 0;
-    viennamesh_point_container_get(input_matrix(), &matrix_vector_data, &matrix_vector_dimension, &matrix_vector_count);
+    viennagrid::point_t translate = input_translate();
+    std::vector<viennagrid::point_t> matrix_rows;
+    for (int i = 0; i != input_matrix.size(); ++i)
+      matrix_rows.push_back( input_matrix(i) );
 
-    int translate_dimension = 0;
-    int translate_count = 0;
-    double * translate_data = 0;
-    viennamesh_point_container_get(input_translate(), &translate_data, &translate_dimension, &translate_count);
+    int row_count = matrix_rows.size();
+    int column_count = matrix_rows[0].size();
 
 
-    if ( geometric_dimension != matrix_vector_dimension )
+    if ( geometric_dimension != column_count )
     {
-      error(1) << "Dimension mismatch: geometric_dimension = " << geometric_dimension << " matrix_vector_dimension = " << matrix_vector_dimension << std::endl;
+      error(1) << "Dimension mismatch: geometric_dimension = " << geometric_dimension << " matrix column_count = " << column_count << std::endl;
       return false;
     }
 
-    if ( geometric_dimension > matrix_vector_count || geometric_dimension <= 0 )
+    if ( geometric_dimension > row_count || geometric_dimension <= 0 )
     {
-      error(1) << "Argument error: matrix_vector_count = " << matrix_vector_count  << " geometric_dimension = " << geometric_dimension << std::endl;
+      error(1) << "Argument error: matrix  = " << row_count  << " geometric_dimension = " << geometric_dimension << std::endl;
       return false;
     }
 
-    if ( geometric_dimension != translate_dimension )
+    if ( geometric_dimension != static_cast<int>(translate.size()) )
     {
-      error(1) << "Dimension mismatch: geometric_dimension = " << geometric_dimension << " translate_dimension = " << matrix_vector_dimension << std::endl;
+      error(1) << "Dimension mismatch: geometric_dimension = " << geometric_dimension << " translate_dimension = " << translate.size() << std::endl;
       return false;
     }
 
 
-    point_t translate;
-    convert( input_translate(), translate );
+    std::vector<double> matrix_values;
+    for (std::size_t i = 0; i != matrix_rows.size(); ++i)
+      for (std::size_t j = 0; j != matrix_rows[i].size(); ++j)
+        matrix_values.push_back( matrix_rows[i][j] );
 
-    if (output_mesh != input_mesh)
-      viennagrid::copy( input_mesh(), output_mesh() );
-
-    viennagrid::affine_transform( output_mesh(), matrix_vector_data, translate );
+    viennagrid::affine_transform( output_mesh(), &matrix_values[0], translate );
 
     set_output( "mesh", output_mesh );
 

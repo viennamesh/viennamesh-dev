@@ -33,19 +33,19 @@ namespace viennamesh
     point_t ll = bounding_box.first;
     point_t ur = bounding_box.second;
 
-    if (border_x)
+    if (border_x.valid())
     {
       ll[0] -= border_x();
       ur[0] += border_x();
     }
 
-    if (border_y)
+    if (border_y.valid())
     {
       ll[1] -= border_y();
       ur[1] += border_y();
     }
 
-    if (border_z)
+    if (border_z.valid())
     {
       ll[2] -= border_z();
       ur[2] += border_z();

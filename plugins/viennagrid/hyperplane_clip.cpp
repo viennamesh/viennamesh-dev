@@ -61,22 +61,27 @@ namespace viennamesh
 
   bool hyperplane_clip::run(viennamesh::algorithm_handle &)
   {
-    point_container_handle input_hyperplane_point = get_required_input<point_container_handle>("hyperplane_point");
-    point_container_handle input_hyperplane_normal = get_required_input<point_container_handle>("hyperplane_normal");
+    point_handle input_hyperplane_point = get_required_input<point_handle>("hyperplane_point");
+    point_handle input_hyperplane_normal = get_required_input<point_handle>("hyperplane_normal");
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
     int point_dimension = viennagrid::geometric_dimension( input_mesh() );
 
-    point_t hyperplane_point;
-    point_t hyperplane_normal;
+    point_t hyperplane_point = input_hyperplane_point();
+    point_t hyperplane_normal = input_hyperplane_normal();
 
-    convert( input_hyperplane_point(), hyperplane_point );
-    convert( input_hyperplane_normal(), hyperplane_normal );
+    if ( hyperplane_point.size() != hyperplane_normal.size() )
+      return false;
 
     if ( (point_dimension != static_cast<int>(hyperplane_point.size())) ||
          (point_dimension != static_cast<int>(hyperplane_normal.size())) )
       return false;
+
+//     convert( input_hyperplane_point(), hyperplane_point );
+//     convert( input_hyperplane_normal(), hyperplane_normal );
+
+
 
     info(1) << "Hyperplane point: " << hyperplane_point << std::endl;
     info(1) << "Hyperplane normal: " << hyperplane_normal << std::endl;
