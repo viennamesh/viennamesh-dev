@@ -17,14 +17,14 @@ int main()
   viennamesh::data_handle<int> my_int = context.make_data<int>();
   viennamesh::data_handle<double> my_double = context.make_data<double>();
 
-  double x;
-  my_double.use(x);
+  my_int.resize(2);
+  my_int.set(0, 10);
+  my_int.set(1, 42);
 
-  my_int() = 42;
-  viennamesh::convert( my_int, my_double );
+  viennamesh::convert(my_int, my_double);
 
-  std::cout << "generic_get<double>(my_double) = " << my_double() << std::endl;
-  std::cout << "x = " << x << std::endl;
+  std::cout << my_double(0) << std::endl;
+  std::cout << my_double(1) << std::endl;
 
   return -1;
 }
