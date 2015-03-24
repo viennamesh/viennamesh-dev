@@ -5,6 +5,6 @@ namespace viennamesh
 {
   void plugin_init( context_handle & context )
   {
-    viennamesh::register_algorithm<viennamesh::tdr_reader>(context);
+    context.register_algorithm<viennamesh::tdr_reader>();
   }
 }

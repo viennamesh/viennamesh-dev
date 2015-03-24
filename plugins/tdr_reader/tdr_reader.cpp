@@ -137,22 +137,33 @@ namespace viennamesh
     geometry.correct_vertices();
 
     bool extrude_contacts = true;
-    if ( get_input<bool>("extrude_contacts") )
+    if ( get_input<bool>("extrude_contacts").valid() )
       extrude_contacts = get_input<bool>("extrude_contacts")();
 
     double extrude_contacts_scale = 1.0;
-    if ( get_input<double>("extrude_contacts_scale") )
+    if ( get_input<double>("extrude_contacts_scale").valid() )
       extrude_contacts_scale = get_input<double>("extrude_contacts_scale")();
 
     mesh_handle output_mesh = make_data<mesh_handle>();
     geometry.to_viennagrid( output_mesh(), extrude_contacts, extrude_contacts_scale );
     fill_triangle_contacts( output_mesh() );
 
+
+
+
+
+
     std::vector<viennagrid::quantity_field> quantity_fields = geometry.quantity_fields( output_mesh() );
-
     if (!quantity_fields.empty())
-      set_output_vector( "quantities", quantity_fields );
+    {
+      quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
+      output_quantity_fields.resize( quantity_fields.size() );
 
+      for (std::size_t i = 0; i != quantity_fields.size(); ++i)
+        output_quantity_fields.set(i, quantity_fields[i]);
+
+      set_output( "quantities", output_quantity_fields );
+    }
 
     set_output("mesh", output_mesh);
 
