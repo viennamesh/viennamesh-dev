@@ -642,9 +642,8 @@ namespace viennamesh
     PointType center = (bounding_box.first + bounding_box.second) / 2.0;
     PointType size = bounding_box.second - bounding_box.first;
 
-    point_container_handle input_sample_size = get_required_input<point_container_handle>("sample_size");
-    PointType sample_size;
-    convert( input_sample_size(), sample_size );
+    point_handle input_sample_size = get_required_input<point_handle>("sample_size");
+    PointType sample_size = input_sample_size();
 
 
 

@@ -8,11 +8,8 @@ namespace viennamesh
 {
   void plugin_init( context_handle & context )
   {
-    viennamesh::register_algorithm<viennamesh::remove_degenerate_cells>(context);
-
-    viennamesh::register_algorithm<viennamesh::volumetric_resample>(context);
-
-
-    viennamesh::register_algorithm<viennamesh::multi_material_marching_cubes>(context);
+    context.register_algorithm<viennamesh::remove_degenerate_cells>();
+    context.register_algorithm<viennamesh::volumetric_resample>();
+    context.register_algorithm<viennamesh::multi_material_marching_cubes>();
   }
 }
