@@ -24,9 +24,6 @@
 
 // #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
 
-// #include "viennamesh/core/mesh_quantities.hpp"
-// #include "viennamesh/utils/pugixml/pugixml.hpp"
-
 #include "viennamesh/core.hpp"
 
 namespace viennamesh
@@ -122,7 +119,9 @@ namespace viennamesh
 
     info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 
+    viennagrid::mesh_t mesh;
     mesh_handle output_mesh = make_data<mesh_handle>();
+    output_mesh.set(mesh);
     bool success = false;
 
     switch (filetype)
@@ -144,7 +143,7 @@ namespace viennamesh
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
 
         viennagrid::io::netgen_reader reader;
-        reader(output_mesh(), filename);
+        reader(mesh, filename);
 
         success = true;
         break;
@@ -153,26 +152,24 @@ namespace viennamesh
       {
         info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
 
-        PointContainerType tmp_hole_points;
-        SeedPointContainerType tmp_seed_points;
+        point_container_t hole_points;
+        seed_point_container_t seed_points;
 
         viennagrid::io::tetgen_poly_reader reader;
-        reader(output_mesh(), filename, tmp_hole_points, tmp_seed_points);
+        reader(mesh, filename, hole_points, seed_points);
 
-//         viennagrid_int point_dim = viennagrid::geometric_dimension(output_mesh());
-
-        if (!tmp_hole_points.empty())
+        if (!hole_points.empty())
         {
-          point_container_handle hole_points = make_data<point_container_handle>();
-          convert(tmp_hole_points, hole_points());
-          set_output("hole_points", hole_points);
+          point_handle output_hole_points = make_data<point_t>();
+          output_hole_points.set( hole_points );
+          set_output("hole_points", output_hole_points);
         }
 
-        if (!tmp_seed_points.empty())
+        if (!seed_points.empty())
         {
-          seed_point_container_handle seed_points = make_data<seed_point_container_handle>();
-          convert(tmp_seed_points, seed_points());
-          set_output("seed_points", seed_points);
+          seed_point_handle output_seed_points = make_data<seed_point_t>();
+          output_seed_points.set( seed_points );
+          set_output("seed_points", output_seed_points);
         }
 
         success = true;
@@ -214,15 +211,15 @@ namespace viennamesh
         data_handle<double> vertex_tolerance = get_input<double>("vertex_tolerance");
 
         viennagrid::io::stl_reader<> reader;
-        if (vertex_tolerance)
+        if (vertex_tolerance.valid())
           reader = viennagrid::io::stl_reader<>( vertex_tolerance() );
 
         if (filetype == STL)
-          reader(output_mesh(), filename);
+          reader(mesh, filename);
         else if (filetype == STL_ASCII)
-          reader.read_ascii(output_mesh(), filename);
+          reader.read_ascii(mesh, filename);
         else if (filetype == STL_BINARY)
-          reader.read_binary(output_mesh(), filename);
+          reader.read_binary(mesh, filename);
 
         success = true;
         break;
@@ -252,7 +249,7 @@ namespace viennamesh
           load_geometry = input_load_geometry();
 
         viennagrid::io::gts_deva_reader reader;
-        reader(output_mesh(), filename, load_geometry);
+        reader(mesh, filename, load_geometry);
 
         success = true;
         break;
@@ -265,22 +262,18 @@ namespace viennamesh
         viennagrid::io::vtk_reader<viennagrid::mesh_t> reader;
 
         data_handle<bool> use_local_points = get_input<bool>("use_local_points");
-        if (use_local_points)
+        if (use_local_points.valid())
           reader.set_use_local_points( use_local_points() );
 
-        reader(output_mesh(), filename);
+        reader(mesh, filename);
 
 
         std::vector<viennagrid::quantity_field> quantity_fields = reader.quantity_fields();
-
         if (!quantity_fields.empty())
         {
-          for (std::size_t i = 0; i != quantity_fields.size(); ++i)
-          {
-            info(1) << "Found quantity field \"" << quantity_fields[i].name() << "\" of size " << quantity_fields[i].values_dimension() << " per element for topologic dimension " << quantity_fields[i].topologic_dimension() << std::endl;
-          }
-
-          set_output_vector( "quantities", quantity_fields );
+          quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
+          output_quantity_fields.set(quantity_fields);
+          set_output( "quantities", output_quantity_fields );
         }
 
         success = true;
@@ -296,10 +289,10 @@ namespace viennamesh
     if (success)
     {
       info(1) << "Successfully read a mesh" << std::endl;
-      info(1) << "  Geometric dimension = " << viennagrid::geometric_dimension(output_mesh()) << std::endl;
-      info(1) << "  Cell dimension = " << viennagrid::cell_dimension(output_mesh()) << std::endl;
-      info(1) << "  Vertex count =  " << viennagrid::vertices(output_mesh()).size() << std::endl;
-      info(1) << "  Cell count = " << viennagrid::cells(output_mesh()).size() << std::endl;
+      info(1) << "  Geometric dimension = " << viennagrid::geometric_dimension(mesh) << std::endl;
+      info(1) << "  Cell dimension = " << viennagrid::cell_dimension(mesh) << std::endl;
+      info(1) << "  Vertex count =  " << viennagrid::vertices(mesh).size() << std::endl;
+      info(1) << "  Cell count = " << viennagrid::cells(mesh).size() << std::endl;
 
       set_output("mesh", output_mesh);
     }
@@ -316,7 +309,7 @@ namespace viennamesh
     string_handle filetype = get_input<string_handle>("filetype");
 
     FileType ft;
-    if (filetype)
+    if (filetype.valid())
       ft = from_string( filetype() );
     else
       ft = from_filename( filename() );

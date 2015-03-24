@@ -6,7 +6,7 @@ namespace viennamesh
 {
   void plugin_init( context_handle & context )
   {
-    viennamesh::register_algorithm<viennamesh::mesh_reader>(context);
-    viennamesh::register_algorithm<viennamesh::mesh_writer>(context);
+    context.register_algorithm<viennamesh::mesh_reader>();
+    context.register_algorithm<viennamesh::mesh_writer>();
   }
 }

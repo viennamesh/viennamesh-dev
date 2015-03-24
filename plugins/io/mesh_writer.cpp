@@ -205,19 +205,19 @@ namespace viennamesh
   bool mesh_writer::run(viennamesh::algorithm_handle &)
   {
     string_handle filename = get_required_input<string_handle>("filename");
-    string_handle filetype = get_required_input<string_handle>("filetype");
+    string_handle filetype = get_input<string_handle>("filetype");
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
     info(1) << "Number of vertices of mesh to write " << viennagrid::vertices(input_mesh()).size() << std::endl;
     info(1) << "Number of cells of mesh to write " << viennagrid::cells(input_mesh()).size() << std::endl;
 
-    if (!filename)
+    if (!filename.valid())
     {
       error(1) << "Input parameter \"filename\" not found" << std::endl;
       return false;
     }
 
-    if (!input_mesh)
+    if (!input_mesh.valid())
     {
       error(1) << "Input parameter \"mesh\" not found" << std::endl;
       return false;
@@ -247,47 +247,52 @@ namespace viennamesh
         {
           viennagrid::io::vtk_writer<viennagrid::mesh_t> writer;
 
-          std::vector<viennagrid::quantity_field> quantity_fields = get_input_vector<viennagrid_quantity_field>("quantities");
-          for (std::vector<viennagrid::quantity_field>::iterator it = quantity_fields.begin();
-                                                                 it != quantity_fields.end();
-                                                               ++it)
+          quantity_field_handle quantity_field = get_input<viennagrid::quantity_field>("quantities");
+          if (quantity_field.valid())
           {
-            info(1) << "Found quantity field \"" << (*it).name() << "\" with cell dimension " << (*it).topologic_dimension() << " and values dimension " << (*it).values_dimension() << std::endl;
-
-            if ( ((*it).topologic_dimension() != 0) && ((*it).topologic_dimension() != cell_dimension) )
+            int quantity_field_count = quantity_field.size();
+            for (int i = 0; i != quantity_field_count; ++i)
             {
-              error(1) << "Values dimension " << (*it).values_dimension() << " for quantitiy field \"" << (*it).name() << "\" not supported -> skipping" << std::endl;
-              continue;
-            }
+              viennagrid::quantity_field current = quantity_field(i);
 
-            if ( ((*it).values_dimension() != 1) && ((*it).values_dimension() != 3) )
-            {
-              error(1) << "Values dimension " << (*it).values_dimension() << " for quantitiy field \"" << (*it).name() << "\" not supported -> skipping" << std::endl;
-              continue;
-            }
+              info(1) << "Found quantity field \"" << current.name() << "\" with cell dimension " << current.topologic_dimension() << " and values dimension " << current.values_dimension() << std::endl;
+
+              if ( (current.topologic_dimension() != 0) && (current.topologic_dimension() != cell_dimension) )
+              {
+                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.name() << "\" not supported -> skipping" << std::endl;
+                continue;
+              }
+
+              if ( (current.values_dimension() != 1) && (current.values_dimension() != 3) )
+              {
+                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.name() << "\" not supported -> skipping" << std::endl;
+                continue;
+              }
 
 
-            if ( (*it).topologic_dimension() == 0 )
-            {
-              if ( (*it).values_dimension() == 1 )
+              if ( current.topologic_dimension() == 0 )
               {
-                writer.add_scalar_data_on_vertices( *it, (*it).name() );
+                if ( current.values_dimension() == 1 )
+                {
+                  writer.add_scalar_data_on_vertices( current, current.name() );
+                }
+                else
+                {
+                  writer.add_vector_data_on_vertices( current, current.name() );
+                }
               }
-              else
+              else if ( current.topologic_dimension() == cell_dimension )
               {
-                writer.add_vector_data_on_vertices( *it, (*it).name() );
+                if ( current.values_dimension() == 1 )
+                {
+                  writer.add_scalar_data_on_cells( current, current.name() );
+                }
+                else
+                {
+                  writer.add_vector_data_on_cells( current, current.name() );
+                }
               }
-            }
-            else if ( (*it).topologic_dimension() == cell_dimension )
-            {
-              if ( (*it).values_dimension() == 1 )
-              {
-                writer.add_scalar_data_on_cells( *it, (*it).name() );
-              }
-              else
-              {
-                writer.add_vector_data_on_cells( *it, (*it).name() );
-              }
+
             }
           }
 
