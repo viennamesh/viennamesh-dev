@@ -29,6 +29,7 @@ namespace viennamesh
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
     data_handle<int> region_count = get_required_input<int>("region_count");
+    data_handle<bool> multi_mesh_output = get_input<bool>("multi_mesh_output");
 
     int cell_dimension = viennagrid::cell_dimension( input_mesh() );
 
@@ -88,12 +89,34 @@ namespace viennamesh
     mesh_handle output_mesh = make_data<mesh_handle>();
 
     typedef viennagrid::result_of::element_copy_map<>::type ElementCopyMapType;
-    ElementCopyMapType copy_map( output_mesh(), false );
 
-    for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+    if ( multi_mesh_output.valid() && multi_mesh_output() )
     {
-      ElementType cell = copy_map( *cit );
-      viennagrid::add( output_mesh().get_make_region(epart[(*cit).id()]), cell );
+      output_mesh.resize( region_count() );
+
+      std::vector<ElementCopyMapType> copy_maps;
+
+      for (int i = 0; i != region_count(); ++i)
+      {
+        ElementCopyMapType copy_map( output_mesh(i) );
+        for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+        {
+          int part = epart[(*cit).id()];
+          if (part == i)
+            copy_map( *cit );
+        }
+      }
+    }
+    else
+    {
+
+      ElementCopyMapType copy_map( output_mesh(), false );
+
+      for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+      {
+        ElementType cell = copy_map( *cit );
+        viennagrid::add( output_mesh().get_make_region(epart[(*cit).id()]), cell );
+      }
     }
 
     set_output( "mesh", output_mesh );
