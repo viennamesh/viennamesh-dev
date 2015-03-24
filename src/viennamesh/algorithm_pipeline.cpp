@@ -34,7 +34,16 @@ namespace viennamesh
     }
     std::string algorithm_id = algorithm_id_attribute.as_string();
 
-    algorithm_handle algorithm = context.make_algorithm( algorithm_id );
+    algorithm_handle algorithm;
+    try
+    {
+      algorithm = context.make_algorithm( algorithm_id );
+    }
+    catch (exception::base_exception const & ex)
+    {
+      error(1) << "Algorithm with id \"" << algorithm_id << "\" creation from factory failed" << std::endl;
+      return false;
+    }
 
     if (!algorithm.valid())
     {
@@ -117,10 +126,50 @@ namespace viennamesh
         else if (parameter_type == "point")
         {
           point_t point = stringtools::vector_from_string<double>(parameter_value);
-          data_handle<viennamesh_point_container> point_handle = context.make_data<viennamesh_point_container>();
-          convert(point, point_handle());
+          data_handle<viennamesh_point> point_handle = context.make_data<point_t>(point);
+          algorithm.set_input( parameter_name, point_handle );
+        }
+        else if ((parameter_type == "points") || (parameter_type == "matrix"))
+        {
+          std::list<std::string> split_mappings = stringtools::split_string_brackets( parameter_value, "," );
+          point_container_t points;
+          for (std::list<std::string>::const_iterator sit = split_mappings.begin();
+                                                      sit != split_mappings.end();
+                                                    ++sit)
+            points.push_back( stringtools::vector_from_string<double>(*sit) );
+
+          data_handle<viennamesh_point> point_handle = context.make_data<point_t>(points);
 
           algorithm.set_input( parameter_name, point_handle );
+        }
+        else if (parameter_type == "seed_points")
+        {
+          std::list<std::string> split_mappings = stringtools::split_string_brackets( parameter_value, ";" );
+          seed_point_container_t seed_points;
+          for (std::list<std::string>::const_iterator sit = split_mappings.begin();
+                                                      sit != split_mappings.end();
+                                                    ++sit)
+          {
+            std::list<std::string> from_to = stringtools::split_string_brackets( *sit, "," );
+
+            if (from_to.size() != 2)
+            {
+              error(1) << "String to seed point container conversion: an entry has no point and no segment id: " << *sit << std::endl;
+              return false;
+            }
+
+            std::list<std::string>::const_iterator it = from_to.begin();
+
+            std::string point_string = *it;
+            ++it;
+            std::string segment_id = *it;
+
+            point_t point = stringtools::vector_from_string<double>(point_string);
+            seed_points.push_back( std::make_pair(point, lexical_cast<int>(segment_id)) );
+          }
+
+          data_handle<viennamesh_seed_point> seed_point_handle = context.make_data<seed_point_t>(seed_points);
+          algorithm.set_input( parameter_name, seed_point_handle );
         }
         else if (parameter_type == "dynamic")
         {
