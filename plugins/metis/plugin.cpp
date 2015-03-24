@@ -7,6 +7,6 @@ namespace viennamesh
 {
   void plugin_init( context_handle & context )
   {
-    viennamesh::register_algorithm<viennamesh::metis_mesh_partitioning>(context);
+    context.register_algorithm<viennamesh::metis_mesh_partitioning>();
   }
 }
