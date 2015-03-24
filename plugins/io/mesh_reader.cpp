@@ -281,7 +281,7 @@ namespace viennamesh
       }
     default:
       {
-        error(1) << "Unsupported extension: " << to_string(filetype) << std::endl;
+        error(1) << "Unsupported extension: " << lexical_cast<std::string>(filetype) << std::endl;
         return false;
       }
     }
@@ -310,10 +310,10 @@ namespace viennamesh
 
     FileType ft;
     if (filetype.valid())
-      ft = from_string( filetype() );
+      ft = lexical_cast<FileType>( filetype() );
     else
       ft = from_filename( filename() );
-    info(1) << "Using file type " << to_string(ft) << std::endl;
+    info(1) << "Using file type " << lexical_cast<std::string>(ft) << std::endl;
 
     std::string path = base_path();
 

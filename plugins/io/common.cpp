@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include "common.hpp"
+#include "viennamesh/utils/string_tools.hpp"
 
 namespace viennamesh
 {
@@ -76,93 +77,138 @@ namespace viennamesh
     return UNKNOWN;
   }
 
-  FileType from_string( std::string str )
+
+
+
+  std::istream & operator>>(std::istream & stream, FileType & file_type)
   {
+    std::string str;
+    stream >> str;
+
     std::transform( str.begin(), str.end(), str.begin(), ::toupper );
 
     if (str == "VTK")
-      return VTK;
-    if (str == "VMESH")
-      return VMESH;
+      file_type = VTK;
+    else if (str == "VMESH")
+      file_type = VMESH;
 
-    if (str == "TETGEN_POLY")
-      return TETGEN_POLY;
-    if (str == "NETGEN_MESH")
-      return NETGEN_MESH;
+    else if (str == "TETGEN_POLY")
+      file_type = TETGEN_POLY;
+    else if (str == "NETGEN_MESH")
+      file_type = NETGEN_MESH;
 
-    if (str == "GTS_DEVA")
-      return GTS_DEVA;
-    if (str == "SYNOPSIS_BND")
-      return SYNOPSIS_BND;
-    if (str == "COMSOL_MPHTXT")
-      return COMSOL_MPHTXT;
-    if (str == "NEPER_TESS")
-      return NEPER_TESS;
+    else if (str == "GTS_DEVA")
+      file_type = GTS_DEVA;
+    else if (str == "SYNOPSIS_BND")
+      file_type = SYNOPSIS_BND;
+    else if (str == "COMSOL_MPHTXT")
+      file_type = COMSOL_MPHTXT;
+    else if (str == "NEPER_TESS")
+      file_type = NEPER_TESS;
 
-    if (str == "OCC_STEP")
-      return NEPER_TESS;
-    if (str == "OCC_IGES")
-      return NEPER_TESS;
+    else if (str == "OCC_STEP")
+      file_type = NEPER_TESS;
+    else if (str == "OCC_IGES")
+      file_type = NEPER_TESS;
 
-    if (str == "SENTAURUS_TDR")
-      return SENTAURUS_TDR;
+    else if (str == "SENTAURUS_TDR")
+      file_type = SENTAURUS_TDR;
 
-    if (str == "SILVACO_STR")
-      return SILVACO_STR;
+    else if (str == "SILVACO_STR")
+      file_type = SILVACO_STR;
 
-    if (str == "STL")
-      return STL;
-    if (str == "STL_ASCII")
-      return STL_ASCII;
-    if (str == "STL_BINARY")
-      return STL_BINARY;
+    else if (str == "STL")
+      file_type = STL;
+    else if (str == "STL_ASCII")
+      file_type = STL_ASCII;
+    else if (str == "STL_BINARY")
+      file_type = STL_BINARY;
 
-    return UNKNOWN;
+    else
+      file_type = UNKNOWN;
+
+    return stream;
   }
 
-  std::string to_string( FileType file_type )
+
+
+  std::ostream & operator<<(std::ostream & stream, FileType file_type)
   {
     switch (file_type)
     {
       case VTK:
-        return "VTK";
+        stream << "VTK";
+        break;
       case VMESH:
-        return "VMESH";
+        stream << "VMESH";
+        break;
 
       case TETGEN_POLY:
-        return "TETGEN_POLY";
+        stream << "TETGEN_POLY";
+        break;
       case NETGEN_MESH:
-        return "NETGEN_MESH";
+        stream << "NETGEN_MESH";
+        break;
 
       case GTS_DEVA:
-        return "GTS_DEVA";
+        stream << "GTS_DEVA";
+        break;
       case SYNOPSIS_BND:
-        return "SYNOPSIS_BND";
+        stream << "SYNOPSIS_BND";
+        break;
       case COMSOL_MPHTXT:
-        return "COMSOL_MPHTXT";
+        stream << "COMSOL_MPHTXT";
+        break;
       case NEPER_TESS:
-        return "NEPER_TESS";
+        stream << "NEPER_TESS";
+        break;
 
       case OCC_STEP:
-        return "OCC_STEP";
+        stream << "OCC_STEP";
+        break;
       case OCC_IGES:
-        return "OCC_IGES";
+        stream << "OCC_IGES";
+        break;
 
       case SENTAURUS_TDR:
-        return "SENTAURUS_TDR";
+        stream << "SENTAURUS_TDR";
+        break;
 
       case SILVACO_STR:
-        return "SILVACO_STR";
+        stream << "SILVACO_STR";
+        break;
 
       case STL:
-        return "STL";
+        stream << "STL";
+        break;
       case STL_ASCII:
-        return "STL_ASCII";
+        stream << "STL_ASCII";
+        break;
       case STL_BINARY:
-        return "STL_BINARY";
+        stream << "STL_BINARY";
+        break;
 
       default:
-        return "UNKNOWN";
+        stream << "UNKNOWN";
     }
+
+    return stream;
   }
+
+
+
+  std::string make_filename(std::string const & filename,
+                            FileType ft,
+                            int index)
+  {
+    std::string filename_no_extension = filename.substr(0, filename.rfind("."));
+    std::string file_extension = filename.substr(filename.rfind(".")+1);
+
+    if (ft == VTK)
+      return filename_no_extension + "_" + stringtools::lexical_cast<std::string>(index);
+    else
+      return filename_no_extension + "_" + stringtools::lexical_cast<std::string>(index) + "." + file_extension;
+  }
+
+
 }

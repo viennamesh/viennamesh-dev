@@ -16,6 +16,8 @@
 =============================================================================== */
 
 #include <string>
+#include <ostream>
+#include <istream>
 
 namespace viennamesh
 {
@@ -40,8 +42,14 @@ namespace viennamesh
   };
 
   FileType from_filename( std::string filename );
-  FileType from_string( std::string str );
-  std::string to_string( FileType file_type );
+
+  std::ostream & operator<<(std::ostream & stream, FileType file_type);
+  std::istream & operator>>(std::istream & stream, FileType & file_type);
+
+  std::string make_filename(std::string const & filename,
+                            FileType ft,
+                            int index);
+
 }
 
 #endif
