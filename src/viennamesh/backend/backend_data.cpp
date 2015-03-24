@@ -50,6 +50,28 @@ viennamesh_data viennamesh_data_wrapper_t::data(int position)
   return internal_data[position].data;
 }
 
+void viennamesh_data_wrapper_t::resize(int new_size)
+{
+  if (new_size == size())
+    return;
+
+  int old_size = size();
+
+  if (new_size < old_size)
+  {
+    for (int i = new_size; i < old_size; ++i)
+      release_internal_data(i);
+  }
+
+  internal_data.resize(new_size);
+
+  if (new_size > old_size)
+  {
+    for (int i = old_size; i < new_size; ++i)
+      make_data(i);
+  }
+}
+
 
 
 

@@ -195,7 +195,6 @@ namespace viennamesh
 
     void set(int position, CPPType const & data_in)
     {
-      handle_error(viennamesh_data_wrapper_internal_make(data, position), data);
       to_c( data_in, *get_ptr(position) );
     }
 

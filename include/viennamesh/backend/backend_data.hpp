@@ -42,7 +42,7 @@ public:
   viennamesh_data data(int position);
 
   int size() const { return internal_data.size(); }
-  void resize(int size_) { internal_data.resize(size_); }
+  void resize(int size_);
 
   viennamesh::data_template data_template() { return data_template_;}
 
