@@ -479,13 +479,13 @@ namespace viennamesh
         typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIterator;
 
         if (region_names.empty())
-          throw create_sizing_function_exception( "distance_to_region_boundaries_functor: No region names specified" );
+          throw exception::create_sizing_function( "distance_to_region_boundaries_functor: No region names specified" );
 
         std::vector<std::string>::const_iterator seg_it = region_names.begin();
         ConstElementRangeType elements( mesh.get_region(*seg_it++), topologic_dimension );
 
         if (elements.empty())
-          throw create_sizing_function_exception( "distance_to_region_boundaries_functor: No elements found in mesh" );
+          throw exception::create_sizing_function( "distance_to_region_boundaries_functor: No elements found in mesh" );
 
         for (std::vector<std::string>::const_iterator snit = region_names.begin(); snit != region_names.end(); ++snit)
         {
@@ -507,7 +507,7 @@ namespace viennamesh
               ss << "\"" << (*sit).name() << "\"";
             }
 
-            throw create_sizing_function_exception(ss.str());
+            throw exception::create_sizing_function(ss.str());
           }
         }
 
@@ -540,7 +540,7 @@ namespace viennamesh
             ss << "\"" << *snit << "\"";
           }
 
-          throw create_sizing_function_exception(ss.str());
+          throw exception::create_sizing_function(ss.str());
         }
       }
 
@@ -709,7 +709,7 @@ namespace viennamesh
               ss << "\"" << (*sit).name() << "\"";
             }
 
-            throw create_sizing_function_exception(ss.str());
+            throw exception::create_sizing_function(ss.str());
           }
         }
       }
@@ -936,7 +936,7 @@ namespace viennamesh
       if (name == "constant")
       {
         if ( !node.child_value("value") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"value\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"value\" missing" );
 
         double value = lexical_cast<double>(node.child_value("value"));
         return std::bind( constant_functor<PointType>(value), _1 );
@@ -944,7 +944,7 @@ namespace viennamesh
       else if (name == "abs")
       {
         if ( !node.child_value("source") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
 
         SizingFunctionType source = from_xml<MeshT>(node.child("source").first_child(), mesh, base_path);
 
@@ -957,7 +957,7 @@ namespace viennamesh
           functions.push_back( from_xml<MeshT>(source.first_child(), mesh, base_path) );
 
         if (functions.empty())
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no sources specified" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": no sources specified" );
 
         return std::bind( min_functor<PointType>(functions), _1 );
       }
@@ -968,7 +968,7 @@ namespace viennamesh
           functions.push_back( from_xml<MeshT>(source.first_child(), mesh, base_path) );
 
         if (functions.empty())
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no sources specified" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": no sources specified" );
 
         return std::bind( max_functor<PointType>(functions), _1 );
       }
@@ -978,20 +978,20 @@ namespace viennamesh
         std::string transform_type = transform_type_node.as_string();
 
         if ( !node.child_value("source") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
 
         SizingFunctionType source = from_xml<MeshT>(node.child("source").first_child(), mesh, base_path);
 
         if (transform_type == "linear")
         {
           if ( !node.child_value("lower") )
-            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"lower\" missing" );
+            throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"lower\" missing" );
           if ( !node.child_value("upper") )
-            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"upper\" missing" );
+            throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"upper\" missing" );
           if ( !node.child_value("lower_to") )
-            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"lower_to\" missing" );
+            throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"lower_to\" missing" );
           if ( !node.child_value("upper_to") )
-            throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"upper_to\" missing" );
+            throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"upper_to\" missing" );
 
           double lower = lexical_cast<double>(node.child_value("lower"));
           double upper = lexical_cast<double>(node.child_value("upper"));
@@ -1010,7 +1010,7 @@ namespace viennamesh
           region_names.push_back( region.text().as_string() );
 
         if (region_names.empty())
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no region names specified" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": no region names specified" );
 
         std::string element_type = node.child_value("element_type");
         if (element_type == "line")
@@ -1018,7 +1018,7 @@ namespace viennamesh
         else if (element_type == "facet")
           return std::bind( distance_to_region_boundaries_functor(mesh, region_names, viennagrid::facet_dimension(mesh)), _1 );
         else
-          throw create_sizing_function_exception( "distance_to_region_boundaries: Element type \"" + element_type + "\" not supported" );
+          throw exception::create_sizing_function( "distance_to_region_boundaries: Element type \"" + element_type + "\" not supported" );
       }
       else if (name == "distance_to_interface")
       {
@@ -1027,7 +1027,7 @@ namespace viennamesh
           region_names.push_back( region.text().as_string() );
 
         if (region_names.empty())
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": no region names specified" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": no region names specified" );
 
         return std::bind( distance_to_interface_functor(mesh, region_names[0], region_names[1]), _1 );
       }
@@ -1048,9 +1048,9 @@ namespace viennamesh
       else if (name == "mesh_quantity")
       {
         if ( !node.child_value("mesh_file") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"mesh_file\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"mesh_file\" missing" );
         if ( !node.child_value("quantity_name") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
 
         std::string mesh_file = node.child_value("mesh_file");
         if (!base_path.empty())
@@ -1077,9 +1077,9 @@ namespace viennamesh
       else if (name == "mesh_gradient")
       {
         if ( !node.child_value("mesh_file") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"mesh_file\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"mesh_file\" missing" );
         if ( !node.child_value("quantity_name") )
-          throw create_sizing_function_exception( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
+          throw exception::create_sizing_function( "Sizing function functor \"" + name + "\": required XML child element \"quantity_name\" missing" );
 
         std::string mesh_file = node.child_value("mesh_file");
         if (!base_path.empty())
@@ -1104,7 +1104,7 @@ namespace viennamesh
         return std::bind( mesh_gradient_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
       }
 
-      throw create_sizing_function_exception( "Sizing function functor \"" + name + "\" not supported" );
+      throw exception::create_sizing_function( "Sizing function functor \"" + name + "\" not supported" );
 
       return SizingFunctionType();
     }

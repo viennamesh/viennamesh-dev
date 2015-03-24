@@ -4,18 +4,30 @@
 #include <vector>
 
 #include "viennamesh/forwards.hpp"
+#include "viennamesh/common.hpp"
+#include "viennamesh/backend/backend_common.hpp"
 
 namespace viennamesh
 {
+  template<typename AlgorithmT>
+  viennamesh_error generic_make_algorithm(viennamesh_algorithm * algorithm);
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_delete_algorithm(viennamesh_algorithm algorithm);
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_algorithm_init(viennamesh_algorithm_wrapper algorithm);
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_algorithm_run(viennamesh_algorithm_wrapper algorithm);
+
+
+
   class context_handle
   {
   public:
 
-    context_handle() : ctx(0)
-    {
-      make();
-      load_plugins_in_directories(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY, ";");
-    }
+    context_handle();
     context_handle(viennamesh_context ctx_) : ctx(ctx_) { retain(); }
     context_handle(context_handle const & handle_) : ctx(handle_.ctx) { retain(); }
 
@@ -40,11 +52,11 @@ namespace viennamesh
     }
 
     template<typename DataT>
-    void register_data_type(viennamesh_data_make_function make_function,
-                            viennamesh_data_delete_function delete_function)
+    void register_data_type()
     {
       register_data_type(result_of::data_information<DataT>::type_name(),
-                         make_function, delete_function);
+                         result_of::data_information<DataT>::make_function(),
+                         result_of::data_information<DataT>::delete_function());
     }
 
     void register_conversion(std::string const & data_type_from,
@@ -62,15 +74,31 @@ namespace viennamesh
                           convert_function);
     }
 
+    template<typename FromT, typename ToT>
+    void register_conversion()
+    {
+      register_conversion<FromT, ToT>(generic_convert<FromT, ToT> );
+    }
+
 
     template<typename DataT>
-    data_handle<DataT> make_data()
+    typename result_of::data_handle<DataT>::type make_data()
     {
-      data_handle<DataT> tmp;
+      typename result_of::data_handle<DataT>::type tmp;
       tmp.make(ctx);
       return tmp;
     }
 
+    template<typename DataT, typename DataToCopyT>
+    typename result_of::data_handle<DataT>::type make_data(DataToCopyT const & data)
+    {
+      typedef typename result_of::data_handle<DataT>::type HandleType;
+      typedef typename result_of::c_type<DataT>::type CType;
+
+      HandleType handle = make_data<CType>();
+      handle.set( data );
+      return handle;
+    }
 
 
 
@@ -86,6 +114,16 @@ namespace viennamesh
       viennamesh_algorithm_register(ctx, algorithm_name.c_str(),
                                     make_function, delete_function,
                                     init_function, run_function);
+    }
+
+    template<typename AlgorithmT>
+    void register_algorithm()
+    {
+      register_algorithm( AlgorithmT::name(),
+                          generic_make_algorithm<AlgorithmT>,
+                          generic_delete_algorithm<AlgorithmT>,
+                          generic_algorithm_init<AlgorithmT>,
+                          generic_algorithm_run<AlgorithmT> );
     }
 
 
@@ -120,14 +158,6 @@ namespace viennamesh
     viennamesh_context ctx;
     std::vector<void *> loaded_plugins;
   };
-
-
-
-
-
-
-
-
 
 
 }

@@ -81,10 +81,29 @@ public:
     delete algorithm;
   }
 
-  void run_algorithm(viennamesh_algorithm_wrapper algorithm)
+//   void run_algorithm(viennamesh_algorithm_wrapper algorithm)
+//   {
+//     algorithm->run();
+//   }
+
+
+  std::string const & error_message() const
   {
-    algorithm->run();
+    return error_message_;
   }
+
+  void set_error_message(std::string const & error_message_in)
+  {
+    error_message_ = error_message_in;
+    viennamesh::backend::error(1) << error_message() << std::endl;
+  }
+
+  void clear_error_message()
+  {
+    error_message_.clear();
+  }
+
+
 
 
   viennamesh_plugin load_plugin(std::string const & plugin_filename);
@@ -105,10 +124,12 @@ public:
 
 private:
 
-  void handle_error(int error_code) const
+  void handle_error(viennamesh_error error_code) const
   {
     throw viennamesh::error_t(error_code);
   }
+
+  std::string error_message_;
 
   std::map<std::string, viennamesh::data_template_t> data_types;
   std::map<std::string, viennamesh::algorithm_template_t> algorithm_templates;
@@ -125,5 +146,7 @@ private:
 
   int use_count_;
 };
+
+
 
 #endif

@@ -11,7 +11,7 @@ namespace viennamesh
   {
   public:
     typedef std::ostringstream collector_stream_type;
-    typedef int (*viennamesh_log_function_type)(const char *, int);
+    typedef viennamesh_error (*viennamesh_log_function_type)(const char *, int);
 
     log_instance(viennamesh_log_function_type function, int log_level_) :
       os_( new collector_stream_type() ),

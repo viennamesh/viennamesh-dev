@@ -8,6 +8,10 @@
 #include "viennamesh/context.hpp"
 #include "viennamesh/data.hpp"
 #include "viennamesh/logger.hpp"
+#include "viennamesh/exceptions.hpp"
+#include "viennamesh/utils/string_tools.hpp"
+
+using stringtools::lexical_cast;
 
 namespace viennamesh
 {
@@ -58,6 +62,8 @@ namespace viennamesh
     }
 
 
+
+
     void set_input(std::string const & name, abstract_data_handle const & data)
     {
       viennamesh_algorithm_set_input(algorithm, name.c_str(), data.internal());
@@ -73,7 +79,6 @@ namespace viennamesh
     void set_input(std::string const & name, T data)
     {
       data_handle<T> tmp = context().make_data<T>();
-//       tmp() = data;
       tmp.set(data);
       set_input(name, tmp);
     }
@@ -82,10 +87,6 @@ namespace viennamesh
     {
       data_handle<viennamesh_string> tmp = context().make_data<viennamesh_string>();
       tmp.set(string);
-
-//       viennamesh_string_set( tmp(), string );
-//       tmp() = (char*)malloc( strlen(string)+1 );
-//       strcpy( tmp(), string );
       set_input(name, tmp);
     }
 
@@ -107,18 +108,45 @@ namespace viennamesh
       return abstract_data_handle(data_);
     }
 
-    template<typename DataT>
-    data_handle<DataT> get_input(std::string const & name)
+    abstract_data_handle get_required_input(std::string const & name)
     {
-      viennamesh_data_wrapper data_;
-      viennamesh_algorithm_get_input_with_type(algorithm, name.c_str(),
-                                               result_of::data_information<DataT>::type_name().c_str(),
-                                               &data_);
+      abstract_data_handle result = get_input(name);
 
-      return data_handle<DataT>(data_, false);
+      if (!result.valid())
+      {
+        throw exception::input_parameter_not_found("Required input \"" + name + "\" is not present.");
+      }
+
+      return result;
     }
 
 
+
+    template<typename DataT>
+    data_handle< typename result_of::unpack_data<DataT>::type > get_input(std::string const & name)
+    {
+      typedef typename result_of::unpack_data<DataT>::type UnpackedDataType;
+
+      viennamesh_data_wrapper data_;
+      viennamesh_algorithm_get_input_with_type(algorithm, name.c_str(),
+                                               result_of::data_information<UnpackedDataType>::type_name().c_str(),
+                                               &data_);
+
+      return data_handle<UnpackedDataType>(data_, false);
+    }
+
+    template<typename DataT>
+    data_handle< typename result_of::unpack_data<DataT>::type > get_required_input(std::string const & name)
+    {
+      data_handle< typename result_of::unpack_data<DataT>::type > result = get_input<DataT>(name);
+
+      if (!result.valid())
+      {
+        throw exception::input_parameter_not_of_requested_type_and_not_convertable("Required input \"" + name + "\" is not present or not of convertable type.");
+      }
+
+      return result;
+    }
 
 
 
@@ -141,7 +169,6 @@ namespace viennamesh
       viennamesh_data_wrapper data_;
       viennamesh_algorithm_get_output_with_type(algorithm, name.c_str(),
                                                result_of::data_information<DataT>::type_name().c_str(),
-                                               result_of::data_information<DataT>::local_binary_format().c_str(),
                                                &data_);
 
       return data_handle<DataT>(data_, true);
@@ -203,12 +230,76 @@ namespace viennamesh
     void make(viennamesh_context context, std::string const & algorithm_name)
     {
       release();
-      viennamesh_algorithm_make(context, algorithm_name.c_str(), &algorithm);
+      viennamesh_error err = viennamesh_algorithm_make(context, algorithm_name.c_str(), &algorithm);
+      if (err != VIENNAMESH_SUCCESS)
+        throw exception::base_exception("Creating algorithm \"" + algorithm_name + "\" failed");
+
       init();
     }
 
     viennamesh_algorithm_wrapper algorithm;
   };
+
+
+
+
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_make_algorithm(viennamesh_algorithm * algorithm)
+  {
+    AlgorithmT * tmp = new AlgorithmT();
+    *algorithm = tmp;
+
+    return VIENNAMESH_SUCCESS;
+  }
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_delete_algorithm(viennamesh_algorithm algorithm)
+  {
+    delete (AlgorithmT*)algorithm;
+    return VIENNAMESH_SUCCESS;
+  }
+
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_algorithm_init(viennamesh_algorithm_wrapper algorithm)
+  {
+    viennamesh_algorithm internal_algorithm;
+    viennamesh_algorithm_get_internal_algorithm(algorithm, &internal_algorithm);
+
+    if (!((AlgorithmT*)internal_algorithm)->init( viennamesh::algorithm_handle(algorithm) ))
+      return VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED;
+
+    return VIENNAMESH_SUCCESS;
+  }
+
+
+  template<typename AlgorithmT>
+  viennamesh_error generic_algorithm_run(viennamesh_algorithm_wrapper algorithm)
+  {
+    viennamesh_algorithm internal_algorithm;
+    viennamesh_algorithm_get_internal_algorithm(algorithm, &internal_algorithm);
+
+    {
+      const char * name_;
+      viennamesh_algorithm_get_name(algorithm, &name_);
+      viennamesh::LoggingStack stack( std::string("Running algorithm \"") + name_ + "\"");
+
+      viennamesh::algorithm_handle algorithm_handle(algorithm);
+
+      try
+      {
+        ((AlgorithmT*)internal_algorithm)->run(algorithm_handle);
+      }
+      catch (exception::base_exception const & ex)
+      {
+        error(1) << "Algorithm failed: " << ex.what() << std::endl;
+        return VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED;
+      }
+    }
+
+    return VIENNAMESH_SUCCESS;
+  }
 
 }
 

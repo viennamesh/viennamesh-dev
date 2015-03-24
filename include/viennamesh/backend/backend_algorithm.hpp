@@ -147,7 +147,7 @@ namespace viennamesh
     viennamesh_algorithm make_algorithm() const
     {
       viennamesh_algorithm algorithm;
-      int result = make_function_(&algorithm);
+      viennamesh_error result = make_function_(&algorithm);
       if (result != VIENNAMESH_SUCCESS)
         throw viennamesh::error_t(result);
       return algorithm;
@@ -155,7 +155,7 @@ namespace viennamesh
 
     void delete_algorithm(viennamesh_algorithm algorithm) const
     {
-      int result = delete_function_( algorithm );
+      viennamesh_error result = delete_function_( algorithm );
       if (result != VIENNAMESH_SUCCESS)
         throw viennamesh::error_t(result);
     }

@@ -10,11 +10,11 @@ namespace viennamesh
   class error_t
   {
   public:
-    error_t(int error_code_) : error_code(error_code_) {}
-    operator int() const { return error_code; }
+    error_t(viennamesh_error error_code_) : error_code(error_code_) {}
+    operator viennamesh_error() const { return error_code; }
 
   private:
-    int error_code;
+    viennamesh_error error_code;
   };
 
   class data_template_t;

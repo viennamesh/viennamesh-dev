@@ -8,27 +8,41 @@
 #include <iostream>
 
 #include "viennamesh/backend/backend_forwards.hpp"
+#include "viennamesh/backend/backend_logger.hpp"
+
+
+
+struct viennamesh_internal_data_t
+{
+  viennamesh_internal_data_t() : data(0), own_data(true) {}
+
+  viennamesh_data data;
+  bool own_data;
+};
 
 
 struct viennamesh_data_wrapper_t
 {
 public:
 
-  viennamesh_data_wrapper_t() : internal_data_(0), own_internal_data(true), use_count_(1) {}
-  viennamesh_data_wrapper_t(viennamesh::data_template data_template_in) : data_template_(data_template_in), internal_data_(0), own_internal_data(true), use_count_(1)
+  viennamesh_data_wrapper_t(viennamesh::data_template data_template_in) : data_template_(data_template_in), internal_data(1), use_count_(1)
   {
 #ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
     std::cout << "New data at " << this << std::endl;
 #endif
+    make_data(0);
   }
 
   std::string type_name();
 
   viennamesh_context context();
 
-  void make_data();
-  void set_data( viennamesh_data internal_data_in );
-  viennamesh_data data() { return internal_data_; }
+  void make_data(int position);
+  void set_data(int position, viennamesh_data internal_data_in);
+  viennamesh_data data(int position);
+
+  int size() const { return internal_data.size(); }
+  void resize(int size_) { internal_data.resize(size_); }
 
   viennamesh::data_template data_template() { return data_template_;}
 
@@ -49,10 +63,11 @@ public:
 private:
   viennamesh::data_template data_template_;
 
-  viennamesh_data internal_data_;
-  bool own_internal_data;
+  std::vector<viennamesh_internal_data_t> internal_data;
 
+  void release_internal_data(int position);
   void release_internal_data();
+
   void delete_this();
   int use_count_;
 };
@@ -71,7 +86,7 @@ namespace viennamesh
     viennamesh_data make_data() const
     {
       viennamesh_data data;
-      int result = make_function_(&data);
+      viennamesh_error result = make_function_(&data);
       if (result != VIENNAMESH_SUCCESS)
         throw viennamesh::error_t(result);
       return data;
@@ -79,7 +94,7 @@ namespace viennamesh
 
     void delete_data(viennamesh_data data) const
     {
-      int result = delete_function_( data );
+      viennamesh_error result = delete_function_( data );
       if (result != VIENNAMESH_SUCCESS)
         throw viennamesh::error_t(result);
     }
@@ -103,9 +118,17 @@ namespace viennamesh
     {
       ConvertFunctionMap::const_iterator it = convert_functions.find( to->type_name() );
       if (it == convert_functions.end())
+      {
+        viennamesh::backend::error(1) << "No conversion found from data type \"" << from->type_name() << "\" to \"" << to->type_name() << "\"" << std::endl;
         throw viennamesh::error_t(VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE);
+      }
 
-      it->second( from->data(), to->data() );
+      to->resize( from->size() );
+      for (int i = 0; i != from->size(); ++i)
+      {
+        to->make_data(i);
+        it->second( from->data(i), to->data(i) );
+      }
     }
 
 
