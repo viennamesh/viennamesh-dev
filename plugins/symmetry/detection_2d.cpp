@@ -635,17 +635,35 @@ template<typename NumericConfigT>
     PointType centroid;
     detect_symmetries_lines( lines.begin(), lines.end(), 1e-6, centroid, mirror_axis, rotational_frequencies );
 
+
+
+
+    data_handle<double> output_mirror_axis = make_data<double>();
+    data_handle<int> output_rotational_frequencies = make_data<int>();
+
+
+    output_mirror_axis.resize( mirror_axis.size() );
     info(1) << " Found global mirror axis: " << std::endl;
     for (std::size_t i = 0; i != mirror_axis.size(); ++i)
+    {
       info(1) << "  " << mirror_axis[i] << std::endl;
+      output_mirror_axis.set(i, mirror_axis[i]);
+    }
 
+
+    output_rotational_frequencies.resize( rotational_frequencies.size() );
     info(1) << "Found global rotational frequencies: " << std::endl;
     for (std::size_t i = 0; i != rotational_frequencies.size(); ++i)
+    {
       info(1) << "  " << rotational_frequencies[i] << std::endl;
+      output_rotational_frequencies.set(i, rotational_frequencies[i]);
+    }
+
+
 
     set_output( "centroid", centroid );
-    set_output_vector( "mirror_axis", mirror_axis );
-    set_output_vector( "rotational_frequencies", rotational_frequencies );
+    set_output( "mirror_axis", output_mirror_axis );
+    set_output( "rotational_frequencies", output_rotational_frequencies );
 
     return true;
   }

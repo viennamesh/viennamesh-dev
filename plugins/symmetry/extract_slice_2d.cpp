@@ -45,12 +45,12 @@ namespace viennamesh
 
 
 
-    point_container_handle input_centroid = get_required_input<point_container_handle>("centroid");
-    PointType centroid;
-    convert( input_centroid(), centroid );
+    point_handle input_centroid = get_required_input<point_handle>("centroid");
+    PointType centroid = input_centroid();
+//     convert( input_centroid(), centroid );
 
-    std::vector<double> mirror_axis = get_input_vector<double>("mirror_axis");
-    std::vector<int> rotational_frequencies = get_input_vector<int>("rotational_frequencies");
+    std::vector<double> mirror_axis = get_input<double>("mirror_axis").get_vector();
+    std::vector<int> rotational_frequencies = get_input<int>("rotational_frequencies").get_vector();
 
     info(1) << "Got global mirror axis: " << std::endl;
     for (std::size_t i = 0; i != mirror_axis.size(); ++i)
@@ -153,13 +153,13 @@ namespace viennamesh
 
       int mirror_axis_index = 0;
       data_handle<int> mirror_axis_index_input = get_input<int>("mirror_axis_index");
-      if (mirror_axis_index_input)
+      if (mirror_axis_index_input.valid())
         mirror_axis_index = mirror_axis_index_input();
 
       double start_angle = 0.0;
 
       data_handle<double> start_angle_input = get_input<double>("start_angle");
-      if (start_angle_input)
+      if (start_angle_input.valid())
         start_angle = start_angle_input();
 
       if (!mirror_axis.empty())
@@ -302,7 +302,7 @@ namespace viennamesh
 
 
     data_handle<double> line_size = get_input<double>("line_size");
-    if (line_size)
+    if (line_size.valid())
     {
       mesh_handle tmp = make_data<mesh_handle>();
 

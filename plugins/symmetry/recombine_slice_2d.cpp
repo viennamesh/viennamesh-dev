@@ -62,21 +62,20 @@ namespace viennamesh
     double mirror_axis = 0.0;
     bool mirror_axis_used = false;
 
-    if (get_input<int>("rotational_frequency"))
+    if (get_input<int>("rotational_frequency").valid())
     {
       rotational_frequency = get_input<int>("rotational_frequency")();
       rotational_frequency_used = true;
     }
 
-    if (get_input<double>("mirror_axis"))
+    if (get_input<double>("mirror_axis").valid())
     {
       mirror_axis = get_input<double>("mirror_axis")();
       mirror_axis_used = true;
     }
 
-    point_container_handle input_centroid = get_required_input<point_container_handle>("centroid");
-    PointType centroid;
-    convert( input_centroid(), centroid );
+    point_handle input_centroid = get_required_input<point_handle>("centroid");
+    PointType centroid = input_centroid();
 
     if (rotational_frequency_used)
       info(1) << "rotational_frequency " << rotational_frequency << std::endl;

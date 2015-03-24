@@ -11,10 +11,10 @@ namespace viennamesh
 {
   void plugin_init( context_handle & context )
   {
-    viennamesh::register_algorithm<viennamesh::symmetry_detection_2d>(context);
-    viennamesh::register_algorithm<viennamesh::extract_symmetric_slice_2d>(context);
-    viennamesh::register_algorithm<viennamesh::recombine_symmetric_slice_2d>(context);
+    context.register_algorithm<viennamesh::symmetry_detection_2d>();
+    context.register_algorithm<viennamesh::extract_symmetric_slice_2d>();
+    context.register_algorithm<viennamesh::recombine_symmetric_slice_2d>();
 
-    viennamesh::register_algorithm<viennamesh::symmetry_detection_3d>(context);
+    context.register_algorithm<viennamesh::symmetry_detection_3d>();
   }
 }
