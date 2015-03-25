@@ -63,6 +63,9 @@ namespace viennamesh
       for (std::size_t j = 0; j != matrix_rows[i].size(); ++j)
         matrix_values.push_back( matrix_rows[i][j] );
 
+    if (output_mesh != input_mesh)
+      viennagrid::copy( input_mesh(), output_mesh() );
+
     viennagrid::affine_transform( output_mesh(), &matrix_values[0], translate );
 
     set_output( "mesh", output_mesh );
