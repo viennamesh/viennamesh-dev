@@ -65,8 +65,10 @@ namespace viennamesh
     for (int i = 0; i != input_mesh.size(); ++i)
     {
       viennagrid::mesh_t mesh = input_mesh(i);
-      std::string local_filename = filename();
-      if (input_mesh.size() != 1)
+      std::string local_filename;
+      if (input_mesh.size() == 1)
+        local_filename = make_filename(filename(), ft);
+      else
         local_filename = make_filename(filename(), ft, i);
 
       LoggingStack ls("Mesh " + lexical_cast<std::string>(i));

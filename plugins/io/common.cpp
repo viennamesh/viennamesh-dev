@@ -198,6 +198,18 @@ namespace viennamesh
 
 
   std::string make_filename(std::string const & filename,
+                            FileType ft)
+  {
+    std::string filename_no_extension = filename.substr(0, filename.rfind("."));
+//     std::string file_extension = filename.substr(filename.rfind(".")+1);
+
+    if (ft == VTK)
+      return filename_no_extension;
+    else
+      return filename;
+  }
+
+  std::string make_filename(std::string const & filename,
                             FileType ft,
                             int index)
   {

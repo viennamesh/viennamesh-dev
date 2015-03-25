@@ -47,6 +47,9 @@ namespace viennamesh
   std::istream & operator>>(std::istream & stream, FileType & file_type);
 
   std::string make_filename(std::string const & filename,
+                            FileType ft);
+
+  std::string make_filename(std::string const & filename,
                             FileType ft,
                             int index);
 
