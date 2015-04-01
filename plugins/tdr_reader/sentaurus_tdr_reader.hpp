@@ -604,7 +604,22 @@ namespace viennamesh
       typedef typename viennagrid::result_of::element<MeshT>::type CellType;
       typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
 
-      std::vector<viennagrid::quantity_field> results;
+      std::map<std::string, viennagrid::quantity_field> quantitiy_fields;
+
+      for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
+      {
+        for (std::map<string,dataset_t>::const_iterator D=R->second.dataset.begin(); D!=R->second.dataset.end(); D++)
+        {
+          string quantity_name = D->second.name;
+          viennagrid::quantity_field & quantities = quantitiy_fields[quantity_name];
+          quantities.set_name(quantity_name);
+          quantities.set_topologic_dimension(0);
+          quantities.set_values_dimension(1);
+        }
+      }
+
+
+      std::map< std::string, std::map<VertexType, int> > count;
 
       for (std::map<string,region_t>::const_iterator R=region.begin(); R!=region.end(); R++)
       {
@@ -617,11 +632,8 @@ namespace viennamesh
           string quantity_name = D->second.name;
 
           RegionType region = mesh.get_region(region_name);
+          viennagrid::quantity_field & quantities = quantitiy_fields[quantity_name];
 
-          viennagrid::quantity_field quantities;
-          quantities.set_name(quantity_name);
-          quantities.set_topologic_dimension(0);
-          quantities.set_values_dimension(1);
 
           typedef typename viennagrid::result_of::const_vertex_range<RegionType>::type ConstVertexRangeType;
           typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
@@ -632,7 +644,9 @@ namespace viennamesh
 
           int i = 0;
           for (ConstVertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
+          {
             quantities.set(*vit, D->second.values[i]);
+          }
 
           for (std::map< int, std::vector<int> >::const_iterator nvit = newly_created_vertices.begin();
                                                                  nvit != newly_created_vertices.end();
@@ -645,9 +659,16 @@ namespace viennamesh
 
             quantities.set( (*nvit).first, val );
           }
-
-          results.push_back(quantities);
         }
+      }
+
+
+      std::vector<viennagrid::quantity_field> results;
+      for (std::map<std::string, viennagrid::quantity_field>::iterator it = quantitiy_fields.begin();
+                                                                       it != quantitiy_fields.end();
+                                                                     ++it)
+      {
+        results.push_back( it->second );
       }
 
       return results;

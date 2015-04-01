@@ -146,7 +146,9 @@ namespace viennamesh
 
     mesh_handle output_mesh = make_data<mesh_handle>();
     geometry.to_viennagrid( output_mesh(), extrude_contacts, extrude_contacts_scale );
-    fill_triangle_contacts( output_mesh() );
+
+    if ( get_input<bool>("fill_triangle_contacts").valid() && get_input<bool>("fill_triangle_contacts")() )
+      fill_triangle_contacts( output_mesh() );
 
 
 
