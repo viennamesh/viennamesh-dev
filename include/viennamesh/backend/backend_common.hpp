@@ -13,7 +13,7 @@ namespace viennamesh
               std::string const & function_in, std::string const & file_in, int line_in,
               std::string const & message_in) :
         std::runtime_error(message_in), error_code_(error_code_in), function_(function_in), file_(file_in), line_(line_in) {}
-    virtual ~exception() {}
+    virtual ~exception() throw() {}
 
 
     viennamesh_error error_code() const { return error_code_; }
