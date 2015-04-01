@@ -212,9 +212,12 @@ namespace viennamesh
 
       std::string options = "zpQ";
       triangle_mesh tmp_mesh;
+      triangle_make_mesh(&tmp_mesh);
 
       make_mesh_impl(mesh, tmp_mesh, hole_points, seed_points, options);
       viennamesh::convert( *tmp_mesh, simple_mesh );
+
+      triangle_delete_mesh(tmp_mesh);
 
       return viennamesh::sizing_function::from_xml(sf, simple_mesh, base_path);
     }
