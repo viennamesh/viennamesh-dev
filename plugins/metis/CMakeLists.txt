@@ -1,4 +1,4 @@
-find_package(METIS REQUIRED)
+find_package(METIS QUIET)
 if (METIS_FOUND)
   message(STATUS "Found METIS")
   message(STATUS "METIS include directories: ${METIS_INCLUDE_DIRS}")
