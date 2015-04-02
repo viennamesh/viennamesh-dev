@@ -74,6 +74,9 @@ namespace viennamesh
     if ( extension_found(filename, "stl") )
       return STL;
 
+    if ( extension_found(filename, "grd") )
+      return GRD;
+
     return UNKNOWN;
   }
 
@@ -123,14 +126,13 @@ namespace viennamesh
       file_type = STL_ASCII;
     else if (str == "STL_BINARY")
       file_type = STL_BINARY;
-
+    else if (str == "GRD")
+      file_type = GRD;
     else
       file_type = UNKNOWN;
 
     return stream;
   }
-
-
 
   std::ostream & operator<<(std::ostream & stream, FileType file_type)
   {
@@ -187,7 +189,9 @@ namespace viennamesh
       case STL_BINARY:
         stream << "STL_BINARY";
         break;
-
+      case GRD:
+        stream << "GRD";
+        break;
       default:
         stream << "UNKNOWN";
     }

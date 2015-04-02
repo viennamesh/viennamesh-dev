@@ -38,7 +38,8 @@ namespace viennamesh
     SILVACO_STR,
     STL,
     STL_ASCII,
-    STL_BINARY
+    STL_BINARY,
+    GRD
   };
 
   FileType from_filename( std::string filename );
