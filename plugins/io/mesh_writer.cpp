@@ -14,8 +14,8 @@
 
 #include "mesh_writer.hpp"
 
-#include "viennagrid/io/vtk_writer.hpp"
-#include "viennagrid/io/mphtxt_writer.hpp"
+#include "viennagridpp/io/vtk_writer.hpp"
+#include "viennagridpp/io/mphtxt_writer.hpp"
 
 #include "pugixml.hpp"
 

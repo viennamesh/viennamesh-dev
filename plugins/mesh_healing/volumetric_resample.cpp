@@ -14,9 +14,9 @@
 
 #include <numeric>
 #include "volumetric_resample.hpp"
-#include "viennagrid/algorithm/geometry.hpp"
-#include "viennagrid/algorithm/inclusion.hpp"
-#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagridpp/algorithm/geometry.hpp"
+#include "viennagridpp/algorithm/inclusion.hpp"
+#include "viennagridpp/algorithm/centroid.hpp"
 
 
 // #include <CGAL/Simple_cartesian.h>

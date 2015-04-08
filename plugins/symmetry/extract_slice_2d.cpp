@@ -17,8 +17,8 @@
 #include <iterator>
 
 #include "extract_slice_2d.hpp"
-#include "viennagrid/algorithm/distance.hpp"
-#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagridpp/algorithm/distance.hpp"
+#include "viennagridpp/algorithm/centroid.hpp"
 
 
 namespace viennamesh

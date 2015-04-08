@@ -16,7 +16,7 @@
 =============================================================================== */
 
 #include "viennamesh_plugin.hpp"
-#include "viennagrid/algorithm/plane_to_2d_projector.hpp"
+#include "viennagridpp/algorithm/plane_to_2d_projector.hpp"
 
 
 extern "C"

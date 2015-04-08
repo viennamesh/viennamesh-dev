@@ -5,7 +5,7 @@
 #include "viennamesh/backend/backend_context.hpp"
 #include "viennamesh/backend/backend_logger.hpp"
 
-#include "viennagrid/point.hpp"
+#include "viennagridpp/point.hpp"
 
 
 struct viennamesh_string_t

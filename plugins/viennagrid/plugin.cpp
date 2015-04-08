@@ -14,6 +14,7 @@
 #include "interpolate_quantities.hpp"
 #include "map_regions.hpp"
 #include "refine_plc_lines.hpp"
+#include "center_mesh.hpp"
 
 namespace viennamesh
 {
@@ -36,5 +37,6 @@ namespace viennamesh
     context.register_algorithm<viennamesh::line_coarsening>();
     context.register_algorithm<viennamesh::interpolate_quantities>();
     context.register_algorithm<viennamesh::refine_plc_lines>();
+    context.register_algorithm<viennamesh::center_mesh>();
   }
 }

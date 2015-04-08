@@ -15,7 +15,7 @@
 #include "triangle_mesh.hpp"
 #include "triangle_make_hull.hpp"
 
-#include "viennagrid/algorithm/refine.hpp"
+#include "viennagridpp/algorithm/refine.hpp"
 
 namespace viennamesh
 {

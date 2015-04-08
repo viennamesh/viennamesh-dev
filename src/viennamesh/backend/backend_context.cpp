@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <dirent.h>
 
-#include "viennagrid/backend/api.h"
+#include "viennagrid/viennagrid.h"
 #include "viennamesh/backend/backend_context.hpp"
 
 

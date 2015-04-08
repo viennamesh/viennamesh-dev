@@ -15,9 +15,9 @@
 #include "extract_plc_geometry.hpp"
 
 #include <set>
-#include "viennagrid/algorithm/extract_hole_points.hpp"
-#include "viennagrid/algorithm/plane_to_2d_projector.hpp"
-#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagridpp/algorithm/extract_hole_points.hpp"
+#include "viennagridpp/algorithm/plane_to_2d_projector.hpp"
+#include "viennagridpp/algorithm/geometry.hpp"
 
 namespace viennamesh
 {

@@ -14,8 +14,8 @@
 
 #include "triangle_mesh.hpp"
 #include "triangle_make_mesh.hpp"
-#include "viennagrid/static_array.hpp"
-#include "viennagrid/algorithm/extract_seed_points.hpp"
+#include "viennagridpp/static_array.hpp"
+#include "viennagridpp/algorithm/extract_seed_points.hpp"
 #include "viennamesh/sizing_function.hpp"
 
 namespace viennamesh

@@ -3,7 +3,6 @@
 
 #include <set>
 #include <dlfcn.h>
-#include <boost/concept_check.hpp>
 
 #include "viennamesh/backend/backend_forwards.hpp"
 #include "viennamesh/backend/backend_data.hpp"

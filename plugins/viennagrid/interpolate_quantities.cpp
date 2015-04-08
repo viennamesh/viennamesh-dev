@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "interpolate_quantities.hpp"
-#include "viennagrid/algorithm/quantity_interpolate.hpp"
+#include "viennagridpp/algorithm/quantity_interpolate.hpp"
 
 namespace viennamesh
 {
@@ -48,8 +48,8 @@ namespace viennamesh
       typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
       typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
 
-      viennagrid::quantity_field dst_qf;
-      dst_qf.set_topologic_dimension(0);
+      viennagrid::quantity_field dst_qf( 0, src_qf.storage_layout(), src_qf.values_dimension() );
+//       dst_qf.set_topologic_dimension(0);
       dst_qf.set_name( src_qf.name() );
 
       viennagrid::interpolate_vertex_quantity( src_mesh(), src_qf, dst_mesh(), dst_qf, 0 );

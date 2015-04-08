@@ -37,15 +37,15 @@ using namespace H5;
 #define mythrow1(a) { std::cerr << a << std::endl; throw; }
 
 
-#include "viennagrid/mesh/element_creation.hpp"
-#include "viennagrid/quantity_field.hpp"
+#include "viennagridpp/mesh/element_creation.hpp"
+#include "viennagridpp/quantity_field.hpp"
 
-#include "viennagrid/algorithm/cross_prod.hpp"
-#include "viennagrid/algorithm/centroid.hpp"
-#include "viennagrid/algorithm/inclusion.hpp"
-#include "viennagrid/algorithm/geometry.hpp"
-#include "viennagrid/algorithm/distance.hpp"
-#include "viennagrid/algorithm/norm.hpp"
+#include "viennagridpp/algorithm/cross_prod.hpp"
+#include "viennagridpp/algorithm/centroid.hpp"
+#include "viennagridpp/algorithm/inclusion.hpp"
+#include "viennagridpp/algorithm/geometry.hpp"
+#include "viennagridpp/algorithm/distance.hpp"
+#include "viennagridpp/algorithm/norm.hpp"
 
 
 namespace viennamesh
@@ -612,9 +612,8 @@ namespace viennamesh
         {
           string quantity_name = D->second.name;
           viennagrid::quantity_field & quantities = quantitiy_fields[quantity_name];
+          quantities.init(0, 1);
           quantities.set_name(quantity_name);
-          quantities.set_topologic_dimension(0);
-          quantities.set_values_dimension(1);
         }
       }
 

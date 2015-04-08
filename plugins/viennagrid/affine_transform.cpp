@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "affine_transform.hpp"
-#include "viennagrid/algorithm/geometric_transform.hpp"
+#include "viennagridpp/algorithm/geometric_transform.hpp"
 
 namespace viennamesh
 {

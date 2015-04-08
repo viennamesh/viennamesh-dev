@@ -1,5 +1,5 @@
 #include "tetgen_mesh.hpp"
-#include "viennagrid/core.hpp"
+#include "viennagridpp/core.hpp"
 
 namespace viennamesh
 {

@@ -1,7 +1,7 @@
 #ifndef _VIENNAMESH_PLUGIN_PLUGIN_HPP_
 #define _VIENNAMESH_PLUGIN_PLUGIN_HPP_
 
-#include "viennagrid/core.hpp"
+#include "viennagridpp/core.hpp"
 #include "viennamesh/core.hpp"
 #include "viennamesh/exceptions.hpp"
 #include "viennamesh/backend/backend_context.hpp"

@@ -14,8 +14,8 @@
 
 #include "line_coarsening.hpp"
 
-#include "viennagrid/algorithm/angle.hpp"
-#include "viennagrid/algorithm/norm.hpp"
+#include "viennagridpp/algorithm/angle.hpp"
+#include "viennagridpp/algorithm/norm.hpp"
 // #include "viennagrid/mesh/element_deletion.hpp"
 
 

@@ -17,8 +17,8 @@
 #include <iterator>
 
 #include "detection_2d.hpp"
-#include "viennagrid/algorithm/volume.hpp"
-#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagridpp/algorithm/volume.hpp"
+#include "viennagridpp/algorithm/centroid.hpp"
 
 
 

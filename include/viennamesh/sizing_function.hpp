@@ -18,10 +18,10 @@
 #include <memory>
 #include <functional>
 
-#include "viennagrid/algorithm/distance.hpp"
-#include "viennagrid/algorithm/inclusion.hpp"
-#include "viennagrid/algorithm/geometry.hpp"
-#include "viennagrid/io/vtk_reader.hpp"
+#include "viennagridpp/algorithm/distance.hpp"
+#include "viennagridpp/algorithm/inclusion.hpp"
+#include "viennagridpp/algorithm/geometry.hpp"
+#include "viennagridpp/io/vtk_reader.hpp"
 
 #include "viennamesh/exceptions.hpp"
 
@@ -339,7 +339,8 @@ namespace viennamesh
         reader( mesh, filename );
 
         ConstCellRangeType cells(mesh);
-        gradient_accessor.set_values_dimension(1);
+
+        gradient_accessor.init(viennagrid::cell_dimension(mesh), 1);
         gradient_accessor.resize( cells.size() );
 
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)

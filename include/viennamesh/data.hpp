@@ -4,7 +4,7 @@
 #include <cassert>
 #include "viennamesh/forwards.hpp"
 #include "viennamesh/common.hpp"
-#include "viennagrid/core.hpp"
+#include "viennagridpp/core.hpp"
 
 namespace viennamesh
 {

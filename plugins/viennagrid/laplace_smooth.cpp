@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "laplace_smooth.hpp"
-#include "viennagrid/core.hpp"
+#include "viennagridpp/core.hpp"
 
 using namespace std::placeholders;
 

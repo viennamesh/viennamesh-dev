@@ -2,9 +2,9 @@
 #define _VIENNAMESH_FORWARDS_HPP_
 
 #include "viennamesh/backend/api.h"
-#include "viennagrid/point.hpp"
-#include "viennagrid/quantity_field.hpp"
-#include "viennagrid/mesh/mesh.hpp"
+#include "viennagridpp/point.hpp"
+#include "viennagridpp/quantity_field.hpp"
+#include "viennagridpp/mesh/mesh.hpp"
 #include <string>
 
 namespace viennamesh
