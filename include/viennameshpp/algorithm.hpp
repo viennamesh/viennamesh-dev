@@ -10,8 +10,6 @@
 #include "viennameshpp/logger.hpp"
 #include "viennameshpp/exceptions.hpp"
 
-#include "viennautils/stringtools.hpp"
-
 #include "viennamesh/cpp_error.hpp"
 
 

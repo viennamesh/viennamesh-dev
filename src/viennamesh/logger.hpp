@@ -28,7 +28,6 @@
 #include <unistd.h>
 #endif
 
-#include "viennautils/stringtools.hpp"
 #include "viennautils/timer.hpp"
 
 namespace viennamesh

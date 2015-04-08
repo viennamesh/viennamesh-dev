@@ -12,6 +12,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
+#include <list>
 #include "viennameshpp/algorithm_pipeline.hpp"
 
 namespace viennamesh
