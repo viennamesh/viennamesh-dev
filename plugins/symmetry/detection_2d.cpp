@@ -31,7 +31,7 @@ namespace viennamesh
   template<typename IteratorT>
   std::vector<double> string_from_points_on_circle(IteratorT begin, IteratorT end)
   {
-    typedef typename std::iterator_traits<IteratorT>::value_type NumericType;
+//     typedef typename std::iterator_traits<IteratorT>::value_type NumericType;
 
     IteratorT prev = begin;
     IteratorT it = begin; ++it;
@@ -351,7 +351,7 @@ template<typename NumericConfigT>
   template<typename IteratorT>
   std::vector<double> string_from_lines(IteratorT begin, IteratorT end)
   {
-    typedef typename std::iterator_traits<IteratorT>::value_type NumericType;
+//     typedef typename std::iterator_traits<IteratorT>::value_type NumericType;
 
     IteratorT prev = begin;
     IteratorT it = begin; ++it;

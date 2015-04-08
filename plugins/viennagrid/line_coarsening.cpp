@@ -42,13 +42,13 @@ namespace viennamesh
                viennagrid::mesh_t const & output_mesh,
                double angle)
   {
-    typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
+//     typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
     typedef typename viennagrid::result_of::element<MeshT>::type ElementType;
 
-    typedef typename viennagrid::result_of::region_range<MeshT, ElementType>::type RegionRangeType;
+//     typedef typename viennagrid::result_of::region_range<MeshT, ElementType>::type RegionRangeType;
 
-    typedef typename viennagrid::result_of::id<RegionType>::type RegionIDType;
-    typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionIDIteratorType;
+//     typedef typename viennagrid::result_of::id<RegionType>::type RegionIDType;
+//     typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionIDIteratorType;
 
     typedef typename viennagrid::result_of::element_range<MeshT>::type ElementRangeType;
     typedef typename viennagrid::result_of::iterator<ElementRangeType>::type ElementIteratorType;
@@ -74,7 +74,7 @@ namespace viennamesh
     for (ElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
       typedef typename viennagrid::result_of::coboundary_range<MeshT>::type CoboundaryVertexRangeType;
-      typedef typename viennagrid::result_of::iterator<CoboundaryVertexRangeType>::type CoboundaryLineIteratorType;
+//       typedef typename viennagrid::result_of::iterator<CoboundaryVertexRangeType>::type CoboundaryLineIteratorType;
 
       CoboundaryVertexRangeType coboundary_lines(mesh, *vit, 1);
       if (coboundary_lines.size() != 2)

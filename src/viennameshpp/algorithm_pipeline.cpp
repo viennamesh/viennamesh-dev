@@ -164,25 +164,25 @@ namespace viennamesh
 
         if (parameter_type == "string")
         {
-          algorithm.set_input( parameter_name, parameter_value );
+          algorithm.push_back_input( parameter_name, parameter_value );
         }
         else if (parameter_type == "bool")
         {
-          algorithm.set_input( parameter_name, boost::lexical_cast<bool>(parameter_value) );
+          algorithm.push_back_input( parameter_name, boost::lexical_cast<bool>(parameter_value) );
         }
         else if (parameter_type == "int")
         {
-          algorithm.set_input( parameter_name, boost::lexical_cast<int>(parameter_value) );
+          algorithm.push_back_input( parameter_name, boost::lexical_cast<int>(parameter_value) );
         }
         else if (parameter_type == "double")
         {
-          algorithm.set_input( parameter_name, boost::lexical_cast<double>(parameter_value) );
+          algorithm.push_back_input( parameter_name, boost::lexical_cast<double>(parameter_value) );
         }
         else if (parameter_type == "point")
         {
-          point_t point = boost::lexical_cast<point_t>(parameter_value);
-          data_handle<viennamesh_point> point_handle = context.make_data<point_t>(point);
-          algorithm.set_input( parameter_name, point_handle );
+//           point_t point = boost::lexical_cast<point_t>(parameter_value);
+//           data_handle<viennamesh_point> point_handle = context.make_data<point_t>(point);
+          algorithm.push_back_input( parameter_name, boost::lexical_cast<point_t>(parameter_value) );
         }
         else if ((parameter_type == "points") || (parameter_type == "matrix"))
         {

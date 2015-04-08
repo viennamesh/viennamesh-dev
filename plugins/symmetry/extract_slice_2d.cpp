@@ -151,10 +151,10 @@ namespace viennamesh
       else
         info(1) << "Using mirror symmetry and rotational symmetry" << std::endl;
 
-      int mirror_axis_index = 0;
-      data_handle<int> mirror_axis_index_input = get_input<int>("mirror_axis_index");
-      if (mirror_axis_index_input.valid())
-        mirror_axis_index = mirror_axis_index_input();
+//       int mirror_axis_index = 0;
+//       data_handle<int> mirror_axis_index_input = get_input<int>("mirror_axis_index");
+//       if (mirror_axis_index_input.valid())
+//         mirror_axis_index = mirror_axis_index_input();
 
       double start_angle = 0.0;
 

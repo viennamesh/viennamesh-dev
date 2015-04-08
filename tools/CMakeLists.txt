@@ -5,7 +5,7 @@ message(STATUS "Tools compile flags: ${CMAKE_CXX_FLAGS}")
 
 foreach(PROG ${TOOL_PROGRAMS})
   add_executable(${PROG} src/${PROG}.cpp)
-  target_link_libraries(${PROG} viennamesh)
+  target_link_libraries(${PROG} viennameshpp)
   install(TARGETS ${PROG} DESTINATION bin)
 endforeach(PROG)
 

@@ -1,4 +1,4 @@
-FILE(GLOB_RECURSE VIENNAMESH_SOURCES *.cpp)
+FILE(GLOB_RECURSE VIENNAMESH_SOURCES viennamesh/*.cpp)
 add_library(viennamesh SHARED ${VIENNAMESH_SOURCES})
 
 find_package (Threads)
@@ -18,6 +18,6 @@ target_link_libraries(viennamesh ${VIENNAMESH_LIBRARIES})
 install(TARGETS viennamesh DESTINATION lib)
 
 
-FILE(GLOB_RECURSE VIENNAMESHPP_SOURCES *.cpp)
+FILE(GLOB_RECURSE VIENNAMESHPP_SOURCES viennameshpp/*.cpp)
 add_library(viennameshpp SHARED ${VIENNAMESHPP_SOURCES})
 target_link_libraries(viennameshpp viennamesh)

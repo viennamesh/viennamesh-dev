@@ -117,7 +117,7 @@ namespace viennamesh
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
       typedef typename viennagrid::result_of::region_range<MeshType, VertexType>::type RegionRangeType;
-      typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
+//       typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
 
       typedef typename viennagrid::result_of::neighbor_range<MeshType>::type NeighborVertexRangeType;
       typedef typename viennagrid::result_of::iterator<NeighborVertexRangeType>::type NeighborVertexRangeIterator;

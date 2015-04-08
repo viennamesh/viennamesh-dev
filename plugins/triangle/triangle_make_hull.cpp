@@ -82,7 +82,7 @@ namespace viennamesh
     {
       typedef viennagrid::element_t CellType;
 
-      typedef viennagrid::result_of::point<CellType>::type PointType;
+//       typedef viennagrid::result_of::point<CellType>::type PointType;
       typedef viennagrid::result_of::const_element<CellType>::type ConstVertexType;
 
       typedef viennagrid::result_of::const_vertex_range<CellType>::type ConstVertexRangeType;

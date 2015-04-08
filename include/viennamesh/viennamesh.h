@@ -1,12 +1,7 @@
-#ifndef _VIENNAMESH_BACKEND_BACKEND_H_
-#define _VIENNAMESH_BACKEND_BACKEND_H_
+#ifndef _VIENNAMESH_H_
+#define _VIENNAMESH_H_
 
-#ifdef __cplusplus
-  #define DYNAMIC_EXPORT extern "C"
-#else
-  #define DYNAMIC_EXPORT
-#endif
-
+#include "viennamesh/forwards.h"
 
 #include "viennagrid/viennagrid.h"
 #include "viennagrid/quantity_field.h"
@@ -21,63 +16,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// typedef int viennamesh_error;
-
-#define VIENNAMESH_VERSION_MAJOR 2
-#define VIENNAMESH_VERSION_MINOR 0
-#define VIENNAMESH_VERSION_PATCH 0
-
-#define VIENNAMESH_VERSION VIENNAMESH_VERSION_MAJOR*10000 + VIENNAMESH_VERSION_MINOR * 100 + VIENNAMESH_VERSION_PATCH
-
-
-
-// typedef int viennamesh_error;
-// #define VIENNAMESH_SUCCESS 0
-// #define VIENNAMESH_UNKNOWN_ERROR 1
-// #define VIENNAMESH_ERROR_INVALID_CONTEXT 2
-// #define VIENNAMESH_ERROR_ERROR_MANAGEMENT 3
-// #define VIENNAMESH_ERROR_INVALID_ARGUMENT 4
-//
-// #define VIENNAMESH_ERROR_DIFFERENT_CONTEXT 5
-// #define VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED 6
-// #define VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE 7
-// #define VIENNAMESH_ERROR_CONVERSION_FAILED 8
-//
-// #define VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED 9
-// #define VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED 10
-// #define VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED 11
-//
-// #define VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND 11
-// #define VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE 12
-// #define VIENNAMESH_ERROR_SIZING_FUNCTION 13
-
-
-
-enum viennamesh_error
-{
-  VIENNAMESH_SUCCESS,
-  VIENNAMESH_UNKNOWN_ERROR,
-  VIENNAMESH_ERROR_INVALID_CONTEXT,
-  VIENNAMESH_ERROR_ERROR_MANAGEMENT,
-  VIENNAMESH_ERROR_INVALID_ARGUMENT,
-
-  VIENNAMESH_ERROR_DIFFERENT_CONTEXT,
-  VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED,
-  VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE,
-  VIENNAMESH_ERROR_CONVERSION_FAILED,
-
-  VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED,
-  VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED,
-  VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED,
-
-  VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND,
-  VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE,
-  VIENNAMESH_ERROR_SIZING_FUNCTION,
-};
-
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_error_string(enum viennamesh_error error, const char ** error_string);
-
 
 
 
@@ -163,8 +101,8 @@ DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_internal_get(vienna
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_retain(viennamesh_data_wrapper data);
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_release(viennamesh_data_wrapper data);
 
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_type_get_name(viennamesh_data_wrapper data,
-                                                 const char ** data_type_name);
+DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_get_type_name(viennamesh_data_wrapper data,
+                                                                           const char ** data_type_name);
 
 
 // Conversion
@@ -183,38 +121,6 @@ DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_convert(viennamesh_
 DYNAMIC_EXPORT enum viennamesh_error viennamesh_data_wrapper_convert_to(viennamesh_data_wrapper data_from,
                                               const char * data_type_to,
                                               viennamesh_data_wrapper * data_to);
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                Special Data Types
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct viennamesh_string_t * viennamesh_string;
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_string_make(viennamesh_string * string);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_string_delete(viennamesh_string string);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_string_set(viennamesh_string string, const char * cstr);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_string_get(viennamesh_string string, const char ** cstr);
-
-
-typedef struct viennamesh_point_t * viennamesh_point;
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_point_make(viennamesh_point * point);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_point_delete(viennamesh_point point);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_point_set(viennamesh_point point,
-                                                     viennagrid_numeric * values,
-                                                     int size);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_point_get(viennamesh_point point,
-                                                     viennagrid_numeric ** values,
-                                                     int * size);
-
-
-typedef struct viennamesh_seed_point_t * viennamesh_seed_point;
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_seed_point_make(viennamesh_seed_point * seed_point);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_seed_point_delete(viennamesh_seed_point seed_point);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_seed_point_set(viennamesh_seed_point seed_point,
-                                                          viennagrid_numeric * values, int size, int region);
-DYNAMIC_EXPORT enum viennamesh_error viennamesh_seed_point_get(viennamesh_seed_point seed_point,
-                                                          viennagrid_numeric ** values, int * size, int * region);
 
 
 

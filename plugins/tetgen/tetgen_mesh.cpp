@@ -78,7 +78,7 @@ namespace viennamesh
   viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh_t & output)
   {
     typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
+//     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type VertexType;
     typedef viennagrid::result_of::element<MeshType>::type CellType;
 

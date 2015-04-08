@@ -39,20 +39,39 @@ namespace viennamesh
 
 
     void set_input(std::string const & name, abstract_data_handle const & data);
-
     template<typename T>
     void set_input(std::string const & name, data_handle<T> const & data)
-    {
-      handle_error(viennamesh_algorithm_set_input(algorithm, name.c_str(), data.internal()), algorithm);
-    }
-
+    { handle_error(viennamesh_algorithm_set_input(algorithm, name.c_str(), data.internal()), algorithm); }
     template<typename T>
     void set_input(std::string const & name, T data)
     {
-      data_handle<T> tmp = context().make_data<T>();
+      typename result_of::data_handle<T>::type tmp = context().make_data<T>();
       tmp.set(data);
       set_input(name, tmp);
     }
+
+
+    template<typename T>
+    void push_back_input(std::string const & name, T data)
+    {
+      typedef typename result_of::c_type<T>::type CType;
+
+      typename result_of::data_handle<T>::type tmp = get_input<T>(name);
+
+      if (!tmp.valid())
+      {
+        set_input(name, data);
+        return;
+      }
+
+      if (tmp.type_name() != result_of::data_information<CType>::type_name())
+      {
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_INPUT_PARAMETER_PUSH_BACK_FAILED, std::string("Input ") + name + " is of type " + tmp.type_name() + ", data to push is of type " + result_of::data_information<CType>::type_name());
+      }
+
+      tmp.push_back(data);
+    }
+
 
     void set_input(std::string const & name, const char * string);
     void set_input(std::string const & name, std::string const & string);
