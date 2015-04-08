@@ -14,7 +14,7 @@
 
 #include <algorithm>
 #include "common.hpp"
-#include "viennamesh/utils/string_tools.hpp"
+// #include "viennamesh/utils/string_tools.hpp"
 
 namespace viennamesh
 {
@@ -221,10 +221,9 @@ namespace viennamesh
     std::string file_extension = filename.substr(filename.rfind(".")+1);
 
     if (ft == VTK)
-      return filename_no_extension + "_" + stringtools::lexical_cast<std::string>(index);
+      return filename_no_extension + "_" + boost::lexical_cast<std::string>(index);
     else
-      return filename_no_extension + "_" + stringtools::lexical_cast<std::string>(index) + "." + file_extension;
+      return filename_no_extension + "_" + boost::lexical_cast<std::string>(index) + "." + file_extension;
   }
-
 
 }

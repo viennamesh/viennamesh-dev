@@ -18,6 +18,7 @@
 #include <string>
 #include <ostream>
 #include <istream>
+#include "boost/lexical_cast.hpp"
 
 namespace viennamesh
 {
@@ -53,7 +54,6 @@ namespace viennamesh
   std::string make_filename(std::string const & filename,
                             FileType ft,
                             int index);
-
 }
 
 #endif

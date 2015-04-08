@@ -10,7 +10,7 @@
 #endif
 
 #include "triangle.h"
-#include "viennamesh/backend/api.h"
+#include "viennamesh/viennamesh.h"
 
 extern int (*should_triangle_be_refined)(REAL * triorg, REAL * tridest, REAL * triapex, REAL area);
 

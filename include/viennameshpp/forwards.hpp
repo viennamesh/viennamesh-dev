@@ -1,14 +1,18 @@
 #ifndef _VIENNAMESH_FORWARDS_HPP_
 #define _VIENNAMESH_FORWARDS_HPP_
 
-#include "viennamesh/backend/api.h"
+#include "viennamesh/viennamesh.h"
 #include "viennagridpp/point.hpp"
 #include "viennagridpp/quantity_field.hpp"
 #include "viennagridpp/mesh/mesh.hpp"
 #include <string>
 
+#include <boost/lexical_cast.hpp>
+
 namespace viennamesh
 {
+  using boost::lexical_cast;
+
   class context_handle;
 
   class abstract_data_handle;

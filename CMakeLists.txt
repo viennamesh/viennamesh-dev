@@ -34,7 +34,7 @@ set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} dl)
 
 #link_directories("/usr/local/lib")
 
-set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} viennagrid)
+set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} viennagridpp)
 
 
 set(INSTALL_PLUGIN_DIR "${CMAKE_INSTALL_PREFIX}/lib/viennamesh_plugins")

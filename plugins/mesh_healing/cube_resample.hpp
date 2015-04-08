@@ -15,8 +15,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh_plugin.hpp"
-
+#include "viennameshpp/cpp_plugin.hpp"
 namespace viennamesh
 {
   class volumetric_resample : public plugin_algorithm

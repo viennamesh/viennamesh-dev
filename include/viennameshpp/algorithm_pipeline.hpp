@@ -15,7 +15,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/core.hpp"
+#include "viennameshpp/core.hpp"
 #include "pugixml.hpp"
 
 namespace viennamesh

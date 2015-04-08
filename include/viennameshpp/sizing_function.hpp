@@ -23,7 +23,7 @@
 #include "viennagridpp/algorithm/geometry.hpp"
 #include "viennagridpp/io/vtk_reader.hpp"
 
-#include "viennamesh/exceptions.hpp"
+#include "viennameshpp/exceptions.hpp"
 
 #include "pugixml.hpp"
 

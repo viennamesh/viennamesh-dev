@@ -12,10 +12,64 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/algorithm_pipeline.hpp"
+#include "viennameshpp/algorithm_pipeline.hpp"
 
 namespace viennamesh
 {
+
+  std::list<std::string> split_string_brackets( std::string const & str, std::string const & delimiter )
+  {
+    std::list<std::string> tokens;
+
+    std::vector<int> bracket_count(str.size());
+
+    std::string::size_type pos = 0;
+    int bc = 0;
+    for (pos = 0; pos != str.size(); ++pos)
+    {
+      if (str[pos] == '(')
+        ++bc;
+
+      bracket_count[pos] = bc;
+
+      if (str[pos] == ')')
+        --bc;
+    }
+
+    pos = 0;
+    std::string::size_type old_pos = 0;
+    while (pos < str.size())
+    {
+      std::string::size_type new_pos = str.find(delimiter, pos);
+      if (new_pos == std::string::npos)
+      {
+        tokens.push_back( str.substr(old_pos, str.size()-old_pos) );
+        return tokens;
+      }
+
+      if (bracket_count[new_pos] != 0)
+      {
+        pos = new_pos+delimiter.size();
+        continue;
+      }
+
+
+      tokens.push_back( str.substr(old_pos, new_pos-old_pos) );
+      pos = new_pos+delimiter.size();
+      old_pos = pos;
+    }
+
+    if (pos == str.size())
+      return tokens;
+
+    std::cout << "something went wrong..." << std::endl;
+
+    return std::list<std::string>();
+  }
+
+
+
+
   bool algorithm_pipeline::add_algorithm( pugi::xml_node const & algorithm_node )
   {
     pugi::xml_attribute algorithm_name_attribute = algorithm_node.attribute("name");
@@ -113,30 +167,30 @@ namespace viennamesh
         }
         else if (parameter_type == "bool")
         {
-          algorithm.set_input( parameter_name, lexical_cast<stringtools::boolalpha_bool>(parameter_value) );
+          algorithm.set_input( parameter_name, boost::lexical_cast<bool>(parameter_value) );
         }
         else if (parameter_type == "int")
         {
-          algorithm.set_input( parameter_name, lexical_cast<int>(parameter_value) );
+          algorithm.set_input( parameter_name, boost::lexical_cast<int>(parameter_value) );
         }
         else if (parameter_type == "double")
         {
-          algorithm.set_input( parameter_name, lexical_cast<double>(parameter_value) );
+          algorithm.set_input( parameter_name, boost::lexical_cast<double>(parameter_value) );
         }
         else if (parameter_type == "point")
         {
-          point_t point = stringtools::vector_from_string<double>(parameter_value);
+          point_t point = boost::lexical_cast<point_t>(parameter_value);
           data_handle<viennamesh_point> point_handle = context.make_data<point_t>(point);
           algorithm.set_input( parameter_name, point_handle );
         }
         else if ((parameter_type == "points") || (parameter_type == "matrix"))
         {
-          std::list<std::string> split_mappings = stringtools::split_string_brackets( parameter_value, "," );
+          std::list<std::string> split_mappings = split_string_brackets( parameter_value, "," );
           point_container_t points;
           for (std::list<std::string>::const_iterator sit = split_mappings.begin();
                                                       sit != split_mappings.end();
                                                     ++sit)
-            points.push_back( stringtools::vector_from_string<double>(*sit) );
+            points.push_back( boost::lexical_cast<point_t>(*sit) );
 
           data_handle<viennamesh_point> point_handle = context.make_data<point_t>(points);
 
@@ -144,13 +198,13 @@ namespace viennamesh
         }
         else if (parameter_type == "seed_points")
         {
-          std::list<std::string> split_mappings = stringtools::split_string_brackets( parameter_value, ";" );
+          std::list<std::string> split_mappings = split_string_brackets( parameter_value, ";" );
           seed_point_container_t seed_points;
           for (std::list<std::string>::const_iterator sit = split_mappings.begin();
                                                       sit != split_mappings.end();
                                                     ++sit)
           {
-            std::list<std::string> from_to = stringtools::split_string_brackets( *sit, "," );
+            std::list<std::string> from_to = split_string_brackets( *sit, "," );
 
             if (from_to.size() != 2)
             {
@@ -164,8 +218,8 @@ namespace viennamesh
             ++it;
             std::string segment_id = *it;
 
-            point_t point = stringtools::vector_from_string<double>(point_string);
-            seed_points.push_back( std::make_pair(point, lexical_cast<int>(segment_id)) );
+            point_t point = boost::lexical_cast<point_t>(point_string);
+            seed_points.push_back( std::make_pair(point, boost::lexical_cast<int>(segment_id)) );
           }
 
           data_handle<viennamesh_seed_point> seed_point_handle = context.make_data<seed_point_t>(seed_points);

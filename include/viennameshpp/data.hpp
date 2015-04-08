@@ -2,8 +2,8 @@
 #define _VIENNAMESH_DATA_HPP_
 
 #include <cassert>
-#include "viennamesh/forwards.hpp"
-#include "viennamesh/common.hpp"
+#include "viennameshpp/forwards.hpp"
+#include "viennameshpp/common.hpp"
 #include "viennagridpp/core.hpp"
 
 namespace viennamesh

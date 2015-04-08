@@ -1,66 +1,97 @@
-#include "viennamesh/data.hpp"
+#include "data.hpp"
 
-namespace viennamesh
+
+std::string viennamesh_data_wrapper_t::type_name()
 {
+  return data_template()->name();
+}
+
+viennamesh_context viennamesh_data_wrapper_t::context()
+{
+  return data_template()->context();
+}
 
 
-  abstract_data_handle::abstract_data_handle() : data(0) {}
-  abstract_data_handle::abstract_data_handle(viennamesh_data_wrapper data_, bool retain_) : data(data_)
+void viennamesh_data_wrapper_t::make_data(int position)
+{
+  if (position < 0 || position >= size())
+    return;
+
+  release_internal_data(position);
+
+  internal_data[position].data = data_template()->make_data();
+  internal_data[position].own_data = true;
+}
+
+void viennamesh_data_wrapper_t::set_data(int position, viennamesh_data internal_data_in)
+{
+  if (position < 0 || position >= size())
+    return;
+
+  release_internal_data(position);
+
+  internal_data[position].data = internal_data_in;
+  internal_data[position].own_data = false;
+}
+
+viennamesh_data viennamesh_data_wrapper_t::data(int position)
+{
+  if (position < 0 || position >= size())
+    return NULL;
+
+  return internal_data[position].data;
+}
+
+void viennamesh_data_wrapper_t::resize(int new_size)
+{
+  if (new_size == size())
+    return;
+
+  int old_size = size();
+
+  if (new_size < old_size)
   {
-    if (retain_)
-      retain();
+    for (int i = new_size; i < old_size; ++i)
+      release_internal_data(i);
   }
 
-  abstract_data_handle::abstract_data_handle(abstract_data_handle const & handle_) : data(handle_.data) { retain(); }
+  internal_data.resize(new_size);
 
-  abstract_data_handle::~abstract_data_handle()
+  if (new_size > old_size)
   {
-    release();
+    for (int i = old_size; i < new_size; ++i)
+      make_data(i);
   }
+}
 
-  abstract_data_handle & abstract_data_handle::operator=(abstract_data_handle const & handle_)
+
+
+
+void viennamesh_data_wrapper_t::release_internal_data(int position)
+{
+  if (position < 0 || position >= size())
+    return;
+
+  if ( internal_data[position].own_data && internal_data[position].data )
   {
-    release();
-    data = handle_.data;
-    retain();
-    return *this;
+    data_template()->delete_data( internal_data[position].data );
   }
+}
 
-  bool abstract_data_handle::valid() const
-  {
-    return data != NULL && !empty();
-  }
-
-  bool abstract_data_handle::empty() const { return size() == 0; }
-
-  int abstract_data_handle::size() const
-  {
-    int size_;
-    handle_error(viennamesh_data_wrapper_get_size(data, &size_), data);
-    return size_;
-  }
-
-  void abstract_data_handle::resize(int size_)
-  {
-    handle_error(viennamesh_data_wrapper_resize(data, size_), data);
-  }
-
-  viennamesh_data_wrapper abstract_data_handle::internal() const
-  {
-    return const_cast<viennamesh_data_wrapper>(data);
-  }
-
-  void abstract_data_handle::retain()
-  {
-    if (data)
-      handle_error(viennamesh_data_wrapper_retain(data), data);
-  }
-
-  void abstract_data_handle::release()
-  {
-    if (data)
-      viennamesh_data_wrapper_release(data);
-  }
+void viennamesh_data_wrapper_t::release_internal_data()
+{
+  release_internal_data(0);
+}
 
 
+void viennamesh_data_wrapper_t::delete_this()
+{
+#ifdef VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
+  std::cout << "Delete data at " << this << std::endl;
+#endif
+
+  for (int i = 0; i != size(); ++i)
+    release_internal_data(i);
+
+  delete this;
 }

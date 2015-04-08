@@ -32,6 +32,27 @@
 
 
 
+// typedef int viennamesh_error;
+// #define VIENNAMESH_SUCCESS 0
+// #define VIENNAMESH_UNKNOWN_ERROR 1
+// #define VIENNAMESH_ERROR_INVALID_CONTEXT 2
+// #define VIENNAMESH_ERROR_ERROR_MANAGEMENT 3
+// #define VIENNAMESH_ERROR_INVALID_ARGUMENT 4
+//
+// #define VIENNAMESH_ERROR_DIFFERENT_CONTEXT 5
+// #define VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED 6
+// #define VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE 7
+// #define VIENNAMESH_ERROR_CONVERSION_FAILED 8
+//
+// #define VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED 9
+// #define VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED 10
+// #define VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED 11
+//
+// #define VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND 11
+// #define VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE 12
+// #define VIENNAMESH_ERROR_SIZING_FUNCTION 13
+
+
 
 enum viennamesh_error
 {
@@ -54,6 +75,10 @@ enum viennamesh_error
   VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE,
   VIENNAMESH_ERROR_SIZING_FUNCTION,
 };
+
+DYNAMIC_EXPORT enum viennamesh_error viennamesh_error_string(enum viennamesh_error error, const char ** error_string);
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

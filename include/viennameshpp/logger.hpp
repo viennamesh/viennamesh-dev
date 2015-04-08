@@ -2,8 +2,8 @@
 #define _VIENNAMESH_LOGGER_HPP_
 
 #include <sstream>
-#include "viennamesh/backend/api.h"
-#include "viennamesh/timer.hpp"
+#include "viennamesh/viennamesh.h"
+#include "viennautils/timer.hpp"
 
 namespace viennamesh
 {

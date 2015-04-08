@@ -19,7 +19,7 @@
 
 #include "pugixml.hpp"
 
-#include "viennamesh/core.hpp"
+#include "viennameshpp/core.hpp"
 
 namespace viennamesh
 {

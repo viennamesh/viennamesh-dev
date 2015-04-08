@@ -5,7 +5,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "viennamesh/core.hpp"
+#include "viennameshpp/core.hpp"
 
 
 int main()

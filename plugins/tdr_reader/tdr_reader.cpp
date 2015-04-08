@@ -16,7 +16,7 @@
 
 #include "tdr_reader.hpp"
 #include "sentaurus_tdr_reader.hpp"
-#include "viennamesh/core.hpp"
+#include "viennameshpp/core.hpp"
 
 namespace viennamesh
 {

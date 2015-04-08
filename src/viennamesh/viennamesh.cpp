@@ -1,11 +1,78 @@
-#include "viennamesh/backend/api.h"
+#include "viennamesh/viennamesh.h"
 
-#include "viennamesh/backend/backend_data.hpp"
-#include "viennamesh/backend/backend_algorithm.hpp"
-#include "viennamesh/backend/backend_context.hpp"
-#include "viennamesh/backend/backend_logger.hpp"
+#include "data.hpp"
+#include "algorithm.hpp"
+#include "context.hpp"
+#include "logger.hpp"
 
 #include "viennagridpp/point.hpp"
+
+
+
+
+
+
+
+
+viennamesh_error viennamesh_error_string(viennamesh_error error, const char ** error_string)
+{
+  switch (error)
+  {
+    case VIENNAMESH_SUCCESS:
+      *error_string = "No error";
+      break;
+    case VIENNAMESH_UNKNOWN_ERROR:
+      *error_string = "Unknown error";
+      break;
+    case VIENNAMESH_ERROR_INVALID_CONTEXT:
+      *error_string = "Invalid context";
+      break;
+    case VIENNAMESH_ERROR_ERROR_MANAGEMENT:
+      *error_string = "Error management error";
+      break;
+    case VIENNAMESH_ERROR_INVALID_ARGUMENT:
+      *error_string = "Invalid argument";
+      break;
+    case VIENNAMESH_ERROR_DIFFERENT_CONTEXT:
+      *error_string = "Different context";
+      break;
+    case VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED:
+      *error_string = "Data type not registered";
+      break;
+    case VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE:
+      *error_string = "Conversion to data type not available";
+      break;
+    case VIENNAMESH_ERROR_CONVERSION_FAILED:
+      *error_string = "Conversion failed";
+      break;
+    case VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED:
+      *error_string = "Algorithm already registered";
+      break;
+    case VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED:
+      *error_string = "Algorithm not registered";
+      break;
+    case VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED:
+      *error_string = "Algorithm run failed";
+      break;
+    case VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND:
+      *error_string = "Required input parameter not found";
+      break;
+    case VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE:
+      *error_string = "Required input parameter not found or not convertable";
+      break;
+    case VIENNAMESH_ERROR_SIZING_FUNCTION:
+      *error_string = "Sizing function error";
+      break;
+  }
+
+  return VIENNAMESH_SUCCESS;
+}
+
+
+
+
+
+
 
 
 struct viennamesh_string_t

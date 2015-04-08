@@ -2,11 +2,7 @@
 #define _VIENNAMESH_BACKEND_ALGORITHM_HPP_
 
 #include <iostream>
-
-#include "viennamesh/backend/backend_data.hpp"
-
-
-
+#include "data.hpp"
 
 class input_parameter
 {

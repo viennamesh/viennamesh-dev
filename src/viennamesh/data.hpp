@@ -7,8 +7,9 @@
 #include <string>
 #include <iostream>
 
-#include "viennamesh/backend/backend_common.hpp"
-#include "viennamesh/backend/backend_logger.hpp"
+#include "forwards.hpp"
+#include "viennamesh/cpp_error.hpp"
+#include "logger.hpp"
 
 
 

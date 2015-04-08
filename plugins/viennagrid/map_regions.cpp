@@ -13,9 +13,8 @@
 =============================================================================== */
 
 #include "map_regions.hpp"
-
+#include "boost/algorithm/string.hpp"
 #include <set>
-#include "viennamesh/utils/string_tools.hpp"
 
 namespace viennamesh
 {
@@ -83,10 +82,18 @@ namespace viennamesh
 
     std::map<std::string, std::string> region_mapping;
     {
-      std::list<std::string> mappings = stringtools::split_string( input_region_mapping(), ";" );
+      std::string tmp = input_region_mapping();
+
+      std::list<std::string> mappings;
+      boost::algorithm::split( mappings, tmp, boost::is_any_of(";") );
+//       std::list<std::string> mappings = stringtools::split_string( input_region_mapping(), ";" );
+
       for (std::list<std::string>::const_iterator sit = mappings.begin(); sit != mappings.end(); ++sit)
       {
-        std::list<std::string> from_to = stringtools::split_string( *sit, "," );
+        std::list<std::string> from_to;
+        boost::algorithm::split( from_to, *sit, boost::is_any_of(",") );
+
+//         std::list<std::string> from_to = stringtools::split_string( *sit, "," );
         if (from_to.size() != 2)
         {
           return false;

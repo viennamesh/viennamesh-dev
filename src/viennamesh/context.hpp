@@ -4,10 +4,10 @@
 #include <set>
 #include <dlfcn.h>
 
-#include "viennamesh/backend/backend_forwards.hpp"
-#include "viennamesh/backend/backend_data.hpp"
-#include "viennamesh/backend/backend_algorithm.hpp"
-#include "viennamesh/backend/backend_logger.hpp"
+#include "forwards.hpp"
+#include "data.hpp"
+#include "algorithm.hpp"
+#include "logger.hpp"
 
 struct viennamesh_context_t
 {

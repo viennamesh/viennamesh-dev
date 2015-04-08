@@ -15,7 +15,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh_plugin.hpp"
+#include "viennameshpp/plugin.hpp"
 
 namespace viennamesh
 {

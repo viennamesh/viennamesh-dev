@@ -1,12 +1,25 @@
-#include "viennamesh_plugin.hpp"
+#include "viennameshpp/plugin.hpp"
 
 #include "mesh_partitioning.hpp"
 
 
-namespace viennamesh
+viennamesh_error viennamesh_plugin_init(viennamesh_context context)
 {
-  void plugin_init( context_handle & context )
-  {
-    context.register_algorithm<viennamesh::metis_mesh_partitioning>();
-  }
+  viennamesh::register_algorithm<viennamesh::metis_mesh_partitioning>(context);
+
+  return VIENNAMESH_SUCCESS;
 }
+
+int viennamesh_version()
+{
+  return VIENNAMESH_VERSION;
+}
+
+
+// namespace viennamesh
+// {
+//   void plugin_init( context_handle & context )
+//   {
+//     viennamesh::register_algorithm<viennamesh::metis_mesh_partitioning>(context);
+//   }
+// }

@@ -12,7 +12,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/algorithm_pipeline.hpp"
+#include "viennameshpp/algorithm_pipeline.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
       return 0;
     }
 
-    std::string path = stringtools::extract_path( pipeline_filename.getValue() );
+    std::string path = viennamesh::extract_path( pipeline_filename.getValue() );
     if (!path.empty())
       pipeline.set_base_path(path);
 

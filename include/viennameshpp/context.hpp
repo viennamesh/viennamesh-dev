@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#include "viennamesh/forwards.hpp"
-#include "viennamesh/common.hpp"
-#include "viennamesh/backend/backend_common.hpp"
+#include "viennameshpp/forwards.hpp"
+#include "viennameshpp/common.hpp"
+// #include "viennamesh/backend/backend_common.hpp"
 
 namespace viennamesh
 {
@@ -127,6 +127,52 @@ namespace viennamesh
   {
     return ctx.internal();
   }
+
+
+
+  template<typename AlgorithmT>
+  void register_algorithm(context_handle const & context)
+  {
+    context.register_algorithm<AlgorithmT>();
+  }
+
+  template<typename AlgorithmT>
+  void register_algorithm(viennamesh_context ctx)
+  {
+    context_handle context(ctx);
+    context.register_algorithm<AlgorithmT>();
+  }
+
+
+
+  template<typename DataT>
+  void register_data_type(context_handle const & context)
+  {
+    context.register_data_type<DataT>();
+  }
+
+  template<typename DataT>
+  void register_data_type(viennamesh_context ctx)
+  {
+    context_handle context(ctx);
+    context.register_data_type<DataT>();
+  }
+
+
+
+  template<typename FromT, typename ToT>
+  void register_conversion(context_handle const & context)
+  {
+    context.register_conversion<FromT, ToT>();
+  }
+
+  template<typename FromT, typename ToT>
+  void register_conversion(viennamesh_context ctx)
+  {
+    context_handle context(ctx);
+    context.register_conversion<FromT, ToT>();
+  }
+
 
 
 }

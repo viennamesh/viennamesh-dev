@@ -12,7 +12,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/backend/backend_logger.hpp"
+#include "logger.hpp"
 
 
 namespace viennamesh

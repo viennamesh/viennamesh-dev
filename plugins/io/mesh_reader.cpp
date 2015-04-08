@@ -26,7 +26,7 @@
 
 // #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
 
-#include "viennamesh/core.hpp"
+#include "viennameshpp/core.hpp"
 
 namespace viennamesh
 {
@@ -117,7 +117,7 @@ namespace viennamesh
 
   bool mesh_reader::load( std::string const & filename, FileType filetype )
   {
-    std::string path = stringtools::extract_path( filename );
+    std::string path = extract_path( filename );
 
     info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 

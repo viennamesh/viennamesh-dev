@@ -1,8 +1,10 @@
 #ifndef _VIENNAMESH_BACKEND_FORWARDS_HPP_
 #define _VIENNAMESH_BACKEND_FORWARDS_HPP_
 
-#include "viennamesh/backend/api.h"
+#include "viennamesh/viennamesh.h"
 #include <stdexcept>
+#include <boost/lexical_cast.hpp>
+
 // #define VIENNAMESH_BACKEND_RETAIN_RELEASE_LOGGING
 
 namespace viennamesh

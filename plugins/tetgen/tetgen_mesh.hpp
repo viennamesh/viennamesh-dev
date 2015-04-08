@@ -16,7 +16,7 @@
 =============================================================================== */
 
 #include <list>
-#include "viennamesh_plugin.hpp"
+#include "viennameshpp/plugin.hpp"
 
 #ifndef TETLIBRARY
   #define TETLIBRARY

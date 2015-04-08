@@ -1,12 +1,27 @@
-#include "viennamesh_plugin.hpp"
+#include "viennameshpp/plugin.hpp"
 #include "mesh_reader.hpp"
 #include "mesh_writer.hpp"
 
-namespace viennamesh
+
+viennamesh_error viennamesh_plugin_init(viennamesh_context context)
 {
-  void plugin_init( context_handle & context )
-  {
-    context.register_algorithm<viennamesh::mesh_reader>();
-    context.register_algorithm<viennamesh::mesh_writer>();
-  }
+  viennamesh::register_algorithm<viennamesh::mesh_reader>(context);
+  viennamesh::register_algorithm<viennamesh::mesh_writer>(context);
+
+  return VIENNAMESH_SUCCESS;
 }
+
+int viennamesh_version()
+{
+  return VIENNAMESH_VERSION;
+}
+
+
+// namespace viennamesh
+// {
+//   void plugin_init( context_handle & context )
+//   {
+//     context.register_algorithm<viennamesh::mesh_reader>();
+//     context.register_algorithm<viennamesh::mesh_writer>();
+//   }
+// }
