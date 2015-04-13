@@ -14,6 +14,10 @@
 
 #include "mesh_reader.hpp"
 
+#include <string>
+#include <vector>
+#include <boost/algorithm/string/split.hpp>
+
 #include "viennagridpp/io/vtk_reader.hpp"
 #include "viennagridpp/io/netgen_reader.hpp"
 #include "viennagridpp/io/tetgen_poly_reader.hpp"
@@ -283,13 +287,29 @@ namespace viennamesh
       }
     case GRD:
       {
-        //try
+        try
         {
           viennagrid::io::dfise_text_reader reader(filename);
 
           std::vector<viennagrid::quantity_field> quantity_fields;
 
+          data_handle<viennamesh_string> datafiles = get_input<std::string>("datafiles");
+
+          if (datafiles.valid())
+          {
+            std::vector<std::string> split_datafiles;
+            std::string tmp_datafiles = datafiles();
+            boost::algorithm::split(split_datafiles, tmp_datafiles, boost::is_any_of(","));
+            for (unsigned int i = 0; i < split_datafiles.size(); ++i)
+            {
+            // future use:
+            //  reader.read_dataset(datafiles(i));
+              reader.read_dataset(split_datafiles[i]);
+            }
+          }
+
           data_handle<bool> extrude_contacts = get_input<bool>("extrude_contacts");
+          //TODO make this uniform with TDR reader TODO
           reader.to_viennagrid( output_mesh(), quantity_fields, extrude_contacts.valid() ? extrude_contacts() : true );
 
           quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
@@ -298,10 +318,10 @@ namespace viennamesh
 
           success = true;
         }
-        //catch(std::exception const & e)
-        //{
-        //  error(1) << "GRID reader: got error: " << e.what() << std::endl;
-        //}
+        catch(viennagrid::io::dfise_text_reader::error const & e)
+        {
+          error(1) << "GRID reader: got error: " << e.what() << std::endl;
+        }
         break;
       }
     default:
