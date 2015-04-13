@@ -446,7 +446,7 @@ template<bool mesh_is_const>
 double distance(viennagrid::base_mesh<mesh_is_const> const & mesh, viennagrid::point_t const & pt)
 {
   typedef viennagrid::base_mesh<mesh_is_const> MeshType;
-  typedef typename viennagrid::result_of::point<MeshType>::type PointType;
+//   typedef typename viennagrid::result_of::point<MeshType>::type PointType;
 
   typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
   typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
@@ -565,13 +565,13 @@ namespace viennamesh
 
     typedef viennagrid::mesh_t MeshType;
     typedef point_t PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+//     typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
     typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRangeType;
     typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
 
-    typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
-    typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
+//     typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
+//     typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
 
 
     MeshType mesh = input_mesh();

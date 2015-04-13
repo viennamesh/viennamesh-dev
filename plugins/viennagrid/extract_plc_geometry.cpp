@@ -321,7 +321,7 @@ namespace viennamesh
                         NumericConfigT numeric_config)
   {
     typedef viennagrid::base_mesh<mesh_is_const> InputMeshType;
-    typedef viennagrid::mesh_t OutputMeshType;
+//     typedef viennagrid::mesh_t OutputMeshType;
 
     typedef typename viennagrid::result_of::point<InputMeshType>::type PointType;
     typedef typename viennagrid::result_of::element<InputMeshType>::type LineType;
@@ -348,7 +348,7 @@ namespace viennamesh
                             viennagrid::get_point(viennagrid::vertices(*lit)[1]);
       direction /= viennagrid::norm_2(direction);
 
-      typedef typename viennagrid::result_of::const_element<InputMeshType>::type ConstElementHandle;
+//       typedef typename viennagrid::result_of::const_element<InputMeshType>::type ConstElementHandle;
 
       VertexType first = get_endpoint( mesh, viennagrid::vertices(*lit)[0], *lit, direction, line_to_new_line_index, new_line_id, numeric_config );
       VertexType second = get_endpoint( mesh, viennagrid::vertices(*lit)[1], *lit, direction, line_to_new_line_index, new_line_id, numeric_config );

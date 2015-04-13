@@ -1,18 +1,13 @@
 #ifndef _VIENNAMESH_COMMON_HPP_
 #define _VIENNAMESH_COMMON_HPP_
 
-
-#include <string>
-#include "viennamesh/viennamesh.h"
 #include "viennameshpp/forwards.hpp"
+
+#include "viennamesh/viennamesh.h"
+#include "viennamesh/types.h"
 #include "viennamesh/cpp_error.hpp"
 
-
-
-
-
-
-
+#include <string>
 
 
 namespace viennamesh
@@ -66,12 +61,14 @@ namespace viennamesh
   viennamesh_error trivial_data_make(DataT * data)
   {
     *data = new DataT;
+    return VIENNAMESH_SUCCESS;
   }
 
   template<typename DataT>
   viennamesh_error trivial_data_delete(DataT data)
   {
     delete data;
+    return VIENNAMESH_SUCCESS;
   }
 
 

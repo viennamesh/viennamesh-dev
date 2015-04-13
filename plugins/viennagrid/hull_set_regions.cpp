@@ -102,7 +102,7 @@ namespace viennamesh
 
 
     typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
+//     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
     typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
     typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;

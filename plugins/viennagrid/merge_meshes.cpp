@@ -23,7 +23,7 @@ namespace viennamesh
     viennagrid::result_of::element_copy_map<>::type copy_map(dst_mesh);
 
     typedef viennagrid::base_mesh<mesh_is_const> SrcMeshType;
-    typedef viennagrid::mesh_t DstMeshType;
+//     typedef viennagrid::mesh_t DstMeshType;
 
     typedef typename viennagrid::result_of::element<SrcMeshType>::type CellType;
 

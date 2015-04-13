@@ -1,23 +1,23 @@
 add_executable(data data.cpp)
-target_link_libraries(data viennamesh)
+target_link_libraries(data viennameshpp)
 
 add_executable(file_read_write file_read_write.cpp)
-target_link_libraries(file_read_write viennamesh)
+target_link_libraries(file_read_write viennameshpp)
 
 add_executable(triangle_mesher triangle_mesher.cpp)
-target_link_libraries(triangle_mesher viennamesh)
+target_link_libraries(triangle_mesher viennameshpp)
 
 add_executable(triangle_hull_mesher triangle_hull_mesher.cpp)
-target_link_libraries(triangle_hull_mesher viennamesh)
+target_link_libraries(triangle_hull_mesher viennameshpp)
 
 add_executable(tetgen_mesher tetgen_mesher.cpp)
-target_link_libraries(tetgen_mesher viennamesh)
+target_link_libraries(tetgen_mesher viennameshpp)
 
 add_executable(extract_boundary extract_boundary.cpp)
-target_link_libraries(extract_boundary viennamesh)
+target_link_libraries(extract_boundary viennameshpp)
 
 add_executable(symmetry_2d symmetry_2d.cpp)
-target_link_libraries(symmetry_2d viennamesh)
+target_link_libraries(symmetry_2d viennameshpp)
 
 add_executable(symmetry_3d symmetry_3d.cpp)
-target_link_libraries(symmetry_3d viennamesh)
+target_link_libraries(symmetry_3d viennameshpp)

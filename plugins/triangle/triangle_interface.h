@@ -1,7 +1,7 @@
 #ifndef TRIANGLE_INTERFACE_H
 #define TRIANGLE_INTERFACE_H
 
-// defines for triangle library
+/* defines for triangle library */
 #define REAL double
 #define VOID int
 

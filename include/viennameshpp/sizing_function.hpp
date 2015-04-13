@@ -623,7 +623,7 @@ namespace viennamesh
       result_type operator()( PointType const & pt ) const
       {
         typedef typename viennagrid::result_of::const_element_range<MeshType>::type ConstVertexRangeType;
-        typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
+//         typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
 
         typedef typename viennagrid::result_of::const_element_range<MeshType>::type ConstLineRangeType;
         typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineRangeIterator;

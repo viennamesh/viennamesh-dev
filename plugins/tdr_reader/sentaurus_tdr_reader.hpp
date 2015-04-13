@@ -601,7 +601,7 @@ namespace viennamesh
     std::vector<viennagrid::quantity_field> quantity_fields(MeshT const & mesh) const
     {
       typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
-      typedef typename viennagrid::result_of::element<MeshT>::type CellType;
+//       typedef typename viennagrid::result_of::element<MeshT>::type CellType;
       typedef typename viennagrid::result_of::region<MeshT>::type RegionType;
 
       std::map<std::string, viennagrid::quantity_field> quantitiy_fields;
