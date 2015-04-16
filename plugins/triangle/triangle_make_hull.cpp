@@ -249,7 +249,7 @@ namespace viennamesh
 
     bool make_hull::run(viennamesh::algorithm_handle &)
     {
-      data_handle<viennagrid_mesh> input_mesh = get_input<viennagrid_mesh>("mesh");
+      data_handle<viennagrid_mesh> input_mesh = get_required_input<viennagrid_mesh>("mesh");
       data_handle<viennagrid_mesh> output_mesh = make_data<viennagrid_mesh>();
 
       data_handle<double> min_angle = get_input<double>("min_angle");
