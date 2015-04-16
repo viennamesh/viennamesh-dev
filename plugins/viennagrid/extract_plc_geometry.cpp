@@ -108,7 +108,7 @@ namespace viennamesh
     typedef typename viennagrid::result_of::const_neighbor_range<MeshT>::type NeighbourRangeType;
     typedef typename viennagrid::result_of::iterator<NeighbourRangeType>::type NeighbourRangeIterator;
 
-    NeighbourRangeType neighbors(mesh, cell, 2, viennagrid::topologic_dimension(mesh));
+    NeighbourRangeType neighbors(mesh, cell, 1, viennagrid::topologic_dimension(mesh));
     for (NeighbourRangeIterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
       if ( visited_accessor.get(*it) )
@@ -405,8 +405,8 @@ namespace viennamesh
 
   bool extract_plc_geometry::run(viennamesh::algorithm_handle &)
   {
-    data_handle<double> coplanar_tolerance = get_input<double>("coplanar_tolerance");
-    data_handle<double> colinear_tolerance = get_input<double>("colinear_tolerance");
+    data_handle<double> coplanar_tolerance = get_required_input<double>("coplanar_tolerance");
+    data_handle<double> colinear_tolerance = get_required_input<double>("colinear_tolerance");
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
@@ -421,11 +421,12 @@ namespace viennamesh
     Functor2Type f2(coplanar_tolerance());
     same_cell_combine_functor< Functor1Type, Functor2Type > functor(f1, f2);
 
-
     extract_plcs(input_mesh(), tmp(), functor);
     coarsen_plc_mesh(tmp(), output_mesh(), colinear_tolerance());
 
     std::cout << "Extracted " << viennagrid::cells(output_mesh()).size() << " PLCs" << std::endl;
+
+    set_output("mesh", output_mesh);
     return true;
   }
 
