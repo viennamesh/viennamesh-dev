@@ -123,22 +123,6 @@ namespace viennamesh
     to_spherical( pt, result.first, result.second, tmp );
     return result;
   }
-
-
-
-
-
-  double S(int p, int l)
-  {
-    double sum = 0.0;
-    for (int k = l; k <= 2*l; ++k)
-    {
-      sum += power_mone(k) * static_cast<double>(std::pow(2.0, 2*p+1) * factorial(p) * factorial(2*k) * factorial(p+k-l)) /
-              static_cast<double>( factorial(2*(p+k-l)+1) * factorial(k-l) * factorial(k) * factorial(2*l-k) );
-    }
-
-    return sum * std::sqrt( (4*l+1)*M_PI ) / static_cast<double>(std::pow(2.0, 2*l));
-  }
 }
 
 #endif
