@@ -94,65 +94,62 @@ namespace viennamesh
 
 
   template<typename T>
-  class SphericalHarmonic
+  class SphericalHarmonic;
+
+  template<>
+  class SphericalHarmonic<double>
   {
   public:
-    typedef T result_type;
+    typedef double result_type;
 
     SphericalHarmonic(int l, int m) : l_(l), m_(m) { assert(l >= 0); }
 
-    result_type operator()(double theta, double phi) const;
+    result_type operator()(double theta, double phi) const
+    {
+      if (m_ > 0)
+        return normalization() * AssocLegendre(l_, m_)(std::cos(theta)) * std::cos(m_ * phi);
+      else if (m_ == 0)
+        return normalization() * AssocLegendre(l_, m_)(std::cos(theta)) / sqrt(2.0);
+      else
+        return normalization() * AssocLegendre(l_,-m_)(std::cos(theta)) * std::sin(-m_ * phi);
+    }
 
   private:
 
-    double normalization() const;
+    double normalization() const
+    {
+      return sqrt( (2.0*l_ + 1.0) * factorial(l_ - abs(m_)) / (2.0 * M_PI * factorial(l_ + abs(m_))) );
+    }
 
     int l_;
     int m_;
   };
 
 
-
-
-
   template<>
-  double SphericalHarmonic<double>::normalization() const
+  class SphericalHarmonic< std::complex<double> >
   {
-    return sqrt( (2.0*l_ + 1.0) * factorial(l_ - abs(m_)) / (2.0 * M_PI * factorial(l_ + abs(m_))) );
-  }
+  public:
+    typedef std::complex<double> result_type;
 
-  template<>
-  SphericalHarmonic<double>::result_type SphericalHarmonic<double>::operator()(double theta, double phi) const
-  {
-    if (m_ > 0)
-      return normalization() * AssocLegendre(l_, m_)(std::cos(theta)) * std::cos(m_ * phi);
-    else if (m_ == 0)
-      return normalization() * AssocLegendre(l_, m_)(std::cos(theta)) / sqrt(2.0);
-    else
-      return normalization() * AssocLegendre(l_,-m_)(std::cos(theta)) * std::sin(-m_ * phi);
-  }
+    SphericalHarmonic(int l, int m) : l_(l), m_(m) { assert(l >= 0); }
 
-
-
-
-
-
-  template<>
-  double SphericalHarmonic< std::complex<double> >::normalization() const
-  {
-    return sqrt( (2.0*l_ + 1.0) * factorial(l_-m_) / (4.0 * M_PI * factorial(l_+m_)) );
-  }
-
-  template<>
-  SphericalHarmonic< std::complex<double> >::result_type SphericalHarmonic< std::complex<double> >::operator()(double theta, double phi) const
-  {
-    return power_mone(m_) * normalization() * AssocLegendre(l_, m_)(cos(theta)) *
+    result_type operator()(double theta, double phi) const
+    {
+      return power_mone(m_) * normalization() * AssocLegendre(l_, m_)(cos(theta)) *
           std::exp( std::complex<double>(0,1)*static_cast<double>(m_)*phi );
-  }
+    }
 
+  private:
 
+    double normalization() const
+    {
+      return sqrt( (2.0*l_ + 1.0) * factorial(l_-m_) / (4.0 * M_PI * factorial(l_+m_)) );
+    }
 
-
+    int l_;
+    int m_;
+  };
 
   template<typename T>
   T D_to_integrate(int l, int m, int m_,

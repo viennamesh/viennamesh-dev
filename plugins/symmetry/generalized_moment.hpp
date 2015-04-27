@@ -205,16 +205,37 @@ namespace viennamesh
       return true;
     }
 
+
+    void check_rotation_symmetry(double alpha) const
+    {
+      double max_error = -1.0;
+      for (int l = p(); l >= 0 ; --l)
+      {
+        for (int m = 2*l; m >= 0; --m)
+        {
+          double error = std::abs(std::cos(m*alpha)*C(2*l,m) - std::sin(m*alpha)*C(2*l,-m) - C(2*l,m));
+          max_error = std::max(error, max_error);
+        }
+      }
+
+      std::cout << "Rotation " << alpha << "   error = " << max_error << std::endl;
+    }
+
     void rotation_symmetry_angles(double tolerance) const
     {
       for (int l = p(); l >= 0 ; --l)
       {
         for (int m = 2*l; m >= 0; --m)
         {
-          if ( (std::abs( C(2*l,m) ) > tolerance) && (std::abs(C(2*l,-m)-C(2*l,m)) > tolerance) )
+          if (m == 0)
+            continue;
+
+          if (std::abs( C(2*l,m) ) > tolerance)
           {
-            double angle = std::abs(2.0 / m * std::atan2( C(2*l,-m) , C(2*l,m) ));
-            if (angle < M_PI)
+            double angle = std::abs(2.0 / m * atan( C(2*l,-m) / C(2*l,m) ));
+            int frequency = 2*M_PI/angle + 0.5;
+
+            if ( (frequency > 1) && (std::abs(2*M_PI/angle-frequency) < tolerance) )
               std::cout << "(" << 2*l << "," << m << ") Found angle: " << angle << "      rot_frequ = " << 2*M_PI/angle << "      " << C(2*l,-m) <<
             "/" << C(2*l,m) << std::endl;
           }
