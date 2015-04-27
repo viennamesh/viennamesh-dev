@@ -15,7 +15,7 @@
 #include "map_regions.hpp"
 #include "refine_plc_lines.hpp"
 #include "center_mesh.hpp"
-
+#include "mark_hull_regions.hpp"
 
 
 
@@ -40,6 +40,8 @@ viennamesh_error viennamesh_plugin_init(viennamesh_context context)
   viennamesh::register_algorithm<viennamesh::interpolate_quantities>(context);
   viennamesh::register_algorithm<viennamesh::refine_plc_lines>(context);
   viennamesh::register_algorithm<viennamesh::center_mesh>(context);
+
+  viennamesh::register_algorithm<viennamesh::mark_hull_regions>(context);
 
   return VIENNAMESH_SUCCESS;
 }
