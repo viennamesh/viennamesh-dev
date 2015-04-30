@@ -6,7 +6,7 @@ vienna_build_setup_project(viennamesh viennautils viennagrid)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 if (VIENNA_BUILD_IS_MAIN_PROJECT)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wno-variadic-macros -Wno-long-long")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wno-variadic-macros -Wno-long-long -Wno-c99-extensions")
 
   option(ENABLE_PEDANTIC_FLAGS "Enable pedantic compiler flags" ON)
   if(ENABLE_PEDANTIC_FLAGS)
