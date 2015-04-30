@@ -63,6 +63,9 @@ viennamesh_error viennamesh_error_string(viennamesh_error error, const char ** e
     case VIENNAMESH_ERROR_SIZING_FUNCTION:
       *error_string = "Sizing function error";
       break;
+    case VIENNAMESH_ERROR_INPUT_PARAMETER_PUSH_BACK_FAILED:
+      *error_string = "Input parameter push_back failed";
+      break;
   }
 
   return VIENNAMESH_SUCCESS;
