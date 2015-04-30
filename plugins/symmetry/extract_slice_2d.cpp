@@ -43,6 +43,9 @@ namespace viennamesh
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
+    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+
 
 
     point_handle input_centroid = get_required_input<point_handle>("centroid");
@@ -61,8 +64,9 @@ namespace viennamesh
       info(1) << "  " << rotational_frequencies[i] << std::endl;
 
     double max_distance = -1.0;
-    for (auto vertex : viennagrid::vertices(input_mesh()))
-      max_distance = std::max(max_distance, viennagrid::distance(vertex, centroid));
+    ConstElementRangeType vertices(input_mesh(), 0);
+    for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+      max_distance = std::max(max_distance, viennagrid::distance(*vit, centroid));
 
 
     mesh_handle output_mesh = make_data<mesh_handle>();
@@ -90,43 +94,44 @@ namespace viennamesh
       info(1) << "Using mirror axis: " << mirror_axis_start << " - " << mirror_axis_end << std::endl;
       std::map<double, ElementType> vertices_on_mirror_axis;
 
-      for (auto line : viennagrid::elements(input_mesh(),1))
+      ConstElementRangeType lines(input_mesh(),1);
+      for (ConstElementIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
       {
         std::pair<PointType, PointType> cp = viennagrid::detail::closest_points_line_line(
-          viennagrid::get_point(line,0), viennagrid::get_point(line,1),
+          viennagrid::get_point(*lit,0), viennagrid::get_point(*lit,1),
           mirror_axis_start, mirror_axis_end
         );
 
         if ( viennagrid::detail::is_equal(tol, cp.first, cp.second) )
         {
 
-          if (viennagrid::detail::is_equal(tol, viennagrid::get_point(line,0), cp.first) ||
-              viennagrid::detail::is_equal(tol, viennagrid::get_point(line,1), cp.first))
+          if (viennagrid::detail::is_equal(tol, viennagrid::get_point(*lit,0), cp.first) ||
+              viennagrid::detail::is_equal(tol, viennagrid::get_point(*lit,1), cp.first))
           {
             // one point of the line is on the mirror axis
-            if (viennagrid::inner_prod(viennagrid::centroid(line)-centroid, normal) > 0)
-              copy_map(line);
+            if (viennagrid::inner_prod(viennagrid::centroid(*lit)-centroid, normal) > 0)
+              copy_map(*lit);
 
-            if (viennagrid::detail::is_equal(tol, viennagrid::get_point(line,0), cp.first))
-              vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(line)[0]);
+            if (viennagrid::detail::is_equal(tol, viennagrid::get_point(*lit,0), cp.first))
+              vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(*lit)[0]);
             else
-              vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(line)[1]);
+              vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = copy_map( viennagrid::vertices(*lit)[1]);
           }
           else
           {
             ElementType new_vertex = viennagrid::make_unique_vertex( output_mesh(), cp.first, tol );
             vertices_on_mirror_axis[ viennagrid::inner_prod(cp.first-centroid, vector) ] = new_vertex;
 
-            if (viennagrid::inner_prod(viennagrid::get_point(line,0)-centroid, normal) > 0)
-              viennagrid::make_line( output_mesh(), new_vertex, viennagrid::vertices(line)[0] );
+            if (viennagrid::inner_prod(viennagrid::get_point(*lit,0)-centroid, normal) > 0)
+              viennagrid::make_line( output_mesh(), new_vertex, viennagrid::vertices(*lit)[0] );
             else
-              viennagrid::make_line( output_mesh(), new_vertex, viennagrid::vertices(line)[1] );
+              viennagrid::make_line( output_mesh(), new_vertex, viennagrid::vertices(*lit)[1] );
           }
         }
         else
         {
-          if (viennagrid::inner_prod(viennagrid::centroid(line)-centroid, normal) > 0)
-            copy_map(line);
+          if (viennagrid::inner_prod(viennagrid::centroid(*lit)-centroid, normal) > 0)
+            copy_map(*lit);
         }
       }
 
@@ -207,15 +212,16 @@ namespace viennamesh
       vertices_on_angle_axis[0] = centrod_vertex;
 
 
-      for (auto line : viennagrid::elements(input_mesh(),1))
+      ConstElementRangeType lines(input_mesh(),1);
+      for (ConstElementIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
       {
         std::pair<PointType, PointType> cp_0 = viennagrid::detail::closest_points_line_line(
-          viennagrid::get_point(line,0), viennagrid::get_point(line,1),
+          viennagrid::get_point(*lit,0), viennagrid::get_point(*lit,1),
           centroid, axis_0_end
         );
 
         std::pair<PointType, PointType> cp_1 = viennagrid::detail::closest_points_line_line(
-          viennagrid::get_point(line,0), viennagrid::get_point(line,1),
+          viennagrid::get_point(*lit,0), viennagrid::get_point(*lit,1),
           centroid, axis_1_end
         );
 
@@ -237,27 +243,27 @@ namespace viennamesh
             ElementType v_0 = viennagrid::make_unique_vertex( output_mesh(), cp_0.first, tol );
             vertices_on_mirror_axis[ viennagrid::inner_prod(cp_0.first-centroid, vector_0) ] = v_0;
 
-            if (viennagrid::inner_prod( viennagrid::get_point(line,0)-centroid, normal_0 ) > 0)
-              viennagrid::make_line( output_mesh(), v_0, copy_map(viennagrid::vertices(line)[0]) );
+            if (viennagrid::inner_prod( viennagrid::get_point(*lit,0)-centroid, normal_0 ) > 0)
+              viennagrid::make_line( output_mesh(), v_0, copy_map(viennagrid::vertices(*lit)[0]) );
             else
-              viennagrid::make_line( output_mesh(), v_0, copy_map(viennagrid::vertices(line)[1]) );
+              viennagrid::make_line( output_mesh(), v_0, copy_map(viennagrid::vertices(*lit)[1]) );
           }
           else if ( viennagrid::detail::is_equal(tol, cp_1.first, cp_1.second) )
           {
             ElementType v_1 = viennagrid::make_unique_vertex( output_mesh(), cp_1.first, tol );
             vertices_on_angle_axis[ viennagrid::inner_prod(cp_1.first-centroid, vector_1) ] = v_1;
 
-            if (viennagrid::inner_prod( viennagrid::get_point(line,0)-centroid, normal_1 ) < 0)
-              viennagrid::make_line( output_mesh(), v_1, copy_map(viennagrid::vertices(line)[0]) );
+            if (viennagrid::inner_prod( viennagrid::get_point(*lit,0)-centroid, normal_1 ) < 0)
+              viennagrid::make_line( output_mesh(), v_1, copy_map(viennagrid::vertices(*lit)[0]) );
             else
-              viennagrid::make_line( output_mesh(), v_1, copy_map(viennagrid::vertices(line)[1]) );
+              viennagrid::make_line( output_mesh(), v_1, copy_map(viennagrid::vertices(*lit)[1]) );
           }
           else
           {
-            if ( (viennagrid::inner_prod( viennagrid::centroid(line)-centroid, normal_0 ) > 0) &&
-                 (viennagrid::inner_prod( viennagrid::centroid(line)-centroid, normal_1 ) < 0) )
+            if ( (viennagrid::inner_prod( viennagrid::centroid(*lit)-centroid, normal_0 ) > 0) &&
+                 (viennagrid::inner_prod( viennagrid::centroid(*lit)-centroid, normal_1 ) < 0) )
             {
-              copy_map(line);
+              copy_map(*lit);
             }
 
           }
@@ -306,10 +312,11 @@ namespace viennamesh
     {
       mesh_handle tmp = make_data<mesh_handle>();
 
-      for (auto line : viennagrid::elements(output_mesh(), 1))
+      ConstElementRangeType lines(input_mesh(),1);
+      for (ConstElementIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
       {
-        PointType start = viennagrid::get_point(line, 0);
-        PointType end = viennagrid::get_point(line, 1);
+        PointType start = viennagrid::get_point(*lit, 0);
+        PointType end = viennagrid::get_point(*lit, 1);
 
         double old_line_size = viennagrid::distance(start, end);
 
