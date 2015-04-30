@@ -49,9 +49,7 @@ namespace viennamesh
     int p = two_p/2;
 
 
-    std::function< T (point_t const &) > cf =
-        std::bind< T >(C_to_integrate<T>, two_l, m, two_p, std::placeholders::_1);
-
+    function< T (point_t const &) > cf = bind< T >(C_to_integrate<T>, two_l, m, two_p, _1);
 
     ConstCellRange cells( mesh );
     for (ConstCellIterator cit = cells.begin(); cit != cells.end(); ++cit)
@@ -63,6 +61,10 @@ namespace viennamesh
   }
 
 
+  template<typename T>
+  T real(T val) { return val; }
+  template<typename T>
+  T real(std::complex<T> val) { return val.real(); }
 
 
   template<typename CT>
@@ -100,7 +102,7 @@ namespace viennamesh
         }
       }
 
-      return std::real(sum);
+      return real(sum);
     }
 
     double operator()(point_t const & pt) const
