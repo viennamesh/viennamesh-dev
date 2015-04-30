@@ -72,20 +72,20 @@ namespace viennamesh
     patch(int id_) : id(id_) {}
 
     int id;
-    std::vector< std::shared_ptr<poly_line> > interface_lines;
+    std::vector< shared_ptr<poly_line> > interface_lines;
   };
 
 
 
   struct poly_line
   {
-    poly_line( std::vector< std::shared_ptr<patch> > const & patches_ ) : patches(patches_) {}
+    poly_line( std::vector< shared_ptr<patch> > const & patches_ ) : patches(patches_) {}
 
     typedef viennagrid::mesh_t MeshType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
     std::vector<ElementType> lines;
-    std::vector< std::shared_ptr<patch> > patches;
+    std::vector< shared_ptr<patch> > patches;
   };
 
 
