@@ -585,6 +585,7 @@ namespace viennamesh
     typedef viennagrid::mesh_t MeshType;
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::result_of::region<MeshType>::type RegionType;
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
@@ -593,26 +594,39 @@ namespace viennamesh
     data_handle<double> region_scale = get_required_input<double>("region_scale");
     data_handle<double> is_inside_tolerance = get_required_input<double>("is_inside_tolerance");
 
+    typedef viennagrid::result_of::element_range<MeshType>::type ElementRangeType;
+    typedef viennagrid::result_of::iterator<ElementRangeType>::type ElementIteratorType;
 
+    typedef viennagrid::result_of::element_range<RegionType>::type RegionElementRangeType;
+    typedef viennagrid::result_of::iterator<RegionElementRangeType>::type RegionElementIteratorType;
+
+    typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
+    typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
+
+    typedef viennagrid::result_of::region_range<MeshType, ElementType>::type ElementRegionRangeType;
+    typedef viennagrid::result_of::iterator<ElementRegionRangeType>::type ElementRegionIteratorType;
 
 
     MeshType mesh;
     viennagrid::copy( input_mesh(), mesh );
 
-    for (auto region : viennagrid::regions(mesh))
+
+    RegionRangeType regions(mesh);
+    for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
     {
       int vertex_count = 0;
       PointType center = viennagrid::make_point(0,0,0);
 
-      for (auto vertex : viennagrid::vertices(region))
+      RegionElementRangeType vertices(*rit, 1);
+      for (RegionElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
       {
-        center += viennagrid::get_point(vertex);
+        center += viennagrid::get_point(*vit);
         ++vertex_count;
       }
       center /= vertex_count;
 
-      for (auto vertex : viennagrid::vertices(region))
-        viennagrid::set_point( vertex, (viennagrid::get_point(vertex)-center)*region_scale()+center );
+      for (RegionElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+        viennagrid::set_point( *vit, (viennagrid::get_point(*vit)-center)*region_scale()+center );
     }
 
 
@@ -627,14 +641,14 @@ namespace viennamesh
 
 
     int max_region_id = 0;
-    for (auto region : viennagrid::regions(mesh))
-      max_region_id = std::max(region.id(), max_region_id);
+    for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
+      max_region_id = std::max((*rit).id(), max_region_id);
 
     std::vector<int> region_priority(max_region_id);
 
     int counter = region_count;
-    for (auto region : viennagrid::regions(mesh))
-      region_priority[region.id()] = counter--;
+    for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
+      region_priority[(*rit).id()] = counter--;
 
 
 
@@ -662,9 +676,10 @@ namespace viennamesh
     int total_sample_size = sample_count[0] * sample_count[1] * sample_count[2];
     std::vector<char> sample_regions(total_sample_size, -1);
 
-    for (auto cell : viennagrid::cells( mesh ))
+    ElementRangeType cells(mesh, viennagrid::cell_dimension(mesh));
+    for (ElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
     {
-      std::pair<PointType, PointType> cell_bb = viennagrid::bounding_box(cell);
+      std::pair<PointType, PointType> cell_bb = viennagrid::bounding_box(*cit);
 
       std::vector<int> min_index(3);
       std::vector<int> max_index(3);
@@ -686,7 +701,9 @@ namespace viennamesh
         max_index[i] = std::min(max_index[i],  sample_count[i]/2);
       }
 
-      auto regions = viennagrid::regions(mesh, cell);
+
+
+      ElementRegionRangeType regions(mesh, *cit);
       if (regions.size() != 1)
         error(1) << "ERROR, one cell is on more than one region" << std::endl;
 
@@ -705,7 +722,7 @@ namespace viennamesh
             for (int j = 0; j != 3; ++j)
               sample_point[j] += pos[j]*sample_size[j];
 
-            if (viennagrid::is_inside(cell, sample_point, is_inside_tolerance()))
+            if (viennagrid::is_inside(*cit, sample_point, is_inside_tolerance()))
             {
               char & sample = access_symmetric(sample_regions, sample_count, pos);
 
@@ -721,7 +738,7 @@ namespace viennamesh
 
 
     typedef viennagrid::result_of::region<MeshType>::type RegionType;
-    std::vector<RegionType> regions;
+//     std::vector<RegionType> regions;
 
     std::vector<char> & used_samples = sample_regions;
 
