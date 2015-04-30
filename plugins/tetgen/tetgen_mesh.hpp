@@ -21,7 +21,7 @@
 #ifndef TETLIBRARY
   #define TETLIBRARY
 #endif
-#include "tetgen.h"
+#include "external/tetgen.h"
 
 
 namespace viennamesh
