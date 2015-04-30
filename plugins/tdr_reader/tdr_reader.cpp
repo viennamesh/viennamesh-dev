@@ -123,7 +123,7 @@ namespace viennamesh
       full_filename = filename();
 
 
-    std::shared_ptr<H5File> file( new H5File(full_filename.c_str(), H5F_ACC_RDWR) );
+    shared_ptr<H5File> file( new H5File(full_filename.c_str(), H5F_ACC_RDWR) );
 
     if (file->getNumObjs()!=1)
     {
