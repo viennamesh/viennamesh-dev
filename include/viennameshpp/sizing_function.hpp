@@ -15,9 +15,6 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include <memory>
-#include <functional>
-
 #include "viennagridpp/algorithm/distance.hpp"
 #include "viennagridpp/algorithm/inclusion.hpp"
 #include "viennagridpp/algorithm/geometry.hpp"
@@ -27,18 +24,10 @@
 
 #include "pugixml.hpp"
 
-
-#include <boost/optional.hpp>
-
-
 namespace viennamesh
 {
-  using std::placeholders::_1;
-  using std::placeholders::_2;
-
-
-  typedef boost::optional<viennagrid_numeric> SizingFunctionReturnType;
-  typedef std::function< SizingFunctionReturnType(viennagrid::point_t const &) > SizingFunctionType;
+  typedef optional<viennagrid_numeric> SizingFunctionReturnType;
+  typedef function< SizingFunctionReturnType(viennagrid::point_t const &) > SizingFunctionType;
 
 
 
@@ -127,8 +116,8 @@ namespace viennamesh
     public:
 
       typedef viennagrid::mesh_t MeshType;
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::element<MeshType>::type ElementType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
       typedef std::vector<ElementType> ElementContainerType;
 
@@ -144,8 +133,8 @@ namespace viennamesh
 
         grid_elements.resize(count_x*count_y);
 
-        typedef typename viennagrid::result_of::cell_range<MeshType>::type CellRangeType;
-        typedef typename viennagrid::result_of::iterator<CellRangeType>::type CellRangeIterator;
+        typedef viennagrid::result_of::cell_range<MeshType>::type CellRangeType;
+        typedef viennagrid::result_of::iterator<CellRangeType>::type CellRangeIterator;
 
         std::pair<PointType, PointType> bb = viennagrid::bounding_box(mesh);
         min = bb.first;
@@ -260,8 +249,8 @@ namespace viennamesh
       typedef viennagrid::mesh_t MeshType;
       typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
-      typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
-      typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+      typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
+      typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
       typedef viennagrid::quantity_field QuantityFieldType;
 
@@ -276,14 +265,14 @@ namespace viennamesh
         viennagrid::io::add_scalar_data_on_vertices( reader, quantities, quantity_name );
         reader( mesh, filename );
 
-        ii = std::make_shared<fast_is_inside>( mesh, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale );
+        ii = make_shared<fast_is_inside>( mesh, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale );
       }
 
-      typedef typename viennagrid::result_of::element<MeshType>::type VertexType;
-      typedef typename viennagrid::result_of::element<MeshType>::type CellType;
+      typedef viennagrid::result_of::element<MeshType>::type VertexType;
+      typedef viennagrid::result_of::element<MeshType>::type CellType;
 
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::coord<PointType>::type NumericType;
       typedef SizingFunctionReturnType result_type;
 
       result_type operator()( PointType const & pt ) const
@@ -310,7 +299,7 @@ namespace viennamesh
         return val;
       }
 
-      std::shared_ptr<fast_is_inside> ii;
+      shared_ptr<fast_is_inside> ii;
 
       MeshType mesh;
       QuantityFieldType quantities;
@@ -322,8 +311,8 @@ namespace viennamesh
       typedef viennagrid::mesh_t MeshType;
       typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
-      typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
-      typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+      typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
+      typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
       typedef viennagrid::quantity_field QuantityFieldType;
 
@@ -348,13 +337,13 @@ namespace viennamesh
           gradient_accessor.set(*cit, viennamesh::gradient(*cit, quantities));
         }
 
-        ii = std::make_shared<fast_is_inside>( mesh, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale );
+        ii = make_shared<fast_is_inside>( mesh, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale );
       }
 
-      typedef typename viennagrid::result_of::element<MeshType>::type VertexType;
+      typedef viennagrid::result_of::element<MeshType>::type VertexType;
 
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::coord<PointType>::type NumericType;
       typedef SizingFunctionReturnType result_type;
 
       result_type operator()( PointType const & pt ) const
@@ -367,7 +356,7 @@ namespace viennamesh
         return result;
       }
 
-      std::shared_ptr<fast_is_inside> ii;
+      shared_ptr<fast_is_inside> ii;
 
       MeshType mesh;
 
@@ -443,8 +432,8 @@ namespace viennamesh
                                      std::string const & region1_name_ ) :
                                      mesh(mesh_), facet_dimension(viennagrid::facet_dimension(mesh_)), region0_name(region0_name_), region1_name(region1_name_) {}
 
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::coord<PointType>::type NumericType;
 
       typedef SizingFunctionReturnType result_type;
 
@@ -469,15 +458,15 @@ namespace viennamesh
     struct distance_to_region_boundaries_functor
     {
       typedef viennagrid::mesh_t MeshType;
-      typedef typename viennagrid::result_of::region<MeshType>::type RegionType;
+      typedef viennagrid::result_of::region<MeshType>::type RegionType;
 
       distance_to_region_boundaries_functor(MeshType const & mesh_,
                                             std::vector<std::string> const & region_names,
                                             viennagrid_dimension topologic_dimension) :
                                             mesh(mesh_), boundary_elements(new BoundaryElementContainer)
       {
-        typedef typename viennagrid::result_of::const_element_range<RegionType>::type ConstElementRangeType;
-        typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIterator;
+        typedef viennagrid::result_of::const_element_range<RegionType>::type ConstElementRangeType;
+        typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIterator;
 
         if (region_names.empty())
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "distance_to_region_boundaries_functor: No region names specified" );
@@ -497,8 +486,8 @@ namespace viennamesh
             ss << "distance_to_region_boundaries_functor: Region \"" << *snit << "\" not found in regionation" << std::endl;
             ss << "Available regions: ";
 
-            typedef typename viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
-            typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
+            typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
+            typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
 
             RegionRangeType regions(mesh);
             for (RegionRangeIterator sit = regions.begin(); sit != regions.end(); ++sit)
@@ -545,21 +534,21 @@ namespace viennamesh
         }
       }
 
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::coord<PointType>::type NumericType;
 
       typedef SizingFunctionReturnType result_type;
 
-      typedef typename viennagrid::result_of::const_element<MeshType>::type ConstElementType;
+      typedef viennagrid::result_of::const_element<MeshType>::type ConstElementType;
       typedef std::vector<ConstElementType> BoundaryElementContainer;
 
       result_type operator()( PointType const & pt ) const
       {
         result_type min_distance;
 
-        for (typename BoundaryElementContainer::const_iterator beit = boundary_elements->begin();
-                                                               beit != boundary_elements->end();
-                                                             ++beit)
+        for (BoundaryElementContainer::const_iterator beit = boundary_elements->begin();
+                                                      beit != boundary_elements->end();
+                                                      ++beit)
         {
           NumericType current_distance = viennagrid::distance(pt, *beit);
 
@@ -572,7 +561,7 @@ namespace viennamesh
 
 
       MeshType mesh;
-      std::shared_ptr<BoundaryElementContainer> boundary_elements;
+      shared_ptr<BoundaryElementContainer> boundary_elements;
     };
 
 
@@ -615,18 +604,18 @@ namespace viennamesh
 
       local_feature_size_2d_functor( MeshType const & mesh_ ) : mesh(mesh_) {}
 
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::coord<PointType>::type NumericType;
 
       typedef SizingFunctionReturnType result_type;
 
       result_type operator()( PointType const & pt ) const
       {
-        typedef typename viennagrid::result_of::const_element_range<MeshType>::type ConstVertexRangeType;
+        typedef viennagrid::result_of::const_element_range<MeshType>::type ConstVertexRangeType;
 //         typedef typename viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
 
-        typedef typename viennagrid::result_of::const_element_range<MeshType>::type ConstLineRangeType;
-        typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineRangeIterator;
+        typedef viennagrid::result_of::const_element_range<MeshType>::type ConstLineRangeType;
+        typedef viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineRangeIterator;
 
         ConstVertexRangeType vertices( mesh, 0 );
         ConstLineRangeType lines( mesh, 1 );
@@ -677,10 +666,10 @@ namespace viennamesh
     struct is_in_regions_functor
     {
       typedef viennagrid::mesh_t MeshType;
-      typedef typename viennagrid::result_of::region<MeshType>::type RegionType;
+      typedef viennagrid::result_of::region<MeshType>::type RegionType;
 
-      typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
+      typedef viennagrid::result_of::point<MeshType>::type PointType;
+      typedef viennagrid::result_of::coord<PointType>::type NumericType;
 
       typedef SizingFunctionReturnType result_type;
 
@@ -699,8 +688,8 @@ namespace viennamesh
             ss << "distance_to_region_boundaries_functor: Region \"" << *snit << "\" not found in mesh" << std::endl;
             ss << "Available regions: ";
 
-            typedef typename viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
-            typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionIterator;
+            typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
+            typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIterator;
 
             RegionRangeType regions(mesh);
             for (RegionIterator sit = regions.begin(); sit != regions.end(); ++sit)
@@ -717,8 +706,8 @@ namespace viennamesh
 
       result_type operator()( PointType const & pt ) const
       {
-        typedef typename viennagrid::result_of::const_cell_range<RegionType>::type ConstCellRangeType;
-        typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+        typedef viennagrid::result_of::const_cell_range<RegionType>::type ConstCellRangeType;
+        typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
 
         for (unsigned int i = 0; i < region_names.size(); ++i)
         {
@@ -940,7 +929,7 @@ namespace viennamesh
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"value\" missing" );
 
         double value = lexical_cast<double>(node.child_value("value"));
-        return std::bind( constant_functor<PointType>(value), _1 );
+        return bind( constant_functor<PointType>(value), _1 );
       }
       else if (name == "abs")
       {
@@ -949,7 +938,7 @@ namespace viennamesh
 
         SizingFunctionType source = from_xml<MeshT>(node.child("source").first_child(), mesh, base_path);
 
-        return std::bind(abs_functor<PointType>(source), _1);
+        return bind(abs_functor<PointType>(source), _1);
       }
       else if (name == "min")
       {
@@ -960,7 +949,7 @@ namespace viennamesh
         if (functions.empty())
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": no sources specified" );
 
-        return std::bind( min_functor<PointType>(functions), _1 );
+        return bind( min_functor<PointType>(functions), _1 );
       }
       else if (name == "max")
       {
@@ -971,7 +960,7 @@ namespace viennamesh
         if (functions.empty())
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": no sources specified" );
 
-        return std::bind( max_functor<PointType>(functions), _1 );
+        return bind( max_functor<PointType>(functions), _1 );
       }
       else if (name == "interpolate")
       {
@@ -999,7 +988,7 @@ namespace viennamesh
           double lower_to = lexical_cast<double>(node.child_value("lower_to"));
           double upper_to = lexical_cast<double>(node.child_value("upper_to"));
 
-          return std::bind(linear_interpolate_functor<PointType>(source, lower, upper, lower_to, upper_to ), _1);
+          return bind(linear_interpolate_functor<PointType>(source, lower, upper, lower_to, upper_to ), _1);
         }
 
         return SizingFunctionType();
@@ -1015,9 +1004,9 @@ namespace viennamesh
 
         std::string element_type = node.child_value("element_type");
         if (element_type == "line")
-          return std::bind( distance_to_region_boundaries_functor(mesh, region_names, 1), _1 );
+          return bind( distance_to_region_boundaries_functor(mesh, region_names, 1), _1 );
         else if (element_type == "facet")
-          return std::bind( distance_to_region_boundaries_functor(mesh, region_names, viennagrid::facet_dimension(mesh)), _1 );
+          return bind( distance_to_region_boundaries_functor(mesh, region_names, viennagrid::facet_dimension(mesh)), _1 );
         else
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "distance_to_region_boundaries: Element type \"" + element_type + "\" not supported" );
       }
@@ -1030,11 +1019,11 @@ namespace viennamesh
         if (region_names.empty())
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": no region names specified" );
 
-        return std::bind( distance_to_interface_functor(mesh, region_names[0], region_names[1]), _1 );
+        return bind( distance_to_interface_functor(mesh, region_names[0], region_names[1]), _1 );
       }
       else if (name == "local_feature_size_2d")
       {
-        return std::bind( local_feature_size_2d_functor(mesh), _1 );
+        return bind( local_feature_size_2d_functor(mesh), _1 );
       }
       else if (name == "is_in_regions")
       {
@@ -1044,7 +1033,7 @@ namespace viennamesh
 
         SizingFunctionType source = from_xml<MeshT>(node.child("source").first_child(), mesh, base_path);
 
-        return std::bind( is_in_regions_functor(mesh, region_names, source), _1 );
+        return bind( is_in_regions_functor(mesh, region_names, source), _1 );
       }
       else if (name == "mesh_quantity")
       {
@@ -1073,7 +1062,7 @@ namespace viennamesh
         if ( node.child("cell_scale") )
           cell_scale = lexical_cast<double>(node.child_value("cell_scale"));
 
-        return std::bind( mesh_quantity_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
+        return bind( mesh_quantity_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
       }
       else if (name == "mesh_gradient")
       {
@@ -1102,7 +1091,7 @@ namespace viennamesh
         if ( node.child("cell_scale") )
           cell_scale = lexical_cast<double>(node.child_value("cell_scale"));
 
-        return std::bind( mesh_gradient_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
+        return bind( mesh_gradient_functor(mesh_file, quantity_name, resolution_x, resolution_y, mesh_bounding_box_scale, cell_scale), _1 );
       }
 
       VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\" not supported" );
