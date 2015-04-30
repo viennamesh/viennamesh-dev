@@ -9,7 +9,7 @@
   #define ANSI_DECLARATORS
 #endif
 
-#include "triangle.h"
+#include "external/triangle.h"
 #include "viennamesh/viennamesh.h"
 
 extern int (*should_triangle_be_refined)(REAL * triorg, REAL * tridest, REAL * triapex, REAL area);

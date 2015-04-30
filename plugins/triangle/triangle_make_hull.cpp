@@ -192,10 +192,9 @@ namespace viennamesh
       typedef viennagrid::mesh_t MeshType;
 
       typedef viennagrid::result_of::point<MeshType>::type PointType;
-      typedef viennagrid::result_of::element<MeshType>::type VertexType;
-      typedef viennagrid::result_of::element<MeshType>::type CellType;
+      typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
-      std::vector<VertexType> vertices(input.vertex_points_3d.size());
+      std::vector<ElementType> vertices(input.vertex_points_3d.size());
 
       for (std::size_t i = 0; i != input.vertex_points_3d.size(); ++i)
       {
@@ -206,26 +205,49 @@ namespace viennamesh
       {
         triangulateio const & plc = input.cells[i].plc;
 
+        std::map<int, ElementType> vertex_map;
+//         std::vector<ElementType> local_vertices(plc.numberofpoints);
+//         for (std::size_t k = 0; k != input.cells[i].global_vertex_ids.size(); ++k)
+//           local_vertices[k] = vertices[ input.cells[i].global_vertex_ids[k] ];
+//         for (int k = input.cells[i].global_vertex_ids.size(); k != plc.numberofpoints; ++k)
+//         {
+//           PointType p2d = viennagrid::make_point(plc.pointlist[2*k+0], plc.pointlist[2*k+1]);
+//           PointType p3d = input.cells[i].projection_functor.unproject(p2d);
+//           local_vertices[k] = viennagrid::make_vertex( output, p3d );
+//         }
+
+
         for (int j = 0; j < plc.numberoftriangles; ++j)
         {
-          VertexType v[3];
+          ElementType v[3];
           for (int k = 0; k != 3; ++k)
           {
             int index = plc.trianglelist[3*j+k];
+//             v[k] = local_vertices[index];
+
             if (index < static_cast<int>(input.cells[i].global_vertex_ids.size()))
             {
               v[k] = vertices[ input.cells[i].global_vertex_ids[index] ];
             }
             else
             {
-              PointType p2d = viennagrid::make_point(plc.pointlist[2*index+0], plc.pointlist[2*index+1]);
-              PointType p3d = input.cells[i].projection_functor.unproject(p2d);
+              std::map<int, ElementType>::iterator it = vertex_map.find(index);
+              if (it != vertex_map.end())
+              {
+                v[k] = it->second;
+              }
+              else
+              {
+                PointType p2d = viennagrid::make_point(plc.pointlist[2*index+0], plc.pointlist[2*index+1]);
+                PointType p3d = input.cells[i].projection_functor.unproject(p2d);
 
-              v[k] = viennagrid::make_vertex( output, p3d );
+                v[k] = viennagrid::make_vertex( output, p3d );
+                vertex_map[index] = v[k];
+              }
             }
           }
 
-          CellType cell = viennagrid::make_triangle( output, v[0], v[1], v[2] );
+          ElementType cell = viennagrid::make_triangle( output, v[0], v[1], v[2] );
           for (unsigned int k = 0; k < input.cells[i].region_ids.size(); ++k)
           {
             if (input.region_count > 1)
@@ -264,7 +286,10 @@ namespace viennamesh
 
       if (cell_size.valid())
       {
+        std::cout << "Line count of original mesh: " << viennagrid::elements(input_mesh(), 1).size() << std::endl;
         viennagrid::refine_plc_lines( input_mesh(), tmp, cell_size() );
+
+
 
         max_length = cell_size();
         options << "u";

@@ -21,7 +21,7 @@
 
 extern "C"
 {
-  #include "triangle/triangle_interface.h"
+  #include "triangle_interface.h"
 }
 
 
