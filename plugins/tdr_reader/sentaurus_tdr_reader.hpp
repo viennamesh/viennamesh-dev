@@ -577,10 +577,11 @@ namespace viennamesh
             std::vector<VertexType> cell_vertices;
             std::vector<int> other_vertex_indices;
 
-            for (auto index : element.vertex_indices)
+//             for (auto index : element.vertex_indices)
+            for (std::vector<int>::const_iterator it = element.vertex_indices.begin(); it != element.vertex_indices.end(); ++it)
             {
-              cell_vertices.push_back( vertices[index] );
-              other_vertex_indices.push_back( vertices[index].id() );
+              cell_vertices.push_back( vertices[*it] );
+              other_vertex_indices.push_back( vertices[*it].id() );
             }
             cell_vertices.push_back( viennagrid::make_vertex(mesh, other_vertex) );
             newly_created_vertices[ cell_vertices.back().id() ] = other_vertex_indices;
