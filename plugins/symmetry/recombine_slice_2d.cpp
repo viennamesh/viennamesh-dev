@@ -53,6 +53,9 @@ namespace viennamesh
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
+    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+
     double tol = 1e-6;
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
@@ -86,35 +89,37 @@ namespace viennamesh
     mesh_handle output_mesh = make_data<mesh_handle>();
     viennagrid::result_of::element_copy_map<>::type copy_map( output_mesh(), tol );
 
-    for (auto triangle : viennagrid::cells( input_mesh() ))
+    ConstElementRangeType triangles(input_mesh(), 2);
+    for (ConstElementIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
     {
-      copy_map(triangle);
+      copy_map(*tit);
 
       if (mirror_axis_used)
       {
         PointType mirror_vector = viennagrid::make_point( std::cos(mirror_axis), std::sin(mirror_axis) );
 
-        ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(triangle, 0), centroid, mirror_vector), tol );
-        ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(triangle, 1), centroid, mirror_vector), tol );
-        ElementType v2 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(triangle, 2), centroid, mirror_vector), tol );
+        ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(*tit, 0), centroid, mirror_vector), tol );
+        ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(*tit, 1), centroid, mirror_vector), tol );
+        ElementType v2 = viennagrid::make_unique_vertex( output_mesh(), reflect(viennagrid::get_point(*tit, 2), centroid, mirror_vector), tol );
 
         viennagrid::make_triangle( output_mesh(), v0, v1, v2 );
       }
     }
 
     std::vector<ElementType> slice_triangles;
-    for (auto triangle : viennagrid::cells( output_mesh() ) )
-      slice_triangles.push_back(triangle);
+    ConstElementRangeType output_triangles(input_mesh(), 2);
+    for (ConstElementIteratorType tit = output_triangles.begin(); tit != output_triangles.end(); ++tit)
+      slice_triangles.push_back(*tit);
 
-    for (auto triangle : slice_triangles)
+    for (std::vector<ElementType>::iterator tit = slice_triangles.begin(); tit != slice_triangles.end(); ++tit)
     {
       for (int i = 1; i != rotational_frequency; ++i)
       {
         double angle = 2*M_PI*static_cast<double>(i)/static_cast<double>(rotational_frequency);
 
-        ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 0), centroid, angle), tol );
-        ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 1), centroid, angle), tol );
-        ElementType v2 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(triangle, 2), centroid, angle), tol );
+        ElementType v0 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(*tit, 0), centroid, angle), tol );
+        ElementType v1 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(*tit, 1), centroid, angle), tol );
+        ElementType v2 = viennagrid::make_unique_vertex( output_mesh(), rotate(viennagrid::get_point(*tit, 2), centroid, angle), tol );
 
         viennagrid::make_triangle( output_mesh(), v0, v1, v2 );
       }
