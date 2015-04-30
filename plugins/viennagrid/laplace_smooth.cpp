@@ -15,8 +15,6 @@
 #include "laplace_smooth.hpp"
 #include "viennagridpp/core.hpp"
 
-using namespace std::placeholders;
-
 namespace viennamesh
 {
   // http://en.wikipedia.org/wiki/Laplacian_smoothing
@@ -25,26 +23,26 @@ namespace viennamesh
   {
     typedef viennagrid::mesh_t MeshType;
 
-    typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-    typedef typename viennagrid::result_of::element<MeshType>::type VertexType;
+    typedef viennagrid::result_of::point<MeshType>::type PointType;
+    typedef viennagrid::result_of::element<MeshType>::type VertexType;
 
-    typedef typename viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
-    typedef typename viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
+    typedef viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
+    typedef viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
 
     viennagrid_dimension dim = viennagrid::geometric_dimension(mesh);
 
     VertexRangeType vertices(mesh);
 
     std::vector<PointType> vertex_offset_container(vertices.size(), PointType(dim));
-    typename viennagrid::result_of::accessor<std::vector<PointType>, VertexType>::type vertex_offset(vertex_offset_container);
+    viennagrid::result_of::accessor<std::vector<PointType>, VertexType>::type vertex_offset(vertex_offset_container);
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
       if (viennagrid::is_any_boundary(mesh, *vit))
         continue;
 
-      typedef typename viennagrid::result_of::coboundary_range<MeshType>::type CoboundaryVertexRangeType;
-      typedef typename viennagrid::result_of::iterator<CoboundaryVertexRangeType>::type CoboundaryLineIteratorType;
+      typedef viennagrid::result_of::coboundary_range<MeshType>::type CoboundaryVertexRangeType;
+      typedef viennagrid::result_of::iterator<CoboundaryVertexRangeType>::type CoboundaryLineIteratorType;
 
       PointType sum(dim);
       PointType point = viennagrid::get_point(*vit);
@@ -101,26 +99,26 @@ namespace viennamesh
   {
     typedef viennagrid::mesh_t MeshType;
 
-    typedef typename viennagrid::result_of::point<MeshType>::type PointType;
-    typedef typename viennagrid::result_of::element<MeshType>::type VertexType;
+    typedef viennagrid::result_of::point<MeshType>::type PointType;
+    typedef viennagrid::result_of::element<MeshType>::type VertexType;
 
-    typedef typename viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
-    typedef typename viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
+    typedef viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
+    typedef viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
 
     viennagrid_dimension dim = viennagrid::geometric_dimension(mesh);
 
     VertexRangeType vertices(mesh);
 
     std::vector<PointType> vertex_offset_container(vertices.size(), PointType(dim));
-    typename viennagrid::result_of::accessor<std::vector<PointType>, VertexType>::type vertex_offset(vertex_offset_container);
+    viennagrid::result_of::accessor<std::vector<PointType>, VertexType>::type vertex_offset(vertex_offset_container);
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
-      typedef typename viennagrid::result_of::region_range<MeshType, VertexType>::type RegionRangeType;
+      typedef viennagrid::result_of::region_range<MeshType, VertexType>::type RegionRangeType;
 //       typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
 
-      typedef typename viennagrid::result_of::neighbor_range<MeshType>::type NeighborVertexRangeType;
-      typedef typename viennagrid::result_of::iterator<NeighborVertexRangeType>::type NeighborVertexRangeIterator;
+      typedef viennagrid::result_of::neighbor_range<MeshType>::type NeighborVertexRangeType;
+      typedef viennagrid::result_of::iterator<NeighborVertexRangeType>::type NeighborVertexRangeIterator;
 
       PointType offset(dim);
       int point_count = 0;
@@ -193,16 +191,16 @@ namespace viennamesh
       viennagrid::copy( input_mesh(), output_mesh() );
 
 
-    std::function< void(viennagrid::mesh_t const &) > smooth_function;
+    function< void(viennagrid::mesh_t const &) > smooth_function;
     if (geometric_dimension == 3 && cell_dimension == 2)
     {
       info(1) << "Geometric dimension == 3 and cell dimension == 2 -> using hull laplacian smoothing" << std::endl;
-      smooth_function = std::bind( hull_laplace_smooth_impl, _1, lambda() );
+      smooth_function = bind( hull_laplace_smooth_impl, _1, lambda() );
     }
     else if (geometric_dimension == cell_dimension)
     {
       info(1) << "Geometric dimension == cell dimension -> using standard laplacian smoothing" << std::endl;
-      smooth_function = std::bind( laplace_smooth_impl, _1, lambda() );
+      smooth_function = bind( laplace_smooth_impl, _1, lambda() );
     }
     else
     {
