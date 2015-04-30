@@ -18,7 +18,6 @@
 #include <string>
 #include <ostream>
 #include <istream>
-#include "boost/lexical_cast.hpp"
 
 namespace viennamesh
 {
