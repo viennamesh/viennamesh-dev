@@ -121,12 +121,6 @@ namespace viennamesh
 
 
 
-
-
-
-
-
-
   template<typename MeshT, typename NeighborsT, typename RegionAccessorT, typename ElementT>
   void mark_neighbors(MeshT const & mesh,
                       std::vector<NeighborsT> const & pos_neighbors,
@@ -209,13 +203,7 @@ namespace viennamesh
 
       if (triangles.size() < 2)
       {
-        std::cout << "There is something wrong... one line has less than 2 co-boundary triangles" << std::endl;
-        std::cout << "   " << *lit << std::endl;
-        std::cout << "   Coboundary triangles:" << std::endl;
-        for (ConstCoboundaryIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
-          std::cout << "      " << *tit << std::endl;
-
-        continue;
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Topological error: one line has less than 2 co-boundary triangles");
       }
 
       if (triangles.size() == 2)
@@ -313,26 +301,6 @@ namespace viennamesh
         positive_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
       }
     }
-
-
-
-//     {
-//       ConstElementRangeType triangles(mesh, 2);
-//       for (ConstElementIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
-//       {
-//         typedef typename viennagrid::result_of::const_neighbor_range<MeshT>::type ConstNeighborRangeType;
-//         typedef typename viennagrid::result_of::iterator<ConstNeighborRangeType>::type ConstNeighborIteratorType;
-//
-//         std::cout << *tit << std::endl;
-//
-//         ConstNeighborRangeType neighbor_triangles(mesh, *tit, 1, 2);
-//         std::cout << "   number of neighbor triangles = " << neighbor_triangles.size() << std::endl;
-//         std::cout << "   has " << positive_neighbor_triangles[ (*tit).id() ].size() << " pos triangles" << std::endl;
-//         std::cout << "   has " << negative_neighbor_triangles[ (*tit).id() ].size() << " neg triangles" << std::endl;
-//
-//         std::cout << std::endl;
-//       }
-//     }
 
 
 
@@ -441,6 +409,7 @@ namespace viennamesh
 
 
     int region_count = mark_hulls(input_mesh(), pos_orient, neg_orient, 1e-6 );
+    info(1) << "Found " << region_count << " regions " << std::endl;
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 
@@ -472,19 +441,8 @@ namespace viennamesh
 
       if (por == 0 && nor == 0)
       {
-        std::cout << "ERROR" << std::endl;
-        continue;
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "A triangle is both in positive and negative regions");
       }
-
-
-//       if (por >= 0 || nor >= 0)
-//       {
-//         ElementType new_cell = cm(*cit);
-//         if (por >= 0)
-//           viennagrid::add( output_regions[por], new_cell );
-//         if (nor >= 0)
-//           viennagrid::add( output_regions[nor], new_cell );
-//       }
 
 
       if (nor == 0)
