@@ -22,7 +22,7 @@ namespace viennamesh
 {
   namespace triangle
   {
-    SizingFunctionType triangle_sizing_function;
+    sizing_function::base_functor::function_type triangle_sizing_function;
 
     int should_triangle_be_refined_function(double * triorg, double * tridest, double * triapex, double)
     {
@@ -59,10 +59,10 @@ namespace viennamesh
       sample_points[3] = pt;
 
 
-      SizingFunctionReturnType local_size;
+      sizing_function::base_functor::result_type local_size;
       for (int i = 0; i != 4; ++i)
       {
-        SizingFunctionReturnType current_size = triangle_sizing_function( sample_points[i] );
+        sizing_function::base_functor::result_type current_size = triangle_sizing_function( sample_points[i] );
         if (current_size)
         {
           if (!local_size)
@@ -197,11 +197,11 @@ namespace viennamesh
 
 
     template<typename SizingFunctionRepresentationT>
-    SizingFunctionType make_sizing_function(triangle_mesh const & mesh,
-                                            point_container_t const & hole_points,
-                                            seed_point_container_t const & seed_points,
-                                            SizingFunctionRepresentationT const & sf,
-                                            std::string const & base_path)
+    sizing_function::base_functor::function_type make_sizing_function(triangle_mesh const & mesh,
+                                                                    point_container_t const & hole_points,
+                                                                    seed_point_container_t const & seed_points,
+                                                                    SizingFunctionRepresentationT const & sf,
+                                                                    std::string const & base_path)
     {
       typedef viennagrid::mesh_t MeshType;
       MeshType simple_mesh;
