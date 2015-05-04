@@ -277,6 +277,13 @@ namespace viennamesh
         std::vector<viennagrid::quantity_field> quantity_fields = reader.quantity_fields();
         if (!quantity_fields.empty())
         {
+          for (std::size_t i = 0; i != quantity_fields.size(); ++i)
+          {
+            info(1) << "Found quantity field \"" << quantity_fields[i].name() << "\" for topologic dimension " <<
+                       quantity_fields[i].topologic_dimension() << " and with values dimension " <<
+                       quantity_fields[i].values_dimension() << std::endl;
+          }
+
           quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
           output_quantity_fields.set(quantity_fields);
           set_output( "quantities", output_quantity_fields );
