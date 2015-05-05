@@ -28,18 +28,22 @@ namespace viennamesh
   };
 }
 
-inline std::ostream & operator<<(std::ostream & stream, viennamesh_error error)
-{
-  const char * error_string;
-  viennamesh_error_string(error, &error_string);
-
-  stream << error_string;
-  return stream;
-}
+// inline std::ostream & operator<<(std::ostream & stream, viennamesh_error error)
+// {
+//   const char * error_string;
+//   viennamesh_error_string(error, &error_string);
+//
+//   stream << error_string;
+//   return stream;
+// }
 
 inline std::ostream & operator<<(std::ostream & stream, viennamesh::exception const & ex)
 {
-  stream << "[" << ex.error_code() << "] ";
+  const char * error_string;
+  viennamesh_error_string(ex.error_code(), &error_string);
+  stream << error_string;
+
+  stream << "[" << error_string << "] ";
 
   if (!ex.file().empty() && ex.line() != -1)
     stream << ex.file() << ":" << ex.line();
