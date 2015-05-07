@@ -69,283 +69,6 @@ namespace viennamesh
   }
 
 
-
-  template<typename MeshT, typename TriangleT, typename RegionAccessorT>
-  void mark_smalled_neighbor_triangles( MeshT const & mesh,
-                                        TriangleT const & triangle,
-                                        RegionAccessorT & pos_orient,
-                                        RegionAccessorT & neg_orient,
-                                        int region_id )
-  {
-    typedef typename viennagrid::result_of::point<MeshT>::type          PointType;
-    typedef typename viennagrid::result_of::coord<PointType>::type      CoordType;
-
-    typedef typename viennagrid::result_of::element<MeshT>::type           ElementType;
-
-    bool invert_cell_orientation = false;
-    if (pos_orient.get(triangle) == region_id)
-      invert_cell_orientation = false;
-    else if (neg_orient.get(triangle) == region_id)
-      invert_cell_orientation = true;
-    else
-    {
-//       std::cout << "ERROR!! pos nor neg is region_id = " << region_id << "      pos = " << pos_orient.get(triangle) << " neg = " << neg_orient.get(triangle) << std::endl;
-    }
-
-
-    // calculate the center of the triangle
-    PointType center = viennagrid::centroid(triangle);
-
-    // ... and its normal
-    PointType normal = viennagrid::normal_vector(triangle);
-    // correcting the normal direction
-    if (invert_cell_orientation)
-    {
-      normal = -normal;
-    }
-
-    // normalizing the normal vector
-    normal /= viennagrid::norm_2(normal);
-
-    typedef typename viennagrid::result_of::element_range<TriangleT>::type             LinesOnTriangleRangeType;
-    typedef typename viennagrid::result_of::iterator<LinesOnTriangleRangeType>::type    LinesOnTriangleIteratorType;
-
-    // iterating over all boundary lines
-    LinesOnTriangleRangeType lines( triangle, 1 );
-    for ( LinesOnTriangleIteratorType lit = lines.begin(); lit != lines.end(); ++lit )
-    {
-      ElementType line = *lit;
-
-      boost::array<PointType, 2> lp;
-      lp[0] = viennagrid::get_point( viennagrid::vertices(line)[0] );
-      lp[1] = viennagrid::get_point( viennagrid::vertices(line)[1] );
-
-      // calculating the line vector
-      PointType line_vector = lp[1]-lp[0];
-      // ... and normalizing it
-      line_vector /= viennagrid::norm_2(line_vector);
-
-      // calculating the center of the boundary line
-      PointType line_center = (lp[0]+lp[1]) / 2.0;
-      // calculate the vector facing towards the current triangle
-      PointType line_to_triangle_vector = viennagrid::cross_prod( normal, line_vector );
-      // ... and normalizing it
-      line_to_triangle_vector /= viennagrid::norm_2(line_to_triangle_vector);
-
-      // check and correnct the orentietion of the vector facing towards the current triangle
-      if (viennagrid::inner_prod(line_to_triangle_vector, center - line_center) < 0)
-        line_to_triangle_vector = -line_to_triangle_vector;
-
-      typedef typename viennagrid::result_of::coboundary_range<MeshT>::type CoboundaryRangeType;
-      typedef typename viennagrid::result_of::iterator<CoboundaryRangeType>::type CoboundaryIteratorType;
-
-      CoboundaryRangeType coboundary_triangles(mesh, line, 2);
-
-      // smallest angle, triangle with smallest angle and facing outward flag of this triangle
-      CoordType smallest_angle = std::numeric_limits<CoordType>::max();
-      TriangleT smallest_angle_triangle;
-
-      // iterating over all coboundary triangles of the current line
-      for (CoboundaryIteratorType ctit = coboundary_triangles.begin(); ctit != coboundary_triangles.end(); ++ctit)
-      {
-        TriangleT neighbor_triangle = *ctit;
-
-        // is the coboundary triangle the current triangle -> skip neighbor triangle
-        if (triangle == neighbor_triangle)
-        {
-          continue;
-        }
-
-        // triangle already is in region with id region_id -> skip line
-        if ((pos_orient.get(neighbor_triangle) == region_id) ||
-            (neg_orient.get(neighbor_triangle) == region_id))
-        {
-          smallest_angle = std::numeric_limits<CoordType>::max();
-          break;
-        }
-
-        // triangle already is in 2 regions -> skip neighbor triangle
-        if ((pos_orient.get(neighbor_triangle) != -1) &&
-            (neg_orient.get(neighbor_triangle) != -1))
-        {
-          continue;
-        }
-
-        // calculating the center of the neighbor triangle
-        PointType neighbor_center = viennagrid::centroid(neighbor_triangle); // (np[0]+np[1]+np[2])/3.0;
-
-        // calculating the vector from the line center towards the neighbor triangle
-        PointType line_to_neighbor_triangle_vector = neighbor_center - line_center;
-        // ... and normalizing it
-        line_to_neighbor_triangle_vector /= viennagrid::norm_2(line_to_neighbor_triangle_vector);
-
-        // projecting the vector facing to the neighbor triangle onto the 2D coordinate system
-        CoordType x = viennagrid::inner_prod( line_to_triangle_vector, line_to_neighbor_triangle_vector );
-        CoordType y = viennagrid::inner_prod( normal, line_to_neighbor_triangle_vector );
-
-        // normalizing the 2D vector
-        CoordType tmp = std::sqrt( x*x + y*y );
-        x /= tmp;
-        y /= tmp;
-
-        // calculate the angle
-        CoordType angle_center_vectors = std::acos( x );
-        // calculate the corrected oriented angle; if y < 0 the angle has to be corrected
-        CoordType oriented_angle = (y > 0) ? angle_center_vectors : 2.0*M_PI - angle_center_vectors;
-
-        // if the current angle is smaller than the best -> yay! better choice found
-        if (oriented_angle < smallest_angle)
-        {
-          smallest_angle          = oriented_angle;
-          smallest_angle_triangle = neighbor_triangle;
-        }
-      }
-
-      // is a triangle found -> call mark_facing_shortes_angle recursively
-      if (smallest_angle != std::numeric_limits<CoordType>::max())
-      {
-        if ( same_orientation(triangle, smallest_angle_triangle) == invert_cell_orientation)    // XOR
-          neg_orient.set(smallest_angle_triangle, region_id);
-        else
-          pos_orient.set(smallest_angle_triangle, region_id);
-
-
-        mark_smalled_neighbor_triangles(mesh,
-                                        smallest_angle_triangle,
-                                        pos_orient,
-                                        neg_orient,
-                                        region_id);
-      }
-
-    }
-  }
-
-
-
-
-
-
-  template<typename MeshT, typename RegionAccessorT, typename NumericConfigT>
-  void mark_outer_hull(MeshT const & mesh,
-                       RegionAccessorT & pos_orient,
-                       RegionAccessorT & neg_orient,
-                       NumericConfigT numeric_config)
-  {
-    typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-    typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
-
-    std::pair<PointType, PointType> bb = viennagrid::bounding_box(mesh);
-    PointType outside_point = bb.first - viennagrid::make_point(1,1,1) * viennagrid::norm_2(bb.first-bb.second) * 0.1;
-
-    typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
-
-    ConstCellRangeType cells(mesh);
-    for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
-    {
-      // calculating the center of the triangle
-      PointType r = viennagrid::centroid(*cit);
-
-      // calculating the normal vector of the triangle
-      PointType n = viennagrid::normal_vector(*cit);
-      // ... and normalizing it
-      n /= viennagrid::norm_2(n);
-
-      // calculating the ray vector from the center of the triangle to the seed point
-      PointType d = outside_point - r;
-
-      // projecting the normalized ray vector onto the normal vector
-      CoordType p = viennagrid::inner_prod( d, n ) / viennagrid::norm_2(d);
-
-      // if the projection is near zero (happens when the ray vector and the triangle are co-linear) -> skip this triangle
-      if ( std::abs(p) < viennagrid::detail::absolute_tolerance<CoordType>(numeric_config) )
-        continue;
-
-
-      ConstCellRangeIterator cit2 = cells.begin();
-      for (; cit2 != cells.end(); ++cit2)
-      {
-        // no self intersect test
-        if (*cit == *cit2)
-          continue;
-
-        // in case of intersection -> nothing to do with the triangle
-        if (viennagrid::element_line_intersect(*cit2, r, outside_point, numeric_config))
-          break;
-      }
-
-      // if there was no intersection -> mark this triangle and all neighbor triangles recursively
-      if (cit2 == cells.end())
-      {
-        if ( p > 0 )
-          pos_orient.set(*cit, 0);
-        else
-          neg_orient.set(*cit, 0);
-
-        mark_smalled_neighbor_triangles(mesh,
-                                        *cit,
-                                        pos_orient,
-                                        neg_orient,
-                                        0);
-
-        break;
-      }
-    }
-  }
-
-
-
-
-
-
-
-
-
-  template<typename MeshT, typename RegionAccessorT>
-  int mark_hulls(MeshT const & mesh,
-                 RegionAccessorT & pos_orient, RegionAccessorT & neg_orient,
-                 int start_region_id = 1)
-  {
-    int region_id = start_region_id;
-
-    typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-    typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
-
-    typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
-
-    ConstCellRangeType cells(mesh);
-    for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
-    {
-      // triangle already is in two regions
-      if ( (pos_orient.get(*cit) != -1) && (neg_orient.get(*cit) != -1) )
-        continue;
-
-      if (pos_orient.get(*cit) == -1)
-        pos_orient.set(*cit, region_id);
-      else
-        neg_orient.set(*cit, region_id);
-
-      mark_smalled_neighbor_triangles(mesh,
-                                      *cit,
-                                      pos_orient,
-                                      neg_orient,
-                                      region_id);
-
-      ++region_id;
-    }
-
-    return region_id-1;
-  }
-
-
-
-
-
-
-
-
-
   template<typename MeshT>
   bool check_orientation(MeshT const & mesh)
   {
@@ -398,6 +121,271 @@ namespace viennamesh
 
 
 
+  template<typename MeshT, typename NeighborsT, typename RegionAccessorT, typename ElementT>
+  void mark_neighbors(MeshT const & mesh,
+                      std::vector<NeighborsT> const & pos_neighbors,
+                      std::vector<NeighborsT> const & neg_neighbors,
+                      RegionAccessorT & pos_orient,
+                      RegionAccessorT & neg_orient,
+                      ElementT triangle,
+                      bool positive,
+                      int region_id)
+  {
+    if (positive)
+    {
+      int rid = pos_orient.get(triangle);
+      assert(neg_orient.get(triangle) != region_id);
+      if (rid == -1)
+      {
+        pos_orient.set(triangle, region_id);
+      }
+      else
+      {
+        assert(rid == region_id);
+        return;
+      }
+    }
+    else
+    {
+      int rid = neg_orient.get(triangle);
+      assert(pos_orient.get(triangle) != region_id);
+      if (rid == -1)
+      {
+        neg_orient.set(triangle, region_id);
+      }
+      else
+      {
+        assert(rid == region_id);
+        return;
+      }
+    }
+
+
+    NeighborsT const & neighbors = positive ? pos_neighbors[triangle.id()] : neg_neighbors[triangle.id()];
+    for (typename NeighborsT::const_iterator ntit = neighbors.begin(); ntit != neighbors.end(); ++ntit)
+    {
+      mark_neighbors(mesh,
+                     pos_neighbors, neg_neighbors,
+                     pos_orient, neg_orient,
+                     *ntit,
+                     same_orientation(triangle, *ntit) == positive,
+                     region_id);
+    }
+  }
+
+
+
+
+  template<typename MeshT, typename RegionAccessorT, typename NumericConfigT>
+  int mark_hulls(MeshT const & mesh,
+                 RegionAccessorT & pos_orient,
+                 RegionAccessorT & neg_orient,
+                 NumericConfigT numeric_config)
+  {
+    typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
+    typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+    typedef typename viennagrid::result_of::element<MeshT>::type ElementType;
+
+    std::vector< std::vector<ElementType> > positive_neighbor_triangles( viennagrid::elements(mesh,2).size() );
+    std::vector< std::vector<ElementType> > negative_neighbor_triangles( viennagrid::elements(mesh,2).size() );
+
+    typedef typename viennagrid::result_of::const_element_range<MeshT>::type ConstElementRangeType;
+    typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+
+    typedef typename viennagrid::result_of::const_coboundary_range<MeshT>::type ConstCoboundaryRangeType;
+    typedef typename viennagrid::result_of::iterator<ConstCoboundaryRangeType>::type ConstCoboundaryIteratorType;
+
+
+    ConstElementRangeType lines(mesh, 1);
+    for (ConstElementIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
+    {
+      ConstCoboundaryRangeType triangles(mesh, *lit, 2);
+
+      if (triangles.size() < 2)
+      {
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Topological error: one line has less than 2 co-boundary triangles");
+      }
+
+      if (triangles.size() == 2)
+      {
+        positive_neighbor_triangles[ triangles[0].id() ].push_back( triangles[1] );
+        negative_neighbor_triangles[ triangles[0].id() ].push_back( triangles[1] );
+
+        positive_neighbor_triangles[ triangles[1].id() ].push_back( triangles[0] );
+        negative_neighbor_triangles[ triangles[1].id() ].push_back( triangles[0] );
+        continue;
+      }
+
+
+      ElementType v[2] = { viennagrid::vertices(*lit)[0], viennagrid::vertices(*lit)[1] };
+      PointType p[2] = { viennagrid::get_point(v[0]), viennagrid::get_point(v[1]) };
+
+      PointType lp = (p[0]+p[1])/2;
+      PointType lv = p[1]-p[0];
+      lv.normalize();
+
+      PointType xv = viennagrid::make_point(1,0,0);
+      if ( std::abs(viennagrid::inner_prod(xv,lv)) > 1.0-viennagrid::detail::absolute_tolerance<CoordType>(numeric_config) )
+        xv = viennagrid::make_point(0,1,0);
+
+      PointType yv = viennagrid::cross_prod(lv, xv);
+      yv.normalize();
+      xv = viennagrid::cross_prod(yv,lv);
+      xv.normalize();
+
+
+
+
+
+      typedef std::map<CoordType, std::pair<ElementType, bool> > SortedNeighborsType;
+      SortedNeighborsType sorted_neighbors;
+
+      for (ConstCoboundaryIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
+      {
+        PointType tp = viennagrid::centroid(*tit);
+        PointType tn = viennagrid::normal_vector(*tit);
+
+        PointType to_triangle_vector = tp-lp;
+
+        CoordType x = viennagrid::inner_prod(to_triangle_vector, xv);
+        CoordType y = viennagrid::inner_prod(to_triangle_vector, yv);
+
+        CoordType angle = std::atan2(y, x);
+        bool positive = viennagrid::inner_prod( viennagrid::cross_prod( to_triangle_vector, tn ), lv ) > 0;
+
+        sorted_neighbors[angle] = std::make_pair(*tit, positive);
+      }
+
+      assert( sorted_neighbors.size() ==  triangles.size() );
+
+      typename SortedNeighborsType::iterator it0 = sorted_neighbors.begin();
+      typename SortedNeighborsType::iterator it1 = it0; ++it1;
+
+      for (; it1 != sorted_neighbors.end(); ++it0, ++it1)
+      {
+        if ( (*it0).second.second )
+        {
+          positive_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+        }
+        else
+        {
+          negative_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+        }
+
+        if ( (*it1).second.second )
+        {
+          negative_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+        }
+        else
+        {
+          positive_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+        }
+      }
+
+      it1 = sorted_neighbors.begin();
+      if ( (*it0).second.second )
+      {
+        positive_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+      }
+      else
+      {
+        negative_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+      }
+
+      if ( (*it1).second.second )
+      {
+        negative_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+      }
+      else
+      {
+        positive_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+      }
+    }
+
+
+
+    std::pair<PointType, PointType> bb = viennagrid::bounding_box(mesh);
+    PointType outside_point = bb.first - viennagrid::make_point(1,1,1) * viennagrid::norm_2(bb.first-bb.second) * 0.1;
+
+    ConstElementRangeType triangles(mesh, 2);
+    for (ConstElementIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
+    {
+      // calculating the center of the triangle
+      PointType r = viennagrid::centroid(*tit);
+
+      // calculating the normal vector of the triangle
+      PointType n = viennagrid::normal_vector(*tit);
+      // ... and normalizing it
+      n /= viennagrid::norm_2(n);
+
+      // calculating the ray vector from the center of the triangle to the seed point
+      PointType d = outside_point - r;
+
+      // projecting the normalized ray vector onto the normal vector
+      CoordType p = viennagrid::inner_prod( d, n ) / viennagrid::norm_2(d);
+
+      // if the projection is near zero (happens when the ray vector and the triangle are co-linear) -> skip this triangle
+      if ( std::abs(p) < viennagrid::detail::absolute_tolerance<CoordType>(numeric_config) )
+        continue;
+
+
+      ConstElementIteratorType tit2 = triangles.begin();
+      for (; tit2 != triangles.end(); ++tit2)
+      {
+        // no self intersect test
+        if (*tit == *tit2)
+          continue;
+
+        // in case of intersection -> nothing to do with the triangle
+        if (viennagrid::element_line_intersect(*tit2, r, outside_point, numeric_config))
+          break;
+      }
+
+      // if there was no intersection -> mark this triangle and all neighbor triangles recursively
+      if (tit2 == triangles.end())
+      {
+        mark_neighbors(mesh, positive_neighbor_triangles, negative_neighbor_triangles, pos_orient, neg_orient, *tit, p > 0, 0);
+
+        break;
+      }
+    }
+
+
+    int region_id = 1;
+    bool done = false;
+    while (!done)
+    {
+      done = true;
+
+      ConstElementRangeType triangles(mesh, 2);
+      for (ConstElementIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
+      {
+        // triangle already is in two regions
+        if ( (pos_orient.get(*tit) != -1) && (neg_orient.get(*tit) != -1) )
+          continue;
+
+        bool positive = pos_orient.get(*tit) == -1;
+
+        mark_neighbors(mesh,
+                       positive_neighbor_triangles,
+                       negative_neighbor_triangles,
+                       pos_orient,
+                       neg_orient,
+                       *tit,
+                       positive,
+                       region_id);
+
+        done = false;
+        ++region_id;
+      }
+
+
+    }
+
+    return region_id-1;
+  }
+
+
 
 
 
@@ -419,12 +407,9 @@ namespace viennamesh
     std::vector<int> negative_orientation_regions( viennagrid::cells(input_mesh()).size(), -1 );
     viennagrid::result_of::accessor< std::vector<int>, ElementType >::type neg_orient(negative_orientation_regions);
 
-    mark_outer_hull( input_mesh(), pos_orient, neg_orient, 1e-6);
-    int region_count = mark_hulls( input_mesh(), pos_orient, neg_orient, 1 );
-    std::cout << "Region count = " << region_count << std::endl;
 
-
-
+    int region_count = mark_hulls(input_mesh(), pos_orient, neg_orient, 1e-6 );
+    info(1) << "Found " << region_count << " regions " << std::endl;
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 
@@ -456,8 +441,7 @@ namespace viennamesh
 
       if (por == 0 && nor == 0)
       {
-        std::cout << "ERROR" << std::endl;
-        continue;
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "A triangle is both in positive and negative regions");
       }
 
 
@@ -499,49 +483,49 @@ namespace viennamesh
 
 
 
-    typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
-    typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
-
-    RegionRangeType regions( output_mesh() );
-    for (RegionRangeIterator rit = regions.begin(); rit != regions.end(); ++rit)
-    {
-      std::cout << "Checking region " << (*rit).id() << std::endl;
-      MeshType mesh;
-      CopyMapType tmpcm( mesh, false );
-
-      typedef viennagrid::result_of::const_vertex_range<RegionType>::type ConstRegionVertexRangeType;
-      typedef viennagrid::result_of::iterator<ConstRegionVertexRangeType>::type ConstRegionVertexRangeIterator;
-
-      typedef viennagrid::result_of::const_cell_range<RegionType>::type ConstRegionCellRangeType;
-      typedef viennagrid::result_of::iterator<ConstRegionCellRangeType>::type ConstRegionCellRangeIterator;
-
-
-      ConstRegionVertexRangeType vertices( *rit );
-      for (ConstRegionVertexRangeIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
-        cm(*vit);
-
-
-      ConstRegionCellRangeType cells( *rit );
-      for (ConstRegionCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
-      {
-        int por = positive_orientation_region(output_mesh(), *cit);
-
-        if (por == (*rit).id())
-        {
-          tmpcm(*cit);
-        }
-        else
-        {
-          viennagrid::make_triangle( mesh,
-                                     tmpcm( viennagrid::vertices(*cit)[0] ),
-                                     tmpcm( viennagrid::vertices(*cit)[2] ),
-                                     tmpcm( viennagrid::vertices(*cit)[1] ) );
-        }
-      }
-
-      if (!check_orientation(mesh))
-        std::cout << "Error checking orientation of region " << (*rit).id() << std::endl;
-    }
+//     typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
+//     typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
+//
+//     RegionRangeType regions( output_mesh() );
+//     for (RegionRangeIterator rit = regions.begin(); rit != regions.end(); ++rit)
+//     {
+//       std::cout << "Checking region " << (*rit).id() << std::endl;
+//       MeshType mesh;
+//       CopyMapType tmpcm( mesh, false );
+//
+//       typedef viennagrid::result_of::const_vertex_range<RegionType>::type ConstRegionVertexRangeType;
+//       typedef viennagrid::result_of::iterator<ConstRegionVertexRangeType>::type ConstRegionVertexRangeIterator;
+//
+//       typedef viennagrid::result_of::const_cell_range<RegionType>::type ConstRegionCellRangeType;
+//       typedef viennagrid::result_of::iterator<ConstRegionCellRangeType>::type ConstRegionCellRangeIterator;
+//
+//
+//       ConstRegionVertexRangeType vertices( *rit );
+//       for (ConstRegionVertexRangeIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
+//         cm(*vit);
+//
+//
+//       ConstRegionCellRangeType cells( *rit );
+//       for (ConstRegionCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
+//       {
+//         int por = positive_orientation_region(output_mesh(), *cit);
+//
+//         if (por == (*rit).id())
+//         {
+//           tmpcm(*cit);
+//         }
+//         else
+//         {
+//           viennagrid::make_triangle( mesh,
+//                                      tmpcm( viennagrid::vertices(*cit)[0] ),
+//                                      tmpcm( viennagrid::vertices(*cit)[2] ),
+//                                      tmpcm( viennagrid::vertices(*cit)[1] ) );
+//         }
+//       }
+//
+//       if (!check_orientation(mesh))
+//         std::cout << "Error checking orientation of region " << (*rit).id() << std::endl;
+//     }
 
 
 

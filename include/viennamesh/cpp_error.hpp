@@ -88,8 +88,10 @@ namespace viennamesh
       int error_line;
       const char * error_message;
 
-      viennamesh_context_get_error(context, &error_code, &error_function, &error_file, &error_line, &error_message);
-      throw exception(error_code, error_function, error_file, error_line, error_message);
+      if (viennamesh_context_get_error(context, &error_code, &error_function, &error_file, &error_line, &error_message) == VIENNAMESH_SUCCESS)
+        throw exception(error_code, error_function, error_file, error_line, error_message);
+      else
+        throw exception(VIENNAMESH_ERROR_INVALID_CONTEXT, "", "", -1, "invalid context in handle_error");
     }
   }
 

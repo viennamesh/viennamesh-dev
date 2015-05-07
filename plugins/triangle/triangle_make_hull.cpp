@@ -280,7 +280,7 @@ namespace viennamesh
       data_handle<viennamesh_string> algorithm_type = get_input<viennamesh_string>("algorithm_type");
 
       std::ostringstream options;
-      options << "zpQY";
+      options << "zpQYY";
 
       viennagrid::mesh_t tmp;
 

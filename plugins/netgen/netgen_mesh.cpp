@@ -18,6 +18,8 @@ namespace viennamesh
     typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
     typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
 
+    int region_count = input.region_count();
+
     RegionRangeType regions(input);
     for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
     {
@@ -46,9 +48,9 @@ namespace viennamesh
 
       ElementRegionRangeType element_regions(input, *tit);
 
-      if (element_regions.size() <= 0)
+      if ((element_regions.size() <= 0) && (region_count > 1))
       {
-        VIENNAMESH_ERROR(VIENNAMESH_ERROR_CONVERSION_FAILED, "convert to netgen::mesh failed: on element is in no region");
+        VIENNAMESH_ERROR(VIENNAMESH_ERROR_CONVERSION_FAILED, "convert to netgen::mesh failed: one element is in no region");
       }
 
       if (element_regions.size() > 2)
@@ -56,7 +58,7 @@ namespace viennamesh
         VIENNAMESH_ERROR(VIENNAMESH_ERROR_CONVERSION_FAILED, "convert to netgen::mesh failed: on element is in more than two regions");
       }
 
-      int region_id0 = (*element_regions.begin()).id();
+      int region_id0 = region_count > 1 ? (*element_regions.begin()).id() : 0;
       int region_id1 = -1;
       if (element_regions.size() == 2)
       {
