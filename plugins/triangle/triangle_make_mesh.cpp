@@ -52,7 +52,7 @@ namespace viennamesh
 
 
 
-      viennagrid::static_array<viennagrid::point_t, 4> sample_points;
+      boost::array<viennagrid::point_t, 4> sample_points;
       sample_points[0] = viennagrid::make_point(triorg[0], triorg[1]);
       sample_points[1] = viennagrid::make_point(tridest[0], tridest[1]);
       sample_points[2] = viennagrid::make_point(triapex[0], triapex[1]);

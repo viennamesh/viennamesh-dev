@@ -12,7 +12,7 @@ int triunsuitable(REAL * triorg, REAL * tridest, REAL * triapex, REAL area)
 }
 
 
-enum viennamesh_error triangle_make_mesh(triangle_mesh * mesh)
+viennamesh_error triangle_make_mesh(triangle_mesh * mesh)
 {
   *mesh = (triangle_mesh)malloc( sizeof(struct triangulateio) );
 
@@ -48,7 +48,7 @@ enum viennamesh_error triangle_make_mesh(triangle_mesh * mesh)
   return VIENNAMESH_SUCCESS;
 }
 
-enum viennamesh_error triangle_delete_mesh(triangle_mesh mesh)
+viennamesh_error triangle_delete_mesh(triangle_mesh mesh)
 {
   if (mesh->pointlist) free(mesh->pointlist);
   if (mesh->pointattributelist) free(mesh->pointattributelist);
