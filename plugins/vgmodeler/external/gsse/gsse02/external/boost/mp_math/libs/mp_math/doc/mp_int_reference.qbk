@@ -1,0 +1,1376 @@
+[/ Copyright Kevin Sopp 2008 - 2009.
+ / Distributed under the Boost Software License, Version 1.0.
+ / (See accompanying file LICENSE_1_0.txt or copy at
+ / http://www.boost.org/LICENSE_1_0.txt)]
+
+[section mp_int reference]
+
+[heading Synopsis]
+
+  // <boost/mp_math/mp_int.hpp>
+  namespace boost {
+  namespace mp_math {
+
+  template<
+    class Allocator = std::allocator<void>,
+    class Traits = mp_int_traits<>
+  >
+  struct mp_int
+  {
+    typedef Allocator                               allocator_type;
+    typedef Traits                                  traits_type;
+    typedef typename base_allocator_type::size_type size_type;
+
+    // ctor/cctor/dtor/assign
+    mp_int();
+
+    explicit mp_int(const allocator_type& a);
+
+    template<typename IntegralT>
+    mp_int(IntegralT,
+           const allocator_type& a = allocator_type(),
+           typename enable_if<is_integral<IntegralT> >::type* dummy = 0);
+
+    template<typename charT>
+    mp_int(const charT*, const allocator_type& a = allocator_type());
+
+    template<typename charT>
+    mp_int(const charT*,
+           std::ios_base::fmtflags,
+           const allocator_type& a = allocator_type());
+
+    template<typename charT, class traits, class Alloc>
+    mp_int(const std::basic_string<charT,traits,Alloc>&,
+           const allocator_type& a = allocator_type());
+
+    template<typename charT, class traits, class Alloc>
+    mp_int(const std::basic_string<charT,traits,Alloc>&,
+           std::ios_base::fmtflags,
+           const allocator_type& a = allocator_type());
+
+    template<typename RandomAccessIterator>
+    mp_int(RandomAccessIterator first,
+           RandomAccessIterator last,
+           const allocator_type& a = allocator_type());
+
+    template<typename RandomAccessIterator>
+    mp_int(RandomAccessIterator first,
+           RandomAccessIterator last,
+           std::ios_base::fmtflags f,
+           const allocator_type& a = allocator_type());
+
+    mp_int(const mp_int& copy);
+
+    #ifdef BOOST_HAS_RVALUE_REFS
+    mp_int(mp_int&& copy);
+    #endif
+
+    ~mp_int();
+
+    mp_int& operator = (const mp_int& rhs);
+
+    #ifdef BOOST_HAS_RVALUE_REFS
+    mp_int& operator = (mp_int&& rhs);
+    #endif
+
+    template<typename IntegralT>
+    mp_int& operator = (IntegralT rhs);
+
+    template<typename charT>
+    mp_int& operator = (const charT*);
+
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator = (const std::basic_string<charT,traits,Alloc>&);
+
+    template<typename charT>
+    void assign(const charT*, std::ios_base::fmtflags);
+
+    template<typename charT, class traits, class Alloc>
+    void assign(const std::basic_string<charT,traits,Alloc>&,
+                std::ios_base::fmtflags);
+
+    template<typename RandomAccessIterator>
+    void assign(RandomAccessIterator first, RandomAccessIterator last,
+                std::ios_base::fmtflags);
+
+    // modifiers
+    #ifdef BOOST_HAS_RVALUE_REFS
+    void swap(mp_int&& other);
+    #else
+    void swap(mp_int& other);
+    #endif
+
+    // increment/decrement
+    mp_int& operator ++();
+    mp_int& operator --();
+    mp_int  operator ++(int);
+    mp_int  operator --(int);
+
+    // shifting
+    mp_int& operator <<= (size_type);
+    mp_int& operator >>= (size_type);
+
+    // unary negate
+    mp_int& operator - ();
+
+    // arithmetic operators
+    mp_int& operator += (const mp_int& x);
+    mp_int& operator -= (const mp_int& x);
+    mp_int& operator *= (const mp_int& x);
+    mp_int& operator /= (const mp_int& x);
+    mp_int& operator %= (const mp_int& x);
+
+    // bitwise operators
+    mp_int& operator |= (const mp_int& x);
+    mp_int& operator &= (const mp_int& x);
+    mp_int& operator ^= (const mp_int& x);
+
+    // operators involving integral types
+    template<typename IntegralT> mp_int& operator += (IntegralT x);
+    template<typename IntegralT> mp_int& operator -= (IntegralT x);
+    template<typename IntegralT> mp_int& operator *= (IntegralT x);
+    template<typename IntegralT> mp_int& operator /= (IntegralT x);
+    template<typename IntegralT> mp_int& operator %= (IntegralT x);
+    template<typename IntegralT> mp_int& operator |= (IntegralT x);
+    template<typename IntegralT> mp_int& operator &= (IntegralT x);
+    template<typename IntegralT> mp_int& operator ^= (IntegralT x);
+
+    // operators involving character strings
+    template<typename charT> mp_int& operator += (const charT*);
+    template<typename charT> mp_int& operator -= (const charT*);
+    template<typename charT> mp_int& operator *= (const charT*);
+    template<typename charT> mp_int& operator /= (const charT*);
+    template<typename charT> mp_int& operator %= (const charT*);
+    template<typename charT> mp_int& operator |= (const charT*);
+    template<typename charT> mp_int& operator &= (const charT*);
+    template<typename charT> mp_int& operator ^= (const charT*);
+
+    // operators involving std::basic_string
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator += (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator -= (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator *= (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator /= (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator %= (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator |= (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator &= (const std::basic_string<charT,traits,Alloc>& s);
+    template<typename charT, class traits, class Alloc>
+    mp_int& operator ^= (const std::basic_string<charT,traits,Alloc>& s);
+
+    // observers
+    allocator_type get_allocator() const;
+
+    bool is_even() const;
+    bool is_odd () const;
+
+    bool is_positive() const;
+    bool is_negative() const;
+
+    size_type precision() const;
+
+    operator unspecified_bool_type() const;
+
+    std::string to_string(std::ios_base::fmtflags f = std::ios_base::dec) const;
+
+    template<typename IntegralT>
+    IntegralT to_integral() const;
+
+    // low level access
+    typedef traits_type::digit_type digit_type;
+    typedef traits_type::word_type  word_type;
+
+    digit_type&       operator[](size_type i);
+    const digit_type& operator[](size_type i) const;
+
+    digit_type&       at(size_type i);
+    const digit_type& at(size_type i) const;
+  };
+
+
+  // non-member functions
+
+  #ifdef BOOST_HAS_RVALUE_REFS
+  template<class A, class T>
+  void swap(mp_int<A,T>&&, mp_int<A,T>&&);
+  #else
+  void swap(mp_int<A,T>&, mp_int<A,T>&);
+  #endif
+
+  template<class A, class T>
+  mp_int<A,T> operator << (const mp_int<A,T>&, typename mp_int<A,T>::size_type);
+
+  template<class A, class T>
+  mp_int<A,T> operator >> (const mp_int<A,T>&, typename mp_int<A,T>::size_type);
+
+  template<class A, class T>
+  mp_int<A,T> operator - (const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator + (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator - (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator * (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator / (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator % (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator | (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator & (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator ^ (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator + (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator - (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator * (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator / (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator % (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator | (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator & (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator ^ (const mp_int<A,T>&, IntegralT);
+
+
+  // Comparison operators
+
+  template<class A, class T>
+  bool operator == (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator != (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator < (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator > (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator <= (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator >= (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  // Comparison between mp_int and std::basic_string
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator == (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator != (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator < (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator > (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator <= (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator >= (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  // Comparison between std::basic_string and mp_int
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator == (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator != (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator < (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator > (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator <= (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator >= (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  // Comparison between mp_int and const charT*
+
+  template<class A, class T>
+  bool operator == (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T>
+  bool operator != (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T>
+  bool operator < (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T>
+  bool operator > (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T>
+  bool operator <= (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T>
+  bool operator >= (const mp_int<A,T>&, const charT*);
+
+  // Comparison between const charT* and mp_int
+
+  template<class A, class T>
+  bool operator == (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator != (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator < (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator > (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator <= (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator >= (const charT*, const mp_int<A,T>&);
+
+  // Comparison between mp_int and integral type
+
+  template<class A, class T, typename IntegralT>
+  bool operator == (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator != (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator < (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator > (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator <= (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator >= (const mp_int<A,T>&, IntegralT);
+
+  // Comparison between integral type and mp_int
+
+  template<class A, class T, typename IntegralT>
+  bool operator == (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator != (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator < (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator > (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator <= (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator >= (IntegralT, const mp_int<A,T>&);
+
+
+  // Stream I/O
+
+  template<class A, class T, typename charT, class traits>
+  std::basic_istream<charT, traits>&
+  operator >> (std::basic_istream<charT, traits>& is, mp_int<A,T>& x);
+
+  template<class A, class T, typename charT, class traits>
+  std::basic_ostream<charT, traits>&
+  operator << (std::basic_ostream<charT, traits>& os, const mp_int<A,T>& x);
+
+
+  // Special functions
+
+  template<class A, class T>
+  mp_int<A,T> abs(const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> gcd(const mp_int<A,T>& a, const mp_int<A,T>& b);
+
+  template<class A, class T>
+  mp_int<A,T> lcm(const mp_int<A,T>& a, const mp_int<A,T>& b);
+
+  template<class A, class T>
+  int jacobi(const mp_int<A,T>& a, const mp_int<A,T>& p);
+
+  template<class A, class T>
+  mp_int<A,T> pow(const mp_int<A,T>& x, typename mp_int<A,T>::digit_type n);
+
+  template<class A, class T>
+  mp_int<A,T> pow(const mp_int<A,T>& x, const mp_int<A,T>& n);
+
+  template<class A, class T>
+  mp_int<A,T> modpow(const mp_int<A,T>& base, const mp_int<A,T>& exp, const mp_int<A,T>& mod);
+
+  template<class A, class T>
+  mp_int<A,T> sqrt(const mp_int<A,T>& x);
+
+  template<class A, class T>
+  mp_int<A,T> nth_root(const mp_int<A,T>& x, typename mp_int<A,T>::digit_type n);
+
+  template<class A, class T>
+  mp_int<A,T> nth_root(const mp_int<A,T>& x, const mp_int<A,T>& n);
+
+
+  } // namespace mp_math
+  } // namespace boost
+
+
+[h3 Construction from / assignment to a string object]
+In a constructor or assignment operation without the possibility to specify the base
+of the string argument the base of the number is deduced from the string. If the
+string starts with `0x` or `0X` then the number will be treated as hexadecimal
+value. If the string starts with `0` then the number will be treated as octal
+value else it will be treated as decimal value. An optional `-` sign is allowed
+as the first character in the string to indicate a negative value.
+
+In a constructor or assignment operation with the ability to specify the format
+of the string argument via a `std::ios_base::fmtflags` parameter, possible
+formatting flags are:
+
+* `std::ios_base::showbase`
+* `std::ios_base::dec`
+* `std::ios_base::hex`
+* `std::ios_base::oct`
+
+
+[heading Construct/Copy/Destroy/Assign]
+
+  mp_int();
+
+* [*Effects:] Constructs an empty `mp_int` object, such an uninitialized
+`mp_int` has no value, i.e. it is /not/ zero.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  explicit mp_int(const allocator_type& a);
+
+* [*Effects:] Constructs an empty `mp_int` object and initializes its allocator
+with `a`, such an uninitialized `mp_int` has no value, i.e. it is /not/ zero.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  template<typename IntegralT>
+  mp_int(IntegralT x,
+         const allocator_type& a = allocator_type(),
+         typename enable_if<is_integral<IntegralT> >::type* dummy = 0);
+
+* [*Effects:] Constructs an `mp_int` object from an integral type. The value of
+the object is that of the integral type.
+* [*Complexity:] O(N) where N is the number of bits of IntegralT.
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<typename charT>
+  mp_int(const charT* s, const allocator_type& a = allocator_type());
+
+* [*Requires: ] `s` points to a valid number formatted as string or to an empty
+string.
+* [*Effects:] Constructs an `mp_int` object from a string.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<typename charT>
+  mp_int(const charT* s,
+         std::ios_base::fmtflags f,
+         const allocator_type& a = allocator_type());
+
+* [*Requires: ] `s` points to a valid number formatted according to the flags in
+`f` or `s` is an empty string.
+* [*Effects:] Constructs an `mp_int` object from a string.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character or if an
+    unrecognized formatting flag was set.
+
+
+  template<typename charT, class traits, class Alloc>
+  mp_int(const std::basic_string<charT,traits,Alloc>& s,
+         const allocator_type& a = allocator_type());
+
+* [*Requires: ] `s` contains a valid number formatted as string or `s` is an
+empty string.
+* [*Effects:] Constructs an `mp_int` object from a string.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<typename charT, class traits, class Alloc>
+  mp_int(const std::basic_string<charT,traits,Alloc>& s,
+         std::ios_base::fmtflags f,
+         const allocator_type& a = allocator_type());
+
+* [*Requires: ] `s` contains a valid number formatted according to the flags in
+`f` or `s` is an empty string.
+* [*Effects:] Constructs an `mp_int` object from a string.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character or if an
+    unrecognized formatting flag was set.
+
+
+  template<typename RandomAccessIterator>
+  mp_int(RandomAccessIterator first,
+         RandomAccessIterator last,
+         const allocator_type& a = allocator_type());
+
+* [*Requires: ] `first` and `last` are iterators into a string.
+* [*Effects:] Constructs an `mp_int` object from two iterators.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<typename RandomAccessIterator>
+  mp_int(RandomAccessIterator first,
+         RandomAccessIterator last,
+         std::ios_base::fmtflags f,
+         const allocator_type& a = allocator_type());
+
+* [*Requires: ] `first` and `last` are iterators into a string formatted
+according to the formatting flags in `f`.
+* [*Effects:] Constructs an `mp_int` object from two iterators.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character or if an
+    unrecognized formatting flag was set.
+
+
+  mp_int(const mp_int& copy);
+
+* [*Effects:] Constructs a copy of a given `mp_int`.
+* [*Complexity:] O(N), where N is the number of digits in `copy`.
+* [*Throws: ] `std::bad_alloc`.
+
+
+  mp_int(mp_int&& copy);
+
+* [*Effects:] Constructs an `mp_int` by moving `copy` into `*this`.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  ~mp_int();
+
+* [*Effects:] Destroys `*this`.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  mp_int& operator = (const mp_int& rhs);
+
+* [*Effects:] Copies the value of `rhs` into `*this`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int& operator = (mp_int&& rhs);
+
+* [*Effects: ] `*this` obtains the value of `rhs`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  template<typename IntegralT>
+  mp_int& operator = (IntegralT rhs);
+
+* [*Effects: ] `*this` obtains the value of `rhs`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] basic.
+
+
+  template<typename charT>
+  mp_int& operator = (const charT* s);
+
+* [*Requires: ] `s` points to a valid number formatted as string or to an empty
+string.
+* [*Effects:] `*this = mp_int(s);`.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+* [*Exception safety:] basic.
+
+
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator = (const std::basic_string<charT,traits,Alloc>& s);
+
+* [*Requires: ] `s` points to a valid number formatted as string or to an empty
+string.
+* [*Effects:] `*this = mp_int(s);`.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+* [*Exception safety:] basic.
+
+
+  template<typename charT>
+  void assign(const charT* s, std::ios_base::fmtflags);
+
+* [*Requires: ] `s` points to a valid number formatted according to the flags in
+`f` or `s` is an empty string.
+* [*Effects:] Constructs an `mp_int` object from a string.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character or if an
+    unrecognized formatting flag was set.
+* [*Exception safety:] basic.
+
+
+  template<typename charT, class traits, class Alloc>
+  void assign(const std::basic_string<charT,traits,Alloc>& s, std::ios_base::fmtflags f);
+
+* [*Requires: ] `s` contains a valid number formatted according to the flags in
+`f` or `s` is an empty string.
+* [*Effects:] Constructs an `mp_int` object from a string.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character or if an
+    unrecognized formatting flag was set.
+* [*Exception safety:] basic.
+
+
+  template<typename RandomAccessIterator>
+  void assign(RandomAccessIterator first, RandomAccessIterator last, std::ios_base::fmtflags f);
+
+* [*Requires: ] `first` and `last` are iterators into a string formatted
+according to the formatting flags in `f`.
+* [*Effects:] Constructs an `mp_int` object from two iterators.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character or if an
+    unrecognized formatting flag was set.
+* [*Exception safety:] basic.
+
+
+[heading Modifiers]
+
+  void swap(mp_int&& other);
+
+* [*Effects:] Swaps the value of `other` and `*this`.
+* [*Complexity:] O(1).
+* [*Exception safety:] nothrow.
+
+
+  void swap(mp_int& other);
+
+* [*Effects:] Swaps the value of `other` and `*this`.
+* [*Complexity:] O(1).
+* [*Exception safety:] nothrow.
+
+
+[heading Increment/decrement]
+
+  mp_int& operator ++();
+
+* [*Effects:]
+``
+*this += 1;
+return *this;
+``
+* [*Returns: ] `*this`.
+* [*Complexity:] best case is O(1), worst case is O(N) - this happens when the
+addition causes a carry bit to ripple through all digits subsequently.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int& operator --();
+
+* [*Effects:]
+``
+*this -= 1;
+return *this;
+``
+* [*Returns: ] `*this`.
+* [*Complexity:] best case is O(1), worst case is O(N) - this happens when the
+subtraction causes a borrow bit to ripple through all digits subsequently.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int  operator ++(int);
+
+* [*Effects:]
+``
+mp_int tmp(*this);
+*this += 1;
+return tmp;
+``
+* [*Returns:] The value of `*this` before incrementation.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int  operator --(int);
+
+* [*Effects:]
+``
+mp_int tmp(*this);
+*this -= 1;
+return tmp;
+``
+* [*Returns:] The value of `*this` before decrementation.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+[heading Shifting]
+
+ mp_int& operator <<= (size_type x);
+
+* [*Effects:] Shift `*this` by `x` bits to the left.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+ mp_int& operator >>= (size_type x);
+
+* [*Effects:] Shift `*this` by `x` bits to the right.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+[heading Unary negate]
+
+  mp_int& operator - ();
+
+* [*Effects:] Negates `*this`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(1).
+* [*Exception safety:] nothrow.
+
+
+[heading Arithmetic operators]
+
+  mp_int& operator += (const mp_int& x);
+
+* [*Effects:] Adds `x` to `*this`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int& operator -= (const mp_int& x);
+
+
+* [*Effects:] Subtracts `x` from `*this`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int& operator *= (const mp_int& x);
+
+* [*Effects:] Multiplies `*this` by `x`.
+* [*Returns: ] `*this`.
+* [*Complexity:] If `&x == this` then a squaring algorithm will be used.
+Different multiplication algorithms are chosen for numbers of different size.
+The thresholds can be tuned via the `mp_int_traits` class template parameter.
+  * Small numbers: Comba algorithm O(N^2).
+  * Midsize numbers: Karatsuba algorithm O(N^log2(3)) ~ O(N^1.585).
+  * Large numbers: Toom-Cook algorithm O(N^(log(5)/log(3))) ~ O(N^1.465).
+
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+ mp_int& operator /= (const mp_int& x);
+
+* [*Requires: ] `x != 0`.
+* [*Effects:] Divides `*this` by `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ]
+  * `std::bad_alloc`
+  * `std::domain_error` if `x == 0`.
+
+* [*Exception safety:] strong.
+
+
+ mp_int& operator %= (const mp_int& x);
+
+* [*Requires: ] `x != 0`.
+* [*Effects:] Modulus `*this` by `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ]
+  * `std::bad_alloc`
+  * `std::domain_error` if `x == 0`.
+
+* [*Exception safety:] strong.
+
+
+[heading Bitwise operators]
+
+  mp_int& operator |= (const mp_int& x);
+
+* [*Effects: ] `*this` OR `x`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int& operator &= (const mp_int& x);
+
+* [*Effects: ] `*this` AND `x`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  mp_int& operator ^= (const mp_int& x);
+
+* [*Effects: ] `*this` XOR `x`.
+* [*Returns: ] `*this`.
+* [*Complexity:] O(N).
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+[heading Operators involving integral types]
+
+  template<typename IntegralT> mp_int& operator += (IntegralT x);
+
+* [*Effects:] Adds `x` to `*this`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator -= (IntegralT x);
+
+* [*Effects:] Subtracts `x` to `*this`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator *= (IntegralT x);
+
+* [*Effects:] Multiplies `*this` by `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator /= (IntegralT x);
+
+* [*Effects:] Divides `*this` by `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator %= (IntegralT x);
+
+* [*Effects: ] `*this` modulo `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator |= (IntegralT x);
+
+* [*Effects:] Applies the bitwise or operation on `*this` and the absolute of `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator &= (IntegralT x);
+
+* [*Effects:] Applies the bitwise and operation on `*this` and the absolute of `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT> mp_int& operator ^= (IntegralT x);
+
+* [*Effects:] Applies the bitwise xor operation on `*this` and the absolute of `x`.
+* [*Returns: ] `*this`.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+[heading Operators involving charT strings]
+
+  template<typename charT> mp_int& operator += (const charT* s);
+  template<typename charT> mp_int& operator -= (const charT* s);
+  template<typename charT> mp_int& operator *= (const charT* s);
+  template<typename charT> mp_int& operator /= (const charT* s);
+  template<typename charT> mp_int& operator %= (const charT* s);
+  template<typename charT> mp_int& operator |= (const charT* s);
+  template<typename charT> mp_int& operator &= (const charT* s);
+  template<typename charT> mp_int& operator ^= (const charT* s);
+
+[heading Operators involving std::basic_string]
+
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator += (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator -= (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator *= (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator /= (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator %= (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator |= (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator &= (const std::basic_string<charT,traits,Alloc>& s);
+  template<typename charT, class traits, class Alloc>
+  mp_int& operator ^= (const std::basic_string<charT,traits,Alloc>& s);
+
+
+[heading Observers]
+
+  allocator_type get_allocator() const;
+
+* [*Returns: ] A copy of the allocator.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing if allocator copy constructor is nothrow.
+
+
+  bool is_even() const;
+
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  bool is_odd () const;
+
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  bool is_positive() const;
+
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  bool is_negative() const;
+
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  size_type precision() const;
+
+* [*Returns:] The number of bits used by the absolute value of *this.
+* [*Complexity:] O(N).
+* [*Throws:] Nothing.
+
+  operator unspecified_bool_type() const;
+
+* [*Returns: ] `*this != 0`.
+* [*Complexity:] O(1).
+* [*Throws:] Nothing.
+
+
+  std::string to_string(std::ios_base::fmtflags f = std::ios_base::dec) const;
+
+* [*Effects:] Converts `*this` to a `std::string`, formatting of the string is
+done according to the `std::ios_base::fmtflags` parameter. Possible formatting
+flags are:
+  * `std::ios_base::showpos`
+  * `std::ios_base::showbase`
+  * `std::ios_base::dec`
+  * `std::ios_base::hex`
+  * `std::ios_base::oct`
+  * `std::ios_base::uppercase`
+
+* [*Returns: ] `*this` converted to a `std::string` object.
+* [*Throws: ] `std::bad_alloc`.
+* [*Exception safety:] strong.
+
+
+  template<typename IntegralT>
+  IntegralT to_integral() const;
+
+* [*Returns: ] `*this` converted to an object of type `IntegralT`.
+* [*Complexity:] O(1).
+* [*Throws: ] `std::overflow_error` if `IntegralT` does not have enough
+precision to hold the result.
+* [*Exception safety:] strong.
+
+
+
+[heading Non-member functions]
+
+  template<class A, class T>
+  void swap(mp_int<A,T>&&, mp_int<A,T>&&);
+
+  template<class A, class T>
+  mp_int<A,T> operator << (const mp_int<A,T>&, typename mp_int<A,T>::size_type);
+
+  template<class A, class T>
+  mp_int<A,T> operator >> (const mp_int<A,T>&, typename mp_int<A,T>::size_type);
+
+  template<class A, class T>
+  mp_int<A,T> operator - (const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator + (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator - (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator * (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator / (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator % (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator | (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator & (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  mp_int<A,T> operator ^ (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator + (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator - (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator * (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator / (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator % (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator | (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator & (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  mp_int<A,T> operator ^ (const mp_int<A,T>&, IntegralT);
+
+These functions are implemented in terms of their respective member functions.
+
+
+[heading Comparison operators]
+
+  template<class A, class T>
+  bool operator == (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator != (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator < (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator > (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator <= (const mp_int<A,T>&, const mp_int<A,T>&);
+
+  template<class A, class T>
+  bool operator >= (const mp_int<A,T>&, const mp_int<A,T>&);
+
+* [*Effects:] These operators compare the numeric value of their arguments and
+return a truth value based on that evaluation.
+* [*Throws:] Nothing.
+
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator == (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator != (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator < (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator > (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator <= (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator >= (const mp_int<A,T>&, const std::basic_string<charT,Traits,Alloc>&);
+
+* [*Effects:] Converts the string argument to an `mp_int` object and compares it
+to the object on the left side of the expression.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator == (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator != (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator < (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator > (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator <= (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+  template<class A, class T, class charT, class Traits, class Alloc>
+  bool operator >= (const std::basic_string<charT,Traits,Alloc>&, const mp_int<A,T>&);
+
+* [*Effects:] Converts the string argument to an `mp_int` object and compares it
+to the object on the right side of the expression.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<class A, class T, typename charT>
+  bool operator == (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T, typename charT>
+  bool operator != (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T, typename charT>
+  bool operator < (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T, typename charT>
+  bool operator > (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T, typename charT>
+  bool operator <= (const mp_int<A,T>&, const charT*);
+
+  template<class A, class T, typename charT>
+  bool operator >= (const mp_int<A,T>&, const charT*);
+
+* [*Effects:] Converts the string argument to an `mp_int` object and compares it
+to the object on the left side of the expression.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<class A, class T, typename charT>
+  bool operator == (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T, typename charT>
+  bool operator != (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T, typename charT>
+  bool operator < (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T, typename charT>
+  bool operator > (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T, typename charT>
+  bool operator <= (const charT*, const mp_int<A,T>&);
+
+  template<class A, class T, typename charT>
+  bool operator >= (const charT*, const mp_int<A,T>&);
+
+* [*Effects:] Converts the string argument to an `mp_int` object and compares it
+to the object on the right side of the expression.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::invalid_argument` if the string contains an invalid character.
+
+
+  template<class A, class T, typename IntegralT>
+  bool operator == (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator != (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator < (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator > (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator <= (const mp_int<A,T>&, IntegralT);
+
+  template<class A, class T, typename IntegralT>
+  bool operator >= (const mp_int<A,T>&, IntegralT);
+
+* [*Effects:] Converts the integral argument to an `mp_int` object and compares it
+to the object on the left side of the expression.
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<class A, class T, typename IntegralT>
+  bool operator == (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator != (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator < (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator > (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator <= (IntegralT, const mp_int<A,T>&);
+
+  template<class A, class T, typename IntegralT>
+  bool operator >= (IntegralT, const mp_int<A,T>&);
+
+* [*Effects:] Converts the integral argument to an `mp_int` object and compares it
+to the object on the right side of the expression.
+* [*Throws: ] `std::bad_alloc`.
+
+
+[heading Stream I/O]
+
+  template<class A, class T, typename charT, class traits>
+  std::basic_istream<charT, traits>&
+  operator >> (std::basic_istream<charT, traits>& is, mp_int<A,T>& x);
+
+  template<class A, class T, typename charT, class traits>
+  std::basic_ostream<charT, traits>&
+  operator << (std::basic_ostream<charT, traits>& os, const mp_int<A,T>& x);
+
+
+[heading Special functions]
+
+  template<class A, class T>
+  mp_int<A,T> abs(const mp_int<A,T>& x);
+
+* [*Returns:] The positive value of `x`.
+* [*Complexity:] O(1).
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<class A, class T>
+  mp_int<A,T> gcd(const mp_int<A,T>& a, const mp_int<A,T>& b);
+
+* [*Returns:] The greatest common divisor of `a` and `b`.
+* [*Complexity:] O((log2(AB))^2).
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<class A, class T>
+  mp_int<A,T> lcm(const mp_int<A,T>& a, const mp_int<A,T>& b);
+
+* [*Returns:] The least common multiple of `a` and `b`.
+* [*Complexity:] O((log2(AB))^2).
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<class A, class T>
+  int jacobi(const mp_int<A,T>& a, const mp_int<A,T>& p);
+
+* [*Returns:] The Jacobi symbol of integer `a` and positive odd integer `p`.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::domain_error` if `p` is negative.
+
+
+  template<class A, class T>
+  mp_int<A,T> pow(const mp_int<A,T>& x, typename mp_int<A,T>::digit_type n);
+
+  template<class A, class T>
+  mp_int<A,T> pow(const mp_int<A,T>& x, const mp_int<A,T>& n);
+
+* [*Returns:] The `n`th power of `x`.
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<class A, class T>
+  mp_int<A,T> modpow(const mp_int<A,T>& base,
+                     const mp_int<A,T>& exp,
+                     const mp_int<A,T>& mod);
+
+
+* [*Returns: ] `(base ^ exp) % mod`.
+* [*Throws: ] `std::bad_alloc`.
+
+
+  template<class A, class T>
+  mp_int<A,T> sqrt(const mp_int<A,T>& x);
+
+* [*Returns:] The square root of `x`.
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::domain_error` if `x` is negative.
+
+
+  template<class A, class T>
+  mp_int<A,T> nth_root(const mp_int<A,T>& x, typename mp_int<A,T>::digit_type n);
+
+  template<class A, class T>
+  mp_int<A,T> nth_root(const mp_int<A,T>& x, const mp_int<A,T>& n);
+
+* [*Returns:] The `n`th root of `x`.
+* [*Complexity:] O(log(N)).
+* [*Throws:]
+  * `std::bad_alloc`
+  * `std::domain_error` if `x` is negative and `n` is odd.
+
+
+[endsect][/mp_int reference]
+

@@ -1,0 +1,28 @@
+# Copyright Kevin Sopp 2008.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+
+import quickbook ;
+
+xml mp_int : mp_int.qbk ;
+
+#boostbook standalone
+#  :
+#    mp_int mp_int
+#  ;
+
+boostbook standalone
+  :
+    mp_int
+  :
+    <xsl:param>boost.root=../../../..
+    <xsl:param>boost.libraries=../../../../libs/libraries.htm
+    #<xsl:param>generate.section.toc.level=4
+    #<xsl:param>toc.max.depth=3
+    #<xsl:param>toc.section.depth=4
+    #<xsl:param>chunk.section.depth=1
+    #<xsl:param>chunk.first.sections=1
+  ;
+
