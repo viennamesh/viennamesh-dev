@@ -1,8 +1,6 @@
 #ifndef _VIENNAMESH_H_
 #define _VIENNAMESH_H_
 
-#include "viennamesh/forwards.h"
-
 #include "viennagrid/viennagrid.h"
 #include "viennagrid/quantity_field.h"
 
@@ -17,6 +15,45 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+#ifdef __cplusplus
+  #define DYNAMIC_EXPORT extern "C"
+#else
+  #define DYNAMIC_EXPORT
+#endif
+
+
+#define VIENNAMESH_VERSION_MAJOR 2
+#define VIENNAMESH_VERSION_MINOR 0
+#define VIENNAMESH_VERSION_PATCH 0
+
+#define VIENNAMESH_VERSION VIENNAMESH_VERSION_MAJOR*10000 + VIENNAMESH_VERSION_MINOR * 100 + VIENNAMESH_VERSION_PATCH
+
+
+
+typedef int viennamesh_error;
+#define VIENNAMESH_SUCCESS 0
+#define VIENNAMESH_UNKNOWN_ERROR 1
+#define VIENNAMESH_ERROR_INVALID_CONTEXT 2
+#define VIENNAMESH_ERROR_ERROR_MANAGEMENT 3
+#define VIENNAMESH_ERROR_INVALID_ARGUMENT 4
+
+#define VIENNAMESH_ERROR_DIFFERENT_CONTEXT 5
+#define VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED 6
+#define VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE 7
+#define VIENNAMESH_ERROR_CONVERSION_FAILED 8
+
+#define VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED 9
+#define VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED 10
+#define VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED 11
+
+#define VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND 12
+#define VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE 13
+#define VIENNAMESH_ERROR_SIZING_FUNCTION 14
+
+#define VIENNAMESH_ERROR_INPUT_PARAMETER_PUSH_BACK_FAILED 15
+
+DYNAMIC_EXPORT viennamesh_error viennamesh_error_string(viennamesh_error error, const char ** error_string);
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

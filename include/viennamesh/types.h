@@ -1,7 +1,7 @@
 #ifndef _VIENNAMESH_TYPES_H_
 #define _VIENNAMESH_TYPES_H_
 
-#include "viennamesh/forwards.h"
+#include "viennamesh/viennamesh.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                Special Data Types
