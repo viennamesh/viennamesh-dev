@@ -26,13 +26,13 @@ namespace viennamesh
 
   bool refine_plc_lines::run(viennamesh::algorithm_handle &)
   {
-    mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
+    data_handle<viennagrid_plc> input_plc = get_required_input<viennagrid_plc>("geometry");
     data_handle<double> line_size = get_required_input<double>("line_size");
-    mesh_handle output_mesh = make_data<mesh_handle>();
+    data_handle<viennagrid_plc> output_plc = make_data<viennagrid_plc>();
 
-    viennagrid::refine_plc_lines(input_mesh(), output_mesh(), line_size());
+    viennagrid_plc_refine_lines( input_plc(), output_plc(), line_size() );
 
-    set_output( "mesh", output_mesh );
+    set_output( "geometry", output_plc );
     return true;
   }
 
