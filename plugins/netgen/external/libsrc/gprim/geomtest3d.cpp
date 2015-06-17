@@ -35,7 +35,7 @@ IntersectTriangleLine (const Point<3> ** tri, const Point<3> ** line)
     }
 
   // double det = a.Det();
-  double det = Det(a); 
+  double det = Det(a);
 
   double arel = vl.Length() * vt1.Length() * vt2.Length();
   /*
@@ -47,7 +47,7 @@ IntersectTriangleLine (const Point<3> ** tri, const Point<3> ** line)
   // new !!!!
   if (fabs (det) <= 1e-10 * arel)
     {
-#ifdef DEVELOP      
+#ifdef DEVELOP
       // line parallel to triangle !
       // cout << "ERROR: IntersectTriangleLine degenerated" << endl;
       //      (*testout) << "WARNING: IntersectTriangleLine degenerated\n";
@@ -75,11 +75,11 @@ IntersectTriangleLine (const Point<3> ** tri, const Point<3> ** line)
 
   double eps = 1e-6;
   if (
-      (lami(0) >= -eps && lami(0) <= 1+eps && 
-       lami(1) >= -eps && lami(2) >= -eps && 
+      (lami(0) >= -eps && lami(0) <= 1+eps &&
+       lami(1) >= -eps && lami(2) >= -eps &&
        lami(1) + lami(2) <= 1+eps)  && !
-      (lami(0) >= eps && lami(0) <= 1-eps && 
-       lami(1) >= eps && lami(2) >= eps && 
+      (lami(0) >= eps && lami(0) <= 1-eps &&
+       lami(1) >= eps && lami(2) >= eps &&
        lami(1) + lami(2) <= 1-eps) )
 
 
@@ -100,9 +100,9 @@ IntersectTriangleLine (const Point<3> ** tri, const Point<3> ** line)
 		 << " rs = " << rs << endl;
 #endif
     }
-      
 
-  if (lami(0) >= 0 && lami(0) <= 1 && 
+
+  if (lami(0) >= 0 && lami(0) <= 1 &&
       lami(1) >= 0 && lami(2) >= 0 && lami(1) + lami(2) <= 1)
     {
 
@@ -178,13 +178,13 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 		}
 	    }
 	}
-    }  
-  
+    }
+
   //  (*testout) << "cnt = " << cnt << endl;
 
 
   //  (*testout) << "tet-trig inters, cnt = " << cnt << endl;
-  
+
   // cnt .. number of common points
   switch (cnt)
     {
@@ -253,12 +253,12 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 	  {
 	    for (j = 0; j <= 2; j++)
 	      tetf[j] = tet[(i+j) % 4];
-	    
+
 	    for (j = 0; j <= 2; j++)
 	      {
 		line[0] = tri[j];
 		line[1] = tri[(j+1) % 3];
-		
+
 		if (IntersectTriangleLine (&tetf[0], &line[0]))
 		  return 1;
 	      }
@@ -317,10 +317,10 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 		  break;
 		}
 	      }
-	    
+
 	    Vec3d ntet;
 	    Cross (vtet1, vtet2, ntet);
-	    
+
 	    Vec3d crline = Cross (ntri, ntet);
 
 	    double lcrline = crline.Length();
@@ -336,17 +336,17 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 	    double lam1, lam2, lam3, lam4;
 	    LocalCoordinates (vtri1, vtri2, crline, lam1, lam2);
 	    LocalCoordinates (vtet1, vtet2, crline, lam3, lam4);
-	    
+
 	    if (lam1 > -epsrel && lam2 > -epsrel &&
 		lam3 > -epsrel && lam4 > -epsrel)
 	      {
-		
+
 		/*
-		(*testout) << "lcrline = " << lcrline 
+		(*testout) << "lcrline = " << lcrline
 			   << " eps = " << eps << " diam = " << diam << endl;
-		 
-		(*testout) << "hit, cnt == 1 " 
-			   << "lam1,2,3,4 = " << lam1 << ", " 
+
+		(*testout) << "hit, cnt == 1 "
+			   << "lam1,2,3,4 = " << lam1 << ", "
 			   << lam2 << ", " << lam3 << ", " << lam4
 			   << "\n";
 		*/
@@ -366,7 +366,7 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 	trip3 = 3 - trip1 - trip2;
 
 	//	(*testout) << "trip1,2,3 = " << trip1 << ", " << trip2 << ", " << trip3 << endl;
-	//	(*testout) << "tetp1,2,3,4 = " << tetp1 << ", " << tetp2 
+	//	(*testout) << "tetp1,2,3,4 = " << tetp1 << ", " << tetp2
 	//		   << ", " << tetp3 << ", " << tetp4 << endl;
 
 	Vec3d vtri = *tri[trip3] - *tri[trip1];
@@ -382,7 +382,7 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 
 	double lam1, lam2;
 	LocalCoordinates (vtet1, vtet2, vtri, lam1, lam2);
-	
+
 	if (lam1 < -epsrel || lam2 < -epsrel)
 	  return 0;
 	else
@@ -397,7 +397,7 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 		       << " = " << (vtet1 * vtri) << endl;
 	    (*testout) << (lam1 * (vtet1 * vtet2) + lam2 * (vtet2 * vtet2))
 		       << " = " << (vtet2 * vtri) << endl;
-	    
+
 	    (*testout) << "tet = ";
 	    for (j = 0; j < 4; j++)
 	      (*testout) << (*tet[j]) << " ";
@@ -409,10 +409,10 @@ int IntersectTetTriangle (const Point<3> ** tet, const Point<3> ** tri,
 
 	    (*testout) << "hit, cnt == 2" << endl;
 	    */
-	    
+
 	    return 1;
 	  }
-	  
+
 	break;
       }
     case 3:
@@ -437,8 +437,8 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
   // double eps2 = eps * eps;
 
   static Point<3> rtetp1(0, 0, 0);
-  static Point<3> rtetp2(1, 0, 0);  
-  static Point<3> rtetp3(0, 1, 0); 
+  static Point<3> rtetp2(1, 0, 0);
+  static Point<3> rtetp3(0, 1, 0);
   static Point<3> rtetp4(0, 0, 1);
 
   static const Point<3> * tet[] = { &rtetp1, &rtetp2, &rtetp3, &rtetp4 };
@@ -447,7 +447,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 
   //  return IntersectTetTriangle (tet, tri, tetpi, tripi);
 
-  
+
   int cnt = 0;
 
   int tetp1 = -1, tetp2 = -1;
@@ -491,8 +491,8 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 		}
 	    }
 	}
-    }  
-  
+    }
+
   //  (*testout) << "cnt = " << cnt << endl;
 
 
@@ -512,7 +512,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 	    pside[j][3] = (*tri[j])(0) + (*tri[j])(1) + (*tri[j])(2) < 1+eps;
 	  }
 
-	
+
 	for (j = 0; j < 4; j++)
 	  {
 	    if (!pside[0][j] && !pside[1][j] && !pside[2][j])
@@ -541,7 +541,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 	  {
 	    for (j = 0; j <= 2; j++)
 	      tetf[j] = tet[(i+j) % 4];
-	    
+
 	    for (j = 0; j <= 2; j++)
 	      {
 		line[0] = tri[j];
@@ -583,7 +583,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 	Vec3d vtet2(*tet[tetp1], *tet[tetp3]);
 	Vec3d vtet3(*tet[tetp1], *tet[tetp4]);
 	Vec3d sol;
-	
+
 	SolveLinearSystem (vtet1, vtet2, vtet3, vtri1, sol);
 	if (sol.X() > 0 && sol.Y() > 0 && sol.Z() > 0)
 	  return 1;
@@ -618,10 +618,10 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 		  break;
 		}
 	      }
-	    
+
 	    Vec3d ntet;
 	    Cross (vtet1, vtet2, ntet);
-	    
+
 	    Vec3d crline = Cross (ntri, ntet);
 
 	    double lcrline = crline.Length();
@@ -635,7 +635,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 	    double lam1, lam2, lam3, lam4;
 	    LocalCoordinates (vtri1, vtri2, crline, lam1, lam2);
 	    LocalCoordinates (vtet1, vtet2, crline, lam3, lam4);
-	    
+
 	    if (lam1 > -eps && lam2 > -eps &&
 		lam3 > -eps && lam4 > -eps)
 	      {
@@ -657,7 +657,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 	trip3 = 3 - trip1 - trip2;
 
 	//	(*testout) << "trip1,2,3 = " << trip1 << ", " << trip2 << ", " << trip3 << endl;
-	//	(*testout) << "tetp1,2,3,4 = " << tetp1 << ", " << tetp2 
+	//	(*testout) << "tetp1,2,3,4 = " << tetp1 << ", " << tetp2
 	//		   << ", " << tetp3 << ", " << tetp4 << endl;
 
 	Vec3d vtri = *tri[trip3] - *tri[trip1];
@@ -673,7 +673,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 
 	double lam1, lam2;
 	LocalCoordinates (vtet1, vtet2, vtri, lam1, lam2);
-	
+
 	if (lam1 < -eps || lam2 < -eps)
 	  return 0;
 	else
@@ -688,7 +688,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 // 		       << " = " << (vtet1 * vtri) << endl;
 // 	    (*testout) << (lam1 * (vtet1 * vtet2) + lam2 * (vtet2 * vtet2))
 // 		       << " = " << (vtet2 * vtri) << endl;
-	    
+
 // 	    (*testout) << "tet = ";
 // 	    for (j = 0; j < 4; j++)
 // 	      (*testout) << (*tet[j]) << " ";
@@ -702,7 +702,7 @@ int IntersectTetTriangleRef (const Point<3> ** tri, const int * tripi)
 
 	    return 1;
 	  }
-	  
+
 	break;
       }
     case 3:
@@ -742,7 +742,7 @@ int IntersectTriangleTriangle (const Point<3> ** tri1, const Point<3> ** tri2)
   int tri2pi[3];
   */
 
-  //  int tri1p1 = -1; 
+  //  int tri1p1 = -1;
   /// int tri1p2 = -1;
   //  int tri2p1 = -1;
   //   int tri2p2 = -1;
@@ -770,13 +770,13 @@ int IntersectTriangleTriangle (const Point<3> ** tri1, const Point<3> ** tri2)
 	    }
 	}
     }
-  
+
   switch (cnt)
     {
     case 0:
       {
 	const Point<3> * line[2];
-	
+
 	for (i = 0; i <= 2; i++)
 	  {
 	    line[0] = tri2[i];
@@ -787,7 +787,7 @@ int IntersectTriangleTriangle (const Point<3> ** tri1, const Point<3> ** tri2)
 		(*testout) << "int1, line = " << *line[0] << " - " << *line[1] << endl;
 		return 1;
 	      }
-	  }	
+	  }
 
 	for (i = 0; i <= 2; i++)
 	  {
@@ -799,7 +799,7 @@ int IntersectTriangleTriangle (const Point<3> ** tri1, const Point<3> ** tri2)
 		(*testout) << "int2, line = " << *line[0] << " - " << *line[1] << endl;
 		return 1;
 	      }
-	  }	
+	  }
 	break;
       }
     default:
@@ -820,7 +820,7 @@ LocalCoordinates (const Vec3d & e1, const Vec3d & e2,
   double m22 = e2 * e2;
   double rs1 = v * e1;
   double rs2 = v * e2;
-  
+
   double det = m11 * m22 - m12 * m12;
   lam1 = (rs1 * m22 - rs2 * m12)/det;
   lam2 = (m11 * rs2 - m12 * rs1)/det;
@@ -840,7 +840,7 @@ int CalcSphereCenter (const Point<3> ** pts, Point<3> & c)
 	    0.5 * (row2*row2),
 	    0.5 * (row3*row3));
   Transpose (row1, row2, row3);
-  
+
   Vec3d sol;
   if (SolveLinearSystem (row1, row2, row3, rhs, sol))
     {
@@ -893,9 +893,9 @@ int CalcTriangleCenter (const Point3d ** pts, Point3d & c)
 
 
 
-double ComputeCylinderRadius (const Point3d & p1, 
+double ComputeCylinderRadius (const Point3d & p1,
 			      const Point3d & p2,
-			      const Point3d & p3, 
+			      const Point3d & p3,
 			      const Point3d & p4)
 {
   Vec3d v12(p1, p2);
@@ -904,7 +904,7 @@ double ComputeCylinderRadius (const Point3d & p1,
 
   Vec3d n1 = Cross (v12, v13);
   Vec3d n2 = Cross (v14, v12);
-		
+
   double n1l = n1.Length();
   double n2l = n2.Length();
   n1 /= n1l;
@@ -913,9 +913,9 @@ double ComputeCylinderRadius (const Point3d & p1,
   double v12len = v12.Length();
   double h1 = n1l / v12len;
   double h2 = n2l / v12len;
-  
+
   /*
-  (*testout) << "n1 = " << n1 << " n2 = " << n2 
+  (*testout) << "n1 = " << n1 << " n2 = " << n2
 	     << "h1 = " << h1 << " h2 = " << h2 << endl;
   */
   return ComputeCylinderRadius (n1, n2, h1, h2);
@@ -936,7 +936,7 @@ double ComputeCylinderRadius (const Vec3d & n1, const Vec3d & n2,
   double n12 = n1 * n2;
   double n22 = n2 * n2;
   double det = n11 * n22 - n12 * n12;
-  
+
   if (fabs (det) < 1e-14 * n11 * n22)
     return 1e20;
 
@@ -958,7 +958,7 @@ double ComputeCylinderRadius (const Vec3d & n1, const Vec3d & n2,
 
   double lam1 = 0.5 * h2 / (n1 * t1);
   double lam2 = 0.5 * h1 / (n2 * t2);
-  
+
   double rad = (lam1 * n1 + lam2 * n2).Length();
   /*
   (*testout) << "n1 = " << n1
@@ -969,7 +969,7 @@ double ComputeCylinderRadius (const Vec3d & n1, const Vec3d & n2,
   */
   return rad;
 }
-    
+
 
 
 
@@ -989,12 +989,12 @@ double MinDistLP2 (const Point2d & lp1, const Point2d & lp2, const Point2d & p)
   double num = v*vlp;
   double den = v*v;
 
-  if (num <= 0) 
+  if (num <= 0)
     return Dist2 (lp1, p);
 
-  if (num >= den) 
+  if (num >= den)
     return Dist2 (lp2, p);
-  
+
   if (den > 0)
     {
       return vlp.Length2() - num * num /den;
@@ -1020,12 +1020,12 @@ double MinDistLP2 (const Point3d & lp1, const Point3d & lp2, const Point3d & p)
   double num = v*vlp;
   double den = v*v;
 
-  if (num <= 0) 
+  if (num <= 0)
     return Dist2 (lp1, p);
 
-  if (num >= den) 
+  if (num >= den)
     return Dist2 (lp2, p);
-  
+
   if (den > 0)
     {
       return vlp.Length2() - num * num /den;
@@ -1036,7 +1036,7 @@ double MinDistLP2 (const Point3d & lp1, const Point3d & lp2, const Point3d & p)
 
 
 
-double MinDistTP2 (const Point3d & tp1, const Point3d & tp2, 
+double MinDistTP2 (const Point3d & tp1, const Point3d & tp2,
 		   const Point3d & tp3, const Point3d & p)
 {
   double lam1, lam2;
@@ -1047,7 +1047,7 @@ double MinDistTP2 (const Point3d & tp1, const Point3d & tp2,
   int in1 = lam1 >= 0;
   int in2 = lam2 >= 0;
   int in3 = lam1+lam2 <= 1;
-  
+
   if (in1 && in2 && in3)
     {
       Point3d pp = tp1 + lam1 * Vec3d(tp1, tp2) + lam2 *  Vec3d (tp1, tp3);
@@ -1059,17 +1059,17 @@ double MinDistTP2 (const Point3d & tp1, const Point3d & tp2,
       if (!in1)
 	{
 	  double hv = MinDistLP2 (tp1, tp3, p);
-	  if (hv < res) res = hv; 
+	  if (hv < res) res = hv;
 	}
       if (!in2)
 	{
 	  double hv = MinDistLP2 (tp1, tp2, p);
-	  if (hv < res) res = hv; 
+	  if (hv < res) res = hv;
 	}
       if (!in3)
 	{
 	  double hv = MinDistLP2 (tp2, tp3, p);
-	  if (hv < res) res = hv; 
+	  if (hv < res) res = hv;
 	}
       /*
       double d1 = MinDistLP2 (tp1, tp2, p);
@@ -1119,9 +1119,9 @@ double MinDistLL2 (const Point3d & l1p1, const Point3d & l1p2,
   a22 = v2*v2;
   rs1 = l1l2 * v1;
   rs2 = - (l1l2 * v2);
-  
+
   det = a11 * a22 - a12 * a12;
-  if (det < 1e-14 * a11 * a22) 
+  if (det < 1e-14 * a11 * a22)
     det = 1e-14 * a11 * a22;  // regularization should be stable
 
   if (det < 1e-20)
@@ -1149,7 +1149,7 @@ double MinDistLL2 (const Point3d & l1p1, const Point3d & l1p2,
 
   return minv;
 }
-			 
+
 }
 
 

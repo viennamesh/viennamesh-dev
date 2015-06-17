@@ -43,6 +43,9 @@ namespace viennamesh
 
       ::netgen::MeshingParameters mesh_parameters;
 
+      mesh_parameters.delaunay = true;
+      mesh_parameters.checkoverlap = 0;
+
       if (cell_size.valid())
       {
         ::netgen::Point3d pmin;
