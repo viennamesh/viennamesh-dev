@@ -69,6 +69,9 @@ namespace viennamesh
     std::string base_path()
     { return algorithm().base_path(); }
 
+    context_handle context() { return algorithm().context(); }
+
+
   private:
 
     algorithm_handle algorithm() { return algorithm_handle(algorithm_wrapper); }
