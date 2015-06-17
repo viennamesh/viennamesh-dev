@@ -1,4 +1,4 @@
-<algorithm id="mesh_reader" name="input">
+<algorithm id="plc_reader" name="input">
   <parameter name="filename" type="string">../data/two_cubes.poly</parameter>
 </algorithm>
 
@@ -6,10 +6,10 @@
 <!--   <default_source>input</default_source> -->
 
   <parameter name="mesh" type="dynamic">input/mesh</parameter>
-  <parameter name="seed_points" type="seed_points">
+<!--  <parameter name="seed_points" type="seed_points">
 (5,5,5),0;
 (5,5,15),1
-  </parameter>
+  </parameter>-->
 </algorithm>
 
 <algorithm id="mesh_writer" name="output">
