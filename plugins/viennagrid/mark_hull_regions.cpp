@@ -203,6 +203,11 @@ namespace viennamesh
 
       if (triangles.size() < 2)
       {
+        error(1) << "Line " << *lit << " has less than 2 co-boundary triangles" << std::endl;
+        for (ConstCoboundaryIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
+          error(1) << "    " << *tit << std::endl;
+
+
         VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Topological error: one line has less than 2 co-boundary triangles");
       }
 
