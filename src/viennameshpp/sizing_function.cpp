@@ -68,7 +68,7 @@ namespace viennamesh
     if (elements.empty())
       return CoordType();
 
-    CoordType min_distance;
+    CoordType min_distance = -1;
 
     for (ConstElementIteratorType eit = elements.begin(); eit != elements.end(); ++eit)
     {
@@ -76,7 +76,7 @@ namespace viennamesh
       {
         CoordType current_distance = viennagrid::distance(point, *eit);
 
-        if (!min_distance)
+        if (min_distance < 0)
           min_distance = current_distance;
         else if (current_distance < min_distance)
           min_distance = current_distance;
@@ -527,8 +527,8 @@ namespace viennamesh
                                          viennagrid::const_mesh_t const & mesh,
                                          std::string const & base_path)
     {
-      typedef viennagrid::const_mesh_t MeshType;
-      typedef viennagrid::result_of::point<MeshType>::type PointType;
+//       typedef viennagrid::const_mesh_t MeshType;
+//       typedef viennagrid::result_of::point<MeshType>::type PointType;
 
       std::string name = node.name();
 
