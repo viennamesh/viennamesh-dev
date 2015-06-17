@@ -85,12 +85,12 @@ namespace viennamesh
   void to_c(viennagrid::mesh_t const & src, viennagrid_mesh & dst)
   {
     viennagrid_mesh_hierarchy mh;
-    viennagrid_mesh_get_mesh_hierarchy(dst, &mh);
+    viennagrid_mesh_mesh_hierarchy_get(dst, &mh);
     viennagrid_mesh_hierarchy_release(mh);
 
     dst = src.internal();
 
-    viennagrid_mesh_get_mesh_hierarchy(dst, &mh);
+    viennagrid_mesh_mesh_hierarchy_get(dst, &mh);
     viennagrid_mesh_hierarchy_retain(mh);
   }
 

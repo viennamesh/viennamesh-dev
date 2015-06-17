@@ -21,6 +21,7 @@ namespace viennamesh
       register_data_type<viennamesh_seed_point>();
       register_data_type<viennagrid_quantity_field>();
       register_data_type<viennagrid_mesh>();
+      register_data_type<viennagrid_plc>();
 
       register_conversion<int,double>();
       register_conversion<double,int>();
