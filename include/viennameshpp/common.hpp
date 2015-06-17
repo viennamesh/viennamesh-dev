@@ -122,7 +122,7 @@ namespace viennamesh
     viennagrid_mesh * mesh = new viennagrid_mesh;
 
     viennagrid_mesh_hierarchy_create(&mesh_hierarchy);
-    viennagrid_mesh_hierarchy_get_root(mesh_hierarchy, mesh);
+    viennagrid_mesh_hierarchy_root_mesh_get(mesh_hierarchy, mesh);
 
     *data = mesh;
 
@@ -134,7 +134,7 @@ namespace viennamesh
     viennagrid_mesh * mesh = (viennagrid_mesh *)data;
 
     viennagrid_mesh_hierarchy mesh_hierarchy;
-    viennagrid_mesh_get_mesh_hierarchy(*mesh, &mesh_hierarchy);
+    viennagrid_mesh_mesh_hierarchy_get(*mesh, &mesh_hierarchy);
     viennagrid_mesh_hierarchy_release(mesh_hierarchy);
 
     delete mesh;
@@ -142,6 +142,25 @@ namespace viennamesh
     return VIENNAMESH_SUCCESS;
   }
 
+  inline viennamesh_error make_plc(viennamesh_data * data)
+  {
+    viennagrid_plc * plc = new viennagrid_plc;
+    viennagrid_plc_make(plc);
+
+    *data = plc;
+
+    return VIENNAMESH_SUCCESS;
+  }
+
+  inline viennamesh_error delete_plc(viennamesh_data data)
+  {
+    viennagrid_plc * plc = (viennagrid_plc *)data;
+
+    viennagrid_plc_delete(*plc);
+    delete plc;
+
+    return VIENNAMESH_SUCCESS;
+  }
 
 
 
@@ -406,6 +425,14 @@ namespace viennamesh
       static std::string type_name() { return "viennagrid_mesh"; }
       static viennamesh_data_make_function make_function() { return viennamesh::make_mesh; }
       static viennamesh_data_delete_function delete_function() { return viennamesh::delete_mesh; }
+    };
+
+    template<>
+    struct data_information<viennagrid_plc>
+    {
+      static std::string type_name() { return "viennagrid_plc"; }
+      static viennamesh_data_make_function make_function() { return viennamesh::make_plc; }
+      static viennamesh_data_delete_function delete_function() { return viennamesh::delete_plc; }
     };
   }
 }
