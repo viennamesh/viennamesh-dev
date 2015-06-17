@@ -20,8 +20,8 @@
 
 #include "viennagridpp/io/vtk_reader.hpp"
 #include "viennagridpp/io/netgen_reader.hpp"
-#include "viennagridpp/io/tetgen_poly_reader.hpp"
-// #include "viennagrid/io/bnd_reader.hpp"
+// #include "viennagridpp/io/tetgen_poly_reader.hpp"
+#include "viennagridpp/io/bnd_reader.hpp"
 // #include "viennagrid/io/neper_tess_reader.hpp"
 #include "viennagridpp/io/stl_reader.hpp"
 #include "viennagridpp/io/gts_deva_reader.hpp"
@@ -132,18 +132,16 @@ namespace viennamesh
 
     switch (filetype)
     {
-//     case SYNOPSIS_BND:
-//       {
-//         info(5) << "Found .bnd extension, using ViennaGrid BND Reader" << std::endl;
-//         typedef viennagrid::mesh_t MeshType;
-//
-//         output_parameter_proxy<MeshType> omp(output_mesh);
-//
-//         viennagrid::io::bnd_reader reader;
-//         reader(omp().mesh, omp().segmentation, filename);
-//
-//         return true;
-//       }
+    case SYNOPSIS_BND:
+      {
+        info(5) << "Found .bnd extension, using ViennaGrid BND Reader" << std::endl;
+
+        viennagrid::io::bnd_reader reader;
+        reader(mesh, filename);
+
+        success = true;
+        break;
+      }
     case NETGEN_MESH:
       {
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
@@ -154,33 +152,42 @@ namespace viennamesh
         success = true;
         break;
       }
-    case TETGEN_POLY:
-      {
-        info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
-
-        point_container_t hole_points;
-        seed_point_container_t seed_points;
-
-        viennagrid::io::tetgen_poly_reader reader;
-        reader(mesh, filename, hole_points, seed_points);
-
-        if (!hole_points.empty())
-        {
-          point_handle output_hole_points = make_data<point_t>();
-          output_hole_points.set( hole_points );
-          set_output("hole_points", output_hole_points);
-        }
-
-        if (!seed_points.empty())
-        {
-          seed_point_handle output_seed_points = make_data<seed_point_t>();
-          output_seed_points.set( seed_points );
-          set_output("seed_points", output_seed_points);
-        }
-
-        success = true;
-        break;
-      }
+//     case TETGEN_POLY:
+//       {
+//         info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
+//
+//         point_container_t hole_points;
+//         seed_point_container_t seed_points;
+//
+//         viennagrid::io::tetgen_poly_reader reader;
+//
+//         try
+//         {
+//           reader(mesh, filename, hole_points, seed_points);
+//         }
+//         catch (viennagrid::io::bad_file_format_exception const & ex)
+//         {
+//           error(1) << "File reading error: " << ex.what() << std::endl;
+//           throw;
+//         }
+//
+//         if (!hole_points.empty())
+//         {
+//           point_handle output_hole_points = make_data<point_t>();
+//           output_hole_points.set( hole_points );
+//           set_output("hole_points", output_hole_points);
+//         }
+//
+//         if (!seed_points.empty())
+//         {
+//           seed_point_handle output_seed_points = make_data<seed_point_t>();
+//           output_seed_points.set( seed_points );
+//           set_output("seed_points", output_seed_points);
+//         }
+//
+//         success = true;
+//         break;
+//       }
 
 
 //     case NEPER_TESS:
