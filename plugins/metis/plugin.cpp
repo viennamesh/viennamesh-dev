@@ -14,12 +14,3 @@ int viennamesh_version()
 {
   return VIENNAMESH_VERSION;
 }
-
-
-// namespace viennamesh
-// {
-//   void plugin_init( context_handle & context )
-//   {
-//     viennamesh::register_algorithm<viennamesh::metis_mesh_partitioning>(context);
-//   }
-// }
