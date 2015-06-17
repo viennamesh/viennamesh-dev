@@ -3,6 +3,117 @@
 
 namespace viennamesh
 {
+  viennamesh_error convert(viennagrid_plc plc, tetgen::mesh & output)
+  {
+    viennagrid_dimension geometric_dimension;
+    viennagrid_plc_geometric_dimension_get(plc, &geometric_dimension);
+
+    if (geometric_dimension != 3)
+      return VIENNAMESH_ERROR_CONVERSION_FAILED;
+
+    viennagrid_int vertex_count;
+    viennagrid_plc_element_count_get(plc, 0, &vertex_count);
+
+    viennagrid_int facet_count;
+    viennagrid_plc_element_count_get(plc, 2, &facet_count);
+
+
+
+    output.firstnumber = 0;
+    output.numberofpoints = vertex_count;
+    output.pointlist = new REAL[ vertex_count * 3 ];
+
+    viennagrid_numeric * coords;
+    viennagrid_plc_point_pointer(plc, &coords);
+    std::copy( coords, coords+vertex_count*3, output.pointlist );
+
+
+    output.numberoffacets = facet_count;
+    output.facetlist = new tetgenio::facet[output.numberoffacets];
+
+
+
+    for (int facet_id = 0; facet_id != facet_count; ++facet_id)
+    {
+      tetgenio::facet & facet = output.facetlist[facet_id];
+      facet.holelist = 0;
+
+      viennagrid_numeric * facet_hole_points;
+      viennagrid_int facet_hole_point_count;
+      viennagrid_plc_facet_hole_points_get(plc, facet_id, &facet_hole_points, &facet_hole_point_count);
+
+      facet.numberofholes = facet_hole_point_count;
+      if (facet.numberofholes > 0)
+      {
+        facet.holelist = new REAL[ 3 * facet.numberofholes ];
+        std::copy( facet_hole_points, facet_hole_points + facet.numberofholes*3, facet.holelist );
+      }
+
+      viennagrid_int * lines_begin;
+      viennagrid_int * lines_end;
+      viennagrid_plc_boundary_elements(plc, 2, facet_id, 1, &lines_begin, &lines_end);
+
+      viennagrid_int line_count = lines_end-lines_begin;
+
+      facet.numberofpolygons = line_count;
+      facet.polygonlist = new tetgenio::polygon[ line_count ];
+
+      std::size_t polygon_index = 0;
+      for (viennagrid_int * line_id_it = lines_begin; line_id_it != lines_end; ++line_id_it, ++polygon_index)
+      {
+        tetgenio::polygon & polygon = facet.polygonlist[polygon_index];
+        polygon.numberofvertices = 2;
+        polygon.vertexlist = new int[ 2 ];
+
+        viennagrid_int * line_vertices_begin;
+        viennagrid_int * line_vertices_end;
+        viennagrid_plc_boundary_elements(plc, 1, *line_id_it, 0, &line_vertices_begin, &line_vertices_end);
+
+        assert( line_vertices_end-line_vertices_begin == 2 );
+
+        polygon.vertexlist[0] = *(line_vertices_begin+0);
+        polygon.vertexlist[1] = *(line_vertices_begin+1);
+      }
+    }
+
+    viennagrid_numeric * hole_points;
+    viennagrid_int hole_point_count;
+    viennagrid_plc_hole_points_get(plc, &hole_points, &hole_point_count);
+
+    output.numberofholes = hole_point_count;
+    if (output.numberofholes > 0)
+    {
+      output.holelist = new REAL[ 3 * output.numberofholes ];
+      std::copy( hole_points, hole_points + output.numberofholes*3, output.holelist );
+    }
+
+
+
+    viennagrid_numeric * seed_points;
+    viennagrid_int * seed_point_regions;
+    viennagrid_int seed_point_count;
+    viennagrid_plc_seed_points_get(plc, &seed_points, &seed_point_regions, &seed_point_count);
+
+    output.numberofregions = seed_point_count;
+    if (output.numberofregions > 0)
+    {
+      output.regionlist = new REAL[5 * output.numberofregions];
+      for (viennagrid_int i = 0; i != seed_point_count; ++i)
+      {
+        output.regionlist[5*i+0] = seed_points[3*i+0];
+        output.regionlist[5*i+1] = seed_points[3*i+1];
+        output.regionlist[5*i+2] = seed_points[3*i+2];
+        output.regionlist[5*i+3] = REAL(seed_point_regions[i]);
+        output.regionlist[5*i+4] = 0;
+      }
+    }
+
+
+    return VIENNAMESH_SUCCESS;
+  }
+
+
+
   viennamesh_error convert(viennagrid::mesh_t const & input, tetgen::mesh & output)
   {
     typedef viennagrid::mesh_t ViennaGridMeshType;
@@ -34,9 +145,6 @@ namespace viennamesh
 
       tetgenio::facet & facet = output.facetlist[index];
       facet.holelist = 0;
-
-      if ( (*cit).tag().is_plc() )
-        tetgen::set_hole_points( facet, viennagrid::hole_points(*cit) );
 
       ConstLineOnCellRange lines(*cit);
       facet.numberofpolygons = lines.size();
@@ -75,10 +183,11 @@ namespace viennamesh
   }
 
 
+
+
   viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh_t & output)
   {
     typedef viennagrid::mesh_t MeshType;
-//     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type VertexType;
     typedef viennagrid::result_of::element<MeshType>::type CellType;
 
@@ -117,6 +226,10 @@ namespace viennamesh
 
 
 
+
+  template<>
+  viennamesh_error internal_convert<viennagrid_plc, tetgen::mesh>(viennagrid_plc const & input, tetgen::mesh & output)
+  { return convert( input, output ); }
 
   template<>
   viennamesh_error internal_convert<viennagrid_mesh, tetgen::mesh>(viennagrid_mesh const & input, tetgen::mesh & output)
