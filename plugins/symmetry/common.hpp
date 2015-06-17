@@ -123,6 +123,331 @@ namespace viennamesh
     to_spherical( pt, result.first, result.second, tmp );
     return result;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  template<typename CoefficientT>
+  class polynom : public std::vector<CoefficientT>
+  {
+  public:
+
+    polynom() : std::vector<CoefficientT>(1,0) {}
+
+//     CoefficientT & operator[](std::size_t i)
+//     {
+//       return coeffiecients_[i];
+//     }
+//
+//     CoefficientT operator[](std::size_t i) const
+//     {
+//       return coeffiecients_[i];
+//     }
+
+    std::size_t grad() const
+    {
+      return this->size()-1;
+    }
+
+    void set_grad(std::size_t grad)
+    {
+      this->resize(grad+1, 0);
+    }
+
+
+
+    template<typename T>
+    T operator()(T value) const
+    {
+      T sum = (*this)[0];
+      T cur = value;
+
+      for (std::size_t i = 1; i <= grad(); ++i, cur *= value)
+        sum += cur*(*this)[i];
+      return sum;
+    }
+
+    template<typename T>
+    T eval_even(T value) const
+    {
+      T sum = (*this)[0];
+      T cur = value*value;
+
+      for (std::size_t i = 2; i <= grad(); i += 2, cur *= value*value)
+        sum += cur*(*this)[i];
+      return sum;
+    }
+
+    template<typename T>
+    T eval_odd(T value) const
+    {
+      T sum = 0;
+      T cur = value;
+
+      for (std::size_t i = 1; i <= grad(); i += 2, cur *= value*value)
+        sum += cur*(*this)[i];
+      return sum;
+    }
+
+
+
+
+    polynom<CoefficientT> operator-() const
+    {
+      polynom<CoefficientT> tmp = *this;
+      for (std::size_t i = 0; i <= tmp.grad(); ++i)
+        tmp[i] = -tmp[i];
+      return tmp;
+    }
+
+
+    polynom<CoefficientT> & operator+=(CoefficientT const & lhs)
+    {
+      (*this)[0] += lhs;
+      return *this;
+    }
+
+    polynom<CoefficientT> & operator-=(CoefficientT const & lhs)
+    {
+      (*this)[0] -= lhs;
+      return *this;
+    }
+
+    polynom<CoefficientT> & operator+=(polynom<CoefficientT> const & lhs)
+    {
+      if (grad() < lhs.grad())
+        set_grad(lhs.grad());
+
+      for (std::size_t i = 0; i <= std::min(grad(), lhs.grad()); ++i)
+        (*this)[i] += lhs[i];
+
+      return *this;
+    }
+
+    polynom<CoefficientT> & operator-=(polynom<CoefficientT> const & lhs)
+    {
+      if (grad() < lhs.grad())
+        resize(lhs.grad());
+
+      for (std::size_t i = 0; i <= std::min(grad(), lhs.grad()); ++i)
+         (*this)[i] -= lhs[i];
+
+      return *this;
+    }
+
+
+
+    polynom<CoefficientT> & operator*=(polynom<CoefficientT> const & lhs)
+    {
+      polynom<CoefficientT> tmp = *this;
+
+      set_grad( lhs.grad()+grad() );
+      std::fill(this->begin(), this->end(), 0);
+
+      for (std::size_t i = 0; i <= tmp.grad(); ++i)
+      {
+        for (std::size_t j = 0; j <= lhs.grad(); ++j)
+          (*this)[i+j] += tmp[i]*lhs[j];
+      }
+
+      return *this;
+    }
+
+
+
+
+
+    polynom<CoefficientT> & operator*=(CoefficientT const & scalar)
+    {
+      for (std::size_t i = 0; i <= grad(); ++i)
+        (*this)[i] *= scalar;
+      return *this;
+    }
+
+    polynom<CoefficientT> & operator/=(CoefficientT const & scalar)
+    {
+      for (std::size_t i = 0; i <= grad(); ++i)
+        (*this)[i] /= scalar;
+      return *this;
+    }
+
+
+
+    static polynom<CoefficientT> X;
+
+//   private:
+//     std::vector<CoefficientT> coeffiecients_;
+  };
+
+
+
+  template<typename CoefficientT>
+  std::ostream & operator<<(std::ostream & stream, polynom<CoefficientT> const & poly)
+  {
+    stream << "[ ";
+    for (std::size_t i = 0; i <= poly.grad(); ++i)
+    {
+      int n = poly.grad()-i;
+
+      stream << " ";
+      if (i != 0 && poly[n] >= 0)
+        stream << "+";
+      stream << poly[n];
+
+      if (n != 0)
+      {
+        stream << "*x";
+        if (n != 1)
+          stream << "^" << n;
+      }
+    }
+    stream << " ]";
+    return stream;
+  }
+
+
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> monom(std::size_t i)
+  {
+    polynom<CoefficientT> poly;
+    poly.set_grad(i);
+    poly[i] = 1;
+    return poly;
+  }
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> polynom<CoefficientT>::X = monom<CoefficientT>(1);
+
+
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> pow(polynom<CoefficientT> const & poly, std::size_t exponent)
+  {
+    if (exponent == 0)
+      return monom<CoefficientT>(0);
+
+    polynom<CoefficientT> result = poly;
+    for (std::size_t i = 1; i != exponent; ++i)
+      result *= poly;
+
+    return result;
+  }
+
+
+
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator+(polynom<CoefficientT> const & lhs, polynom<CoefficientT> const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result += rhs;
+    return result;
+  }
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator-(polynom<CoefficientT> const & lhs, polynom<CoefficientT> const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result -= rhs;
+    return result;
+  }
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator*(polynom<CoefficientT> const & lhs, polynom<CoefficientT> const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result *= rhs;
+    return result;
+  }
+
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator*(polynom<CoefficientT> const & lhs, CoefficientT const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result *= rhs;
+    return result;
+  }
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator*(CoefficientT const & lhs, polynom<CoefficientT> const & rhs)
+  {
+    polynom<CoefficientT> result = rhs;
+    result *= lhs;
+    return result;
+  }
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator/(polynom<CoefficientT> const & lhs, CoefficientT const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result /= rhs;
+    return result;
+  }
+
+
+
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator+(polynom<CoefficientT> const & lhs, CoefficientT const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result += rhs;
+    return result;
+  }
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator+(CoefficientT const & lhs, polynom<CoefficientT> const & rhs)
+  {
+    polynom<CoefficientT> result = rhs;
+    result += lhs;
+    return result;
+  }
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator-(polynom<CoefficientT> const & lhs, CoefficientT const & rhs)
+  {
+    polynom<CoefficientT> result = lhs;
+    result -= rhs;
+    return result;
+  }
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> operator-(CoefficientT const & lhs, polynom<CoefficientT> const & rhs)
+  {
+    polynom<CoefficientT> result = rhs;
+    result -= lhs;
+    return result;
+  }
+
+
+
 }
 
 #endif

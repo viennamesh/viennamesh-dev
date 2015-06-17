@@ -1,43 +1,10 @@
 #ifndef VIENNAMESH_ALGORITHM_SYMMETRY_CHECK_SYMMETRIES_HPP
 #define VIENNAMESH_ALGORITHM_SYMMETRY_CHECK_SYMMETRIES_HPP
 
-#include "viennagridpp/algorithm/distance.hpp"
+#include "geometry.hpp"
 
 namespace viennamesh
 {
-
-  viennagrid::point_t reflect(viennagrid::point_t const & pt, viennagrid::point_t const & axis)
-  {
-    return pt - 2.0 * axis * viennagrid::inner_prod(pt, axis);
-  }
-
-
-  template<bool mesh_is_const>
-  double distance(viennagrid::base_mesh<mesh_is_const> const & mesh, viennagrid::point_t const & pt)
-  {
-    typedef viennagrid::base_mesh<mesh_is_const> MeshType;
-
-    typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
-
-    ConstCellRangeType cells(mesh);
-    if (cells.empty())
-      return -1;
-
-    ConstCellRangeIterator cit = cells.begin();
-    double d = viennagrid::distance(*cit, pt);
-    ++cit;
-
-    for (; cit != cells.end(); ++cit)
-    {
-      double tmp = viennagrid::distance(*cit, pt);
-      d = std::min(d, tmp);
-    }
-
-    return d;
-  }
-
-
   template<bool mesh_is_const>
   bool check_mirror(viennagrid::base_mesh<mesh_is_const> const & mesh,
                     viennagrid::point_t axis,

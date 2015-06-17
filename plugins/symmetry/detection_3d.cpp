@@ -39,8 +39,31 @@ namespace viennamesh
   symmetry_detection_3d::symmetry_detection_3d() {}
   std::string symmetry_detection_3d::name() { return "symmetry_detection_3d"; }
 
+
+
+
+
+
+
+
+
+
+
   bool symmetry_detection_3d::run(viennamesh::algorithm_handle &)
   {
+
+
+//
+//     std::cout << "dynamic: " << jacobi_polynom<double>(4,2,2) << std::endl;
+//     std::cout << "static: " << static_jacobi_polynom<double,4>(2,2) << std::endl;
+//
+//     return true;
+
+
+
+
+
+
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
     int cell_dimension = viennagrid::cell_dimension( input_mesh() );
@@ -78,12 +101,20 @@ namespace viennamesh
       }
     }
 
+    info(1) << "Before start" << std::endl;
+
     MeshType mesh;
     viennagrid::copy( input_mesh(), mesh );
     viennagrid::scale( mesh, 1.0/max_size );
 
+    info(1) << "After copy/scale" << std::endl;
 
+
+    viennautils::Timer timer;
+    timer.start();
     RealGeneralizedMoment m_real(2*p(), mesh, relative_integrate_tolerance(), absolute_integrate_tolerance(), max_iteration_count());
+
+    info(1) << "After calculating generalized moment (!!! took " << timer.get() << "sec !!!)" << std::endl;
 
     double sphere_radius = 1.0;
     if (get_input<double>("sphere_radius").valid())
@@ -109,6 +140,8 @@ namespace viennamesh
       gradient_field_real.set(*vit, grad_real);
     }
 
+    info(1) << "After calculating sphere" << std::endl;
+
     set_output("sphere", sphere);
     set_output("mesh", mesh);
 
@@ -126,6 +159,7 @@ namespace viennamesh
 
 
     data_handle<viennamesh_point> rotation_vector = get_input<viennamesh_point>("rotation_vector");
+    data_handle<int> rotational_frequencies = get_input<int>("rotational_frequencies");
 
     if (rotation_vector.valid())
     {
@@ -140,9 +174,23 @@ namespace viennamesh
         std::cout << "rotated_m (z = "<< new_z << ") hast mirror symmetry: " << std::boolalpha << rotated_m.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
         rotated_m.rotation_symmetry_angles( rotational_symmetry_tolerance() );
         rotated_m.check_rotation_symmetry(M_PI);
+
+        if (rotational_frequencies.valid())
+        {
+          for (int i = 0; i != rotational_frequencies.size(); ++i)
+          {
+            int rotational_frequency = rotational_frequencies(i);
+            double angle = 2*M_PI/rotational_frequency;
+            std::cout << "Using rotational frequency " << rotational_frequency << " (angle = " << angle << ")" << std::endl;
+
+            rotated_m.check_rotation_symmetry(angle);
+          }
+        }
+
         std::cout << std::endl;
       }
     }
+
 
     return true;
   }

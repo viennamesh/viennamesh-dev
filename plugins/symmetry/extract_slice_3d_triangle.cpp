@@ -16,7 +16,7 @@
 #include <map>
 #include <iterator>
 
-#include "extract_slice_3d.hpp"
+#include "extract_slice_3d_triangle.hpp"
 #include "geometry.hpp"
 
 #include "viennagridpp/algorithm/distance.hpp"
@@ -26,27 +26,18 @@
 namespace viennamesh
 {
 
-  template<typename PointT>
-  PointT cut_by_plane(PointT const & N, PointT const & p0, PointT const & p1)
-  {
-    typedef typename viennagrid::result_of::coord<PointT>::type CoordType;
-    CoordType ip0 = viennagrid::inner_prod(p0, N);
-    CoordType ip1 = viennagrid::inner_prod(p1, N);
-    return ((p0 - N*ip0)*std::abs(ip1) + (p1 - N*ip1)*std::abs(ip0)) / (std::abs(ip0) + std::abs(ip1));
-  }
-
-  class cut_hyperplane
+  class cut_hyperplane_triangle
   {
   public:
     typedef viennagrid::mesh_t MeshType;
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
-    cut_hyperplane(double tol_) : tol(tol_) {}
+    cut_hyperplane_triangle(double tol_) : tol(tol_) {}
 
     void operator()(MeshType const & input_mesh,
                     MeshType const & output_mesh,
-                    viennagrid_plc plc_output_mesh,
+                    MeshType const & plc_output_mesh,
                     PointType const & N)
     {
       typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
@@ -160,32 +151,13 @@ namespace viennamesh
         }
       }
 
-      std::vector<viennagrid_int> line_ids;
-      std::map<ElementType, viennagrid_int> vertices_on_hyperplane;
+      viennagrid::result_of::element_copy_map<>::type plc_copy_map(plc_output_mesh, false);
+      std::vector<ElementType> new_lines;
 
       for (LinesOnHyperplaneType::iterator it = lines_on_hyperplane.begin(); it != lines_on_hyperplane.end(); ++it)
-      {
-        vertices_on_hyperplane.insert( std::make_pair((*it).first, -1) );
-        vertices_on_hyperplane.insert( std::make_pair((*it).second, -1) );
-      }
+        new_lines.push_back( viennagrid::make_line(plc_output_mesh, plc_copy_map((*it).first), plc_copy_map((*it).second))   );
 
-      for (std::map<ElementType, viennagrid_int>::iterator vit = vertices_on_hyperplane.begin(); vit != vertices_on_hyperplane.end(); ++vit)
-      {
-        PointType p = viennagrid::get_point( (*vit).first );
-        viennagrid_plc_vertex_create(plc_output_mesh, &p[0], &vit->second);
-      }
-
-      for (LinesOnHyperplaneType::iterator it = lines_on_hyperplane.begin(); it != lines_on_hyperplane.end(); ++it)
-      {
-        viennagrid_int line_id;
-        viennagrid_plc_line_create(plc_output_mesh,
-                                   vertices_on_hyperplane[(*it).first],
-                                   vertices_on_hyperplane[(*it).second],
-                                   &line_id);
-        line_ids.push_back(line_id);
-      }
-
-      viennagrid_plc_facet_create(plc_output_mesh, &line_ids[0], line_ids.size(), NULL);
+      viennagrid::make_plc(plc_output_mesh, new_lines.begin(), new_lines.end());
     }
 
   private:
@@ -243,10 +215,10 @@ namespace viennamesh
 
 
 
-  extract_symmetric_slice_3d::extract_symmetric_slice_3d() {}
-  std::string extract_symmetric_slice_3d::name() { return "extract_symmetric_slice_3d"; }
+  extract_symmetric_slice_3d_triangle::extract_symmetric_slice_3d_triangle() {}
+  std::string extract_symmetric_slice_3d_triangle::name() { return "extract_symmetric_slice_3d_triangle"; }
 
-  bool extract_symmetric_slice_3d::run(viennamesh::algorithm_handle &)
+  bool extract_symmetric_slice_3d_triangle::run(viennamesh::algorithm_handle &)
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
@@ -302,24 +274,19 @@ namespace viennamesh
 
 
 
-  extract_symmetric_slice_3d::mesh_handle extract_symmetric_slice_3d::cut(viennagrid::const_mesh_t const & mesh,
+  extract_symmetric_slice_3d_triangle::mesh_handle extract_symmetric_slice_3d_triangle::cut(viennagrid::const_mesh_t const & mesh,
                                                        viennagrid::point_t const & N,
                                                        double tolerance)
   {
     typedef viennagrid::mesh_t MeshType;
 
     mesh_handle tmp = make_data<mesh_handle>();
-//     MeshType plc_tmp;
+    MeshType plc_tmp;
 
-    viennagrid_plc plc_tmp;
-    viennagrid_plc_make(&plc_tmp);
-    viennagrid_plc_geometric_dimension_set(plc_tmp, 3);
-
-    (cut_hyperplane(tolerance))(mesh, tmp(), plc_tmp, N);
+    (cut_hyperplane_triangle(tolerance))(mesh, tmp(), plc_tmp, N);
 
     algorithm_handle triangle_hull_mesher = context().make_algorithm( "triangle_make_hull" );
     triangle_hull_mesher.set_input("mesh", plc_tmp);
-    triangle_hull_mesher.set_input("delaunay", false);
     triangle_hull_mesher.run();
 
     mesh_handle meshed_plane = triangle_hull_mesher.get_output<MeshType>("mesh");

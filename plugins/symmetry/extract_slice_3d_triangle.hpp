@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_SYMMETRY_EXTRACT_SLICE_3D_HPP
-#define VIENNAMESH_ALGORITHM_SYMMETRY_EXTRACT_SLICE_3D_HPP
+#ifndef VIENNAMESH_ALGORITHM_SYMMETRY_EXTRACT_SLICE_3D_TRIANGLE_HPP
+#define VIENNAMESH_ALGORITHM_SYMMETRY_EXTRACT_SLICE_3D_TRIANGLE_HPP
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
@@ -19,10 +19,10 @@
 
 namespace viennamesh
 {
-  class extract_symmetric_slice_3d : public plugin_algorithm
+  class extract_symmetric_slice_3d_triangle : public plugin_algorithm
   {
   public:
-    extract_symmetric_slice_3d();
+    extract_symmetric_slice_3d_triangle();
 
     static std::string name();
     bool run(viennamesh::algorithm_handle &);

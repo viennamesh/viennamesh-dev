@@ -16,9 +16,7 @@
 =============================================================================== */
 
 #include "viennameshpp/plugin.hpp"
-
 #include "common.hpp"
-
 
 namespace viennamesh
 {
@@ -76,7 +74,7 @@ namespace viennamesh
       if (m_ < 0)
         return power_mone(m_) * factorial(l_+m_) / factorial(l_-m_) * AssocLegendre(l_,-m_)(x);
       else if (l_ == m_)
-        return (l_ == 0) ? (1.0) : (power_mone(l_) * doublefactorial(2*l_ - 1) * pow(sqrt(1.0 - x*x), l_));
+        return (l_ == 0) ? (1.0) : (power_mone(l_) * doublefactorial(2*l_ - 1) * std::pow(std::sqrt(1.0 - x*x), l_));
       else if (m_ == (l_ - 1))
         return x * (2.0 * l_ - 1.0) * AssocLegendre(m_, m_)(x);
       else if (l_ < std::abs(m_))
@@ -222,7 +220,7 @@ namespace viennamesh
   {
   public:
 
-    Jacobi(long n_, long a_, long b_) : n(n_), a(a_), b(b_) {}
+    Jacobi(int n_, int a_, int b_) : n(n_), a(a_), b(b_) {}
 
     template<typename T>
     T operator()(T const & x) const
@@ -239,10 +237,33 @@ namespace viennamesh
     }
 
   private:
-    long n;
-    long a;
-    long b;
+    int n;
+    int a;
+    int b;
   };
+
+
+
+  template<typename CoefficientT>
+  polynom<CoefficientT> jacobi_polynom(int n, int a, int b)
+  {
+    typedef polynom<CoefficientT> PolynomType;
+
+    PolynomType result;
+
+    for (int s = 0; s <= std::min(n,n+a); ++s)
+    {
+      PolynomType tmp0 = pow( (PolynomType::X-static_cast<CoefficientT>(1))/static_cast<CoefficientT>(2), n-s );
+      PolynomType tmp1 = pow( (PolynomType::X+static_cast<CoefficientT>(1))/static_cast<CoefficientT>(2), s );
+
+
+      result += static_cast<CoefficientT>(1) / static_cast<CoefficientT>(factorial(s) * factorial(n+a-s) * factorial(b+s) * factorial(n-s)) * tmp0 * tmp1;
+    }
+
+    return static_cast<CoefficientT>(factorial(n+a) * factorial(n+b)) * result;
+  }
+
+
 
 
   double d(int l, int m, int m_, double beta)
@@ -267,9 +288,9 @@ namespace viennamesh
   std::complex<double> D< std::complex<double> >(int l, int m, int m_,
                                                  double alpha, double beta, double gamma)
   {
-    return std::conj(d(l,m,m_,-beta) *
-           std::exp( std::complex<double>(0, -m*alpha) ) *
-           std::exp( std::complex<double>(0, -m_*gamma) ));
+    return std::conj(d(l,m,m_,beta) *
+           std::exp( std::complex<double>(0, m*alpha) ) *
+           std::exp( std::complex<double>(0, m_*gamma) ));
   }
 
 
@@ -370,7 +391,7 @@ namespace viennamesh
     double s_phi;
     double s_r;
     to_spherical(s, s_theta, s_phi, s_r);
-    return D<T>(l, m, m_, 0, -s_theta, -s_phi);
+    return D<T>(l, m, m_, 0, s_theta, s_phi);
   }
 
 

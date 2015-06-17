@@ -17,6 +17,8 @@
 #include <iterator>
 
 #include "recombine_slice.hpp"
+#include "geometry.hpp"
+
 #include "viennagridpp/algorithm/distance.hpp"
 #include "viennagridpp/algorithm/centroid.hpp"
 
@@ -25,47 +27,133 @@ namespace viennamesh
 {
 
 
-  template<typename PointT>
-  PointT reflect(PointT const & point, PointT const & centroid, PointT const & axis)
+  void reflect(viennagrid::mesh_t const & input,
+               viennagrid::mesh_t const & output,
+               viennagrid::point_t const & centroid,
+               viennagrid::point_t const & normal,
+               double tol)
   {
-    return point - 2 * axis * viennagrid::inner_prod(axis, point-centroid);
-//     return centroid + 2 * axis * viennagrid::inner_prod(point-centroid, axis) - (point-centroid);
+    typedef viennagrid::mesh_t MeshType;
+
+    typedef viennagrid::result_of::point<MeshType>::type PointType;
+    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+
+    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+
+    std::map< ElementType, std::pair<ElementType,ElementType> > vertex_map;
+
+    ConstElementRangeType vertices(input, 0);
+    for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+    {
+      PointType point = viennagrid::get_point( *vit );
+
+      double d = viennagrid::inner_prod( point-centroid, normal );
+      if (std::abs(d) < tol)
+      {
+        ElementType nv = viennagrid::make_vertex( output, point );
+        vertex_map[*vit] = std::make_pair(nv, nv);
+      }
+      else
+      {
+        assert( d > 0 );
+        PointType reflected = point - 2 * normal * d;
+
+        ElementType nv0 = viennagrid::make_vertex( output, point );
+        ElementType nv1 = viennagrid::make_vertex( output, reflected );
+
+//         std::cout << "Reflecting " << nv0 << " to " << nv1 << std::endl;
+
+        vertex_map[*vit] = std::make_pair(nv0, nv1);
+      }
+    }
+
+
+    ConstElementRangeType cells(input, viennagrid::cell_dimension(input));
+    for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+    {
+      typedef viennagrid::result_of::const_element_range<ElementType>::type ConstBoundaryRangeType;
+      typedef viennagrid::result_of::iterator<ConstBoundaryRangeType>::type ConstBoundaryIteratorType;
+
+      ConstBoundaryRangeType boundary_vertices(*cit, 0);
+
+      std::vector<ElementType> vertices[2];
+
+      int i = 0;
+      for (ConstBoundaryIteratorType bvit = boundary_vertices.begin(); bvit != boundary_vertices.end(); ++bvit, ++i)
+      {
+        vertices[0].push_back( vertex_map[*bvit].first );
+        vertices[1].push_back( vertex_map[*bvit].second );
+      }
+
+      for (int i = 0; i != 2; ++i)
+      {
+        ElementType cell = viennagrid::make_element( output, (*cit).tag(), vertices[i].begin(), vertices[i].end() );
+        viennagrid::copy_region_information(*cit, cell);
+      }
+    }
   }
 
-  template<typename PointT>
-  PointT rotate(PointT const & point, PointT const & centroid, PointT const & axis, double angle)
-  {
-    PointT vector = point-centroid;
-    PointT result(point.size());
 
-    if (point.size() == 2)
-    {
-      result[0] = std::cos(angle) * vector[0] - std::sin(angle) * vector[1];
-      result[1] = std::sin(angle) * vector[0] + std::cos(angle) * vector[1];
-    }
-    else if (point.size() == 3)
-    {
-      double cos_angle = std::cos(angle);
-      double sin_angle = std::sin(angle);
+//   template<typename MeshT, typename PointT, typename NumericConfigT>
+//   void slice_normals(MeshT const & mesh, PointT axis, NumericConfigT tol,
+//                      PointT & N0, PointT & N1, int & rotational_frequency)
+//   {
+//     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
+//     typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
+//
+//     axis.normalize();
+//     PointType X;
+//     PointType Y;
+//
+//     X = viennagrid::make_point(0,1,0);
+//     if ( std::abs(viennagrid::inner_prod(axis,X)) > 1.0- viennagrid::detail::absolute_tolerance<CoordType>(tol) )
+//       X = viennagrid::make_point(-1,0,0);
+//     X -= axis * viennagrid::inner_prod(axis,X);
+//     X.normalize();
+//
+//     Y = viennagrid::cross_prod(axis, X);
+//
+//     typedef typename viennagrid::result_of::const_element_range<MeshT>::type ConstElementRangeType;
+//     typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+//
+//
+//     double min_angle = 10.0;
+//     double max_angle = -10.0;
+//
+//     ConstElementRangeType vertices(mesh, 0);
+//     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+//     {
+//       PointT point = viennagrid::get_point(*vit);
+//
+//       CoordType x = viennagrid::inner_prod(point, X);
+//       CoordType y = viennagrid::inner_prod(point, Y);
+//       CoordType current_angle = std::atan2(y,x);
+//
+//       std::cout << "Vertex " << *vit << " has angle " << current_angle << std::endl;
+//
+//       min_angle = std::min(min_angle, current_angle);
+//       max_angle = std::max(max_angle, current_angle);
+//     }
+//
+//
+//     rotational_frequency = static_cast<int>(2*M_PI/(max_angle-min_angle)+0.5);
+//     N0 = rotate(X, axis, min_angle + M_PI/2);
+//     N1 = -rotate(X, axis, max_angle + M_PI/2);
+//
+//
+//     std::cout << "axis = " << axis << std::endl;
+//     std::cout << "X = " << X << std::endl;
+//     std::cout << "Y = " << Y << std::endl;
+//
+//     std::cout << "Found min_angle = " << min_angle << " normal = " << N0 << std::endl;
+//     std::cout << "Found max_angle = " << max_angle << " normal = " << N1 << std::endl;
+//     std::cout << "rotational_frequency = " << rotational_frequency << std::endl;
+//
+//
+// //     return std::make_pair(N0, N1);
+//   }
 
-      // http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
-      result[0] = (axis[0]*axis[0] * (1-cos_angle) + cos_angle) * vector[0] +
-                  (axis[0]*axis[1] * (1-cos_angle) - axis[2]*sin_angle) * vector[1] +
-                  (axis[0]*axis[2] * (1-cos_angle) + axis[1]*sin_angle) * vector[2];
-
-      result[1] = (axis[1]*axis[0] * (1-cos_angle) + axis[2]*sin_angle) * vector[0] +
-                  (axis[1]*axis[1] * (1-cos_angle) + cos_angle) * vector[1] +
-                  (axis[1]*axis[2] * (1-cos_angle) - axis[0]*sin_angle) * vector[2];
-
-      result[2] = (axis[2]*axis[0] * (1-cos_angle) - axis[1]*sin_angle) * vector[0] +
-                  (axis[2]*axis[1] * (1-cos_angle) + axis[0]*sin_angle) * vector[1] +
-                  (axis[2]*axis[2] * (1-cos_angle) + cos_angle) * vector[2];
-    }
-    else
-      assert(false);
-
-    return centroid + result;
-  }
 
 
   recombine_symmetric_slice::recombine_symmetric_slice() {}
@@ -74,6 +162,8 @@ namespace viennamesh
   bool recombine_symmetric_slice::run(viennamesh::algorithm_handle &)
   {
     typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::result_of::region<MeshType>::type RegionType;
+
     typedef viennagrid::result_of::point<MeshType>::type PointType;
     typedef viennagrid::result_of::element<MeshType>::type ElementType;
 
@@ -84,110 +174,217 @@ namespace viennamesh
     typedef viennagrid::result_of::iterator<ConstBoundaryElementRangeType>::type ConstBoundaryElementIteratorType;
 
     double tol = 1e-6;
+    if (get_input<double>("tolerance").valid())
+      tol = get_input<double>("tolerance")();
+
+    bool mirror_if_even = true;
+    if (get_input<bool>("mirror_if_even").valid())
+      mirror_if_even = get_input<bool>("mirror_if_even")();
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
     int geometric_dimension = viennagrid::geometric_dimension(input_mesh());
-    int cell_dimension = viennagrid::cell_dimension(input_mesh());
 
-    int rotational_frequency = 0;
-    bool rotational_frequency_used = false;
-    bool half_slice = false;
 
-    if (get_input<bool>("half_slice").valid())
-      half_slice = get_input<bool>("half_slice")();
 
-    PointType mirror_axis;
+    PointType axis = get_required_input<point_t>("axis")();
+    axis.normalize();
 
-    if (get_input<PointType>("mirror_axis").valid())
+
+    int rotational_frequency = get_required_input<int>("rotational_frequency")();
+    double angle = 2*M_PI/rotational_frequency;
+
+    PointType N[2];
+    N[0] = viennagrid::make_point(0,1,0);
+    if ( std::abs(viennagrid::inner_prod(axis,N[0])) > 1.0-tol )
+      N[0] = viennagrid::make_point(-1,0,0);
+    N[0] -= axis * viennagrid::inner_prod(axis,N[0]);
+    N[0].normalize();
+
+    N[1] = -rotate(N[0], axis, angle);
+
+
+
+
+    MeshType tmp;
+    if ( (rotational_frequency%2==0) && mirror_if_even )
     {
-      mirror_axis = get_input<PointType>("mirror_axis")();
+//       mesh_handle output_mesh = make_data<mesh_handle>();
+      reflect(input_mesh(), tmp, PointType(geometric_dimension), N[1], tol);
+      rotational_frequency /= 2;
+      angle *= 2;
+      N[1] = -rotate(N[0], axis, angle);
+
+//       set_output("mesh", output_mesh);
+//       return true;
     }
     else
+      tmp = input_mesh();
+
+
+
+
+    info(1) << "Using rotational frequency " << rotational_frequency << std::endl;
+    info(1) << "Angle = " << angle << std::endl;
+    info(1) << "Axis = " << axis << std::endl;
+    info(1) << "Normal[0] = " << N[0] << std::endl;
+    info(1) << "Normal[1] = " << N[1] << std::endl;
+//     info(1) << "Centroid = " << centroid << std::endl;
+
+//     slice_normals(tmp, axis, tol, N[0], N[1], rotational_frequency);
+
+
+    ConstElementRangeType vertices( tmp, 0 );
+
+    std::vector<ElementType> vertices_on_both_planes;
+    std::vector<ElementType> vertices_on_plane0;
+    std::vector<ElementType> vertices_on_plane1;
+    std::vector<ElementType> vertices_on_no_plane;
+
+    for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
-      if (geometric_dimension == 3)
-        error(1) << "Geometric dimension is 3 and no mirror axis is specified" << std::endl;
+      PointType p = viennagrid::get_point(*vit);
 
-      if ( (geometric_dimension == 2) && half_slice )
-        error(1) << "Geometric dimension is 2, half slice is activated and no mirror axis is specified" << std::endl;
+      double dp0 = std::abs(viennagrid::inner_prod(p, N[0]));
+      double dp1 = std::abs(viennagrid::inner_prod(p, N[1]));
 
-      return false;
+      if ( (dp0 < tol) && (dp1 < tol) )
+        vertices_on_both_planes.push_back(*vit);
+      else if ( dp0 < tol )
+        vertices_on_plane0.push_back(*vit);
+      else if ( dp1 < tol )
+        vertices_on_plane1.push_back(*vit);
+      else
+        vertices_on_no_plane.push_back(*vit);
+    }
+    assert( vertices_on_plane0.size() == vertices_on_plane1.size() );
+    if ( vertices_on_plane0.size() != vertices_on_plane1.size() )
+    {
+      std::cout << "ERROR!! vertices_on_plane0.size() != vertices_on_plane1.size() " << vertices_on_plane0.size() << " " << vertices_on_plane1.size() << std::endl;
     }
 
-    mirror_axis.normalize();
 
-
-    if (get_input<int>("rotational_frequency").valid())
     {
-      rotational_frequency = get_input<int>("rotational_frequency")();
-      rotational_frequency_used = true;
+      std::vector<ElementType> reordered_vertices_on_plane1( vertices_on_plane1.size() );
+      for (std::size_t i0 = 0; i0 != vertices_on_plane0.size(); ++i0)
+      {
+        for (std::size_t i1 = 0; i1 != vertices_on_plane1.size(); ++i1)
+        {
+          PointType p1 = viennagrid::get_point( vertices_on_plane1[i1] );
+          PointType p0 = viennagrid::get_point( vertices_on_plane0[i0] );
+
+          if (viennagrid::detail::is_equal(tol,
+                                          rotate(p0, PointType(geometric_dimension), axis, angle),
+                                          p1) )
+          {
+            reordered_vertices_on_plane1[i0] = vertices_on_plane1[i1];
+            break;
+          }
+        }
+      }
+
+      vertices_on_plane1 = reordered_vertices_on_plane1;
     }
 
 
-    point_handle input_centroid = get_input<point_handle>("centroid");
-    PointType centroid(geometric_dimension);
-    if (input_centroid.valid())
-      centroid = input_centroid();
 
-    if (rotational_frequency_used)
-      info(1) << "rotational_frequency " << rotational_frequency << std::endl;
-    info(1) << "mirror_axis " << mirror_axis << std::endl;
-    info(1) << "centroid " << centroid << std::endl;
+    std::size_t shared_vertex_count = vertices_on_both_planes.size();
+    std::size_t non_shared_vertex_count = vertices_on_plane0.size() + vertices_on_no_plane.size();
+
+    int offset = 0;
+    std::vector<int> vertex_mapping( vertices.size() );
+    for (std::size_t i = 0; i != vertices_on_both_planes.size(); ++i)
+      vertex_mapping[vertices_on_both_planes[i].id()] = i+offset;
+    offset += vertices_on_both_planes.size();
+
+    for (std::size_t i = 0; i != vertices_on_plane0.size(); ++i)
+      vertex_mapping[vertices_on_plane0[i].id()] = i+offset;
+    offset += vertices_on_plane0.size();
+
+    for (std::size_t i = 0; i != vertices_on_no_plane.size(); ++i)
+      vertex_mapping[vertices_on_no_plane[i].id()] = i+offset;
+    offset += vertices_on_no_plane.size();
+
+    for (std::size_t i = 0; i != vertices_on_plane1.size(); ++i)
+      vertex_mapping[vertices_on_plane1[i].id()] = i+offset;
+
+
+    std::vector<ElementType> new_vertices;
 
     mesh_handle output_mesh = make_data<mesh_handle>();
-    viennagrid::result_of::element_copy_map<>::type copy_map( output_mesh(), tol );
 
-    ConstElementRangeType cells(input_mesh(), cell_dimension);
-    for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+
+
+    typedef viennagrid::result_of::const_region_range<MeshType>::type RegionRangeType;
+    typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
+
+    RegionRangeType regions( tmp );
+    std::vector<RegionType> new_regions;
+    for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
     {
-      copy_map(*cit);
-
-      if (half_slice)
-      {
-        ConstBoundaryElementRangeType vertices(*cit, 0);
-        std::vector<ElementType> mirrored_vertices( vertices.size() );
-
-        int index = 0;
-        for (ConstBoundaryElementIteratorType bvit = vertices.begin(); bvit != vertices.end(); ++bvit, ++index)
-          mirrored_vertices[index] = viennagrid::make_unique_vertex(
-                output_mesh(),
-                reflect(viennagrid::get_point(*bvit), centroid, mirror_axis),
-                tol );
-
-        viennagrid::make_element( output_mesh(), (*cit).tag(), mirrored_vertices.begin(), mirrored_vertices.end() );
-      }
+      RegionType region = output_mesh().get_make_region( (*rit).id() );
+      region.set_name( (*rit).name() );
+      new_regions.push_back(region);
     }
 
-    std::vector<ElementType> slice_cells;
-    ConstElementRangeType output_cells(input_mesh(), cell_dimension);
-    for (ConstElementIteratorType cit = output_cells.begin(); cit != output_cells.end(); ++cit)
-      slice_cells.push_back(*cit);
 
-    for (std::vector<ElementType>::iterator cit = slice_cells.begin(); cit != slice_cells.end(); ++cit)
+
+
+    for (std::size_t i = 0; i != vertices_on_both_planes.size(); ++i)
+      new_vertices.push_back( viennagrid::make_vertex(output_mesh(), viennagrid::get_point(vertices_on_both_planes[i])) );
+
+    for (int rf = 0; rf != rotational_frequency; ++rf)
     {
-      for (int i = 1; i != rotational_frequency; ++i)
+      double current_angle = angle * rf;
+
+      for (std::size_t i = 0; i != vertices_on_plane0.size(); ++i)
+        new_vertices.push_back( viennagrid::make_vertex(output_mesh(), rotate(viennagrid::get_point(vertices_on_plane0[i]), PointType(geometric_dimension), axis, current_angle)) );
+
+      for (std::size_t i = 0; i != vertices_on_no_plane.size(); ++i)
+        new_vertices.push_back( viennagrid::make_vertex(output_mesh(), rotate(viennagrid::get_point(vertices_on_no_plane[i]), PointType(geometric_dimension), axis, current_angle)) );
+    }
+
+    info(1) << "New mesh has " << new_vertices.size() << " vertices (old had " << vertices.size() << ")" << std::endl;
+    info(1) << "    shared vertex count = " << shared_vertex_count << std::endl;
+    info(1) << "    on plane count = " << vertices_on_plane0.size() << std::endl;
+    info(1) << "    on no plane count = " << vertices_on_no_plane.size() << std::endl;
+
+
+
+    ConstElementRangeType cells( tmp, viennagrid::cell_dimension(tmp) );
+    for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
+    {
+      std::vector<int> vertex_ids;
+      ConstBoundaryElementRangeType vertices_on_cell(*cit, 0);
+
+      for (ConstBoundaryElementIteratorType vcit = vertices_on_cell.begin(); vcit != vertices_on_cell.end(); ++vcit)
+        vertex_ids.push_back( vertex_mapping[(*vcit).id()] );
+
+
+      for (int rf = 0; rf != rotational_frequency; ++rf)
       {
-        double angle = 2*M_PI*static_cast<double>(i)/static_cast<double>(rotational_frequency);
-
-        ConstBoundaryElementRangeType vertices(*cit, 0);
-        std::vector<ElementType> mirrored_vertices( vertices.size() );
-
-        int index = 0;
-        for (ConstBoundaryElementIteratorType bvit = vertices.begin(); bvit != vertices.end(); ++bvit, ++index)
+        std::vector<ElementType> local_vertices(vertex_ids.size());
+        for (std::size_t i = 0; i != vertex_ids.size(); ++i)
         {
-          PointType output_point = rotate(viennagrid::get_point(*bvit), centroid, mirror_axis, angle);
+          if (vertex_ids[i] < static_cast<int>(shared_vertex_count))
+            local_vertices[i] = new_vertices[vertex_ids[i]];
+          else
+          {
+            int index = rf*non_shared_vertex_count + vertex_ids[i];
+            if (index >= static_cast<int>(new_vertices.size()))
+              index -= rotational_frequency*non_shared_vertex_count;
 
-          mirrored_vertices[index] = viennagrid::make_unique_vertex(
-                output_mesh(),
-                output_point,
-                tol );
+            local_vertices[i] = new_vertices[index];
+          }
         }
 
-        viennagrid::make_element( output_mesh(), (*cit).tag(), mirrored_vertices.begin(), mirrored_vertices.end() );
+        ElementType new_cell = viennagrid::make_element( output_mesh(), (*cit).tag(), local_vertices.begin(), local_vertices.end() );
+        viennagrid::copy_region_information(*cit, new_cell);
       }
     }
 
     set_output( "mesh", output_mesh );
+
 
     return true;
   }

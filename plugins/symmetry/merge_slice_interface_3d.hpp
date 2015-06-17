@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_SYMMETRY_EXTRACT_SLICE_3D_HPP
-#define VIENNAMESH_ALGORITHM_SYMMETRY_EXTRACT_SLICE_3D_HPP
+#ifndef VIENNAMESH_ALGORITHM_SYMMETRY_MERGE_SLICE_INTERFACE_3D_HPP
+#define VIENNAMESH_ALGORITHM_SYMMETRY_MERGE_SLICE_INTERFACE_3D_HPP
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,
@@ -19,19 +19,13 @@
 
 namespace viennamesh
 {
-  class extract_symmetric_slice_3d : public plugin_algorithm
+  class merge_symmetry_slice_interface_3d : public plugin_algorithm
   {
   public:
-    extract_symmetric_slice_3d();
+    merge_symmetry_slice_interface_3d();
 
     static std::string name();
     bool run(viennamesh::algorithm_handle &);
-
-  private:
-
-    mesh_handle cut(viennagrid::const_mesh_t const & mesh,
-                    viennagrid::point_t const & N,
-                    double tolerance);
   };
 }
 

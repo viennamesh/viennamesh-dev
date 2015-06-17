@@ -20,28 +20,21 @@
 #include "viennagridpp/algorithm/distance.hpp"
 #include "viennagridpp/algorithm/centroid.hpp"
 
+#include "geometry.hpp"
 
 namespace viennamesh
 {
-
-
-  template<typename PointT>
-  PointT reflect( PointT const & point, PointT const & centroid, PointT const & axis )
-  {
-    return centroid + 2 * axis * viennagrid::inner_prod(point-centroid, axis) - (point-centroid);
-  }
-
-  template<typename PointT>
-  PointT rotate(PointT const & point, PointT const & centroid, double angle)
-  {
-    PointT vector = point-centroid;
-
-    PointT result = viennagrid::make_point(0,0);
-    result[0] = std::cos(angle) * vector[0] - std::sin(angle) * vector[1];
-    result[1] = std::sin(angle) * vector[0] + std::cos(angle) * vector[1];
-
-    return centroid + result;
-  }
+//   template<typename PointT>
+//   PointT rotate(PointT const & point, PointT const & centroid, double angle)
+//   {
+//     PointT vector = point-centroid;
+//
+//     PointT result = viennagrid::make_point(0,0);
+//     result[0] = std::cos(angle) * vector[0] - std::sin(angle) * vector[1];
+//     result[1] = std::sin(angle) * vector[0] + std::cos(angle) * vector[1];
+//
+//     return centroid + result;
+//   }
 
 
   recombine_symmetric_slice_2d::recombine_symmetric_slice_2d() {}
