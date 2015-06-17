@@ -117,16 +117,18 @@ namespace viennamesh
     abstract_data_handle get_output(std::string const & name);
 
     template<typename DataT>
-    data_handle<DataT> get_output(std::string const & name)
+    data_handle< typename result_of::unpack_data<DataT>::type > get_output(std::string const & name)
     {
+      typedef typename result_of::unpack_data<DataT>::type UnpackedDataType;
+
       viennamesh_data_wrapper data_;
       handle_error(
         viennamesh_algorithm_get_output_with_type(algorithm, name.c_str(),
-                                               result_of::data_information<DataT>::type_name().c_str(),
+                                               result_of::data_information<UnpackedDataType>::type_name().c_str(),
                                                &data_),
         algorithm);
 
-      return data_handle<DataT>(data_, true);
+      return data_handle<UnpackedDataType>(data_, true);
     }
 
 
