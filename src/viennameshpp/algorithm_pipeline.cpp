@@ -197,34 +197,53 @@ namespace viennamesh
 
           algorithm.set_input( parameter_name, point_handle );
         }
-        else if (parameter_type == "seed_points")
+        else if (parameter_type == "seed_point")
         {
           std::list<std::string> split_mappings = split_string_brackets( parameter_value, ";" );
-          seed_point_container_t seed_points;
-          for (std::list<std::string>::const_iterator sit = split_mappings.begin();
-                                                      sit != split_mappings.end();
-                                                    ++sit)
+
+          if (split_mappings.size() != 2)
           {
-            std::list<std::string> from_to = split_string_brackets( *sit, "," );
-
-            if (from_to.size() != 2)
-            {
-              error(1) << "String to seed point container conversion: an entry has no point and no segment id: " << *sit << std::endl;
-              return false;
-            }
-
-            std::list<std::string>::const_iterator it = from_to.begin();
-
-            std::string point_string = *it;
-            ++it;
-            std::string segment_id = *it;
-
-            point_t point = boost::lexical_cast<point_t>(point_string);
-            seed_points.push_back( std::make_pair(point, boost::lexical_cast<int>(segment_id)) );
+            error(1) << "String to seed point conversion: an entry has no point and no region id: " << parameter_value << std::endl;
+            return false;
           }
 
-          data_handle<viennamesh_seed_point> seed_point_handle = context.make_data<seed_point_t>(seed_points);
-          algorithm.set_input( parameter_name, seed_point_handle );
+          std::list<std::string>::const_iterator it = split_mappings.begin();
+
+          std::cout << "seed point to point: " << *it << std::endl;
+          point_t p = boost::lexical_cast<point_t>( *it );
+          ++it;
+          std::cout << "seed point to region id: " << *it << std::endl;
+          viennagrid_int region_id = boost::lexical_cast<viennagrid_int>( *it );
+
+          algorithm.push_back_input( parameter_name, seed_point_t(p, region_id) );
+
+
+//           std::list<std::string> split_mappings = split_string_brackets( parameter_value, ";" );
+//           seed_point_container_t seed_points;
+//           for (std::list<std::string>::const_iterator sit = split_mappings.begin();
+//                                                       sit != split_mappings.end();
+//                                                     ++sit)
+//           {
+//             std::list<std::string> from_to = split_string_brackets( *sit, "," );
+//
+//             if (from_to.size() != 2)
+//             {
+//               error(1) << "String to seed point container conversion: an entry has no point and no region id: " << *sit << std::endl;
+//               return false;
+//             }
+//
+//             std::list<std::string>::const_iterator it = from_to.begin();
+//
+//             std::string point_string = *it;
+//             ++it;
+//             std::string segment_id = *it;
+//
+//             point_t point = boost::lexical_cast<point_t>(point_string);
+//             seed_points.push_back( std::make_pair(point, boost::lexical_cast<int>(segment_id)) );
+//           }
+//
+//           data_handle<viennamesh_seed_point> seed_point_handle = context.make_data<seed_point_t>(seed_points);
+//           algorithm.set_input( parameter_name, seed_point_handle );
         }
         else if (parameter_type == "dynamic")
         {
