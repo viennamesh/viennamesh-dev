@@ -125,9 +125,10 @@ namespace viennamesh
 
     info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 
-    viennagrid::mesh_t mesh;
+//     viennagrid::mesh_t mesh;
     mesh_handle output_mesh = make_data<mesh_handle>();
-    output_mesh.set(mesh);
+
+//     output_mesh.set(mesh);
     bool success = false;
 
     switch (filetype)
@@ -137,7 +138,7 @@ namespace viennamesh
         info(5) << "Found .bnd extension, using ViennaGrid BND Reader" << std::endl;
 
         viennagrid::io::bnd_reader reader;
-        reader(mesh, filename);
+        reader(output_mesh(), filename);
 
         success = true;
         break;
@@ -147,7 +148,7 @@ namespace viennamesh
         info(5) << "Found .mesh extension, using ViennaGrid Netgen Reader" << std::endl;
 
         viennagrid::io::netgen_reader reader;
-        reader(mesh, filename);
+        reader(output_mesh(), filename);
 
         success = true;
         break;
@@ -228,11 +229,11 @@ namespace viennamesh
           reader = viennagrid::io::stl_reader<>( vertex_tolerance() );
 
         if (filetype == STL)
-          reader(mesh, filename);
+          reader(output_mesh(), filename);
         else if (filetype == STL_ASCII)
-          reader.read_ascii(mesh, filename);
+          reader.read_ascii(output_mesh(), filename);
         else if (filetype == STL_BINARY)
-          reader.read_binary(mesh, filename);
+          reader.read_binary(output_mesh(), filename);
 
         success = true;
         break;
@@ -262,7 +263,7 @@ namespace viennamesh
           load_geometry = input_load_geometry();
 
         viennagrid::io::gts_deva_reader reader;
-        reader(mesh, filename, load_geometry);
+        reader(output_mesh(), filename, load_geometry);
 
         success = true;
         break;
@@ -278,7 +279,7 @@ namespace viennamesh
         if (use_local_points.valid())
           reader.set_use_local_points( use_local_points() );
 
-        reader(mesh, filename);
+        reader(output_mesh(), filename);
 
 
         std::vector<viennagrid::quantity_field> quantity_fields = reader.quantity_fields();
@@ -348,10 +349,10 @@ namespace viennamesh
     if (success)
     {
       info(1) << "Successfully read a mesh" << std::endl;
-      info(1) << "  Geometric dimension = " << viennagrid::geometric_dimension(mesh) << std::endl;
-      info(1) << "  Cell dimension = " << viennagrid::cell_dimension(mesh) << std::endl;
-      info(1) << "  Vertex count =  " << viennagrid::vertices(mesh).size() << std::endl;
-      info(1) << "  Cell count = " << viennagrid::cells(mesh).size() << std::endl;
+      info(1) << "  Geometric dimension = " << viennagrid::geometric_dimension( output_mesh() ) << std::endl;
+      info(1) << "  Cell dimension = " << viennagrid::cell_dimension( output_mesh() ) << std::endl;
+      info(1) << "  Vertex count =  " << viennagrid::vertices( output_mesh() ).size() << std::endl;
+      info(1) << "  Cell count = " << viennagrid::cells( output_mesh() ).size() << std::endl;
 
       set_output("mesh", output_mesh);
     }
