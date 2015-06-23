@@ -123,6 +123,7 @@ namespace viennamesh
 
     viennagrid_mesh_hierarchy_create(&mesh_hierarchy);
     viennagrid_mesh_hierarchy_root_mesh_get(mesh_hierarchy, mesh);
+    viennagrid_mesh_hierarchy_option_set(mesh_hierarchy, VIENNAGRID_BOUNDARY_LAYOUT_FLAG, VIENNAGRID_BOUNDARY_LAYOUT_SPARSE);
 
     *data = mesh;
 
