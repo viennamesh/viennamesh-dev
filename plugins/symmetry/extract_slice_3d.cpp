@@ -318,7 +318,7 @@ namespace viennamesh
     (cut_hyperplane(tolerance))(mesh, tmp(), plc_tmp, N);
 
     algorithm_handle triangle_hull_mesher = context().make_algorithm( "triangle_make_hull" );
-    triangle_hull_mesher.set_input("mesh", plc_tmp);
+    triangle_hull_mesher.set_input("geometry", plc_tmp);
     triangle_hull_mesher.set_input("delaunay", false);
     triangle_hull_mesher.run();
 
