@@ -3,20 +3,20 @@
 
 namespace viennamesh
 {
-  viennamesh_error convert(viennagrid::mesh_t const & input, netgen::mesh & output)
+  viennamesh_error convert(viennagrid::mesh const & input, netgen::mesh & output)
   {
-    typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::mesh                                                MeshType;
 
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::region<MeshType>::type RegionType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
+    typedef viennagrid::result_of::region<MeshType>::type                   RegionType;
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementIteratorType;
 
 
-    typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
-    typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
+    typedef viennagrid::result_of::region_range<MeshType>::type             RegionRangeType;
+    typedef viennagrid::result_of::iterator<RegionRangeType>::type          RegionIteratorType;
 
     int region_count = input.region_count();
 
@@ -92,12 +92,12 @@ namespace viennamesh
 
 
 
-  viennamesh_error convert(netgen::mesh const & input, viennagrid::mesh_t & output)
+  viennamesh_error convert(netgen::mesh const & input, viennagrid::mesh & output)
   {
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
-    typedef viennagrid::result_of::region<MeshType>::type RegionType;
+    typedef viennagrid::mesh                                    MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type        PointType;
+    typedef viennagrid::result_of::element<MeshType>::type      ElementType;
+    typedef viennagrid::result_of::region<MeshType>::type       RegionType;
 
 
     int num_points = input.GetNP();
@@ -129,12 +129,12 @@ namespace viennamesh
 
   template<>
   viennamesh_error internal_convert<viennagrid_mesh, netgen::mesh>(viennagrid_mesh const & input, netgen::mesh & output)
-  { return convert( viennagrid::mesh_t(input), output ); }
+  { return convert( viennagrid::mesh(input), output ); }
 
   template<>
   viennamesh_error internal_convert<netgen::mesh, viennagrid_mesh>(netgen::mesh const & input, viennagrid_mesh & output)
   {
-    viennagrid::mesh_t output_pp(output);
+    viennagrid::mesh output_pp(output);
     return convert( input, output_pp );
   }
 
