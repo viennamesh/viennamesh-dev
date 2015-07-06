@@ -64,7 +64,7 @@ namespace viennamesh
 
     for (int i = 0; i != input_mesh.size(); ++i)
     {
-      viennagrid::mesh_t mesh = input_mesh(i);
+      viennagrid::mesh mesh = input_mesh(i);
       std::string local_filename;
       if (input_mesh.size() == 1)
         local_filename = make_filename(filename(), ft);
@@ -80,7 +80,7 @@ namespace viennamesh
       {
         case VTK:
         {
-          viennagrid::io::vtk_writer<viennagrid::mesh_t> writer;
+          viennagrid::io::vtk_writer<viennagrid::mesh> writer;
 
           if (input_mesh.size() == 1 && quantity_field.valid())
           {

@@ -273,7 +273,7 @@ namespace viennamesh
       {
         info(5) << "Found .vtu/.pvd extension, using ViennaGrid VTK Reader" << std::endl;
 
-        viennagrid::io::vtk_reader<viennagrid::mesh_t> reader;
+        viennagrid::io::vtk_reader<viennagrid::mesh> reader;
 
         data_handle<bool> use_local_points = get_input<bool>("use_local_points");
         if (use_local_points.valid())
