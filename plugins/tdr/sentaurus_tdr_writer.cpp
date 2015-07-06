@@ -27,33 +27,33 @@ namespace viennamesh
 {
 namespace
 {
-typedef viennagrid::const_mesh_t MeshType;
-typedef viennagrid::result_of::element<MeshType>::type ElementType;
-typedef viennagrid::result_of::point<MeshType>::type PointType;
-typedef viennagrid::result_of::region<MeshType>::type RegionType;
-typedef viennagrid::result_of::id<ElementType>::type ElementId;
-typedef viennagrid::result_of::id<RegionType>::type RegionId;
+typedef viennagrid::const_mesh                                          MeshType;
+typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
+typedef viennagrid::result_of::point<MeshType>::type                    PointType;
+typedef viennagrid::result_of::region<MeshType>::type                   RegionType;
+typedef viennagrid::result_of::id<ElementType>::type                    ElementId;
+typedef viennagrid::result_of::id<RegionType>::type                     RegionId;
 
-typedef viennagrid::result_of::const_vertex_range<MeshType>::type MeshVertexRange;
-typedef viennagrid::result_of::iterator<MeshVertexRange>::type MeshVertexIterator;
+typedef viennagrid::result_of::const_vertex_range<MeshType>::type       MeshVertexRange;
+typedef viennagrid::result_of::iterator<MeshVertexRange>::type          MeshVertexIterator;
 
-typedef viennagrid::result_of::const_vertex_range<ElementType>::type BoundaryVertexRange;
-typedef viennagrid::result_of::iterator<BoundaryVertexRange>::type BoundaryVertexIterator;
+typedef viennagrid::result_of::const_vertex_range<ElementType>::type    BoundaryVertexRange;
+typedef viennagrid::result_of::iterator<BoundaryVertexRange>::type      BoundaryVertexIterator;
 
-typedef viennagrid::result_of::const_region_range<MeshType>::type RegionRange;
-typedef viennagrid::result_of::iterator<RegionRange>::type RegionIterator;
+typedef viennagrid::result_of::const_region_range<MeshType>::type       RegionRange;
+typedef viennagrid::result_of::iterator<RegionRange>::type              RegionIterator;
 
-typedef viennagrid::result_of::const_vertex_range<RegionType>::type RegionVertexRange;
-typedef viennagrid::result_of::iterator<RegionVertexRange>::type RegionVertexIterator;
+typedef viennagrid::result_of::const_vertex_range<RegionType>::type     RegionVertexRange;
+typedef viennagrid::result_of::iterator<RegionVertexRange>::type        RegionVertexIterator;
 
-typedef viennagrid::result_of::const_cell_range<RegionType>::type CellRange;
-typedef viennagrid::result_of::iterator<CellRange>::type CellIterator;
+typedef viennagrid::result_of::const_cell_range<RegionType>::type       CellRange;
+typedef viennagrid::result_of::iterator<CellRange>::type                CellIterator;
 
 void write_attribute(H5::H5Object & obj, std::string const & name, std::string const & value)
 {
   H5::StrType strdatatype(H5::PredType::C_S1, value.size());
   H5::Attribute attr = obj.createAttribute(name, strdatatype, H5::DataSpace(H5S_SCALAR));
-  attr.write(strdatatype, value); 
+  attr.write(strdatatype, value);
 }
 
 void write_attribute(H5::H5Object & obj, std::string const & name, int value)
@@ -79,31 +79,31 @@ H5::DataSet write_dataset(H5::Group & group, std::string const & name, H5::DataT
 
 } //end of anonymous namespace
 
-void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const & mesh, std::vector<viennagrid::quantity_field> const & quantities)
+void write_to_tdr(std::string const & filename, viennagrid::const_mesh const & mesh, std::vector<viennagrid::quantity_field> const & quantities)
 {
   unsigned int dimension = viennagrid::geometric_dimension(mesh);
   if (dimension != 2)
   {
     throw viennautils::make_exception<tdr_writer_error>("TDR writer currently supports only two dimensional meshes");
   }
-  
+
   try
   {
     H5::H5File file(filename, H5F_ACC_TRUNC);
-    
+
     H5::Group collection = file.createGroup("collection");
-    
+
     write_attribute(collection, "number of geometries", 1);
     write_attribute(collection, "number of plots", 0);
-    
+
     H5::Group geometry = collection.createGroup("geometry_0");
-    
+
     write_attribute(geometry, "type", 1);
     write_attribute(geometry, "dimension", static_cast<int>(dimension));
     write_attribute(geometry, "number of vertices", static_cast<int>(viennagrid::vertices(mesh).size()));
     write_attribute(geometry, "number of regions", static_cast<int>(mesh.region_count()));
     write_attribute(geometry, "number of states", 1);
-    
+
     {
       //transformation Group
       //for some reason this is apparently always 3d...
@@ -113,14 +113,14 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
       std::vector<double> identity_matrix(9, 0.0);
       identity_matrix[0] = identity_matrix[4] = identity_matrix[8] = 1.0;
       write_dataset(transformation, "A", H5::PredType::NATIVE_DOUBLE, 9, identity_matrix);
-      
+
       std::vector<double> zero_vector(3, 0.0);
       write_dataset(transformation, "b", H5::PredType::NATIVE_DOUBLE, 3, zero_vector);
     }
-    
+
     boost::container::flat_map<ElementId, int32_t> vertex_mapping; //should (and has to) be monotonous 'on both sides'
     vertex_mapping.reserve(viennagrid::vertices(mesh).size());
-    
+
     {
       //vertex Dataset
       std::vector<double> vertex_coordinates;
@@ -130,14 +130,14 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
       for (MeshVertexIterator it = mesh_vertices.begin(); it != mesh_vertices.end(); ++it, ++id_counter)
       {
         vertex_mapping[(*it).id()] = id_counter;
-        
+
         PointType const & p = viennagrid::get_point(*it);
         for (PointType::size_type i = 0; i < dimension; ++i)
         {
           vertex_coordinates.push_back(p[i]);
         }
       }
-      
+
       H5::CompType vertex_type( dimension*sizeof(double) );
       vertex_type.insertMember( "x", 0, H5::PredType::NATIVE_DOUBLE);
       if (dimension > 1)
@@ -148,10 +148,10 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
       {
         vertex_type.insertMember( "z", 2*sizeof(double), H5::PredType::NATIVE_DOUBLE);
       }
-      
+
       write_dataset(geometry, "vertex", vertex_type, vertex_coordinates.size()/dimension, vertex_coordinates);
     }
-    
+
     RegionRange regions(mesh);
     {
       //region Groups
@@ -164,9 +164,9 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
         write_attribute(region_group, "name", (*region_it).name());
         write_attribute(region_group, "material", "unknown"); //TODO
         write_attribute(region_group, "number of parts", 1);
-        
+
         std::vector<int32_t> region_element_data;
-        
+
         CellRange cells(*region_it);
         unsigned int num_elements = 0;
         for (CellIterator cell_it = cells.begin(); cell_it != cells.end(); ++cell_it, ++num_elements)
@@ -175,22 +175,22 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
           {
             throw viennautils::make_exception<tdr_writer_error>("Only triangles are supported at the moment");
           }
-          
+
           int32_t const triangle_id = 2;
           region_element_data.push_back(triangle_id);
-          
+
           BoundaryVertexRange vertices(*cell_it);
           for (BoundaryVertexIterator vertex_it = vertices.begin(); vertex_it != vertices.end(); ++vertex_it)
           {
             region_element_data.push_back(vertex_mapping[(*vertex_it).id()]);
           }
         }
-        
+
         H5::DataSet elements = write_dataset(region_group, "elements_0", H5::PredType::NATIVE_INT32, region_element_data.size(), region_element_data);
         write_attribute(elements, "number of elements", static_cast<int>(num_elements));
       }
     }
-    
+
     if (!quantities.empty())
     {
       //datasets
@@ -199,7 +199,7 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
       write_attribute(state, "number of plots", 0);
       write_attribute(state, "number of string streams", 0);
       write_attribute(state, "number of xy plots", 0);
-      
+
       typedef boost::container::flat_map<RegionId, std::vector<ElementId> > RegionVertexIdMap;
       RegionVertexIdMap region_vert_ids;
       region_vert_ids.reserve(mesh.region_count());
@@ -212,7 +212,7 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
           vertex_ids.push_back((*vertex_it).id());
         }
       }
-      
+
       int num_datasets = 0;
       for (unsigned int i = 0; i < quantities.size(); ++i)
       {
@@ -231,7 +231,7 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const &
             }
             values.push_back(quantity.get(vertex_ids[j]));
           }
-          
+
           if (values.size() == vertex_ids.size()) //only write quantities that are defined on the entire region
           {
             H5::Group dataset_group = state.createGroup("dataset_" + boost::lexical_cast<std::string>(num_datasets++));

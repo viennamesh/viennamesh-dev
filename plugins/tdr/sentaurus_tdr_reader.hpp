@@ -82,7 +82,7 @@ namespace viennamesh
 
   struct element_t
   {
-    viennagrid_element_tag element_tag;
+    viennagrid_element_type element_tag;
     std::vector<int> vertex_indices;
   };
 
@@ -193,22 +193,22 @@ namespace viennamesh
         switch (el[elct++])
         {
           case 1:
-            element.element_tag = VIENNAGRID_ELEMENT_TAG_LINE;
+            element.element_tag = VIENNAGRID_ELEMENT_TYPE_LINE;
             for (int i=0; i<2; i++)
               element.vertex_indices.push_back(el[elct++]);
             break;
           case 2:
-            element.element_tag = VIENNAGRID_ELEMENT_TAG_TRIANGLE;
+            element.element_tag = VIENNAGRID_ELEMENT_TYPE_TRIANGLE;
             for (int i=0; i<3; i++)
               element.vertex_indices.push_back(el[elct++]);
             break;
           case 3:
-            element.element_tag = VIENNAGRID_ELEMENT_TAG_QUADRILATERAL;
+            element.element_tag = VIENNAGRID_ELEMENT_TYPE_QUADRILATERAL;
             for (int i=0; i<4; i++)
               element.vertex_indices.push_back(el[elct++]);
             break;
           case 5:
-            element.element_tag = VIENNAGRID_ELEMENT_TAG_TETRAHEDRON;
+            element.element_tag = VIENNAGRID_ELEMENT_TYPE_TETRAHEDRON;
             for (int i=0; i<4; i++)
               element.vertex_indices.push_back(el[elct++]);
             break;
@@ -469,14 +469,14 @@ namespace viennamesh
       }
 
 
-      viennagrid_element_tag cell_tag = VIENNAGRID_ELEMENT_TAG_VERTEX;
+      viennagrid_element_type cell_type = VIENNAGRID_ELEMENT_TYPE_VERTEX;
       for (std::map<string,region_t>::iterator S=region.begin(); S!=region.end(); S++)
       {
         std::vector<element_t> &elements=S->second.elements;
         for (std::vector<element_t>::iterator E=elements.begin(); E!=elements.end(); E++)
         {
           element_t const & e = *E;
-          cell_tag = viennagrid_topological_max( cell_tag, e.element_tag );
+          cell_type = viennagrid_topological_max( cell_type, e.element_tag );
         }
       }
 
@@ -496,10 +496,10 @@ namespace viennamesh
           for (std::size_t i = 0; i < e.vertex_indices.size(); ++i)
             cell_vertices[i] = vertices[e.vertex_indices[i]];
 
-          if (e.element_tag == cell_tag)
+          if (e.element_tag == cell_type)
           {
             viennagrid::make_element( mesh.get_make_region(region_name),
-                                      viennagrid::element_tag_t::from_internal(e.element_tag),
+                                      viennagrid::element_tag::from_internal(e.element_tag),
                                       cell_vertices.begin(), cell_vertices.end() );
           }
           else
@@ -523,8 +523,8 @@ namespace viennamesh
             PointType normal;
             double size = 0;
 
-            viennagrid_element_tag contact_tag;
-            if (element.element_tag == VIENNAGRID_ELEMENT_TAG_LINE)
+            viennagrid_element_type contact_tag;
+            if (element.element_tag == VIENNAGRID_ELEMENT_TYPE_LINE)
             {
               PointType p0 = viennagrid::get_point( vertices[element.vertex_indices[0]] );
               PointType p1 = viennagrid::get_point( vertices[element.vertex_indices[1]] );
@@ -534,9 +534,9 @@ namespace viennamesh
 
               size = std::max(size, viennagrid::distance(center, p0));
               size = std::max(size, viennagrid::distance(center, p1));
-              contact_tag = VIENNAGRID_ELEMENT_TAG_TRIANGLE;
+              contact_tag = VIENNAGRID_ELEMENT_TYPE_TRIANGLE;
             }
-            else if (element.element_tag == VIENNAGRID_ELEMENT_TAG_TRIANGLE)
+            else if (element.element_tag == VIENNAGRID_ELEMENT_TYPE_TRIANGLE)
             {
               PointType p0 = viennagrid::get_point( vertices[element.vertex_indices[0]] );
               PointType p1 = viennagrid::get_point( vertices[element.vertex_indices[1]] );
@@ -548,7 +548,7 @@ namespace viennamesh
               size = std::max(size, viennagrid::distance(center, p0));
               size = std::max(size, viennagrid::distance(center, p1));
               size = std::max(size, viennagrid::distance(center, p2));
-              contact_tag = VIENNAGRID_ELEMENT_TAG_TETRAHEDRON;
+              contact_tag = VIENNAGRID_ELEMENT_TYPE_TETRAHEDRON;
             }
             else
             {
@@ -587,7 +587,7 @@ namespace viennamesh
             newly_created_vertices[ cell_vertices.back().id() ] = other_vertex_indices;
 
             viennagrid::make_element( mesh.get_make_region(rc->second.region_name),
-                                      viennagrid::element_tag_t::from_internal(contact_tag),
+                                      viennagrid::element_tag::from_internal(contact_tag),
                                       cell_vertices.begin(), cell_vertices.end() );
           }
         }

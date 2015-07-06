@@ -28,7 +28,7 @@ namespace viennamesh
 
 struct tdr_writer_error : virtual viennautils::exception {};
 
-void write_to_tdr(std::string const & filename, viennagrid::const_mesh_t const & mesh, std::vector<viennagrid::quantity_field> const & quantities);
+void write_to_tdr(std::string const & filename, viennagrid::const_mesh const & mesh, std::vector<viennagrid::quantity_field> const & quantities);
 
 } //end of namespace viennamesh
 
