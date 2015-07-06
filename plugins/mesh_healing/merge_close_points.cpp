@@ -13,6 +13,8 @@
 =============================================================================== */
 
 #include "merge_close_points.hpp"
+#include "viennagridpp/ntree.hpp"
+#include "viennagridpp/algorithm/geometry.hpp"
 
 namespace viennamesh
 {
@@ -26,34 +28,80 @@ namespace viennamesh
 
     double merge_distance = get_required_input<double>("merge_distance")();
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
+    typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementIteratorType;
 
-    std::vector<ElementType> new_vertices;
     ConstElementRangeType vertices( input_mesh(), 0 );
+    info(1) << "Old vertex count = " << vertices.size() << std::endl;
+
+
+//     OLD IMPLEMENTATION
+//
+//     std::vector<ElementType> new_vertices;
+//     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+//     {
+//       PointType p = viennagrid::get_point(*vit);
+//
+//       std::vector<ElementType>::iterator nvit = new_vertices.begin();
+//       for (; nvit != new_vertices.end(); ++nvit)
+//       {
+//         if (viennagrid::norm_2(p - viennagrid::get_point(*nvit)) < merge_distance )
+//         {
+//           new_vertices.push_back(*nvit);
+//           break;
+//         }
+//       }
+//
+//       if (nvit == new_vertices.end())
+//         new_vertices.push_back( viennagrid::make_vertex(output_mesh(), p) );
+//     }
+
+
+    // build up ntree
+    std::pair<PointType, PointType> bb = viennagrid::bounding_box( input_mesh() );
+    PointType center = (bb.first + bb.second)/2;
+    PointType size = bb.second - bb.first;
+
+    typedef viennagrid::ntree_node<ElementType> NodeType;
+    boost::shared_ptr<NodeType> root( new NodeType( center-size/2*1.1 , center+size/2*1.1 ) );
+
+    int element_per_node = 10;
+    for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
+      root->add( viennagrid::vertex_with_distance_wrapper<ElementType>(*vit, merge_distance),
+                 element_per_node,
+                 vertices.size()/element_per_node);
+
+    // create new vertices
+    std::vector<ElementType> new_vertices( vertices.size() );
     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
       PointType p = viennagrid::get_point(*vit);
 
-      std::vector<ElementType>::iterator nvit = new_vertices.begin();
-      for (; nvit != new_vertices.end(); ++nvit)
+      viennagrid_int new_vertex_id = (*vit).id();
+      NodeType * node = root->get(p);
+      for (std::size_t i = 0; i != node->elements().size(); ++i)
       {
-        if (viennagrid::norm_2(p - viennagrid::get_point(*nvit)) < merge_distance )
+        if (viennagrid::norm_2(p - viennagrid::get_point(node->elements()[i])) < merge_distance )
         {
-          new_vertices.push_back(*nvit);
-          break;
+          if ( node->elements()[i].id() < new_vertex_id )
+          {
+            new_vertex_id = node->elements()[i].id();
+            break;
+          }
         }
       }
 
-      if (nvit == new_vertices.end())
-        new_vertices.push_back( viennagrid::make_vertex(output_mesh(), p) );
+      if ( new_vertex_id == (*vit).id() )
+        new_vertices[(*vit).id()] = viennagrid::make_vertex(output_mesh(), p);
+      else
+        new_vertices[(*vit).id()] = new_vertices[new_vertex_id];
     }
 
-
+    // create cell for new mesh using merged vertices
     ConstElementRangeType cells( input_mesh(), viennagrid::cell_dimension(input_mesh()) );
     for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
     {
@@ -69,6 +117,7 @@ namespace viennamesh
       viennagrid::make_element( output_mesh(), (*cit).tag(), local_vertices.begin(), local_vertices.end() );
     }
 
+    info(1) << "New vertex count = " << viennagrid::vertices(output_mesh()).size() << std::endl;
     set_output( "mesh", output_mesh );
 
     return true;

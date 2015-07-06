@@ -146,10 +146,10 @@ namespace viennamesh
     int region_count = reference_mesh().region_count();
 
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
-    typedef viennagrid::result_of::cell_range<MeshType>::type CellRangeType;
-    typedef viennagrid::result_of::iterator<CellRangeType>::type CellRangeIterator;
+    typedef viennagrid::mesh                                        MeshType;
+    typedef viennagrid::result_of::element<MeshType>::type          ElementType;
+    typedef viennagrid::result_of::cell_range<MeshType>::type       CellRangeType;
+    typedef viennagrid::result_of::iterator<CellRangeType>::type    CellRangeIterator;
 
 
     MeshType tmp;
@@ -171,10 +171,10 @@ namespace viennamesh
       if ( region.get(*cit) != NOT_SPECIFIED )
         continue;
 
-      point_t pt_a = viennagrid::get_point( viennagrid::vertices(*cit)[0] );
-      point_t pt_b = viennagrid::get_point( viennagrid::vertices(*cit)[1] );
-      point_t pt_c = viennagrid::get_point( viennagrid::vertices(*cit)[2] );
-      point_t pt_d = viennagrid::get_point( viennagrid::vertices(*cit)[3] );
+      point pt_a = viennagrid::get_point( viennagrid::vertices(*cit)[0] );
+      point pt_b = viennagrid::get_point( viennagrid::vertices(*cit)[1] );
+      point pt_c = viennagrid::get_point( viennagrid::vertices(*cit)[2] );
+      point pt_d = viennagrid::get_point( viennagrid::vertices(*cit)[3] );
 
       std::vector<double> weights(region_count+1, 0.0);
       for (int i = 0; i < sample_count(); ++i)
@@ -192,7 +192,7 @@ namespace viennamesh
           d = static_cast<double>(rand())/RAND_MAX;
         }
 
-        point_t sample_point = (a*pt_a + b*pt_b + c*pt_c + d*pt_d) / (a+b+c+d);
+        point sample_point = (a*pt_a + b*pt_b + c*pt_c + d*pt_d) / (a+b+c+d);
 
         std::vector<int> local_hits(region_count, 0);
         int total_local_hits = 0;

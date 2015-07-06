@@ -582,10 +582,10 @@ namespace viennamesh
 
   bool multi_material_marching_cubes::run(viennamesh::algorithm_handle &)
   {
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
-    typedef viennagrid::result_of::region<MeshType>::type RegionType;
+    typedef viennagrid::mesh                                    MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type        PointType;
+    typedef viennagrid::result_of::element<MeshType>::type      ElementType;
+    typedef viennagrid::result_of::region<MeshType>::type       RegionType;
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
