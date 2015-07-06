@@ -13,10 +13,61 @@
 =============================================================================== */
 
 #include <list>
+#include <boost/config/posix_features.hpp>
 #include "viennameshpp/algorithm_pipeline.hpp"
 
 namespace viennamesh
 {
+
+
+
+
+
+
+  void algorithm_pipeline_element::change_log_levels()
+  {
+    if (info_log_level >= 0)
+    {
+      int tmp;
+      viennamesh_log_get_info_level(&tmp);
+      viennamesh_log_set_info_level(info_log_level);
+      info_log_level = tmp;
+    }
+
+    if (error_log_level >= 0)
+    {
+      int tmp;
+      viennamesh_log_get_error_level(&tmp);
+      viennamesh_log_set_error_level(error_log_level);
+      error_log_level = tmp;
+    }
+
+    if (warning_log_level >= 0)
+    {
+      int tmp;
+      viennamesh_log_get_warning_level(&tmp);
+      viennamesh_log_set_warning_level(warning_log_level);
+      warning_log_level = tmp;
+    }
+
+    if (debug_log_level >= 0)
+    {
+      int tmp;
+      viennamesh_log_get_debug_level(&tmp);
+      viennamesh_log_set_debug_level(debug_log_level);
+      debug_log_level = tmp;
+    }
+
+    if (stack_log_level >= 0)
+    {
+      int tmp;
+      viennamesh_log_get_stack_level(&tmp);
+      viennamesh_log_set_stack_level(stack_log_level);
+      stack_log_level = tmp;
+    }
+  }
+
+
 
   std::list<std::string> split_string_brackets( std::string const & str, std::string const & delimiter )
   {
@@ -74,12 +125,10 @@ namespace viennamesh
   bool algorithm_pipeline::add_algorithm( pugi::xml_node const & algorithm_node )
   {
     pugi::xml_attribute algorithm_name_attribute = algorithm_node.attribute("name");
-    if ( algorithm_name_attribute.empty() )
-    {
-      error(1) << "Algorithm has no name attribute" << std::endl;
-      return false;
-    }
-    std::string algorithm_name = algorithm_name_attribute.as_string();
+
+    std::string algorithm_name;
+    if ( !algorithm_name_attribute.empty() )
+      algorithm_name = algorithm_name_attribute.as_string();
 
     pugi::xml_attribute algorithm_id_attribute = algorithm_node.attribute("id");
     if ( algorithm_id_attribute.empty() )
@@ -89,10 +138,10 @@ namespace viennamesh
     }
     std::string algorithm_id = algorithm_id_attribute.as_string();
 
-    algorithm_handle algorithm;
+    algorithm_pipeline_element pipeline_element(algorithm_name);
     try
     {
-      algorithm = context.make_algorithm( algorithm_id );
+      pipeline_element.algorithm = context.make_algorithm( algorithm_id );
     }
     catch (viennamesh::exception const & ex)
     {
@@ -100,25 +149,59 @@ namespace viennamesh
       return false;
     }
 
+    {
+      pugi::xml_attribute algorithm_info_log_level_attribute = algorithm_node.attribute("info_log_level");
+      if ( !algorithm_info_log_level_attribute.empty() )
+        pipeline_element.info_log_level = boost::lexical_cast<int>( algorithm_info_log_level_attribute.as_string() );
+    }
+
+    {
+      pugi::xml_attribute algorithm_error_log_level_attribute = algorithm_node.attribute("error_log_level");
+      if ( !algorithm_error_log_level_attribute.empty() )
+        pipeline_element.error_log_level = boost::lexical_cast<int>( algorithm_error_log_level_attribute.as_string() );
+    }
+
+    {
+      pugi::xml_attribute algorithm_warning_log_level_attribute = algorithm_node.attribute("warning_log_level");
+      if ( !algorithm_warning_log_level_attribute.empty() )
+        pipeline_element.warning_log_level = boost::lexical_cast<int>( algorithm_warning_log_level_attribute.as_string() );
+    }
+
+    {
+      pugi::xml_attribute algorithm_debug_log_level_attribute = algorithm_node.attribute("warning_debug_level");
+      if ( !algorithm_debug_log_level_attribute.empty() )
+        pipeline_element.debug_log_level = boost::lexical_cast<int>( algorithm_debug_log_level_attribute.as_string() );
+    }
+
+    {
+      pugi::xml_attribute algorithm_stack_log_level_attribute = algorithm_node.attribute("warning_stack_level");
+      if ( !algorithm_stack_log_level_attribute.empty() )
+        pipeline_element.stack_log_level = boost::lexical_cast<int>( algorithm_stack_log_level_attribute.as_string() );
+    }
+
+
+
+
+    algorithm_handle & algorithm = pipeline_element.algorithm;
     if (!algorithm.valid())
     {
       error(1) << "Algorithm with id \"" << algorithm_id << "\" creation from factory failed" << std::endl;
       return false;
     }
 
+
     pugi::xml_node default_source_algorithm_node = algorithm_node.child("default_source");
     if (default_source_algorithm_node)
     {
-      std::string default_source_algorithm = default_source_algorithm_node.text().as_string();
+      std::string default_source_algorithm_name = default_source_algorithm_node.text().as_string();
 
-      std::map<std::string, algorithm_handle>::iterator ait = algorithms.find( default_source_algorithm );
-      if (ait == algorithms.end())
-      {
-        error(1) << "Default source algorithm \"" << default_source_algorithm << "\" was not found" << std::endl;
+      algorithm_pipeline_element * default_source_element = get_element( default_source_algorithm_name );
+      if (!default_source_element)
         return false;
-      }
 
-      algorithm.set_default_source( ait->second );
+      algorithm.set_default_source( default_source_element->algorithm );
+      ++(default_source_element->reference_count);
+      pipeline_element.referenced_elements.push_back( default_source_element );
     }
 
 
@@ -180,20 +263,18 @@ namespace viennamesh
         }
         else if (parameter_type == "point")
         {
-//           point_t point = boost::lexical_cast<point_t>(parameter_value);
-//           data_handle<viennamesh_point> point_handle = context.make_data<point_t>(point);
-          algorithm.push_back_input( parameter_name, boost::lexical_cast<point_t>(parameter_value) );
+          algorithm.push_back_input( parameter_name, boost::lexical_cast<point>(parameter_value) );
         }
         else if ((parameter_type == "points") || (parameter_type == "matrix"))
         {
           std::list<std::string> split_mappings = split_string_brackets( parameter_value, "," );
-          point_container_t points;
+          point_container points;
           for (std::list<std::string>::const_iterator sit = split_mappings.begin();
                                                       sit != split_mappings.end();
                                                     ++sit)
-            points.push_back( boost::lexical_cast<point_t>(*sit) );
+            points.push_back( boost::lexical_cast<point>(*sit) );
 
-          data_handle<viennamesh_point> point_handle = context.make_data<point_t>(points);
+          data_handle<viennamesh_point> point_handle = context.make_data<point>(points);
 
           algorithm.set_input( parameter_name, point_handle );
         }
@@ -209,55 +290,26 @@ namespace viennamesh
 
           std::list<std::string>::const_iterator it = split_mappings.begin();
 
-          std::cout << "seed point to point: " << *it << std::endl;
-          point_t p = boost::lexical_cast<point_t>( *it );
+//           std::cout << "seed point to point: " << *it << std::endl;
+          point p = boost::lexical_cast<point>( *it );
           ++it;
-          std::cout << "seed point to region id: " << *it << std::endl;
+//           std::cout << "seed point to region id: " << *it << std::endl;
           viennagrid_int region_id = boost::lexical_cast<viennagrid_int>( *it );
 
-          algorithm.push_back_input( parameter_name, seed_point_t(p, region_id) );
-
-
-//           std::list<std::string> split_mappings = split_string_brackets( parameter_value, ";" );
-//           seed_point_container_t seed_points;
-//           for (std::list<std::string>::const_iterator sit = split_mappings.begin();
-//                                                       sit != split_mappings.end();
-//                                                     ++sit)
-//           {
-//             std::list<std::string> from_to = split_string_brackets( *sit, "," );
-//
-//             if (from_to.size() != 2)
-//             {
-//               error(1) << "String to seed point container conversion: an entry has no point and no region id: " << *sit << std::endl;
-//               return false;
-//             }
-//
-//             std::list<std::string>::const_iterator it = from_to.begin();
-//
-//             std::string point_string = *it;
-//             ++it;
-//             std::string segment_id = *it;
-//
-//             point_t point = boost::lexical_cast<point_t>(point_string);
-//             seed_points.push_back( std::make_pair(point, boost::lexical_cast<int>(segment_id)) );
-//           }
-//
-//           data_handle<viennamesh_seed_point> seed_point_handle = context.make_data<seed_point_t>(seed_points);
-//           algorithm.set_input( parameter_name, seed_point_handle );
+          algorithm.push_back_input( parameter_name, seed_point(p, region_id) );
         }
         else if (parameter_type == "dynamic")
         {
           std::string source_algorithm_name = parameter_value.substr( 0, parameter_value.find("/") );
           std::string source_parameter_name = parameter_value.substr( parameter_value.find("/")+1 );
 
-          std::map<std::string, algorithm_handle>::iterator ait = algorithms.find( source_algorithm_name );
-          if (ait == algorithms.end())
-          {
-            error(1) << "Dynamic parameter \"" << parameter_name << "\": algorithm \"" << source_algorithm_name << "\" was not found" << std::endl;
+          algorithm_pipeline_element * default_source_element = get_element( source_algorithm_name );
+          if (!default_source_element)
             return false;
-          }
 
-          algorithm.link_input( parameter_name, ait->second, source_parameter_name );
+          algorithm.link_input( parameter_name, default_source_element->algorithm, source_parameter_name );
+          ++(default_source_element->reference_count);
+          pipeline_element.referenced_elements.push_back( default_source_element );
         }
         else
         {
@@ -268,17 +320,7 @@ namespace viennamesh
 
     }
 
-
-    std::pair<AlgorithmMapType::iterator, bool> result =
-      algorithms.insert( std::make_pair(algorithm_name, algorithm) );
-
-    if (!result.second)
-    {
-      error(1) << "Duplicated algorithm with \"" << algorithm_name << "\" and id \"" << algorithm_id << "\n" << std::endl;
-      return false;
-    }
-
-    algorithm_order.push_back( result.first );
+    algorithms.push_back( pipeline_element );
 
     return true;
   }
@@ -300,12 +342,45 @@ namespace viennamesh
     return true;
   }
 
-  bool algorithm_pipeline::run()
+  bool algorithm_pipeline::run(bool cleanup_after_algorithm_step)
   {
-    for (std::vector<AlgorithmMapType::iterator>::iterator ait = algorithm_order.begin(); ait != algorithm_order.end(); ++ait)
+    for (std::list<algorithm_pipeline_element>::iterator it = algorithms.begin(); it != algorithms.end(); ++it)
     {
-      if (!(*ait)->second.run())
-        return false;
+      algorithm_pipeline_element & pe = *it;
+
+      pe.change_log_levels();
+
+      {
+        std::string stack_name = "Running algorithm";
+        if (!pe.name.empty())
+          stack_name += " \"" + pe.name + "\"";
+        stack_name += " (id = \"" + pe.algorithm.id() + "\")";
+
+        viennamesh::LoggingStack stack(stack_name);
+        if (!pe.algorithm.run())
+          return false;
+      }
+
+      if (cleanup_after_algorithm_step)
+      {
+        for (std::size_t i = 0; i != pe.referenced_elements.size(); ++i)
+          --(pe.referenced_elements[i]->reference_count);
+
+        for (std::list<algorithm_pipeline_element>::iterator it2 = algorithms.begin(); it2 != it;)
+        {
+          if ((*it2).reference_count <= 0)
+          {
+            (*it2).algorithm.clear_inputs();
+            (*it2).algorithm.clear_outputs();
+//             std::cout << "CLEAR ALGORITHM " << (*it2).name << std::endl;
+            it2 = algorithms.erase(it2);
+          }
+          else
+            ++it2;
+        }
+      }
+
+      pe.change_log_levels();
     }
 
     return true;
@@ -319,8 +394,32 @@ namespace viennamesh
 
   void algorithm_pipeline::set_base_path( std::string const & path )
   {
-    for (AlgorithmMapType::iterator ait = algorithms.begin(); ait != algorithms.end(); ++ait)
-      (*ait).second.set_base_path(path);
+    for (std::list<algorithm_pipeline_element>::iterator it = algorithms.begin(); it != algorithms.end(); ++it)
+      (*it).algorithm.set_base_path(path);
+  }
+
+
+  algorithm_pipeline_element * algorithm_pipeline::get_element(std::string const & algorithm_name)
+  {
+    algorithm_pipeline_element * result = 0;
+    for (std::list<algorithm_pipeline_element>::iterator it = algorithms.begin(); it != algorithms.end(); ++it)
+    {
+      if ( (*it).name == algorithm_name )
+      {
+        if (result)
+        {
+          error(1) << "Algorithm name \"" << algorithm_name << "\" is ambiguous" << std::endl;
+          return 0;
+        }
+
+        result = &(*it);
+      }
+    }
+
+    if (!result)
+      error(1) << "Algorithm with name \"" << algorithm_name << "\" was not found" << std::endl;
+
+    return result;
   }
 
 

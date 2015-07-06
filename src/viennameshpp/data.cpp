@@ -76,13 +76,13 @@ namespace viennamesh
 
 
 
-  // viennagrid::mesh_t
-  viennagrid::mesh_t to_cpp(viennagrid_mesh & src)
+  // viennagrid::mesh
+  viennagrid::mesh to_cpp(viennagrid_mesh & src)
   {
-    return viennagrid::mesh_t(src);
+    return viennagrid::mesh(src);
   }
 
-  void to_c(viennagrid::mesh_t const & src, viennagrid_mesh & dst)
+  void to_c(viennagrid::mesh const & src, viennagrid_mesh & dst)
   {
     viennagrid_mesh_hierarchy mh;
     viennagrid_mesh_mesh_hierarchy_get(dst, &mh);
@@ -109,18 +109,18 @@ namespace viennamesh
   }
 
 
-  // viennagrid::point_t
-  viennagrid::point_t to_cpp(viennamesh_point & src)
+  // viennagrid::point
+  viennagrid::point to_cpp(viennamesh_point & src)
   {
     double * values;
     int size;
     viennamesh_point_get(src, &values, &size);
-    viennagrid::point_t result(size);
+    viennagrid::point result(size);
     std::copy(values, values+size, &result[0]);
     return result;
   }
 
-  void to_c(viennagrid::point_t const & src, viennamesh_point & dst)
+  void to_c(viennagrid::point const & src, viennamesh_point & dst)
   {
     viennamesh_point_delete(dst);
     viennamesh_point_make(&dst);
@@ -128,19 +128,19 @@ namespace viennamesh
   }
 
 
-  // viennagrid::seed_point_t
-  seed_point_t to_cpp(viennamesh_seed_point & src)
+  // viennagrid::seed_point
+  seed_point to_cpp(viennamesh_seed_point & src)
   {
     double * values;
     int size;
     int region;
     viennamesh_seed_point_get(src, &values, &size, &region);
-    viennagrid::point_t result(size);
+    viennagrid::point result(size);
     std::copy(values, values+size, &result[0]);
     return std::make_pair(result, region);
   }
 
-  void to_c(seed_point_t const & src, viennamesh_seed_point & dst)
+  void to_c(seed_point const & src, viennamesh_seed_point & dst)
   {
     viennamesh_seed_point_delete(dst);
     viennamesh_seed_point_make(&dst);

@@ -524,12 +524,9 @@ namespace viennamesh
 
 
     base_functor::function_type from_xml(pugi::xml_node const & node,
-                                         viennagrid::const_mesh_t const & mesh,
+                                         viennagrid::const_mesh const & mesh,
                                          std::string const & base_path)
     {
-//       typedef viennagrid::const_mesh_t MeshType;
-//       typedef viennagrid::result_of::point<MeshType>::type PointType;
-
       std::string name = node.name();
 
       if (name == "constant")
@@ -708,7 +705,7 @@ namespace viennamesh
     }
 
     base_functor::function_type from_xml(std::string const & xml_string,
-                                         viennagrid::const_mesh_t const & mesh,
+                                         viennagrid::const_mesh const & mesh,
                                          std::string const & base_path)
     {
       pugi::xml_document sf_xml;
@@ -717,7 +714,7 @@ namespace viennamesh
     }
 
     base_functor::function_type from_xmlfile(std::string const & xml_filename,
-                                             viennagrid::const_mesh_t const & mesh,
+                                             viennagrid::const_mesh const & mesh,
                                              std::string const & base_path)
     {
       pugi::xml_document sf_xml;
