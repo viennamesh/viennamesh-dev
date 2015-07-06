@@ -24,7 +24,7 @@ namespace viennamesh
     output.pointlist = new REAL[ vertex_count * 3 ];
 
     viennagrid_numeric * coords;
-    viennagrid_plc_point_pointer(plc, &coords);
+    viennagrid_plc_vertex_coords_pointer(plc, &coords);
     std::copy( coords, coords+vertex_count*3, output.pointlist );
 
 
@@ -78,7 +78,7 @@ namespace viennamesh
 
     viennagrid_numeric * hole_points;
     viennagrid_int hole_point_count;
-    viennagrid_plc_hole_points_get(plc, &hole_points, &hole_point_count);
+    viennagrid_plc_volumetric_hole_points_get(plc, &hole_points, &hole_point_count);
 
     output.numberofholes = hole_point_count;
     if (output.numberofholes > 0)
@@ -114,9 +114,9 @@ namespace viennamesh
 
 
 
-  viennamesh_error convert(viennagrid::mesh_t const & input, tetgen::mesh & output)
+  viennamesh_error convert(viennagrid::mesh const & input, tetgen::mesh & output)
   {
-    typedef viennagrid::mesh_t ViennaGridMeshType;
+    typedef viennagrid::mesh ViennaGridMeshType;
 
     typedef viennagrid::result_of::const_element<ViennaGridMeshType>::type ConstVertexType;
     typedef viennagrid::result_of::const_element<ViennaGridMeshType>::type ConstCellType;
@@ -185,11 +185,11 @@ namespace viennamesh
 
 
 
-  viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh_t & output)
+  viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh & output)
   {
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::element<MeshType>::type VertexType;
-    typedef viennagrid::result_of::element<MeshType>::type CellType;
+    typedef viennagrid::mesh                                    MeshType;
+    typedef viennagrid::result_of::element<MeshType>::type      VertexType;
+    typedef viennagrid::result_of::element<MeshType>::type      CellType;
 
     std::vector<VertexType> vertex_handles(input.numberofpoints);
 
@@ -233,12 +233,12 @@ namespace viennamesh
 
   template<>
   viennamesh_error internal_convert<viennagrid_mesh, tetgen::mesh>(viennagrid_mesh const & input, tetgen::mesh & output)
-  { return convert( viennagrid::mesh_t(input), output ); }
+  { return convert( viennagrid::mesh(input), output ); }
 
   template<>
   viennamesh_error internal_convert<tetgen::mesh, viennagrid_mesh>(tetgen::mesh const & input, viennagrid_mesh & output)
   {
-    viennagrid::mesh_t output_pp(output);
+    viennagrid::mesh output_pp(output);
     return convert( input, output_pp );
   }
 

@@ -32,8 +32,8 @@ namespace viennamesh
   }
 
   viennamesh_error convert(viennagrid_plc input, tetgen::mesh & output);
-  viennamesh_error convert(viennagrid::mesh_t const & input, tetgen::mesh & output);
-  viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh_t & output);
+  viennamesh_error convert(viennagrid::mesh const & input, tetgen::mesh & output);
+  viennamesh_error convert(tetgen::mesh const & input, viennagrid::mesh & output);
 
   template<>
   viennamesh_error internal_convert<viennagrid_plc, tetgen::mesh>(viennagrid_plc const & input, tetgen::mesh & output);

@@ -38,7 +38,7 @@ namespace viennamesh
 
     bool should_tetrahedron_be_refined_function(double * tet_p0, double * tet_p1, double * tet_p2, double * tet_p3, double * , double)
     {
-      typedef viennagrid::point_t PointType;
+      typedef viennagrid::point PointType;
 
       PointType p0 = viennagrid::make_point( tet_p0[0], tet_p0[1], tet_p0[2]);
       PointType p1 = viennagrid::make_point( tet_p1[0], tet_p1[1], tet_p1[2]);
@@ -146,8 +146,8 @@ namespace viennamesh
 
     void make_mesh_impl(tetgen::mesh const & input,
                         tetgen::mesh & output,
-                        point_container_t const & hole_points,
-                        seed_point_container_t const & seed_points,
+                        point_container const & hole_points,
+                        seed_point_container const & seed_points,
                         tetgenbehavior options)
     {
       tetgenio & tmp = (tetgenio&)(input);
@@ -260,17 +260,13 @@ namespace viennamesh
 
     template<typename SizingFunctionRepresentationT>
     sizing_function::base_functor::function_type make_sizing_function(tetgen::mesh const & mesh,
-                                            point_container_t const & hole_points,
-                                            seed_point_container_t const & seed_points,
+                                            point_container const & hole_points,
+                                            seed_point_container const & seed_points,
                                             SizingFunctionRepresentationT const & sf,
                                             std::string const & base_path)
     {
-      typedef viennagrid::mesh_t MeshType;
+      typedef viennagrid::mesh MeshType;
       MeshType simple_mesh;
-//       typedef viennagrid::tetrahedral_3d_segmentation SegmentationType;
-
-//       typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
-//       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
       tetgenbehavior options;
       options.zeroindex = 1;
@@ -389,8 +385,7 @@ namespace viennamesh
 
 
 
-      point_container_t hole_points;
-//       extract hole points from input interface
+      point_container hole_points;
       if (input_hole_points.valid())
       {
         hole_points = input_hole_points.get_vector();
@@ -401,8 +396,7 @@ namespace viennamesh
         hole_points.push_back( viennagrid::make_point(im.holelist[3*i+0], im.holelist[3*i+1], im.holelist[3*i+2]) );
 
 
-      seed_point_container_t seed_points;
-      // seed points from input interface
+      seed_point_container seed_points;
       if (input_seed_points.valid())
       {
         seed_points = input_seed_points.get_vector();
