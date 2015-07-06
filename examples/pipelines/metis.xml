@@ -1,19 +1,20 @@
-<algorithm id="mesh_reader" category="mesh" name="input">
+<algorithm type="plc_reader" name="input">
   <parameter name="filename" type="string">../data/cube.poly</parameter>
 </algorithm>
 
-<algorithm id="tetgen_make_mesh" name="mesher">
+<algorithm type="tetgen_make_mesh" name="mesher">
   <default_source>input</default_source>
 
   <parameter type="double" name="cell_size">1.0</parameter>
 </algorithm>
 
-<algorithm id="metis_mesh_partitioning" name="metis">
+<algorithm type="metis_mesh_partitioning" name="metis">
   <default_source>mesher</default_source>
   <parameter type="int" name="region_count">3</parameter>
+<!--   <parameter type="bool" name="multi_mesh_output">1</parameter> -->
 </algorithm>
 
-<algorithm id="mesh_writer" name="output">
+<algorithm type="mesh_writer" name="output">
   <default_source>metis</default_source>
   <parameter name="filename" type="string">partitioned_cube.vtu</parameter>
 </algorithm>

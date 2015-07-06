@@ -1,9 +1,9 @@
-<algorithm id="mesh_reader" category="mesh" name="input">
+<algorithm type="plc_reader" category="mesh" name="input">
 <!--   <parameter name="filename" type="string">cube_with_tunnel.poly</parameter> -->
   <parameter name="filename" type="string">../data/big_and_small_cube.poly</parameter>
 </algorithm>
 
-<algorithm id="tetgen_make_mesh" name="mesher">
+<algorithm type="tetgen_make_mesh" name="mesher">
   <default_source>input</default_source>
 <!--   <parameter name="default" type="dynamic">input/default</parameter> -->
 <!--   <parameter name="seed_points" type="dynamic">input/seed_points</parameter> -->
@@ -12,7 +12,7 @@
   <parameter type="double" name="cell_size">100.0</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output">
+<algorithm type="mesh_writer" name="output">
   <default_source>mesher</default_source>
 <!--   <parameter name="default" type="dynamic">mesher/default</parameter> -->
 
@@ -20,7 +20,7 @@
 </algorithm>
 
 
-<algorithm id="hyperplane_clip" name="clip">
+<algorithm type="hyperplane_clip" name="clip">
   <default_source>mesher</default_source>
 <!--   <parameter name="default" type="dynamic">input/default</parameter> -->
 <!--   <parameter name="seed_points" type="dynamic">input/seed_points</parameter> -->
@@ -30,7 +30,7 @@
   <parameter type="point" name="hyperplane_normal">(0,1,1)</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output2">
+<algorithm type="mesh_writer" name="output2">
   <default_source>clip</default_source>
 <!--   <parameter name="default" type="dynamic">mesher/default</parameter> -->
 

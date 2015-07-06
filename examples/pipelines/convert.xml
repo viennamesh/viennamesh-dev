@@ -1,8 +1,8 @@
-<algorithm id="mesh_reader" name="input">
+<algorithm type="mesh_reader" name="input">
   <parameter name="filename" type="string">../data/cube48.mesh</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output">
+<algorithm type="mesh_writer" name="output">
   <default_source>input</default_source>
   <parameter name="filename" type="string">cube.vtu</parameter>
 </algorithm>

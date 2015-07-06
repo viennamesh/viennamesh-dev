@@ -1,31 +1,31 @@
-<algorithm id="mesh_reader" name="input">
+<algorithm type="mesh_reader" name="input">
   <parameter name="filename" type="string">../data/big_and_small_cube.poly</parameter>
 </algorithm>
 
-<algorithm id="triangle_make_hull" name="hull_mesher">
+<algorithm type="triangle_make_hull" name="hull_mesher">
   <default_source>input</default_source>
 </algorithm>
 
-<algorithm id="seed_point_segmenting" name="segmenting">
+<algorithm type="seed_point_segmenting" name="segmenting">
   <default_source>hull_mesher</default_source>
   <parameter name="seed_points" type="dynamic">input/seed_points</parameter>
 </algorithm>
 
-<algorithm id="vgmodeler_adapt_hull" name="adapt_hull">
+<algorithm type="vgmodeler_adapt_hull" name="adapt_hull">
   <default_source>segmenting</default_source>
   <parameter name="cell_size" type="double">5.0</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output1">
+<algorithm type="mesh_writer" name="output1">
   <default_source>adapt_hull</default_source>
   <parameter name="filename" type="string">adapted_hull.vtu</parameter>
 </algorithm>
 
-<algorithm id="netgen_make_mesh" name="mesh">
+<algorithm type="netgen_make_mesh" name="mesh">
   <default_source>adapt_hull</default_source>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output2">
+<algorithm type="mesh_writer" name="output2">
   <default_source>mesh</default_source>
   <parameter name="filename" type="string">meshed_volume.vtu</parameter>
 </algorithm>

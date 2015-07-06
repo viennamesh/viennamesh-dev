@@ -1,15 +1,15 @@
-<algorithm id="mesh_reader" name="input">
+<algorithm type="mesh_reader" name="input">
   <parameter name="filename" type="string">../data/cross_2d_brep.vtu</parameter>
 </algorithm>
 
-<algorithm id="triangle_make_mesh" name="mesher">
+<algorithm type="triangle_make_mesh" name="mesher">
   <default_source>input</default_source>
 
   <parameter name="cell_size" type="double">1.0</parameter>
   <parameter name="delaunay" type="bool">false</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output">
+<algorithm type="mesh_writer" name="output">
   <default_source>mesher</default_source>
   <parameter name="filename" type="string">cross_delaunay.vtu</parameter>
 </algorithm>
