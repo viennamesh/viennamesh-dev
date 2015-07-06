@@ -11,15 +11,13 @@
 int main()
 {
   viennamesh::context_handle context;
-//   context.load_plugins_in_directory(VIENNAMESH_DEFAULT_PLUGIN_DIRECTORY);
 
 
-  typedef viennagrid::mesh_t MeshType;
+  typedef viennagrid::mesh MeshType;
   viennamesh::data_handle<viennagrid_mesh> mesh = context.make_data<viennagrid_mesh>();
-//   MeshType mesh;
 
-  typedef viennagrid::result_of::point<MeshType>::type PointType;
-  typedef viennagrid::result_of::element<MeshType>::type VertexType;
+  typedef viennagrid::result_of::point<MeshType>::type    PointType;
+  typedef viennagrid::result_of::element<MeshType>::type  VertexType;
 
   std::vector<PointType> points;
   std::vector<VertexType> vertices;
