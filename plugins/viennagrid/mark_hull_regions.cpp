@@ -9,27 +9,27 @@ namespace viennamesh
 {
 
 
-  template<typename IteratorT>
-  IteratorT circular_next(IteratorT it, IteratorT const & begin, IteratorT const & end)
-  {
-    if (it == end)
-      it = begin;
-
-    ++it;
-    if (it == end)
-      return begin;
-    return it;
-  }
-
-  template<typename IteratorT>
-  IteratorT circular_prev(IteratorT it, IteratorT begin, IteratorT end)
-  {
-    if (it == begin)
-      it = end;
-
-    --it;
-    return it;
-  }
+//   template<typename IteratorT>
+//   IteratorT circular_next(IteratorT it, IteratorT const & begin, IteratorT const & end)
+//   {
+//     if (it == end)
+//       it = begin;
+//
+//     ++it;
+//     if (it == end)
+//       return begin;
+//     return it;
+//   }
+//
+//   template<typename IteratorT>
+//   IteratorT circular_prev(IteratorT it, IteratorT begin, IteratorT end)
+//   {
+//     if (it == begin)
+//       it = end;
+//
+//     --it;
+//     return it;
+//   }
 
 
 
@@ -206,7 +206,6 @@ namespace viennamesh
         error(1) << "Line " << *lit << " has less than 2 co-boundary triangles" << std::endl;
         for (ConstCoboundaryIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
           error(1) << "    " << *tit << std::endl;
-
 
         VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Topological error: one line has less than 2 co-boundary triangles");
       }
@@ -401,9 +400,9 @@ namespace viennamesh
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::region<MeshType>::type RegionType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::mesh                                  MeshType;
+    typedef viennagrid::result_of::region<MeshType>::type     RegionType;
+    typedef viennagrid::result_of::element<MeshType>::type    ElementType;
 
 
     std::vector<int> positive_orientation_regions( viennagrid::cells(input_mesh()).size(), -1 );

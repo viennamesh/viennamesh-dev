@@ -30,7 +30,7 @@ namespace viennamesh
     data_handle<double> line_size = get_required_input<double>("line_size");
     data_handle<viennagrid_plc> output_plc = make_data<viennagrid_plc>();
 
-    viennagrid_plc_refine_lines( input_plc(), output_plc(), line_size() );
+    viennagrid_plc_line_refine( input_plc(), output_plc(), line_size() );
 
     set_output( "geometry", output_plc );
     return true;

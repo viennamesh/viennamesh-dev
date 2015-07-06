@@ -44,8 +44,8 @@ namespace viennamesh
 
 
 
-  viennamesh_error convert(viennagrid::mesh_t const & input, triangulateio & output);
-  viennamesh_error convert(triangulateio const & input, viennagrid::mesh_t & output);
+  viennamesh_error convert(viennagrid::mesh const & input, triangulateio & output);
+  viennamesh_error convert(triangulateio const & input, viennagrid::mesh & output);
 
   template<>
   viennamesh_error internal_convert<viennagrid_mesh, triangle_mesh>(viennagrid_mesh const & input, triangle_mesh & output);

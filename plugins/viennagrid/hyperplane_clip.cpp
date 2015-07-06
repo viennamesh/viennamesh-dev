@@ -68,8 +68,8 @@ namespace viennamesh
 
     int point_dimension = viennagrid::geometric_dimension( input_mesh() );
 
-    point_t hyperplane_point = input_hyperplane_point();
-    point_t hyperplane_normal = input_hyperplane_normal();
+    point hyperplane_point = input_hyperplane_point();
+    point hyperplane_normal = input_hyperplane_normal();
 
     if ( hyperplane_point.size() != hyperplane_normal.size() )
       return false;
@@ -91,7 +91,7 @@ namespace viennamesh
 
     viennagrid::hyperplane_refine(input_mesh(), tmp(), hyperplane_point, hyperplane_normal, 1e-8 );
     viennagrid::copy( tmp(), output_mesh(),
-                      on_positive_hyperplane_side_functor<point_t, double>(hyperplane_point, -hyperplane_normal, 1e-8) );
+                      on_positive_hyperplane_side_functor<point, double>(hyperplane_point, -hyperplane_normal, 1e-8) );
 
     set_output( "mesh", output_mesh );
 

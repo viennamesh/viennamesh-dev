@@ -18,21 +18,20 @@ namespace viennamesh
 {
   template<bool mesh_is_const>
   void merge_meshes_impl(viennagrid::base_mesh<mesh_is_const> const & src_mesh,
-                         viennagrid::mesh_t const & dst_mesh,
+                         viennagrid::mesh const & dst_mesh,
                          double tolerance, bool region_offset)
   {
     viennagrid::result_of::element_copy_map<>::type copy_map(dst_mesh, tolerance, false);
 
-    typedef viennagrid::base_mesh<mesh_is_const> SrcMeshType;
-//     typedef viennagrid::mesh_t DstMeshType;
+    typedef viennagrid::base_mesh<mesh_is_const>                                    SrcMeshType;
 
-    typedef typename viennagrid::result_of::element<SrcMeshType>::type CellType;
+    typedef typename viennagrid::result_of::element<SrcMeshType>::type              CellType;
 
-    typedef typename viennagrid::result_of::const_cell_range<SrcMeshType>::type ConstCellRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+    typedef typename viennagrid::result_of::const_cell_range<SrcMeshType>::type     ConstCellRangeType;
+    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type      ConstCellIteratorType;
 
-    typedef typename viennagrid::result_of::region_range<SrcMeshType>::type SrcRegionRangeType;
-    typedef typename viennagrid::result_of::iterator<SrcRegionRangeType>::type SrcRegionRangeIterator;
+    typedef typename viennagrid::result_of::region_range<SrcMeshType>::type         SrcRegionRangeType;
+    typedef typename viennagrid::result_of::iterator<SrcRegionRangeType>::type      SrcRegionRangeIterator;
 
     int region_id_offset = dst_mesh.region_count();
     int source_region_count = src_mesh.region_count();

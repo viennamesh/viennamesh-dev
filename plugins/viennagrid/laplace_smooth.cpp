@@ -19,15 +19,15 @@ namespace viennamesh
 {
   // http://en.wikipedia.org/wiki/Laplacian_smoothing
   // http://graphics.stanford.edu/courses/cs468-12-spring/LectureSlides/06_smoothing.pdf
-  void laplace_smooth_impl( viennagrid::mesh_t const & mesh, viennagrid_numeric lambda )
+  void laplace_smooth_impl( viennagrid::mesh const & mesh, viennagrid_numeric lambda )
   {
-    typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::mesh                                        MeshType;
 
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type VertexType;
+    typedef viennagrid::result_of::point<MeshType>::type            PointType;
+    typedef viennagrid::result_of::element<MeshType>::type          VertexType;
 
-    typedef viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
-    typedef viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
+    typedef viennagrid::result_of::vertex_range<MeshType>::type     VertexRangeType;
+    typedef viennagrid::result_of::iterator<VertexRangeType>::type  VertexIteratorType;
 
     viennagrid_dimension dim = viennagrid::geometric_dimension(mesh);
 
@@ -95,15 +95,15 @@ namespace viennamesh
   }
 
 
-  void hull_laplace_smooth_impl( viennagrid::mesh_t const & mesh, viennagrid_numeric lambda )
+  void hull_laplace_smooth_impl( viennagrid::mesh const & mesh, viennagrid_numeric lambda )
   {
-    typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::mesh                                            MeshType;
 
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type VertexType;
+    typedef viennagrid::result_of::point<MeshType>::type                PointType;
+    typedef viennagrid::result_of::element<MeshType>::type              VertexType;
 
-    typedef viennagrid::result_of::vertex_range<MeshType>::type VertexRangeType;
-    typedef viennagrid::result_of::iterator<VertexRangeType>::type VertexIteratorType;
+    typedef viennagrid::result_of::vertex_range<MeshType>::type         VertexRangeType;
+    typedef viennagrid::result_of::iterator<VertexRangeType>::type      VertexIteratorType;
 
     viennagrid_dimension dim = viennagrid::geometric_dimension(mesh);
 
@@ -191,7 +191,7 @@ namespace viennamesh
       viennagrid::copy( input_mesh(), output_mesh() );
 
 
-    function< void(viennagrid::mesh_t const &) > smooth_function;
+    function< void(viennagrid::mesh const &) > smooth_function;
     if (geometric_dimension == 3 && cell_dimension == 2)
     {
       info(1) << "Geometric dimension == 3 and cell dimension == 2 -> using hull laplacian smoothing" << std::endl;

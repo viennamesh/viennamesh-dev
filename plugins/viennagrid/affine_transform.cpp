@@ -30,8 +30,8 @@ namespace viennamesh
 
     int geometric_dimension = viennagrid::geometric_dimension( input_mesh() );
 
-    viennagrid::point_t translate = input_translate();
-    std::vector<viennagrid::point_t> matrix_rows;
+    viennagrid::point translate = input_translate();
+    std::vector<viennagrid::point> matrix_rows;
     for (int i = 0; i != input_matrix.size(); ++i)
       matrix_rows.push_back( input_matrix(i) );
 

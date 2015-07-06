@@ -23,10 +23,9 @@ namespace viennamesh
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
-    typedef viennagrid::mesh_t MeshType;
-//     typedef viennagrid::result_of::region<MeshType>::type RegionType;
-    typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
-    typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
+    typedef viennagrid::mesh                                          MeshType;
+    typedef viennagrid::result_of::region_range<MeshType>::type       RegionRangeType;
+    typedef viennagrid::result_of::iterator<RegionRangeType>::type    RegionRangeIterator;
 
     RegionRangeType regions( input_mesh() );
     if (regions.size() <= 1)

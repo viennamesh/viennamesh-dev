@@ -45,14 +45,14 @@ namespace viennamesh
       maxlen = (dalen > oalen) ? dalen : oalen;
       maxlen = (odlen > maxlen) ? odlen : maxlen;
 
-      viennagrid::point_t pt(2);
+      viennagrid::point pt(2);
       pt[0] = (triorg[0] + tridest[0] + triapex[0]) / 3;
       pt[1] = (triorg[1] + tridest[1] + triapex[1]) / 3;
 
 
 
 
-      boost::array<viennagrid::point_t, 4> sample_points;
+      boost::array<viennagrid::point, 4> sample_points;
       sample_points[0] = viennagrid::make_point(triorg[0], triorg[1]);
       sample_points[1] = viennagrid::make_point(tridest[0], tridest[1]);
       sample_points[2] = viennagrid::make_point(triapex[0], triapex[1]);
@@ -90,8 +90,8 @@ namespace viennamesh
 
     void make_mesh_impl(triangle_mesh const & input,
                         triangle_mesh & output,
-                        point_container_t const & hole_points,
-                        seed_point_container_t const & seed_points,
+                        point_container const & hole_points,
+                        seed_point_container const & seed_points,
                         std::string options)
     {
       triangulateio tmp = *input;
@@ -198,17 +198,13 @@ namespace viennamesh
 
     template<typename SizingFunctionRepresentationT>
     sizing_function::base_functor::function_type make_sizing_function(triangle_mesh const & mesh,
-                                                                    point_container_t const & hole_points,
-                                                                    seed_point_container_t const & seed_points,
-                                                                    SizingFunctionRepresentationT const & sf,
-                                                                    std::string const & base_path)
+                                                                      point_container const & hole_points,
+                                                                      seed_point_container const & seed_points,
+                                                                      SizingFunctionRepresentationT const & sf,
+                                                                      std::string const & base_path)
     {
-      typedef viennagrid::mesh_t MeshType;
+      typedef viennagrid::mesh MeshType;
       MeshType simple_mesh;
-//       typedef viennagrid::triangular_2d_segmentation SegmentationType;
-
-//       typedef viennagrid::segmented_mesh<MeshType, SegmentationType> SegmentedMeshType;
-//       viennamesh::result_of::parameter_handle<SegmentedMeshType>::type simple_mesh = viennamesh::make_parameter<SegmentedMeshType>();
 
       std::string options = "zpQ";
       triangle_mesh tmp_mesh;
@@ -282,8 +278,7 @@ namespace viennamesh
 
       triangle_mesh im = input_mesh();
 
-      point_container_t hole_points;
-//       extract hole points from input interface
+      point_container hole_points;
       if (input_hole_points.valid())
       {
         hole_points = input_hole_points.get_vector();
@@ -294,8 +289,7 @@ namespace viennamesh
         hole_points.push_back( viennagrid::make_point(im->holelist[2*i+0], im->holelist[2*i+1]) );
 
 
-      seed_point_container_t seed_points;
-//       seed points from input interface
+      seed_point_container seed_points;
       if (input_seed_points.valid())
       {
         seed_points = input_seed_points.get_vector();

@@ -28,16 +28,16 @@ namespace viennamesh
 
 
 
-  viennamesh_error convert(viennagrid::mesh_t const & input, triangulateio & output)
+  viennamesh_error convert(viennagrid::mesh const & input, triangulateio & output)
   {
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::const_element<MeshType>::type ConstVertexType;
+    typedef viennagrid::mesh                                              MeshType;
+    typedef viennagrid::result_of::const_element<MeshType>::type          ConstVertexType;
 
-    typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRangeType;
-    typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexIteratorType;
+    typedef viennagrid::result_of::const_vertex_range<MeshType>::type     ConstVertexRangeType;
+    typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type   ConstVertexIteratorType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType,1>::type ConstLineRangeType;
-    typedef viennagrid::result_of::iterator<ConstLineRangeType>::type ConstCellIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType,1>::type  ConstLineRangeType;
+    typedef viennagrid::result_of::iterator<ConstLineRangeType>::type     ConstCellIteratorType;
 
     std::map<ConstVertexType, int> vertex_handle_to_tetgen_index_map;
 
@@ -68,13 +68,12 @@ namespace viennamesh
   }
 
 
-  viennamesh_error convert(triangulateio const & input, viennagrid::mesh_t & output)
+  viennamesh_error convert(triangulateio const & input, viennagrid::mesh & output)
   {
-    typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::mesh                                    MeshType;
 
-//     typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type VertexType;
-    typedef viennagrid::result_of::element<MeshType>::type CellType;
+    typedef viennagrid::result_of::element<MeshType>::type      VertexType;
+    typedef viennagrid::result_of::element<MeshType>::type      CellType;
 
     std::vector<VertexType> vertex_handles(input.numberofpoints);
 
@@ -108,12 +107,12 @@ namespace viennamesh
 
   template<>
   viennamesh_error internal_convert<viennagrid_mesh, triangle_mesh>(viennagrid_mesh const & input, triangle_mesh & output)
-  { return convert( viennagrid::mesh_t(input), *output ); }
+  { return convert( viennagrid::mesh(input), *output ); }
 
   template<>
   viennamesh_error internal_convert<triangle_mesh, viennagrid_mesh>(triangle_mesh const & input, viennagrid_mesh & output)
   {
-    viennagrid::mesh_t output_pp(output);
+    viennagrid::mesh output_pp(output);
     return convert( *input, output_pp );
   }
 

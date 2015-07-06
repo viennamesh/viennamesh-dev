@@ -29,9 +29,9 @@ namespace viennamesh
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
-    std::pair<point_t, point_t> bounding_box = viennagrid::bounding_box( input_mesh() );
-    point_t ll = bounding_box.first;
-    point_t ur = bounding_box.second;
+    std::pair<point, point> bounding_box = viennagrid::bounding_box( input_mesh() );
+    point ll = bounding_box.first;
+    point ur = bounding_box.second;
 
     if (border_x.valid())
     {
@@ -56,9 +56,9 @@ namespace viennamesh
     info(1) << "UR = " << ur << std::endl;
 
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type VertexType;
+    typedef viennagrid::mesh                                  MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type      PointType;
+    typedef viennagrid::result_of::element<MeshType>::type    VertexType;
 
     mesh_handle output_mesh = make_data<mesh_handle>();
 

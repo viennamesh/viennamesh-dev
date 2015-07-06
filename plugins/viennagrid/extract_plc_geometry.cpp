@@ -162,12 +162,12 @@ namespace viennamesh
 
     for (int i = 0; i < lowest_plc_id; ++i)
     {
-      std::vector<point_t> hole_points_3d;
+      std::vector<point> hole_points_3d;
       {
         // extract PLC hole points
         typedef typename viennagrid::result_of::element_id<MeshType>::type VertexIDType;
         std::map<VertexIDType, int> vertex_to_point_index;
-        std::vector<point_t> plc_points_3d;
+        std::vector<point> plc_points_3d;
 
         for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
         {
@@ -188,14 +188,14 @@ namespace viennamesh
           }
         }
 
-        std::vector<point_t> plc_points_2d( plc_points_3d.size() );
+        std::vector<point> plc_points_2d( plc_points_3d.size() );
         viennagrid::plane_to_2d_projector<PointType> projection_functor;
         projection_functor.init( plc_points_3d.begin(), plc_points_3d.end(), 1e-6 );
         projection_functor.project( plc_points_3d.begin(), plc_points_3d.end(), plc_points_2d.begin() );
 
 
 
-        typedef viennagrid::mesh_t Triangular2DMeshType;
+        typedef viennagrid::mesh Triangular2DMeshType;
         typedef viennagrid::result_of::element<Triangular2DMeshType>::type Vertex2DType;
 
         Triangular2DMeshType mesh2d;
@@ -216,7 +216,7 @@ namespace viennamesh
           }
         }
 
-        std::vector<point_t> hole_points_2d;
+        std::vector<point> hole_points_2d;
         viennagrid::extract_hole_points( mesh2d, hole_points_2d );
 
 
@@ -226,7 +226,6 @@ namespace viennamesh
 
 
       // extract PLC lines
-//       std::vector<LineType> plc_line_handles;
       std::map<ElementType, viennagrid_int> plc_vertices;
       std::set< std::pair<ElementType, ElementType> > plc_lines;
 
@@ -294,7 +293,7 @@ namespace viennamesh
       viennagrid_int facet_id;
       viennagrid_plc_facet_create(plc, &line_ids[0], line_ids.size(), &facet_id);
 
-      for (std::vector<point_t>::const_iterator hpit = hole_points_3d.begin(); hpit != hole_points_3d.end(); ++hpit)
+      for (std::vector<point>::const_iterator hpit = hole_points_3d.begin(); hpit != hole_points_3d.end(); ++hpit)
       {
         viennagrid_plc_facet_hole_point_add(plc, facet_id, &(*hpit)[0]);
       }
@@ -356,7 +355,7 @@ namespace viennamesh
                         viennagrid_plc output_plc,
                         NumericConfigT numeric_config)
   {
-    typedef viennagrid::point_t PointType;
+    typedef viennagrid::point PointType;
 
     std::map<viennagrid_int, viennagrid_int> vertex_copy_map;
 
@@ -416,7 +415,7 @@ namespace viennamesh
       {
         viennagrid_int tmp;
         viennagrid_numeric * coords;
-        viennagrid_plc_point_get(plc, first, &coords);
+        viennagrid_plc_vertex_coords_get(plc, first, &coords);
         viennagrid_plc_vertex_create(output_plc, coords, &tmp);
         new_first_it = vertex_copy_map.insert( std::make_pair(first, tmp) ).first;
       }
@@ -426,7 +425,7 @@ namespace viennamesh
       {
         viennagrid_int tmp;
         viennagrid_numeric * coords;
-        viennagrid_plc_point_get(plc, second, &coords);
+        viennagrid_plc_vertex_coords_get(plc, second, &coords);
         viennagrid_plc_vertex_create(output_plc, coords, &tmp);
         new_second_it = vertex_copy_map.insert( std::make_pair(second, tmp) ).first;
       }
@@ -494,7 +493,7 @@ namespace viennamesh
     data_handle<viennagrid_plc> output_plc = make_data<viennagrid_plc>();
 
 
-    typedef same_segments_functor<viennagrid::const_mesh_t> Functor1Type;
+    typedef same_segments_functor<viennagrid::const_mesh> Functor1Type;
     typedef same_orientation_functor<double> Functor2Type;
 
     Functor1Type f1(input_mesh());

@@ -31,8 +31,8 @@ namespace viennamesh
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    point_container_t hole_points;
-    seed_point_container_t seed_points;
+    point_container hole_points;
+    seed_point_container seed_points;
 
     viennagrid::extract_boundary( input_mesh(), output_mesh() );
     viennagrid::extract_seed_points( input_mesh(), seed_points );
@@ -43,10 +43,10 @@ namespace viennamesh
     if (!hole_points.empty())
     {
       info(1) << "Extracted " << hole_points.size() << " hole points" << std::endl;
-      for (point_container_t::const_iterator it = hole_points.begin(); it != hole_points.end(); ++it)
+      for (point_container::const_iterator it = hole_points.begin(); it != hole_points.end(); ++it)
         info(1) << "   " << *it << std::endl;
 
-      point_handle output_hole_points = make_data<point_t>();
+      point_handle output_hole_points = make_data<point>();
       output_hole_points.set( hole_points );
       set_output( "hole_points", output_hole_points );
     }
@@ -54,11 +54,11 @@ namespace viennamesh
     if (!seed_points.empty())
     {
       info(1) << "Extracted " << seed_points.size() << " seed points" << std::endl;
-      for (seed_point_container_t::const_iterator it = seed_points.begin(); it != seed_points.end(); ++it)
+      for (seed_point_container::const_iterator it = seed_points.begin(); it != seed_points.end(); ++it)
         info(1) << "   " << (*it).first << " -> " << (*it).second << std::endl;
 
 
-      seed_point_handle output_seed_points = make_data<seed_point_t>();
+      seed_point_handle output_seed_points = make_data<seed_point>();
       output_seed_points.set( seed_points );
       set_output( "seed_points", output_seed_points );
     }

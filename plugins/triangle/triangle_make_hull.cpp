@@ -61,12 +61,12 @@ namespace viennamesh
     {
       triangulateio plc;
 
-      std::vector<point_t> hole_points_2d;
+      std::vector<point> hole_points_2d;
 
       std::vector<int> global_vertex_ids;
 //       std::vector<int> region_ids;
 
-      viennagrid::plane_to_2d_projector<point_t> projection_functor;
+      viennagrid::plane_to_2d_projector<point> projection_functor;
     };
 
     class mesh_3d
@@ -75,7 +75,7 @@ namespace viennamesh
       mesh_3d() : region_count(1) {}
 
       std::vector<cell_3d> cells;
-      std::vector<point_t> vertex_points_3d;
+      std::vector<point> vertex_points_3d;
 
       int region_count;
     };
@@ -95,8 +95,8 @@ namespace viennamesh
 
       viennamesh::triangle::init_points( output.plc, vertex_count );
 
-      std::vector<point_t> plc_points_3d( vertex_count );
-      std::vector<point_t> plc_points_2d( vertex_count );
+      std::vector<point> plc_points_3d( vertex_count );
+      std::vector<point> plc_points_2d( vertex_count );
 
       int index = 0;
       for (viennagrid_int * vit = vertices_begin; vit != vertices_end; ++vit, ++index)
@@ -123,7 +123,7 @@ namespace viennamesh
       viennagrid_int hole_point_count;
       viennagrid_plc_facet_hole_points_get(plc, facet_id, &hole_points, &hole_point_count);
 
-      std::vector<point_t> hole_points_3d(hole_point_count);
+      std::vector<point> hole_points_3d(hole_point_count);
       for (viennagrid_int i = 0; i != hole_point_count; ++i)
       {
         hole_points_3d[i].resize(geometric_dimension);
@@ -204,14 +204,14 @@ namespace viennamesh
       return VIENNAMESH_SUCCESS;
     }
 
-    viennamesh_error convert(triangle::mesh_3d const & input_, viennagrid::mesh_t const & output)
+    viennamesh_error convert(triangle::mesh_3d const & input_, viennagrid::mesh const & output)
     {
       triangle::mesh_3d const & input = input_;
 
-      typedef viennagrid::mesh_t MeshType;
+      typedef viennagrid::mesh                                  MeshType;
 
-      typedef viennagrid::result_of::point<MeshType>::type PointType;
-      typedef viennagrid::result_of::element<MeshType>::type ElementType;
+      typedef viennagrid::result_of::point<MeshType>::type      PointType;
+      typedef viennagrid::result_of::element<MeshType>::type    ElementType;
 
       std::vector<ElementType> vertices(input.vertex_points_3d.size());
 
@@ -294,10 +294,10 @@ namespace viennamesh
         info(1) << "Line count of original mesh: " << line_count << std::endl;
 
         viennagrid_plc refined_plc;
-        viennagrid_plc_make(&refined_plc);
-        viennagrid_plc_refine_lines( input_plc(), refined_plc, cell_size() );
+        viennagrid_plc_create(&refined_plc);
+        viennagrid_plc_line_refine( input_plc(), refined_plc, cell_size() );
         convert( refined_plc, triangle_3d_input_mesh );
-        viennagrid_plc_delete(refined_plc);
+        viennagrid_plc_release(refined_plc);
 
         max_length = cell_size();
 
@@ -352,7 +352,7 @@ namespace viennamesh
         triangulateio cur_tmp = triangle_3d_input_mesh.cells[i].plc;
         REAL * tmp_holelist = NULL;
 
-        std::vector<point_t> const & hole_points_2d = triangle_3d_input_mesh.cells[i].hole_points_2d;
+        std::vector<point> const & hole_points_2d = triangle_3d_input_mesh.cells[i].hole_points_2d;
 
         if (!hole_points_2d.empty())
         {

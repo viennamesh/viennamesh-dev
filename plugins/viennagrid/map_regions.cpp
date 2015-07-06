@@ -20,23 +20,23 @@ namespace viennamesh
 {
   template<bool mesh_is_const, typename SegmentIDMapT>
   void map_regions_impl(viennagrid::base_mesh<mesh_is_const> const & src_mesh,
-                         viennagrid::mesh_t const & dst_mesh,
-                         SegmentIDMapT const & region_id_map)
+                        viennagrid::mesh const & dst_mesh,
+                        SegmentIDMapT const & region_id_map)
   {
-    typedef viennagrid::base_mesh<mesh_is_const> SrcMeshType;
-    typedef viennagrid::mesh_t DstMeshType;
+    typedef viennagrid::base_mesh<mesh_is_const>                                  SrcMeshType;
+    typedef viennagrid::mesh                                                      DstMeshType;
 
     viennagrid::result_of::element_copy_map<>::type copy_map(dst_mesh, false);
 
-    typedef typename viennagrid::result_of::const_cell_range<SrcMeshType>::type ConstCellRangeType;
-    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+    typedef typename viennagrid::result_of::const_cell_range<SrcMeshType>::type   ConstCellRangeType;
+    typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type    ConstCellIteratorType;
 
-    typedef typename viennagrid::result_of::region_range<SrcMeshType>::type SrcRegionRangeType;
-    typedef typename viennagrid::result_of::iterator<SrcRegionRangeType>::type SrcRegionRangeIterator;
-    typedef typename viennagrid::result_of::region_id<SrcMeshType>::type SrcRegionIDType;
-    typedef typename viennagrid::result_of::region_id<DstMeshType>::type DstRegionIDType;
+    typedef typename viennagrid::result_of::region_range<SrcMeshType>::type       SrcRegionRangeType;
+    typedef typename viennagrid::result_of::iterator<SrcRegionRangeType>::type    SrcRegionRangeIterator;
+    typedef typename viennagrid::result_of::region_id<SrcMeshType>::type          SrcRegionIDType;
+    typedef typename viennagrid::result_of::region_id<DstMeshType>::type          DstRegionIDType;
 
-    typedef typename viennagrid::result_of::element<DstMeshType>::type CellType;
+    typedef typename viennagrid::result_of::element<DstMeshType>::type            CellType;
 
     std::map<SrcRegionIDType, std::string> region_id_name_map;
     std::map<std::string, DstRegionIDType> region_name_id_map;

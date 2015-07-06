@@ -27,11 +27,11 @@ namespace viennamesh
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
+    typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
 
-    typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRangeType;
-    typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
+    typedef viennagrid::result_of::const_vertex_range<MeshType>::type       ConstVertexRangeType;
+    typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type     ConstVertexRangeIterator;
 
 
     viennagrid::copy( input_mesh(), output_mesh() );
