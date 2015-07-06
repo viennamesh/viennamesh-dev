@@ -12,10 +12,10 @@ namespace boost
   {
     namespace ublas
     {
-      viennagrid::point_t prod(ublas::matrix<double> const & mat, viennagrid::point_t const & vec)
+      viennagrid::point prod(ublas::matrix<double> const & mat, viennagrid::point const & vec)
       {
         assert(mat.size2() == vec.size());
-        viennagrid::point_t result( mat.size1() );
+        viennagrid::point result( mat.size1() );
         for (std::size_t row = 0; row != mat.size2(); ++row)
         {
           result[row] = 0.0;
@@ -31,7 +31,7 @@ namespace boost
 
 namespace viennamesh
 {
-  void from_spherical(double theta, double phi, double r, point_t & result)
+  void from_spherical(double theta, double phi, double r, point & result)
   {
     result.resize(3);
     result[0] = r * std::sin(theta) * std::cos(phi);
@@ -39,7 +39,7 @@ namespace viennamesh
     result[2] = r * std::cos(theta);
   }
 
-  void to_spherical(point_t const & p, double & theta, double & phi, double & r)
+  void to_spherical(point const & p, double & theta, double & phi, double & r)
   {
     r = std::sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
     theta = std::acos( p[2] / r );
@@ -84,7 +84,7 @@ namespace viennamesh
 
 
   // http://de.wikipedia.org/wiki/Drehmatrix#Drehmatrizen_des_Raumes_R.C2.B3
-  ublas::matrix<double> rotation(point_t axis, double alpha)
+  ublas::matrix<double> rotation(point axis, double alpha)
   {
     axis /= viennagrid::norm_2(axis);
 
@@ -114,7 +114,7 @@ namespace viennamesh
 
   std::pair<double, double> prod(ublas::matrix<double> const & rot, double theta, double phi)
   {
-    point_t pt;
+    point pt;
     from_spherical(theta, phi, 1.0, pt);
     pt = ublas::prod(rot, pt);
 

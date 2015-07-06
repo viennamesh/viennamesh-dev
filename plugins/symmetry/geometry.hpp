@@ -108,7 +108,7 @@ namespace viennamesh
 
 
   template<bool mesh_is_const>
-  double distance(viennagrid::base_mesh<mesh_is_const> const & mesh, viennagrid::point_t const & pt)
+  double distance(viennagrid::base_mesh<mesh_is_const> const & mesh, viennagrid::point const & pt)
   {
     typedef viennagrid::base_mesh<mesh_is_const> MeshType;
 

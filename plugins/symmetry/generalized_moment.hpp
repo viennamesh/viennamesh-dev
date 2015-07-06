@@ -233,12 +233,12 @@ namespace viennamesh
     base_static_C() : call_count_(0) {}
     virtual ~base_static_C<T>() {}
     virtual T operator()(double x, double y, double z) const = 0;
-    T operator()(point_t const & s) const
+    T operator()(point const & s) const
     {
       return (*this)(s[0], s[1], s[2]);
     }
 
-    virtual T integrate(viennagrid::element_t const & element, double relative_error, double absolute_error, int max_iterations) const = 0;
+    virtual T integrate(viennagrid::element const & element, double relative_error, double absolute_error, int max_iterations) const = 0;
 
     int call_count() const { return call_count_; }
 
@@ -268,7 +268,7 @@ namespace viennamesh
                std::pow(1.0/2.0, m) * (1.0 / std::sqrt(2));
     }
 
-    T integrate(viennagrid::element_t const & element, double relative_error, double absolute_error, int max_iterations) const
+    T integrate(viennagrid::element const & element, double relative_error, double absolute_error, int max_iterations) const
     {
       return viennamesh::integrate(element, *this, relative_error, absolute_error, max_iterations);
     }
@@ -381,7 +381,7 @@ namespace viennamesh
 
     typedef double NumericType;
     typedef polynom<double> PolynomType;
-    typedef viennagrid::point_t PointType;
+    typedef viennagrid::point PointType;
 
     typedef NumericType result_type;
 
@@ -463,7 +463,7 @@ namespace viennamesh
 
     typedef double result_type;
 
-    double operator()(point_t const & s) const
+    double operator()(point const & s) const
     {
       assert(two_l%2 == 0);
       assert(two_p%2 == 0);
@@ -531,8 +531,8 @@ namespace viennamesh
 
   template<typename T, bool mesh_is_const>
   T C(int two_l, int m, int two_p,
-      viennagrid::base_mesh<mesh_is_const> const & mesh,
-      double relative_integrate_tolerance, double absolute_integrate_tolerance, int max_integrate_iterations)
+      viennagrid::base_mesh<mesh_is_const> const & mesh)
+//   , double relative_integrate_tolerance, double absolute_integrate_tolerance, int max_integrate_iterations)
   {
     typedef viennagrid::base_mesh<mesh_is_const> MeshType;
     typedef typename viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRange;
@@ -602,8 +602,8 @@ namespace viennamesh
 
     template<typename MeshT>
     GeneralizedMoment(int two_p_,
-            MeshT const & mesh,
-            double relative_integrate_tolerance, double absolute_integrate_tolerance, int max_integrate_iterations)
+            MeshT const & mesh)
+//             double relative_integrate_tolerance, double absolute_integrate_tolerance, int max_integrate_iterations)
     {
       assert(two_p_ % 2 == 0);
       set_p(two_p_/2);
@@ -611,10 +611,11 @@ namespace viennamesh
       for (int l = 0; l <= p(); ++l)
         for (int m = -2*l; m <= 2*l; ++m)
         {
-          values[l][m+2*l] = viennamesh::C<CT>(2*l, m, 2*p(), mesh,
-                                               relative_integrate_tolerance,
-                                               absolute_integrate_tolerance,
-                                               max_integrate_iterations);
+          values[l][m+2*l] = viennamesh::C<CT>(2*l, m, 2*p(), mesh);
+//                                                 ,
+//                                                relative_integrate_tolerance,
+//                                                absolute_integrate_tolerance,
+//                                                max_integrate_iterations);
 
 //           std::cout << "C(" << 2*l << "," << m << ") = " << values[l][m+2*l] << std::endl;
         }
@@ -635,7 +636,7 @@ namespace viennamesh
       return real(sum);
     }
 
-    double operator()(point_t const & pt) const
+    double operator()(point const & pt) const
     {
       double theta;
       double phi;
@@ -659,7 +660,7 @@ namespace viennamesh
       return std::sqrt(d_theta*d_theta + d_phi*d_phi);
     }
 
-    double grad(point_t const & pt, double eps) const
+    double grad(point const & pt, double eps) const
     {
       double theta;
       double phi;
@@ -711,7 +712,7 @@ namespace viennamesh
       return tmp;
     }
 
-    GeneralizedMoment get_rotated(point_t new_z) const
+    GeneralizedMoment get_rotated(point new_z) const
     {
       double theta;
       double phi;
@@ -753,7 +754,7 @@ namespace viennamesh
       std::cout << "Rotation " << alpha << "   error = " << max_error << std::endl;
     }
 
-    void rotation_symmetry_angles(double tolerance) const
+    void rotation_symmetry_angles(/*double tolerance*/) const
     {
       for (int l = p(); l >= 0 ; --l)
       {
@@ -765,7 +766,7 @@ namespace viennamesh
 //           if (std::abs( C(2*l,m) ) > tolerance)
           {
             double angle = std::abs(2.0 / m * atan( C(2*l,-m) / C(2*l,m) ));
-            int frequency = 2*M_PI/angle + 0.5;
+//             int frequency = 2*M_PI/angle + 0.5;
 
 //             if ( (frequency > 1) && (std::abs(2*M_PI/angle-frequency) < tolerance) )
               std::cout << "(" << 2*l << "," << m << ") Found angle: " << angle << "      rot_frequ = " << 2*M_PI/angle << "      " << C(2*l,-m) <<

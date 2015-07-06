@@ -7,7 +7,7 @@ namespace viennamesh
 {
   template<bool mesh_is_const>
   bool check_mirror(viennagrid::base_mesh<mesh_is_const> const & mesh,
-                    viennagrid::point_t axis,
+                    viennagrid::point axis,
                     double tolerance)
   {
     axis /= viennagrid::norm_2(axis);
@@ -35,7 +35,7 @@ namespace viennamesh
 
   template<bool mesh_is_const>
   bool check_rotational(viennagrid::base_mesh<mesh_is_const> const & mesh,
-                        viennagrid::point_t axis, int frequency,
+                        viennagrid::point axis, int frequency,
                         double tolerance)
   {
     axis /= viennagrid::norm_2(axis);

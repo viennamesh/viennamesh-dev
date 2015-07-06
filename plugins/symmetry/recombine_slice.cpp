@@ -21,25 +21,27 @@
 
 #include "viennagridpp/algorithm/distance.hpp"
 #include "viennagridpp/algorithm/centroid.hpp"
+#include "viennagridpp/ntree.hpp"
+
+#include "viennautils/progress_tracker.hpp"
 
 
 namespace viennamesh
 {
 
-
-  void reflect(viennagrid::mesh_t const & input,
-               viennagrid::mesh_t const & output,
-               viennagrid::point_t const & centroid,
-               viennagrid::point_t const & normal,
+  void reflect(viennagrid::mesh const & input,
+               viennagrid::mesh const & output,
+               viennagrid::point const & centroid,
+               viennagrid::point const & normal,
                double tol)
   {
-    typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::mesh                                                MeshType;
 
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementIteratorType;
 
     std::map< ElementType, std::pair<ElementType,ElementType> > vertex_map;
 
@@ -61,8 +63,6 @@ namespace viennamesh
 
         ElementType nv0 = viennagrid::make_vertex( output, point );
         ElementType nv1 = viennagrid::make_vertex( output, reflected );
-
-//         std::cout << "Reflecting " << nv0 << " to " << nv1 << std::endl;
 
         vertex_map[*vit] = std::make_pair(nv0, nv1);
       }
@@ -95,64 +95,19 @@ namespace viennamesh
   }
 
 
-//   template<typename MeshT, typename PointT, typename NumericConfigT>
-//   void slice_normals(MeshT const & mesh, PointT axis, NumericConfigT tol,
-//                      PointT & N0, PointT & N1, int & rotational_frequency)
-//   {
-//     typedef typename viennagrid::result_of::point<MeshT>::type PointType;
-//     typedef typename viennagrid::result_of::coord<MeshT>::type CoordType;
-//
-//     axis.normalize();
-//     PointType X;
-//     PointType Y;
-//
-//     X = viennagrid::make_point(0,1,0);
-//     if ( std::abs(viennagrid::inner_prod(axis,X)) > 1.0- viennagrid::detail::absolute_tolerance<CoordType>(tol) )
-//       X = viennagrid::make_point(-1,0,0);
-//     X -= axis * viennagrid::inner_prod(axis,X);
-//     X.normalize();
-//
-//     Y = viennagrid::cross_prod(axis, X);
-//
-//     typedef typename viennagrid::result_of::const_element_range<MeshT>::type ConstElementRangeType;
-//     typedef typename viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
-//
-//
-//     double min_angle = 10.0;
-//     double max_angle = -10.0;
-//
-//     ConstElementRangeType vertices(mesh, 0);
-//     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-//     {
-//       PointT point = viennagrid::get_point(*vit);
-//
-//       CoordType x = viennagrid::inner_prod(point, X);
-//       CoordType y = viennagrid::inner_prod(point, Y);
-//       CoordType current_angle = std::atan2(y,x);
-//
-//       std::cout << "Vertex " << *vit << " has angle " << current_angle << std::endl;
-//
-//       min_angle = std::min(min_angle, current_angle);
-//       max_angle = std::max(max_angle, current_angle);
-//     }
-//
-//
-//     rotational_frequency = static_cast<int>(2*M_PI/(max_angle-min_angle)+0.5);
-//     N0 = rotate(X, axis, min_angle + M_PI/2);
-//     N1 = -rotate(X, axis, max_angle + M_PI/2);
-//
-//
-//     std::cout << "axis = " << axis << std::endl;
-//     std::cout << "X = " << X << std::endl;
-//     std::cout << "Y = " << Y << std::endl;
-//
-//     std::cout << "Found min_angle = " << min_angle << " normal = " << N0 << std::endl;
-//     std::cout << "Found max_angle = " << max_angle << " normal = " << N1 << std::endl;
-//     std::cout << "rotational_frequency = " << rotational_frequency << std::endl;
-//
-//
-// //     return std::make_pair(N0, N1);
-//   }
+
+
+
+
+  struct status_logging
+  {
+    void operator()(double percentage)
+    {
+      info(5) << "Status: " << percentage*100 << "%" << std::endl;
+    }
+  };
+
+
 
 
 
@@ -161,17 +116,17 @@ namespace viennamesh
 
   bool recombine_symmetric_slice::run(viennamesh::algorithm_handle &)
   {
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::region<MeshType>::type RegionType;
+    typedef viennagrid::mesh                                                          MeshType;
+    typedef viennagrid::result_of::region<MeshType>::type                             RegionType;
 
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::result_of::point<MeshType>::type                              PointType;
+    typedef viennagrid::result_of::element<MeshType>::type                            ElementType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type                ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type              ConstElementIteratorType;
 
-    typedef viennagrid::result_of::const_element_range<ElementType>::type ConstBoundaryElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstBoundaryElementRangeType>::type ConstBoundaryElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<ElementType>::type             ConstBoundaryElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstBoundaryElementRangeType>::type      ConstBoundaryElementIteratorType;
 
     double tol = 1e-6;
     if (get_input<double>("tolerance").valid())
@@ -187,7 +142,7 @@ namespace viennamesh
 
 
 
-    PointType axis = get_required_input<point_t>("axis")();
+    PointType axis = get_required_input<point>("axis")();
     axis.normalize();
 
 
@@ -209,19 +164,13 @@ namespace viennamesh
     MeshType tmp;
     if ( (rotational_frequency%2==0) && mirror_if_even )
     {
-//       mesh_handle output_mesh = make_data<mesh_handle>();
       reflect(input_mesh(), tmp, PointType(geometric_dimension), N[1], tol);
       rotational_frequency /= 2;
       angle *= 2;
       N[1] = -rotate(N[0], axis, angle);
-
-//       set_output("mesh", output_mesh);
-//       return true;
     }
     else
       tmp = input_mesh();
-
-
 
 
     info(1) << "Using rotational frequency " << rotational_frequency << std::endl;
@@ -229,9 +178,6 @@ namespace viennamesh
     info(1) << "Axis = " << axis << std::endl;
     info(1) << "Normal[0] = " << N[0] << std::endl;
     info(1) << "Normal[1] = " << N[1] << std::endl;
-//     info(1) << "Centroid = " << centroid << std::endl;
-
-//     slice_normals(tmp, axis, tol, N[0], N[1], rotational_frequency);
 
 
     ConstElementRangeType vertices( tmp, 0 );
@@ -265,26 +211,67 @@ namespace viennamesh
 
 
     {
-      std::vector<ElementType> reordered_vertices_on_plane1( vertices_on_plane1.size() );
+      PointType min = viennagrid::get_point( vertices_on_plane1[0] );
+      PointType max = viennagrid::get_point( vertices_on_plane1[0] );
+
+      for (std::size_t i1 = 1; i1 != vertices_on_plane1.size(); ++i1)
+      {
+        PointType p1 = viennagrid::get_point(vertices_on_plane1[i1]);
+        min = viennagrid::min(min, p1);
+        max = viennagrid::max(max, p1);
+      }
+
+      PointType center = (min+max)/2;
+      PointType size = max-min;
+
+      typedef viennagrid::ntree_node<ElementType> NodeType;
+      boost::shared_ptr<NodeType> root( new NodeType( center-size/2*1.1 , center+size/2*1.1 ) );
+      for (std::size_t i1 = 0; i1 != vertices_on_plane1.size(); ++i1)
+        root->add( viennagrid::element_wrapper<ElementType>(vertices_on_plane1[i1]), 10, vertices_on_plane1.size()/10 );
+
+      std::vector<ElementType> reordered_vertices_on_plane1( vertices_on_plane0.size() );
       for (std::size_t i0 = 0; i0 != vertices_on_plane0.size(); ++i0)
       {
-        for (std::size_t i1 = 0; i1 != vertices_on_plane1.size(); ++i1)
-        {
-          PointType p1 = viennagrid::get_point( vertices_on_plane1[i1] );
-          PointType p0 = viennagrid::get_point( vertices_on_plane0[i0] );
+        PointType p0 = viennagrid::get_point( vertices_on_plane0[i0] );
+        PointType rotated_p0 = rotate(p0, PointType(geometric_dimension), axis, angle);
 
-          if (viennagrid::detail::is_equal(tol,
-                                          rotate(p0, PointType(geometric_dimension), axis, angle),
-                                          p1) )
+        NodeType * node = root->get(rotated_p0);
+        for (std::size_t j = 0; j != node->elements().size(); ++j)
+        {
+          PointType p1 = viennagrid::get_point( node->elements()[j] );
+          if ( viennagrid::detail::is_equal(tol, rotated_p0, p1) )
           {
-            reordered_vertices_on_plane1[i0] = vertices_on_plane1[i1];
+            reordered_vertices_on_plane1[i0] = node->elements()[j];
             break;
           }
         }
-      }
 
-      vertices_on_plane1 = reordered_vertices_on_plane1;
+        vertices_on_plane1 = reordered_vertices_on_plane1;
+      }
     }
+
+
+//     {
+//       std::vector<ElementType> reordered_vertices_on_plane1( vertices_on_plane1.size() );
+//       for (std::size_t i0 = 0; i0 != vertices_on_plane0.size(); ++i0)
+//       {
+//         for (std::size_t i1 = 0; i1 != vertices_on_plane1.size(); ++i1)
+//         {
+//           PointType p1 = viennagrid::get_point( vertices_on_plane1[i1] );
+//           PointType p0 = viennagrid::get_point( vertices_on_plane0[i0] );
+//
+//           if (viennagrid::detail::is_equal(tol,
+//                                           rotate(p0, PointType(geometric_dimension), axis, angle),
+//                                           p1) )
+//           {
+//             reordered_vertices_on_plane1[i0] = vertices_on_plane1[i1];
+//             break;
+//           }
+//         }
+//       }
+//
+//       vertices_on_plane1 = reordered_vertices_on_plane1;
+//     }
 
 
 
@@ -352,8 +339,13 @@ namespace viennamesh
 
 
     ConstElementRangeType cells( tmp, viennagrid::cell_dimension(tmp) );
+    viennautils::progress_tracker<status_logging> tracker( cells.size(), 20, status_logging() );
+
+
     for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
     {
+      tracker.increase();
+
       std::vector<int> vertex_ids;
       ConstBoundaryElementRangeType vertices_on_cell(*cit, 0);
 

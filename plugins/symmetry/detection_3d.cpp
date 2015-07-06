@@ -83,11 +83,11 @@ namespace viennamesh
 
 
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef point_t PointType;
+    typedef viennagrid::mesh    MeshType;
+    typedef point               PointType;
 
-    typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRangeType;
-    typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type ConstVertexRangeIterator;
+    typedef viennagrid::result_of::const_vertex_range<MeshType>::type       ConstVertexRangeType;
+    typedef viennagrid::result_of::iterator<ConstVertexRangeType>::type     ConstVertexRangeIterator;
 
 
     double max_size = 0.0;
@@ -112,7 +112,8 @@ namespace viennamesh
 
     viennautils::Timer timer;
     timer.start();
-    RealGeneralizedMoment m_real(2*p(), mesh, relative_integrate_tolerance(), absolute_integrate_tolerance(), max_iteration_count());
+    RealGeneralizedMoment m_real(2*p(), mesh);
+//     , relative_integrate_tolerance(), absolute_integrate_tolerance(), max_iteration_count());
 
     info(1) << "After calculating generalized moment (!!! took " << timer.get() << "sec !!!)" << std::endl;
 
@@ -153,7 +154,8 @@ namespace viennamesh
 //     m_real.print();
 //     std::cout << std::endl;
     std::cout << "m_real hast mirror symmetry: " << std::boolalpha << m_real.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
-    m_real.rotation_symmetry_angles( rotational_symmetry_tolerance() );
+    m_real.rotation_symmetry_angles();
+    // rotational_symmetry_tolerance() );
     std::cout << std::endl;
 
 
@@ -165,14 +167,15 @@ namespace viennamesh
     {
       for (int i = 0; i != rotation_vector.size(); ++i)
       {
-        point_t new_z = rotation_vector(i);
+        point new_z = rotation_vector(i);
         std::cout << "Using rotation vector " << new_z << std::endl;
         RealGeneralizedMoment rotated_m = m_real.get_rotated(new_z);
 
 //         rotated_m.print();
 //         std::cout << std::endl;
         std::cout << "rotated_m (z = "<< new_z << ") hast mirror symmetry: " << std::boolalpha << rotated_m.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
-        rotated_m.rotation_symmetry_angles( rotational_symmetry_tolerance() );
+        rotated_m.rotation_symmetry_angles();
+//         rotated_m.rotation_symmetry_angles( rotational_symmetry_tolerance() );
         rotated_m.check_rotation_symmetry(M_PI);
 
         if (rotational_frequencies.valid())

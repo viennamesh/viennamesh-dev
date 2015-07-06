@@ -42,12 +42,12 @@ namespace viennamesh
 
   bool recombine_symmetric_slice_2d::run(viennamesh::algorithm_handle &)
   {
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementIteratorType;
 
     double tol = 1e-6;
 

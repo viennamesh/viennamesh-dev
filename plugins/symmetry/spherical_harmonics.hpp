@@ -385,7 +385,7 @@ namespace viennamesh
 
 
   template<typename T>
-  T D(int l, int m, int m_, point_t const & s)
+  T D(int l, int m, int m_, point const & s)
   {
     double s_theta;
     double s_phi;

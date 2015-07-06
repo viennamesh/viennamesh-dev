@@ -29,8 +29,8 @@ namespace viennamesh
 
   private:
 
-    mesh_handle cut(viennagrid::const_mesh_t const & mesh,
-                    viennagrid::point_t const & N,
+    mesh_handle cut(viennagrid::const_mesh const & mesh,
+                    viennagrid::point const & N,
                     double tolerance);
   };
 }

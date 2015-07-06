@@ -7,7 +7,7 @@ struct result;
 namespace viennamesh
 {
   template<typename F>
-  typename F::result_type integrate(viennagrid::element_t const & element,
+  typename F::result_type integrate(viennagrid::element const & element,
                                     viennagrid::triangle_tag,
                                     F const & f,
                                     int N)
@@ -16,9 +16,9 @@ namespace viennamesh
 
     typedef typename F::result_type ResultType;
 
-    point_t A = viennagrid::get_point(element, 0);
-    point_t B = viennagrid::get_point(element, 1);
-    point_t C = viennagrid::get_point(element, 2);
+    point A = viennagrid::get_point(element, 0);
+    point B = viennagrid::get_point(element, 1);
+    point C = viennagrid::get_point(element, 2);
 
     double base = N*3;
     ResultType result = 0.0;
@@ -45,7 +45,7 @@ namespace viennamesh
   }
 
   template<typename F>
-  typename F::result_type integrate(viennagrid::element_t const & element,
+  typename F::result_type integrate(viennagrid::element const & element,
                                     viennagrid::quadrilateral_tag,
                                     F const & f,
                                     int N)
@@ -54,10 +54,10 @@ namespace viennamesh
 
     typedef typename F::result_type ResultType;
 
-    point_t A = viennagrid::get_point(element, 0);
-    point_t B = viennagrid::get_point(element, 1);
-    point_t C = viennagrid::get_point(element, 2);
-    point_t D = viennagrid::get_point(element, 3);
+    point A = viennagrid::get_point(element, 0);
+    point B = viennagrid::get_point(element, 1);
+    point C = viennagrid::get_point(element, 2);
+    point D = viennagrid::get_point(element, 3);
 
     ResultType result = 0.0;
 
@@ -84,18 +84,18 @@ namespace viennamesh
 
 
   template<typename F>
-  typename F::result_type integrate(viennagrid::element_t const & element,
-                                 F const & f,
-                                 int N)
+  typename F::result_type integrate(viennagrid::element const & element,
+                                    F const & f,
+                                    int N)
   {
 //     return integrate(element, viennagrid::triangle_tag(), f, N);
 
 
     switch (element.tag().internal())
     {
-      case VIENNAGRID_ELEMENT_TAG_TRIANGLE:
+      case VIENNAGRID_ELEMENT_TYPE_TRIANGLE:
         return integrate(element, viennagrid::triangle_tag(), f, N);
-      case VIENNAGRID_ELEMENT_TAG_QUADRILATERAL:
+      case VIENNAGRID_ELEMENT_TYPE_QUADRILATERAL:
         return integrate(element, viennagrid::quadrilateral_tag(), f, N);
 
     }
@@ -106,9 +106,9 @@ namespace viennamesh
 
 
   template<typename F>
-  typename F::result_type integrate(viennagrid::element_t const & element,
-                                 F const & f,
-                                 double relative_error, double absolute_error, int max_iterations)
+  typename F::result_type integrate(viennagrid::element const & element,
+                                    F const & f,
+                                    double relative_error, double absolute_error, int max_iterations)
   {
     typedef typename F::result_type ResultType;
     ResultType prev_result = integrate(element, f, 1);

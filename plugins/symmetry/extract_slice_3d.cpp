@@ -38,9 +38,9 @@ namespace viennamesh
   class cut_hyperplane
   {
   public:
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::mesh                                  MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type      PointType;
+    typedef viennagrid::result_of::element<MeshType>::type    ElementType;
 
     cut_hyperplane(double tol_) : tol(tol_) {}
 
@@ -258,15 +258,15 @@ namespace viennamesh
     if (get_input<double>("tolerance").valid())
       tol = get_input<double>("tolerance")();
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::point<MeshType>::type PointType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementRangeIterator;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementRangeIterator;
 
 
-    PointType axis = get_required_input<point_t>("axis")();
+    PointType axis = get_required_input<point>("axis")();
     axis.normalize();
 
     int rotational_frequency = get_required_input<int>("rotational_frequency")();
@@ -279,7 +279,7 @@ namespace viennamesh
     N[0] -= axis * viennagrid::inner_prod(axis,N[0]);
     N[0].normalize();
 
-    N[1] = -rotate(N[0], point_t(geometric_dimension), axis, angle);
+    N[1] = -rotate(N[0], point(geometric_dimension), axis, angle);
 
 
     info(1) << "Using rotational frequency " << rotational_frequency << std::endl;
@@ -302,17 +302,17 @@ namespace viennamesh
 
 
 
-  extract_symmetric_slice_3d::mesh_handle extract_symmetric_slice_3d::cut(viennagrid::const_mesh_t const & mesh,
-                                                       viennagrid::point_t const & N,
-                                                       double tolerance)
+  extract_symmetric_slice_3d::mesh_handle extract_symmetric_slice_3d::cut(viennagrid::const_mesh const & mesh,
+                                                                          viennagrid::point const & N,
+                                                                          double tolerance)
   {
-    typedef viennagrid::mesh_t MeshType;
+    typedef viennagrid::mesh MeshType;
 
     mesh_handle tmp = make_data<mesh_handle>();
 //     MeshType plc_tmp;
 
     viennagrid_plc plc_tmp;
-    viennagrid_plc_make(&plc_tmp);
+    viennagrid_plc_create(&plc_tmp);
     viennagrid_plc_geometric_dimension_set(plc_tmp, 3);
 
     (cut_hyperplane(tolerance))(mesh, tmp(), plc_tmp, N);

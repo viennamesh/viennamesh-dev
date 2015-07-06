@@ -59,8 +59,8 @@ namespace viennamesh
 
 
 
-template<typename NumericConfigT>
-  double angle(viennagrid::point_t const & p, NumericConfigT nc)
+  template<typename NumericConfigT>
+  double angle(viennagrid::point const & p, NumericConfigT nc)
   {
     double a;
     if ( viennagrid::detail::is_equal(nc, p[0], 0.0) )
@@ -295,7 +295,7 @@ template<typename NumericConfigT>
 
     template<typename LineT, typename NumericConfigT>
     line_triple(LineT const & line,
-                point_t const & centroid,
+                point const & centroid,
                 NumericConfigT nc)
     {
       p1 = viennagrid::get_point(line, 0) - centroid;
@@ -333,8 +333,8 @@ template<typename NumericConfigT>
     double angle_d2;
     double d1;
     double d2;
-    point_t p1;
-    point_t p2;
+    point p1;
+    point p2;
   };
 
 
@@ -449,11 +449,11 @@ template<typename NumericConfigT>
   template<typename LineIteratorT, typename NumericConfigT>
   void detect_symmetries_lines(LineIteratorT lines_begin, LineIteratorT lines_end,
                                NumericConfigT nc,
-                               point_t & centroid,
+                               point & centroid,
                                std::vector<double> & mirror_axis, std::vector<int> & rotational_frequencies)
   {
     typedef double NumericType;
-    typedef point_t PointType;
+    typedef point PointType;
 
     mirror_axis.clear();
     rotational_frequencies.clear();
@@ -625,9 +625,9 @@ template<typename NumericConfigT>
 //     std::vector<int> rotational_frequencies_points;
 //     detect_symmetries_points( points.begin(), points.end(), 1e-6, mirror_axis_points, rotational_frequencies_points );
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef point_t PointType;
-    typedef viennagrid::result_of::const_element_range<MeshType, 1>::type ConstLineRange;
+    typedef viennagrid::mesh                                                  MeshType;
+    typedef point                                                             PointType;
+    typedef viennagrid::result_of::const_element_range<MeshType, 1>::type     ConstLineRange;
     ConstLineRange lines( input_mesh() );
 
     std::vector<double> mirror_axis;
