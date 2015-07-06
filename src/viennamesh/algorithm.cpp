@@ -60,9 +60,9 @@ viennamesh_context viennamesh_algorithm_wrapper_t::context()
   return algorithm_template_->context();
 }
 
-std::string const & viennamesh_algorithm_wrapper_t::name()
+std::string const & viennamesh_algorithm_wrapper_t::id()
 {
-  return algorithm_template()->name();
+  return algorithm_template()->id();
 }
 
 void viennamesh_algorithm_wrapper_t::delete_this()
@@ -74,6 +74,12 @@ void viennamesh_algorithm_wrapper_t::delete_this()
   delete this;
 }
 
+
+
+void viennamesh_algorithm_wrapper_t::clear_inputs()
+{
+  inputs.clear();
+}
 
 void viennamesh_algorithm_wrapper_t::unset_input(std::string const & name)
 {
@@ -145,6 +151,15 @@ viennamesh_data_wrapper viennamesh_algorithm_wrapper_t::get_input(std::string co
 }
 
 
+
+
+void viennamesh_algorithm_wrapper_t::clear_outputs()
+{
+  for (OutputMapType::iterator it = outputs.begin(); it != outputs.end(); ++it)
+    (*it).second->release();
+
+  outputs.clear();
+}
 
 void viennamesh_algorithm_wrapper_t::set_output(std::string const & name, viennamesh_data_wrapper output)
 {

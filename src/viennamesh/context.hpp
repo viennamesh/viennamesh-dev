@@ -45,28 +45,28 @@ public:
 
   viennamesh::algorithm_template get_algorithm_template(std::string const & algorithm_name_);
 
-  void register_algorithm(std::string const & algorithm_name,
+  void register_algorithm(std::string const & algorithm_id,
                           viennamesh_algorithm_make_function make_function,
                           viennamesh_algorithm_delete_function delete_function,
                           viennamesh_algorithm_init_function init_function,
                           viennamesh_algorithm_run_function run_function)
   {
-    std::map<std::string, viennamesh::algorithm_template_t>::iterator it = algorithm_templates.find(algorithm_name);
+    std::map<std::string, viennamesh::algorithm_template_t>::iterator it = algorithm_templates.find(algorithm_id);
     if (it != algorithm_templates.end())
-      VIENNAMESH_ERROR(VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED, "Algorithm \"" + algorithm_name + "\" already registered");
+      VIENNAMESH_ERROR(VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED, "Algorithm \"" + algorithm_id + "\" already registered");
 
-    viennamesh::algorithm_template_t & algorithm_template = algorithm_templates[algorithm_name];
+    viennamesh::algorithm_template_t & algorithm_template = algorithm_templates[algorithm_id];
     algorithm_template.set_context(this);
-    algorithm_template.init(algorithm_name,
+    algorithm_template.init(algorithm_id,
                             make_function, delete_function,
                             init_function, run_function);
 
-    viennamesh::backend::info(1) << "Algorithm \"" << algorithm_name << "\" sucessfully registered" << std::endl;
+    viennamesh::backend::info(1) << "Algorithm \"" << algorithm_id << "\" sucessfully registered" << std::endl;
   }
 
-  viennamesh_algorithm_wrapper make_algorithm(std::string const & algorithm_name)
+  viennamesh_algorithm_wrapper make_algorithm(std::string const & algorithm_id)
   {
-    viennamesh::algorithm_template algorithm_template = get_algorithm_template(algorithm_name);
+    viennamesh::algorithm_template algorithm_template = get_algorithm_template(algorithm_id);
     viennamesh_algorithm internal_algorithm = algorithm_template->make_algorithm();
 
     viennamesh_algorithm_wrapper result = new viennamesh_algorithm_wrapper_t(algorithm_template);

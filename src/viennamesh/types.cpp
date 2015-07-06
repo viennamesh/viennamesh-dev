@@ -40,7 +40,7 @@ viennamesh_error viennamesh_string_get(viennamesh_string string, const char ** c
 
 struct viennamesh_point_t
 {
-  viennagrid::point_t point;
+  viennagrid::point point;
 };
 
 viennamesh_error viennamesh_point_make(viennamesh_point * point)
@@ -78,7 +78,7 @@ viennamesh_error viennamesh_point_get(viennamesh_point point, viennagrid_numeric
 
 struct viennamesh_seed_point_t
 {
-  viennagrid::point_t point;
+  viennagrid::point point;
   int region;
 };
 

@@ -531,21 +531,21 @@ viennamesh_error viennamesh_data_wrapper_get_type_name(viennamesh_data_wrapper d
 
 
 viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
-                                  const char * algorithm_name,
-                                  viennamesh_algorithm_make_function make_function,
-                                  viennamesh_algorithm_delete_function delete_function,
-                                  viennamesh_algorithm_init_function init_function,
-                                  viennamesh_algorithm_run_function run_function)
+                                               const char * algorithm_id,
+                                               viennamesh_algorithm_make_function make_function,
+                                               viennamesh_algorithm_delete_function delete_function,
+                                               viennamesh_algorithm_init_function init_function,
+                                               viennamesh_algorithm_run_function run_function)
 {
   if (!context)
     return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
-  if (!algorithm_name)
+  if (!algorithm_id)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
-    context->register_algorithm(algorithm_name,
+    context->register_algorithm(algorithm_id,
                                 make_function, delete_function,
                                 init_function, run_function);
   }
@@ -559,18 +559,18 @@ viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
 
 
 viennamesh_error viennamesh_algorithm_make(viennamesh_context context,
-                              const char * algorithm_name,
-                              viennamesh_algorithm_wrapper * algorithm)
+                                           const char * algorithm_id,
+                                           viennamesh_algorithm_wrapper * algorithm)
 {
   if (!context)
     return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
-  if (!algorithm || !algorithm_name)
+  if (!algorithm || !algorithm_id)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
-    *algorithm = context->make_algorithm(algorithm_name);
+    *algorithm = context->make_algorithm(algorithm_id);
   }
   catch (...)
   {
@@ -652,15 +652,15 @@ viennamesh_error viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper
 }
 
 
-viennamesh_error viennamesh_algorithm_get_name(viennamesh_algorithm_wrapper algorithm,
-                                  const char ** algorithm_name)
+viennamesh_error viennamesh_algorithm_get_id(viennamesh_algorithm_wrapper algorithm,
+                                             const char ** algorithm_name)
 {
   if (!algorithm || !algorithm_name)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
-    *algorithm_name = algorithm->name().c_str();
+    *algorithm_name = algorithm->id().c_str();
   }
   catch (...)
   {
@@ -742,6 +742,17 @@ viennamesh_error viennamesh_algorithm_unset_default_source(viennamesh_algorithm_
   {
     return viennamesh::handle_error(algorithm->context());
   }
+
+  return VIENNAMESH_SUCCESS;
+}
+
+
+viennamesh_error viennamesh_algorithm_clear_inputs(viennamesh_algorithm_wrapper algorithm)
+{
+  if (!algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  algorithm->clear_inputs();
 
   return VIENNAMESH_SUCCESS;
 }
@@ -840,6 +851,18 @@ viennamesh_error viennamesh_algorithm_get_input_with_type(viennamesh_algorithm_w
   {
     return viennamesh::handle_error(algorithm->context());
   }
+
+  return VIENNAMESH_SUCCESS;
+}
+
+
+
+viennamesh_error viennamesh_algorithm_clear_outputs(viennamesh_algorithm_wrapper algorithm)
+{
+  if (!algorithm)
+    return VIENNAMESH_ERROR_INVALID_ARGUMENT;
+
+  algorithm->clear_outputs();
 
   return VIENNAMESH_SUCCESS;
 }

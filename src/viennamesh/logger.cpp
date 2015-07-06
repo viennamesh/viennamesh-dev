@@ -90,7 +90,7 @@ namespace viennamesh
             bytesRead = read(std_capture.m_pipe[StdCapture::READ], &(*buf.begin()), bufSize);
           }
 
-          logger().log<info_tag>(5, m_captured);
+          logger().log<info_tag>(7, m_captured);
         }
       }
 
