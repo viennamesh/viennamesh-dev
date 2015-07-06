@@ -419,7 +419,7 @@ namespace viennamesh
 
     std::vector<RegionType> output_regions;
     for (int i = 0; i != region_count; ++i)
-      output_regions.push_back( output_mesh().get_make_region(i) );
+      output_regions.push_back( output_mesh().get_or_create_region(i) );
 
 
     typedef viennagrid::result_of::const_vertex_range<MeshType>::type ConstVertexRangeType;

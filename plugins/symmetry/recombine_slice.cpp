@@ -309,7 +309,7 @@ namespace viennamesh
     std::vector<RegionType> new_regions;
     for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
     {
-      RegionType region = output_mesh().get_make_region( (*rit).id() );
+      RegionType region = output_mesh().get_or_create_region( (*rit).id() );
       region.set_name( (*rit).name() );
       new_regions.push_back(region);
     }

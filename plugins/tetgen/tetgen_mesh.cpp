@@ -213,7 +213,7 @@ namespace viennamesh
       if (input.numberoftetrahedronattributes != 0)
       {
         int segment_id = input.tetrahedronattributelist[i] + 0.5;
-        viennagrid::add(output.get_make_region(segment_id), cell);
+        viennagrid::add(output.get_or_create_region(segment_id), cell);
       }
     }
 

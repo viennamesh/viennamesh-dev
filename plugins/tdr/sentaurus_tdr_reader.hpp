@@ -498,7 +498,7 @@ namespace viennamesh
 
           if (e.element_tag == cell_type)
           {
-            viennagrid::make_element( mesh.get_make_region(region_name),
+            viennagrid::make_element( mesh.get_or_create_region(region_name),
                                       viennagrid::element_tag::from_internal(e.element_tag),
                                       cell_vertices.begin(), cell_vertices.end() );
           }
@@ -586,7 +586,7 @@ namespace viennamesh
             cell_vertices.push_back( viennagrid::make_vertex(mesh, other_vertex) );
             newly_created_vertices[ cell_vertices.back().id() ] = other_vertex_indices;
 
-            viennagrid::make_element( mesh.get_make_region(rc->second.region_name),
+            viennagrid::make_element( mesh.get_or_create_region(rc->second.region_name),
                                       viennagrid::element_tag::from_internal(contact_tag),
                                       cell_vertices.begin(), cell_vertices.end() );
           }

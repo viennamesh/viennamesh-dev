@@ -96,7 +96,7 @@ namespace viennamesh
       if (input.numberoftriangleattributes != 0)
       {
         int segment_id = input.triangleattributelist[i];
-        viennagrid::add(output.get_make_region(segment_id), cell);
+        viennagrid::add(output.get_or_create_region(segment_id), cell);
       }
     }
 

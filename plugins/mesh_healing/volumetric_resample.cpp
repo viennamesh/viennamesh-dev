@@ -247,7 +247,7 @@ namespace viennamesh
       if ( region.get(*cit) != NOT_SPECIFIED && region.get(*cit) != OUTSIDE_MESH )
       {
         ElementType element = copy_map(*cit);
-        viennagrid::add( output_mesh().get_make_region(region.get(*cit)), element );
+        viennagrid::add( output_mesh().get_or_create_region(region.get(*cit)), element );
       }
     }
 

@@ -42,13 +42,13 @@ namespace viennamesh
       CellType cell = copy_map(*cit);
 
       if (source_region_count <= 1)
-        viennagrid::add( dst_mesh.get_make_region(region_offset ? region_id_offset : 0), cell );
+        viennagrid::add( dst_mesh.get_or_create_region(region_offset ? region_id_offset : 0), cell );
       else
       {
         SrcRegionRangeType region_range(src_mesh, *cit);
         for (SrcRegionRangeIterator rit = region_range.begin(); rit != region_range.end(); ++rit)
         {
-          viennagrid::add( dst_mesh.get_make_region((*rit).id() + (region_offset ? region_id_offset : 0)), cell );
+          viennagrid::add( dst_mesh.get_or_create_region((*rit).id() + (region_offset ? region_id_offset : 0)), cell );
         }
       }
     }

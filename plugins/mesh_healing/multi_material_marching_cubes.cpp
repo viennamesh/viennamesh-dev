@@ -794,9 +794,9 @@ namespace viennamesh
               v_prev = v_cur;
 
 //               if (pl.regions.first != -1)
-                viennagrid::add( output_mesh().get_make_region(pl.regions.first+1), triangle );
+                viennagrid::add( output_mesh().get_or_create_region(pl.regions.first+1), triangle );
 //               if (pl.regions.second != -1)
-                viennagrid::add( output_mesh().get_make_region(pl.regions.second+1), triangle );
+                viennagrid::add( output_mesh().get_or_create_region(pl.regions.second+1), triangle );
             }
           }
         }

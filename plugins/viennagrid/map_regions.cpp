@@ -66,7 +66,7 @@ namespace viennamesh
       }
 
       for (typename std::set<DstRegionIDType>::const_iterator dst_region_id_it = dst_region_ids.begin(); dst_region_id_it != dst_region_ids.end(); ++dst_region_id_it)
-        viennagrid::add( dst_mesh.get_make_region(*dst_region_id_it), cell );
+        viennagrid::add( dst_mesh.get_or_create_region(*dst_region_id_it), cell );
     }
   }
 

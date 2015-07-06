@@ -115,10 +115,11 @@ namespace viennamesh
     for (int i = 0; i < num_tets; ++i)
     {
         ::netgen::ElementIndex ei = i;
-        RegionType region = output.get_make_region( input[ei].GetIndex() );
+        RegionType region = output.get_or_create_region( input[ei].GetIndex() );
         viennagrid::make_tetrahedron( region,
                                       vertices[input[ei][0]-1],
-                                      vertices[input[ei][1]-1],                                        vertices[input[ei][2]-1],
+                                      vertices[input[ei][1]-1],
+                                      vertices[input[ei][2]-1],
                                       vertices[input[ei][3]-1]);
     }
 
