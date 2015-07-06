@@ -31,9 +31,9 @@ namespace viennamesh
     {
     public:
 
-      typedef viennagrid::mesh_t MeshType;
-      typedef viennagrid::result_of::point<MeshType>::type PointType;
-      typedef viennagrid::result_of::element<MeshType>::type ElementType;
+      typedef viennagrid::mesh                                  MeshType;
+      typedef viennagrid::result_of::point<MeshType>::type      PointType;
+      typedef viennagrid::result_of::element<MeshType>::type    ElementType;
 
       typedef std::vector<ElementType> ElementContainerType;
 
@@ -76,23 +76,23 @@ namespace viennamesh
     {
     protected:
 
-      typedef viennagrid::mesh_t MeshType;
-      typedef viennagrid::result_of::region<MeshType>::type RegionType;
+      typedef viennagrid::mesh                                              MeshType;
+      typedef viennagrid::result_of::region<MeshType>::type                 RegionType;
 
-      typedef viennagrid::result_of::point<MeshType>::type PointType;
-      typedef viennagrid::result_of::coord<PointType>::type CoordType;
+      typedef viennagrid::result_of::point<MeshType>::type                  PointType;
+      typedef viennagrid::result_of::coord<PointType>::type                 CoordType;
 
-      typedef viennagrid::quantity_field QuantityFieldType;
+      typedef viennagrid::quantity_field                                    QuantityFieldType;
 
-      typedef viennagrid::result_of::element<MeshType>::type ElementType;
+      typedef viennagrid::result_of::element<MeshType>::type                ElementType;
 
-      typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
-      typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellIteratorType;
+      typedef viennagrid::result_of::const_cell_range<MeshType>::type       ConstCellRangeType;
+      typedef viennagrid::result_of::iterator<ConstCellRangeType>::type     ConstCellIteratorType;
 
     public:
 
       typedef optional<CoordType> result_type;
-      typedef function< result_type(viennagrid::point_t const &) > function_type;
+      typedef function< result_type(viennagrid::point const &) > function_type;
       typedef std::vector<function_type> SizingFunctionContainerType;
 
       virtual result_type operator()( PointType const & pt ) const = 0;
@@ -313,15 +313,15 @@ namespace viennamesh
 
 
     base_functor::function_type from_xml(pugi::xml_node const & node,
-                                         viennagrid::const_mesh_t const & mesh,
+                                         viennagrid::const_mesh const & mesh,
                                          std::string const & base_path = "");
 
     base_functor::function_type from_xml(std::string const & xml_string,
-                                         viennagrid::const_mesh_t const & mesh,
+                                         viennagrid::const_mesh const & mesh,
                                          std::string const & base_path = "");
 
     base_functor::function_type from_xmlfile(std::string const & xml_filename,
-                                             viennagrid::const_mesh_t const & mesh,
+                                             viennagrid::const_mesh const & mesh,
                                              std::string const & base_path = "");
 
   }

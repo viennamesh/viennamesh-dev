@@ -38,13 +38,13 @@ namespace viennamesh
 
   class algorithm_handle;
 
-  using viennagrid::mesh_t;
+  using viennagrid::mesh;
   using viennagrid::quantity_field;
-  using viennagrid::point_t;
-  using viennagrid::seed_point_t;
+  using viennagrid::point;
+  using viennagrid::seed_point;
 
-  typedef std::vector<point_t> point_container_t;
-  typedef std::vector<seed_point_t> seed_point_container_t;
+  typedef std::vector<point> point_container;
+  typedef std::vector<seed_point> seed_point_container;
 
 
   namespace result_of

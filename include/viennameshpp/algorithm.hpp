@@ -112,6 +112,20 @@ namespace viennamesh
     }
 
 
+    void clear_inputs()
+    {
+      handle_error(
+        viennamesh_algorithm_clear_inputs(algorithm),
+        algorithm);
+    }
+
+    void clear_outputs()
+    {
+      handle_error(
+        viennamesh_algorithm_clear_outputs(algorithm),
+        algorithm);
+    }
+
 
     void set_output(std::string const & name, abstract_data_handle data);
     abstract_data_handle get_output(std::string const & name);
@@ -138,7 +152,7 @@ namespace viennamesh
     context_handle context();
 
     viennamesh_algorithm_wrapper internal() const;
-    std::string name() const;
+    std::string id() const;
 
 
     std::string base_path() const;
@@ -195,11 +209,10 @@ namespace viennamesh
       return err;
 
     {
-      const char * name_;
-      err = viennamesh_algorithm_get_name(algorithm, &name_);
+      const char * id_;
+      err = viennamesh_algorithm_get_id(algorithm, &id_);
       if (err != VIENNAMESH_SUCCESS)
         return err;
-      viennamesh::LoggingStack stack( std::string("Running algorithm \"") + name_ + "\"");
 
       viennamesh::algorithm_handle algorithm_handle(algorithm);
 

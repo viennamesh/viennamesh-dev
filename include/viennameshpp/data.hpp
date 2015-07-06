@@ -72,21 +72,21 @@ namespace viennamesh
 
 
 
-  // viennagrid::mesh_t
-  viennagrid::mesh_t to_cpp(viennagrid_mesh & src);
-  void to_c(viennagrid::mesh_t const & src, viennagrid_mesh & dst);
+  // viennagrid::mesh
+  viennagrid::mesh to_cpp(viennagrid_mesh & src);
+  void to_c(viennagrid::mesh const & src, viennagrid_mesh & dst);
 
   // viennagrid::quantity_field
   viennagrid::quantity_field to_cpp(viennagrid_quantity_field & src);
   void to_c(viennagrid::quantity_field const & src, viennagrid_quantity_field & dst);
 
   // viennagrid::point_t
-  viennagrid::point_t to_cpp(viennamesh_point & src);
-  void to_c(viennagrid::point_t const & src, viennamesh_point & dst);
+  viennagrid::point to_cpp(viennamesh_point & src);
+  void to_c(viennagrid::point const & src, viennamesh_point & dst);
 
   // viennagrid::seed_point_t
-  seed_point_t to_cpp(viennamesh_seed_point & src);
-  void to_c(seed_point_t const & src, viennamesh_seed_point & dst);
+  seed_point to_cpp(viennamesh_seed_point & src);
+  void to_c(seed_point const & src, viennamesh_seed_point & dst);
 
   // std::string
   std::string to_cpp(viennamesh_string & src);

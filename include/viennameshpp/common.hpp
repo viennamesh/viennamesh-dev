@@ -112,7 +112,7 @@ namespace viennamesh
   { return delete_viennamesh_data<viennamesh_seed_point>(data, viennamesh_seed_point_delete); }
 
   inline viennamesh_error make_quantities(viennamesh_data * data)
-  { return make_viennamesh_data<viennagrid_quantity_field>(data, viennagrid_quantity_field_make); }
+  { return make_viennamesh_data<viennagrid_quantity_field>(data, viennagrid_quantity_field_create); }
   inline viennamesh_error delete_quantities(viennamesh_data data)
   { return delete_viennamesh_data<viennagrid_quantity_field>(data, viennagrid_quantity_field_release); }
 
@@ -123,7 +123,7 @@ namespace viennamesh
 
     viennagrid_mesh_hierarchy_create(&mesh_hierarchy);
     viennagrid_mesh_hierarchy_root_mesh_get(mesh_hierarchy, mesh);
-    viennagrid_mesh_hierarchy_option_set(mesh_hierarchy, VIENNAGRID_BOUNDARY_LAYOUT_FLAG, VIENNAGRID_BOUNDARY_LAYOUT_SPARSE);
+    viennagrid_mesh_hierarchy_property_set(mesh_hierarchy, VIENNAGRID_PROPERTY_BOUNDARY_LAYOUT, VIENNAGRID_BOUNDARY_LAYOUT_SPARSE);
 
     *data = mesh;
 
@@ -146,7 +146,7 @@ namespace viennamesh
   inline viennamesh_error make_plc(viennamesh_data * data)
   {
     viennagrid_plc * plc = new viennagrid_plc;
-    viennagrid_plc_make(plc);
+    viennagrid_plc_create(plc);
 
     *data = plc;
 
@@ -157,7 +157,7 @@ namespace viennamesh
   {
     viennagrid_plc * plc = (viennagrid_plc *)data;
 
-    viennagrid_plc_delete(*plc);
+    viennagrid_plc_release(*plc);
     delete plc;
 
     return VIENNAMESH_SUCCESS;
@@ -222,7 +222,7 @@ namespace viennamesh
     };
 
     template<>
-    struct c_type<mesh_t>
+    struct c_type<mesh>
     {
       typedef viennagrid_mesh type;
     };
@@ -234,13 +234,13 @@ namespace viennamesh
     };
 
     template<>
-    struct c_type<point_t>
+    struct c_type<point>
     {
       typedef viennamesh_point type;
     };
 
     template<>
-    struct c_type<seed_point_t>
+    struct c_type<seed_point>
     {
       typedef viennamesh_seed_point type;
     };
@@ -263,7 +263,7 @@ namespace viennamesh
     template<>
     struct cpp_type<viennagrid_mesh>
     {
-      typedef mesh_t type;
+      typedef mesh type;
     };
 
     template<>
@@ -275,13 +275,13 @@ namespace viennamesh
     template<>
     struct cpp_type<viennamesh_point>
     {
-      typedef point_t type;
+      typedef point type;
     };
 
     template<>
     struct cpp_type<viennamesh_seed_point>
     {
-      typedef seed_point_t type;
+      typedef seed_point type;
     };
 
 
@@ -304,7 +304,7 @@ namespace viennamesh
     template<>
     struct cpp_result_type<viennagrid_mesh>
     {
-      typedef mesh_t type;
+      typedef mesh type;
     };
 
     template<>
@@ -316,13 +316,13 @@ namespace viennamesh
     template<>
     struct cpp_result_type<viennamesh_point>
     {
-      typedef point_t type;
+      typedef point type;
     };
 
     template<>
     struct cpp_result_type<viennamesh_seed_point>
     {
-      typedef seed_point_t type;
+      typedef seed_point type;
     };
 
 
