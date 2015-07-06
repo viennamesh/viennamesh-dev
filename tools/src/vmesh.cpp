@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     if (!path.empty())
       pipeline.set_base_path(path);
 
-    pipeline.run();
+    pipeline.run( true );
   }
   catch (TCLAP::ArgException &e)  // catch any exceptions
   {
