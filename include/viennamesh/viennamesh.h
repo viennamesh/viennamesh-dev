@@ -178,14 +178,14 @@ typedef viennamesh_error (*viennamesh_algorithm_delete_function)(viennamesh_algo
 
 
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
-                                                              const char * algorithm_id,
+                                                              const char * algorithm_type,
                                                               viennamesh_algorithm_make_function make_function,
                                                               viennamesh_algorithm_delete_function delete_function,
                                                               viennamesh_algorithm_init_function init_function,
                                                               viennamesh_algorithm_run_function run_function);
 
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_make(viennamesh_context context,
-                                                          const char * algorithm_id,
+                                                          const char * algorithm_type,
                                                           viennamesh_algorithm_wrapper * algorithm);
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_retain(viennamesh_algorithm_wrapper algorithm);
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_release(viennamesh_algorithm_wrapper algorithm);
@@ -195,8 +195,8 @@ DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_set_base_path(viennamesh_al
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper algorithm,
                                                                    const char ** path);
 
-DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_get_id(viennamesh_algorithm_wrapper algorithm,
-                                                            const char ** algorithm_id);
+DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_get_type(viennamesh_algorithm_wrapper algorithm,
+                                                              const char ** algorithm_type);
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_get_context(viennamesh_algorithm_wrapper algorithm,
                                                                  viennamesh_context * context);
 

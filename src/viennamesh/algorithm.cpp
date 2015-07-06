@@ -60,9 +60,9 @@ viennamesh_context viennamesh_algorithm_wrapper_t::context()
   return algorithm_template_->context();
 }
 
-std::string const & viennamesh_algorithm_wrapper_t::id()
+std::string const & viennamesh_algorithm_wrapper_t::type()
 {
-  return algorithm_template()->id();
+  return algorithm_template()->type();
 }
 
 void viennamesh_algorithm_wrapper_t::delete_this()

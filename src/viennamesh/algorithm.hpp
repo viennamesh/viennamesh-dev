@@ -67,7 +67,7 @@ public:
   viennamesh_algorithm internal_algorithm() { return internal_algorithm_; }
   void set_internal_algorithm(viennamesh_algorithm internal_algorithm_in) { internal_algorithm_ = internal_algorithm_in; }
   viennamesh::algorithm_template algorithm_template() { return algorithm_template_; }
-  std::string const & id();
+  std::string const & type();
   viennamesh_context context();
 
   void retain() { ++use_count_; }
@@ -130,13 +130,13 @@ namespace viennamesh
   {
   public:
 
-    void init(std::string const & algorithm_id_in,
+    void init(std::string const & algorithm_type_in,
               viennamesh_algorithm_make_function make_function_in,
               viennamesh_algorithm_delete_function delete_function_in,
               viennamesh_algorithm_init_function init_function_in,
               viennamesh_algorithm_run_function run_function_in)
     {
-      algorithm_id_ = algorithm_id_in;
+      algorithm_type_ = algorithm_type_in;
 
       make_function_ = make_function_in;
       delete_function_ = delete_function_in;
@@ -172,13 +172,13 @@ namespace viennamesh
     }
 
     viennamesh_context context() { return context_; }
-    std::string const & id() const { return algorithm_id_; }
+    std::string const & type() const { return algorithm_type_; }
     void set_context(viennamesh_context context_in) { context_ = context_in; }
 
   private:
     viennamesh_context context_;
 
-    std::string algorithm_id_;
+    std::string algorithm_type_;
 
     viennamesh_algorithm_make_function make_function_;
     viennamesh_algorithm_delete_function delete_function_;

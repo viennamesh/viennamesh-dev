@@ -531,7 +531,7 @@ viennamesh_error viennamesh_data_wrapper_get_type_name(viennamesh_data_wrapper d
 
 
 viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
-                                               const char * algorithm_id,
+                                               const char * algorithm_type,
                                                viennamesh_algorithm_make_function make_function,
                                                viennamesh_algorithm_delete_function delete_function,
                                                viennamesh_algorithm_init_function init_function,
@@ -540,12 +540,12 @@ viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
   if (!context)
     return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
-  if (!algorithm_id)
+  if (!algorithm_type)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
-    context->register_algorithm(algorithm_id,
+    context->register_algorithm(algorithm_type,
                                 make_function, delete_function,
                                 init_function, run_function);
   }
@@ -559,18 +559,18 @@ viennamesh_error viennamesh_algorithm_register(viennamesh_context context,
 
 
 viennamesh_error viennamesh_algorithm_make(viennamesh_context context,
-                                           const char * algorithm_id,
+                                           const char * algorithm_type,
                                            viennamesh_algorithm_wrapper * algorithm)
 {
   if (!context)
     return VIENNAMESH_ERROR_INVALID_CONTEXT;
 
-  if (!algorithm || !algorithm_id)
+  if (!algorithm || !algorithm_type)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
-    *algorithm = context->make_algorithm(algorithm_id);
+    *algorithm = context->make_algorithm(algorithm_type);
   }
   catch (...)
   {
@@ -652,15 +652,15 @@ viennamesh_error viennamesh_algorithm_get_base_path(viennamesh_algorithm_wrapper
 }
 
 
-viennamesh_error viennamesh_algorithm_get_id(viennamesh_algorithm_wrapper algorithm,
-                                             const char ** algorithm_name)
+viennamesh_error viennamesh_algorithm_get_type(viennamesh_algorithm_wrapper algorithm,
+                                               const char ** algorithm_type)
 {
-  if (!algorithm || !algorithm_name)
+  if (!algorithm || !algorithm_type)
     return VIENNAMESH_ERROR_INVALID_ARGUMENT;
 
   try
   {
-    *algorithm_name = algorithm->id().c_str();
+    *algorithm_type = algorithm->type().c_str();
   }
   catch (...)
   {

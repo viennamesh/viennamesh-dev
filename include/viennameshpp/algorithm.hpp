@@ -152,7 +152,7 @@ namespace viennamesh
     context_handle context();
 
     viennamesh_algorithm_wrapper internal() const;
-    std::string id() const;
+    std::string type() const;
 
 
     std::string base_path() const;
@@ -209,8 +209,8 @@ namespace viennamesh
       return err;
 
     {
-      const char * id_;
-      err = viennamesh_algorithm_get_id(algorithm, &id_);
+      const char * type_;
+      err = viennamesh_algorithm_get_type(algorithm, &type_);
       if (err != VIENNAMESH_SUCCESS)
         return err;
 

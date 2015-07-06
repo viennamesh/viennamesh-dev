@@ -130,22 +130,22 @@ namespace viennamesh
     if ( !algorithm_name_attribute.empty() )
       algorithm_name = algorithm_name_attribute.as_string();
 
-    pugi::xml_attribute algorithm_id_attribute = algorithm_node.attribute("id");
-    if ( algorithm_id_attribute.empty() )
+    pugi::xml_attribute algorithm_type_attribute = algorithm_node.attribute("type");
+    if ( algorithm_type_attribute.empty() )
     {
-      error(1) << "Algorithm \"" << algorithm_name << "\" has no id attribute" << std::endl;
+      error(1) << "Algorithm \"" << algorithm_name << "\" has no type attribute" << std::endl;
       return false;
     }
-    std::string algorithm_id = algorithm_id_attribute.as_string();
+    std::string algorithm_type = algorithm_type_attribute.as_string();
 
     algorithm_pipeline_element pipeline_element(algorithm_name);
     try
     {
-      pipeline_element.algorithm = context.make_algorithm( algorithm_id );
+      pipeline_element.algorithm = context.make_algorithm( algorithm_type );
     }
     catch (viennamesh::exception const & ex)
     {
-      error(1) << "Algorithm with id \"" << algorithm_id << "\" creation from factory failed" << std::endl;
+      error(1) << "Algorithm with id \"" << algorithm_type << "\" creation from factory failed" << std::endl;
       return false;
     }
 
@@ -185,7 +185,7 @@ namespace viennamesh
     algorithm_handle & algorithm = pipeline_element.algorithm;
     if (!algorithm.valid())
     {
-      error(1) << "Algorithm with id \"" << algorithm_id << "\" creation from factory failed" << std::endl;
+      error(1) << "Algorithm with id \"" << algorithm_type << "\" creation from factory failed" << std::endl;
       return false;
     }
 
@@ -354,7 +354,7 @@ namespace viennamesh
         std::string stack_name = "Running algorithm";
         if (!pe.name.empty())
           stack_name += " \"" + pe.name + "\"";
-        stack_name += " (id = \"" + pe.algorithm.id() + "\")";
+        stack_name += " (type = \"" + pe.algorithm.type() + "\")";
 
         viennamesh::LoggingStack stack(stack_name);
         if (!pe.algorithm.run())

@@ -126,11 +126,11 @@ namespace viennamesh
     return const_cast<viennamesh_algorithm_wrapper>(algorithm);
   }
 
-  std::string algorithm_handle::id() const
+  std::string algorithm_handle::type() const
   {
-    const char * id_;
-    handle_error(viennamesh_algorithm_get_id(internal(), &id_), algorithm);
-    return id_;
+    const char * type_;
+    handle_error(viennamesh_algorithm_get_type(internal(), &type_), algorithm);
+    return type_;
   }
 
 
