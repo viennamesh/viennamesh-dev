@@ -24,17 +24,17 @@ namespace viennamesh
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
     data_handle<viennamesh_string> metric_type = get_required_input<viennamesh_string>("metric_type");
-    data_handle<viennagrid_numeric> histogram_bins = get_input<viennagrid_numeric>("histogram_bins");
+    data_handle<viennagrid_numeric> histogram_bins = get_input<viennagrid_numeric>("histogram_bin");
 
     data_handle<viennagrid_numeric> histogram_min = get_input<viennagrid_numeric>("histogram_min");
     data_handle<viennagrid_numeric> histogram_max = get_input<viennagrid_numeric>("histogram_max");
     data_handle<int> histogram_bin_count = get_input<int>("histogram_bin_count");
 
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::mesh                                  MeshType;
+    typedef viennagrid::result_of::element<MeshType>::type    ElementType;
 
-    typedef viennamesh::statistic<viennagrid_numeric> StatisticType;
+    typedef viennamesh::statistic<viennagrid_numeric>         StatisticType;
     StatisticType statistic;
 
 
@@ -57,11 +57,15 @@ namespace viennamesh
       return false;
     }
 
-//     try
+    for (int i = 0; i != metric_type.size(); ++i)
     {
-      if (metric_type() == "aspect_ratio")
+      viennamesh::LoggingStack stack( std::string("metric type \"") + metric_type(i) + "\"" );
+
+      statistic.clear();
+
+      if (metric_type(i) == "aspect_ratio")
         statistic( input_mesh(), viennamesh::aspect_ratio<ElementType> );
-      else if (metric_type() == "condition_number")
+      else if (metric_type(i) == "condition_number")
         statistic( input_mesh(), viennamesh::condition_number<ElementType> );
 //       else if (metric_type() == "min_angle")
 //         statistic( input_mesh(), viennamesh::min_angle<ElementType> );
@@ -69,22 +73,18 @@ namespace viennamesh
 //         statistic( input_mesh(), viennamesh::max_angle<ElementType> );
 //       else if (metric_type() == "min_dihedral_angle")
 //         statistic( input_mesh(), viennamesh::min_dihedral_angle<ElementType> );
-      else if (metric_type() == "radius_edge_ratio")
+      else if (metric_type(i) == "radius_edge_ratio")
         statistic( input_mesh(), viennamesh::radius_edge_ratio<ElementType> );
       else
       {
-        error(1) << "Metric type \"" << metric_type() << "\" is not supported" << std::endl;
+        error(1) << "Metric type \"" << metric_type(i) << "\" is not supported" << std::endl;
         return false;
       }
-    }
-//     catch ( metric_not_implemented_or_supported_exception const & ex )
-//     {
-//       error(1) << "Metric type \"" << metric_type() << "\" is not supported" << std::endl;
-//       error(1) << ex.what() << std::endl;
-//     }
 
-    statistic.normalize();
-    info(5) << statistic << std::endl;
+      statistic.normalize();
+      info(5) << statistic << std::endl;
+    }
+
 
     return true;
   }

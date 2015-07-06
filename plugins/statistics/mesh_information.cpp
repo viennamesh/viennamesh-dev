@@ -26,15 +26,15 @@ namespace viennamesh
   {
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::region<MeshType>::type RegionType;
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
+    typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::region<MeshType>::type                   RegionType;
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
 
-    typedef viennagrid::result_of::const_element_range<MeshType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementIteratorType;
+    typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementIteratorType;
 
-    typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
-    typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
+    typedef viennagrid::result_of::region_range<MeshType>::type             RegionRangeType;
+    typedef viennagrid::result_of::iterator<RegionRangeType>::type          RegionIteratorType;
 
 
     int topologic_dimension = viennagrid::topologic_dimension( input_mesh() );
