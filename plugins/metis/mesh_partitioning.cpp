@@ -33,16 +33,13 @@ namespace viennamesh
 
     int cell_dimension = viennagrid::cell_dimension( input_mesh() );
 
-    typedef viennagrid::mesh_t MeshType;
-    typedef viennagrid::result_of::const_cell_range<MeshType>::type ConstCellRangeType;
-    typedef viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
+    typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::const_cell_range<MeshType>::type         ConstCellRangeType;
+    typedef viennagrid::result_of::iterator<ConstCellRangeType>::type       ConstCellRangeIterator;
 
-    typedef viennagrid::result_of::element<MeshType>::type ElementType;
-    typedef viennagrid::result_of::const_element_range<ElementType>::type ConstElementRangeType;
-    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type ConstElementRangeIterator;
-
-
-
+    typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
+    typedef viennagrid::result_of::const_element_range<ElementType>::type   ConstElementRangeType;
+    typedef viennagrid::result_of::iterator<ConstElementRangeType>::type    ConstElementRangeIterator;
 
 
 
