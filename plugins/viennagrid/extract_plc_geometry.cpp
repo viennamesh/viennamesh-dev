@@ -139,7 +139,6 @@ namespace viennamesh
 
     typedef typename viennagrid::result_of::const_element_range<MeshType, 1>::type ConstLineRangeType;
     typedef typename viennagrid::result_of::iterator<ConstLineRangeType>::type ConstLineIteratorType;
-    typedef typename viennagrid::result_of::element_id<MeshType>::type LineIDType;
 
     ConstCellRangeType cells(mesh);
 

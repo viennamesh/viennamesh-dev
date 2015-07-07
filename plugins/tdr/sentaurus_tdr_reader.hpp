@@ -523,7 +523,7 @@ namespace viennamesh
             PointType normal;
             double size = 0;
 
-            viennagrid_element_type contact_tag;
+            viennagrid_element_type contact_tag = VIENNAGRID_ELEMENT_TYPE_NO_ELEMENT;
             if (element.element_tag == VIENNAGRID_ELEMENT_TYPE_LINE)
             {
               PointType p0 = viennagrid::get_point( vertices[element.vertex_indices[0]] );

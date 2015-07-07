@@ -75,8 +75,6 @@ namespace viennamesh
     typedef typename viennagrid::result_of::const_cell_range<MeshT>::type ConstCellRangeType;
     typedef typename viennagrid::result_of::iterator<ConstCellRangeType>::type ConstCellRangeIterator;
 
-    typedef typename viennagrid::result_of::element<MeshT>::type ElementType;
-
     ConstCellRangeType cells(mesh);
     for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
     {

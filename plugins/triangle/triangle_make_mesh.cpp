@@ -59,7 +59,7 @@ namespace viennamesh
       sample_points[3] = pt;
 
 
-      sizing_function::base_functor::result_type local_size;
+      sizing_function::base_functor::result_type local_size = sizing_function::base_functor::result_type();
       for (int i = 0; i != 4; ++i)
       {
         sizing_function::base_functor::result_type current_size = triangle_sizing_function( sample_points[i] );

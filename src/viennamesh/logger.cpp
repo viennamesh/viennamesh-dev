@@ -14,7 +14,6 @@
 
 #include "logger.hpp"
 
-
 namespace viennamesh
 {
   namespace backend
@@ -107,7 +106,9 @@ namespace viennamesh
     {
 #ifndef _WIN32
       if (StdCapture::get().capturing())
+      {
         ::write( StdCapture::get().old_stdout(), message.c_str(), message.length()+1 );
+      }
       else
         std::cout << message;
 #else

@@ -25,8 +25,6 @@ namespace viennamesh
     mesh_handle output_mesh = make_data<mesh_handle>();
 
     typedef viennagrid::mesh                                                            MeshType;
-    typedef viennagrid::result_of::element<MeshType>::type                              ElementType;
-    typedef viennagrid::result_of::point<MeshType>::type                                PointType;
 
     typedef viennagrid::result_of::const_element_range<MeshType>::type                  ConstElementRangeType;
     typedef viennagrid::result_of::iterator<ConstElementRangeType>::type                ConstElementIteratorType;

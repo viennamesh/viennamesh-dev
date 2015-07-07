@@ -604,7 +604,6 @@ namespace viennamesh
     typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
 
     typedef viennagrid::result_of::region_range<MeshType, ElementType>::type ElementRegionRangeType;
-    typedef viennagrid::result_of::iterator<ElementRegionRangeType>::type ElementRegionIteratorType;
 
 
     MeshType mesh;

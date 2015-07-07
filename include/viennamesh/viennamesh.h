@@ -4,15 +4,13 @@
 #include "viennagrid/viennagrid.h"
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//                                        ViennaMesh
-//
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************************************
+ *****************************************************************************************************
+ *
+ *                                        ViennaMesh
+ *
+ *****************************************************************************************************
+ *****************************************************************************************************/
 
 
 #ifdef __cplusplus
@@ -55,9 +53,9 @@ typedef int viennamesh_error;
 DYNAMIC_EXPORT viennamesh_error viennamesh_error_string(viennamesh_error error, const char ** error_string);
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                Context
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************************************
+ *                                Context
+ *****************************************************************************************************/
 
 typedef struct viennamesh_context_t * viennamesh_context;
 typedef const char * (*viennamesh_build_environment_function)();
@@ -72,7 +70,7 @@ DYNAMIC_EXPORT viennamesh_error viennamesh_context_load_plugin(viennamesh_contex
                                                                viennamesh_plugin * plugin);
 DYNAMIC_EXPORT viennamesh_error viennamesh_context_load_plugins_in_directory(viennamesh_context context,
                                                                 const char * directory_name);
-// DYNAMIC_EXPORT viennamesh_error viennamesh_context_unload_plugin(viennamesh_context context, viennamesh_plugin * plugin);
+/* DYNAMIC_EXPORT viennamesh_error viennamesh_context_unload_plugin(viennamesh_context context, viennamesh_plugin * plugin); */
 
 DYNAMIC_EXPORT viennamesh_error viennamesh_context_get_error(viennamesh_context context,
                                                              viennamesh_error * error_code,
@@ -90,9 +88,9 @@ DYNAMIC_EXPORT viennamesh_error viennamesh_context_clear_error(viennamesh_contex
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                Parameter & Data Structures
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************************************
+ *                                Parameter & Data Structures
+ *****************************************************************************************************/
 
 typedef void * viennamesh_data;
 
@@ -160,10 +158,9 @@ DYNAMIC_EXPORT viennamesh_error viennamesh_data_wrapper_convert_to(viennamesh_da
 
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                Algorithm
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*****************************************************************************************************
+ *                                Algorithm
+ *****************************************************************************************************/
 
 
 typedef struct viennamesh_algorithm_wrapper_t * viennamesh_algorithm_wrapper;
@@ -243,10 +240,9 @@ DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_init(viennamesh_algorithm_w
 DYNAMIC_EXPORT viennamesh_error viennamesh_algorithm_run(viennamesh_algorithm_wrapper algorithm);
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                Logging
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
+/*****************************************************************************************************
+ *                                Logging
+ *****************************************************************************************************/
 
 typedef int viennamesh_log_callback_handle;
 

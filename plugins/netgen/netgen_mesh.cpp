@@ -8,7 +8,6 @@ namespace viennamesh
     typedef viennagrid::mesh                                                MeshType;
 
     typedef viennagrid::result_of::point<MeshType>::type                    PointType;
-    typedef viennagrid::result_of::region<MeshType>::type                   RegionType;
     typedef viennagrid::result_of::element<MeshType>::type                  ElementType;
 
     typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
@@ -38,9 +37,7 @@ namespace viennamesh
     ConstElementRangeType triangles(input, 2);
     for (ConstElementIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
     {
-//       typedef typename viennagrid::result_of::segment_id_range<SegmentationT, TriangleType>::type SegmentIDType;
       typedef viennagrid::result_of::region_range<MeshType, ElementType>::type ElementRegionRangeType;
-      typedef viennagrid::result_of::iterator<ElementRegionRangeType>::type ElementRegionIteratorType;
 
       int indices[3];
       for (int i = 0; i < 3; ++i)
