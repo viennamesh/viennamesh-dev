@@ -23,7 +23,7 @@
 #include "viennagridpp/algorithm/centroid.hpp"
 #include "viennagridpp/ntree.hpp"
 
-#include "viennautils/progress_tracker.hpp"
+#include "viennameshpp/progress_tracker.hpp"
 
 
 namespace viennamesh
