@@ -4,7 +4,6 @@
 #include "viennameshpp/forwards.hpp"
 
 #include "viennamesh/viennamesh.h"
-#include "viennamesh/types.h"
 #include "viennamesh/cpp_error.hpp"
 
 #include <string>

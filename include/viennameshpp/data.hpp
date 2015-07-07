@@ -5,7 +5,6 @@
 #include "viennameshpp/forwards.hpp"
 #include "viennameshpp/common.hpp"
 #include "viennagridpp/core.hpp"
-#include "viennamesh/types.h"
 
 namespace viennamesh
 {
