@@ -73,8 +73,8 @@ namespace viennamesh
 
       LoggingStack ls("Mesh " + lexical_cast<std::string>(i));
       info(1) << "Using filename \"" << local_filename << "\"" << std::endl;
-      info(1) << "Found geometric dimension: " << geometric_dimension << std::endl;
-      info(1) << "Found cell dimension: " << cell_dimension << std::endl;
+      info(1) << "Found geometric dimension: " << (int)geometric_dimension << std::endl;
+      info(1) << "Found cell dimension: " << (int)cell_dimension << std::endl;
 
       switch (ft)
       {
@@ -89,17 +89,17 @@ namespace viennamesh
             {
               viennagrid::quantity_field current = quantity_field(i);
 
-              info(1) << "Found quantity field \"" << current.get_name() << "\" with cell dimension " << current.topologic_dimension() << " and values dimension " << current.values_dimension() << std::endl;
+              info(1) << "Found quantity field \"" << current.get_name() << "\" with cell dimension " << (int)current.topologic_dimension() << " and values dimension " << (int)current.values_dimension() << std::endl;
 
               if ( (current.topologic_dimension() != 0) && (current.topologic_dimension() != cell_dimension) )
               {
-                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
+                error(1) << "Values dimension " << (int)current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
                 continue;
               }
 
               if ( (current.values_dimension() != 1) && (current.values_dimension() != 3) )
               {
-                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
+                error(1) << "Values dimension " << (int)current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
                 continue;
               }
 

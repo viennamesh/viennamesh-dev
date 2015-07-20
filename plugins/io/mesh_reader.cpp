@@ -288,8 +288,8 @@ namespace viennamesh
           for (std::size_t i = 0; i != quantity_fields.size(); ++i)
           {
             info(1) << "Found quantity field \"" << quantity_fields[i].get_name() << "\" for topologic dimension " <<
-                       quantity_fields[i].topologic_dimension() << " and with values dimension " <<
-                       quantity_fields[i].values_dimension() << std::endl;
+                       (int)quantity_fields[i].topologic_dimension() << " and with values dimension " <<
+                       (int)quantity_fields[i].values_dimension() << std::endl;
           }
 
           quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
@@ -349,8 +349,8 @@ namespace viennamesh
     if (success)
     {
       info(1) << "Successfully read a mesh" << std::endl;
-      info(1) << "  Geometric dimension = " << viennagrid::geometric_dimension( output_mesh() ) << std::endl;
-      info(1) << "  Cell dimension = " << viennagrid::cell_dimension( output_mesh() ) << std::endl;
+      info(1) << "  Geometric dimension = " << (int)viennagrid::geometric_dimension( output_mesh() ) << std::endl;
+      info(1) << "  Cell dimension = " << (int)viennagrid::cell_dimension( output_mesh() ) << std::endl;
       info(1) << "  Vertex count =  " << viennagrid::vertices( output_mesh() ).size() << std::endl;
       info(1) << "  Cell count = " << viennagrid::cells( output_mesh() ).size() << std::endl;
 
