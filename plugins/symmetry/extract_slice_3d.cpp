@@ -185,7 +185,7 @@ namespace viennamesh
         line_ids.push_back(line_id);
       }
 
-      viennagrid_plc_facet_create(plc_output_mesh, &line_ids[0], line_ids.size(), NULL);
+      viennagrid_plc_facet_create(plc_output_mesh, line_ids.size(), &line_ids[0], NULL);
     }
 
   private:

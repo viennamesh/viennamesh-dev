@@ -89,17 +89,17 @@ namespace viennamesh
             {
               viennagrid::quantity_field current = quantity_field(i);
 
-              info(1) << "Found quantity field \"" << current.name() << "\" with cell dimension " << current.topologic_dimension() << " and values dimension " << current.values_dimension() << std::endl;
+              info(1) << "Found quantity field \"" << current.get_name() << "\" with cell dimension " << current.topologic_dimension() << " and values dimension " << current.values_dimension() << std::endl;
 
               if ( (current.topologic_dimension() != 0) && (current.topologic_dimension() != cell_dimension) )
               {
-                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.name() << "\" not supported -> skipping" << std::endl;
+                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
                 continue;
               }
 
               if ( (current.values_dimension() != 1) && (current.values_dimension() != 3) )
               {
-                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.name() << "\" not supported -> skipping" << std::endl;
+                error(1) << "Values dimension " << current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
                 continue;
               }
 
@@ -108,22 +108,22 @@ namespace viennamesh
               {
                 if ( current.values_dimension() == 1 )
                 {
-                  writer.add_scalar_data_on_vertices( current, current.name() );
+                  writer.add_scalar_data_on_vertices( current, current.get_name() );
                 }
                 else
                 {
-                  writer.add_vector_data_on_vertices( current, current.name() );
+                  writer.add_vector_data_on_vertices( current, current.get_name() );
                 }
               }
               else if ( current.topologic_dimension() == cell_dimension )
               {
                 if ( current.values_dimension() == 1 )
                 {
-                  writer.add_scalar_data_on_cells( current, current.name() );
+                  writer.add_scalar_data_on_cells( current, current.get_name() );
                 }
                 else
                 {
-                  writer.add_vector_data_on_cells( current, current.name() );
+                  writer.add_vector_data_on_cells( current, current.get_name() );
                 }
               }
 

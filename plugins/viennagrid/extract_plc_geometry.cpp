@@ -290,7 +290,7 @@ namespace viennamesh
 
 
       viennagrid_int facet_id;
-      viennagrid_plc_facet_create(plc, &line_ids[0], line_ids.size(), &facet_id);
+      viennagrid_plc_facet_create(plc, line_ids.size(), &line_ids[0], &facet_id);
 
       for (std::vector<point>::const_iterator hpit = hole_points_3d.begin(); hpit != hole_points_3d.end(); ++hpit)
       {
@@ -455,7 +455,7 @@ namespace viennamesh
       }
 
       viennagrid_int new_facet_id;
-      viennagrid_plc_facet_create( output_plc, &new_plc_lines[0], new_plc_lines.size(), &new_facet_id );
+      viennagrid_plc_facet_create( output_plc, new_plc_lines.size(), &new_plc_lines[0], &new_facet_id );
 
       viennagrid_numeric * facet_hole_points;
       viennagrid_int facet_hole_point_count;

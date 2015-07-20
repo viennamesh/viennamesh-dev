@@ -16,7 +16,7 @@
 #include "refine_plc_lines.hpp"
 #include "center_mesh.hpp"
 #include "mark_hull_regions.hpp"
-
+#include "scale_quantities.hpp"
 
 
 
@@ -38,6 +38,7 @@ viennamesh_error viennamesh_plugin_init(viennamesh_context context)
   viennamesh::register_algorithm<viennamesh::simplexify>(context);
   viennamesh::register_algorithm<viennamesh::line_coarsening>(context);
   viennamesh::register_algorithm<viennamesh::interpolate_quantities>(context);
+  viennamesh::register_algorithm<viennamesh::scale_quantities>(context);
   viennamesh::register_algorithm<viennamesh::refine_plc_lines>(context);
   viennamesh::register_algorithm<viennamesh::center_mesh>(context);
 

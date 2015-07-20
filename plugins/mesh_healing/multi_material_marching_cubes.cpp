@@ -639,7 +639,7 @@ namespace viennamesh
     int region_count = input_mesh().region_count();
 
 
-    int max_region_id = 0;
+    viennagrid_region_id max_region_id = 0;
     for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
       max_region_id = std::max((*rit).id(), max_region_id);
 

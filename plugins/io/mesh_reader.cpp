@@ -287,7 +287,7 @@ namespace viennamesh
         {
           for (std::size_t i = 0; i != quantity_fields.size(); ++i)
           {
-            info(1) << "Found quantity field \"" << quantity_fields[i].name() << "\" for topologic dimension " <<
+            info(1) << "Found quantity field \"" << quantity_fields[i].get_name() << "\" for topologic dimension " <<
                        quantity_fields[i].topologic_dimension() << " and with values dimension " <<
                        quantity_fields[i].values_dimension() << std::endl;
           }

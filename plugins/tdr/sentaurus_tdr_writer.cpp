@@ -239,8 +239,8 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh const & m
             write_attribute(dataset_group, "location type", 0);
             write_attribute(dataset_group, "structure type", 0);
             write_attribute(dataset_group, "value type", 2);
-            write_attribute(dataset_group, "name", quantity.name());
-            write_attribute(dataset_group, "quantity", quantity.name());
+            write_attribute(dataset_group, "name", quantity.get_name());
+            write_attribute(dataset_group, "quantity", quantity.get_name());
             write_attribute(dataset_group, "conversion factor", 1.0);
             write_attribute(dataset_group, "region", region_num);
             write_attribute(dataset_group, "unit:name", "unknown"); //TODO
