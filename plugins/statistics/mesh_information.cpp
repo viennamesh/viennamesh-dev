@@ -56,7 +56,7 @@ namespace viennamesh
     for (RegionIteratorType rit = regions.begin(); rit != regions.end(); ++rit)
     {
       info(1) << "  Region " << (*rit).id() << std::endl;
-      info(1) << "    name = " << (*rit).name() << std::endl;
+      info(1) << "    name = " << (*rit).get_name() << std::endl;
 
       typedef viennagrid::result_of::const_element_range<RegionType>::type ConstRegionElementRangeType;
       typedef viennagrid::result_of::iterator<ConstRegionElementRangeType>::type ConstRegionElementIteratorType;
