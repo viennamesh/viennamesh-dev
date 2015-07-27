@@ -66,12 +66,13 @@ namespace viennamesh
     PointType center = (bb.first + bb.second)/2;
     PointType size = bb.second - bb.first;
 
-    typedef viennagrid::ntree_node<ElementType> NodeType;
+    typedef viennagrid::vertex_with_distance_wrapper<ElementType> WrapperType;
+    typedef viennagrid::ntree_node<WrapperType> NodeType;
     boost::shared_ptr<NodeType> root( new NodeType( center-size/2*1.1 , center+size/2*1.1 ) );
 
     int element_per_node = 10;
     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
-      root->add( viennagrid::vertex_with_distance_wrapper<ElementType>(*vit, merge_distance),
+      root->add( WrapperType(*vit, merge_distance),
                  element_per_node,
                  vertices.size()/element_per_node);
 
@@ -85,11 +86,11 @@ namespace viennamesh
       NodeType * node = root->get(p);
       for (std::size_t i = 0; i != node->elements().size(); ++i)
       {
-        if (viennagrid::norm_2(p - viennagrid::get_point(node->elements()[i])) < merge_distance )
+        if (viennagrid::norm_2(p - viennagrid::get_point(node->elements()[i]())) < merge_distance )
         {
-          if ( node->elements()[i].id() < new_vertex_id )
+          if ( node->elements()[i]().id() < new_vertex_id )
           {
-            new_vertex_id = node->elements()[i].id();
+            new_vertex_id = node->elements()[i]().id();
             break;
           }
         }
