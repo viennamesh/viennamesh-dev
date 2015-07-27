@@ -306,7 +306,7 @@ namespace viennamesh
           {
             if (sit != regions.begin())
               ss << ", ";
-            ss << "\"" << (*sit).name() << "\"";
+            ss << "\"" << (*sit).get_name() << "\"";
           }
 
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION,ss.str());
@@ -442,7 +442,7 @@ namespace viennamesh
           {
             if (sit != regions.begin())
               ss << ", ";
-            ss << "\"" << (*sit).name() << "\"";
+            ss << "\"" << (*sit).get_name() << "\"";
           }
 
           VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION,ss.str());
