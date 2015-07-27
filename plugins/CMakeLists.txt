@@ -83,3 +83,8 @@ option(ENABLE_PLUGIN_STATISTICS "Enable statistics plugin" ON)
 if (ENABLE_PLUGIN_STATISTICS)
   add_subdirectory(statistics)
 endif()
+
+option(ENABLE_PLUGIN_CGAL "Enable cgal plugin" ON)
+if (ENABLE_PLUGIN_CGAL)
+  add_subdirectory(CGAL)
+endif()
