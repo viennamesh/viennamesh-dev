@@ -161,7 +161,7 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh const & m
         //write name etc.
         H5::Group region_group = geometry.createGroup("region_" + boost::lexical_cast<std::string>(region_counter));
         write_attribute(region_group, "type", 0);
-        write_attribute(region_group, "name", (*region_it).name());
+        write_attribute(region_group, "name", (*region_it).get_name());
         write_attribute(region_group, "material", "unknown"); //TODO
         write_attribute(region_group, "number of parts", 1);
 

@@ -43,7 +43,7 @@ namespace viennamesh
     std::vector<RegionIDType> region_contacts;
     for (RegionRangeIterator rit = regions.begin(); rit != regions.end(); ++rit)
     {
-      if ( (*rit).name().find("_contact") != std::string::npos )
+      if ( (*rit).get_name().find("_contact") != std::string::npos )
         region_contacts.push_back( (*rit).id() );
     }
 
