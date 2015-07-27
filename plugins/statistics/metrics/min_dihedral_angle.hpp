@@ -23,14 +23,14 @@ namespace viennamesh
   namespace metrics
   {
     template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT, viennagrid::tetrahedron_tag)
+    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type min_dihedral_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT, viennagrid::tetrahedron_tag)
     {
-      typedef typename PointAccessorT::value_type            PointType;
+      typedef typename PointAccessorT::point_type            PointType;
 
-      PointType const & p0 = point_accessor( viennagrid::vertices(element)[0] );
-      PointType const & p1 = point_accessor( viennagrid::vertices(element)[1] );
-      PointType const & p2 = point_accessor( viennagrid::vertices(element)[2] );
-      PointType const & p3 = point_accessor( viennagrid::vertices(element)[3] );
+      PointType const & p0 = point_accessor.get( viennagrid::vertices(element)[0] );
+      PointType const & p1 = point_accessor.get( viennagrid::vertices(element)[1] );
+      PointType const & p2 = point_accessor.get( viennagrid::vertices(element)[2] );
+      PointType const & p3 = point_accessor.get( viennagrid::vertices(element)[3] );
 
       double da_01 = viennagrid::dihedral_angle( p0, p1, p2, p0, p1, p3 );
       double da_02 = viennagrid::dihedral_angle( p0, p2, p1, p0, p2, p3 );
@@ -43,7 +43,7 @@ namespace viennamesh
     }
 
     template<typename PointAccessorT, typename ElementT, typename NumericLimitsT, typename TagT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle_impl(PointAccessorT const, ElementT const &, NumericLimitsT, TagT)
+    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type min_dihedral_angle_impl(PointAccessorT const, ElementT const &, NumericLimitsT, TagT)
     {
       throw metric_not_implemented_or_supported_exception( "min dihedral angle not implemented for " + TagT::name() );
     }
@@ -53,21 +53,25 @@ namespace viennamesh
   struct min_dihedral_angle_tag {};
 
   template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-  typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
+  typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
   {
-    return metrics::min_dihedral_angle_impl(point_accessor, element, numeric_limits, typename ElementT::tag());
+    if ( element.tag().is_tetrahedron() )
+      return metrics::min_dihedral_angle_impl(point_accessor, element, numeric_limits, viennagrid::tetrahedron_tag());
+
+    assert(false);
+    return 0;
   }
 
   template<typename PointAccessorT, typename ElementT>
-  typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element )
+  typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element )
   {
-    return min_dihedral_angle(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type >() );
+    return min_dihedral_angle(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type >() );
   }
 
   template<typename ElementT>
   typename viennagrid::result_of::coord< ElementT >::type min_dihedral_angle(ElementT const & element)
   {
-    return min_dihedral_angle( viennagrid::root_mesh_point_accessor(element), element);
+    return min_dihedral_angle( viennagrid::root_mesh_point_accessor(), element);
   }
 
 

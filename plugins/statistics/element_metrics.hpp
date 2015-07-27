@@ -20,7 +20,7 @@
 #include "metrics/condition_number.hpp"
 // #include "metrics/min_angle.hpp"
 // #include "metrics/max_angle.hpp"
-// #include "metrics/min_dihedral_angle.hpp"
+#include "metrics/min_dihedral_angle.hpp"
 
 
 namespace viennamesh
