@@ -71,7 +71,7 @@ namespace viennamesh
     data_handle<int> p = get_required_input<int>("p");
     data_handle<double> relative_integrate_tolerance = get_required_input<double>("relative_integrate_tolerance");
     data_handle<double> absolute_integrate_tolerance = get_required_input<double>("absolute_integrate_tolerance");
-    data_handle<int> max_iteration_count = get_required_input<int>("max_iteration_count");
+//     data_handle<int> max_iteration_count = get_required_input<int>("max_iteration_count");
     data_handle<double> mirror_symmetry_tolerance = get_required_input<double>("mirror_symmetry_tolerance");
     data_handle<double> rotational_symmetry_tolerance = get_required_input<double>("rotational_symmetry_tolerance");
 
@@ -141,6 +141,15 @@ namespace viennamesh
       gradient_field_real.set(*vit, grad_real);
     }
 
+//     {
+//       int bench_count = 100000;
+//       std::vector<double> v(bench_count);
+//       viennamesh::LoggingStack s("bench");
+//
+//       for (int i = 0; i != bench_count; ++i)
+//         v[i] = m_real.grad(i*0.1, i*0.2, 1e-2);
+//     }
+
     info(1) << "After calculating sphere" << std::endl;
 
     set_output("sphere", sphere);
@@ -153,10 +162,10 @@ namespace viennamesh
 
 //     m_real.print();
 //     std::cout << std::endl;
-    std::cout << "m_real hast mirror symmetry: " << std::boolalpha << m_real.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
-    m_real.rotation_symmetry_angles();
-    // rotational_symmetry_tolerance() );
-    std::cout << std::endl;
+//     std::cout << "m_real hast mirror symmetry: " << std::boolalpha << m_real.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
+//     m_real.rotation_symmetry_angles();
+//     // rotational_symmetry_tolerance() );
+//     std::cout << std::endl;
 
 
 
@@ -168,13 +177,13 @@ namespace viennamesh
       for (int i = 0; i != rotation_vector.size(); ++i)
       {
         point new_z = rotation_vector(i);
-        std::cout << "Using rotation vector " << new_z << std::endl;
+        info(1) << "Using rotation vector " << new_z << std::endl;
         RealGeneralizedMoment rotated_m = m_real.get_rotated(new_z);
 
 //         rotated_m.print();
 //         std::cout << std::endl;
-        std::cout << "rotated_m (z = "<< new_z << ") hast mirror symmetry: " << std::boolalpha << rotated_m.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
-        rotated_m.rotation_symmetry_angles();
+        info(1) << "rotated_m (z = "<< new_z << ") hast mirror symmetry: " << std::boolalpha << rotated_m.z_mirror_symmetry( mirror_symmetry_tolerance() ) << std::endl;
+//         rotated_m.rotation_symmetry_angles();
 //         rotated_m.rotation_symmetry_angles( rotational_symmetry_tolerance() );
         rotated_m.check_rotation_symmetry(M_PI);
 
@@ -184,13 +193,9 @@ namespace viennamesh
           {
             int rotational_frequency = rotational_frequencies(i);
             double angle = 2*M_PI/rotational_frequency;
-            std::cout << "Using rotational frequency " << rotational_frequency << " (angle = " << angle << ")" << std::endl;
-
-            rotated_m.check_rotation_symmetry(angle);
+            info(1) << "Using rotational frequency " << rotational_frequency << " (angle = " << angle << ") error = " << rotated_m.check_rotation_symmetry(angle) << std::endl;
           }
         }
-
-        std::cout << std::endl;
       }
     }
 
