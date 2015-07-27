@@ -155,54 +155,74 @@ namespace viennamesh
       int old_numberofregions = tmp.numberofregions;
       REAL * old_regionlist = tmp.regionlist;
 
-      tmp.numberofregions = 0;
-      tmp.regionlist = NULL;
+//       tmp.numberofregions = 0;
+//       tmp.regionlist = NULL;
 
       int old_numberofholes = tmp.numberofholes;
       REAL * old_holelist = tmp.holelist;
 
-      tmp.numberofholes = 0;
-      tmp.holelist = NULL;
+//       tmp.numberofholes = 0;
+//       tmp.holelist = NULL;
 
       if (!hole_points.empty())
       {
-        tmp.numberofholes = hole_points.size();
-        tmp.holelist = new REAL[3 * hole_points.size()];
+        tmp.numberofholes += hole_points.size();
+        tmp.holelist = new REAL[3 * tmp.numberofholes];
+
+        std::copy( old_holelist, old_holelist+3*old_numberofholes, tmp.holelist );
 
         for (std::size_t i = 0; i < hole_points.size(); ++i)
         {
-          tmp.holelist[3*i+0] = hole_points[i][0];
-          tmp.holelist[3*i+1] = hole_points[i][1];
-          tmp.holelist[3*i+2] = hole_points[i][2];
+          tmp.holelist[3*(old_numberofholes+i)+0] = hole_points[i][0];
+          tmp.holelist[3*(old_numberofholes+i)+1] = hole_points[i][1];
+          tmp.holelist[3*(old_numberofholes+i)+2] = hole_points[i][2];
         }
       }
 
       if (!seed_points.empty())
       {
-        tmp.numberofregions = seed_points.size();
-        tmp.regionlist = new REAL[5 * seed_points.size()];
+        tmp.numberofregions += seed_points.size();
+        tmp.regionlist = new REAL[5 * tmp.numberofregions];
+
+        std::copy( old_regionlist, old_regionlist+5*old_numberofregions, tmp.regionlist );
 
         for (std::size_t i = 0; i < seed_points.size(); ++i)
         {
-          tmp.regionlist[5*i+0] = seed_points[i].first[0];
-          tmp.regionlist[5*i+1] = seed_points[i].first[1];
-          tmp.regionlist[5*i+2] = seed_points[i].first[2];
-          tmp.regionlist[5*i+3] = REAL(seed_points[i].second);
-          tmp.regionlist[5*i+4] = 0;
+          tmp.regionlist[5*(old_numberofregions+i)+0] = seed_points[i].first[0];
+          tmp.regionlist[5*(old_numberofregions+i)+1] = seed_points[i].first[1];
+          tmp.regionlist[5*(old_numberofregions+i)+2] = seed_points[i].first[2];
+          tmp.regionlist[5*(old_numberofregions+i)+3] = REAL(seed_points[i].second);
+          tmp.regionlist[5*(old_numberofregions+i)+4] = 0;
+        }
+
+        info(1) << "Using additional seed points" << std::endl;
+      }
+
+      if (tmp.numberofregions != 0)
+      {
+        info(1) << "Using seed points" << std::endl;
+        for (int i = 0; i != tmp.numberofregions; ++i)
+        {
+          info(10) << "  (" << tmp.regionlist[5*i+0] << "," << tmp.regionlist[5*i+1] << "," << tmp.regionlist[5*i+2] << ") - " << tmp.regionlist[5*i+3] << std::endl;
         }
 
         options.regionattrib = 1;
-        info(1) << "Using seed points" << std::endl;
       }
 
       {
         StdCaptureHandle capture_handle;
         options.init();
+
+        std::cout << "Region attrib: " << options.regionattrib << std::endl;
+
         tetrahedralize(&options, &tmp, &output);
       }
 
-      delete[] tmp.regionlist;
-      delete[] tmp.holelist;
+      if (!hole_points.empty())
+        delete[] tmp.holelist;
+
+      if (!seed_points.empty())
+        delete[] tmp.regionlist;
 
       tmp.numberofregions = old_numberofregions;
       tmp.regionlist = old_regionlist;
@@ -391,27 +411,26 @@ namespace viennamesh
         hole_points = input_hole_points.get_vector();
         info(5) << "Found hole " << hole_points.size() << " points" << std::endl;
       }
-      // hole points from mesh
-      for (int i = 0; i < im.numberofholes; ++i)
-        hole_points.push_back( viennagrid::make_point(im.holelist[3*i+0], im.holelist[3*i+1], im.holelist[3*i+2]) );
+//       // hole points from mesh
+//       for (int i = 0; i < im.numberofholes; ++i)
+//         hole_points.push_back( viennagrid::make_point(im.holelist[3*i+0], im.holelist[3*i+1], im.holelist[3*i+2]) );
 
 
       seed_point_container seed_points;
       if (input_seed_points.valid())
       {
         seed_points = input_seed_points.get_vector();
-        info(5) << "Found " << seed_points.size() << " seed points" << std::endl;
       }
-      // seed points from mesh
-      for (int i = 0; i < im.numberofregions; ++i)
-      {
-        seed_points.push_back(
-          std::make_pair(
-            viennagrid::make_point(im.regionlist[5*i+0], im.regionlist[5*i+1], im.regionlist[5*i+2]),
-            static_cast<int>(im.regionlist[5*i+3])+0.5
-          )
-        );
-      }
+//       // seed points from mesh
+//       for (int i = 0; i < im.numberofregions; ++i)
+//       {
+//         seed_points.push_back(
+//           std::make_pair(
+//             viennagrid::make_point(im.regionlist[5*i+0], im.regionlist[5*i+1], im.regionlist[5*i+2]),
+//             static_cast<int>(im.regionlist[5*i+3])+0.5
+//           )
+//         );
+//       }
       // seed points from segmentation
 //       if (extract_segment_seed_points())
 //       {
