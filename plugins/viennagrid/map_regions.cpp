@@ -44,8 +44,8 @@ namespace viennamesh
     SrcRegionRangeType src_regions(src_mesh);
     for (SrcRegionRangeIterator rit = src_regions.begin(); rit != src_regions.end(); ++rit)
     {
-      region_id_name_map[ (*rit).id() ]   = (*rit).name();
-      region_name_id_map[ (*rit).name() ] = (*rit).id();
+      region_id_name_map[ (*rit).id() ]   = (*rit).get_name();
+      region_name_id_map[ (*rit).get_name() ] = (*rit).id();
     }
 
 
