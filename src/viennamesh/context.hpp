@@ -61,7 +61,7 @@ public:
                             make_function, delete_function,
                             init_function, run_function);
 
-    viennamesh::backend::info(1) << "Algorithm \"" << algorithm_id << "\" sucessfully registered" << std::endl;
+    viennamesh::backend::info(10) << "Algorithm \"" << algorithm_id << "\" sucessfully registered" << std::endl;
   }
 
   viennamesh_algorithm_wrapper make_algorithm(std::string const & algorithm_id)

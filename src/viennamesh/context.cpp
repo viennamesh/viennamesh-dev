@@ -58,7 +58,7 @@ void viennamesh_context_t::register_data_type(std::string const & data_type_name
     it->second.set_make_delete_function(make_function_, delete_function_);
   }
 
-  viennamesh::backend::info(1) << "Data type \"" << data_type_name_ << "\" sucessfully registered" << std::endl;
+  viennamesh::backend::info(10) << "Data type \"" << data_type_name_ << "\" sucessfully registered" << std::endl;
 }
 
 viennamesh_data_wrapper viennamesh_context_t::make_data(std::string const & data_type_name_)
@@ -81,7 +81,7 @@ void viennamesh_context_t::register_conversion_function(std::string const & data
 {
   get_data_type(data_type_from).add_conversion_function(data_type_to, convert_function);
 
-  viennamesh::backend::info(1) << "Conversion function from data type \"" << data_type_from << "\" to data type \"" << data_type_to << "\" sucessfully registered" << std::endl;
+  viennamesh::backend::info(10) << "Conversion function from data type \"" << data_type_from << "\" to data type \"" << data_type_to << "\" sucessfully registered" << std::endl;
 }
 
 void viennamesh_context_t::convert(viennamesh_data_wrapper from, viennamesh_data_wrapper to)
@@ -114,7 +114,7 @@ viennamesh::algorithm_template viennamesh_context_t::get_algorithm_template(std:
 
 viennamesh_plugin viennamesh_context_t::load_plugin(std::string const & plugin_filename)
 {
-  viennamesh::backend::LoggingStack stack("Loading plugin \"" + plugin_filename + "\"");
+  viennamesh::backend::LoggingStack stack("Loading plugin \"" + plugin_filename + "\"", 10);
 
   void * dl = dlopen(plugin_filename.c_str(), RTLD_NOW);
   if (!dl)
@@ -187,17 +187,17 @@ void viennamesh_context_t::load_plugins_in_directory(std::string directory_name)
 
     if (plugins_in_directory.empty())
     {
-      viennamesh::backend::info(1) << "No plugins in directory \"" << directory_name << "\" -> skipping" << std::endl;
+      viennamesh::backend::info(10) << "No plugins in directory \"" << directory_name << "\" -> skipping" << std::endl;
       return;
     }
 
-    viennamesh::backend::LoggingStack stack("Loading all plugins in directory \"" + directory_name + "\"");
+    viennamesh::backend::LoggingStack stack("Loading all plugins in directory \"" + directory_name + "\"", 10);
     for (std::size_t i = 0; i != plugins_in_directory.size(); ++i)
       load_plugin(directory_name + plugins_in_directory[i]);
   }
   else
   {
-    viennamesh::backend::warning(1) << "Opening directory \"" << directory_name << "\" for plugin loading failed" << std::endl;
+    viennamesh::backend::warning(10) << "Opening directory \"" << directory_name << "\" for plugin loading failed" << std::endl;
   }
 }
 

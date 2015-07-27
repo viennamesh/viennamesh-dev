@@ -11,7 +11,7 @@ namespace viennamesh
     make();
 
     {
-      viennamesh::LoggingStack logging_stack("Registering built-in data types");
+      viennamesh::LoggingStack logging_stack("Registering built-in data types", 10);
 
       register_data_type<bool>();
       register_data_type<int>();
