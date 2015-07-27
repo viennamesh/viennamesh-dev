@@ -86,6 +86,8 @@ namespace viennamesh
       output.holelist = new REAL[ 3 * output.numberofholes ];
       std::copy( hole_points, hole_points + output.numberofholes*3, output.holelist );
     }
+    else
+      output.holelist = 0;
 
 
 
@@ -107,6 +109,8 @@ namespace viennamesh
         output.regionlist[5*i+4] = 0;
       }
     }
+    else
+      output.regionlist = 0;
 
 
     return VIENNAMESH_SUCCESS;
