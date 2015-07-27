@@ -312,6 +312,14 @@ namespace viennamesh
   {
     switch (m)
     {
+      case -8:
+        return new static_C<T, l,-4>(p);
+      case -7:
+        return new static_C<T, l,-4>(p);
+      case -6:
+        return new static_C<T, l,-4>(p);
+      case -5:
+        return new static_C<T, l,-4>(p);
       case -4:
         return new static_C<T, l,-4>(p);
       case -3:
@@ -329,6 +337,14 @@ namespace viennamesh
       case  3:
         return new static_C<T, l, 3>(p);
       case  4:
+        return new static_C<T, l, 4>(p);
+      case  5:
+        return new static_C<T, l, 4>(p);
+      case  6:
+        return new static_C<T, l, 4>(p);
+      case  7:
+        return new static_C<T, l, 4>(p);
+      case  8:
         return new static_C<T, l, 4>(p);
     }
 
@@ -350,6 +366,14 @@ namespace viennamesh
       case 3:
         return make_static_C<T, 3>(m,p);
       case 4:
+        return make_static_C<T, 4>(m,p);
+      case 5:
+        return make_static_C<T, 4>(m,p);
+      case 6:
+        return make_static_C<T, 4>(m,p);
+      case 7:
+        return make_static_C<T, 4>(m,p);
+      case 8:
         return make_static_C<T, 4>(m,p);
     }
 
@@ -739,7 +763,7 @@ namespace viennamesh
     }
 
 
-    void check_rotation_symmetry(double alpha) const
+    double check_rotation_symmetry(double alpha) const
     {
       double max_error = -1.0;
       for (int l = p(); l >= 0 ; --l)
@@ -751,7 +775,7 @@ namespace viennamesh
         }
       }
 
-      std::cout << "Rotation " << alpha << "   error = " << max_error << std::endl;
+      return max_error;
     }
 
     void rotation_symmetry_angles(/*double tolerance*/) const

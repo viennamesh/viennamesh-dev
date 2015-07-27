@@ -63,7 +63,6 @@ namespace viennamesh
   }
 
 
-
   // rotates a point by angle using a centroid and an axis
   template<typename PointT>
   PointT rotate(PointT const & point, PointT const & centroid, PointT const & axis, double angle)
@@ -101,9 +100,37 @@ namespace viennamesh
   }
 
   template<typename PointT>
-  PointT rotate(PointT const & point, PointT const & axis, double angle)
+  PointT rotate(PointT const & vector, PointT const & axis, double angle)
   {
-    return rotate(point, PointT(point.size()), axis, angle);
+    PointT result(vector.size());
+
+    if (vector.size() == 2)
+    {
+      result[0] = std::cos(angle) * vector[0] - std::sin(angle) * vector[1];
+      result[1] = std::sin(angle) * vector[0] + std::cos(angle) * vector[1];
+    }
+    else if (vector.size() == 3)
+    {
+      double cos_angle = std::cos(angle);
+      double sin_angle = std::sin(angle);
+
+      // http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+      result[0] = (axis[0]*axis[0] * (1-cos_angle) + cos_angle) * vector[0] +
+                  (axis[0]*axis[1] * (1-cos_angle) - axis[2]*sin_angle) * vector[1] +
+                  (axis[0]*axis[2] * (1-cos_angle) + axis[1]*sin_angle) * vector[2];
+
+      result[1] = (axis[1]*axis[0] * (1-cos_angle) + axis[2]*sin_angle) * vector[0] +
+                  (axis[1]*axis[1] * (1-cos_angle) + cos_angle) * vector[1] +
+                  (axis[1]*axis[2] * (1-cos_angle) - axis[0]*sin_angle) * vector[2];
+
+      result[2] = (axis[2]*axis[0] * (1-cos_angle) - axis[1]*sin_angle) * vector[0] +
+                  (axis[2]*axis[1] * (1-cos_angle) + axis[0]*sin_angle) * vector[1] +
+                  (axis[2]*axis[2] * (1-cos_angle) + cos_angle) * vector[2];
+    }
+    else
+      assert(false);
+
+    return result;
   }
 
 
