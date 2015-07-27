@@ -507,7 +507,8 @@ namespace viennamesh
     public:
 
       LoggingStack() : stack_name(""), logger_obj(logger()) { init(); }
-      LoggingStack( std::string const & stack_name_ ) : stack_name(stack_name_), logger_obj(logger()) { init(); }
+      LoggingStack( std::string const & stack_name_ ) : stack_name(stack_name_), log_level(5), logger_obj(logger()) { init(); }
+      LoggingStack( std::string const & stack_name_, int log_level_ ) : stack_name(stack_name_), log_level(log_level_), logger_obj(logger()) { init(); }
       LoggingStack( Logger & logger_obj_ ) : stack_name(""), logger_obj(logger_obj_) { init(); }
       LoggingStack( Logger & logger_obj_, std::string const & stack_name_ ) : stack_name(stack_name_), logger_obj(logger_obj_) { init(); }
 
@@ -518,10 +519,10 @@ namespace viennamesh
 
       void init()
       {
-        logger_obj.stack(5) << "Opening stack";
+        logger_obj.stack(log_level) << "Opening stack";
         if (!stack_name.empty())
-          logger_obj.stack(5) << " '" << stack_name << "'";
-        logger_obj.stack(5) << "" << std::endl;
+          logger_obj.stack(log_level) << " '" << stack_name << "'";
+        logger_obj.stack(log_level) << "" << std::endl;
         logger_obj.increase_indentation();
         timer.start();
       }
@@ -530,14 +531,15 @@ namespace viennamesh
       {
         double time = timer.get();
         logger_obj.decrease_indentation();
-        logger_obj.stack(5) << "Closing stack";
+        logger_obj.stack(log_level) << "Closing stack";
         if (!stack_name.empty())
-          logger_obj.stack(5) << " '" << stack_name << "'";
-        logger_obj.stack(5) << " (took " << time << "sec)" << std::endl;
+          logger_obj.stack(log_level) << " '" << stack_name << "'";
+        logger_obj.stack(log_level) << " (took " << time << "sec)" << std::endl;
       }
 
       viennautils::Timer timer;
       std::string stack_name;
+      int log_level;
       Logger & logger_obj;
     };
 
