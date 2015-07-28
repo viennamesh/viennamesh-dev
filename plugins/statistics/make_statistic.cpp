@@ -93,6 +93,9 @@ namespace viennamesh
       output_bins.set( bins );
       set_output( "bins", output_bins );
 
+      set_output( "min", statistic.min() );
+      set_output( "max", statistic.max() );
+
     }
 
 
