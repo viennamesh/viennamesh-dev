@@ -6,32 +6,37 @@
 
 namespace viennamesh
 {
-template <class HDS>
-class Build_triangle : public CGAL::Modifier_base<HDS> {
-public:
-    Build_triangle(double* aPoints,int anumPoints, int* aFaces, int anumFaces) {mPoints=aPoints;mFaces=aFaces;numPoints=anumPoints;numFaces=anumFaces;}
-    void operator()( HDS& hds) {
+	template <class HDS>
+	class Build_triangle : public CGAL::Modifier_base<HDS> {
+		public:
+	    Build_triangle(double* aPoints,int anumPoints, int* aFaces, int anumFaces) {mPoints=aPoints;mFaces=aFaces;numPoints=anumPoints;numFaces=anumFaces;}
+    	void operator()( HDS& hds) {
         // Postcondition: hds is a valid polyhedral surface.
         CGAL::Polyhedron_incremental_builder_3<HDS> B( hds, true);
         B.begin_surface( numPoints, numFaces);
         typedef typename HDS::Vertex   Vertex;
         typedef typename Vertex::Point Point;
-	for(int i=0;i<numPoints;i++)
-		B.add_vertex( Point( mPoints[i*3], mPoints[i*3+1], mPoints[i*3+2]));
-	for(int i=0;i<numFaces;i++){
-		B.begin_facet();
-        	B.add_vertex_to_facet( mFaces[3*i]);
-        	B.add_vertex_to_facet( mFaces[3*i+1]);
-        	B.add_vertex_to_facet( mFaces[3*i+2]);
-       		B.end_facet();
-	}
-	B.end_surface();
-    }
-private:
- double* mPoints;
- int* mFaces;
- int numPoints;
- int numFaces;
+        std::cout<<"Number of Vertices: "<<numPoints<<"\n";
+  			for(int i=0;i<numPoints;i++){
+    			B.add_vertex( Point( mPoints[i*3], mPoints[i*3+1], mPoints[i*3+2]));
+          std::cout<<"created Vertex ("<<mPoints[i*3]<<", "<<mPoints[i*3+1]<<", "<<mPoints[i*3+2]<<")\n";
+        }
+        std::cout<<"Number of Faces: "<<numFaces<<"\n";
+  			for(int i=0;i<numFaces;i++){
+    			B.begin_facet();
+          B.add_vertex_to_facet( mFaces[3*i]);
+          B.add_vertex_to_facet( mFaces[3*i+1]);
+          B.add_vertex_to_facet( mFaces[3*i+2]);
+          B.end_facet();
+          std::cout<<"created Face ("<<mFaces[i*3]<<", "<<mFaces[i*3+1]<<", "<<mFaces[i*3+2]<<")\n";
+  			}
+  			B.end_surface();
+    	}
+		private:
+			double* mPoints;
+		  int* mFaces;
+		  int numPoints;
+		  int numFaces;
 };
 
   viennamesh_error convert(viennagrid::mesh const & input, cgal::mesh & output)
@@ -61,13 +66,14 @@ private:
     ConstCellRangeType cells(input);
 
     int num_faces =cells.size();
+    std::cout <<"\nnumber of faces to convert: "<<num_faces<<"\n";
     int* faces=(int*)malloc(num_faces*3*sizeof(int));
     index=0;
     for (ConstCellIteratorType cit = cells.begin(); cit != cells.end(); ++cit, ++index)
     {
       if((*cit).is_triangle()==false){
-	free(faces);
-	free(points);
+  			free(faces);
+  			free(points);
         return false;
       }
       typedef viennagrid::mesh                                              MeshType;
@@ -90,29 +96,45 @@ private:
   }
 
 
-
+  int get_id_of_vertex(cgal::Point_3 p, cgal::mesh const & input){
+    typedef cgal::mesh::Vertex_const_iterator                 Vertex_iterator;
+    int pos =0;
+    {
+      Vertex_iterator begin = input.vertices_begin();
+      for ( ; begin != input.vertices_end(); ++begin, ++pos)
+        if(begin->point()==p)
+          return pos;
+    }
+    return -1;
+  }
 
   viennamesh_error convert(cgal::mesh const & input, viennagrid::mesh & output)
-  {
-    typedef cgal::mesh::Facet_const_iterator 			Facet_iterator;
-
+  {typedef viennagrid::mesh                                   MeshType;
+    typedef viennagrid::result_of::element<MeshType>::type    VertexType;
+    typedef cgal::mesh::Vertex_const_iterator                 Vertex_iterator;
+    typedef cgal::mesh::Facet_const_iterator                  Facet_iterator;
+    int numberofpoints =0;
+    {
+      Vertex_iterator begin = input.vertices_begin();
+      for ( ; begin != input.vertices_end(); ++begin, ++numberofpoints);
+    }
+    std::vector<VertexType> vertex_handles(numberofpoints);
+    {
+      Vertex_iterator begin = input.vertices_begin();
+      for (int i = 0; i < numberofpoints; ++i, ++begin)
+      { 
+        vertex_handles[i] = viennagrid::make_vertex( output,
+        viennagrid::make_point(begin->point().x(),begin->point().y(),begin->point().z())
+        );
+      }
+    }
     Facet_iterator begin = input.facets_begin();
     for ( ; begin != input.facets_end(); ++begin)
     {
       viennagrid::make_triangle(
-        output,
-	viennagrid::make_vertex( output,
-	  viennagrid::make_point(begin->facet_begin()->vertex()->point().x(),
-			       begin->facet_begin()->vertex()->point().y(),
-		 	       begin->facet_begin()->vertex()->point().z())),
-	viennagrid::make_vertex( output,
-	  viennagrid::make_point(begin->facet_begin()->next()->vertex()->point().x(),
-			       begin->facet_begin()->next()->vertex()->point().y(),
-		 	       begin->facet_begin()->next()->vertex()->point().z())),
-	viennagrid::make_vertex( output,
-	  viennagrid::make_point(begin->facet_begin()->opposite()->vertex()->point().x(),
-			       begin->facet_begin()->opposite()->vertex()->point().y(),
-		 	       begin->facet_begin()->opposite()->vertex()->point().z()))
+        output,vertex_handles[get_id_of_vertex(begin->facet_begin()->vertex()->point(),input)],
+          vertex_handles[get_id_of_vertex(begin->facet_begin()->next()->vertex()->point(),input)],
+          vertex_handles[get_id_of_vertex(begin->facet_begin()->opposite()->vertex()->point(),input)]
       );
     }
 

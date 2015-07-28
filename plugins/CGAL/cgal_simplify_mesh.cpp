@@ -38,41 +38,41 @@ namespace CGAL {
     {
       public:
 
-  	typedef ECM_ ECM ;
+      typedef ECM_ ECM ;
   
-  	typedef Edge_profile<ECM> Profile ;
+      typedef Edge_profile<ECM> Profile ;
   
-  	typedef typename boost::graph_traits<ECM>::edge_descriptor edge_descriptor ;
-  	typedef typename boost::graph_traits<ECM>::edges_size_type size_type ;
-	typedef CGAL::Simple_cartesian<double> Kernel;
-	typedef CGAL::Polyhedron_3<Kernel> mesh; 
-    	typedef mesh::Facet_iterator Facet_iterator;
-  	My_stop_predicate( double min_area) : target_min_area(min_area) {}
+      typedef typename boost::graph_traits<ECM>::edge_descriptor edge_descriptor ;
+      typedef typename boost::graph_traits<ECM>::edges_size_type size_type ;
+      typedef CGAL::Simple_cartesian<double> Kernel;
+      typedef CGAL::Polyhedron_3<Kernel> mesh; 
+      typedef mesh::Facet_iterator Facet_iterator;
+      My_stop_predicate( double min_area) : target_min_area(min_area) {}
   
-  	template <typename F> 
-  	bool operator()( F const&       // aCurrentCost
+      template <typename F> 
+      bool operator()( F const&       // aCurrentCost
                  , Profile const&  aEdgeProfile
                  , size_type      // aInitialCount
                  , size_type      // aCurrentCount
                  ) const 
-  	{
-	  ECM & sm  = aEdgeProfile.surface_mesh();
-	  double min_area=-1.0;
-	  Facet_iterator begin = sm.facets_begin();
-
-  	  for ( ; begin != sm.facets_end(); ++begin){
-	    double min=Kernel::Compute_area_3()(
-      	      begin->facet_begin()->vertex()->point(),
-      	      begin->facet_begin()->next()->vertex()->point(),
-      	      begin->facet_begin()->opposite()->vertex()->point() );
-	    if(min<min_area || min_area==-1.0)
-		min_area=min;
-	  }
-         return target_min_area<=min_area;
+      {
+        ECM & sm  = aEdgeProfile.surface_mesh();
+        double min_area=-1.0;
+        Facet_iterator begin = sm.facets_begin();
+    
+        for ( ; begin != sm.facets_end(); ++begin){
+          double min=Kernel::Compute_area_3()(
+              begin->facet_begin()->vertex()->point(),
+              begin->facet_begin()->next()->vertex()->point(),
+              begin->facet_begin()->opposite()->vertex()->point() );
+          if(min<min_area || min_area==-1.0)
+            min_area=min;
         }
+        return target_min_area<=min_area;
+      }
   
-     private:
-  	double target_min_area;
+      private:
+        double target_min_area;
     };     
   }
 }
@@ -83,120 +83,143 @@ namespace viennamesh
   namespace cgal
   {
     struct cgal_simplify_options{
-	int stop;
-	double stop_val;
-	int cost;
-	int placement;
+      int stop;
+      double stop_val;
+      int cost;
+      int placement;
     };
-
+    void out(cgal::mesh input){
+      int index=0;
+      typedef mesh::Vertex_iterator Vertex_iterator;
+      typedef mesh::Facet_iterator Facet_iterator;
+      {
+      std::cout << "Vertices: \n";
+      Vertex_iterator begin = input.vertices_begin();
+      for ( ; begin != input.vertices_end(); ++begin,++index)
+        std::cout <<begin->point()<<"\n";
+        std::cout<<index<<" vertexes\n";
+      }
+      {
+      std::cout << "Cells:\n";      
+      Facet_iterator begin = input.facets_begin();
+      for ( ; begin != input.facets_end(); ++begin){
+        std::cout << "(" << begin->facet_begin()->vertex()->point() << ") ";
+        std::cout << "(" << begin->facet_begin()->next()->vertex()->point() << ") ";
+        std::cout << "(" << begin->facet_begin()->opposite()->vertex()->point() << ")\t";
+        std::cout << "\n";
+      }
+      }
+    }
     void simplify_mesh_impl(cgal::mesh input,
                         cgal::mesh & output,
                         cgal_simplify_options options)
     {
+      out(input);
       namespace SMS = CGAL::Surface_mesh_simplification;
       if(options.stop==0){
-	SMS::Count_ratio_stop_predicate<cgal::mesh> stop(options.stop_val);
-	if(options.cost==0 && options.placement==0)
-	  SMS::edge_collapse
+        SMS::Count_ratio_stop_predicate<cgal::mesh> stop(options.stop_val);
+        if(options.cost==0 && options.placement==0)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	  );
-	else if(options.cost==1 && options.placement == 0)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+          );
+        else if(options.cost==1 && options.placement == 0)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_cost (SMS::Edge_length_cost <cgal::mesh>())
-	  );
-	else if(options.cost==0 && options.placement == 1)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_cost (SMS::Edge_length_cost <cgal::mesh>())
+          );
+        else if(options.cost==0 && options.placement == 1)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_placement(SMS::Midpoint_placement<cgal::mesh>())
-	  );
-	else
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_placement(SMS::Midpoint_placement<cgal::mesh>())
+          );
+        else
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_cost (SMS::Edge_length_cost <cgal::mesh>())
-	     .get_placement(SMS::Midpoint_placement<cgal::mesh>())
-	  );
-      }else if(options.stop==1){
-	SMS::Count_stop_predicate<cgal::mesh> stop(options.stop_val);
-	if(options.cost==0 && options.placement==0)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_cost (SMS::Edge_length_cost <cgal::mesh>())
+              .get_placement(SMS::Midpoint_placement<cgal::mesh>())
+          );
+      }else if(options.stop==1){        
+        SMS::Count_stop_predicate<cgal::mesh> stop(options.stop_val);
+        if(options.cost==0 && options.placement==0)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	  );
-	else if(options.cost==1 && options.placement == 0)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+          );
+        else if(options.cost==1 && options.placement == 0)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_cost (SMS::Edge_length_cost <cgal::mesh>())
-	  );
-	else if(options.cost==0 && options.placement == 1)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_cost (SMS::Edge_length_cost <cgal::mesh>())
+          );
+        else if(options.cost==0 && options.placement == 1)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_placement(SMS::Midpoint_placement<cgal::mesh>())
-	  );
-	else
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_placement(SMS::Midpoint_placement<cgal::mesh>())
+          );
+        else
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_cost (SMS::Edge_length_cost <cgal::mesh>())
-	     .get_placement(SMS::Midpoint_placement<cgal::mesh>())
-	  );
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_cost (SMS::Edge_length_cost <cgal::mesh>())
+              .get_placement(SMS::Midpoint_placement<cgal::mesh>())
+          );
       }else{
-	SMS::My_stop_predicate<cgal::mesh> stop(options.stop_val);
-	if(options.cost==0 && options.placement==0)
-	  SMS::edge_collapse
+        SMS::My_stop_predicate<cgal::mesh> stop(options.stop_val);
+        if(options.cost==0 && options.placement==0)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	  );
-	else if(options.cost==1 && options.placement == 0)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+          );
+        else if(options.cost==1 && options.placement == 0)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_cost (SMS::Edge_length_cost <cgal::mesh>())
-	  );
-	else if(options.cost==0 && options.placement == 1)
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_cost (SMS::Edge_length_cost <cgal::mesh>())
+          );
+        else if(options.cost==0 && options.placement == 1)
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_placement(SMS::Midpoint_placement<cgal::mesh>())
-	  );
-	else
-	  SMS::edge_collapse
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_placement(SMS::Midpoint_placement<cgal::mesh>())
+            );
+        else
+          SMS::edge_collapse
             (input
             ,stop
             ,CGAL::vertex_index_map(get(CGAL::vertex_external_index,input)) 
-             .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
-	     .get_cost (SMS::Edge_length_cost <cgal::mesh>())
-	     .get_placement(SMS::Midpoint_placement<cgal::mesh>())
-	  );
+              .halfedge_index_map  (get(CGAL::halfedge_external_index  ,input))
+              .get_cost (SMS::Edge_length_cost <cgal::mesh>())
+              .get_placement(SMS::Midpoint_placement<cgal::mesh>())
+            );
       }
+      out(input);
       output=input;
     }
 
@@ -212,9 +235,9 @@ namespace viennamesh
       data_handle<int> cost_option = get_input<int>("cost_option");
       data_handle<int> placement_option = get_input<int>("placement_option");
 
-      data_handle<int> stop_predicate = get_required_input<int>("stop_predicate");
-      data_handle<double> stop_predicate_value = get_required_input<double>("stop_predicate_value");
-      data_handle<cgal::mesh> input_mesh = get_required_input<cgal::mesh>("geometry");
+      data_handle<viennamesh_string> stop_predicate = get_required_input<viennamesh_string>("stop_predicate");
+      //data_handle<double> stop_predicate_value = get_required_input<double>("stop_predicate_value");
+      data_handle<cgal::mesh> input_mesh = get_required_input<cgal::mesh>("mesh");
 
       data_handle<cgal::mesh> output_mesh = make_data<cgal::mesh>();
 
@@ -223,20 +246,42 @@ namespace viennamesh
       cgal::mesh & om = const_cast<cgal::mesh &>(output_mesh());
 
       cgal_simplify_options options;
-
-      if(stop_predicate.valid() && stop_predicate_value.valid() && stop_predicate()>=0 && stop_predicate()<3 && stop_predicate_value() >= 0.0){
-        options.stop=stop_predicate();
-        options.stop_val=stop_predicate_value();
+      if(strcmp(stop_predicate().c_str(),"count")==0){
+        data_handle<int> count_edges = get_input<int>("number_of_edges");
+        if(count_edges.valid()==false)
+          return false;
+        if(count_edges()<0)
+          options.stop_val=0.0;
+        else
+          options.stop_val=count_edges();
+        options.stop=1;
+      }else if(strcmp(stop_predicate().c_str(),"ratio")==0){
+        data_handle<double> ratio = get_input<double>("ratio");
+        if(ratio.valid()==false)
+          return false;
+        if(ratio()<0)
+          options.stop_val=0.0;
+        else
+          options.stop_val=ratio();
+        options.stop=0;
+      }else if(strcmp(stop_predicate().c_str(),"Area")==0){
+        data_handle<double> min_area = get_input<double>("min_area");
+        if(min_area.valid()==false)
+          return false;
+        if(min_area()<0)
+          options.stop_val=0.0;
+        else
+          options.stop_val=min_area();
+        options.stop=2;
       }else return false;
       if(cost_option.valid() && cost_option()>=0 && cost_option()<2)
-	options.cost=cost_option();
+        options.cost=cost_option();
       else
-	options.cost=0;
+        options.cost=0;
       if(placement_option.valid() && placement_option()>=0 && placement_option()<2)
-	options.placement=placement_option();
+        options.placement=placement_option();
       else
-	options.cost=0;
-
+        options.cost=0;
       simplify_mesh_impl( im, om, options );
       set_output("mesh", output_mesh);
 

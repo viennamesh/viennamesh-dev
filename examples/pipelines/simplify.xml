@@ -1,0 +1,14 @@
+<algorithm type="mesh_reader" name="input">
+  <parameter name="filename" type="string">../data/cgal_cube.mesh</parameter>
+</algorithm>
+
+<algorithm type="cgal_simplify_mesh" name="simply">
+  <default_source>input</default_source>
+  <parameter name="stop_predicate" type="string">count</parameter>
+  <parameter name="number_of_edges" type="int">37</parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>simply</default_source>
+  <parameter name="filename" type="string">cube_37.vtu</parameter>
+</algorithm>
