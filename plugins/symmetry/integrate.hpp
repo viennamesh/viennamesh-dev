@@ -1,9 +1,11 @@
 #ifndef VIENNAMESH_ALGORITHM_SYMMETRY_INTEGRATE_HPP
 #define VIENNAMESH_ALGORITHM_SYMMETRY_INTEGRATE_HPP
-#include <boost/concept_check.hpp>
 
-template<class Sig >
-struct result;
+#include "viennagridpp/algorithm/volume.hpp"
+
+#include "spherical_harmonics.hpp"
+#include "common.hpp"
+
 namespace viennamesh
 {
   template<typename F>
