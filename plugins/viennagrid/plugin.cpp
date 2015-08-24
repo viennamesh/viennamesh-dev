@@ -17,6 +17,7 @@
 #include "center_mesh.hpp"
 #include "mark_hull_regions.hpp"
 #include "scale_quantities.hpp"
+#include "stretch_middle.hpp"
 
 
 
@@ -43,6 +44,7 @@ viennamesh_error viennamesh_plugin_init(viennamesh_context context)
   viennamesh::register_algorithm<viennamesh::center_mesh>(context);
 
   viennamesh::register_algorithm<viennamesh::mark_hull_regions>(context);
+  viennamesh::register_algorithm<viennamesh::stretch_middle>(context);
 
   return VIENNAMESH_SUCCESS;
 }

@@ -15,4 +15,5 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-viennagrid plugin.cpp
                       refine_plc_lines.cpp
                       center_mesh.cpp
                       mark_hull_regions.cpp
-                      scale_quantities.cpp)
+                      scale_quantities.cpp
+                      stretch_middle.cpp)
