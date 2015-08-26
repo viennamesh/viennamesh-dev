@@ -283,6 +283,9 @@ namespace viennamesh
       {
         hole_points = input_hole_points.get_vector();
         info(5) << "Found hole " << hole_points.size() << " points" << std::endl;
+
+        for (std::size_t i = 0; i < hole_points.size(); ++i)
+          info(5) << "  " << hole_points[i] << std::endl;
       }
       // hole points from mesh
       for (int i = 0; i < im->numberofholes; ++i)
@@ -294,6 +297,9 @@ namespace viennamesh
       {
         seed_points = input_seed_points.get_vector();
         info(5) << "Found " << input_seed_points.size() << " seed points" << std::endl;
+
+        for (std::size_t i = 0; i < seed_points.size(); ++i)
+          info(5) << "  " << seed_points[i].first << " - " << seed_points[i].second << std::endl;
       }
       // seed points from mesh
       for (int i = 0; i < im->numberofregions; ++i)
