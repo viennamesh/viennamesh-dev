@@ -258,6 +258,29 @@ namespace viennamesh
     };
 
 
+    class add_functor : public base_functor
+    {
+    public:
+      add_functor(SizingFunctionContainerType const & functions_) : functions(functions_) {}
+
+      result_type operator()( PointType const & pt ) const;
+
+    private:
+      SizingFunctionContainerType functions;
+    };
+
+    class mul_functor : public base_functor
+    {
+    public:
+      mul_functor(SizingFunctionContainerType const & functions_) : functions(functions_) {}
+
+      result_type operator()( PointType const & pt ) const;
+
+    private:
+      SizingFunctionContainerType functions;
+    };
+
+
     class abs_functor : public base_functor
     {
     public:
@@ -276,6 +299,64 @@ namespace viennamesh
       function_type function;
     };
 
+
+    class less_functor : public base_functor
+    {
+    public:
+      less_functor(function_type const & function_, CoordType threshold_) : function(function_), threshold(threshold_) {}
+
+      result_type operator()( PointType const & pt ) const
+      {
+        result_type tmp = function(pt);
+        if (!tmp)
+          return tmp;
+
+        return tmp.get() < threshold ? 1.0 : 0.0;
+      }
+
+    private:
+      function_type function;
+      CoordType threshold;
+    };
+
+    class greater_functor : public base_functor
+    {
+    public:
+      greater_functor(function_type const & function_, CoordType threshold_) : function(function_), threshold(threshold_) {}
+
+      result_type operator()( PointType const & pt ) const
+      {
+        result_type tmp = function(pt);
+        if (!tmp)
+          return tmp;
+
+        return tmp.get() > threshold ? 1.0 : 0.0;
+      }
+
+    private:
+      function_type function;
+      CoordType threshold;
+    };
+
+    class in_interval_functor : public base_functor
+    {
+    public:
+      in_interval_functor(function_type const & function_, CoordType lower_, CoordType upper_) : function(function_), lower(lower_), upper(upper_) {}
+
+      result_type operator()( PointType const & pt ) const
+      {
+        result_type tmp = function(pt);
+        if (!tmp)
+          return tmp;
+
+        return ((lower < tmp.get()) && (tmp.get() < upper)) ? 1.0 : 0.0;
+      }
+
+    private:
+      function_type function;
+      CoordType lower;
+      CoordType upper;
+    };
 
     class linear_interpolate_functor : public base_functor
     {

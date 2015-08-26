@@ -472,6 +472,44 @@ namespace viennamesh
 
 
 
+    add_functor::result_type add_functor::operator()( PointType const & pt ) const
+    {
+      result_type val;
+
+      for (SizingFunctionContainerType::const_iterator fit = functions.begin(); fit != functions.end(); ++fit)
+      {
+        result_type current = (*fit)(pt);
+        if (!current)
+          continue;
+
+        if (!val)
+          val = current;
+        else
+          val = current.get() + val.get();
+      }
+
+      return val;
+    }
+
+    mul_functor::result_type mul_functor::operator()( PointType const & pt ) const
+    {
+      result_type val;
+
+      for (SizingFunctionContainerType::const_iterator fit = functions.begin(); fit != functions.end(); ++fit)
+      {
+        result_type current = (*fit)(pt);
+        if (!current)
+          continue;
+
+        if (!val)
+          val = current;
+        else
+          val = current.get() * val.get();
+      }
+
+      return val;
+    }
+
 
     min_functor::result_type min_functor::operator()( PointType const & pt ) const
     {
@@ -545,6 +583,67 @@ namespace viennamesh
         base_functor::function_type source = from_xml(node.child("source").first_child(), mesh, base_path);
 
         return bind(abs_functor(source), _1);
+      }
+      else if (name == "less")
+      {
+        if ( !node.child_value("source") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
+        base_functor::function_type source = from_xml(node.child("source").first_child(), mesh, base_path);
+
+        if ( !node.child_value("threshold") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"threshold\" missing" );
+        double threshold = lexical_cast<double>(node.child_value("threshold"));
+
+        return bind(less_functor(source, threshold), _1);
+      }
+      else if (name == "greater")
+      {
+        if ( !node.child_value("source") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
+        base_functor::function_type source = from_xml(node.child("source").first_child(), mesh, base_path);
+
+        if ( !node.child_value("threshold") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"threshold\" missing" );
+        double threshold = lexical_cast<double>(node.child_value("threshold"));
+
+        return bind(greater_functor(source, threshold), _1);
+      }
+      else if (name == "in_interval")
+      {
+        if ( !node.child_value("source") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"source\" missing" );
+        base_functor::function_type source = from_xml(node.child("source").first_child(), mesh, base_path);
+
+        if ( !node.child_value("lower") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"threshold\" missing" );
+        double lower = lexical_cast<double>(node.child_value("lower"));
+        if ( !node.child_value("upper") )
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": required XML child element \"threshold\" missing" );
+        double upper = lexical_cast<double>(node.child_value("upper"));
+
+        return bind(in_interval_functor(source, lower, upper), _1);
+      }
+      else if (name == "add")
+      {
+        std::vector<base_functor::function_type> functions;
+        for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
+          functions.push_back( from_xml(source.first_child(), mesh, base_path) );
+
+        if (functions.empty())
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": no sources specified" );
+
+        return bind( add_functor(functions), _1 );
+      }
+      else if (name == "mul")
+      {
+        std::vector<base_functor::function_type> functions;
+        for (pugi::xml_node source = node.child("source"); source; source = source.next_sibling("source"))
+          functions.push_back( from_xml(source.first_child(), mesh, base_path) );
+
+        if (functions.empty())
+          VIENNAMESH_ERROR(VIENNAMESH_ERROR_SIZING_FUNCTION, "Sizing function functor \"" + name + "\": no sources specified" );
+
+        return bind( mul_functor(functions), _1 );
       }
       else if (name == "min")
       {
