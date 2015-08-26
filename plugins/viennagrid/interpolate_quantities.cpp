@@ -37,12 +37,12 @@ namespace viennamesh
       viennagrid::quantity_field src_qf = src_quantity_fields(i);
       if (src_qf.topologic_dimension() != 0)
       {
-        info(1) << "Quantity field \"" << src_qf.get_name() << "\" has unsupported topologic dimension = " << src_qf.topologic_dimension() << " -> skipping" << std::endl;
+        info(1) << "Quantity field \"" << src_qf.get_name() << "\" has unsupported topologic dimension = " << (int)src_qf.topologic_dimension() << " -> skipping" << std::endl;
         continue;
       }
 
-      info(1) << "Found quantity field \"" << src_qf.get_name() << "\" with topologic dimension " << src_qf.topologic_dimension() <<
-      " and values dimension " << src_qf.values_dimension() << std::endl;
+      info(1) << "Found quantity field \"" << src_qf.get_name() << "\" with topologic dimension " << (int)src_qf.topologic_dimension() <<
+      " and values dimension " << (int)src_qf.values_dimension() << std::endl;
 
       viennagrid::quantity_field dst_qf( 0, src_qf.values_dimension(), src_qf.storage_layout() );
       dst_qf.set_name( src_qf.get_name() );
