@@ -29,8 +29,9 @@ namespace viennamesh
 {
   namespace cgal
   {
-	typedef CGAL::Simple_cartesian<double> Kernel;
-	typedef CGAL::Polyhedron_3<Kernel> mesh; 
+	  typedef CGAL::Simple_cartesian<double> Kernel;
+	  typedef CGAL::Polyhedron_3<Kernel> mesh; 
+    typedef Kernel::Point_3 Point_3;
   }
 
   viennamesh_error convert(viennagrid::mesh const & input, cgal::mesh & output);

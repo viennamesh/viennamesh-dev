@@ -1,0 +1,7 @@
+<algorithm type="scale_reconstruction" name="reconstruct">
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>reconstruct</default_source>
+  <parameter name="filename" type="string">lol.vtu</parameter>
+</algorithm>

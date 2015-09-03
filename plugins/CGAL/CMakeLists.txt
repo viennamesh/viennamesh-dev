@@ -21,8 +21,7 @@ if ( NOT Boost_FOUND )
   return()  
 
 endif()
-message(STATUS "TEST")
-message(STATUS "TEST ${CGAL_USE_FILE}")
+#message(STATUS "TEST ${CGAL_USE_FILE}")
 
 VIENNAMESH_ADD_PLUGIN(viennamesh-module-cgal plugin.cpp
                       cgal_mesh.cpp
