@@ -20,9 +20,9 @@ namespace viennamesh
   {
 
     struct scale_options{
-      int sample_size;
-      int neighborhood_size;
-      int scale;
+      int sample_size;        //number of samples to be take       (used to estimate the average neighborhood_radius )
+      int neighborhood_size;  //number of points in a neighborhood (used to estimate the average neighborhood_radius )
+      int scale;              //scale of the reconstruction (the higher the scale, the smoother the reconstruction
     };
 
     void scale_reconstruction_impl(Point_collection & input,
