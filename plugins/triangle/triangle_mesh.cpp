@@ -1,5 +1,5 @@
 #include "triangle_mesh.hpp"
-#include "viennagridpp/core.hpp"
+#include "viennagrid/viennagrid.hpp"
 
 
 

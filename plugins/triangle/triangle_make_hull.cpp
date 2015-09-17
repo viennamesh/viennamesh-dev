@@ -15,7 +15,7 @@
 #include "triangle_mesh.hpp"
 #include "triangle_make_hull.hpp"
 
-#include "viennagridpp/algorithm/refine.hpp"
+#include "viennagrid/algorithm/refine.hpp"
 
 namespace viennamesh
 {
@@ -119,9 +119,9 @@ namespace viennamesh
         output.global_vertex_ids[index] = *vit;
       }
 
-      viennagrid_numeric * hole_points;
       viennagrid_int hole_point_count;
-      viennagrid_plc_facet_hole_points_get(plc, facet_id, &hole_points, &hole_point_count);
+      viennagrid_numeric * hole_points;
+      viennagrid_plc_facet_hole_points_get(plc, facet_id, &hole_point_count, &hole_points);
 
       std::vector<point> hole_points_3d(hole_point_count);
       for (viennagrid_int i = 0; i != hole_point_count; ++i)
@@ -166,10 +166,10 @@ namespace viennamesh
       viennagrid_plc_geometric_dimension_get(plc, &geometric_dimension);
 
       viennagrid_int vertex_count;
-      viennagrid_plc_element_count_get(plc, 0, &vertex_count);
+      viennagrid_plc_element_count(plc, 0, &vertex_count);
 
       viennagrid_int facet_count;
-      viennagrid_plc_element_count_get(plc, 2, &facet_count);
+      viennagrid_plc_element_count(plc, 2, &facet_count);
 
       output.vertex_points_3d.resize( vertex_count );
       for (viennagrid_int vid = 0; vid != vertex_count; ++vid)
@@ -290,7 +290,7 @@ namespace viennamesh
       if (cell_size.valid())
       {
         viennagrid_int line_count;
-        viennagrid_plc_element_count_get(input_plc(), 1, &line_count);
+        viennagrid_plc_element_count(input_plc(), 1, &line_count);
         info(1) << "Line count of original mesh: " << line_count << std::endl;
 
         viennagrid_plc refined_plc;
