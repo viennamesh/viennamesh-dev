@@ -97,7 +97,10 @@ namespace viennamesh
     boost::algorithm::split( directories, directory_name, boost::is_any_of(delimiter) );
 
     for (StringContainerType::const_iterator dit = directories.begin(); dit != directories.end(); ++dit)
-      viennamesh_context_load_plugins_in_directory( internal(), (*dit).c_str());
+    {
+      if ( !(*dit).empty() )
+        viennamesh_context_load_plugins_in_directory( internal(), (*dit).c_str());
+    }
   }
 
 
