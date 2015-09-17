@@ -14,8 +14,8 @@
 
 #include "line_coarsening.hpp"
 
-#include "viennagridpp/algorithm/angle.hpp"
-#include "viennagridpp/algorithm/norm.hpp"
+#include "viennagrid/algorithm/angle.hpp"
+#include "viennagrid/algorithm/norm.hpp"
 // #include "viennagrid/mesh/element_deletion.hpp"
 
 
@@ -73,8 +73,8 @@ namespace viennamesh
       if (coboundary_lines.size() != 2)
         continue;
 
-      if (!viennagrid::equal_regions(viennagrid::regions(mesh, coboundary_lines[0]),
-                                     viennagrid::regions(mesh, coboundary_lines[1])))
+      if (!viennagrid::equal_regions(viennagrid::regions(coboundary_lines[0]),
+                                     viennagrid::regions(coboundary_lines[1])))
         continue;
 
       ElementType middle = (*vit);

@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "simplexify.hpp"
-#include "viennagridpp/algorithm/simplexify.hpp"
+#include "viennagrid/algorithm/simplexify.hpp"
 
 namespace viennamesh
 {

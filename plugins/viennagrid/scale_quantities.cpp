@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "scale_quantities.hpp"
-#include "viennagridpp/algorithm/geometric_transform.hpp"
+#include "viennagrid/algorithm/geometric_transform.hpp"
 
 namespace viennamesh
 {
@@ -39,7 +39,7 @@ namespace viennamesh
     for (viennagrid_int i = 0; i != input_quantity_field.size(); ++i)
     {
       output_quantity_fields(i).init( input_quantity_field(i).topologic_dimension(),
-                                      input_quantity_field(i).values_dimension() );
+                                      input_quantity_field(i).values_per_quantity() );
       output_quantity_fields(i).set_name( input_quantity_field(i).get_name() );
 
       ConstElementRangeType cells( input_mesh(), input_quantity_field(i).topologic_dimension() );

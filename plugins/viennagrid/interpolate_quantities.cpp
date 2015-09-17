@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "interpolate_quantities.hpp"
-#include "viennagridpp/algorithm/quantity_interpolate.hpp"
+#include "viennagrid/algorithm/quantity_interpolate.hpp"
 
 namespace viennamesh
 {
@@ -42,9 +42,9 @@ namespace viennamesh
       }
 
       info(1) << "Found quantity field \"" << src_qf.get_name() << "\" with topologic dimension " << (int)src_qf.topologic_dimension() <<
-      " and values dimension " << (int)src_qf.values_dimension() << std::endl;
+      " and values dimension " << (int)src_qf.values_per_quantity() << std::endl;
 
-      viennagrid::quantity_field dst_qf( 0, src_qf.values_dimension(), src_qf.storage_layout() );
+      viennagrid::quantity_field dst_qf( 0, src_qf.values_per_quantity(), src_qf.storage_layout() );
       dst_qf.set_name( src_qf.get_name() );
 
       viennagrid::interpolate_vertex_quantity( src_mesh(), src_qf, dst_mesh(), dst_qf, 0 );

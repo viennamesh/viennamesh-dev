@@ -15,7 +15,7 @@
 #include "center_mesh.hpp"
 
 #include <set>
-#include "viennagridpp/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
 
 namespace viennamesh
 {
@@ -61,7 +61,7 @@ namespace viennamesh
       viennagrid_plc_vertex_coords_pointer( input_geometry(), &src_coords );
 
       viennagrid_int vertex_count;
-      viennagrid_plc_element_count_get( input_geometry(), 0, &vertex_count );
+      viennagrid_plc_element_count( input_geometry(), 0, &vertex_count );
 
       std::vector<viennagrid_numeric> center( geometric_dimension, 0 );
 

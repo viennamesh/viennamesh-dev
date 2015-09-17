@@ -1,8 +1,8 @@
 #include "mark_hull_regions.hpp"
 
-#include "viennagridpp/algorithm/geometry.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
-#include "viennagridpp/algorithm/intersect.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/intersect.hpp"
 #include <boost/array.hpp>
 
 namespace viennamesh
@@ -98,13 +98,13 @@ namespace viennamesh
 
 
   template<typename MeshT, typename ElementT>
-  int positive_orientation_region(MeshT const & mesh, ElementT const & element)
+  int positive_orientation_region(ElementT const & element)
   {
-    typedef typename viennagrid::result_of::region_range<MeshT, ElementT>::type ElementRegionRangeType;
+    typedef typename viennagrid::result_of::region_range<ElementT>::type ElementRegionRangeType;
     typedef typename viennagrid::result_of::iterator<ElementRegionRangeType>::type ElementRegionRangeIterator;
 
     int smallest_region = -1;
-    ElementRegionRangeType regions(mesh, element);
+    ElementRegionRangeType regions(element);
     for (ElementRegionRangeIterator rit = regions.begin(); rit != regions.end(); ++rit)
     {
       if ((smallest_region == -1) || ((*rit).id() < smallest_region))
@@ -159,7 +159,7 @@ namespace viennamesh
     }
 
 
-    NeighborsT const & neighbors = positive ? pos_neighbors[triangle.id()] : neg_neighbors[triangle.id()];
+    NeighborsT const & neighbors = positive ? pos_neighbors[triangle.id().index()] : neg_neighbors[triangle.id().index()];
     for (typename NeighborsT::const_iterator ntit = neighbors.begin(); ntit != neighbors.end(); ++ntit)
     {
       mark_neighbors(mesh,
@@ -210,11 +210,11 @@ namespace viennamesh
 
       if (triangles.size() == 2)
       {
-        positive_neighbor_triangles[ triangles[0].id() ].push_back( triangles[1] );
-        negative_neighbor_triangles[ triangles[0].id() ].push_back( triangles[1] );
+        positive_neighbor_triangles[ triangles[0].id().index() ].push_back( triangles[1] );
+        negative_neighbor_triangles[ triangles[0].id().index() ].push_back( triangles[1] );
 
-        positive_neighbor_triangles[ triangles[1].id() ].push_back( triangles[0] );
-        negative_neighbor_triangles[ triangles[1].id() ].push_back( triangles[0] );
+        positive_neighbor_triangles[ triangles[1].id().index() ].push_back( triangles[0] );
+        negative_neighbor_triangles[ triangles[1].id().index() ].push_back( triangles[0] );
         continue;
       }
 
@@ -267,40 +267,40 @@ namespace viennamesh
       {
         if ( (*it0).second.second )
         {
-          positive_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+          positive_neighbor_triangles[ (*it0).second.first.id().index() ].push_back( (*it1).second.first );
         }
         else
         {
-          negative_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+          negative_neighbor_triangles[ (*it0).second.first.id().index() ].push_back( (*it1).second.first );
         }
 
         if ( (*it1).second.second )
         {
-          negative_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+          negative_neighbor_triangles[ (*it1).second.first.id().index() ].push_back( (*it0).second.first );
         }
         else
         {
-          positive_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+          positive_neighbor_triangles[ (*it1).second.first.id().index() ].push_back( (*it0).second.first );
         }
       }
 
       it1 = sorted_neighbors.begin();
       if ( (*it0).second.second )
       {
-        positive_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+        positive_neighbor_triangles[ (*it0).second.first.id().index() ].push_back( (*it1).second.first );
       }
       else
       {
-        negative_neighbor_triangles[ (*it0).second.first.id() ].push_back( (*it1).second.first );
+        negative_neighbor_triangles[ (*it0).second.first.id().index() ].push_back( (*it1).second.first );
       }
 
       if ( (*it1).second.second )
       {
-        negative_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+        negative_neighbor_triangles[ (*it1).second.first.id().index() ].push_back( (*it0).second.first );
       }
       else
       {
-        positive_neighbor_triangles[ (*it1).second.first.id() ].push_back( (*it0).second.first );
+        positive_neighbor_triangles[ (*it1).second.first.id().index() ].push_back( (*it0).second.first );
       }
     }
 

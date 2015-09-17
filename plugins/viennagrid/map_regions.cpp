@@ -55,7 +55,7 @@ namespace viennamesh
       CellType cell = copy_map(*cit );
       std::set<DstRegionIDType> dst_region_ids;
 
-      SrcRegionRangeType element_regions(src_mesh, *cit);
+      SrcRegionRangeType element_regions(*cit);
       for (SrcRegionRangeIterator rit = element_regions.begin(); rit != element_regions.end(); ++rit)
       {
         typename SegmentIDMapT::const_iterator dst_region_id_it = region_id_map.find( region_id_name_map[(*rit).id()] );

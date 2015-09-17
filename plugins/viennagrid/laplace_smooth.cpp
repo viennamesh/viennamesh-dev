@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "laplace_smooth.hpp"
-#include "viennagridpp/core.hpp"
+#include "viennagrid/viennagrid.hpp"
 
 namespace viennamesh
 {
@@ -38,7 +38,7 @@ namespace viennamesh
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
-      if (viennagrid::is_any_boundary(mesh, *vit))
+      if (viennagrid::is_any_boundary(*vit))
         continue;
 
       typedef viennagrid::result_of::coboundary_range<MeshType>::type CoboundaryVertexRangeType;
@@ -114,7 +114,7 @@ namespace viennamesh
 
     for (VertexIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
-      typedef viennagrid::result_of::region_range<MeshType, VertexType>::type RegionRangeType;
+      typedef viennagrid::result_of::region_range<VertexType>::type RegionRangeType;
 //       typedef typename viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
 
       typedef viennagrid::result_of::neighbor_range<MeshType>::type NeighborVertexRangeType;
@@ -127,7 +127,7 @@ namespace viennamesh
 
       NeighborVertexRangeType neighbor_vertices(mesh, *vit, 1, 0);
 
-      RegionRangeType regions(mesh, *vit);
+      RegionRangeType regions(*vit);
 //       std::cout << regions.size() << std::endl;
 
       if (regions.size() == 2)

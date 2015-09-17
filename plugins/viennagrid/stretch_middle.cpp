@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "stretch_middle.hpp"
-#include "viennagridpp/algorithm/geometric_transform.hpp"
+#include "viennagrid/algorithm/geometric_transform.hpp"
 
 namespace viennamesh
 {

@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "hull_set_regions.hpp"
-#include "viennagridpp/algorithm/distance.hpp"
+#include "viennagrid/algorithm/distance.hpp"
 #include <memory>
 #include <set>
 #include <iterator>

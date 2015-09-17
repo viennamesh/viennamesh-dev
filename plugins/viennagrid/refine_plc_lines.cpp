@@ -15,7 +15,6 @@
 #include "refine_plc_lines.hpp"
 
 #include <set>
-#include "viennagridpp/algorithm/refine.hpp"
 
 
 namespace viennamesh

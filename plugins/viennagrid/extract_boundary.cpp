@@ -14,9 +14,9 @@
 
 #include "extract_boundary.hpp"
 
-#include "viennagridpp/algorithm/extract_hole_points.hpp"
-#include "viennagridpp/algorithm/extract_boundary.hpp"
-#include "viennagridpp/algorithm/extract_seed_points.hpp"
+#include "viennagrid/algorithm/extract_hole_points.hpp"
+#include "viennagrid/algorithm/extract_boundary.hpp"
+#include "viennagrid/algorithm/extract_seed_points.hpp"
 
 
 

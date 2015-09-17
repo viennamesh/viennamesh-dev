@@ -15,27 +15,23 @@
 #include "extract_plc_geometry.hpp"
 
 #include <set>
-#include "viennagridpp/algorithm/extract_hole_points.hpp"
-#include "viennagridpp/algorithm/plane_to_2d_projector.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/extract_hole_points.hpp"
+#include "viennagrid/algorithm/plane_to_2d_projector.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
 
 namespace viennamesh
 {
 
-  template<typename MeshT>
   class same_segments_functor
   {
   public:
-    same_segments_functor(MeshT mesh_) : mesh(mesh_) {}
+    same_segments_functor() {}
 
     template<typename CellT1, typename CellT2>
     bool operator()(CellT1 const & lhs, CellT2 const & rhs) const
     {
-      return viennagrid::equal_regions( viennagrid::regions(mesh, lhs), viennagrid::regions(mesh, rhs) );
+      return viennagrid::equal_regions( viennagrid::regions(lhs), viennagrid::regions(rhs) );
     }
-
-  private:
-    MeshT mesh;
   };
 
   template<typename NumericConfigT>
@@ -363,10 +359,10 @@ namespace viennamesh
     viennagrid_plc_geometric_dimension_set(output_plc, geometric_dimension);
 
     viennagrid_int vertex_count;
-    viennagrid_plc_element_count_get(plc, 0, &vertex_count);
+    viennagrid_plc_element_count(plc, 0, &vertex_count);
 
     viennagrid_int line_count;
-    viennagrid_plc_element_count_get(plc, 1, &line_count);
+    viennagrid_plc_element_count(plc, 1, &line_count);
 
     std::vector< std::vector<viennagrid_int> > coboundary_lines(vertex_count);
 
@@ -438,7 +434,7 @@ namespace viennamesh
     }
 
     viennagrid_int facet_count;
-    viennagrid_plc_element_count_get(plc, 2, &facet_count);
+    viennagrid_plc_element_count(plc, 2, &facet_count);
     for (viennagrid_int facet_id = 0; facet_id != facet_count; ++facet_id)
     {
       std::set<viennagrid_int> used_lines_indices;
@@ -457,9 +453,9 @@ namespace viennamesh
       viennagrid_int new_facet_id;
       viennagrid_plc_facet_create( output_plc, new_plc_lines.size(), &new_plc_lines[0], &new_facet_id );
 
-      viennagrid_numeric * facet_hole_points;
       viennagrid_int facet_hole_point_count;
-      viennagrid_plc_facet_hole_points_get(plc, facet_id, &facet_hole_points, &facet_hole_point_count);
+      viennagrid_numeric * facet_hole_points;
+      viennagrid_plc_facet_hole_points_get(plc, facet_id, &facet_hole_point_count, &facet_hole_points);
 
       for (viennagrid_int i = 0; i != facet_hole_point_count; ++i)
         viennagrid_plc_facet_hole_point_add(output_plc, new_facet_id, facet_hole_points+i*geometric_dimension);
@@ -492,10 +488,10 @@ namespace viennamesh
     data_handle<viennagrid_plc> output_plc = make_data<viennagrid_plc>();
 
 
-    typedef same_segments_functor<viennagrid::const_mesh> Functor1Type;
+    typedef same_segments_functor Functor1Type;
     typedef same_orientation_functor<double> Functor2Type;
 
-    Functor1Type f1(input_mesh());
+    Functor1Type f1;
     Functor2Type f2(coplanar_tolerance());
     same_cell_combine_functor< Functor1Type, Functor2Type > functor(f1, f2);
 
@@ -503,7 +499,7 @@ namespace viennamesh
     coarsen_plc_mesh(tmp(), output_plc(), colinear_tolerance());
 
     viennagrid_int facet_count;
-    viennagrid_plc_element_count_get(output_plc(), 2, &facet_count);
+    viennagrid_plc_element_count(output_plc(), 2, &facet_count);
     info(1) << "Extracted " << facet_count << " PLC facets" << std::endl;
 
     set_output("geometry", output_plc);

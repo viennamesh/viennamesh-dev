@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "make_boundary_box.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
 
 namespace viennamesh
 {

@@ -13,7 +13,7 @@
 =============================================================================== */
 
 #include "hyperplane_clip.hpp"
-#include "viennagridpp/algorithm/refine.hpp"
+#include "viennagrid/algorithm/refine.hpp"
 
 namespace viennamesh
 {
