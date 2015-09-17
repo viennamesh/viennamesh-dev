@@ -117,12 +117,9 @@ namespace viennamesh
 
   inline viennamesh_error make_mesh(viennamesh_data * data)
   {
-    viennagrid_mesh_hierarchy mesh_hierarchy;
     viennagrid_mesh * mesh = new viennagrid_mesh;
-
-    viennagrid_mesh_hierarchy_create(&mesh_hierarchy);
-    viennagrid_mesh_hierarchy_root_mesh_get(mesh_hierarchy, mesh);
-    viennagrid_mesh_hierarchy_property_set(mesh_hierarchy, VIENNAGRID_PROPERTY_BOUNDARY_LAYOUT, VIENNAGRID_BOUNDARY_LAYOUT_SPARSE);
+    viennagrid_mesh_create(mesh);
+    viennagrid_mesh_property_set(*mesh, VIENNAGRID_PROPERTY_BOUNDARY_LAYOUT, VIENNAGRID_BOUNDARY_LAYOUT_SPARSE);
 
     *data = mesh;
 
@@ -132,10 +129,7 @@ namespace viennamesh
   inline viennamesh_error delete_mesh(viennamesh_data data)
   {
     viennagrid_mesh * mesh = (viennagrid_mesh *)data;
-
-    viennagrid_mesh_hierarchy mesh_hierarchy;
-    viennagrid_mesh_mesh_hierarchy_get(*mesh, &mesh_hierarchy);
-    viennagrid_mesh_hierarchy_release(mesh_hierarchy);
+    viennagrid_mesh_release(*mesh);
 
     delete mesh;
 
