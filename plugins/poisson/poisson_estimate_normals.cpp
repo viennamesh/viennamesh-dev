@@ -22,9 +22,9 @@ namespace viennamesh
   {
 
     struct estimate_options{
-      int del;
-      int jet;
-      int jet_degree;
+      bool del;       //delete unoriented normals (some can't be oriented)
+      bool jet;       //use jet approximation and not pca (slower and better for curves)
+      int jet_degree; //the degree of the jet approximation 
     };
 
     void out(PairList & input){
@@ -33,13 +33,12 @@ namespace viennamesh
         std::cout << it->first<< " - "<<it->second<<"\n";
     }
     void estimate_normals_impl(PairList & input,
-                        data_handle<poisson::Vector> output,
                         struct estimate_options options)
     {
       out(input);
       const int nb_neighbors = 6; // K-nearest neighbors = 3 rings
 
-      if(options.jet==0)
+      if(!options.jet)
         CGAL::pca_estimate_normals(input.begin(), input.end(),
                                  CGAL::First_of_pair_property_map<PointVectorPair>(),
                                  CGAL::Second_of_pair_property_map<PointVectorPair>(),
@@ -57,15 +56,10 @@ namespace viennamesh
                                    nb_neighbors);
       // Optional: delete points with an unoriented normal
       // if you plan to call a reconstruction algorithm that expects oriented normals.
-      if(options.del>0)
-        input.erase(unoriented_points_begin, input.end());
+      if(options.del)
+        input.erase(unoriented_points_begin, input.end());      
       out(input);
-      output.resize( input.size() );
-      int i=0;
-      for (PairList::iterator it=input.begin() ; it != input.end(); ++it,++i){
-      poisson::Vector & om = const_cast<poisson::Vector &>(output(i));
-        om=poisson::Vector(it->second);
-      }
+
     }
 
     estimate_normals::estimate_normals() {}
@@ -74,13 +68,11 @@ namespace viennamesh
 
     bool estimate_normals::run(viennamesh::algorithm_handle &)
     {
-      data_handle<int> delete_option = get_input<int>("delete_unoriented");
-      data_handle<int> jet_option = get_input<int>("use_jet_estimation");
+      data_handle<bool> delete_option = get_input<bool>("delete_unoriented");
+      data_handle<bool> jet_option = get_input<bool>("use_jet_estimation");
       data_handle<int> jet_degree_option = get_input<int>("jet_degree");
       point_handle input_points = get_required_input<point_handle>("points");
       struct estimate_options options;
-      data_handle<poisson::Vector> output = make_data<poisson::Vector>();
-      
       PairList mypoints;
       for (int i = 0; i != input_points.size(); ++i)
         mypoints.push_back(std::pair<Point,Vector>(Point(input_points(i)[0],input_points(i)[1],input_points(i)[2]),Vector()));  
@@ -98,9 +90,25 @@ namespace viennamesh
       PairList sm = mypoints;
       PairList & im = sm;
       std::cout << "options: " << options.del <<" - " <<options.jet <<" - " << options.jet_degree;
-      estimate_normals_impl(im,output,options);
+      estimate_normals_impl(im,options);
 
-      set_output("normals", output);
+      point_handle output_normals = make_data<viennamesh_point>();
+      output_normals.resize( im.size() );
+      int i=0;
+      for (PairList::iterator it=im.begin() ; it != im.end(); ++it,++i){
+        output_normals(i)=viennagrid::make_point(it->second.x(),it->second.y(),it->second.z());
+      }
+      set_output("normals", output_normals);
+      if(options.del){
+        point_handle output_points = make_data<viennamesh_point>();
+        output_points.resize( im.size() );
+        int i=0;
+        for (PairList::iterator it=im.begin() ; it != im.end(); ++it,++i){
+          output_normals(i)=viennagrid::make_point(it->first.x(),it->first.y(),it->first.z());
+        }
+        set_output("points", output_points);
+      }
+
       return true;
     }
   }

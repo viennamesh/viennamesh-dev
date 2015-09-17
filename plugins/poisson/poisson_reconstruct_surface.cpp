@@ -35,11 +35,11 @@ namespace viennamesh
     typedef CGAL::Poisson_reconstruction_function<Kernel> Poisson_reconstruction_function;
     typedef CGAL::Implicit_surface_3<Kernel, Poisson_reconstruction_function> Surface_3;
     struct poisson_reconstruction_options{
-      double min_triangle_angle;
-      double max_triangle_size_mult;
-      double approximation_error_mult;
-      double max_triangle_size_abs;
-      double approximation_error_abs;
+      double min_triangle_angle;        //minimum angle of the generated triangles (in degrees)
+      double max_triangle_size_mult;    //maximum area of the generated triangles  (in times of the average spacing of points)
+      double approximation_error_mult;  //maximal acceptable approximation error   (in times of the average spacing of points)
+      double max_triangle_size_abs;     //maximum area of the generated triangles  (as absolute value)
+      double approximation_error_abs;   //maximal acceptable approximation error   (as absolute value)
     };
 
     int get_id_of_vertex(Point p, C2t3 & input){
@@ -135,7 +135,7 @@ namespace viennamesh
     bool reconstruct_surface::run(viennamesh::algorithm_handle &)
     {
       point_handle input_points = get_required_input<point_handle>("points");
-      data_handle<poisson::Vector> input_normals = get_required_input<poisson::Vector>("normals");
+      point_handle input_normals = get_required_input<point_handle>("normals");
       data_handle<double> min_angle = get_input<double>("min_triangle_angle");
       data_handle<double> max_size_mult = get_input<double>("max_triangle_size_times_spacing");
       data_handle<double> max_size_abs = get_input<double>("max_triangle_size");
@@ -146,30 +146,42 @@ namespace viennamesh
       struct poisson_reconstruction_options options;
       if(min_angle.valid() && min_angle() > 0 && min_angle() < 60)
         options.min_triangle_angle=min_angle();
-      else
+      else{ 
+        warning(1) << "Min angle is < 0 or > 60 (used standard of 20 degree instead): " << min_angle() << std::endl;
         options.min_triangle_angle = 20.0;
+      }
       if(max_size_mult.valid() && max_size_mult() > 0)
         options.max_triangle_size_mult=max_size_mult();
-      else
+      else{
+        warning(1) << "Max triangle size multiplier is < 0 (used standard of 30 instead): " << max_size_mult() << std::endl;
         options.max_triangle_size_mult = 30.0;
+      }
       if(max_size_abs.valid() && max_size_abs() > 0)
         options.max_triangle_size_abs = max_size_abs();
-      else
+      else{
+        warning(1) << "Max triangle size absolute value is < 0 (used multiplier instead): " << max_size_abs() << std::endl;
         options.max_triangle_size_abs = -1.0;
+      }
       if(error_mult.valid() && error_mult() > 0)
         options.approximation_error_mult = error_mult();
-      else
+      else{
+        warning(1) << "Max error multiplier is < 0 (used standard of 0.375 instead): " << error_mult() << std::endl;
         options.approximation_error_mult = 0.375;
+      }
       if(error_abs.valid() && error_abs() > 0)
         options.approximation_error_abs = error_abs();
-      else
+      else{
+        warning(1) << "Max error absolute value is < 0 (used multiplier instead): " << error_abs() << std::endl;
         options.approximation_error_abs = -1.0;
-
+      }
       PointList points;
       for (int i = 0; i != input_points.size(); ++i)
         points.push_back(Point_with_normal(Point(input_points(i)[0],
                                                  input_points(i)[1],
-                                                 input_points(i)[2]),input_normals(i)));  
+                                                 input_points(i)[2]),
+                                           poisson::Vector(input_normals(i)[0],
+                                                           input_normals(i)[1],
+                                                           input_normals(i)[2])));  
 
       std::cout << "Done:  " <<points.size() <<" points with normals\n";
       std::cout << "options: " << options.min_triangle_angle;
