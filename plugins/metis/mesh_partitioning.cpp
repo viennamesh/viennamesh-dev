@@ -112,7 +112,7 @@ namespace viennamesh
       for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
       {
         ElementType cell = copy_map( *cit );
-        viennagrid::add( output_mesh().get_or_create_region(epart[(*cit).id()]), cell );
+        viennagrid::add( output_mesh().get_or_create_region(epart[(*cit).id().index()]), cell );
       }
     }
 
