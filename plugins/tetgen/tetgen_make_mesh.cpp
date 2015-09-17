@@ -17,8 +17,8 @@
 #include "tetgen_mesh.hpp"
 #include "tetgen_make_mesh.hpp"
 
-#include "viennagridpp/algorithm/distance.hpp"
-#include "viennagridpp/algorithm/spanned_volume.hpp"
+#include "viennagrid/algorithm/distance.hpp"
+#include "viennagrid/algorithm/spanned_volume.hpp"
 // #include "viennagrid/algorithm/extract_seed_points.hpp"
 #include "viennameshpp/sizing_function.hpp"
 

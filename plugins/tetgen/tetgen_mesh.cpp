@@ -1,5 +1,5 @@
 #include "tetgen_mesh.hpp"
-#include "viennagridpp/core.hpp"
+#include "viennagrid/viennagrid.hpp"
 
 namespace viennamesh
 {
@@ -12,10 +12,10 @@ namespace viennamesh
       return VIENNAMESH_ERROR_CONVERSION_FAILED;
 
     viennagrid_int vertex_count;
-    viennagrid_plc_element_count_get(plc, 0, &vertex_count);
+    viennagrid_plc_element_count(plc, 0, &vertex_count);
 
     viennagrid_int facet_count;
-    viennagrid_plc_element_count_get(plc, 2, &facet_count);
+    viennagrid_plc_element_count(plc, 2, &facet_count);
 
 
 
@@ -38,9 +38,9 @@ namespace viennamesh
       tetgenio::facet & facet = output.facetlist[facet_id];
       facet.holelist = 0;
 
-      viennagrid_numeric * facet_hole_points;
       viennagrid_int facet_hole_point_count;
-      viennagrid_plc_facet_hole_points_get(plc, facet_id, &facet_hole_points, &facet_hole_point_count);
+      viennagrid_numeric * facet_hole_points;
+      viennagrid_plc_facet_hole_points_get(plc, facet_id, &facet_hole_point_count, &facet_hole_points);
 
       facet.numberofholes = facet_hole_point_count;
       if (facet.numberofholes > 0)
@@ -76,9 +76,9 @@ namespace viennamesh
       }
     }
 
-    viennagrid_numeric * hole_points;
     viennagrid_int hole_point_count;
-    viennagrid_plc_volumetric_hole_points_get(plc, &hole_points, &hole_point_count);
+    viennagrid_numeric * hole_points;
+    viennagrid_plc_volumetric_hole_points_get(plc, &hole_point_count, &hole_points);
 
     output.numberofholes = hole_point_count;
     if (output.numberofholes > 0)
@@ -91,10 +91,10 @@ namespace viennamesh
 
 
 
+    viennagrid_int seed_point_count;
     viennagrid_numeric * seed_points;
     viennagrid_int * seed_point_regions;
-    viennagrid_int seed_point_count;
-    viennagrid_plc_seed_points_get(plc, &seed_points, &seed_point_regions, &seed_point_count);
+    viennagrid_plc_seed_points_get(plc, &seed_point_count, &seed_points, &seed_point_regions);
 
     output.numberofregions = seed_point_count;
     if (output.numberofregions > 0)
