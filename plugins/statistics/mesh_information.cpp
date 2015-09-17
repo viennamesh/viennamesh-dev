@@ -14,8 +14,8 @@
 
 #include "mesh_information.hpp"
 
-#include "viennagridpp/algorithm/volume.hpp"
-#include "viennagridpp/algorithm/surface.hpp"
+#include "viennagrid/algorithm/volume.hpp"
+#include "viennagrid/algorithm/surface.hpp"
 
 namespace viennamesh
 {

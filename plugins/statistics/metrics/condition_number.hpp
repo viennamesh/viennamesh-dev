@@ -15,7 +15,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennagridpp/algorithm/volume.hpp"
+#include "viennagrid/algorithm/volume.hpp"
 #include "forwards.hpp"
 
 namespace viennamesh

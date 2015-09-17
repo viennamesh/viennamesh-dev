@@ -15,7 +15,7 @@
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennagridpp/algorithm/circumcenter.hpp"
+#include "viennagrid/algorithm/circumcenter.hpp"
 #include "forwards.hpp"
 
 namespace viennamesh

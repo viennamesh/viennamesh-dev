@@ -16,7 +16,7 @@
 =============================================================================== */
 
 #include "forwards.hpp"
-#include "viennagridpp/algorithm/angle.hpp"
+#include "viennagrid/algorithm/angle.hpp"
 
 namespace viennamesh
 {
