@@ -18,17 +18,14 @@
 #include <vector>
 #include <boost/algorithm/string/split.hpp>
 
-#include "viennagridpp/io/vtk_reader.hpp"
-#include "viennagridpp/io/netgen_reader.hpp"
-// #include "viennagridpp/io/tetgen_poly_reader.hpp"
-#include "viennagridpp/io/bnd_reader.hpp"
-// #include "viennagrid/io/neper_tess_reader.hpp"
-#include "viennagridpp/io/stl_reader.hpp"
-#include "viennagridpp/io/gts_deva_reader.hpp"
-#include "viennagridpp/io/dfise_text_reader.hpp"
+#include "viennagrid/io/vtk_reader.hpp"
+#include "viennagrid/io/netgen_reader.hpp"
+#include "viennagrid/io/bnd_reader.hpp"
+#include "viennagrid/io/stl_reader.hpp"
+#include "viennagrid/io/gts_deva_reader.hpp"
+#include "viennagrid/io/dfise_text_reader.hpp"
 
 
-// #include "viennamesh/algorithm/io/silvaco_str_reader.hpp"
 
 #include "viennameshpp/core.hpp"
 
@@ -38,97 +35,14 @@ namespace viennamesh
   std::string mesh_reader::name() { return "mesh_reader"; }
 
 
-//   template<int GeometricDimensionV>
-//   bool mesh_reader::read_seed_points( pugi::xml_document const & xml )
-//   {
-//     typedef typename viennamesh::result_of::point<GeometricDimensionV>::type PointType;
-//     typedef typename viennamesh::result_of::seed_point_container<PointType>::type SeedPointContainerType;
-//
-//     output_parameter_proxy<SeedPointContainerType> ospp(output_seed_points);
-//
-//     pugi::xpath_node_set xml_segments = xml.select_nodes( "/mesh/segment" );
-//     for (pugi::xpath_node_set::const_iterator xsit = xml_segments.begin(); xsit != xml_segments.end(); ++xsit)
-//     {
-//       int segment_id;
-//       pugi::xpath_node_set xml_segment_id = xsit->node().select_nodes( "/id" );
-//       if (!xml_segment_id.empty())
-//         segment_id = atoi( xml_segment_id.first().node().text().get() );
-//       else
-//         continue;
-//
-//       pugi::xpath_node_set xml_seed_points = xsit->node().select_nodes( "/seed_point" );
-//       for (pugi::xpath_node_set::const_iterator xspit = xml_seed_points.begin(); xspit != xml_seed_points.end(); ++xspit)
-//       {
-//         std::stringstream ss( xspit->node().text().get() );
-//         PointType point;
-//         for (std::size_t i = 0; i < point.size(); ++i)
-//           ss >> point[i];
-//
-//         info(5) << "Found seed point for segment " << segment_id << ": " << point << std::endl;
-//
-//         ospp().push_back( std::make_pair(point, segment_id) );
-//       }
-//     }
-//
-//     return true;
-//   }
-
-
-
-
-//   bool mesh_reader::read_vmesh( std::string const & filename )
-//   {
-//     int geometric_dimension = -1;
-//     std::string mesh_filename;
-//
-//     pugi::xml_document xml;
-//     xml.load_file( filename.c_str() );
-//
-//     {
-//       pugi::xpath_node_set nodes = xml.select_nodes( "/mesh/dimension" );
-//       if (!nodes.empty())
-//       {
-//         geometric_dimension = atoi( nodes.first().node().text().get() );
-//         info(5) << "geometric dimension = " << geometric_dimension << std::endl;
-//       }
-//     }
-//
-//
-//     {
-//       pugi::xpath_node_set nodes = xml.select_nodes( "/mesh/file" );
-//       if (!nodes.empty())
-//       {
-//         mesh_filename = nodes.first().node().text().get();
-//         info(5) << "vmesh inner mesh filename = " << mesh_filename << std::endl;
-//       }
-//     }
-//
-//     FileType file_type = from_filename( mesh_filename );
-//
-//     load(mesh_filename, file_type);
-//
-//     if (geometric_dimension == 1)
-//       read_seed_points<1>(xml);
-//     else if (geometric_dimension == 2)
-//       read_seed_points<2>(xml);
-//     else if (geometric_dimension == 3)
-//       read_seed_points<3>(xml);
-//
-//     return true;
-//   }
-
-
-
   bool mesh_reader::load( std::string const & filename, FileType filetype )
   {
     std::string path = extract_path( filename );
 
     info(1) << "Reading mesh from file \"" << filename << "\"" << std::endl;
 
-//     viennagrid::mesh_t mesh;
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-//     output_mesh.set(mesh);
     bool success = false;
 
     switch (filetype)
@@ -153,68 +67,6 @@ namespace viennamesh
         success = true;
         break;
       }
-//     case TETGEN_POLY:
-//       {
-//         info(5) << "Found .poly extension, using ViennaGrid Tetgen poly Reader" << std::endl;
-//
-//         point_container_t hole_points;
-//         seed_point_container_t seed_points;
-//
-//         viennagrid::io::tetgen_poly_reader reader;
-//
-//         try
-//         {
-//           reader(mesh, filename, hole_points, seed_points);
-//         }
-//         catch (viennagrid::io::bad_file_format_exception const & ex)
-//         {
-//           error(1) << "File reading error: " << ex.what() << std::endl;
-//           throw;
-//         }
-//
-//         if (!hole_points.empty())
-//         {
-//           point_handle output_hole_points = make_data<point_t>();
-//           output_hole_points.set( hole_points );
-//           set_output("hole_points", output_hole_points);
-//         }
-//
-//         if (!seed_points.empty())
-//         {
-//           seed_point_handle output_seed_points = make_data<seed_point_t>();
-//           output_seed_points.set( seed_points );
-//           set_output("seed_points", output_seed_points);
-//         }
-//
-//         success = true;
-//         break;
-//       }
-
-
-//     case NEPER_TESS:
-//       {
-//         info(5) << "Found .tess extension, using ViennaGrid Neper tess Reader" << std::endl;
-//         typedef viennagrid::brep_3d_mesh MeshType;
-//
-//         output_parameter_proxy<MeshType> omp(output_mesh);
-//         output_parameter_proxy<seed_point_3d_container> ospp(output_seed_points);
-//
-//         seed_point_3d_container seed_points;
-//
-//         viennagrid::io::neper_tess_reader reader;
-//         reader(omp(), filename, seed_points);
-//
-//         if (!seed_points.empty())
-//         {
-//           info(1) << "Found seed points (" << seed_points.size() << ")" << std::endl;
-//           ospp() = seed_points;
-//         }
-//         else
-//           unset_output("seed_points");
-//
-//
-//         return true;
-//       }
 
     case STL:
     case STL_ASCII:
@@ -238,19 +90,6 @@ namespace viennamesh
         success = true;
         break;
       }
-
-//     case SILVACO_STR:
-//       {
-//         info(5) << "Found .str extension, using ViennaGrid Silvaco str Reader" << std::endl;
-//         typedef viennagrid::triangular_3d_mesh MeshType;
-//
-//         output_parameter_proxy<MeshType> omp(output_mesh);
-//
-//         viennagrid::io::silvaco_str_reader reader;
-//         reader(omp(), filename);
-//
-//         return true;
-//       }
 
     case GTS_DEVA:
       {
@@ -288,8 +127,8 @@ namespace viennamesh
           for (std::size_t i = 0; i != quantity_fields.size(); ++i)
           {
             info(1) << "Found quantity field \"" << quantity_fields[i].get_name() << "\" for topologic dimension " <<
-                       (int)quantity_fields[i].topologic_dimension() << " and with values dimension " <<
-                       (int)quantity_fields[i].values_dimension() << std::endl;
+                       (int)quantity_fields[i].topologic_dimension() << " and with values per quantity " <<
+                       (int)quantity_fields[i].values_per_quantity() << std::endl;
           }
 
           quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();

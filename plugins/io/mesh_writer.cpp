@@ -14,8 +14,8 @@
 
 #include "mesh_writer.hpp"
 
-#include "viennagridpp/io/vtk_writer.hpp"
-#include "viennagridpp/io/mphtxt_writer.hpp"
+#include "viennagrid/io/vtk_writer.hpp"
+#include "viennagrid/io/mphtxt_writer.hpp"
 
 #include "pugixml.hpp"
 
@@ -89,24 +89,24 @@ namespace viennamesh
             {
               viennagrid::quantity_field current = quantity_field(i);
 
-              info(1) << "Found quantity field \"" << current.get_name() << "\" with cell dimension " << (int)current.topologic_dimension() << " and values dimension " << (int)current.values_dimension() << std::endl;
+              info(1) << "Found quantity field \"" << current.get_name() << "\" with cell dimension " << (int)current.topologic_dimension() << " and values dimension " << (int)current.values_per_quantity() << std::endl;
 
               if ( (current.topologic_dimension() != 0) && (current.topologic_dimension() != cell_dimension) )
               {
-                error(1) << "Values dimension " << (int)current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
+                error(1) << "Values dimension " << (int)current.values_per_quantity() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
                 continue;
               }
 
-              if ( (current.values_dimension() != 1) && (current.values_dimension() != 3) )
+              if ( (current.values_per_quantity() != 1) && (current.values_per_quantity() != 3) )
               {
-                error(1) << "Values dimension " << (int)current.values_dimension() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
+                error(1) << "Values dimension " << (int)current.values_per_quantity() << " for quantitiy field \"" << current.get_name() << "\" not supported -> skipping" << std::endl;
                 continue;
               }
 
 
               if ( current.topologic_dimension() == 0 )
               {
-                if ( current.values_dimension() == 1 )
+                if ( current.values_per_quantity() == 1 )
                 {
                   writer.add_scalar_data_on_vertices( current, current.get_name() );
                 }
@@ -117,7 +117,7 @@ namespace viennamesh
               }
               else if ( current.topologic_dimension() == cell_dimension )
               {
-                if ( current.values_dimension() == 1 )
+                if ( current.values_per_quantity() == 1 )
                 {
                   writer.add_scalar_data_on_cells( current, current.get_name() );
                 }

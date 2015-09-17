@@ -46,7 +46,7 @@ namespace viennamesh
       point_container hole_points;
       viennagrid_numeric * hole_point_coords;
       viennagrid_int hole_point_count;
-      viennagrid_plc_volumetric_hole_points_get( output_geometry(), &hole_point_coords, &hole_point_count);
+      viennagrid_plc_volumetric_hole_points_get( output_geometry(), &hole_point_count, &hole_point_coords);
 
       if (hole_point_count != 0)
       {
@@ -67,7 +67,7 @@ namespace viennamesh
       viennagrid_numeric * seed_point_coords;
       viennagrid_int * seed_point_region_ids;
       viennagrid_int seed_point_count;
-      viennagrid_plc_seed_points_get( output_geometry(), &seed_point_coords, &seed_point_region_ids, &seed_point_count );
+      viennagrid_plc_seed_points_get( output_geometry(), &seed_point_count, &seed_point_coords, &seed_point_region_ids );
 
       if (seed_point_count != 0)
       {
