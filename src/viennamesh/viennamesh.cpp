@@ -1,14 +1,10 @@
 #include "viennamesh/viennamesh.h"
+#include "viennagrid/viennagrid.hpp"
 
 #include "data.hpp"
 #include "algorithm.hpp"
 #include "context.hpp"
 #include "logger.hpp"
-
-#include "viennagridpp/point.hpp"
-
-
-
 
 
 

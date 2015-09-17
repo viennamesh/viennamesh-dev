@@ -2,9 +2,7 @@
 #define _VIENNAMESH_FORWARDS_HPP_
 
 #include "viennamesh/viennamesh.h"
-#include "viennagridpp/point.hpp"
-#include "viennagridpp/quantity_field.hpp"
-#include "viennagridpp/mesh/mesh.hpp"
+#include "viennagrid/viennagrid.hpp"
 #include <string>
 
 #include <boost/lexical_cast.hpp>

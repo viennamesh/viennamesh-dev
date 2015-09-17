@@ -16,10 +16,7 @@
 =============================================================================== */
 
 #include "viennameshpp/forwards.hpp"
-
-#include "viennagridpp/mesh/mesh.hpp"
-#include "viennagridpp/mesh/region.hpp"
-#include "viennagridpp/range.hpp"
+#include "viennagrid/viennagrid.hpp"
 
 #include "pugixml.hpp"
 

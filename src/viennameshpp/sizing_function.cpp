@@ -2,10 +2,10 @@
 
 #include "viennamesh/cpp_error.hpp"
 
-#include "viennagridpp/algorithm/distance.hpp"
-#include "viennagridpp/algorithm/inclusion.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
-#include "viennagridpp/io/vtk_reader.hpp"
+#include "viennagrid/algorithm/distance.hpp"
+#include "viennagrid/algorithm/inclusion.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/io/vtk_reader.hpp"
 
 
 namespace viennamesh
@@ -383,7 +383,7 @@ namespace viennamesh
 
       for (ConstLineRangeIterator lit0 = lines.begin(); lit0 != lines.end(); ++lit0)
       {
-        if (!viennagrid::is_any_boundary(mesh, *lit0))
+        if (!viennagrid::is_any_boundary(*lit0))
           continue;
 
         CoordType distance_to_lit0 = viennagrid::distance(*lit0, pt);
@@ -391,7 +391,7 @@ namespace viennamesh
         ConstLineRangeIterator lit1 = lit0; ++lit1;
         for (; lit1 != lines.end(); ++lit1)
         {
-          if (!viennagrid::is_any_boundary(mesh, *lit1))
+          if (!viennagrid::is_any_boundary(*lit1))
             continue;
 
           if (viennagrid::vertices(*lit0)[0] == viennagrid::vertices(*lit1)[0] ||

@@ -1,5 +1,5 @@
 #include "viennamesh/viennamesh.h"
-#include "viennagridpp/point.hpp"
+#include "viennagrid/viennagrid.hpp"
 #include <string>
 
 

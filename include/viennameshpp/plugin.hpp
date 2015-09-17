@@ -1,10 +1,9 @@
 #ifndef _VIENNAMESH_PLUGIN_PLUGIN_HPP_
 #define _VIENNAMESH_PLUGIN_PLUGIN_HPP_
 
-#include "viennagridpp/core.hpp"
+#include "viennagrid/viennagrid.hpp"
 #include "viennameshpp/core.hpp"
 #include "viennameshpp/exceptions.hpp"
-// #include "viennamesh/backend/backend_context.hpp"
 
 namespace viennamesh
 {
