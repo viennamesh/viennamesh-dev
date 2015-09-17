@@ -14,9 +14,9 @@
 
 #include <numeric>
 #include "volumetric_resample.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
-#include "viennagridpp/algorithm/inclusion.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/inclusion.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
 
 
 // #include <CGAL/Simple_cartesian.h>
@@ -202,10 +202,10 @@ namespace viennamesh
         {
           if (viennagrid::is_inside(*scit, sample_point))
           {
-            typedef viennagrid::result_of::region_range<MeshType, ElementType>::type RegionRangeType;
+            typedef viennagrid::result_of::region_range<ElementType>::type RegionRangeType;
             typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionRangeIterator;
 
-            RegionRangeType regions(reference_mesh(),*scit);
+            RegionRangeType regions(*scit);
             for (RegionRangeIterator rit = regions.begin(); rit != regions.end(); ++rit)
             {
               ++total_local_hits;

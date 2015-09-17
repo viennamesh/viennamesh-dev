@@ -13,8 +13,8 @@
 =============================================================================== */
 
 #include "merge_close_points.hpp"
-#include "viennagridpp/ntree.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
+#include "viennagrid/core/ntree.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
 
 namespace viennamesh
 {
@@ -82,7 +82,7 @@ namespace viennamesh
     {
       PointType p = viennagrid::get_point(*vit);
 
-      viennagrid_int new_vertex_id = (*vit).id();
+      viennagrid::element_id new_vertex_id = (*vit).id();
       NodeType * node = root->get(p);
       for (std::size_t i = 0; i != node->elements().size(); ++i)
       {

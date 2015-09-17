@@ -15,9 +15,9 @@
 #include <numeric>
 #include <boost/concept_check.hpp>
 #include "multi_material_marching_cubes.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
-#include "viennagridpp/algorithm/inclusion.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/inclusion.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
 
 
 
@@ -603,7 +603,7 @@ namespace viennamesh
     typedef viennagrid::result_of::region_range<MeshType>::type RegionRangeType;
     typedef viennagrid::result_of::iterator<RegionRangeType>::type RegionIteratorType;
 
-    typedef viennagrid::result_of::region_range<MeshType, ElementType>::type ElementRegionRangeType;
+    typedef viennagrid::result_of::region_range<ElementType>::type ElementRegionRangeType;
 
 
     MeshType mesh;
@@ -702,7 +702,7 @@ namespace viennamesh
 
 
 
-      ElementRegionRangeType regions(mesh, *cit);
+      ElementRegionRangeType regions(*cit);
       if (regions.size() != 1)
         error(1) << "ERROR, one cell is on more than one region" << std::endl;
 
