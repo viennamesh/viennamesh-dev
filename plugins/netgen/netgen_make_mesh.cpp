@@ -17,8 +17,8 @@
 #include "netgen_mesh.hpp"
 #include "netgen_make_mesh.hpp"
 
-#include "viennagridpp/algorithm/distance.hpp"
-#include "viennagridpp/algorithm/spanned_volume.hpp"
+#include "viennagrid/algorithm/distance.hpp"
+#include "viennagrid/algorithm/spanned_volume.hpp"
 
 namespace viennamesh
 {

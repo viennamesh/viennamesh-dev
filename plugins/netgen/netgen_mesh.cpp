@@ -1,5 +1,5 @@
 #include "netgen_mesh.hpp"
-#include "viennagridpp/core.hpp"
+#include "viennagrid/viennagrid.hpp"
 
 namespace viennamesh
 {
@@ -37,13 +37,13 @@ namespace viennamesh
     ConstElementRangeType triangles(input, 2);
     for (ConstElementIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit)
     {
-      typedef viennagrid::result_of::region_range<MeshType, ElementType>::type ElementRegionRangeType;
+      typedef viennagrid::result_of::region_range<ElementType>::type ElementRegionRangeType;
 
       int indices[3];
       for (int i = 0; i < 3; ++i)
         indices[i] = vertex_index_map[ viennagrid::vertices(*tit)[i] ];
 
-      ElementRegionRangeType element_regions(input, *tit);
+      ElementRegionRangeType element_regions(*tit);
 
       if ((element_regions.size() <= 0) && (region_count > 1))
       {
