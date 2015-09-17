@@ -162,12 +162,12 @@ namespace viennamesh
     ConstElementRangeType vertices( input_mesh(), 0 );
     ConstElementRangeType cells( input_mesh(), viennagrid::cell_dimension(input_mesh()) );
 
-    std::vector<viennagrid_int> vertices_on_both_planes;
-    std::vector<viennagrid_int> vertices_on_plane0;
-    std::vector<viennagrid_int> vertices_on_plane1;
-    std::vector<viennagrid_int> vertices_on_no_plane;
+    std::vector<viennagrid::element_id> vertices_on_both_planes;
+    std::vector<viennagrid::element_id> vertices_on_plane0;
+    std::vector<viennagrid::element_id> vertices_on_plane1;
+    std::vector<viennagrid::element_id> vertices_on_no_plane;
 
-    std::vector<PointType> points( vertices.size() );
+    viennagrid::vector<PointType> points( vertices.size() );
 
     int i = 0;
     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit, ++i)
@@ -193,7 +193,7 @@ namespace viennamesh
     std::size_t non_shared_vertex_count = vertices_on_plane0.size() + 2*vertices_on_no_plane.size() + vertices_on_plane1.size();
 
 
-    std::vector<viennagrid_int> vertex_mapping( vertices.size() );
+    viennagrid::vector<viennagrid::element_id> vertex_mapping( vertices.size() );
     mesh_handle output_mesh = make_data<mesh_handle>();
 
 
@@ -218,7 +218,7 @@ namespace viennamesh
 
     if (rotational_frequency % 2 == 0)
     {
-      std::vector<viennagrid_int> new_vertices;
+      viennagrid::vector<viennagrid::element_id> new_vertices;
       new_vertices.reserve( vertices_on_both_planes.size() +
                           (vertices_on_plane0.size()+vertices_on_no_plane.size()+vertices_on_plane1.size()) * rotational_frequency );
 
@@ -278,7 +278,7 @@ namespace viennamesh
 
       std::vector<viennagrid_element_type> element_types( cells.size()*rotational_frequency );
       std::vector<viennagrid_int> cell_vertex_offsets( cells.size()*rotational_frequency + 1 );
-      std::vector<viennagrid_int> cell_vertex_indices;
+      std::vector<viennagrid_element_id> cell_vertex_indices;
       std::vector<viennagrid_region_id> region_ids;
 
       if (!regions.empty())
@@ -290,7 +290,7 @@ namespace viennamesh
       viennagrid_int cid = 0;
       for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
       {
-        std::vector<int> vertex_ids;
+        std::vector<viennagrid::element_id> vertex_ids;
         ConstBoundaryElementRangeType vertices_on_cell(*cit, 0);
 
         for (ConstBoundaryElementIteratorType vcit = vertices_on_cell.begin(); vcit != vertices_on_cell.end(); ++vcit)
@@ -336,8 +336,8 @@ namespace viennamesh
             else
               vertex_region = 2;
 
-            int index0 = -1;
-            int index1 = -1;
+            viennagrid::element_id index0;
+            viennagrid::element_id index1;
 
             switch (vertex_region)
             {
@@ -347,36 +347,36 @@ namespace viennamesh
                 break;
 
               case 1:
-                index0 = hrf*non_shared_vertex_count + vertex_ids[i];
+                index0 = vertex_ids[i] + hrf*non_shared_vertex_count;
                 if (index0 >= static_cast<int>(new_vertices.size()))
                   index0 -= rotational_frequency*non_shared_vertex_count/2;
 
-                index1 = (hrf+1)*non_shared_vertex_count + vertex_ids[i];
+                index1 = vertex_ids[i] + (hrf+1)*non_shared_vertex_count;
                 if (index1 >= static_cast<int>(new_vertices.size()))
                   index1 -= rotational_frequency*non_shared_vertex_count/2;
                 break;
 
               case 2:
-                index0 = hrf*non_shared_vertex_count + vertex_ids[i];
+                index0 = vertex_ids[i] + hrf*non_shared_vertex_count;
                 if (index0 >= static_cast<int>(new_vertices.size()))
                   index0 -= rotational_frequency*non_shared_vertex_count/2;
 
-                index1 = hrf*non_shared_vertex_count + vertex_ids[i];
+                index1 = vertex_ids[i] + hrf*non_shared_vertex_count;
                 if (index1 >= static_cast<int>(new_vertices.size()))
                   index1 -= rotational_frequency*non_shared_vertex_count/2;
                 break;
 
               case 3:
-                index0 = hrf*non_shared_vertex_count + vertex_ids[i];
-                index1 = hrf*non_shared_vertex_count + vertices_on_no_plane.size() + vertices_on_plane1.size() + vertex_ids[i];
+                index0 = vertex_ids[i] + hrf*non_shared_vertex_count;
+                index1 = vertex_ids[i] + vertices_on_no_plane.size() + vertices_on_plane1.size() + hrf*non_shared_vertex_count;
                 break;
 
               default:
                 assert(false);
             }
 
-            cell_vertex_indices[offset0 + i] = new_vertices[index0];
-            cell_vertex_indices[offset1 + i] = new_vertices[index1];
+            cell_vertex_indices[offset0 + i] = new_vertices[index0].internal();
+            cell_vertex_indices[offset1 + i] = new_vertices[index1].internal();
           }
         }
       }
@@ -438,7 +438,7 @@ namespace viennamesh
           root->add( WrapperType(pp1[i1], i1), 10, vertices_on_plane1.size()/10 );
       }
 
-      std::vector<viennagrid_int> reordered_vertices_on_plane1( vertices_on_plane0.size() );
+      std::vector<viennagrid::element_id> reordered_vertices_on_plane1( vertices_on_plane0.size() );
       for (std::size_t i0 = 0; i0 != vertices_on_plane0.size(); ++i0)
       {
         PointType const & p0 = points[vertices_on_plane0[i0]];
@@ -466,8 +466,8 @@ namespace viennamesh
       std::size_t non_shared_vertex_count = vertices_on_plane0.size() + vertices_on_no_plane.size();
 
 
-      std::vector<ElementType> new_vertices;
-      std::vector<int> vertex_mapping( vertices.size() );
+      viennagrid::vector<ElementType> new_vertices;
+      viennagrid::vector<viennagrid::element_id> vertex_mapping( vertices.size() );
       mesh_handle output_mesh = make_data<mesh_handle>();
 
 
@@ -529,7 +529,7 @@ namespace viennamesh
 
       for (ConstElementIteratorType cit = cells.begin(); cit != cells.end(); ++cit)
       {
-        std::vector<int> vertex_ids;
+        std::vector<viennagrid::element_id> vertex_ids;
         ConstBoundaryElementRangeType vertices_on_cell(*cit, 0);
 
         for (ConstBoundaryElementIteratorType vcit = vertices_on_cell.begin(); vcit != vertices_on_cell.end(); ++vcit)
@@ -545,7 +545,7 @@ namespace viennamesh
               local_vertices[i] = new_vertices[vertex_ids[i]];
             else
             {
-              int index = rf*non_shared_vertex_count + vertex_ids[i];
+              viennagrid::element_id index = vertex_ids[i] + rf*non_shared_vertex_count;
               if (index >= static_cast<int>(new_vertices.size()))
                 index -= rotational_frequency*non_shared_vertex_count;
 

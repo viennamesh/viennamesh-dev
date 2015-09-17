@@ -57,7 +57,7 @@ namespace viennamesh
     {
       ConstElementRangeType vertices(*cit, 0);
       for (ConstElementRangeIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
-        eind.push_back( (*vit).id() );
+        eind.push_back( (*vit).id().index() );
 
       eptr.push_back( eind.size() );
     }
@@ -70,7 +70,7 @@ namespace viennamesh
 
     idx_t result;
 
-    std::vector<idx_t> epart(num_elements);
+    viennagrid::vector<idx_t> epart(num_elements);
     std::vector<idx_t> npart(num_nodes);
 
     idx_t ncommon = cell_dimension;

@@ -53,7 +53,7 @@ namespace viennamesh
 
 
 
-    typedef std::vector<int> NewLineIDContainerType;
+    typedef std::vector<viennagrid::element_id> NewLineIDContainerType;
     typedef typename viennagrid::result_of::accessor<NewLineIDContainerType, ElementType>::type NewLineIDAcessorType;
 
     NewLineIDContainerType line_id_container( lines.size() );
@@ -100,7 +100,7 @@ namespace viennamesh
     }
 
 
-    std::map<int, std::vector<ElementType> > new_lines;
+    std::map<viennagrid::element_id, std::vector<ElementType> > new_lines;
 
     for (ElementIteratorType lit = lines.begin(); lit != lines.end(); ++lit)
       new_lines[line_ids.get(*lit)].push_back( *lit );
@@ -109,7 +109,7 @@ namespace viennamesh
     typedef typename viennagrid::result_of::element_copy_map<>::type CopyMapType;
     CopyMapType copy_map( output_mesh, false );
 
-    for (typename std::map<int, std::vector<ElementType> >::iterator nlit = new_lines.begin(); nlit != new_lines.end(); ++nlit)
+    for (typename std::map<viennagrid::element_id, std::vector<ElementType> >::iterator nlit = new_lines.begin(); nlit != new_lines.end(); ++nlit)
     {
       std::map<ElementType, int> points;
 

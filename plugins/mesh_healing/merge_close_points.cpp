@@ -77,7 +77,7 @@ namespace viennamesh
                  vertices.size()/element_per_node);
 
     // create new vertices
-    std::vector<ElementType> new_vertices( vertices.size() );
+    viennagrid::vector<ElementType> new_vertices( vertices.size() );
     for (ConstElementIteratorType vit = vertices.begin(); vit != vertices.end(); ++vit)
     {
       PointType p = viennagrid::get_point(*vit);
