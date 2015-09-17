@@ -1,8 +1,8 @@
 #ifndef VIENNAMESH_ALGORITHM_SYMMETRY_GEOMETRY_HPP
 #define VIENNAMESH_ALGORITHM_SYMMETRY_GEOMETRY_HPP
 
-#include "viennagridpp/algorithm/inner_prod.hpp"
-#include "viennagridpp/algorithm/distance.hpp"
+#include "viennagrid/algorithm/inner_prod.hpp"
+#include "viennagrid/algorithm/distance.hpp"
 
 namespace viennamesh
 {

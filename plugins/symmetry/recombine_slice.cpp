@@ -19,9 +19,9 @@
 #include "recombine_slice.hpp"
 #include "geometry.hpp"
 
-#include "viennagridpp/algorithm/distance.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
-#include "viennagridpp/ntree.hpp"
+#include "viennagrid/algorithm/distance.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagrid/core/ntree.hpp"
 
 #include "viennameshpp/progress_tracker.hpp"
 
@@ -299,8 +299,8 @@ namespace viennamesh
         viennagrid_region_id cell_region;
         if (!regions.empty())
         {
-          typedef viennagrid::result_of::region_range<MeshType, ElementType>::type RegionRangeType;
-          RegionRangeType cell_regions( input_mesh(), *cit );
+          typedef viennagrid::result_of::region_range<ElementType>::type RegionRangeType;
+          RegionRangeType cell_regions( *cit );
           cell_region = (*(cell_regions.begin())).id();
         }
 

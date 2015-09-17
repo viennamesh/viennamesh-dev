@@ -21,10 +21,10 @@
 #include <functional>
 
 #include "detection_3d.hpp"
-#include "viennagridpp/algorithm/geometric_transform.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
-#include "viennagridpp/io/vtk_writer.hpp"
-#include "viennagridpp/mesh/object_creation.hpp"
+#include "viennagrid/algorithm/geometric_transform.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagrid/io/vtk_writer.hpp"
+#include "viennagrid/mesh/object_creation.hpp"
 
 #include "spherical_harmonics.hpp"
 #include "generalized_moment.hpp"

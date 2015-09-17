@@ -1,7 +1,7 @@
 #ifndef VIENNAMESH_ALGORITHM_SYMMETRY_INTEGRATE_HPP
 #define VIENNAMESH_ALGORITHM_SYMMETRY_INTEGRATE_HPP
 
-#include "viennagridpp/algorithm/volume.hpp"
+#include "viennagrid/algorithm/volume.hpp"
 
 #include "spherical_harmonics.hpp"
 #include "common.hpp"

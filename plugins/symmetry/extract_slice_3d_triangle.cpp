@@ -19,8 +19,8 @@
 #include "extract_slice_3d_triangle.hpp"
 #include "geometry.hpp"
 
-#include "viennagridpp/algorithm/distance.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/distance.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
 
 
 namespace viennamesh
