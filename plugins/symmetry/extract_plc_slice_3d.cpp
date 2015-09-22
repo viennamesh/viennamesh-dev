@@ -117,14 +117,18 @@ namespace viennamesh
       std::vector<line_info> line_map(num_lines);
 
 
-      for (viennagrid_int lid = 0; lid != num_lines; ++lid)
+      viennagrid_element_id line_begin;
+      viennagrid_element_id line_end;
+      viennagrid_plc_elements_get(input_plc, 1, &line_begin, &line_end);
+
+      for (viennagrid_int lid = line_begin; lid != line_end; ++lid)
       {
-        viennagrid_int v0 = *(line_vertices+2*lid+0);
-        viennagrid_int v1 = *(line_vertices+2*lid+1);
+        viennagrid_int v0 = *(line_vertices+2*viennagrid_index_from_element_id(lid)+0);
+        viennagrid_int v1 = *(line_vertices+2*viennagrid_index_from_element_id(lid)+1);
 
         if ( line_on_plane_or_inside(0, lid) && line_on_plane_or_inside(1, lid) )
         {
-          line_map[lid] = line_info( copy_line(lid) );
+          line_map[viennagrid_index_from_element_id(lid)] = line_info( copy_line(lid) );
 //           std::cout << "Copying line (old id=" << lid << " new id=" << line_map[lid].id << ")   " << v0 << " " << v1 << std::endl;
           continue;
         }
@@ -135,17 +139,21 @@ namespace viennamesh
       std::vector<viennagrid_int> lines_on_plane[2];
       std::map<viennagrid_numeric, viennagrid_int> vertices_on_axis;
 
-      for (viennagrid_int fid = 0; fid != num_facets; ++fid)
+      viennagrid_element_id facet_begin;
+      viennagrid_element_id facet_end;
+      viennagrid_plc_elements_get(input_plc, 2, &facet_begin, &facet_end);
+
+      for (viennagrid_int fid = facet_begin; fid != facet_end; ++fid)
       {
 //         std::cout << "Old facet: " << fid << std::endl;
 
         viennagrid_int * vit_start;
         viennagrid_int * vit_end;
-        viennagrid_plc_boundary_elements(input_plc, 2, fid, 0, &vit_start, &vit_end);
+        viennagrid_plc_boundary_elements(input_plc, fid, 0, &vit_start, &vit_end);
 
         viennagrid_int * lit_start;
         viennagrid_int * lit_end;
-        viennagrid_plc_boundary_elements(input_plc, 2, fid, 1, &lit_start, &lit_end);
+        viennagrid_plc_boundary_elements(input_plc, fid, 1, &lit_start, &lit_end);
 
 
 
@@ -153,17 +161,17 @@ namespace viennamesh
         for (viennagrid_int * vit0 = vit_start; vit0 != vit_end; ++vit0)
         {
           viennagrid_int * vit1 = vit0; ++vit1;
-          point_type p(3, coords+3**vit0);
+          point_type p = point(*vit0);
 
           for (; vit1 != vit_end; ++vit1)
           {
             viennagrid_int * vit2 = vit1; ++vit2;
-            point_type d0 = point_type(3,coords+3**vit1) - p;
+            point_type d0 = point(*vit1) - p;
             d0.normalize();
 
             for (; vit2 != vit_end; ++vit2)
             {
-              point_type d1 = point_type(3,coords+3**vit2) - p;
+              point_type d1 = point(*vit2) - p;
               d1.normalize();
 
               if ( std::abs(viennagrid::inner_prod(d0, d1)) > tol )
@@ -196,8 +204,8 @@ namespace viennamesh
         for (viennagrid_int * lit = lit_start; lit != lit_end; ++lit)
         {
           viennagrid_int lid = *lit;
-          viennagrid_int v0 = *(line_vertices+2*lid+0);
-          viennagrid_int v1 = *(line_vertices+2*lid+1);
+          viennagrid_int v0 = vertex(lid, 0);
+          viennagrid_int v1 = vertex(lid, 1);
 
           coboundary_lines[v0].push_back(lid);
           coboundary_lines[v1].push_back(lid);
@@ -217,11 +225,11 @@ namespace viennamesh
           viennagrid_int found_lid = get_non_intersecting_line(hole_point, lit_start, lit_end);
           assert( found_lid != -1 );
 
-          viennagrid_int v0 = *(line_vertices+2*found_lid+0);
-          viennagrid_int v1 = *(line_vertices+2*found_lid+1);
+          viennagrid_int v0 = vertex(found_lid, 0);
+          viennagrid_int v1 = vertex(found_lid, 1);
 
-          point_type p0(3, coords+3*v0);
-          point_type p1(3, coords+3*v1);
+          point_type p0 = point(v0);
+          point_type p1 = point(v1);
           point_type middle = (p0+p1)/2;
 
           point_type tmp = viennagrid::cross_prod( p1-p0, hole_point-middle );
@@ -231,8 +239,8 @@ namespace viennamesh
 //           std::cout << "    found line: " << p0 << " " << p1 << "   flag: " << line_hole_flag[found_lid] << std::endl;
 //           std::cout << "    facet normal: " << facet_normal << std::endl;
 
-          viennagrid_int vid =     *(line_vertices+2*found_lid+1);
-          viennagrid_int end_vid = *(line_vertices+2*found_lid+0);
+          viennagrid_int vid =     vertex(found_lid, 1);
+          viennagrid_int end_vid = vertex(found_lid, 0);
           assert( coboundary_lines[vid].size() == 2 );
 
           viennagrid_int prev_lid = found_lid;
@@ -242,8 +250,8 @@ namespace viennamesh
             viennagrid_int lid = coboundary_lines[vid][0] != prev_lid ? coboundary_lines[vid][0] : coboundary_lines[vid][1];
             assert( line_hole_flag[lid] == 0 );
 
-            viennagrid_int v0 = *(line_vertices+2*lid+0);
-            viennagrid_int v1 = *(line_vertices+2*lid+1);
+            viennagrid_int v0 = vertex(lid, 0);
+            viennagrid_int v1 = vertex(lid, 1);
 
             if (v0 == vid)
             {
@@ -276,11 +284,11 @@ namespace viennamesh
           point_type p = axis*d;
 
           viennagrid_int lid = get_non_intersecting_line( p, lit_start, lit_end );
-          viennagrid_int v0 = *(line_vertices+2*lid+0);
-          viennagrid_int v1 = *(line_vertices+2*lid+1);
+          viennagrid_int v0 = vertex(lid, 0);
+          viennagrid_int v1 = vertex(lid, 1);
 
-          point_type p0(3, coords+3*v0);
-          point_type p1(3, coords+3*v1);
+          point_type p0 = point(v0);
+          point_type p1 = point(v1);
           point_type middle = (p0+p1)/2;
 
           viennagrid_numeric tmp = viennagrid::inner_prod(facet_normal, viennagrid::cross_prod( p1-p0, p-middle ));
@@ -307,12 +315,12 @@ namespace viennamesh
         for (viennagrid_int * lit = lit_start; lit != lit_end; ++lit)
         {
           viennagrid_int lid = *lit;
-          viennagrid_int v0 = *(line_vertices+2*lid+0);
-          viennagrid_int v1 = *(line_vertices+2*lid+1);
+          viennagrid_int v0 = vertex(lid, 0);
+          viennagrid_int v1 = vertex(lid, 1);
 
-          if ( line_map[lid].id >= 0 )
+          if ( line_map[viennagrid_index_from_element_id(lid)].id >= 0 )
           {
-            facet_lines.push_back(line_map[lid].id);
+            facet_lines.push_back(line_map[viennagrid_index_from_element_id(lid)].id);
           }
         }
 
@@ -331,7 +339,7 @@ namespace viennamesh
             {
               if (dp[pi][vid] > -tol)
               {
-                viennagrid_numeric d = facet_orthogonal_to_axis ? viennagrid::inner_prod(axis, point_type(3,coords+3*vid)) : dp[pi][vid];
+                viennagrid_numeric d = facet_orthogonal_to_axis ? viennagrid::inner_prod(axis, point(vid)) : dp[pi][vid];
                 vertices_in_plane[d] = copy_vertex(vid);
               }
             }
@@ -391,100 +399,110 @@ namespace viennamesh
     viennagrid_plc input_plc;
     viennagrid_numeric * coords;
 
-    viennagrid_int * line_vertices;
+    viennagrid_element_id * line_vertices;
+
+    viennagrid_element_id vertex(viennagrid_element_id lid, viennagrid_int index) const
+    {
+      return *(line_vertices + 2*viennagrid_index_from_element_id(lid) + index);
+    }
+
+    point_type point(viennagrid_element_id vid) const
+    {
+      return point_type(3, coords+3*viennagrid_index_from_element_id(vid));
+    }
 
 
     viennagrid_plc output_plc;
 
-    bool vertex_on_plane(viennagrid_int pi, viennagrid_int vid) const { return std::abs(dn[pi][vid]) < tol; }
-    bool vertex_inside(viennagrid_int pi, viennagrid_int vid) const { return dn[pi][vid] > 0; }
-    bool vertex_outside(viennagrid_int pi, viennagrid_int vid) const { return dn[pi][vid] < 0; }
-    bool vertex_on_plane_or_inside(viennagrid_int pi, viennagrid_int vid) const { return dn[pi][vid] > -tol; }
-    bool vertex_on_plane_or_outside(viennagrid_int pi, viennagrid_int vid) const { return dn[pi][vid] < tol; }
+    bool vertex_on_plane(viennagrid_int pi, viennagrid_element_id vid) const { return std::abs(dn[pi][viennagrid_index_from_element_id(vid)]) < tol; }
+    bool vertex_inside(viennagrid_int pi, viennagrid_element_id vid) const { return dn[pi][viennagrid_index_from_element_id(vid)] > 0; }
+    bool vertex_outside(viennagrid_int pi, viennagrid_element_id vid) const { return dn[pi][viennagrid_index_from_element_id(vid)] < 0; }
+    bool vertex_on_plane_or_inside(viennagrid_int pi, viennagrid_element_id vid) const { return dn[pi][viennagrid_index_from_element_id(vid)] > -tol; }
+    bool vertex_on_plane_or_outside(viennagrid_int pi, viennagrid_element_id vid) const { return dn[pi][viennagrid_index_from_element_id(vid)] < tol; }
 
-    bool line_on_plane(viennagrid_int pi, viennagrid_int lid) const
-    { return vertex_on_plane(pi, *(line_vertices+2*lid)) && vertex_on_plane(pi, *(line_vertices+2*lid+1)); }
-    bool line_inside(viennagrid_int pi, viennagrid_int lid) const
-    { return vertex_inside(pi, *(line_vertices+2*lid)) && vertex_inside(pi, *(line_vertices+2*lid+1)); }
-    bool line_outside(viennagrid_int pi, viennagrid_int lid) const
-    { return vertex_outside(pi, *(line_vertices+2*lid)) && vertex_outside(pi, *(line_vertices+2*lid+1)); }
-    bool line_on_plane_or_inside(viennagrid_int pi, viennagrid_int lid) const
-    { return vertex_on_plane_or_inside(pi, *(line_vertices+2*lid)) && vertex_on_plane_or_inside(pi, *(line_vertices+2*lid+1)); }
-    bool line_on_plane_or_outside(viennagrid_int pi, viennagrid_int lid) const
-    { return vertex_on_plane_or_outside(pi, *(line_vertices+2*lid)) && vertex_on_plane_or_outside(pi, *(line_vertices+2*lid+1)); }
+    bool line_on_plane(viennagrid_int pi, viennagrid_element_id lid) const
+    { return vertex_on_plane(pi, vertex(lid, 0)) && vertex_on_plane(pi, vertex(lid, 1)); }
+    bool line_inside(viennagrid_int pi, viennagrid_element_id lid) const
+    { return vertex_inside(pi, vertex(lid, 0)) && vertex_inside(pi, vertex(lid, 1)); }
+    bool line_outside(viennagrid_int pi, viennagrid_element_id lid) const
+    { return vertex_outside(pi, vertex(lid, 0)) && vertex_outside(pi, vertex(lid, 1)); }
+    bool line_on_plane_or_inside(viennagrid_int pi, viennagrid_element_id lid) const
+    { return vertex_on_plane_or_inside(pi, vertex(lid, 0)) && vertex_on_plane_or_inside(pi, vertex(lid, 1)); }
+    bool line_on_plane_or_outside(viennagrid_int pi, viennagrid_element_id lid) const
+    { return vertex_on_plane_or_outside(pi, vertex(lid, 0)) && vertex_on_plane_or_outside(pi, vertex(lid, 1)); }
 
 
-    viennagrid_int copy_vertex(viennagrid_int vid)
+    viennagrid_element_id copy_vertex(viennagrid_element_id vid)
     {
-      std::map<viennagrid_int, viennagrid_int>::iterator vit = vertex_map.find(vid);
+      std::map<viennagrid_element_id, viennagrid_element_id>::iterator vit = vertex_map.find(vid);
       if (vit != vertex_map.end())
         return vit->second;
 
-      viennagrid_int new_vid;
+      viennagrid_element_id new_vid;
       viennagrid_plc_vertex_create(output_plc, coords+3*vid, &new_vid);
       vertex_map[vid] = new_vid;
 
       return new_vid;
     }
 
-    viennagrid_int get_make_line( std::pair<viennagrid_int, viennagrid_int> const & vids )
+    viennagrid_element_id get_make_line( std::pair<viennagrid_element_id, viennagrid_element_id> const & vids )
     {
-      std::map< std::pair<viennagrid_int, viennagrid_int>, viennagrid_int>::iterator lit = line_map.find(vids);
+      std::map< std::pair<viennagrid_element_id, viennagrid_element_id>, viennagrid_element_id>::iterator lit = line_map.find(vids);
       if ( lit != line_map.find(vids) )
         return lit->second;
 
-      viennagrid_int lid;
+      viennagrid_element_id lid;
       viennagrid_plc_line_create(output_plc, vids.first, vids.second, &lid);
       line_map[vids] = lid;
       return lid;
     }
 
-    viennagrid_int get_make_line( viennagrid_int vid0, viennagrid_int vid1 )
+    viennagrid_element_id get_make_line( viennagrid_element_id vid0, viennagrid_element_id vid1 )
     {
       return get_make_line( std::make_pair(vid0, vid1) );
     }
 
-    viennagrid_int copy_line( viennagrid_int vid0, viennagrid_int vid1 )
+    viennagrid_element_id copy_line( viennagrid_element_id vid0, viennagrid_element_id vid1 )
     {
-      viennagrid_int new_vid0 = copy_vertex(vid0);
-      viennagrid_int new_vid1 = copy_vertex(vid1);
+      viennagrid_element_id new_vid0 = copy_vertex(vid0);
+      viennagrid_element_id new_vid1 = copy_vertex(vid1);
 
       return get_make_line(new_vid0, new_vid1);
     }
 
-    viennagrid_int copy_line( viennagrid_int lid )
+    viennagrid_element_id copy_line( viennagrid_element_id lid )
     {
-      viennagrid_int * lvit_start;
-      viennagrid_int * lvit_end;
-      viennagrid_plc_boundary_elements(input_plc, 1, lid, 0, &lvit_start, &lvit_end);
+      viennagrid_element_id * lvit_start;
+      viennagrid_element_id * lvit_end;
+      viennagrid_plc_boundary_elements(input_plc, lid, 0, &lvit_start, &lvit_end);
 
       return copy_line( *lvit_start, *(lvit_start+1));
     }
 
 
 
-    viennagrid_int get_non_intersecting_line(point_type const & p,
-                                             viennagrid_int * lit_start, viennagrid_int * lit_end)
+    viennagrid_element_id get_non_intersecting_line(point_type const & p,
+                                                    viennagrid_element_id * lit_start, viennagrid_element_id * lit_end)
     {
-      for (viennagrid_int * lit = lit_start; lit != lit_end; ++lit)
+      for (viennagrid_element_id * lit = lit_start; lit != lit_end; ++lit)
       {
-        viennagrid_int lid = *lit;
-        viennagrid_int v0 = *(line_vertices+2*lid+0);
-        viennagrid_int v1 = *(line_vertices+2*lid+1);
+        viennagrid_element_id lid = *lit;
+        viennagrid_element_id v0 = *(line_vertices+2*viennagrid_index_from_element_id(lid)+0);
+        viennagrid_element_id v1 = *(line_vertices+2*viennagrid_index_from_element_id(lid)+1);
 
         point_type p0(3, coords+3*v0);
         point_type p1(3, coords+3*v1);
         point_type middle = (p0+p1)/2;
 
-        viennagrid_int * lit1 = lit_start;
+        viennagrid_element_id * lit1 = lit_start;
         for (; lit1 != lit_end; ++lit1)
         {
           // no self intersect test
           if (lit1 == lit)
             continue;
 
-          point_type l0(3, coords+3**(line_vertices+2**lit1+0));
-          point_type l1(3, coords+3**(line_vertices+2**lit1+1));
+          point_type l0(3, coords+3**(line_vertices+2*viennagrid_index_from_element_id(*lit1)+0));
+          point_type l1(3, coords+3**(line_vertices+2*viennagrid_index_from_element_id(*lit1)+1));
 
           std::pair<point_type, point_type> cp = viennagrid::detail::closest_points_line_line( p, middle, l0, l1 );
 
@@ -512,8 +530,8 @@ namespace viennamesh
     std::vector<viennagrid_numeric> dn[2];
     std::vector<viennagrid_numeric> dp[2];
 
-    std::map<viennagrid_int, viennagrid_int> vertex_map;
-    std::map< std::pair<viennagrid_int, viennagrid_int>, viennagrid_int> line_map;
+    std::map<viennagrid_element_id, viennagrid_element_id> vertex_map;
+    std::map< std::pair<viennagrid_element_id, viennagrid_element_id>, viennagrid_element_id> line_map;
 
     double tol;
   };
