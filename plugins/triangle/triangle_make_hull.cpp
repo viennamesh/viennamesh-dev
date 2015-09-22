@@ -90,7 +90,7 @@ namespace viennamesh
 
       viennagrid_int * vertices_begin;
       viennagrid_int * vertices_end;
-      viennagrid_plc_boundary_elements(plc, 2, facet_id, 0, &vertices_begin, &vertices_end);
+      viennagrid_plc_boundary_elements(plc, facet_id, 0, &vertices_begin, &vertices_end);
       viennagrid_int vertex_count = vertices_end - vertices_begin;
 
       viennamesh::triangle::init_points( output.plc, vertex_count );
@@ -134,7 +134,7 @@ namespace viennamesh
 
       viennagrid_int * lines_begin;
       viennagrid_int * lines_end;
-      viennagrid_plc_boundary_elements(plc, 2, facet_id, 1, &lines_begin, &lines_end);
+      viennagrid_plc_boundary_elements(plc, facet_id, 1, &lines_begin, &lines_end);
       viennagrid_int line_count = lines_end - lines_begin;
 
       viennamesh::triangle::init_segments( output.plc, line_count );
@@ -144,7 +144,7 @@ namespace viennamesh
       {
         viennagrid_int * line_vertices_begin;
         viennagrid_int * line_vertices_end;
-        viennagrid_plc_boundary_elements(plc, 1, *lit, 0, &line_vertices_begin, &line_vertices_end);
+        viennagrid_plc_boundary_elements(plc, *lit, 0, &line_vertices_begin, &line_vertices_end);
 
         output.plc.segmentlist[2*index+0] = vertex_map[ *(line_vertices_begin+0) ];
         output.plc.segmentlist[2*index+1] = vertex_map[ *(line_vertices_begin+1) ];
@@ -165,14 +165,17 @@ namespace viennamesh
       viennagrid_dimension geometric_dimension;
       viennagrid_plc_geometric_dimension_get(plc, &geometric_dimension);
 
-      viennagrid_int vertex_count;
-      viennagrid_plc_element_count(plc, 0, &vertex_count);
+      viennagrid_element_id vertex_begin;
+      viennagrid_element_id vertex_end;
+      viennagrid_plc_elements_get(plc, 0, &vertex_begin, &vertex_end);
 
-      viennagrid_int facet_count;
-      viennagrid_plc_element_count(plc, 2, &facet_count);
+      viennagrid_element_id facet_begin;
+      viennagrid_element_id facet_end;
+      viennagrid_plc_elements_get(plc, 2, &facet_begin, &facet_end);
 
-      output.vertex_points_3d.resize( vertex_count );
-      for (viennagrid_int vid = 0; vid != vertex_count; ++vid)
+
+      output.vertex_points_3d.resize( vertex_end-vertex_begin );
+      for (viennagrid_int vid = vertex_begin; vid != vertex_end; ++vid)
       {
         output.vertex_points_3d[vid] = viennagrid::get_point(plc, vid);
 
@@ -184,10 +187,10 @@ namespace viennamesh
       }
 
 
-      output.cells.resize(facet_count);
-      for (viennagrid_int fid = 0; fid != facet_count; ++fid)
+      output.cells.resize( facet_end-facet_begin );
+      for (viennagrid_int fid = facet_begin; fid != facet_end; ++fid)
       {
-        convert_to_triangle_3d_cell(plc, fid, output.cells[fid]);
+        convert_to_triangle_3d_cell(plc, fid, output.cells[viennagrid_index_from_element_id(fid)]);
       }
 
 

@@ -319,7 +319,7 @@ namespace viennamesh
 
     viennagrid_int * other_line_vertex_begin;
     viennagrid_int * other_line_vertex_end;
-    viennagrid_plc_boundary_elements(plc, 1, other_line, 0, &other_line_vertex_begin, &other_line_vertex_end);
+    viennagrid_plc_boundary_elements(plc, other_line, 0, &other_line_vertex_begin, &other_line_vertex_end);
 
     PointT other_direction = viennagrid::get_point( plc, *(other_line_vertex_begin+0) ) -
                              viennagrid::get_point( plc, *(other_line_vertex_begin+1) );
@@ -358,19 +358,23 @@ namespace viennamesh
     viennagrid_plc_geometric_dimension_get(plc, &geometric_dimension);
     viennagrid_plc_geometric_dimension_set(output_plc, geometric_dimension);
 
-    viennagrid_int vertex_count;
-    viennagrid_plc_element_count(plc, 0, &vertex_count);
+    viennagrid_element_id vertex_begin;
+    viennagrid_element_id vertex_end;
+    viennagrid_plc_elements_get(plc, 0, &vertex_begin, &vertex_end);
 
-    viennagrid_int line_count;
-    viennagrid_plc_element_count(plc, 1, &line_count);
+    viennagrid_element_id line_begin;
+    viennagrid_element_id line_end;
+    viennagrid_plc_elements_get(plc, 1, &line_begin, &line_end);
 
-    std::vector< std::vector<viennagrid_int> > coboundary_lines(vertex_count);
 
-    for (viennagrid_int line_id = 0; line_id != line_count; ++line_id)
+
+    std::vector< std::vector<viennagrid_int> > coboundary_lines( vertex_end-vertex_begin );
+
+    for (viennagrid_int line_id = line_begin; line_id != line_end; ++line_id)
     {
       viennagrid_int * vertices_begin;
       viennagrid_int * vertices_end;
-      viennagrid_plc_boundary_elements(plc, 1, line_id, 0, &vertices_begin, &vertices_end);
+      viennagrid_plc_boundary_elements(plc, line_id, 0, &vertices_begin, &vertices_end);
 
       coboundary_lines[ *(vertices_begin+0) ].push_back(line_id);
       coboundary_lines[ *(vertices_begin+1) ].push_back(line_id);
@@ -379,10 +383,10 @@ namespace viennamesh
 
 
     std::vector<viennagrid_int> new_line_ids;
-    std::vector<viennagrid_int> line_to_new_line_index(line_count, -1);
+    std::vector<viennagrid_int> line_to_new_line_index(line_end-line_begin, -1);
 
 
-    for (viennagrid_int line_id = 0; line_id != line_count; ++line_id)
+    for (viennagrid_int line_id = line_begin; line_id != line_end; ++line_id)
     {
       int new_line_id = new_line_ids.size();
 
@@ -393,7 +397,7 @@ namespace viennamesh
 
       viennagrid_int * vertices_begin;
       viennagrid_int * vertices_end;
-      viennagrid_plc_boundary_elements(plc, 1, line_id, 0, &vertices_begin, &vertices_end);
+      viennagrid_plc_boundary_elements(plc, line_id, 0, &vertices_begin, &vertices_end);
 
 //       std::cout << "Starting with line " << line_id << ": " << *(vertices_begin+0) << "," << *(vertices_begin+1) << std::endl;
 
@@ -433,16 +437,18 @@ namespace viennamesh
       new_line_ids.push_back( new_line_id );
     }
 
-    viennagrid_int facet_count;
-    viennagrid_plc_element_count(plc, 2, &facet_count);
-    for (viennagrid_int facet_id = 0; facet_id != facet_count; ++facet_id)
+    viennagrid_element_id facet_begin;
+    viennagrid_element_id facet_end;
+    viennagrid_plc_elements_get(plc, 2, &facet_begin, &facet_end);
+
+    for (viennagrid_int facet_id = facet_begin; facet_id != facet_end; ++facet_id)
     {
       std::set<viennagrid_int> used_lines_indices;
       std::vector<viennagrid_int> new_plc_lines;
 
       viennagrid_int * facet_lines_begin;
       viennagrid_int * facet_lines_end;
-      viennagrid_plc_boundary_elements(plc, 2, facet_id, 1, &facet_lines_begin, &facet_lines_end);
+      viennagrid_plc_boundary_elements(plc, facet_id, 1, &facet_lines_begin, &facet_lines_end);
 
       for (viennagrid_int * facet_line_id_it = facet_lines_begin; facet_line_id_it != facet_lines_end; ++facet_line_id_it)
       {

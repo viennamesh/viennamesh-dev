@@ -11,12 +11,14 @@ namespace viennamesh
     if (geometric_dimension != 3)
       return VIENNAMESH_ERROR_CONVERSION_FAILED;
 
-    viennagrid_int vertex_count;
-    viennagrid_plc_element_count(plc, 0, &vertex_count);
+    viennagrid_element_id vertex_begin;
+    viennagrid_element_id vertex_end;
+    viennagrid_plc_elements_get(plc, 0, &vertex_begin, &vertex_end);
+    viennagrid_int vertex_count = vertex_end-vertex_begin;
 
-    viennagrid_int facet_count;
-    viennagrid_plc_element_count(plc, 2, &facet_count);
-
+    viennagrid_element_id facet_begin;
+    viennagrid_element_id facet_end;
+    viennagrid_plc_elements_get(plc, 2, &facet_begin, &facet_end);
 
 
     output.firstnumber = 0;
@@ -28,14 +30,14 @@ namespace viennamesh
     std::copy( coords, coords+vertex_count*3, output.pointlist );
 
 
-    output.numberoffacets = facet_count;
+    output.numberoffacets = facet_end-facet_begin;
     output.facetlist = new tetgenio::facet[output.numberoffacets];
 
 
 
-    for (int facet_id = 0; facet_id != facet_count; ++facet_id)
+    for (int facet_id = facet_begin; facet_id != facet_end; ++facet_id)
     {
-      tetgenio::facet & facet = output.facetlist[facet_id];
+      tetgenio::facet & facet = output.facetlist[viennagrid_index_from_element_id(facet_id)];
       facet.holelist = 0;
 
       viennagrid_int facet_hole_point_count;
@@ -51,7 +53,7 @@ namespace viennamesh
 
       viennagrid_int * lines_begin;
       viennagrid_int * lines_end;
-      viennagrid_plc_boundary_elements(plc, 2, facet_id, 1, &lines_begin, &lines_end);
+      viennagrid_plc_boundary_elements(plc, facet_id, 1, &lines_begin, &lines_end);
 
       viennagrid_int line_count = lines_end-lines_begin;
 
@@ -67,7 +69,7 @@ namespace viennamesh
 
         viennagrid_int * line_vertices_begin;
         viennagrid_int * line_vertices_end;
-        viennagrid_plc_boundary_elements(plc, 1, *line_id_it, 0, &line_vertices_begin, &line_vertices_end);
+        viennagrid_plc_boundary_elements(plc, *line_id_it, 0, &line_vertices_begin, &line_vertices_end);
 
         assert( line_vertices_end-line_vertices_begin == 2 );
 
