@@ -10,61 +10,47 @@
 
 
 
-viennamesh_error viennamesh_error_string(viennamesh_error error, const char ** error_string)
+const char * viennamesh_error_string(viennamesh_error error)
 {
   switch (error)
   {
     case VIENNAMESH_SUCCESS:
-      *error_string = "No error";
-      break;
+      return "No error";
     case VIENNAMESH_UNKNOWN_ERROR:
-      *error_string = "Unknown error";
-      break;
+      return "Unknown error";
+    case VIENNAMESH_VIENNAGRID_ERROR:
+      return "ViennaGrid error";
     case VIENNAMESH_ERROR_INVALID_CONTEXT:
-      *error_string = "Invalid context";
-      break;
+      return "Invalid context";
     case VIENNAMESH_ERROR_ERROR_MANAGEMENT:
-      *error_string = "Error management error";
-      break;
+      return "Error management error";
     case VIENNAMESH_ERROR_INVALID_ARGUMENT:
-      *error_string = "Invalid argument";
-      break;
+      return "Invalid argument";
     case VIENNAMESH_ERROR_DIFFERENT_CONTEXT:
-      *error_string = "Different context";
-      break;
+      return "Different context";
     case VIENNAMESH_ERROR_DATA_TYPE_NOT_REGISTERED:
-      *error_string = "Data type not registered";
-      break;
+      return "Data type not registered";
     case VIENNAMESH_ERROR_NO_CONVERSION_TO_DATA_TYPE:
-      *error_string = "Conversion to data type not available";
-      break;
+      return "Conversion to data type not available";
     case VIENNAMESH_ERROR_CONVERSION_FAILED:
-      *error_string = "Conversion failed";
-      break;
+      return "Conversion failed";
     case VIENNAMESH_ERROR_ALGORITHM_ALREADY_REGISTERED:
-      *error_string = "Algorithm already registered";
-      break;
+      return "Algorithm already registered";
     case VIENNAMESH_ERROR_ALGORITHM_NOT_REGISTERED:
-      *error_string = "Algorithm not registered";
-      break;
+      return "Algorithm not registered";
     case VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED:
-      *error_string = "Algorithm run failed";
-      break;
+      return "Algorithm run failed";
     case VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND:
-      *error_string = "Required input parameter not found";
-      break;
+      return "Required input parameter not found";
     case VIENNAMESH_ERROR_REQUIRED_INPUT_PARAMETER_NOT_FOUND_OR_NOT_CONVERTABLE:
-      *error_string = "Required input parameter not found or not convertable";
-      break;
+      return "Required input parameter not found or not convertable";
     case VIENNAMESH_ERROR_SIZING_FUNCTION:
-      *error_string = "Sizing function error";
-      break;
+      return "Sizing function error";
     case VIENNAMESH_ERROR_INPUT_PARAMETER_PUSH_BACK_FAILED:
-      *error_string = "Input parameter push_back failed";
-      break;
+      return "Input parameter push_back failed";
   }
 
-  return VIENNAMESH_SUCCESS;
+  return NULL;
 }
 
 

@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include "viennamesh.h"
+#include "viennagrid/viennagrid.hpp"
 
 namespace viennamesh
 {
@@ -39,9 +40,11 @@ namespace viennamesh
 
 inline std::ostream & operator<<(std::ostream & stream, viennamesh::exception const & ex)
 {
-  const char * error_string;
-  viennamesh_error_string(ex.error_code(), &error_string);
-  stream << error_string;
+  const char * error_string = viennamesh_error_string(ex.error_code());
+  if (error_string)
+    stream << error_string;
+  else
+    stream << "Invalid error";
 
   stream << "[" << error_string << "] ";
 
@@ -73,8 +76,12 @@ namespace viennamesh
     catch (viennamesh::exception const & ex)
     {
       viennamesh_context_set_error(context, ex.error_code(), ex.function().c_str(), ex.file().c_str(), ex.line(), ex.what());
-
       return ex.error_code();
+    }
+    catch (viennagrid::exception const & ex)
+    {
+      viennamesh_context_set_error(context, VIENNAMESH_VIENNAGRID_ERROR, "", "", -1, ex.what());
+      return VIENNAMESH_VIENNAGRID_ERROR;
     }
     catch (...)
     {
