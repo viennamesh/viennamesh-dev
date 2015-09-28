@@ -22,17 +22,17 @@ namespace viennamesh
 {
   namespace metrics
   {
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type condition_number_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::triangle_tag)
+    template<typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<ElementT>::type condition_number_impl(ElementT const & element, NumericLimitsT numeric_limits, viennagrid::triangle_tag)
     {
-      typedef typename PointAccessorT::point_type            PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
+      typedef typename viennagrid::result_of::point<ElementT>::type  PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
 
-      PointType const & p0 = point_accessor.get( viennagrid::vertices(element)[0] );
-      PointType const & p1 = point_accessor.get( viennagrid::vertices(element)[1] );
-      PointType const & p2 = point_accessor.get( viennagrid::vertices(element)[2] );
+      PointType const & p0 = viennagrid::get_point( viennagrid::vertices(element)[0] );
+      PointType const & p1 = viennagrid::get_point( viennagrid::vertices(element)[1] );
+      PointType const & p2 = viennagrid::get_point( viennagrid::vertices(element)[2] );
 
-      NumericType area = viennagrid::volume(point_accessor, element);
+      NumericType area = viennagrid::volume(element);
       if (std::abs(area) < numeric_limits.epsilon()) return numeric_limits.max();
 
       PointType v1 = p1-p0;
@@ -44,18 +44,18 @@ namespace viennamesh
               ( 2 * area * std::sqrt(3) );
     }
 
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type condition_number_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, viennagrid::tetrahedron_tag)
+    template<typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<ElementT>::type condition_number_impl(ElementT const & element, NumericLimitsT numeric_limits, viennagrid::tetrahedron_tag)
     {
-      typedef typename PointAccessorT::point_type            PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
+      typedef typename viennagrid::result_of::point<ElementT>::type  PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
 
-      PointType const & p0 = point_accessor.get( viennagrid::vertices(element)[0] );
-      PointType const & p1 = point_accessor.get( viennagrid::vertices(element)[1] );
-      PointType const & p2 = point_accessor.get( viennagrid::vertices(element)[2] );
-      PointType const & p3 = point_accessor.get( viennagrid::vertices(element)[3] );
+      PointType const & p0 = viennagrid::get_point( viennagrid::vertices(element)[0] );
+      PointType const & p1 = viennagrid::get_point( viennagrid::vertices(element)[1] );
+      PointType const & p2 = viennagrid::get_point( viennagrid::vertices(element)[2] );
+      PointType const & p3 = viennagrid::get_point( viennagrid::vertices(element)[3] );
 
-      NumericType volume = viennagrid::volume(point_accessor, element);
+      NumericType volume = viennagrid::volume(element);
       if (std::abs(volume) < numeric_limits.epsilon()) return numeric_limits.max();
 
       PointType l0 = p1-p0;
@@ -79,8 +79,8 @@ namespace viennamesh
       return std::sqrt(t1*t2) / (3*det);
     }
 
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT, typename TagT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type condition_number_impl(PointAccessorT const, ElementT const &, NumericLimitsT, TagT)
+    template<typename ElementT, typename NumericLimitsT, typename TagT>
+    typename viennagrid::result_of::coord<ElementT>::type condition_number_impl(NumericLimitsT, TagT)
     {
       throw metric_not_implemented_or_supported_exception( "condition number not implemented for " + TagT::name() );
     }
@@ -90,43 +90,31 @@ namespace viennamesh
   struct condition_number_tag {};
 
 
-  template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-  typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type condition_number( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
+  template<typename ElementT, typename NumericLimitsT>
+  typename viennagrid::result_of::coord<ElementT>::type condition_number(ElementT const & element, NumericLimitsT numeric_limits)
   {
     if (element.tag().is_triangle())
-      return metrics::condition_number_impl(point_accessor, element, numeric_limits, viennagrid::triangle_tag());
+      return metrics::condition_number_impl(element, numeric_limits, viennagrid::triangle_tag());
     else if (element.tag().is_tetrahedron())
-      return metrics::condition_number_impl(point_accessor, element, numeric_limits, viennagrid::tetrahedron_tag());
+      return metrics::condition_number_impl(element, numeric_limits, viennagrid::tetrahedron_tag());
 
     assert(false);
     return 0;
   }
 
-  template<typename PointAccessorT, typename ElementT>
-  typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type condition_number( PointAccessorT const point_accessor, ElementT const & element )
-  {
-    return condition_number(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type >() );
-  }
-
   template<typename ElementT>
-  typename viennagrid::result_of::coord< ElementT >::type condition_number(ElementT const & element)
+  typename viennagrid::result_of::coord<ElementT>::type condition_number(ElementT const & element)
   {
-    return condition_number( viennagrid::root_mesh_point_accessor(), element);
+    return condition_number(element, std::numeric_limits< typename viennagrid::result_of::coord<ElementT>::type >() );
   }
 
 
   namespace detail
   {
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, condition_number_tag)
+    template<typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<ElementT>::type metric(ElementT const & element, NumericLimitsT numeric_limits, condition_number_tag)
     {
-      return condition_number(point_accessor, element, numeric_limits);
-    }
-
-    template<typename PointAccessorT, typename ElementT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type metric( PointAccessorT const point_accessor, ElementT const & element, condition_number_tag)
-    {
-      return condition_number(point_accessor, element);
+      return condition_number(element, numeric_limits);
     }
 
     template<typename ElementT>

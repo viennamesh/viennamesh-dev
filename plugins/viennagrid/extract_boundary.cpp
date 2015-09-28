@@ -34,7 +34,8 @@ namespace viennamesh
     point_container hole_points;
     seed_point_container seed_points;
 
-    viennagrid::extract_boundary( input_mesh(), output_mesh() );
+    input_mesh().set_full_layout();
+    viennagrid::extract_boundary( input_mesh(), output_mesh(), viennagrid::facet_dimension(input_mesh()) );
     viennagrid::extract_seed_points( input_mesh(), seed_points );
     viennagrid::extract_hole_points( input_mesh(), hole_points );
 
