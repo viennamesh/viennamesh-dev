@@ -19,16 +19,18 @@ namespace viennamesh
   namespace poisson
   {
 
-    struct scale_options{
+    struct scale_options
+    {
       int sample_size;        //number of samples to be take       (used to estimate the average neighborhood_radius )
       int neighborhood_size;  //number of points in a neighborhood (used to estimate the average neighborhood_radius )
       int scale;              //scale of the reconstruction (the higher the scale, the smoother the reconstruction
     };
 
     void scale_reconstruction_impl(Point_collection & input,
-                        viennagrid::mesh output, scale_options options)
+                                   viennagrid::mesh output,
+                                   scale_options options)
     {
-          typedef Reconstruction::Triple_const_iterator                   Triple_iterator;
+      typedef Reconstruction::Triple_const_iterator                   Triple_iterator;
       // Construct the reconstruction with parameters for
       // the neighborhood squared radius estimation.
       Reconstruction reconstruct( options.neighborhood_size, options.sample_size );
@@ -42,16 +44,19 @@ namespace viennamesh
       typedef viennagrid::result_of::element<MeshType>::type    VertexType;
       std::vector<VertexType> vertex_handles(input.size());
       int i=0;
+
       for(Point_collection::iterator begin = input.begin();begin!=input.end();++begin,++i)
         vertex_handles[i] = viennagrid::make_vertex( output,
           viennagrid::make_point(begin->x(),begin->y(),begin->z()));
-      for( std::size_t shell = 0; shell < reconstruct.number_of_shells(); ++shell ) 
-        for( Triple_iterator it = reconstruct.shell_begin( shell ); it != reconstruct.shell_end( shell ); ++it ){
+
+      for( std::size_t shell = 0; shell < reconstruct.number_of_shells(); ++shell )
+        for( Triple_iterator it = reconstruct.shell_begin( shell ); it != reconstruct.shell_end( shell ); ++it )
+        {
           viennagrid::make_triangle(
             output,vertex_handles[(*it)[0]],
                    vertex_handles[(*it)[1]],
                    vertex_handles[(*it)[2]]);
-      }
+        }
     }
 
     scale_reconstruction::scale_reconstruction() {}
@@ -68,16 +73,18 @@ namespace viennamesh
       for (int i = 0; i != input_points.size(); ++i)
         points.push_back(Point(input_points(i)[0],
                                input_points(i)[1],
-                               input_points(i)[2]));  
+                               input_points(i)[2]));
       scale_options options;
       if(sample_option.valid() && sample_option() > 0)
         options.sample_size=sample_option();
       else
         options.sample_size=100;
+
       if(neighborhood_option.valid() && neighborhood_option() > 0)
         options.neighborhood_size=neighborhood_option();
       else
         options.neighborhood_size=10;
+
       if(scale_option.valid() && scale_option() > 0)
         options.scale=scale_option();
       else

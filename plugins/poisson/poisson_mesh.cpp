@@ -1,7 +1,7 @@
 #include "poisson_mesh.hpp"
-#include "viennagridpp/core.hpp"
+#include "viennagrid/viennagrid.hpp"
 
 namespace viennamesh
-{ 
+{
 
 }
