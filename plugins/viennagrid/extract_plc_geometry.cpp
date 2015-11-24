@@ -328,7 +328,7 @@ namespace viennamesh
     if ( std::abs(viennagrid::inner_prod(direction, other_direction)) >=
          1.0-viennagrid::detail::absolute_tolerance<double>(numeric_config))
     {
-      line_to_new_line_index[other_line] = new_line_id;
+      line_to_new_line_index[ viennagrid_index_from_element_id(other_line) ] = new_line_id;
 
       viennagrid_int other_vertex;
       if ( *(other_line_vertex_begin+0) == vertex_id )
@@ -388,12 +388,12 @@ namespace viennamesh
 
     for (viennagrid_int line_id = line_begin; line_id != line_end; ++line_id)
     {
-      int new_line_id = new_line_ids.size();
+      int new_line_id = viennagrid_compose_element_id(1, new_line_ids.size());
 
-      if (line_to_new_line_index[line_id] != -1)
+      if (line_to_new_line_index[ viennagrid_index_from_element_id(line_id) ] != -1)
         continue;
 
-      line_to_new_line_index[line_id] = new_line_id;
+      line_to_new_line_index[ viennagrid_index_from_element_id(line_id) ] = new_line_id;
 
       viennagrid_int * vertices_begin;
       viennagrid_int * vertices_end;
@@ -452,8 +452,8 @@ namespace viennamesh
 
       for (viennagrid_int * facet_line_id_it = facet_lines_begin; facet_line_id_it != facet_lines_end; ++facet_line_id_it)
       {
-        if (used_lines_indices.insert( line_to_new_line_index[*facet_line_id_it] ).second)
-          new_plc_lines.push_back( new_line_ids[line_to_new_line_index[*facet_line_id_it]] );
+        if (used_lines_indices.insert( line_to_new_line_index[ viennagrid_index_from_element_id(*facet_line_id_it) ] ).second)
+          new_plc_lines.push_back( new_line_ids[viennagrid_index_from_element_id(line_to_new_line_index[ viennagrid_index_from_element_id(*facet_line_id_it) ])] );
       }
 
       viennagrid_int new_facet_id;
