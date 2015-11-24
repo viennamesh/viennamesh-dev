@@ -80,14 +80,14 @@ namespace viennamesh
 //           ElementType vertex_t;
           for (int i = 0; i != 3; ++i)
           {
-            if (viennagrid::regions(mesh, viennagrid::vertices(*tit)[i]).size() == 1)
+            if (viennagrid::regions(viennagrid::vertices(*tit)[i]).size() == 1)
               triangle[1] = viennagrid::vertices(*tit)[i];
           }
 
 //           ElementType vertex_nt;
           for (int i = 0; i != 3; ++i)
           {
-            if (viennagrid::regions(mesh, viennagrid::vertices(*ntit)[i]).size() == 1)
+            if (viennagrid::regions(viennagrid::vertices(*ntit)[i]).size() == 1)
               triangle[2] = viennagrid::vertices(*ntit)[i];
           }
 

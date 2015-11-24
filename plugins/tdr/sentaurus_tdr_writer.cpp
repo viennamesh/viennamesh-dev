@@ -19,7 +19,7 @@
 #include <boost/container/flat_map.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "viennagridpp/range.hpp"
+#include "viennagrid/core/range.hpp"
 
 #include "H5Cpp.h"
 
@@ -225,11 +225,11 @@ void write_to_tdr(std::string const & filename, viennagrid::const_mesh const & m
           values.reserve(vertex_ids.size());
           for (unsigned int j = 0; j < vertex_ids.size(); ++j)
           {
-            if (!quantity.valid(vertex_ids[j]))
+            if (!quantity.valid(vertex_ids[j].index()))
             {
               break;
             }
-            values.push_back(quantity.get(vertex_ids[j]));
+            values.push_back(quantity.get(vertex_ids[j].index()));
           }
 
           if (values.size() == vertex_ids.size()) //only write quantities that are defined on the entire region

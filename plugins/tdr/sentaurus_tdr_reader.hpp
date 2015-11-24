@@ -37,15 +37,13 @@ using namespace H5;
 #define mythrow1(a) { std::cerr << a << std::endl; throw; }
 
 
-#include "viennagridpp/mesh/element_creation.hpp"
-#include "viennagridpp/quantity_field.hpp"
+#include "viennagrid/mesh/element_creation.hpp"
+#include "viennagrid/core/quantity_field.hpp"
 
-#include "viennagridpp/algorithm/cross_prod.hpp"
-#include "viennagridpp/algorithm/centroid.hpp"
-#include "viennagridpp/algorithm/inclusion.hpp"
-#include "viennagridpp/algorithm/geometry.hpp"
-#include "viennagridpp/algorithm/distance.hpp"
-#include "viennagridpp/algorithm/norm.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
+#include "viennagrid/algorithm/inclusion.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/distance.hpp"
 
 
 namespace viennamesh
@@ -457,6 +455,7 @@ namespace viennamesh
       typedef typename viennagrid::result_of::point<MeshT>::type PointType;
       typedef typename viennagrid::result_of::element<MeshT>::type VertexType;
 
+
       std::vector<VertexType> vertices( nvertices );
 
       for (unsigned int i=0; i<nvertices; i++)
@@ -581,10 +580,10 @@ namespace viennamesh
             for (std::vector<int>::const_iterator it = element.vertex_indices.begin(); it != element.vertex_indices.end(); ++it)
             {
               cell_vertices.push_back( vertices[*it] );
-              other_vertex_indices.push_back( vertices[*it].id() );
+              other_vertex_indices.push_back( vertices[*it].id().internal() );
             }
             cell_vertices.push_back( viennagrid::make_vertex(mesh, other_vertex) );
-            newly_created_vertices[ cell_vertices.back().id() ] = other_vertex_indices;
+            newly_created_vertices[ cell_vertices.back().id().index() ] = other_vertex_indices;
 
             viennagrid::make_element( mesh.get_or_create_region(rc->second.region_name),
                                       viennagrid::element_tag::from_internal(contact_tag),
@@ -652,12 +651,16 @@ namespace viennamesh
                                                                  nvit != newly_created_vertices.end();
                                                                ++nvit)
           {
-            double val = 0.0;
-            for (std::size_t i = 0; i != (*nvit).second.size(); ++i)
-              val += quantities.get( (*nvit).second[i] );
-            val /= (*nvit).second.size();
+//             double val = 0.0;
+//             for (std::size_t i = 0; i != (*nvit).second.size(); ++i)
+//             {
+//               val += quantities.get( (*nvit).second[i] );
+//             }
+//             val /= (*nvit).second.size();
+//
+//             quantities.set( (*nvit).first, val );
 
-            quantities.set( (*nvit).first, val );
+            quantities.set( (*nvit).first, 0.0 );
           }
         }
       }

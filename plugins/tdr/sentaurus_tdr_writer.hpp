@@ -20,8 +20,8 @@
 
 #include "viennautils/exception.hpp"
 
-#include "viennagridpp/mesh/mesh.hpp"
-#include "viennagridpp/quantity_field.hpp"
+#include "viennagrid/mesh/mesh.hpp"
+#include "viennagrid/core/quantity_field.hpp"
 
 namespace viennamesh
 {
