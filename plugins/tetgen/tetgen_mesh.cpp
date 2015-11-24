@@ -197,11 +197,11 @@ namespace viennamesh
     typedef viennagrid::result_of::element<MeshType>::type      VertexType;
     typedef viennagrid::result_of::element<MeshType>::type      CellType;
 
-    std::vector<VertexType> vertex_handles(input.numberofpoints);
+    std::vector<VertexType> vertices(input.numberofpoints);
 
     for (int i = 0; i < input.numberofpoints; ++i)
     {
-      vertex_handles[i] = viennagrid::make_vertex( output,
+      vertices[i] = viennagrid::make_vertex( output,
         viennagrid::make_point(input.pointlist[3*i+0], input.pointlist[3*i+1], input.pointlist[3*i+2])
       );
     }
@@ -210,16 +210,16 @@ namespace viennamesh
     {
       CellType cell = viennagrid::make_tetrahedron(
         output,
-        vertex_handles[ input.tetrahedronlist[4*i+0] ],
-        vertex_handles[ input.tetrahedronlist[4*i+1] ],
-        vertex_handles[ input.tetrahedronlist[4*i+2] ],
-        vertex_handles[ input.tetrahedronlist[4*i+3] ]
+        vertices[ input.tetrahedronlist[4*i+0] ],
+        vertices[ input.tetrahedronlist[4*i+1] ],
+        vertices[ input.tetrahedronlist[4*i+2] ],
+        vertices[ input.tetrahedronlist[4*i+3] ]
       );
 
       if (input.numberoftetrahedronattributes != 0)
       {
-        int segment_id = input.tetrahedronattributelist[i] + 0.5;
-        viennagrid::add(output.get_or_create_region(segment_id), cell);
+        int region_id = input.tetrahedronattributelist[i] + 0.5;
+        viennagrid::add(output.get_or_create_region(region_id), cell);
       }
     }
 
