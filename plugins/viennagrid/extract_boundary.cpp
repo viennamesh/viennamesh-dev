@@ -37,20 +37,20 @@ namespace viennamesh
     input_mesh().set_full_layout();
     viennagrid::extract_boundary( input_mesh(), output_mesh(), viennagrid::facet_dimension(input_mesh()) );
     viennagrid::extract_seed_points( input_mesh(), seed_points );
-    viennagrid::extract_hole_points( input_mesh(), hole_points );
+//     viennagrid::extract_hole_points( input_mesh(), hole_points );
 
     set_output( "mesh", output_mesh );
 
-    if (!hole_points.empty())
-    {
-      info(1) << "Extracted " << hole_points.size() << " hole points" << std::endl;
-      for (point_container::const_iterator it = hole_points.begin(); it != hole_points.end(); ++it)
-        info(1) << "   " << *it << std::endl;
-
-      point_handle output_hole_points = make_data<point>();
-      output_hole_points.set( hole_points );
-      set_output( "hole_points", output_hole_points );
-    }
+//     if (!hole_points.empty())
+//     {
+//       info(1) << "Extracted " << hole_points.size() << " hole points" << std::endl;
+//       for (point_container::const_iterator it = hole_points.begin(); it != hole_points.end(); ++it)
+//         info(1) << "   " << *it << std::endl;
+//
+//       point_handle output_hole_points = make_data<point>();
+//       output_hole_points.set( hole_points );
+//       set_output( "hole_points", output_hole_points );
+//     }
 
     if (!seed_points.empty())
     {
