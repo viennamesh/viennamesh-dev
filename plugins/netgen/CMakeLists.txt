@@ -59,6 +59,7 @@ endif(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
 
 VIENNAMESH_ADD_PLUGIN(viennamesh-module-netgen plugin.cpp
                       netgen_mesh.cpp
-                      netgen_make_mesh.cpp)
+                      netgen_make_mesh.cpp
+                      netgen_csg_make_mesh.cpp)
 
 target_link_libraries(viennamesh-module-netgen viennamesh-netgen)
