@@ -206,7 +206,7 @@ namespace viennamesh
       typedef viennagrid::mesh MeshType;
       MeshType simple_mesh;
 
-      std::string options = "zpQ";
+      std::string options = "zpQq";
       triangle_mesh tmp_mesh;
       triangle_make_mesh(&tmp_mesh);
 
