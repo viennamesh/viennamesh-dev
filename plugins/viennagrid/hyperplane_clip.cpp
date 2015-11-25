@@ -89,7 +89,7 @@ namespace viennamesh
     mesh_handle tmp = make_data<mesh_handle>();
     mesh_handle output_mesh = make_data<mesh_handle>();
 
-    viennagrid::hyperplane_refine(input_mesh(), tmp(), hyperplane_point, hyperplane_normal, 1e-8 );
+    viennagrid::hyperplane_refine(input_mesh(), hyperplane_point, hyperplane_normal, 1e-8, tmp() );
     viennagrid::copy( tmp(), output_mesh(),
                       on_positive_hyperplane_side_functor<point, double>(hyperplane_point, -hyperplane_normal, 1e-8) );
 
