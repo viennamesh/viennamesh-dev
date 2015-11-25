@@ -210,16 +210,14 @@ namespace viennamesh
     viennagrid::result_of::element_copy_map<>::type copy_map( output_mesh(), false );
     for (std::size_t i = 0; i != polylines.size(); ++i)
     {
-//       std::deque<ElementType> polyline = polylines[i];
       std::deque<ElementType> polyline = douglas_peucker(polylines[i], eps());
 
       ElementType ov = copy_map( polyline[0] );
       for (std::size_t j = 1; j != polyline.size(); ++j)
       {
         ElementType v = copy_map( polyline[j] );
-        ElementType l = viennagrid::make_line(output_mesh(), ov, v);
+        viennagrid::make_line(output_mesh(), ov, v);
         ov = v;
-//         viennagrid::add( output_mesh().get_or_create_region(i), l );
       }
     }
 
