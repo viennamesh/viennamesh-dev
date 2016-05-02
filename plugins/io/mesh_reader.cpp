@@ -23,7 +23,7 @@
 #include "viennagrid/io/bnd_reader.hpp"
 #include "viennagrid/io/stl_reader.hpp"
 #include "viennagrid/io/gts_deva_reader.hpp"
-#include "viennagrid/io/dfise_text_reader.hpp"
+#include "viennagrid/io/dfise_grd_dat_reader.hpp"
 
 
 
@@ -143,7 +143,7 @@ namespace viennamesh
       {
         try
         {
-          viennagrid::io::dfise_text_reader reader(filename);
+          viennagrid::io::dfise_grd_dat_reader reader(filename);
 
           std::vector<viennagrid::quantity_field> quantity_fields;
 
@@ -172,7 +172,7 @@ namespace viennamesh
 
           success = true;
         }
-        catch(viennagrid::io::dfise_text_reader::error const & e)
+        catch(viennagrid::io::dfise_grd_dat_reader::error const & e)
         {
           error(1) << "GRID reader: got error: " << e.what() << std::endl;
         }
