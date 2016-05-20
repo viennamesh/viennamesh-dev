@@ -62,7 +62,7 @@ namespace viennamesh
   bool merge_meshes::run(viennamesh::algorithm_handle &)
   {
     mesh_handle output_mesh = make_data<mesh_handle>();
-    mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
+    mesh_handle input_mesh = get_input<mesh_handle>("mesh");
 
     bool region_offset = true;
     if ( get_input<bool>("region_offset").valid() )
@@ -74,11 +74,37 @@ namespace viennamesh
 
     info(1) << "Using region offset: " << std::boolalpha << region_offset << std::endl;
 
-    int mesh_count = input_mesh.size();
-    for (int i = 0; i != mesh_count; ++i)
+    int merged_count = 0;
+    if (input_mesh.valid())
     {
-      merge_meshes_impl( input_mesh(i), output_mesh(), (i == 0 ? -1 : tolerance), region_offset );
+      int mesh_count = input_mesh.size();
+      for (int i = 0; i != mesh_count; ++i)
+      {
+        merge_meshes_impl( input_mesh(i), output_mesh(), (merged_count == 0 ? -1 : tolerance), region_offset );
+        ++merged_count;
+      }
     }
+
+    int mesh_index = 0;
+    while (true)
+    {
+      std::string input_name = "mesh" + boost::lexical_cast<std::string>(mesh_index);
+      mesh_handle another_input_mesh = get_input<mesh_handle>(input_name);
+
+      if (!another_input_mesh.valid())
+        break;
+
+      int mesh_count = another_input_mesh.size();
+      for (int i = 0; i != mesh_count; ++i)
+      {
+        merge_meshes_impl( another_input_mesh(i), output_mesh(), (merged_count == 0 ? -1 : tolerance), region_offset );
+        ++merged_count;
+      }
+
+      ++mesh_index;
+    }
+
+//
 
 
 
@@ -93,7 +119,7 @@ namespace viennamesh
 //       input_mesh = get_input<mesh_handle>("mesh[" + lexical_cast<std::string>(index++) + "]");
 //     }
 
-    info(1) << "Merged " << mesh_count << " meshes" << std::endl;
+    info(1) << "Merged " << merged_count << " meshes" << std::endl;
 
     set_output( "mesh", output_mesh );
 
