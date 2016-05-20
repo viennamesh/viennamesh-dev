@@ -19,6 +19,7 @@
 #include "scale_quantities.hpp"
 #include "stretch_middle.hpp"
 #include "douglas_peucker_line_smoothing.hpp"
+#include "uniform_refine.hpp"
 
 
 viennamesh_error viennamesh_plugin_init(viennamesh_context context)
@@ -46,6 +47,8 @@ viennamesh_error viennamesh_plugin_init(viennamesh_context context)
   viennamesh::register_algorithm<viennamesh::mark_hull_regions>(context);
   viennamesh::register_algorithm<viennamesh::stretch_middle>(context);
   viennamesh::register_algorithm<viennamesh::douglas_peucker_line_smoothing>(context);
+
+  viennamesh::register_algorithm<viennamesh::uniform_refine>(context);
 
   return VIENNAMESH_SUCCESS;
 }
