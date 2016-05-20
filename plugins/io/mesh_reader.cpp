@@ -23,7 +23,7 @@
 #include "viennagrid/io/bnd_reader.hpp"
 #include "viennagrid/io/stl_reader.hpp"
 #include "viennagrid/io/gts_deva_reader.hpp"
-// #include "viennagrid/io/dfise_text_reader.hpp"
+#include "viennagrid/io/dfise_grd_dat_reader.hpp"
 
 
 
@@ -139,45 +139,45 @@ namespace viennamesh
         success = true;
         break;
       }
-//     case GRD:
-//       {
-//         try
-//         {
-//           viennagrid::io::dfise_text_reader reader(filename);
-//
-//           std::vector<viennagrid::quantity_field> quantity_fields;
-//
-//           data_handle<viennamesh_string> datafiles = get_input<std::string>("datafiles");
-//
-//           if (datafiles.valid())
-//           {
-//             std::vector<std::string> split_datafiles;
-//             std::string tmp_datafiles = datafiles();
-//             boost::algorithm::split(split_datafiles, tmp_datafiles, boost::is_any_of(","));
-//             for (unsigned int i = 0; i < split_datafiles.size(); ++i)
-//             {
-//             // future use:
-//             //  reader.read_dataset(datafiles(i));
-//               reader.read_dataset(split_datafiles[i]);
-//             }
-//           }
-//
-//           data_handle<bool> extrude_contacts = get_input<bool>("extrude_contacts");
-//           //TODO make this uniform with TDR reader TODO
-//           reader.to_viennagrid( output_mesh(), quantity_fields, extrude_contacts.valid() ? extrude_contacts() : true );
-//
-//           quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
-//           output_quantity_fields.set(quantity_fields);
-//           set_output( "quantities", output_quantity_fields );
-//
-//           success = true;
-//         }
-//         catch(viennagrid::io::dfise_text_reader::error const & e)
-//         {
-//           error(1) << "GRID reader: got error: " << e.what() << std::endl;
-//         }
-//         break;
-//       }
+    case GRD:
+      {
+        try
+        {
+          viennagrid::io::dfise_grd_dat_reader reader(filename);
+
+          std::vector<viennagrid::quantity_field> quantity_fields;
+
+          data_handle<viennamesh_string> datafiles = get_input<std::string>("datafiles");
+
+          if (datafiles.valid())
+          {
+            std::vector<std::string> split_datafiles;
+            std::string tmp_datafiles = datafiles();
+            boost::algorithm::split(split_datafiles, tmp_datafiles, boost::is_any_of(","));
+            for (unsigned int i = 0; i < split_datafiles.size(); ++i)
+            {
+            // future use:
+            //  reader.read_dataset(datafiles(i));
+              reader.read_dataset(split_datafiles[i]);
+            }
+          }
+
+          data_handle<bool> extrude_contacts = get_input<bool>("extrude_contacts");
+          //TODO make this uniform with TDR reader TODO
+          reader.to_viennagrid( output_mesh(), quantity_fields, extrude_contacts.valid() ? extrude_contacts() : true );
+
+          quantity_field_handle output_quantity_fields = make_data<viennagrid::quantity_field>();
+          output_quantity_fields.set(quantity_fields);
+          set_output( "quantities", output_quantity_fields );
+
+          success = true;
+        }
+        catch(viennagrid::io::dfise_grd_dat_reader::error const & e)
+        {
+          error(1) << "GRID reader: got error: " << e.what() << std::endl;
+        }
+        break;
+      }
     default:
       {
         error(1) << "Unsupported extension: " << lexical_cast<std::string>(filetype) << std::endl;
