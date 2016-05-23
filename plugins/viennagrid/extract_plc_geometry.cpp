@@ -485,8 +485,24 @@ namespace viennamesh
 
   bool extract_plc_geometry::run(viennamesh::algorithm_handle &)
   {
-    data_handle<double> coplanar_tolerance = get_required_input<double>("coplanar_tolerance");
-    data_handle<double> colinear_tolerance = get_required_input<double>("colinear_tolerance");
+    typedef viennagrid::mesh MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type PointType;
+
+    data_handle<double> coplanar_tolerance_input = get_input<double>("coplanar_tolerance");
+    data_handle<double> colinear_tolerance_input = get_input<double>("colinear_tolerance");
+
+    double coplanar_tolerance = 1e-8;
+    if (coplanar_tolerance_input.valid())
+      coplanar_tolerance = coplanar_tolerance_input();
+
+    double colinear_tolerance = 1e-8;
+    if (colinear_tolerance_input.valid())
+      colinear_tolerance = colinear_tolerance_input();
+
+
+    point_handle input_hole_points = get_input<point_handle>("hole_points");
+    seed_point_handle input_seed_points = get_input<seed_point_handle>("seed_points");
+
 
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
@@ -498,11 +514,38 @@ namespace viennamesh
     typedef same_orientation_functor<double> Functor2Type;
 
     Functor1Type f1;
-    Functor2Type f2(coplanar_tolerance());
+    Functor2Type f2(coplanar_tolerance);
     same_cell_combine_functor< Functor1Type, Functor2Type > functor(f1, f2);
 
     extract_plcs(input_mesh(), tmp(), functor);
-    coarsen_plc_mesh(tmp(), output_plc(), colinear_tolerance());
+    coarsen_plc_mesh(tmp(), output_plc(), colinear_tolerance);
+
+    viennagrid_dimension geo_dim;
+    viennagrid_plc_geometric_dimension_get(output_plc(), &geo_dim);
+
+    if (input_hole_points.valid())
+    {
+      point_container hole_points = input_hole_points.get_vector();
+      for (std::size_t i = 0; i != hole_points.size(); ++i)
+      {
+        if (static_cast<viennagrid_dimension>(hole_points[i].size()) == geo_dim)
+        {
+          viennagrid_plc_volumetric_hole_point_add(output_plc(), &hole_points[i][0]);
+        }
+      }
+    }
+
+    if (input_seed_points.valid())
+    {
+      seed_point_container seed_points = input_seed_points.get_vector();
+      for (std::size_t i = 0; i != seed_points.size(); ++i)
+      {
+        if (static_cast<viennagrid_dimension>(seed_points[i].first.size()) == geo_dim)
+        {
+          viennagrid_plc_seed_point_add(output_plc(), &seed_points[i].first[0], seed_points[i].second);
+        }
+      }
+    }
 
     viennagrid_int facet_count;
     viennagrid_plc_element_count(output_plc(), 2, &facet_count);
