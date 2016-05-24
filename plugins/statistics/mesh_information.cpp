@@ -16,6 +16,8 @@
 
 #include "viennagrid/algorithm/volume.hpp"
 #include "viennagrid/algorithm/surface.hpp"
+#include "viennagrid/algorithm/geometry.hpp"
+#include "viennagrid/algorithm/centroid.hpp"
 
 namespace viennamesh
 {
@@ -27,6 +29,7 @@ namespace viennamesh
     mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 
     typedef viennagrid::mesh                                                MeshType;
+    typedef viennagrid::result_of::point<MeshType>::type                    PointType;
     typedef viennagrid::result_of::region<MeshType>::type                   RegionType;
 
     typedef viennagrid::result_of::const_element_range<MeshType>::type      ConstElementRangeType;
@@ -41,7 +44,7 @@ namespace viennamesh
     info(1) << "Topologic dimension = " << topologic_dimension << std::endl;
     info(1) << "Geometric dimension = " << geometric_dimension << std::endl;
 
-    for (int i = 0; i != topologic_dimension; ++i)
+    for (int i = 0; i <= topologic_dimension; ++i)
     {
       ConstElementRangeType elements( input_mesh(), i );
       info(1) << "  #element (topo-dim " << i << ") = " << elements.size() << std::endl;
@@ -49,6 +52,11 @@ namespace viennamesh
 
     info(1) << "volume  = " << viennagrid::volume( input_mesh() ) << std::endl;
     info(1) << "surface = " << viennagrid::surface( input_mesh() ) << std::endl;
+
+    std::pair<PointType,PointType> bb = viennagrid::bounding_box( input_mesh() );
+    info(1) << "Bounding Box: " << std::scientific << bb.first << " " << bb.second << std::endl;
+    info(1) << "Center:       " << std::scientific << (bb.first + bb.second)/2 << std::endl;
+    info(1) << "Centroid:     " << std::scientific << viennagrid::centroid( input_mesh() ) << std::endl;
 
     RegionRangeType regions(input_mesh());
     info(1) << "Number of regions: " << regions.size() << std::endl;
@@ -61,7 +69,7 @@ namespace viennamesh
       typedef viennagrid::result_of::const_element_range<RegionType>::type ConstRegionElementRangeType;
       typedef viennagrid::result_of::iterator<ConstRegionElementRangeType>::type ConstRegionElementIteratorType;
 
-      for (int i = 0; i != topologic_dimension; ++i)
+      for (int i = 0; i <= topologic_dimension; ++i)
       {
         ConstRegionElementRangeType elements(*rit, i);
         int count = 0;
@@ -72,6 +80,12 @@ namespace viennamesh
 
       info(1) << "    volume  = " << viennagrid::volume(*rit) << std::endl;
       info(1) << "    surface = " << viennagrid::surface(*rit) << std::endl;
+
+      bb = viennagrid::bounding_box( *rit );
+      info(1) << "    Bounding Box: " << std::scientific  << bb.first << " " << bb.second << std::endl;
+      info(1) << "    Center:       " << std::scientific << (bb.first + bb.second)/2 << std::endl;
+      info(1) << "    Centroid:     " << std::scientific << viennagrid::centroid( *rit ) << std::endl;
+
     }
 
     return true;

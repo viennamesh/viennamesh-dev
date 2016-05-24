@@ -1,4 +1,4 @@
-set (TOOL_PROGRAMS vmesh convert_mesh center_mesh)
+set (TOOL_PROGRAMS vmesh convert_mesh center_mesh mesh_info)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VIENNAMESH_COMPILE_FLAGS}")
 message(STATUS "Tools compile flags: ${CMAKE_CXX_FLAGS}")
