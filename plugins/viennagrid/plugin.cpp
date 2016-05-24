@@ -20,6 +20,7 @@
 #include "stretch_middle.hpp"
 #include "douglas_peucker_line_smoothing.hpp"
 #include "uniform_refine.hpp"
+#include "change_cell_region.hpp"
 
 
 viennamesh_error viennamesh_plugin_init(viennamesh_context context)
@@ -49,6 +50,7 @@ viennamesh_error viennamesh_plugin_init(viennamesh_context context)
   viennamesh::register_algorithm<viennamesh::douglas_peucker_line_smoothing>(context);
 
   viennamesh::register_algorithm<viennamesh::uniform_refine>(context);
+  viennamesh::register_algorithm<viennamesh::change_cell_region>(context);
 
   return VIENNAMESH_SUCCESS;
 }

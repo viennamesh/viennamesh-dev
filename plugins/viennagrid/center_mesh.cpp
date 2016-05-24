@@ -40,6 +40,8 @@ namespace viennamesh
       viennagrid::copy( input_mesh(), output_mesh() );
       PointType mesh_centroid = viennagrid::centroid( output_mesh() );
 
+      info(1) << "Mesh centroid " << mesh_centroid << std::endl;
+
       ConstVertexRangeType vertices( output_mesh() );
       for (ConstVertexRangeIterator vit = vertices.begin(); vit != vertices.end(); ++vit)
         viennagrid::set_point( *vit, viennagrid::get_point(*vit) - mesh_centroid );
