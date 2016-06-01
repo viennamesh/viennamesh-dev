@@ -379,7 +379,7 @@ namespace viennamesh
       if (min_dihedral_angle.valid())
       {
         options.quality = 1;
-        options.mindihedral = min_dihedral_angle();
+        options.mindihedral = min_dihedral_angle() / M_PI * 180.0;
         info(1) << "Using global minimum dihedral angle: " << min_dihedral_angle() << std::endl;
       }
 
