@@ -75,6 +75,12 @@ namespace viennamesh
 
     void set_input(std::string const & name, const char * string);
     void set_input(std::string const & name, std::string const & string);
+    void unset_input(std::string const & name)
+    {
+      handle_error(
+        viennamesh_algorithm_unset_input(algorithm, name.c_str()),
+        algorithm);
+    }
 
     void link_input(std::string const & name, algorithm_handle const & source_algorithm, std::string const & source_name);
 
