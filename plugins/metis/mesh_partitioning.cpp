@@ -99,7 +99,7 @@ namespace viennamesh
         ElementCopyMapType copy_map( output_mesh(i) );
         for (ConstCellRangeIterator cit = cells.begin(); cit != cells.end(); ++cit)
         {
-          int part = epart[(*cit).id()];
+          int part = epart[(*cit).id().index()];
           if (part == i)
             copy_map( *cit );
         }
