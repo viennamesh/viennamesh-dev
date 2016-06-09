@@ -4,5 +4,6 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-triangle plugin.cpp
                       triangle_mesh.cpp
                       triangle_make_mesh.cpp
                       triangle_make_hull.cpp
+                      triangle_convert.cpp
                       external/triangle.c
                       triangle_interface.c)
