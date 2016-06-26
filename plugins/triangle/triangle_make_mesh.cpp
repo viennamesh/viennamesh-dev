@@ -250,7 +250,7 @@ namespace viennamesh
         options << "q" << min_angle() / M_PI * 180.0;
 
       if (cell_size.valid())
-        options << "a" << cell_size();
+        options << "a" << std::fixed << std::showpoint << cell_size();
 
       if ( !delaunay.valid() || (delaunay.valid() && delaunay()) )
         options << "D";
