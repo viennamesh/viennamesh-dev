@@ -1,0 +1,65 @@
+set(NETGEN_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/)
+include_directories(${NETGEN_SOURCE_DIR}/libsrc/include)
+
+file(GLOB NETGEN_CSG_SRC "${NETGEN_SOURCE_DIR}/libsrc/csg/*.cpp")
+list(REMOVE_ITEM NETGEN_CSG_SRC "${NETGEN_SOURCE_DIR}/libsrc/csg/csgpkg.cpp")
+list(REMOVE_ITEM NETGEN_CSG_SRC "${NETGEN_SOURCE_DIR}/libsrc/csg/vscsg.cpp")
+
+file(GLOB NETGEN_GENERAL_SRC "${NETGEN_SOURCE_DIR}/libsrc/general/*.cpp")
+list(REMOVE_ITEM NETGEN_GENERAL_SRC "${NETGEN_SOURCE_DIR}/libsrc/general/gzstream.cpp")
+
+file(GLOB NETGEN_GEOM2D_SRC "${NETGEN_SOURCE_DIR}/libsrc/geom2d/*.cpp")
+list(REMOVE_ITEM NETGEN_GEOM2D_SRC "${NETGEN_SOURCE_DIR}/libsrc/geom2d/vsgeom2d.cpp")
+list(REMOVE_ITEM NETGEN_GEOM2D_SRC "${NETGEN_SOURCE_DIR}/libsrc/geom2d/geom2dpkg.cpp")
+
+file(GLOB NETGEN_GPRIM_SRC "${NETGEN_SOURCE_DIR}/libsrc/gprim/*.cpp")
+
+file(GLOB NETGEN_INTERFACE_SRC "${NETGEN_SOURCE_DIR}/libsrc/interface/*.cpp")
+
+file(GLOB NETGEN_LINALG_SRC "${NETGEN_SOURCE_DIR}/libsrc/linalg/*.cpp")
+file(GLOB NETGEN_MESHING_SRC "${NETGEN_SOURCE_DIR}/libsrc/meshing/*.cpp")
+
+file(GLOB NETGEN_STLGEOM_SRC "${NETGEN_SOURCE_DIR}/libsrc/stlgeom/*.cpp")
+list(REMOVE_ITEM NETGEN_STLGEOM_SRC "${NETGEN_SOURCE_DIR}/libsrc/stlgeom/vsstl.cpp")
+list(REMOVE_ITEM NETGEN_STLGEOM_SRC "${NETGEN_SOURCE_DIR}/libsrc/stlgeom/stlpkg.cpp")
+
+if (VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+  file(GLOB NETGEN_OCCGEOM_SRC "${NETGEN_SOURCE_DIR}/libsrc/occ/*.cpp" "${NETGEN_SOURCE_DIR}/libsrc/occ/*.cxx")
+  list(REMOVE_ITEM NETGEN_OCCGEOM_SRC "${NETGEN_SOURCE_DIR}/libsrc/occ/vsocc.cpp")
+  list(REMOVE_ITEM NETGEN_OCCGEOM_SRC "${NETGEN_SOURCE_DIR}/libsrc/occ/occpkg.cpp")
+endif(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+
+
+SET(NETGEN_SRC ${NETGEN_CSG_SRC} ${NETGEN_GENERAL_SRC} ${NETGEN_GEOM2D_SRC} ${NETGEN_GPRIM_SRC} ${NETGEN_INTERFACE_SRC} ${NETGEN_LINALG_SRC} ${NETGEN_MESHING_SRC} ${NETGEN_STLGEOM_SRC} ${NETGEN_OCCGEOM_SRC} ${NETGEN_SOURCE_DIR}/nglib/nglib.cpp)
+
+set(NETGEN_COMPILE_FLAGS "-fPIC -Wno-dynamic-class-memaccess")
+if (MSVC)
+  SET(NETGEN_COMPILE_FLAGS "${NETGEN_COMPILE_FLAGS} -DMSVC_EXPRESS -DNO_PARALLEL_THREADS -DNGINTERFACE_EXPORTS -DNGLIB_EXPORTS")
+  set(LOCAL_LIBVIENNAMESH_COMPILE_FLAGS "${LOCAL_LIBVIENNAMESH_COMPILE_FLAGS} -DMSVC_EXPRESS -DNO_PARALLEL_THREADS -DNGINTERFACE_EXPORTS -DNGLIB_EXPORTS")
+else()
+  SET(NETGEN_COMPILE_FLAGS "${NETGEN_COMPILE_FLAGS} -DPACKAGE_VERSION=5.1")
+
+endif()
+if (VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+  SET(NETGEN_COMPILE_FLAGS "${NETGEN_COMPILE_FLAGS} -DOCCGEOMETRY")
+endif(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+
+include_directories(${NETGEN_SOURCE_DIR}/libsrc/include)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NETGEN_COMPILE_FLAGS}")
+
+message(STATUS "Netgen compile flags: ${CMAKE_CXX_FLAGS}")
+
+ADD_LIBRARY(viennamesh-netgen STATIC ${NETGEN_SRC})
+
+if (VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+  target_link_libraries(viennamesh-netgen ${OCE_LIBRARIES} )
+endif(VIENNAMESH_NETGEN_WITH_OPENCASCADE)
+
+
+
+VIENNAMESH_ADD_PLUGIN(viennamesh-module-netgen plugin.cpp
+                      netgen_mesh.cpp
+                      netgen_make_mesh.cpp
+                      netgen_csg_make_mesh.cpp)
+
+target_link_libraries(viennamesh-module-netgen viennamesh-netgen)

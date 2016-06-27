@@ -1,0 +1,8 @@
+<algorithm type="mesh_reader" name="input">
+  <parameter name="filename" type="string">../data/tets_with_data_main.pvd</parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>input</default_source>
+  <parameter name="filename" type="string">output.vtu</parameter>
+</algorithm>

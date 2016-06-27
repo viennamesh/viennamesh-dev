@@ -2,17 +2,14 @@
    Copyright (c) 2011-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
-
                             -----------------
                 ViennaMesh - The Vienna Meshing Framework
                             -----------------
-
                     http://viennamesh.sourceforge.net/
-
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
 
-#include "viennamesh/viennamesh.hpp"
+#include "viennameshpp/core.hpp"
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv)
@@ -39,30 +36,25 @@ int main(int argc, char **argv)
     cmd.parse( argc, argv );
 
 
-    viennamesh::logger().register_callback( new viennamesh::FileStreamCallback<viennamesh::FileStreamFormater>( log_filename.getValue() ) );
+    if ( !log_filename.getValue().empty() )
+      viennamesh_log_add_logging_file(log_filename.getValue().c_str(), NULL);
 
-    viennamesh::algorithm_handle reader( new viennamesh::io::mesh_reader() );
+  viennamesh::context_handle context;
 
-    reader->set_input( "filename", input_filename.getValue() );
-    if (input_filetype.isSet() && (input_filetype.getValue() != "auto"))
-      reader->set_input( "file_type", input_filetype.getValue() );
+  viennamesh::algorithm_handle mesh_reader = context.make_algorithm("mesh_reader");
+  mesh_reader.set_input( "filename", input_filename.getValue() );
+  if (input_filetype.isSet() && (input_filetype.getValue() != "auto"))
+    mesh_reader.set_input( "file_type", input_filetype.getValue() );
+  mesh_reader.run();
 
-    reader->run();
 
+  viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
+  mesh_writer.set_default_source(mesh_reader);
 
-    viennamesh::algorithm_handle writer( new viennamesh::io::mesh_writer() );
-
-    writer->set_input( "mesh", reader->get_output("mesh") );
-    writer->set_input( "seed_points", reader->get_output("seed_points") );
-    writer->set_input( "hole_points", reader->get_output("hole_points") );
-    writer->set_input( "quantities", reader->get_output("quantities") );
-
-    writer->set_input( "filename", output_filename.getValue() );
-
-    if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
-      writer->set_input( "file_type", output_filetype.getValue() );
-
-    writer->run();
+  mesh_writer.set_input( "filename", output_filename.getValue() );
+  if (output_filetype.isSet() && (output_filetype.getValue() != "auto"))
+    mesh_writer.set_input( "file_type", output_filetype.getValue() );
+  mesh_writer.run();
   }
   catch (TCLAP::ArgException &e)  // catch any exceptions
   {

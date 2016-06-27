@@ -1,0 +1,34 @@
+<algorithm type="mesh_reader" name="input">
+  <parameter name="filename" type="string">../data/rectangle_interior_interface_brep.vtu</parameter>
+</algorithm>
+
+<algorithm type="triangle_make_mesh" name="mesher">
+  <default_source>input</default_source>
+
+  <parameter name="seed_points" type="string">
+    (-8.0,0.0),0;
+    (8.0,0.0),1
+  </parameter>
+
+  <parameter name="min_angle" type="double">0.4</parameter>
+  <parameter name="sizing_function" type="xml">
+    <interpolate transform_type="linear">
+      <lower type="double">1</lower>
+      <upper type="double">2</upper>
+      <lower_to type="double">1.0</lower_to>
+      <upper_to type="double">5</upper_to>
+
+      <source>
+        <distance_to_interface>
+          <region type="region_id">0</region>
+          <region type="region_id">1</region>
+        </distance_to_interface>
+      </source>
+    </interpolate>
+  </parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>mesher</default_source>
+  <parameter name="filename" type="string">rectangle_interior_interface_distance_to_interface.vtu</parameter>
+</algorithm>

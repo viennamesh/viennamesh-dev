@@ -1,42 +1,45 @@
-<algorithm id="mesh_reader" category="mesh" name="input">
-  <parameter name="filename" type="string">../data/cube_with_tunnel.poly</parameter>
+<algorithm type="plc_reader" category="mesh" name="input">
+  <parameter name="filename" type="string">../data/cube.poly</parameter>
 </algorithm>
 
-<algorithm id="tetgen_make_mesh" name="mesher">
+<algorithm type="tetgen_make_mesh" name="mesher">
   <default_source>input</default_source>
-
   <parameter type="double" name="cell_size">10.0</parameter>
 </algorithm>
 
-<algorithm id="extract_boundary" name="boundary">
+<algorithm type="extract_boundary" name="boundary">
   <default_source>mesher</default_source>
 </algorithm>
 
-<algorithm id="extract_plc" name="plc">
+<algorithm type="extract_plc_geometry" name="plc">
   <default_source>boundary</default_source>
+
+  <parameter name="coplanar_tolerance" type="double">1e-4</parameter>
+  <parameter name="colinear_tolerance" type="double">1e-4</parameter>
 </algorithm>
 
-<algorithm id="triangle_hull_mesh_generator" name="hull_remesher">
+<algorithm type="triangle_make_hull" name="hull">
   <default_source>plc</default_source>
+  <parameter name="cell_size" type="double">1</parameter>
 </algorithm>
 
-<algorithm id="tetgen_make_mesh" name="remesher">
+<algorithm type="tetgen_make_mesh" name="remesher">
   <default_source>plc</default_source>
   <parameter name="seed_points" type="dynamic">boundary/seed_points</parameter>
   <parameter name="hole_points" type="dynamic">boundary/hole_points</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output1">
+<algorithm type="mesh_writer" name="output1">
   <default_source>boundary</default_source>
   <parameter name="filename" type="string">boundary.vtu</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output2">
+<algorithm type="mesh_writer" name="output2">
   <default_source>remesher</default_source>
   <parameter name="filename" type="string">remeshed_volume.vtu</parameter>
 </algorithm>
 
-<algorithm id="mesh_writer" name="output3">
-  <default_source>hull_remesher</default_source>
+<algorithm type="mesh_writer" name="output3">
+  <default_source>hull</default_source>
   <parameter name="filename" type="string">remeshed_hull.vtu</parameter>
 </algorithm>

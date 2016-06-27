@@ -1,0 +1,22 @@
+<algorithm type="poisson_estimate_normals" name="estimate">
+  <parameter name="points" type="point">(0,0,0)</parameter>
+  <parameter name="points" type="point">(0,0,1)</parameter>
+  <parameter name="points" type="point">(0,0,2)</parameter>
+  <parameter name="points" type="point">(0,0,3)</parameter>
+
+  <parameter name="delete_unoriented" type="int">0</parameter>
+  <parameter name="use_jet_estimation" type="int">0</parameter>
+</algorithm>
+
+<algorithm type="poisson_reconstruct_surface" name="reconstruct">
+  <default_source>estimate</default_source>
+
+  <parameter name="points" type="dynamic">prev_algo/output_name</parameter>
+
+  <parameter name="min_triangle_angle" type="double">22.0</parameter>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>reconstruct</default_source>
+  <parameter name="filename" type="string">lol.vtu</parameter>
+</algorithm>

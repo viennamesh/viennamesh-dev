@@ -1,0 +1,12 @@
+<algorithm type="mesh_reader" name="input">
+  <parameter name="filename" type="string">../data/mixed_mesh.vtu</parameter>
+</algorithm>
+
+<algorithm type="simplexify" name="simplexify">
+  <default_source>input</default_source>
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>simplexify</default_source>
+  <parameter name="filename" type="string">simplexified.vtu</parameter>
+</algorithm>

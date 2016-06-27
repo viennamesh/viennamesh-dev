@@ -1,0 +1,17 @@
+<algorithm type="plc_reader" name="input">
+  <parameter name="filename" type="string">../data/two_cubes.poly</parameter>
+</algorithm>
+
+<algorithm type="tetgen_make_mesh" name="mesher">
+  <default_source>input</default_source>
+
+<!--  <parameter name="seed_points" type="seed_points">
+(5,5,5),0;
+(5,5,15),1
+  </parameter>-->
+</algorithm>
+
+<algorithm type="mesh_writer" name="output">
+  <default_source>mesher</default_source>
+  <parameter name="filename" type="string">two_cubes.vtu</parameter>
+</algorithm>
