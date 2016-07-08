@@ -47,4 +47,6 @@ add_subdirectory(src)
 add_subdirectory(plugins)
 add_subdirectory(tools)
 
-add_subdirectory(examples)
+if(BUILD_EXAMPLES)
+   add_subdirectory(examples)
+endif()
