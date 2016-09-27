@@ -26,6 +26,7 @@ set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} viennagridpp)
 
 set(INSTALL_PLUGIN_DIR "${CMAKE_INSTALL_PREFIX}/lib/viennamesh_plugins")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(VIENNAMESH_PLUGIN_DIRECTORIES "${VIENNAMESH_PLUGIN_DIRECTORIES}\\;viennamesh_plugins")
 set(VIENNAMESH_PLUGIN_DIRECTORIES "${VIENNAMESH_PLUGIN_DIRECTORIES}\\;~/.viennamesh_plugins")
@@ -47,4 +48,6 @@ add_subdirectory(src)
 add_subdirectory(plugins)
 add_subdirectory(tools)
 
-add_subdirectory(examples)
+#if(BUILD_EXAMPLES) //atoifl
+   add_subdirectory(examples)
+#endif()
