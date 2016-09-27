@@ -51,6 +51,15 @@ namespace viennamesh
 
 
   struct min_dihedral_angle_tag {};
+  
+   namespace result_of
+  {
+    template<>
+    struct metric_ordering_tag<min_dihedral_angle_tag>
+    {
+      typedef higher_is_better_tag type;
+    };
+  }
 
   template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
   typename viennagrid::result_of::coord<typename PointAccessorT::point_type>::type min_dihedral_angle( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )

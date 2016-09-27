@@ -1,0 +1,44 @@
+<!--READ MESH FILE-->
+<algorithm type="mesh_reader" name="input">
+  <parameter name="filename" type="string">../data/elephant.vtu</parameter>
+</algorithm>
+
+
+<!-- RUN CGAL SIMPLIFICATION ALGORITHM -->
+<algorithm type="cgal_mesh_simplification" name="simply">
+  
+  <default_source>input</default_source>
+   
+  <!-- DEFINE STOP PREDICATE (required) -->
+  <!-- Options are "ratio" or "count"  -->
+  <parameter name="stop_predicate" type="string">ratio</parameter>
+  
+  <!-- DEFINE STOP VALUE (required) --> 
+  <!-- Required data type is double (when "ratio" was selected) or int ("count" was selected) -->
+  <parameter name="ratio" type="double">0.1</parameter>
+  
+  <!-- DEFINE COST POLICY (optional) -->
+  <!-- Options are "LindstromTurk" or "EdgeLength" (strings are case insensitive)  -->
+  <parameter name="cost_policy" type="string">LindstromTurk</parameter>
+  
+  <!-- DEFINE PLACEMENT POLICY (optional) -->
+  <!-- Options are "LindstromTurk" or "MidPoint" (strings are case insensitive)  -->
+  <parameter name="placement_policy" type="string">lindstromturk</parameter>
+  
+  
+  <!-- ALTERNATIVE EXAMPLE WITH DIFFERENT PARAMETERS -->
+  <!--
+      <parameter name="stop_predicate" type="string">count</parameter>
+      <parameter name="count" type="int">850</parameter>
+      <parameter name="cost_policy" type="string">EdgeLength</parameter>
+      <parameter name="placement_policy" type="string">MidPoint</parameter>
+  -->
+  
+</algorithm>
+
+
+<!--SAVE RESULT AS FILE-->
+<algorithm type="mesh_writer" name="output">
+  <default_source>simply</default_source>
+  <parameter name="filename" type="string">my_simple_mesh.vtu</parameter>
+</algorithm>

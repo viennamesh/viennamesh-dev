@@ -2,7 +2,7 @@
 #define VIENNAMESH_ALGORITHM_STATISTICS_MAKE_STATISTIC_HPP
 
 /* ============================================================================
-   Copyright (c) 2011-2014, Institute for Microelectronics,
+   Copyright (c) 2011-2016, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
 
@@ -19,14 +19,14 @@
 
 namespace viennamesh
 {
-  class make_statistic : public plugin_algorithm
-  {
-  public:
-    make_statistic();
+    class make_statistic : public plugin_algorithm
+    {
+    public:
+        make_statistic();
 
-    static std::string name();
-    bool run(viennamesh::algorithm_handle &);
-  };
+        static std::string name();
+        bool run(viennamesh::algorithm_handle &);
+    };
 }
 
 #endif
