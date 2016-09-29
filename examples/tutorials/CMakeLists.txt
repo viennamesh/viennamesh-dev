@@ -21,3 +21,6 @@ target_link_libraries(symmetry_2d viennameshpp)
 
 add_executable(symmetry_3d symmetry_3d.cpp)
 target_link_libraries(symmetry_3d viennameshpp)
+
+add_executable(vtk_convert vtk_convert.cpp)
+target_link_libraries(vtk_convert viennameshpp)
