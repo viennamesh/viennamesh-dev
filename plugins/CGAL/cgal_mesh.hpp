@@ -29,27 +29,27 @@ namespace viennamesh
 {
   namespace cgal
   {
-	  typedef CGAL::Simple_cartesian<double> Kernel;
-	  typedef CGAL::Polyhedron_3<Kernel> mesh; 
+    typedef CGAL::Simple_cartesian<double> Kernel;
+    typedef CGAL::Polyhedron_3<Kernel> polyhedron_surface_mesh;
     typedef Kernel::Point_3 Point_3;
   }
 
-  viennamesh_error convert(viennagrid::mesh const & input, cgal::mesh & output);
-  viennamesh_error convert(cgal::mesh const & input, viennagrid::mesh & output);
+  viennamesh_error convert(viennagrid::mesh const & input, cgal::polyhedron_surface_mesh & output);
+  viennamesh_error convert(cgal::polyhedron_surface_mesh const & input, viennagrid::mesh & output);
 
   template<>
-  viennamesh_error internal_convert<viennagrid_mesh, cgal::mesh>(viennagrid_mesh const & input, cgal::mesh & output);
+  viennamesh_error internal_convert<viennagrid_mesh, cgal::polyhedron_surface_mesh>(viennagrid_mesh const & input, cgal::polyhedron_surface_mesh & output);
   template<>
-  viennamesh_error internal_convert<cgal::mesh, viennagrid_mesh>(cgal::mesh const & input, viennagrid_mesh & output);
+  viennamesh_error internal_convert<cgal::polyhedron_surface_mesh, viennagrid_mesh>(cgal::polyhedron_surface_mesh const & input, viennagrid_mesh & output);
 
   namespace result_of
   {
     template<>
-    struct data_information<cgal::mesh>
+    struct data_information<cgal::polyhedron_surface_mesh>
     {
-      static std::string type_name() { return "cgal::mesh"; }
-      static viennamesh_data_make_function make_function() { return viennamesh::generic_make<cgal::mesh>; }
-      static viennamesh_data_delete_function delete_function() { return viennamesh::generic_delete<cgal::mesh>; }
+      static std::string type_name() { return "cgal::polyhedron_surface_mesh"; }
+      static viennamesh_data_make_function make_function() { return viennamesh::generic_make<cgal::polyhedron_surface_mesh>; }
+      static viennamesh_data_delete_function delete_function() { return viennamesh::generic_delete<cgal::polyhedron_surface_mesh>; }
     };
   }
 
