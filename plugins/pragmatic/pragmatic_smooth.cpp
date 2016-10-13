@@ -19,49 +19,6 @@ namespace viennamesh
 		pragmatic_smooth::pragmatic_smooth()	{}
 		std::string pragmatic_smooth::name() {return "pragmatic_smooth";}
 
-		void inline make_metric(Mesh<double> *mesh, size_t geometric_dimension)
-		{
-			if(geometric_dimension == 2)
-			{
-				MetricField<double,2> metric_field(*mesh);
-
-    		  		size_t NNodes = mesh->get_number_nodes();
-    		  		double eta=0.0001;
-
-    		  		std::vector<double> psi(NNodes);
-
-				for(size_t i=0; i<NNodes; i++) 
-		  		{
-					// Want x,y ranging from -1, 1
-        				double x = 2*mesh->get_coords(i)[0]-1;
-        				double y = 2*mesh->get_coords(i)[1]-1;
-
-        				psi[i] = 0.100000000000000*sin(50*x) + atan2(-0.100000000000000, (double)(2*x - sin(5*y)));			
-    		  		}
-
-				metric_field.add_field(&(psi[0]), eta, 1);
-    		 		metric_field.update_mesh();
-			}
-
-			else
-			{
-				MetricField<double,3> metric_field(*mesh);
-
-    		  		size_t NNodes = mesh->get_number_nodes();
-    		  		double eta=0.0001;
-
-    		  		std::vector<double> psi(NNodes);
-
-				for(size_t i=0; i<NNodes; i++) 
-		  		{
-					psi[i] = pow(mesh->get_coords(i)[0], 4) + pow(mesh->get_coords(i)[1], 4) + pow(mesh->get_coords(i)[2], 4);
-				}
-
-				metric_field.add_field(&(psi[0]), eta, 1);
-    		 		metric_field.update_mesh();
-			}
-		}//end make_metric
-
 		void make_smoothing(Mesh<double> *mesh, size_t geometric_dimension, std::string type)
 		{
 			if ( type.compare("laplacian") )
@@ -111,6 +68,8 @@ namespace viennamesh
 
 		  //create string_handle to get input filename, used for benchmark purposes to store the output in a file (see at the end of this file!!!)
 		  string_handle input_file = get_input<string_handle>("input_file");
+  
+      //TODO
 
 		  //Create output
 		  set_output("mesh", input_mesh());

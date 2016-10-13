@@ -23,13 +23,13 @@ namespace viennamesh
 		{
 		  if (geometric_dimension == 2)
 			{
-				Swapping<double,2> adapt(*mesh);
+				      Swapping<double,2> adapt(*mesh);
         			adapt.swap(parameter);						//DEFAULT VALUE IS 0.95			
 			}
 
 			else
 			{
-				Swapping<double,3> adapt(*mesh);
+				      Swapping<double,3> adapt(*mesh);
         			adapt.swap(parameter);				//DEFAULT VALUE IS 0.95
 			}
 		}
@@ -62,7 +62,6 @@ namespace viennamesh
 		  mesh_handle input_mesh = get_required_input<mesh_handle>("mesh");
 			
 		  //create data_handle for optional inputs
-		  data_handle<int> region_count = get_input<int>("region_count");
 		  data_handle<double> parameter = get_input<double>("parameter");
 
 		  //create string_handle to get input filename, used for benchmark purposes to store the output in a file (see at the end of this file!!!)
