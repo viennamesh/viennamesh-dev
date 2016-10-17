@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	if (argc < 3)
 	{
 		std::cout << "Parameters missing!" << std::endl;
-		std::cout << "Correct use of parameters: <input_file> <region_count> " << std::endl;
+		std::cout << "Correct use of parameters: <input_file> <region_count> <refinement_passes>" << std::endl;
 		return -1;
 	}
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 	//Write mesh
 	viennamesh::algorithm_handle write_merged_mesh = context.make_algorithm("mesh_writer");
 	write_merged_mesh.set_default_source(mesh_partitioner);
-	write_merged_mesh.set_input("filename", "/home/lgnam/Desktop/software/ViennaMesh/viennamesh-dev/build/examples/parpartmesh.vtu");
+	write_merged_mesh.set_input("filename", "/home/lgnam/Desktop/software/ViennaMesh/viennamesh-dev/build/examples/data/myfirsttask/output/parpartmesh.vtu");
 	write_merged_mesh.run();
 
   return 0;
