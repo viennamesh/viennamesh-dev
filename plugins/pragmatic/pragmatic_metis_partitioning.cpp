@@ -241,14 +241,14 @@ namespace viennamesh
         if ( is_boundary[n].load(std::memory_order_relaxed) || invalid_area[n].load(std::memory_order_relaxed))
         {
           mesh->get_coords(n, p);
-          std::cout << n << ": " << p[0] << ", " << p[1] << std::endl;
+          //std::cout << n << ": " << p[0] << ", " << p[1] << std::endl;
           continue;
         }
 
         p[0] = coords[n*2];
         p[1] = coords[n*2+1];
     
-        std::cout << n << ": " << p[0] << ", " << p[1] << std::endl;
+        //std::cout << n << ": " << p[0] << ", " << p[1] << std::endl;
         mesh->set_coords(n, p);
       }
 
@@ -383,7 +383,7 @@ namespace viennamesh
       std::vector<index_t> _ENList = mesh->get_element_node();  //TODO: replace this, since its unnecessarily copying data!
       std::vector<int> boundary;
 
-      //get partition interface
+      //get nodes per partition
       std::vector<std::set<index_t>> nodes_per_partition( nparts );
 
       for (size_t i = 0; i < num_elements; ++i)
@@ -392,26 +392,27 @@ namespace viennamesh
         nodes_per_partition[ epart[i] ].insert(_ENList[i*3]);
         nodes_per_partition[ epart[i] ].insert(_ENList[i*3+1]);
         nodes_per_partition[ epart[i] ].insert(_ENList[i*3+2]);
-      }
-
-      int counter = 0;
-/*
+      } 
+      
+      int counter =0;
       output << "NODES" << std::endl;
       for (auto it : nodes_per_partition)
       {
         output << "Partition " << counter << std::endl;
+        output << it.size() << std::endl;
         for (auto node : it)
         {
-          output << node << std::endl;
+          //output << node << std::endl;
         }      
         ++counter;
       }
-*/
-      //get the interface nodes for all partition boundaries
+ 
+     //get the interface nodes for all partition boundaries using vector<set<index_t>>
       std::vector<std::set<index_t>> interface_nodes( binomial_coefficient(nparts, 2) ); //We always intersect 2 partitions ==> k=2
-      
+      counter = 0;
+      double int_tic = omp_get_wtime();
       //for (size_t i = 0; i < nparts; ++i)
-      for (size_t i = 0; i < binomial_coefficient(nparts, 2); ++i)      
+      for (size_t i = 0; i < nparts; ++i)      
       {        
         for (size_t j = i+1; j < nparts; ++j)
         {   
@@ -421,25 +422,28 @@ namespace viennamesh
           ++counter;
         }      
       }
- 
+      double int_toc = omp_get_wtime();
+      std::cout << "Time to get interface nodes serially: " << int_toc - int_tic << std::endl; 
+
       output << "INTERFACE NODES" << std::endl;
       counter =0;
       for (auto interfaces : interface_nodes)
       {
         //if (interfaces.size() != 0)
           output << "Interface " << counter << std::endl;
+          output << interfaces.size() << std::endl;
 
         for (auto it : interfaces)
         {         
           //if (interfaces.size() == 0)
-            //continue;
+            //continue;m
 
-          output << it << std::endl;
+          //output << it << std::endl;
         } 
         ++counter;
       }
       output << std::endl;
-      //end of get partition interface  
+      //end of get partition interface using vector<set>
 
       //get boundary
 /*
@@ -525,7 +529,7 @@ namespace viennamesh
         output << "Interface " << counter << " containing " << it.size() << " elements" << std::endl;
         for (auto it2 : it)
         {
-          output << it2 << std::endl;
+          //output << it2 << std::endl;
         }
 
         ++counter;
@@ -553,7 +557,7 @@ namespace viennamesh
 
       for (auto it : degenerate_elements)
       {
-        output << it << std::endl;
+        //output << it << std::endl;
       }
       output << std::endl;
 
@@ -578,7 +582,7 @@ namespace viennamesh
         output << "Region " << counter << " now consists of " << it.size() << " elements" << std::endl;
         for (auto it2 : it)
         {
-          output << it2 << std::endl;
+          //output << it2 << std::endl;
         }
         ++counter;
       }
@@ -587,32 +591,39 @@ namespace viennamesh
       //count element appearances
       
       std::vector<size_t> num_of_appearances(num_elements, 0);
+/*
+      counter=0;
 
+      double tic_appearances = omp_get_wtime();
+        
+      #pragma omp parallel for
       for (size_t i = 0; i < num_elements; ++i)
       {
-        size_t appearances = 0;
+        std::cout << i << " / " << num_elements << std::endl;
         for (auto it : elements_per_region)
         {
           num_of_appearances[i] += count(it.begin(), it.end(), i);
         }    
-
         for (auto it : partition_boundary_elements)
         {
           num_of_appearances[i] += count(it.begin(), it.end(), i);
         }
       }
 
+      double toc_appearances = omp_get_wtime();
+      std::cout << "Time for counting in parallel: " << toc_appearances - tic_appearances << std::endl;
+
       output << "NUMBER OF APPEARANCES" << std::endl;
 
       for (size_t i = 0; i < num_of_appearances.size(); ++i)
       {
-        output << i << ": " << num_of_appearances[i] << std::endl;
+        //output << i << ": " << num_of_appearances[i] << std::endl;
       } 
       output << "Accumulate: " << accumulate(num_of_appearances.begin(), num_of_appearances.end(), 0) << std::endl;
 
       output << std::endl;
       //end!
-   
+   */
       //output << std::endl;
       //end of get partition boundary elements
       
@@ -622,7 +633,7 @@ namespace viennamesh
       {
         double p[2];
         mesh->get_coords(i, p);
-        output << i << ": " << p[0] << ", " << p[1] << std::endl;
+        //output << i << ": " << p[0] << ", " << p[1] << std::endl;
       }
       output << std::endl; //end of for debugging and test purposes only
 
@@ -631,7 +642,7 @@ namespace viennamesh
       std::cout << "Plugin" << std::endl;
       std::cout << &mesh << std::endl;
 */
-      laplace_smoother(mesh);
+   //   laplace_smoother(mesh);
 
       //end of laplace smoother
 
@@ -641,7 +652,7 @@ namespace viennamesh
       {
         double p[2];
         mesh->get_coords(i, p);
-        output << i << ": " << p[0] << ", " << p[1] << std::endl;
+        //output << i << ": " << p[0] << ", " << p[1] << std::endl;
       }
       output << std::endl; //end of for debugging and test purposes only
       
@@ -653,6 +664,197 @@ namespace viennamesh
       filename += "examples/data/pragmatic_metis_partitioning";
   
       VTKTools<double>::export_vtu(filename.c_str(), mesh);
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+//                                                                                                                                                                                      //
+//TODO: IMPLEMENT ALL THE STUFF FROM BELOW IN A FAST AND COMPUTATIONALLY EFFICIENT WAY                                                                                                  //
+//                                                                                                                                                                                      //
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+      //open second output file
+      ofstream output2;
+      output2.open("data2.txt");  
+
+      //get the nodes present in each partition
+      std::vector<std::set<index_t>> nodes_per_partition2( nparts );
+
+      //this for-loop is not parallelizable, since set.insert() is no thread-safe
+      for (size_t i = 0; i < num_elements; ++i)
+      {
+        //TODO: the following hast to be updated for the 3D case!!
+        nodes_per_partition2[ epart[i] ].insert(_ENList[i*3]);
+        nodes_per_partition2[ epart[i] ].insert(_ENList[i*3+1]);
+        nodes_per_partition2[ epart[i] ].insert(_ENList[i*3+2]);
+      }
+
+      counter = 0;
+      output2 << "NODES" << std::endl;
+      for (auto partition_iterator : nodes_per_partition2)
+      {
+        output2 << "Partition " << counter << std::endl;
+        output2 << partition_iterator.size() << std::endl;
+        ++counter;
+        for (auto nit : partition_iterator)
+        {
+          //output2 << nit << std::endl;
+        }
+      }
+   
+      //get the interface nodes for all partition boundaries using vector<vector<vector<index_t>>>  
+      std::vector<std::vector<std::vector<index_t>>> interface_sets (nparts-1);
+ 
+      double tic = omp_get_wtime();
+      #pragma omp parallel for
+      for (size_t i = 0; i < nparts; ++i)      
+      {        
+        for (size_t j = i+1; j < nparts; ++j)
+        {   
+          std::vector<index_t> tmp;
+
+          set_intersection( nodes_per_partition[i].begin(), nodes_per_partition[i].end(),
+                            nodes_per_partition[j].begin(), nodes_per_partition[j].end(),
+                            inserter(tmp, tmp.begin()) );
+
+          interface_sets[i].push_back(tmp);
+        }      
+      }
+      double toc = omp_get_wtime();
+      std::cout << "Time to get interface nodes in parallel: " << toc - tic << std::endl;
+
+      output2 << "INTERFACE NODES" << std::endl;
+      counter = 0;
+      for (auto interface_vector : interface_sets)
+      {
+        for (auto it : interface_vector)
+        {   
+          output2 << "Interface " << counter << std::endl;   
+          output2 << it.size() << std::endl;   
+          for(auto it2 : it)
+          {
+            //output2 << it2 << std::endl;
+          }
+          ++counter;
+        }         
+      }
+      output2 << std::endl;
+      //end of get the interface nodes for all partition boundaries using vector<vector<vector<index_t>>>  
+
+      //get all elements per partition
+      //TODO: seems unable to parallelize due to possibla data races with insert()-function 
+      std::vector< std::set<index_t>> elements_per_partition(nparts);
+      for(size_t i = 0; i < num_elements; i++)
+      {
+        elements_per_partition[ epart[i] ].insert(i);
+      }  
+  
+      output2 << "NUMBER OF ELEMENTS PER PARTITION " << std::endl;
+      counter = 0;
+      for (auto it : elements_per_partition)
+      {
+        output2 << "Region " << counter << ": " << it.size() << std::endl;
+        ++counter;
+      }
+      output2 << std::endl;
+      //end of get all elements per partition
+
+      //get partition interface elements
+      counter = 0;
+      std::vector<std::vector<std::set<index_t>>> interface_elements_sets(interface_sets.size());
+
+      for (size_t i = 0; i < interface_sets.size(); ++i)
+      {
+        for (size_t j = 0; j < interface_sets[i].size(); ++j)
+        {
+          std::set<index_t> tmp;
+          for (size_t k = 0; k < interface_sets[i][j].size(); k++)
+          {            
+
+            for (auto NE_it : NEList[interface_sets[i][j][k]])
+            {
+              tmp.insert(NE_it);
+            }
+          }
+          interface_elements_sets[i].push_back(tmp);
+        }
+      }
+
+      output2 << "PARTITION INTERFACE ELEMENTS" << std::endl;  
+      counter = 0;
+      for (auto interface_set_iterator : interface_elements_sets)
+      {
+        for(auto interface_iterator : interface_set_iterator)
+        {
+          output2 << "Interface " << counter << " containing " << interface_iterator.size() << " elements" << std::endl;
+          for (auto interface_element_iterator : interface_iterator)
+          {
+            //output2 << interface_element_iterator << std::endl;
+          }
+        }
+        ++counter;
+      }
+      output2 << std::endl;
+      //end of get partition interface elements    
+
+      //get degenerated interface elements
+      //TODO: this function is totally useless
+/* 
+     output2 << "DEGENERATED INTERFACE ELEMENTS" << std::endl;
+      std::set<index_t> degenerate_elements2;
+      for (size_t i = 0; i < partition_boundary_elements.size(); ++i)
+      {
+        std::vector<index_t> temp;
+        for (size_t j = i+1; j < partition_boundary_elements.size(); ++j)
+        {
+          
+          set_intersection( partition_boundary_elements[i].begin(), partition_boundary_elements[i].end(),
+                            partition_boundary_elements[j].begin(), partition_boundary_elements[j].end(),
+                            inserter(temp, temp.begin()) );
+
+          for (auto it : temp)
+          {
+            degenerate_elements2.insert(it);
+          }
+        }
+      }
+
+      for (auto it : degenerate_elements2)
+      {
+        output2 << it << std::endl;
+      }
+      output2 << std::endl;  
+      //end of get degenerated interface elements
+*/
+      //remove partition interface elements from the actual partitions
+      for (auto interface_elements : interface_elements_sets)
+      {
+        for (size_t i = 0; i < interface_elements.size(); ++i)
+        {
+          for (size_t j = 0; j < elements_per_partition.size(); ++j)
+          {
+            for (auto it : interface_elements[i])
+            {
+              elements_per_partition[j].erase(it);
+            }
+          }
+        }
+      } //end of remove partition interface elements from the actual partitions
+    
+      //print elements per partition after removing the interface elements
+      output2 << "ELEMENTS PER PARTITION AFTER REMOVING INTERFACE ELEMENTS " << std::endl;
+      counter = 0;
+      for (auto it : elements_per_partition)
+      {
+        output2 << "Region " << counter << " now consists of " << it.size() << " elements" << std::endl;
+        for (auto it2 : it)
+        {
+          //output << it2 << std::endl;
+        }
+        ++counter;
+      }
+      output2 << std::endl;
+      //end of print elements per partition after removing the interface elements     
+      
+      //close second output file
+      output2.close();
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
