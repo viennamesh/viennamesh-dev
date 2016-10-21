@@ -21,3 +21,15 @@ target_link_libraries(symmetry_2d viennameshpp)
 
 add_executable(symmetry_3d symmetry_3d.cpp)
 target_link_libraries(symmetry_3d viennameshpp)
+
+add_executable(cgal_mesh_simplification cgal_mesh_simplification)
+target_link_libraries(cgal_mesh_simplification viennameshpp)
+
+
+add_executable(cgal_automatic_mesh_simplification cgal_automatic_mesh_simplification)
+target_link_libraries(cgal_automatic_mesh_simplification viennameshpp)
+
+add_executable(mesh_statistics mesh_statistics)
+target_link_libraries(mesh_statistics viennameshpp)
+
+

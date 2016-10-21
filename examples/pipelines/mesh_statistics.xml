@@ -1,0 +1,20 @@
+<!--READ MESH FILE-->
+<algorithm type="mesh_reader" name="input">
+  <parameter name="filename" type="string">../data/elephant.vtu</parameter>
+</algorithm>
+
+
+<!-- RUN CGAL SIMPLIFICATION ALGORITHM -->
+<algorithm type="make_statistic" name="simply">
+  
+  <default_source>input</default_source>
+   
+  <!-- DEFINE METRIC TYPE (required) -->
+  <!-- Possible metrics: "radius_edge_ratio", "aspect_ratio", "min_angle", "max_angle", "min_dihedral_angle", "radius_ratio", "edge_ratio", "circum_perimeter_ratio", "stretch", "skewness""perimeter_inradius_ratio" -->
+  <parameter name="metric_type" type="string">radius_ratio</parameter>
+  
+  <!-- DEFINE GOOD ELEMENT THRESHOLD --> 
+  <!-- Required data type is double -->
+  <parameter name="good_element_threshold" type="double">1.5</parameter>
+    
+</algorithm>
