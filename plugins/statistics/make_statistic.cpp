@@ -15,7 +15,7 @@
 #include "make_statistic.hpp"
 #include "statistic.hpp"
 
-
+//TODO:
 /*Histograms features seem not to be fully functionable. With HIST = 0 all histogram related functions and structs are cut out.
     --> Set in statistic.hpp HIST = 1 if you want to enable histogram features
 */
