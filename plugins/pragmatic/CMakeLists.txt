@@ -20,7 +20,8 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-pragmatic 	plugin.cpp
 							pragmatic_refine.cpp
 							pragmatic_smooth.cpp
 							pragmatic_swapping.cpp
-              pragmatic_metis_partitioning.cpp)
+              pragmatic_metis_partitioning.cpp              
+							pragmatic_refine_multi_region.cpp)
 if (METIS_FOUND)
   target_link_libraries(viennamesh-module-pragmatic ${METIS_LIBRARIES})
 endif()

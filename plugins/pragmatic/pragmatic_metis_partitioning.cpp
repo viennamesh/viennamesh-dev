@@ -14,6 +14,8 @@
 #endif
 
 #include "metis.h"
+#include <unordered_map>
+
 
 //Defines
 #define NUM_THREADS 2
@@ -340,7 +342,7 @@ namespace viennamesh
 
       idx_t result;
 
-      std::cout << "Calling METIS_PartMeshNodal" << std::endl;
+      std::cout << "Calling METIS_PartMeshDual " << std::endl;
 
       //Call Metis Partitioning Function (see metis manual for details on the parameters and on the use of the metis API)
       METIS_PartMeshDual (&num_elements,
@@ -382,7 +384,7 @@ namespace viennamesh
       std::vector<std::set<int>> NEList = mesh->get_node_element(); //TODO: replace this, since its unnecessarily copying data!
       std::vector<index_t> _ENList = mesh->get_element_node();  //TODO: replace this, since its unnecessarily copying data!
       std::vector<int> boundary;
-
+/*
       //get nodes per partition
       std::vector<std::set<index_t>> nodes_per_partition( nparts );
 
@@ -487,7 +489,7 @@ namespace viennamesh
       //end TODO get boundary
     
       //TODO: get partition interface elements
-
+/*
       //create vector containing the cell indices of each element
       std::vector< std::set<index_t> > elements_per_region(nparts);
       for(size_t i = 0; i < num_elements; i++)
@@ -626,7 +628,7 @@ namespace viennamesh
    */
       //output << std::endl;
       //end of get partition boundary elements
-      
+ /*     
       //for debugging and test purposes only
       output << "OLD COORDINATES" << std::endl;
       for (size_t i = 0; i<num_nodes; ++i)
@@ -645,7 +647,7 @@ namespace viennamesh
    //   laplace_smoother(mesh);
 
       //end of laplace smoother
-
+/*
       //for debugging and test purposes only
       output << "NEW COORDINATES" << std::endl;
       for (size_t i = 0; i < num_nodes; ++i)
@@ -664,7 +666,7 @@ namespace viennamesh
       filename += "examples/data/pragmatic_metis_partitioning";
   
       VTKTools<double>::export_vtu(filename.c_str(), mesh);
-
+*/
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                                                                                                                                      //
 //TODO: IMPLEMENT ALL THE STUFF FROM BELOW IN A FAST AND COMPUTATIONALLY EFFICIENT WAY                                                                                                  //
@@ -677,7 +679,7 @@ namespace viennamesh
       //get the nodes present in each partition
       std::vector<std::set<index_t>> nodes_per_partition2( nparts );
 
-      //this for-loop is not parallelizable, since set.insert() is no thread-safe
+      //this for-loop is not parallelizable, since set.insert() is not thread-safe
       for (size_t i = 0; i < num_elements; ++i)
       {
         //TODO: the following hast to be updated for the 3D case!!
@@ -686,7 +688,7 @@ namespace viennamesh
         nodes_per_partition2[ epart[i] ].insert(_ENList[i*3+2]);
       }
 
-      counter = 0;
+      int counter = 0;
       output2 << "NODES" << std::endl;
       for (auto partition_iterator : nodes_per_partition2)
       {
@@ -703,15 +705,15 @@ namespace viennamesh
       std::vector<std::vector<std::vector<index_t>>> interface_sets (nparts-1);
  
       double tic = omp_get_wtime();
-      #pragma omp parallel for
+      //#pragma omp parallel for
       for (size_t i = 0; i < nparts; ++i)      
       {        
         for (size_t j = i+1; j < nparts; ++j)
         {   
           std::vector<index_t> tmp;
 
-          set_intersection( nodes_per_partition[i].begin(), nodes_per_partition[i].end(),
-                            nodes_per_partition[j].begin(), nodes_per_partition[j].end(),
+          set_intersection( nodes_per_partition2[i].begin(), nodes_per_partition2[i].end(),
+                            nodes_per_partition2[j].begin(), nodes_per_partition2[j].end(),
                             inserter(tmp, tmp.begin()) );
 
           interface_sets[i].push_back(tmp);
@@ -737,6 +739,32 @@ namespace viennamesh
       }
       output2 << std::endl;
       //end of get the interface nodes for all partition boundaries using vector<vector<vector<index_t>>>  
+
+      //remove interface nodes from nodes_per_partition
+      for (auto interface_nodes : interface_sets)
+      {
+        for (size_t i = 0; i < interface_nodes.size(); ++i)
+        {
+          for (size_t j = 0; j < nodes_per_partition2.size(); ++j)
+          {
+            for (auto it : interface_nodes[i])
+            {
+              nodes_per_partition2[j].erase(it);
+            }
+          }
+        }
+      }       
+      //end of remove interface nodes from nodes_per_partition
+
+      output2 << "NODES PER PARTITION AFTER REOMVING INTERFACE NODES" << std::endl;
+      for (auto nip : nodes_per_partition2)
+      {
+        output2 << "New Partition containing " << nip.size() << " vertices" << std::endl;
+        for (auto node : nip)
+        { 
+          output2 << node << std::endl;
+        }
+      }
 
       //get all elements per partition
       //TODO: seems unable to parallelize due to possibla data races with insert()-function 
@@ -774,6 +802,7 @@ namespace viennamesh
             }
           }
           interface_elements_sets[i].push_back(tmp);
+          tmp.clear();
         }
       }
 
@@ -793,6 +822,42 @@ namespace viennamesh
       }
       output2 << std::endl;
       //end of get partition interface elements    
+
+      //add the vertices of the partition interface elements to interface_sets
+      //TODO: this seems to be overload, since a interface_sets storing the interface nodes is already available
+      std::vector<std::vector<std::set<index_t>>> interface_nodes(nparts-1);
+      counter = 0;
+      for (size_t i = 0; i < interface_elements_sets.size(); ++i)
+      { 
+        for (size_t j = 0; j < interface_elements_sets[i].size(); ++j)
+        {
+          std::set<index_t> tmp;
+
+          for (auto interface_element : interface_elements_sets[i][j])
+          {
+            //std::cout << "Element " << interface_element << std::endl;
+            //std::cout << _ENList[interface_element*3] << " "  << _ENList[interface_element*3+1] << " " << _ENList[interface_element*3+2] << std::endl;
+            tmp.insert(_ENList[interface_element*3]);
+            tmp.insert(_ENList[interface_element*3+1]);
+            tmp.insert(_ENList[interface_element*3+2]);
+          }
+          interface_nodes[i].push_back(tmp);
+        }
+      }
+      //end of add the vertices of the partition interface elements to interface_sets
+      counter=0;
+      for (auto interfaces : interface_nodes)
+      {
+        for(auto interface_iterator : interfaces)
+        {
+          //std::cout << "Interface " << counter << std::endl;
+          for (auto interface_node_iterator : interface_iterator)
+          {
+            //std::cout << "  " << interface_node_iterator << std::endl;
+          }
+          ++counter;
+        }
+      }
 
       //get degenerated interface elements
       //TODO: this function is totally useless
@@ -855,6 +920,219 @@ namespace viennamesh
       
       //close second output file
       output2.close();
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+//CREATE SEPARATED PRAGMATIC DATA STRUCTURES FOR EACH PARTITION AND EACH INTERFACE
+//
+      //vector storing the pragmatic meshes
+      std::vector<Mesh<double>*> pragmatic_meshes;
+
+      //vectors storing the coordinate
+      std::vector< std::vector<double>> x_coords(nparts);
+      std::vector< std::vector<double>> y_coords(nparts);
+      std::vector< std::vector<double>> z_coords(nparts);
+
+      //vector storing the ENLists of each region
+      std::vector<std::vector<index_t>> ENLists_partitions(nparts);
+
+      //vector storing the original vertices indices
+     // std::vector<std::vector<index_t>> original_vertices_all_partitions(nparts);
+
+      //loop over all partitions
+      for (size_t i = 0; i < nparts; ++i)
+      {
+        //get number of vertices and elements
+        int num_points = nodes_per_partition2[i].size();
+        int num_cells = elements_per_partition[i].size();
+
+        //get the vertex-to-index-mapping between old and new indices
+        //TODO: use unordered_map instead, to speed up the code
+        std::map <index_t, index_t> vertex_to_index_map;
+
+        index_t new_vertex_id = 0;
+        for (auto it : nodes_per_partition2[i])
+        {
+          vertex_to_index_map.insert( std::make_pair(it, new_vertex_id++) );
+        }
+
+        //pre-allocate memory
+        x_coords[i].reserve(num_points);
+        y_coords[i].reserve(num_points);
+        ENLists_partitions[i].resize(3*num_cells);
+
+        //get coordinates of each vertex
+        counter = 0;
+        for (auto it : nodes_per_partition2[i])
+        {
+          double p[2];
+          mesh->get_coords( it, p);
+          x_coords[i][counter] = p[0];
+          y_coords[i][counter] = p[1];
+          ++counter;
+        }
+
+        //create ENList with respect to the new vertex indices
+        counter=0;        
+        for (auto it : elements_per_partition[i])
+        {
+          const index_t *element_ptr = nullptr;
+          element_ptr = mesh->get_element(it);
+          
+          ENLists_partitions[i][counter++] = vertex_to_index_map[*(element_ptr++)];
+          ENLists_partitions[i][counter++] = vertex_to_index_map[*(element_ptr++)];
+          ENLists_partitions[i][counter++] = vertex_to_index_map[*(element_ptr++)];          
+        }
+
+        //create pragmatic mesh 
+        Mesh<double> *partial_mesh = nullptr;
+
+        //TODO: change for 3D refinement
+        //mesh = new Mesh<double> ( num_points, num_cells, &(ENLists_regions[region.id()][0]) ,&(x_coords[region.id()][0]), &(y_coords[region.id()][0]), &(z_coords[region.id()][0]) );        
+        partial_mesh = new Mesh<double> ( num_points, num_cells, &(ENLists_partitions[i][0]), &(x_coords[i][0]), &(y_coords[i][0]) );
+        partial_mesh->create_boundary();
+
+/*      //TODO: it is not necessary to assign a metric to the pragmatic mesh
+        std::cout << "pragmatic: " << partial_mesh->get_number_nodes() << " " << partial_mesh->get_number_elements() << std::endl;
+
+        MetricField<double,2> metric_field(*partial_mesh);
+        double h1 = 1.0/50;
+        double h0 = 10.0/50;
+        for (size_t j = 0; j < num_points; ++j)
+        {
+          double x = 2*partial_mesh->get_coords(i)[0] - 1;
+          double y = 2*partial_mesh->get_coords(i)[1] - 1;
+          double d = std::min(1-std::abs(x), 1-std::abs(y));
+
+          double hx = h0 - (h1-h0)*(d-1);
+          double m[] = {1.0/pow(hx, 2), 0, 1.0/pow(hx, 2)};
+          metric_field.set_metric(m, j);
+        }
+        //metric_field.update_mesh();
+*/
+        pragmatic_meshes.push_back(partial_mesh);
+
+        //delete partial_mesh;        //TODO: creates segfault if comments are removed
+      } //end of loop over all partitions
+
+      //write partitions    
+      for (size_t i = 0; i < pragmatic_meshes.size(); ++i)
+      {
+        info(1) << "Writing partition " << i << std::endl;
+        info(1) << "  Vertex count = " << pragmatic_meshes[i]->get_number_nodes() << std::endl;
+        info(1) << "  Cell count = " << pragmatic_meshes[i]->get_number_elements() << std::endl;
+
+        std::string filename;
+        filename += "examples/data/pragmatic_partial_mesh_";
+        filename += std::to_string( i );
+  
+        VTKTools<double>::export_vtu(filename.c_str(), pragmatic_meshes[i]);
+      }
+      //end of write partitions
+
+      //DO THE SAME NOW WITH THE INTERFACES
+
+      //vector storing the pragmatic meshes
+      std::vector<Mesh<double>*> pragmatic_interface_meshes;
+
+      //get number of interfaces
+      int num_interfaces = binomial_coefficient(nparts,2);
+
+      //vectors storing the coordinate
+      std::vector< std::vector<double>> x_coords_interfaces(num_interfaces);
+      std::vector< std::vector<double>> y_coords_interfaces(num_interfaces);
+      std::vector< std::vector<double>> z_coords_interfaces(num_interfaces);
+
+      //vector storing the ENLists of each region
+      std::vector<std::vector<index_t>> ENLists_interfaces(num_interfaces);
+    
+      //loop over all interfaces
+      int interface_counter = 0 ;
+      for(size_t i = 0; i < interface_elements_sets.size(); ++i)
+      {
+        for (size_t j = 0; j < interface_elements_sets[i].size(); ++j, interface_counter++)
+        {
+          //get number of vertices and elements
+          int num_points = interface_nodes[i][j].size();
+          int num_cells = interface_elements_sets[i][j].size();
+
+          if (num_points == 0 || num_cells == 0)
+          {
+            pragmatic_interface_meshes.push_back(nullptr);
+            continue;
+          }
+
+          //get the vertex-to-index-mapping between old and new indices
+          std::map <index_t, index_t> interface_vertex_to_index_map;
+
+          index_t new_vertex_id = 0;  
+          for (auto it : interface_nodes[i][j])
+          {
+            interface_vertex_to_index_map.insert( std::make_pair(it, new_vertex_id++) );
+          }
+
+          //pre-allocate memory
+          x_coords_interfaces[interface_counter].reserve(num_points);
+          y_coords_interfaces[interface_counter].reserve(num_points);
+          ENLists_interfaces[interface_counter].resize(3*num_cells);
+
+          //get coordinates of each vertex
+          //TODO: combine this loop with the next one!
+          counter = 0;
+          for (auto it : interface_nodes[i][j])
+          {
+            double p[2];
+            mesh->get_coords( it, p);
+            x_coords_interfaces[interface_counter][counter] = p[0];
+            y_coords_interfaces[interface_counter][counter] = p[1];           
+            ++counter;
+          }
+
+          //create ENList with respect to the new vertex indices
+          //TODO: combine this loop with the previous one!
+          counter=0;        
+          for (auto it : interface_elements_sets[i][j])
+          {         
+            const index_t *element_ptr = nullptr;
+            element_ptr = mesh->get_element(it);
+          
+            ENLists_interfaces[interface_counter][counter++] = interface_vertex_to_index_map[*(element_ptr++)];
+            ENLists_interfaces[interface_counter][counter++] = interface_vertex_to_index_map[*(element_ptr++)];
+            ENLists_interfaces[interface_counter][counter++] = interface_vertex_to_index_map[*(element_ptr++)];          
+          }
+          
+          //create pragmatic mesh 
+          Mesh<double> *interface_mesh = nullptr;
+
+          //TODO: change for 3D refinement
+          //mesh = new Mesh<double> ( num_points, num_cells, &(ENLists_regions[region.id()][0]) ,&(x_coords[region.id()][0]), &(y_coords[region.id()][0]), &(z_coords[region.id()][0]) );        
+          interface_mesh = new Mesh<double> ( num_points, num_cells, &(ENLists_interfaces[interface_counter][0]), &(x_coords_interfaces[interface_counter][0]), &(y_coords_interfaces[interface_counter][0]) );
+          interface_mesh->create_boundary();
+
+          pragmatic_interface_meshes.push_back(interface_mesh);
+        }
+      }
+      //end of loop over all interfaces
+
+      //write interfaces
+      for (size_t i = 0; i < pragmatic_interface_meshes.size(); ++i)
+      {
+        if (pragmatic_interface_meshes[i] == nullptr)
+        {
+          continue;
+        }
+        info(1) << "Writing interface " << i << std::endl;
+        info(1) << "  Vertex count = " << pragmatic_interface_meshes[i]->get_number_nodes() << std::endl;
+        info(1) << "  Cell count = " << pragmatic_interface_meshes[i]->get_number_elements() << std::endl;
+
+        std::string filename;
+        filename += "examples/data/pragmatic_partial_interface_";
+        filename += std::to_string( i );
+  
+        VTKTools<double>::export_vtu(filename.c_str(), pragmatic_interface_meshes[i]);
+      }        
+      //end of write interfaces
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 

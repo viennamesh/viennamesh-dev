@@ -89,7 +89,7 @@ inline Mesh<double>* convert(MeshType input_mesh, Mesh<double>*& mesh)
 		  	for (size_t i=0; i<NNodes; ++i)
 		  	{			  
 		   	  x.push_back(*(ptr_coords++));
-		    	  y.push_back(*(ptr_coords++));
+		    	y.push_back(*(ptr_coords++));
 		  
 		    	  //depending on the dimension push_back data from the array or push_back 0 into the pragmatic data
 		    	  if (geometric_dimension == 3)
@@ -103,7 +103,7 @@ inline Mesh<double>* convert(MeshType input_mesh, Mesh<double>*& mesh)
 		  	viennagrid_element_id * vertex_ids_begin;
 		  	viennagrid_element_id * vertex_ids_end;
 		  	viennagrid_dimension topological_dimension = geometric_dimension;		//produces segmentation fault if not set to 2 for 2d and to 3 for 3d case
-												//THE SOLUTION IN THE ROW ABOVE IS OPTIMIZABLE!!!
+												//TODO:THE SOLUTION IN THE ROW ABOVE IS OPTIMIZABLE!!!
 		  	//get elements from mesh
 		  	viennagrid_mesh_elements_get(input_mesh.internal(), topological_dimension, &vertex_ids_begin, &vertex_ids_end);
 			
@@ -156,7 +156,7 @@ inline bool export_to_viennagrid_vtu(std::vector<Mesh<double>*> meshes)
   for (size_t i = 0; i < no_of_regions; ++i)
   {
     std::string filename;
-    filename += "examples/data/myfirsttask/output/export_vtu_to_viennagrid_xml_";
+    filename += "examples/data/export_vtu_to_viennagrid_xml_";
     filename += std::to_string(i);
     filename += ".vtu";
   
@@ -182,10 +182,13 @@ inline bool export_to_viennagrid_vtu(std::vector<Mesh<double>*> meshes)
     //iterate over coordinates vector
     for (size_t j = 0; j < num_points; ++j)
     {
-      double x[3];
+      //TODO: change for 3D case
+      //double x[3];
+      double x[2];
       meshes[i]->get_coords(j, x);
-
-      writer << x[0] << " " << x[1] << " " << x[2] << std::endl;
+      writer << x[0] << " " << x[1] << " " << "0" << std::endl;      
+      //TODO: change for 3D case
+      //writer << x[0] << " " << x[1] << " " << x[2] << std::endl;
     }
     writer << std::endl;
     writer << "    </DataArray>" << std::endl;
@@ -202,7 +205,9 @@ inline bool export_to_viennagrid_vtu(std::vector<Mesh<double>*> meshes)
       //get pointer to element-node-list
       index_t const * ENList_pointer = meshes[i]->get_element(j);
 
-      for (size_t k = 0; k < 4; ++k)
+      //TODO: change for 3D case
+      //for (size_t k = 0; k < 4; ++k)
+      for (size_t k = 0; k < 3; ++k)
       {
         writer << *(ENList_pointer++) << " ";
       }
@@ -218,7 +223,9 @@ inline bool export_to_viennagrid_vtu(std::vector<Mesh<double>*> meshes)
     
     for (size_t j = 1; j <= num_cells; ++j)
     {
-      writer << j*4 << " ";
+      //TODO: change for 3D case
+      //writer << j*4 << " ";
+      writer << j*3 << " ";
 
       if (j%6 == 0)
       {
@@ -235,8 +242,10 @@ inline bool export_to_viennagrid_vtu(std::vector<Mesh<double>*> meshes)
   
     for (size_t j = 0; j < num_cells; ++j) 
     {
-      writer << 10 << " ";
-  
+      //TODO: change for 3D case
+      //writer << 10 << " ";
+      writer << 5 << " ";
+      
       if (j%6 == 0)
       {
         writer << std::endl;

@@ -37,3 +37,7 @@ target_link_libraries(pragmatic_swapper ${VTK_LIBRARIES})
 add_executable(pragmatic_metis_partitioner pragmatic_metis_partitioner.cpp)
 target_link_libraries(pragmatic_metis_partitioner viennameshpp)
 target_link_libraries(pragmatic_metis_partitioner ${VTK_LIBRARIES})
+
+add_executable(pragmatic_refine_multi_region_mesh pragmatic_refine_multi_region_mesh.cpp)
+target_link_libraries(pragmatic_refine_multi_region_mesh viennameshpp)
+target_link_libraries(pragmatic_refine_multi_region_mesh ${VTK_LIBRARIES})
