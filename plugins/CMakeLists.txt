@@ -85,7 +85,7 @@ if (ENABLE_PLUGIN_CGAL)
   add_subdirectory(CGAL)
 endif()
 
-option(ENABLE_PLUGIN_POISSON "Enable poisson plugin" ON)
+option(ENABLE_PLUGIN_POISSON "Enable poisson plugin" OFF)
 if (ENABLE_PLUGIN_POISSON)
   add_subdirectory(poisson)
 endif()
