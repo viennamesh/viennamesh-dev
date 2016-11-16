@@ -201,9 +201,13 @@ public:
         size_t NNodes = get_number_nodes();
         size_t NElements = get_number_elements();
 
+        //std::cout << "NElements: " << NElements << ", " << "NNodes: " << NNodes << std::endl;
+
         // Initialise the boundary array
         boundary.resize(NElements*nloc);
         std::fill(boundary.begin(), boundary.end(), -2);
+
+        //std::cout << boundary.size() << std::endl;
 
         #pragma omp parallel
         {
@@ -365,16 +369,22 @@ public:
       return _coords;
     }
 
-    /// Return a "hard" copy of the boundary vector
+    /// Return iterator of the boundary vector
     inline std::vector<int>::iterator get_boundary()
     {
         return boundary.begin();
     }
 
-    /// Return a "hard" copy of the boundary vector
+    /// Return pointer of the boundary vector
     inline std::vector<int>* get_boundary_vector()
     {
         return &boundary;
+    }
+
+    /// Return a "hard copy" of the boundary vector
+    inline std::vector<int> copy_boundary_vector()
+    {
+        return boundary;
     }
 
     //Returns Node-Node-Adjacency list for specified node
@@ -387,18 +397,6 @@ public:
     inline std::vector<std::vector<index_t>>::iterator get_nnlist_iterator()
     {
       return (NNList.begin());
-    }
-    
-    /// Return a "hard" copy of the node-node list
-    inline std::vector<double> get_metric()
-    {
-        return metric;
-    }
-
-    //Return a "hard" copy of the quality-vector
-    inline std::vector<double> get_quality_vector()
-    {
-      return quality;
     }
 
     /// Return the number of nodes in the mesh.
@@ -417,12 +415,6 @@ public:
     inline size_t get_nloc() const
     {
         return nloc;
-    }
-
-    /// Return msize
-    inline size_t get_msize() const
-    {
-        return msize;
     }
 
     /// Return the number of spatial dimensions.
@@ -450,7 +442,7 @@ public:
     {
       //TODO: check if 2d or 3d
       //      implementation below works only for 2d meshes!
-      for (size_t i = 0; i < ndims; ++i)
+      for (size_t i = 0; i < ndims; i++)
       {
         _coords[nid*ndims+i] = p[i];
       }

@@ -63,10 +63,6 @@ inline void make_metric(Mesh<double> *mesh, size_t geometric_dimension)
 //convert vienangrid to pragmatic data structure
 inline Mesh<double>* convert(MeshType input_mesh, Mesh<double>*& mesh)
 		{
-/*
-        std::cout << "Converter" << std::endl;
-        std::cout << &mesh << std::endl;
-*/
 			  size_t cell_dimension = viennagrid::cell_dimension( input_mesh );
 		  	size_t geometric_dimension = viennagrid::geometric_dimension( input_mesh );
 		  	size_t NNodes = viennagrid::vertex_count( input_mesh );
