@@ -72,15 +72,20 @@ namespace viennamesh
 
 		  mesh = convert(input_mesh(), mesh);
       mesh->create_boundary();
-     // make_metric(mesh, 2);
+
+      //make_metric(mesh, 2); //it is not necessary to create a metric!
 
       GroupedPartitions Mesh1(mesh, region_count());
+
       GroupedPartitionsSmooth Smoother1(Mesh1);
-      Smoother1.SimpleLaplace(3);
+      Smoother1.SimpleLaplace(2);
+
+      Mesh1.WriteMergedMesh();
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
 
       set_output("mesh", input_mesh);
+      
       //delete pointer created at the beginning of pragmatic_metis_partitioner::run(viennamesh::algorithm_handle &)
       delete mesh;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//

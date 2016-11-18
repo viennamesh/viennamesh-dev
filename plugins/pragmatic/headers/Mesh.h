@@ -393,6 +393,12 @@ public:
       return &(NNList[node]);
     }
 
+    //Return a "hard copy" of the NNList vector
+    inline std::vector<std::vector<index_t>> copy_nnlist()
+    {
+      return NNList;
+    }
+
     //Returns iterator to Node-Node-Adjacency list for specified node
     inline std::vector<std::vector<index_t>>::iterator get_nnlist_iterator()
     {

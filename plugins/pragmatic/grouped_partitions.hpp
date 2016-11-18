@@ -9,6 +9,9 @@
 #include "Lock.h"
 #include "ElementProperty.h"
 
+//boost includes
+#include <boost/timer/timer.hpp>
+
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                Declaration                                                                   //
 //----------------------------------------------------------------------------------------------------------------------------------------------//
@@ -20,6 +23,8 @@ class GroupedPartitions
   public:
     GroupedPartitions(Mesh<double>* input_mesh, int region_count);              //Constructor
     ~GroupedPartitions();                                                       //Destructor
+   
+    void WriteMergedMesh();
 
   private:
     Mesh<double>* mesh = nullptr;                                               //input mesh (in pragmatic data structure)
@@ -76,11 +81,12 @@ class GroupedPartitions
     void CreatePragmaticDataStructures();
     void WritePartitionsAndInterfaces(std::string name = "pragmatic");
     void GetPartitionAndInterfaceBoundaries();
+    int GetVertexPartitionOrInterface(index_t n, bool* partition, bool *interface);
+    int GetElementPartitionOrInterface(index_t n);
 
     void GetCoords(index_t n, double *vertex);
     void SetCoords(index_t n, double *vertex);
     std::vector<index_t>* GetNNList(index_t n, int *partitions, int *interfaces);
-
 }; //end of class
 
 //----------------------------------------------------------------------------------------------------------------------------------------------//
@@ -137,7 +143,7 @@ GroupedPartitions::~GroupedPartitions()
 //Create Metis Partitioning
 void GroupedPartitions::CreateMetisPartitioning()
 {
-  std::cout << "Calling METISPartMeshDual" << std::endl;
+  std::cout << "Calling METISPartMeshNodal" << std::endl;
 
   //fill eptr and eind, as done in viennamesh plugin "metis", file "mesh_partitionig.cpp"  
   eptr.push_back(0);
@@ -157,7 +163,7 @@ void GroupedPartitions::CreateMetisPartitioning()
   }   
 
   //Call Metis Partitioning Function (see metis manual for details on the parameters and on the use of the metis API)
-  METIS_PartMeshDual (&num_elements,
+  /*METIS_PartMeshDual (&num_elements,
                       &num_nodes,
                       eptr.data(),
                       eind.data(),
@@ -169,7 +175,59 @@ void GroupedPartitions::CreateMetisPartitioning()
                       NULL,
                       &result,
                       epart.data(),
+                      npart.data());*/
+
+  METIS_PartMeshNodal(&num_elements,
+                      &num_nodes,
+                      eptr.data(),
+                      eind.data(),
+                      NULL,
+                      NULL,
+                      &nparts,
+                      NULL,
+                      NULL,
+                      &result,
+                      epart.data(),
                       npart.data());
+
+  ofstream npart_data;
+  npart_data.open("npart.txt");
+  
+  for (size_t i = 0; i < npart.size(); ++i)
+  {
+    npart_data << i << " " << npart[i] << std::endl;
+  }
+  npart_data.close();
+
+  ofstream epart_data;
+  epart_data.open("epart.txt");
+  
+  for (size_t i = 0; i < epart.size(); ++i)
+  {
+    epart_data << i << " " << epart[i] << std::endl;
+  }
+  epart_data.close();
+
+  ofstream enlist_data;
+  enlist_data.open("enlist.txt");
+  for (size_t i = 0; i < num_elements; ++i)
+  {
+    enlist_data << i << ": " << _ENList[3*i] << " " << _ENList[3*i+1] << " " << _ENList[3*i+2] << std::endl;
+  }
+  enlist_data.close();
+
+  ofstream nnlist_data;
+  nnlist_data.open("nnlist.txt");
+  std::vector<std::vector<index_t>> nnl = mesh->copy_nnlist();
+  for (size_t i = 0; i < num_nodes; ++i)
+  {
+    nnlist_data << i << std::endl;
+    for (auto it : nnl[i])
+    {
+      nnlist_data << " " << it << std::endl;
+    }
+  }
+  nnlist_data.close();
 }
 //end of GroupedPartitions::CreateMetisPartitioning()
 
@@ -716,12 +774,13 @@ void GroupedPartitions::GetCoords(index_t n, double *vertex)
   for (size_t i = 0; i < global_to_local_index_mappings_partitions.size(); ++i)
   {
     std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_partitions[i].find(n);
-
+    
     if (position == global_to_local_index_mappings_partitions[i].end())
     {
       continue;
     }
 
+    //std::cout << "found vertex " << n << " in partition " << i << std::endl;
     pragmatic_partitions[i]->get_coords(position->second, vertex);
     found = true;
     break;
@@ -741,6 +800,8 @@ void GroupedPartitions::GetCoords(index_t n, double *vertex)
     {        
         continue;
     }
+
+    //std::cout << "found vertex " << n << " in interface " << i << std::endl;
     pragmatic_interfaces[i]->get_coords(position->second, vertex);
     break;
   }
@@ -781,7 +842,7 @@ void GroupedPartitions::SetCoords(index_t n, double *vertex)
   //update interfaces
   for(size_t i = 0; i < global_to_local_index_mappings_interfaces.size(); ++i)
   {
-       std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_interfaces[i].find(n);
+    std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_interfaces[i].find(n);
     
     if(position == global_to_local_index_mappings_interfaces[i].end())
     {        
@@ -805,6 +866,26 @@ void GroupedPartitions::SetCoords(index_t n, double *vertex)
 //GroupedPartitions::GetNNList(index_t n)
 std::vector<index_t>* GroupedPartitions::GetNNList(index_t n, int *partitions, int *interfaces)
 {
+  bool partition;
+  bool interface;
+  int mapping = GetVertexPartitionOrInterface(n, &partition, &interface);
+
+  if (partition)
+  {
+    std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_partitions[mapping].find(n);
+
+    *partitions = mapping;
+    return pragmatic_partitions[mapping]->get_nnlist( position->second );
+  }
+
+  else if (interface)
+  {
+    std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_interfaces[mapping].find(n);
+
+    *interfaces = mapping;
+    return pragmatic_interfaces[mapping]->get_nnlist( position->second );
+  }
+  /*
   //check partitions
   for (size_t i = 0; i < nparts; ++i)
   {
@@ -834,8 +915,198 @@ std::vector<index_t>* GroupedPartitions::GetNNList(index_t n, int *partitions, i
     return pragmatic_interfaces[i]->get_nnlist( position->second );
   }  
   //end of check interfaces
+  */
+  else
+    std::cout << "\033[1;31mVertex " << n << " not found\033[0m" << std::endl;
 }
 //end of GroupedPartitions::GetNNList(index_t n)
+
+//GroupedPartitions::WriteMergedMesh()
+void GroupedPartitions::WriteMergedMesh()
+{
+  //create merged ENList
+  //TODO: Update for 3D case (then num_elements has to be multiplied with 4)
+  std::vector<index_t> merged_ENList(num_elements*3);
+
+  //ierate over partitions
+  int global_element_counter = 0;
+  for (size_t i = 0; i < pragmatic_partitions.size(); ++i)  
+  {
+    for (size_t j = 0; j < pragmatic_partitions[i]->get_number_elements(); ++j)
+    {
+      const index_t *element_ptr = nullptr;
+      element_ptr = pragmatic_partitions[i]->get_element(j);
+
+      merged_ENList[3*global_element_counter] = local_to_global_index_mappings_partitions[i].at( *(element_ptr++) );
+      merged_ENList[3*global_element_counter+1] = local_to_global_index_mappings_partitions[i].at( *(element_ptr++) );
+      merged_ENList[3*global_element_counter+2] = local_to_global_index_mappings_partitions[i].at( *(element_ptr++) );  
+      ++global_element_counter;
+    }
+  }
+
+  //iterate over interfaces
+  for (size_t i = 0; i < pragmatic_interfaces.size(); ++i)  
+  {
+    if  (pragmatic_interfaces[i] == nullptr)
+    {  
+      continue;
+    }
+
+    for (size_t j = 0; j < pragmatic_interfaces[i]->get_number_elements(); ++j)
+    {
+      const index_t *element_ptr = nullptr;
+      element_ptr = pragmatic_interfaces[i]->get_element(j);
+
+      merged_ENList[3*global_element_counter] = local_to_global_index_mappings_interfaces[i].at( *(element_ptr++) );
+      merged_ENList[3*global_element_counter+1] = local_to_global_index_mappings_interfaces[i].at( *(element_ptr++) );
+      merged_ENList[3*global_element_counter+2] = local_to_global_index_mappings_interfaces[i].at( *(element_ptr++) );  
+      ++global_element_counter;
+    }
+  }
+  //end of create merged ENList
+
+  //ofstream object
+  ofstream writer;
+  writer.open("examples/data/pragmatic_metis_partitioning/merged_mesh.vtu", ios::out);
+
+  //write header
+  writer << "<?xml version=\"1.0\"?>" << std::endl;
+  writer << "<VTKFile type=\"UnstructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\">" << std::endl;
+  writer << " <UnstructuredGrid>" << std::endl;
+  //end of write header
+
+  writer << "  <Piece NumberOfPoints=\"" << num_nodes << "\" NumberOfCells=\"" << num_elements << "\">" << std::endl;    
+
+  //write points into file
+  writer << "   <Points>" << std::endl;
+  writer << "    <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;  
+
+  //iterate over coordinates vector
+  for (size_t i = 0; i < num_nodes; ++i)
+  {
+    //TODO: change for 3D case
+    //double x[3];
+    double x[2];
+    GetCoords(i, x);
+    writer << std::fixed << std::setprecision(8) << x[0] << " " << x[1] << " " << "0" << std::endl;      
+    //TODO: change for 3D case
+    //writer << x[0] << " " << x[1] << " " << x[2] << std::endl;
+  }
+  //writer << std::endl;
+  writer << "    </DataArray>" << std::endl;
+  writer << "   </Points> " << std::endl;
+  //end of write points into file
+
+  //write cells into file
+  writer << "   <Cells> " << std::endl;
+  writer << "    <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">" << std::endl;
+
+  for (size_t i = 0; i < num_elements; ++i)
+  {
+    writer << merged_ENList[3*i] << " " << merged_ENList[3*i+1] << " " << merged_ENList[3*i+2] << " ";
+
+    writer << std::endl;
+  }
+
+  writer << std::endl;
+  writer << "    </DataArray>" << std::endl;
+  //end of write cells into file
+
+  //write offset into file
+  writer << "    <DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">" << std::endl;
+    
+  for (size_t i = 1; i <= num_elements; ++i)
+  {
+    //TODO: change for 3D case
+    //writer << j*4 << " ";
+    writer << i*3 << " ";
+
+    if (i%6 == 0)
+    {
+      writer << std::endl;
+    }
+  }
+
+  writer << std::endl;
+  writer << "    </DataArray>" << std::endl;
+  //end of write offset into file
+  
+  //write types into file
+  writer << "    <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">" << std::endl;
+  
+  for (size_t j = 0; j < num_elements; ++j) 
+  {
+    //TODO: change for 3D case
+    //writer << 10 << " ";
+    writer << 5 << " ";
+      
+    if (j%6 == 0)
+    {
+      writer << std::endl;
+    }
+  }
+
+  writer << std::endl;
+  writer << "    </DataArray>" << std::endl;
+  //end of write types into file
+
+  writer << "   </Cells>" << std::endl;
+  writer << "  </Piece>" << std::endl;
+
+  //write footer
+  writer << " </UnstructuredGrid>" << std::endl;
+  writer << "</VTKFile>" << std::endl;
+  //end of write footer
+  
+  //close ofstream object
+  writer.close();
+}
+//end of GroupedPartitions::WriteMergedMesh()
+
+//TODO: GroupedPartitions::FindVertex(index_t n)
+int GroupedPartitions::GetVertexPartitionOrInterface(index_t n, bool *partition, bool *interface)
+{
+  //check partitions
+  for (size_t i = 0; i < nparts; ++i)
+  {
+    std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_partitions[i].find(n);
+
+    if (position == global_to_local_index_mappings_partitions[i].end())
+    {
+      continue;
+    }
+    *partition = true;
+    *interface = false;
+    return i;
+  }
+  //end of check partitions
+
+  //check interfaces
+  for (size_t i = 0; i < global_to_local_index_mappings_interfaces.size(); ++i)
+  {
+    std::unordered_map<index_t, index_t>::iterator position = global_to_local_index_mappings_interfaces[i].find(n);
+
+    if (position == global_to_local_index_mappings_interfaces[i].end())
+    {
+      continue;
+    }
+    *partition = false;
+    *interface = true;
+    return i;
+  }  
+  //end of check interfaces
+
+  //error
+  return -1;
+}
+//end of GroupedPartitions::FindVertex(index_t n)
+
+//TODO: GroupedPartitions::FindElement(index_t n)
+int GroupedPartitions::GetElementPartitionOrInterface(index_t n)
+{
+  return -1;
+}
+//end of GroupedPartitions::FindElement(index_t n)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                     End                                                                      //

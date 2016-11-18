@@ -61,7 +61,7 @@ inline void make_metric(Mesh<double> *mesh, size_t geometric_dimension)
 		}//end make_metric
 
 //convert vienangrid to pragmatic data structure
-inline Mesh<double>* convert(MeshType input_mesh, Mesh<double>*& mesh)
+inline Mesh<double>* convert(MeshType input_mesh, Mesh<double>* mesh)
 		{
 			  size_t cell_dimension = viennagrid::cell_dimension( input_mesh );
 		  	size_t geometric_dimension = viennagrid::geometric_dimension( input_mesh );
@@ -130,7 +130,7 @@ inline Mesh<double>* convert(MeshType input_mesh, Mesh<double>*& mesh)
 		  
 		  	if (geometric_dimension == 2)	
 		  	{
-		  		mesh = new Mesh<double> (NNodes, NElements, &(ENList[0]), &(x[0]), &(y[0]));
+          mesh = new Mesh<double> (NNodes, NElements, &(ENList[0]), &(x[0]), &(y[0]));
 				  return mesh;
 		  	}
 		
@@ -194,7 +194,6 @@ inline bool export_to_viennagrid_vtu(std::vector<Mesh<double>*> meshes)
     //write cells into file
     writer << "   <Cells> " << std::endl;
     writer << "    <DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">" << std::endl;
-
 
     for (size_t j = 0; j < num_cells; ++j)
     {    

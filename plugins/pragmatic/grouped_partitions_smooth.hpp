@@ -33,7 +33,7 @@ class GroupedPartitionsSmooth
 GroupedPartitionsSmooth::GroupedPartitionsSmooth(GroupedPartitions &GP) : mesh(GP)
 {
   std::cout << "Create GroupedPartitionsSmooth Object" << std::endl;
-  std::cout << "Smooth " << mesh.num_partitions << " partitions and " << mesh.num_interfaces << " interfaces" << std::endl;  
+  std::cout << "Smooth " << mesh.num_partitions << " partitions and " << mesh.num_interfaces << " interfaces" << std::endl;
 }
 //end of Constructor
 
@@ -49,7 +49,7 @@ bool GroupedPartitionsSmooth::SimpleLaplace(int no_iterations)
 {
   std::cout << no_iterations << " iterations of Simple Laplace Smoother" << std::endl;
   //for loop number of iterations
-  for (size_t iter = 0; iter < no_iterations; ++iter)
+  for (size_t iter = 1; iter <= no_iterations; ++iter)
   {
     std::cout << "iteration " << iter << "/" << no_iterations << std::endl;
 
@@ -75,31 +75,32 @@ bool GroupedPartitionsSmooth::SimpleLaplace(int no_iterations)
       //calculate new position
       //equation from MSc-Thesis "Glättung von Polygonnetzen in medizinischen Visualisierungen - J. Haase, 2005, eq. 2.2"
       std::vector<index_t>* _NNList = mesh.GetNNList(i, &partition, &interface);
-
       int num_neighbors = _NNList->size();
 
       double q[2] {0.0, 0.0};
-
-      for (size_t j = 0; j < num_neighbors; ++j)
+      
+      for (size_t j = 0; j < _NNList->size(); ++j)
       {
         double q_tmp[2];
 
         if (partition >= 0)
         {
           mesh.GetCoords( mesh.local_to_global_index_mappings_partitions[partition].at(_NNList->at(j)), q_tmp);
-         q[0] += q_tmp[0];
-         q[1] += q_tmp[1];
+          
+          q[0] += q_tmp[0];
+          q[1] += q_tmp[1];
         }
 
         else
         {
           mesh.GetCoords( mesh.local_to_global_index_mappings_interfaces[interface].at(_NNList->at(j)), q_tmp); 
+          
           q[0] += q_tmp[0];
           q[1] += q_tmp[1];
         }
       } 
-    
-      double h1 = (1.0 / static_cast<double>(num_neighbors) );
+      
+      double h1 = (1.0 / static_cast<double>(_NNList->size()) );
 
       vertex[0] = h1 * q[0];
       vertex[1] = h1 * q[1];  
@@ -111,7 +112,8 @@ bool GroupedPartitionsSmooth::SimpleLaplace(int no_iterations)
     } //end of for loop over global indices
   } //end of for loop number of iterations
 
-  mesh.WritePartitionsAndInterfaces("OneLaplaceLoop");
+  std::string output = "LaplaceSmoothing_";
+  output += std::to_string(no_iterations);
 
   return true;
 }
