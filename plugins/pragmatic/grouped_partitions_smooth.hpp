@@ -16,6 +16,7 @@ class GroupedPartitionsSmooth
 
     //member functions
     bool SimpleLaplace(int iterations);
+    bool SimpleLaplaceOnGroups(int iterations);
 
   private:
     GroupedPartitions &mesh;
@@ -112,12 +113,66 @@ bool GroupedPartitionsSmooth::SimpleLaplace(int no_iterations)
     } //end of for loop over global indices
   } //end of for loop number of iterations
 
-  std::string output = "LaplaceSmoothing_";
-  output += std::to_string(no_iterations);
-
   return true;
 }
 //end of Simple Laplace Smoother
+
+//GroupedPartitionsSmooth::SimpleLaplaceOnGroups(int iterations)
+bool GroupedPartitionsSmooth::SimpleLaplaceOnGroups(int iterations)
+{
+  //assign partitions and corresponding interface
+  int part1 = 0;
+  int part2 = 1;
+
+  //get boundary vector of current partition
+  int * bdry = mesh.pragmatic_partitions[0]->get_boundaryTags();
+
+  //for loop number of iterations
+  for (size_t iter = 0; iter < iterations; ++iter)
+  {
+    std::cout << "Iteration " << iter+1 << "/" << iterations << std::endl;
+    
+    std::cout << "boundary nodes" << std::endl;
+    for (size_t node = 0; node < mesh.pragmatic_partitions[0]->get_number_nodes(); ++node)
+    {
+      //if vertex is on global mesh boundary do not touch it
+      if ( mesh.boundary_nodes_mesh[mesh.local_to_global_index_mappings_partitions[0].at(node)] || mesh.vertex_apperances[ mesh.local_to_global_index_mappings_partitions[0].at(node) ] >= 2 )
+      {
+        continue;
+      }      
+    }
+
+/*  TODO: idea: iterate over the corresponding local_to_global_index_mappings and update the vertices if necessary in more than 1 pragmatic mesh!    
+    for (auto it : mesh.local_to_global_index_mappings_partitions[part1])  
+    {
+      if (mesh.boundary_nodes_mesh[it.second])
+      {
+        continue;
+      }
+    
+      if (mesh.vertex_appearances[it.second] >= 2)
+      {
+        std::unordered_map<index_t, index_t>::iterator position = mesh.global_to_local_index_mappings_interfaces[0].find(it.second);
+        if ( position != mesh.global_to_local_index_mappings_interfaces[0].end() )
+        {
+          std::cout << it.second << " is in interface 0" << std::endl;
+        }        
+      }
+    }
+
+    for (auto it : mesh.local_to_global_index_mappings_partitions[part2])  
+    {
+      //std::cout << it.second << std::endl;
+    }
+
+    for (auto it : mesh.local_to_global_index_mappings_interfaces[0])  
+    {
+      //std::cout << it.second << std::endl;
+    }
+*/
+  }
+}
+//end of GroupedPartitionsSmooth::SimpleLaplaceOnGroups(int iterations)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                     End                                                                      //

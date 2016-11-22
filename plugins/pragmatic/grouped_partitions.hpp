@@ -11,7 +11,6 @@
 
 //boost includes
 #include <boost/timer/timer.hpp>
-
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                Declaration                                                                   //
 //----------------------------------------------------------------------------------------------------------------------------------------------//
@@ -189,45 +188,6 @@ void GroupedPartitions::CreateMetisPartitioning()
                       &result,
                       epart.data(),
                       npart.data());
-
-  ofstream npart_data;
-  npart_data.open("npart.txt");
-  
-  for (size_t i = 0; i < npart.size(); ++i)
-  {
-    npart_data << i << " " << npart[i] << std::endl;
-  }
-  npart_data.close();
-
-  ofstream epart_data;
-  epart_data.open("epart.txt");
-  
-  for (size_t i = 0; i < epart.size(); ++i)
-  {
-    epart_data << i << " " << epart[i] << std::endl;
-  }
-  epart_data.close();
-
-  ofstream enlist_data;
-  enlist_data.open("enlist.txt");
-  for (size_t i = 0; i < num_elements; ++i)
-  {
-    enlist_data << i << ": " << _ENList[3*i] << " " << _ENList[3*i+1] << " " << _ENList[3*i+2] << std::endl;
-  }
-  enlist_data.close();
-
-  ofstream nnlist_data;
-  nnlist_data.open("nnlist.txt");
-  std::vector<std::vector<index_t>> nnl = mesh->copy_nnlist();
-  for (size_t i = 0; i < num_nodes; ++i)
-  {
-    nnlist_data << i << std::endl;
-    for (auto it : nnl[i])
-    {
-      nnlist_data << " " << it << std::endl;
-    }
-  }
-  nnlist_data.close();
 }
 //end of GroupedPartitions::CreateMetisPartitioning()
 
@@ -250,18 +210,6 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
   } 
   //end of get nodes per partition
 
-  //debugging
-  ofstream output;
-  output.open("debugging.txt");
-  output << "Initial Nodes per Partition" << std::endl;
-  for (size_t i = 0; i < initial_nodes_per_partition.size(); ++i)
-  {
-    output << "Partition " << i << std::endl;
-    for (auto it : initial_nodes_per_partition[i])
-      output << it << std::endl;
-  }
-  //end of debugging
-
   //get the interface nodes for all partition boundaries
   for (size_t i = 0; i < nparts; ++i)     
   {        
@@ -278,25 +226,7 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
   } 
   //end of get the interface nodes for all partition boundaries
 
-  //debugging
-  int counter = 0;
-  output << "Nodes per Interface" << std::endl;
-  for (size_t i = 0; i < interface_sets.size(); ++i)
-  {
-    for (size_t j = 0; j < interface_sets[i].size(); ++j)
-    {
-      output << "Interface " << counter << std::endl;
-      for (size_t k = 0; k < interface_sets[i][j].size(); ++k)
-      {
-        output << interface_sets[i][j][k] << std::endl;
-      }
-      ++counter;
-    }
-  }
-  //end of debugging
-  output << "Erasing interface nodes from partitions" << std::endl;
   //remove interface nodes from initial_nodes_per_partition
-  counter = 0;
   for (auto interface_nodes : interface_sets)
   {
     for (size_t i = 0; i < interface_nodes.size(); ++i)
@@ -305,26 +235,13 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
       {
         for (auto it : interface_nodes[i])
         {
-          output << "erasing vertex " << it << " in partition " << j << std::endl;
           initial_nodes_per_partition[j].erase(it);
         }
       }
     }
   } 
   //end of remove interface nodes from initial_nodes_per_partition
-
-  //debugging
-  output << "Initial nodes per partition after removal of interface nodes" << std::endl;
-  for (size_t i = 0; i < initial_nodes_per_partition.size(); ++i)
-  {
-    output << "Partition " << i << std::endl;
-    for (auto set_it : initial_nodes_per_partition[i])
-    {
-      output << set_it << std::endl;
-    }
-  }
-  //end of debugging
-
+/*
   //get all elements per partition
   //TODO: seems unable to parallelize due to possibla data races with insert()-function 
   //TODO: incorporate into initial_nodes_per_partition loop - already done
@@ -333,7 +250,7 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
     //elements_per_partition[ epart[i] ].insert(i); //incorporated in loop for initial_nodes_per_partition
   }
   //end of get all elements per partition
-
+*/
   //get partition interface elements
   for (size_t i = 0; i < interface_sets.size(); ++i)
   {
@@ -358,23 +275,6 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
   }
   //end of get partition interface elements
 
-  //debugging
-  output << "Interface Elements" << std::endl;
-  counter = 0;
-  for (size_t i = 0; i < interface_elements_sets.size(); ++i)
-  {
-    for (size_t j = 0; j < interface_elements_sets[i].size(); ++j)
-    {
-      output << "interface " << counter << " elements" << std::endl;
-      for (auto set_it : interface_elements_sets[i][j])
-      {
-        output << set_it << std::endl;
-      }
-      ++counter;
-    }
-  }
-  //end of debugging
-
   //add the vertices of the partition interface elements to interface_sets
   //TODO: this seems to be overload, since a set in interface_sets storing the interface nodes is already available
   for (size_t i = 0; i < interface_elements_sets.size(); ++i)
@@ -394,36 +294,6 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
   }
   //end of add the vertices of the partition interface elements to interface_sets
 
-  //debugging
-  output << "Interface nodes" << std::endl;
-  counter = 0;
-  for (size_t i = 0; i < interface_nodes.size(); ++i)
-  {
-    for (size_t j = 0; j < interface_nodes[i].size(); ++j)
-    {
-      output << "Interface " << counter << std::endl;
-      for (auto set_it : interface_nodes[i][j])
-      {
-        output << set_it << std::endl;
-      }
-      ++counter;
-    }
-  }
-  //end of debugging
-
-  //debugging
-  output << "Elements per partition before removal of interface elements" << std::endl;
-  for (size_t i = 0; i < elements_per_partition.size(); ++i)
-  {
-    output << "Partition " << i << " contains " << elements_per_partition[i].size() << " elements" << std::endl;
-    for (auto set_it : elements_per_partition[i])
-    {
-      output << set_it << std::endl;
-      output << " " << _ENList[3*set_it] << " " << _ENList[3*set_it+1] << " " << _ENList[3*set_it+2] << std::endl;
-    }
-  }
-  //end of debugging
-
   //remove partition interface elements from the actual partitions
   for (auto interface_elements : interface_elements_sets)
   {
@@ -440,7 +310,7 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
   } 
   //end of remove partition interface elements from the actual partitions
 
-  //look for dangling vertices
+  //now get vertices from global ENList
   for (size_t i = 0; i < nparts; ++i)
   {
     for (auto element : elements_per_partition[i])
@@ -450,16 +320,7 @@ void GroupedPartitions::CreatePartitionsAndInterfaces()
       nodes_per_partition[i].insert( _ENList[3*element+2]);
     }
   }
-  //end of look for dangling vertices
-  
-  //debugging
-  output.close();
-  //end of debugging
-
-  //get boundary nodes of each partition 
-  //GetPartitionAndInterfaceBoundaries();
-
-  //end of get boundary nodes of each partition
+  //end of get vertices from global ENList
 }
 //end of void GroupedPartitions::CreatePartitionsAndInterfaces()
 
@@ -647,7 +508,7 @@ void GroupedPartitions::CreatePragmaticDataStructures()
       pragmatic_interfaces.push_back(interface_mesh);
     }
   }
-      //end of loop over all interfaces
+  //end of loop over all interfaces
 }
 //end of void GroupedPartitions::CreatePragmaticDataStructures()
 
@@ -784,7 +645,6 @@ void GroupedPartitions::GetCoords(index_t n, double *vertex)
     pragmatic_partitions[i]->get_coords(position->second, vertex);
     found = true;
     break;
-
   }
   //end of seach partitions
 
@@ -924,6 +784,11 @@ std::vector<index_t>* GroupedPartitions::GetNNList(index_t n, int *partitions, i
 //GroupedPartitions::WriteMergedMesh()
 void GroupedPartitions::WriteMergedMesh()
 {
+  std::cout << "Write merged mesh" << std::endl;
+/*
+  //boost timer for collecting benchmark data
+  boost::timer::cpu_timer t;
+*/
   //create merged ENList
   //TODO: Update for 3D case (then num_elements has to be multiplied with 4)
   std::vector<index_t> merged_ENList(num_elements*3);
@@ -1060,6 +925,16 @@ void GroupedPartitions::WriteMergedMesh()
   
   //close ofstream object
   writer.close();
+/*
+  boost::timer::cpu_times timer = t.elapsed();
+
+  //runtime benchmark
+  ofstream runtime;
+  runtime.open("mesh_merging_runtime.txt");
+  runtime << "    wall    user    system" << std::endl; 
+  runtime << std::fixed << std::setprecision(6) << static_cast<double>(timer.wall) / 1000000000.0 << " " << static_cast<double>(timer.user) / 1000000000.0 << " " << static_cast<double>(timer.system) / 1000000000.0 << std::endl;
+  runtime.close();
+*/
 }
 //end of GroupedPartitions::WriteMergedMesh()
 

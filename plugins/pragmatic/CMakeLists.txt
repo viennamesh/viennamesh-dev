@@ -14,6 +14,10 @@ else()
   message(STATUS "METIS not found")
 endif()
 
+#find boost packages
+find_package(Boost COMPONENTS REQUIRED timer)
+#include_directories( ${Boost_INCLUDE_DIRS} )
+
 #Add plugin to ViennaMesh
 VIENNAMESH_ADD_PLUGIN(viennamesh-module-pragmatic 	plugin.cpp
 							pragmatic_coarsen.cpp
@@ -25,6 +29,8 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-pragmatic 	plugin.cpp
 if (METIS_FOUND)
   target_link_libraries(viennamesh-module-pragmatic ${METIS_LIBRARIES})
 endif()
+
+target_link_libraries(viennamesh-module-pragmatic ${Boost_LIBRARIES})
 
 set(VTK_DIR "/home/lgnam/Desktop/software/VTK-build")
 find_package(VTK REQUIRED)

@@ -78,8 +78,8 @@ namespace viennamesh
       GroupedPartitions Mesh1(mesh, region_count());
 
       GroupedPartitionsSmooth Smoother1(Mesh1);
-      Smoother1.SimpleLaplace(2);
-
+      //Smoother1.SimpleLaplace(2);
+      Smoother1.SimpleLaplaceOnGroups(1);
       Mesh1.WriteMergedMesh();
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//

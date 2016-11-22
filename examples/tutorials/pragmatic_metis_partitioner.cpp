@@ -70,12 +70,12 @@ int main(int argc, char **argv)
   mesh_partitioner.set_input("region_count", region_count);
   mesh_partitioner.set_input("multi_mesh_output", false);
   mesh_partitioner.run();
-	/*
+/*	
 	//Write mesh
 	viennamesh::algorithm_handle write_merged_mesh = context.make_algorithm("mesh_writer");
 	write_merged_mesh.set_default_source(mesh_partitioner);
 	write_merged_mesh.set_input("filename", "/home/lgnam/Desktop/software/ViennaMesh/viennamesh-dev/build/examples/data/pragmatic_metis_partitioning/parpartmesh.vtu");
 	write_merged_mesh.run();
-  */
+*/  
   return 0;
 }
