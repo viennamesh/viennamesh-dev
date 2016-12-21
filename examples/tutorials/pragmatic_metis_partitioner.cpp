@@ -67,6 +67,7 @@ int main(int argc, char **argv)
   //create partitions on the pragmatic data structure
   viennamesh::algorithm_handle mesh_partitioner = context.make_algorithm("pragmatic_metis_partitioner");
   mesh_partitioner.set_default_source(mesh_reader);
+  mesh_partitioner.set_input("filename", filename.c_str());
   mesh_partitioner.set_input("region_count", region_count);
   mesh_partitioner.set_input("multi_mesh_output", false);
   mesh_partitioner.run();
@@ -77,5 +78,6 @@ int main(int argc, char **argv)
 	write_merged_mesh.set_input("filename", "/home/lgnam/Desktop/software/ViennaMesh/viennamesh-dev/build/examples/data/pragmatic_metis_partitioning/parpartmesh.vtu");
 	write_merged_mesh.run();
 */  
+
   return 0;
 }
