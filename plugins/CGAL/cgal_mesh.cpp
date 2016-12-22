@@ -19,7 +19,6 @@
 
 namespace viennamesh
 {
-
     //ViennaGrid typedefs
     typedef viennagrid::mesh                                                        MeshType;
 
@@ -101,7 +100,6 @@ namespace viennamesh
                     tmp_facet[0] = *it;
                     tmp_facet[1] = *(it+2);
                     tmp_facet[2] = *(it+1);
-
 
                     if(Builder.test_facet(tmp_facet, tmp_facet + 3) == false) //test again
                     {
@@ -412,5 +410,4 @@ namespace viennamesh
         viennagrid::mesh output_pp(output);
         return convert( input, output_pp );
     }
-
 }

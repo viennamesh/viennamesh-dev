@@ -22,6 +22,7 @@ target_link_libraries(symmetry_2d viennameshpp)
 add_executable(symmetry_3d symmetry_3d.cpp)
 target_link_libraries(symmetry_3d viennameshpp)
 
+<<<<<<< HEAD
 add_executable(cgal_mesh_simplification cgal_mesh_simplification)
 target_link_libraries(cgal_mesh_simplification viennameshpp)
 
@@ -33,3 +34,24 @@ add_executable(mesh_statistics mesh_statistics)
 target_link_libraries(mesh_statistics viennameshpp)
 
 
+=======
+add_executable(pragmatic_refiner pragmatic_refiner.cpp)
+target_link_libraries(pragmatic_refiner viennameshpp)
+target_link_libraries(pragmatic_refiner ${VTK_LIBRARIES})
+
+add_executable(pragmatic_smoother pragmatic_smoother.cpp)
+target_link_libraries(pragmatic_smoother viennameshpp)
+target_link_libraries(pragmatic_smoother ${VTK_LIBRARIES})
+
+add_executable(pragmatic_swapper pragmatic_swapper.cpp)
+target_link_libraries(pragmatic_swapper viennameshpp)
+target_link_libraries(pragmatic_swapper ${VTK_LIBRARIES})
+
+add_executable(pragmatic_metis_partitioner pragmatic_metis_partitioner.cpp)
+target_link_libraries(pragmatic_metis_partitioner viennameshpp)
+target_link_libraries(pragmatic_metis_partitioner ${VTK_LIBRARIES})
+
+add_executable(pragmatic_refine_multi_region_mesh pragmatic_refine_multi_region_mesh.cpp)
+target_link_libraries(pragmatic_refine_multi_region_mesh viennameshpp)
+target_link_libraries(pragmatic_refine_multi_region_mesh ${VTK_LIBRARIES})
+>>>>>>> lgnam/pragmatic-refine-multi-region

@@ -89,3 +89,8 @@ option(ENABLE_PLUGIN_POISSON "Enable poisson plugin" OFF)
 if (ENABLE_PLUGIN_POISSON)
   add_subdirectory(poisson)
 endif()
+
+option(ENABLE_PLUGIN_PRAGMATIC "Enable pragmatic plugin" ON)
+if (ENABLE_PLUGIN_PRAGMATIC)
+  add_subdirectory(pragmatic)
+endif()
