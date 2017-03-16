@@ -6,9 +6,14 @@ endif()
 
 find_package( VTK QUIET COMPONENTS  )
 if ( NOT VTK_FOUND )
-  message(STATUS "This project requires the VTK 7.0 library.")
-  return()
+  message(FATAL_ERROR "No VTK Version found")
+elseif(VTK_MAJOR_VERSION LESS 7)
+  message(STATUS "Found VTK Version ${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
+  message(FATAL_ERROR "This project requires VTK 7.0 or higher")
+else()
+  message(STATUS "Found VTK Version ${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}")
 endif()
+
 include( ${VTK_USE_FILE} )
 
 VIENNAMESH_ADD_PLUGIN( viennamesh-module-vtk
