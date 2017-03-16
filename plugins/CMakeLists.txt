@@ -59,7 +59,6 @@ if (ENABLE_PLUGIN_MESH_HEALING)
   add_subdirectory(mesh_healing)
 endif()
 
-
 option(ENABLE_PLUGIN_METIS "Enable metis plugin" ON)
 if (ENABLE_PLUGIN_METIS)
   add_subdirectory(metis)
@@ -94,3 +93,9 @@ option(ENABLE_PLUGIN_VTK "Enable VTK mesh coarsening plugin" ON)
 if (ENABLE_PLUGIN_VTK)
   add_subdirectory(VTK)
 endif()
+
+option(ENABLE_PLUGIN_PRAGMATIC "Enable pragmatic plugin" ON)
+if (ENABLE_PLUGIN_PRAGMATIC)
+  add_subdirectory(pragmatic)
+endif()
+
