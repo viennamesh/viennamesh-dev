@@ -89,3 +89,8 @@ option(ENABLE_PLUGIN_POISSON "Enable poisson plugin" OFF)
 if (ENABLE_PLUGIN_POISSON)
   add_subdirectory(poisson)
 endif()
+
+option(ENABLE_PLUGIN_VTK "Enable VTK mesh coarsening plugin" ON)
+if (ENABLE_PLUGIN_VTK)
+  add_subdirectory(VTK)
+endif()
