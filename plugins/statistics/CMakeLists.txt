@@ -1,5 +1,5 @@
 
-#libigl include path
+#libigl & Eigen include path
 include_directories(external/)
 
 VIENNAMESH_ADD_PLUGIN(viennamesh-module-statistics plugin.cpp

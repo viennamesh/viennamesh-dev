@@ -60,6 +60,7 @@ add_subdirectory(src)
 add_subdirectory(plugins)
 add_subdirectory(tools)
 
+option(BUILD_EXAMPLES "Build Examples" ON)
 if(BUILD_EXAMPLES)
    add_subdirectory(examples)
 endif()
