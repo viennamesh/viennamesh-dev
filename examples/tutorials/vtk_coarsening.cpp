@@ -9,7 +9,7 @@ int main()
      */
 
     viennamesh::algorithm_handle mesh_reader = context.make_algorithm("mesh_reader");
-    mesh_reader.set_input( "filename", "./examples/data/elephant.vtu");
+    mesh_reader.set_input( "filename", "examples/data/elephant.vtu");
     mesh_reader.run();
 
     /*
