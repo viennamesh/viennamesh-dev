@@ -23,7 +23,6 @@
 #include "grouped_partitions.hpp"
 #include "grouped_partitions_smooth.hpp"
 
-#include <gperftools/profiler.h>
 
 //
 // Define the necessary types:
