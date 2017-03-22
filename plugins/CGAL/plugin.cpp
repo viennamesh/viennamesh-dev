@@ -5,7 +5,6 @@
 
 viennamesh_error viennamesh_plugin_init(viennamesh_context context)
 {
-<<<<<<< HEAD
   viennamesh::register_data_type<viennamesh::cgal::polyhedron_surface_mesh>(context); //CGAL's triangulated surface mesh data type
 
   viennamesh::register_conversion<viennagrid_mesh, viennamesh::cgal::polyhedron_surface_mesh>(context); //viennagrid datastructure (DS) --> CGAL DS

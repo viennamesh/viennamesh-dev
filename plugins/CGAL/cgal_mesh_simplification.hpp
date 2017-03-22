@@ -18,7 +18,6 @@
 
 namespace viennamesh
 {
-<<<<<<< HEAD
     namespace cgal
     {
         class cgal_mesh_simplification : public plugin_algorithm
