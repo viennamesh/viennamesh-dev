@@ -32,7 +32,6 @@ endif()
 
 target_link_libraries(viennamesh-module-pragmatic ${Boost_LIBRARIES})
 
-set(VTK_DIR "/home/lgnam/Desktop/software/VTK-build")
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 target_link_libraries(viennamesh-module-pragmatic ${VTK_LIBRARIES})
