@@ -22,4 +22,6 @@ endif()
 VIENNAMESH_ADD_PLUGIN(cgal_module
  		      plugin.cpp
  		      cgal_mesh.cpp
+              	      cgal_mesh_simplification.cpp
+		      cgal_automatic_mesh_simplification.cpp
                       cgal_mesh_simplification.cpp )

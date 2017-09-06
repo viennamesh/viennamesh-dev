@@ -2,7 +2,7 @@
 #define VIENNAMESH_ALGORITHM_CGAL_MESH_SIMPLIFICATION_HPP
 
 /* ============================================================================
-   Copyright (c) 2011-2014, Institute for Microelectronics,
+   Copyright (c) 2011-2016, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
 
@@ -18,18 +18,17 @@
 
 namespace viennamesh
 {
-  namespace cgal
-  {
-    class cgal_mesh_simplification : public plugin_algorithm
+    namespace cgal
     {
-    public:
-      cgal_mesh_simplification();
+        class cgal_mesh_simplification : public plugin_algorithm
+        {
+        public:
+            cgal_mesh_simplification();
 
-      static std::string name();
-      bool run(viennamesh::algorithm_handle &);
-    };
-  }
-
+            static std::string name();
+            bool run(viennamesh::algorithm_handle &);
+        };
+    }
 }
 
 
