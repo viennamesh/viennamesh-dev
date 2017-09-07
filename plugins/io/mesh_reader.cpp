@@ -25,6 +25,10 @@
 #include "viennagrid/io/gts_deva_reader.hpp"
 #include "viennagrid/io/dfise_grd_dat_reader.hpp"
 
+#include <vtkXMLPolyDataReader.h>
+#include <vtkSmartPointer.h>
+#include <vtkIdList.h>
+#include <vtkPolyData.h>
 
 
 #include "viennameshpp/core.hpp"
@@ -139,6 +143,63 @@ namespace viennamesh
         success = true;
         break;
       }
+
+    case VTP:
+      {
+        info(5) << "Found .vtp extension" << std::endl;
+
+        //ViennaGrid typedefs
+        typedef viennagrid::mesh                                                        MeshType;
+        typedef viennagrid::result_of::element<MeshType>::type                          VertexType;
+
+        //read vtp file
+        auto reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
+        reader->SetFileName(filename.c_str());
+        reader->Update();
+
+        auto polydata = reader->GetOutput();
+
+        //get basic mesh information
+        int num_points = polydata->GetNumberOfPoints();
+        int num_elements = polydata->GetNumberOfCells();
+
+        //create empty vector of size NNodes containing viennagrid vertices
+        std::vector<VertexType> vertex_handles(num_points);
+
+        //iterating all pragmatic vertices and store their coordinates in the viennagrid vertices
+        for(size_t i = 0; i < num_points; ++i)
+        {
+          double coords[3];
+          polydata->GetPoint(i, coords);
+
+          vertex_handles[i] = viennagrid::make_vertex( output_mesh(), viennagrid::make_point(coords[0], coords[1], coords[2]));
+        } //end of for loop iterating all pragmatic vertices 
+
+        //iterating all pragmatic elements and createg their corresponding viennagrid triangles
+        for (size_t i = 0; i < num_elements; ++i)
+        {
+          auto celltype = polydata->GetCellType(i);
+
+          if (celltype == 5)
+          {
+
+            auto idlist = vtkSmartPointer<vtkIdList>::New();
+            polydata->GetCellPoints(i, idlist);
+
+            viennagrid::make_triangle( output_mesh(), vertex_handles[ idlist->GetId(0) ], vertex_handles[ idlist->GetId(1) ], vertex_handles[ idlist->GetId(2) ]);
+          }
+
+          else
+          {
+            error(1) << "Found something else than a triangle!" << std::endl;
+          }
+        } //end of iterating all pragmatic elements
+
+      
+        //*/
+        success = true;
+        break;        
+      }
     case GRD:
       {
         try
@@ -212,6 +273,7 @@ namespace viennamesh
       ft = lexical_cast<FileType>( filetype() );
     else
       ft = from_filename( filename() );
+
     info(1) << "Using file type " << lexical_cast<std::string>(ft) << std::endl;
 
     std::string path = base_path();

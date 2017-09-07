@@ -23,6 +23,14 @@ namespace viennamesh
       mesh.numberofsegments = num_segments;
     }
 
+    //MY IMPL
+    void init_triangles(triangulateio & mesh, int num_triangles)
+    {
+      if (mesh.trianglelist) free(mesh.trianglelist);
+      mesh.trianglelist = (int*)malloc( sizeof(int) * 3 * num_triangles );
+      mesh.numberoftriangles = num_triangles;
+    }
+    //END OF MYIMPL
 
   }
 
@@ -38,6 +46,11 @@ namespace viennamesh
 
     typedef viennagrid::result_of::const_element_range<MeshType,1>::type  ConstLineRangeType;
     typedef viennagrid::result_of::iterator<ConstLineRangeType>::type     ConstCellIteratorType;
+
+    //MY IMPL
+    typedef viennagrid::result_of::const_element_range<MeshType,2>::type  ConstTriangleRangeType;
+    typedef viennagrid::result_of::iterator<ConstTriangleRangeType>::type ConstTriangleIteratorType;
+    //END OF MY IMPL
 
     std::map<ConstVertexType, int> vertex_handle_to_tetgen_index_map;
 
@@ -63,6 +76,19 @@ namespace viennamesh
       output.segmentlist[2*index+0] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lit)[0] ];
       output.segmentlist[2*index+1] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*lit)[1] ];
     }
+
+    //MY IMPL
+    ConstTriangleRangeType triangles(input);
+    viennamesh::triangle::init_triangles( output, triangles.size() );
+
+    index = 0;
+    for (ConstTriangleIteratorType tit = triangles.begin(); tit != triangles.end(); ++tit, ++index)
+    {
+      output.trianglelist[3*index+0] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*tit)[0] ];
+      output.trianglelist[3*index+1] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*tit)[1] ];
+      output.trianglelist[3*index+2] = vertex_handle_to_tetgen_index_map[ viennagrid::vertices(*tit)[2] ];
+    }
+    //END OF MYIMPL
 
     return VIENNAMESH_SUCCESS;
   }

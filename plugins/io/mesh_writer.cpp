@@ -21,6 +21,14 @@
 
 #include "viennameshpp/core.hpp"
 
+#include <sstream>
+
+#include <vtkSmartPointer.h>
+#include <vtkXMLPolyDataWriter.h>
+#include <vtkPolyData.h>
+#include <vtkDoubleArray.h>
+#include <vtkTriangle.h>
+
 namespace viennamesh
 {
   mesh_writer::mesh_writer() {}
@@ -37,9 +45,22 @@ namespace viennamesh
 
     if (input_mesh.size() != 1 && quantity_field.valid())
       warning(1) << "Input mesh count is " << lexical_cast<std::string>(input_mesh.size()) << " and quantity fields found -> ignoring quantity fields" << std::endl;
-
+/*
     info(1) << "Number of vertices of mesh to write " << viennagrid::vertices(input_mesh()).size() << std::endl;
     info(1) << "Number of cells of mesh to write " << viennagrid::cells(input_mesh()).size() << std::endl;
+*/
+    int vertices = 0;
+    int elements = 0;
+
+    for (size_t i = 0; i < input_mesh.size(); ++i)
+    {
+      vertices += viennagrid::vertices(input_mesh(i)).size();
+      elements += viennagrid::cells(input_mesh(i)).size();
+    }
+
+    viennamesh::info(1) << "Number of Meshes  : " << input_mesh.size() << std::endl;
+    viennamesh::info(1) << "Number of Vertices: " << vertices << std::endl;
+    viennamesh::info(1) << "Number of Elements: " << elements << std::endl;
 
     if (!filename.valid())
       VIENNAMESH_ERROR(VIENNAMESH_ERROR_ALGORITHM_RUN_FAILED, "Input parameter \"filename\" not found");
@@ -141,6 +162,97 @@ namespace viennamesh
 
           viennagrid::io::mphtxt_writer writer;
           writer( mesh, local_filename );
+          break;
+        }
+
+        case VTP:
+        {
+          std::ostringstream ostr;
+
+          ostr << local_filename;
+
+          auto polydata = vtkSmartPointer<vtkPolyData>::New();
+          auto points = vtkSmartPointer<vtkPoints>::New();
+          auto cells = vtkSmartPointer<vtkCellArray>::New();
+          auto data = vtkSmartPointer<vtkDoubleArray>::New();
+          data->SetNumberOfComponents(1);
+
+          size_t NNodes = viennagrid::vertex_count(mesh);
+          size_t NElements = viennagrid::cells(mesh).size();
+          size_t cell_dimension = viennagrid::cell_dimension(mesh);
+          size_t geometric_dimension = viennagrid::geometric_dimension(mesh);
+          
+          //Initialize x-, y-, and, z-coordinates
+          //
+          //create pointer to iterate over viennagrid_array
+          viennagrid_numeric* ptr_coords = nullptr;
+
+          //get pointer to coordinates array from the mesh
+          viennagrid_mesh_vertex_coords_pointer(mesh.internal(), &ptr_coords);
+
+          for (size_t i = 0; i < NNodes; ++i)
+          {
+            if (geometric_dimension == 2)
+            {
+              double xyz[3] = {*(ptr_coords++), *(ptr_coords++), 0.0};
+              points->InsertNextPoint(xyz);
+            }
+
+            else
+            {
+              double xyz[3] = {*(ptr_coords++), *(ptr_coords++), *(ptr_coords++)};
+              points->InsertNextPoint(xyz);
+            }
+          }
+
+          int triIdx = 0;
+
+          //Iterate over all triangles in the mesh
+          viennagrid_element_id * element_ids_begin;
+          viennagrid_element_id * element_ids_end;
+          viennagrid_dimension topological_dimension = geometric_dimension;		//produces segmentation fault if not set to 2 for 2d and to 3 for 3d case
+
+          //get elements from mesh
+          viennagrid_mesh_elements_get(mesh.internal(), topological_dimension, &element_ids_begin, &element_ids_end);
+
+          viennagrid_element_id * boundary_vertex_ids_begin;
+          viennagrid_element_id * boundary_vertex_ids_end;
+          viennagrid_dimension boundary_topological_dimension = 0;
+          viennagrid_element_id triangle_id;
+
+          //outer for loop iterates over all elements with dimension = topological_dimension (2 for triangles, 3 for tetrahedrons)
+          //inner for loop iterates over all elements with dimension = boundary_topological_dimension (0 for vertices)
+          for (viennagrid_element_id * vit = element_ids_begin; vit != element_ids_end; ++vit)
+          {
+            //get vertices of triangle
+            triangle_id = *vit;
+            viennagrid_element_boundary_elements(mesh.internal(), triangle_id, boundary_topological_dimension, &boundary_vertex_ids_begin, &boundary_vertex_ids_end);
+
+            auto tmptriangle = vtkSmartPointer<vtkTriangle>::New();
+
+            int vid = 0;
+            for (viennagrid_element_id * bit = boundary_vertex_ids_begin; bit != boundary_vertex_ids_end; ++bit)
+            {
+                viennagrid_element_id vertex_id = *bit;
+
+                tmptriangle->GetPointIds()->SetId(vid, *bit);
+
+                ++vid;
+            }
+
+            cells->InsertNextCell(tmptriangle);
+          }
+
+          polydata->SetPoints(points);
+          polydata->SetPolys(cells);
+
+          auto writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+          writer->SetFileName(ostr.str().c_str());
+          writer->SetInputData(polydata);
+          // writer->SetDataModeToAscii();
+          writer->SetDataModeToBinary();
+          writer->Write();
+
           break;
         }
 

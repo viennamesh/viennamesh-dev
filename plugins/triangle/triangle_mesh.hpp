@@ -32,6 +32,7 @@ namespace viennamesh
   {
     void init_points(triangulateio & mesh, int num_points);
     void init_segments(triangulateio & mesh, int num_segments);
+    void init_triangles(triangulateio & mesh, int num_triangles);
   }
 
 
@@ -42,8 +43,6 @@ namespace viennamesh
 
 
 
-
-
   viennamesh_error convert(viennagrid::mesh const & input, triangulateio & output);
   viennamesh_error convert(triangulateio const & input, viennagrid::mesh & output);
 
@@ -51,7 +50,6 @@ namespace viennamesh
   viennamesh_error internal_convert<viennagrid_mesh, triangle_mesh>(viennagrid_mesh const & input, triangle_mesh & output);
   template<>
   viennamesh_error internal_convert<triangle_mesh, viennagrid_mesh>(triangle_mesh const & input, viennagrid_mesh & output);
-
 
 
   namespace result_of
