@@ -102,6 +102,8 @@ namespace viennamesh
 			csv_name+= input_file().substr(found+1, find_vtu-found-1);
 			csv_name+=".csv";
 
+			csv.open(csv_name.c_str());
+
 			//csv << "File, Threads, Vertices, Elements, Desired Partitions, Created Partitions, Colors, Metis [s], Adjacency Info [s], 
 			//Coloring [s], Parallel DSs [s], Prep [s], Nodes [s], g2l [s], l2g [s], Coords [s], ENList [s], new Mesh [s], Boundary [s], Metric [s],
 			// Update Metric [s], Interface Check [s],  Refine [s], Create Refine [s], R-Vertices, R-Elements, Total [s], Thread Times in Color Loop [s]" << std::endl;
