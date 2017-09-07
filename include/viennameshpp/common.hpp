@@ -7,13 +7,15 @@
 #include "viennamesh/cpp_error.hpp"
 
 #include <string>
-
+#include "viennameshpp/get_type.h"
 
 namespace viennamesh
 {
   template<typename T>
   viennamesh_error generic_make(viennamesh_data * data)
   {
+    /*std::cout << "\ngeneric_make ";
+    std::cout << type_name<T>() << std::endl;*/
     T * tmp = new T;
     *data = tmp;
     return VIENNAMESH_SUCCESS;
@@ -22,6 +24,8 @@ namespace viennamesh
   template<typename T>
   viennamesh_error generic_delete(viennamesh_data data)
   {
+    /*std::cout << "\ngeneric_delete ";
+    std::cout << type_name<T>() << std::endl;*/
     delete (T*)data;
     return VIENNAMESH_SUCCESS;
   }
@@ -45,6 +49,8 @@ namespace viennamesh
   template<typename FromT, typename ToT>
   viennamesh_error generic_convert(viennamesh_data from_, viennamesh_data to_)
   {
+    /*std::cout << "\ngeneric convert ";
+    std::cout << type_name<FromT> << " to " << type_name<ToT> << std::endl;*/
     return internal_convert(*static_cast<FromT const *>(from_), *static_cast<ToT*>(to_));
   }
 
@@ -75,16 +81,22 @@ namespace viennamesh
   template<typename DataT, typename MakeFunctionT>
   viennamesh_error make_viennamesh_data(viennamesh_data * data, MakeFunctionT make_function_)
   {
+    /*std::cout << "make_viennamesh_data ";
+    std::cout << type_name<DataT> << " " << type_name<MakeFunctionT> << std::endl;*/
+    
     DataT * internal_data = new DataT;
     make_function_(internal_data);
     *data = internal_data;
-
+    
     return VIENNAMESH_SUCCESS;
   }
 
   template<typename DataT, typename MakeFunctionT>
   viennamesh_error delete_viennamesh_data(viennamesh_data data, MakeFunctionT free_function_)
   {
+    /*std::cout << "\ndelete_viennamesh_data ";
+    std::cout << type_name<DataT> << " " << type_name<MakeFunctionT> << std::endl;*/
+    
     DataT * internal_data = (DataT*)data;
     free_function_(*internal_data);
     delete internal_data;

@@ -8,7 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 if (VIENNA_BUILD_IS_MAIN_PROJECT)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
-  option(ENABLE_PEDANTIC_FLAGS "Enable pedantic compiler flags" ON)
+  option(ENABLE_PEDANTIC_FLAGS "Enable pedantic compiler flags" OFF)
   if(ENABLE_PEDANTIC_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")
@@ -19,6 +19,12 @@ if (VIENNA_BUILD_IS_MAIN_PROJECT)
   message( STATUS "C FLAGS = ${CMAKE_C_FLAGS}" )
   message( STATUS "RELEASE FLAGS = ${CMAKE_CXX_FLAGS_RELEASE}" )
   message( STATUS "DEBUG FLAGS = ${CMAKE_CXX_FLAGS_DEBUG}" )
+
+  # the compiler used for C files 
+  MESSAGE( STATUS "CMAKE_C_COMPILER: " ${CMAKE_C_COMPILER} )
+
+  # the compiler used for C++ files 
+  MESSAGE( STATUS "CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER} )
 endif ()
 
 set(VIENNAMESH_LIBRARIES ${VIENNAMESH_LIBRARIES} dl)
@@ -36,18 +42,6 @@ message(STATUS "ViennaMesh plugin directories: ${VIENNAMESH_PLUGIN_DIRECTORIES}"
 add_definitions( "-DVIENNAMESH_DEFAULT_PLUGIN_DIRECTORY=\"${VIENNAMESH_PLUGIN_DIRECTORIES}\"" )
 
 include_directories(include)
-add_compile_options(-std=c++11)
-
-#Set flag if OpenMP has been found on the system or output an error if not, since it is required for the use of pragmatic
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    add_definitions(-DHAVE_OPENMP)
-    message(STATUS "Found OPENMP")
-    message(STATUS "${CMAKE_C_FLAGS}")
-    message(STATUS "${CMAKE_CXX_FLAGS}")
-endif()
 
 add_subdirectory(external)
 include_directories(${VIENNAMESH_EXTERNAL_INCLUDE_DIRECTORIES})

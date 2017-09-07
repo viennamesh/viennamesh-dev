@@ -76,7 +76,12 @@ namespace viennamesh
 
     if ( extension_found(filename, "grd") )
       return GRD;
-
+    
+    if ( extension_found(filename, "vtp") )
+    {
+      std::cout << "returning vtp" << std::endl;
+      return VTP;
+    }
     return UNKNOWN;
   }
 
@@ -128,6 +133,8 @@ namespace viennamesh
       file_type = STL_BINARY;
     else if (str == "GRD")
       file_type = GRD;
+    else if (str == "VTP")
+      file_type = VTP;
     else
       file_type = UNKNOWN;
 
@@ -191,6 +198,9 @@ namespace viennamesh
         break;
       case GRD:
         stream << "GRD";
+        break;
+      case VTP:
+        stream << "VTP";
         break;
       default:
         stream << "UNKNOWN";

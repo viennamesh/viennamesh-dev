@@ -509,6 +509,11 @@ namespace viennamesh
     data_handle<viennagrid_plc> tmp = make_data<viennagrid_plc>();
     data_handle<viennagrid_plc> output_plc = make_data<viennagrid_plc>();
 
+    //MY IMPLEMENTATIOn
+    output_plc.resize(input_mesh.size());
+    tmp.resize(input_mesh.size());
+    std::cerr << "Extract PLC of " << input_mesh.size() << " Partitions" << std::endl;
+    //END OF MY IMPLEMENTATION
 
     typedef same_segments_functor Functor1Type;
     typedef same_orientation_functor<double> Functor2Type;
@@ -517,39 +522,44 @@ namespace viennamesh
     Functor2Type f2(coplanar_tolerance);
     same_cell_combine_functor< Functor1Type, Functor2Type > functor(f1, f2);
 
-    extract_plcs(input_mesh(), tmp(), functor);
-    coarsen_plc_mesh(tmp(), output_plc(), colinear_tolerance);
-
-    viennagrid_dimension geo_dim;
-    viennagrid_plc_geometric_dimension_get(output_plc(), &geo_dim);
-
-    if (input_hole_points.valid())
+    //MY IMPLEMENTATION
+    for (size_t i = 0; i < input_mesh.size(); ++i)
     {
-      point_container hole_points = input_hole_points.get_vector();
-      for (std::size_t i = 0; i != hole_points.size(); ++i)
+
+      extract_plcs(input_mesh(i), tmp(i), functor);
+      coarsen_plc_mesh(tmp(i), output_plc(i), colinear_tolerance);
+
+      viennagrid_dimension geo_dim;
+      viennagrid_plc_geometric_dimension_get(output_plc(i), &geo_dim);
+
+      if (input_hole_points.valid())
       {
-        if (static_cast<viennagrid_dimension>(hole_points[i].size()) == geo_dim)
+        point_container hole_points = input_hole_points.get_vector();
+        for (std::size_t i = 0; i != hole_points.size(); ++i)
         {
-          viennagrid_plc_volumetric_hole_point_add(output_plc(), &hole_points[i][0]);
+          if (static_cast<viennagrid_dimension>(hole_points[i].size()) == geo_dim)
+          {
+            viennagrid_plc_volumetric_hole_point_add(output_plc(i), &hole_points[i][0]);
+          }
         }
       }
-    }
 
-    if (input_seed_points.valid())
-    {
-      seed_point_container seed_points = input_seed_points.get_vector();
-      for (std::size_t i = 0; i != seed_points.size(); ++i)
+      if (input_seed_points.valid())
       {
-        if (static_cast<viennagrid_dimension>(seed_points[i].first.size()) == geo_dim)
+        seed_point_container seed_points = input_seed_points.get_vector();
+        for (std::size_t i = 0; i != seed_points.size(); ++i)
         {
-          viennagrid_plc_seed_point_add(output_plc(), &seed_points[i].first[0], seed_points[i].second);
+          if (static_cast<viennagrid_dimension>(seed_points[i].first.size()) == geo_dim)
+          {
+            viennagrid_plc_seed_point_add(output_plc(i), &seed_points[i].first[0], seed_points[i].second);
+          }
         }
       }
-    }
 
-    viennagrid_int facet_count;
-    viennagrid_plc_element_count(output_plc(), 2, &facet_count);
-    info(1) << "Extracted " << facet_count << " PLC facets" << std::endl;
+      viennagrid_int facet_count;
+      viennagrid_plc_element_count(output_plc(i), 2, &facet_count);
+      info(1) << "Extracted " << facet_count << " PLC facets" << std::endl;
+    } //end of for loop over input_mesh.size()
 
     set_output("geometry", output_plc);
     return true;
