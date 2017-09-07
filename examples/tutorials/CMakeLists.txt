@@ -34,26 +34,6 @@ target_link_libraries(mesh_statistics viennameshpp)
 add_executable(vtk_coarsening vtk_coarsening.cpp)
 target_link_libraries(vtk_coarsening viennameshpp)
 
-add_executable(pragmatic_refiner pragmatic_refiner.cpp)
-target_link_libraries(pragmatic_refiner viennameshpp)
-target_link_libraries(pragmatic_refiner ${VTK_LIBRARIES})
-
-add_executable(pragmatic_smoother pragmatic_smoother.cpp)
-target_link_libraries(pragmatic_smoother viennameshpp)
-target_link_libraries(pragmatic_smoother ${VTK_LIBRARIES})
-
-add_executable(pragmatic_swapper pragmatic_swapper.cpp)
-target_link_libraries(pragmatic_swapper viennameshpp)
-target_link_libraries(pragmatic_swapper ${VTK_LIBRARIES})
-
-add_executable(pragmatic_metis_partitioner pragmatic_metis_partitioner.cpp)
-target_link_libraries(pragmatic_metis_partitioner viennameshpp)
-target_link_libraries(pragmatic_metis_partitioner ${VTK_LIBRARIES})
-
-add_executable(pragmatic_refine_multi_region_mesh pragmatic_refine_multi_region_mesh.cpp)
-target_link_libraries(pragmatic_refine_multi_region_mesh viennameshpp)
-target_link_libraries(pragmatic_refine_multi_region_mesh ${VTK_LIBRARIES})
-
 add_executable(color_chess color_chess.cpp)
 target_link_libraries(color_chess viennameshpp)
 
