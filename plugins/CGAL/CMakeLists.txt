@@ -10,6 +10,7 @@ if ( NOT CGAL_FOUND )
   message(STATUS "This project requires the CGAL library, and will not be compiled.")
   return()
 endif()
+
 include( ${CGAL_USE_FILE} )
 
 find_package( Boost REQUIRED )
@@ -18,8 +19,9 @@ if ( NOT Boost_FOUND )
   return()
 endif()
 
-VIENNAMESH_ADD_PLUGIN(viennamesh-module-cgal plugin.cpp
-                      cgal_mesh.cpp
-                      cgal_simplify_mesh.cpp )
-
-target_link_libraries(viennamesh-module-cgal ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} )
+VIENNAMESH_ADD_PLUGIN(cgal_module
+ 		      plugin.cpp
+ 		      cgal_mesh.cpp
+              	      cgal_mesh_simplification.cpp
+		      cgal_automatic_mesh_simplification.cpp
+                      cgal_mesh_simplification.cpp )
