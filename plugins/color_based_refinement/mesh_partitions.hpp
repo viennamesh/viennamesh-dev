@@ -69,7 +69,8 @@ class MeshPartitions
         bool CreatePragmaticDataStructures_par(std::string algorithm, std::vector<double>& threads_log, 
                                                std::vector<double>& heal_log, std::vector<double>& metric_log,
                                                std::vector<double>& call_refine_log, std::vector<double>& refine_log,
-                                               std::vector<double>& mesh_log);
+                                               std::vector<double>& mesh_log, double & for_time, double & prep_time,
+                                               std::vector<double>& nodes_log, std::vector<double>& enlist_log);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
         bool ColorPartitions();                                                               //Color the partitions
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
@@ -380,7 +381,7 @@ bool MeshPartitions::MetisPartitioning()
     METIS_SetDefaultOptions(options);
     options[METIS_OPTION_PTYPE]=METIS_PTYPE_RB;
 */
-   /* METIS_PartMeshDual  (&num_elements,
+    METIS_PartMeshDual  (&num_elements,
                          &num_nodes,
                          eptr.data(),
                          eind.data(),
@@ -414,7 +415,7 @@ bool MeshPartitions::MetisPartitioning()
 
     viennamesh::info(5) << "Created " << num_regions << " mesh partitions using METIS_PartMeshNodal" << std::endl;
                         //*/
-
+/*
     idx_t *xadj=NULL, *adjncy=NULL;//, *nptr=NULL, *nind=NULL;
     idx_t pnumflag=0;
     double * options = mtmetis_init_options();
@@ -435,7 +436,7 @@ bool MeshPartitions::MetisPartitioning()
     epart.resize(num_elements);
 
     unsigned int where[num_elements];
-
+/*
     viennamesh::info(5) << "  Partitioning with MTMETIS_PartGraphKway" << std::endl;
 
     MTMETIS_PartGraphKway(//const_cast<unsigned int*>( (unsigned int*) &ne), 
@@ -897,9 +898,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_ser()
 bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, std::vector<double>& threads_log, 
                                                        std::vector<double>& heal_log, std::vector<double>& metric_log,
                                                        std::vector<double>& call_refine_log, std::vector<double>& refine_log,
-                                                       std::vector<double>& mesh_log)
+                                                       std::vector<double>& mesh_log, double & for_time, double & prep_time,
+                                                       std::vector<double>& nodes_log, std::vector<double>& enlist_log)
 {    
     viennamesh::info(1) << "Starting mesh adaptation" << std::endl;
+    auto prep_tic = omp_get_wtime();
     /*
     threads_log.resize(nthreads);
     refine_times.resize(nthreads);
@@ -920,6 +923,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     metric_log.resize(nthreads);
     call_refine_log.resize(nthreads);
     refine_log.resize(nthreads);
+    nodes_log.resize(nthreads);
+    enlist_log.resize(nthreads);
 
     std::fill(threads_log.begin(), threads_log.end(), 0.0);
     std::fill(mesh_log.begin(), mesh_log.end(), 0.0);
@@ -927,6 +932,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(metric_log.begin(), metric_log.end(), 0.0);
     std::fill(call_refine_log.begin(), call_refine_log.end(), 0.0);
     std::fill(refine_log.begin(), refine_log.end(), 0.0);
+    std::fill(nodes_log.begin(), nodes_log.end(), 0.0);
+    std::fill(enlist_log.begin(), enlist_log.end(), 0.0);
 
     outboxes.resize(num_regions, Outbox());
 /*
@@ -1006,6 +1013,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     times[0] += prep_time.count();
     times[1] += nodes_part_time.count();
 */
+    auto prep_toc = omp_get_wtime();
+    prep_time = prep_toc - prep_tic;
+
+    auto for_tic = omp_get_wtime();
 
     //iterate colors
     for (size_t color = 0; color < colors; color++)
@@ -1080,6 +1091,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             double l2g_time {0.0};
             double g2l_time {0.0};
 */
+            auto nodes_tic = omp_get_wtime();
+
             for (auto it : nodes_per_partition[part_id])
             {
                 if (dim == 2)
@@ -1113,6 +1126,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 l2g_time += l2g_dur.count();
         */        
             } //end of for over nodes_per_partition[part_id]
+
+            auto nodes_toc = omp_get_wtime();
 
            // std::cout << " nodes done" << std::endl;
 /*
@@ -1187,6 +1202,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             //Create ENLists for local partition and the element-index-mappings
   //          auto enlist_tic = std::chrono::system_clock::now();
 
+            auto enlist_tic = omp_get_wtime();
+
             auto ctr = 0;          
 
             std::vector<int>ENList_part;
@@ -1233,7 +1250,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     ENList_part[ctr++] = g2l_vertices_tmp[*(element_ptr++)];
                 }
                 //TODO: Update for 3D case!!!
-            }
+            } //end of for loop iterating elements_part
+
+            auto enlist_toc = omp_get_wtime();
 
             //std::cout << " elements done " << ctr << " " << num_elements_part << " " << num_elements_part*4 << std::endl;
 
@@ -1822,7 +1841,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
  
             //double int_check_time {0.0};
             //double triangulate_time {0.0};
-            auto call_to_refine_time = 0.0;
+            double call_to_refine_time = 0.0;
             //double tri_ds_time{0.0};
           // auto refine_tic = std::chrono::system_clock::now();
             auto refine_tic = omp_get_wtime();
@@ -1831,7 +1850,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 if (dim == 2)
                 {
                     Refine<double,2> refiner(*partition);
-                    auto call_to_refine_tic = omp_get_wtime();
+                    double call_to_refine_tic = omp_get_wtime();
 
                     //std::cout << "refine partition " << part_id << std::endl;
                     //std::cout << orig_NNodes << " " << l2g_vertices_tmp.size() << std::endl;
@@ -1848,6 +1867,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     //triangulate_time = omp_get_wtime() - triangulate_tic;
                     call_to_refine_time = omp_get_wtime() - call_to_refine_tic;
 
+                    //std::cerr << call_to_refine_time << " " << call_to_refine_tic << " " << omp_get_wtime() << std::endl;
+
                     l2g_vertex[part_id] = l2g_vertices_tmp;
                     g2l_vertex[part_id] = g2l_vertices_tmp;
                     l2g_element[part_id] = l2g_elements_tmp;
@@ -1858,7 +1879,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 else
                 {
                     Refine<double,3> refiner(*partition);
-                    auto call_to_refine_tic = omp_get_wtime();
+                    double call_to_refine_tic = omp_get_wtime();
 
                     //if (color == 0)
                     {
@@ -1987,23 +2008,30 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             }
 
             auto refine_toc = omp_get_wtime();
+            //std::cerr << refine_toc - refine_tic << std::endl;
 
             //std::cout << " refinement done " << std::endl;
          
             auto threads_toc = omp_get_wtime();
 
-            threads_log[omp_get_thread_num()]+= threads_toc - threads_tic;
+            threads_log[omp_get_thread_num()] += threads_toc - threads_tic;
             mesh_log[omp_get_thread_num()] += mesh_toc - mesh_tic;
-            heal_log[omp_get_thread_num()]+= heal_toc - heal_tic;
-            metric_log[omp_get_thread_num()]+= metric_toc - metric_tic;
+            heal_log[omp_get_thread_num()] += heal_toc - heal_tic;
+            metric_log[omp_get_thread_num()] += metric_toc - metric_tic;
             call_refine_log[omp_get_thread_num()] += call_to_refine_time;
-            refine_log[omp_get_thread_num()]+= refine_toc - refine_tic;
+            refine_log[omp_get_thread_num()] += refine_toc - refine_tic;
+            nodes_log[omp_get_thread_num()] += nodes_toc - nodes_tic;
+            enlist_log[omp_get_thread_num()] += enlist_toc - enlist_tic;
 
             //std::cout << " log-updates done" << std::endl;
             //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
             //int_check_log[omp_get_thread_num()] += int_check_time;
         }//end parallel for loop
     } //end for loop colors - iterate colors
+
+    auto for_toc = omp_get_wtime();
+
+    for_time = for_toc - for_tic;
 
     viennamesh::info(1) << "Successfully adapted the mesh" << std::endl;
    /*

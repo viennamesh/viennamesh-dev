@@ -81,12 +81,17 @@ namespace viennamesh
 			std::vector<double> call_refine_log;
 			std::vector<double> refine_log;
 			std::vector<double> mesh_log;
+			std::vector<double> nodes_log;
+			std::vector<double> enlist_log;
+			auto for_time = 0.0;
+			auto prep_time = 0.0;
 
 			
 			wall_tic = std::chrono::system_clock::now();
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
-			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, mesh_log, heal_log, metric_log, call_refine_log, refine_log);
+			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
+														for_time, prep_time, nodes_log, enlist_log);
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	
 
@@ -102,7 +107,7 @@ namespace viennamesh
 			csv_name+= input_file().substr(found+1, find_vtu-found-1);
 			csv_name+=".csv";
 
-			csv.open(csv_name.c_str());
+			csv.open(csv_name.c_str(), ios::app);
 
 			//csv << "File, Threads, Vertices, Elements, Desired Partitions, Created Partitions, Colors, Metis [s], Adjacency Info [s], 
 			//Coloring [s], Parallel DSs [s], Prep [s], Nodes [s], g2l [s], l2g [s], Coords [s], ENList [s], new Mesh [s], Boundary [s], Metric [s],
@@ -136,12 +141,20 @@ namespace viennamesh
 			*/
 			
 			csv << cpds_duration.count() << ", ";
+			csv << prep_time << ", ";
+			csv << for_time << ", ";
 			csv << r_vertices << ", ";
 	 		csv << r_elements << ", ";
 			csv << overall_duration.count() << ",";
 
 			for (size_t i =0; i < threads_log.size(); ++i)
 				csv << threads_log[i] << ", ";
+
+			for (size_t i = 0; i < nodes_log.size(); ++i)
+				csv << nodes_log[i] << ", ";
+
+			for (size_t i = 0; i < enlist_log.size(); ++i)
+				csv << enlist_log[i] << ", ";
 
 			for (size_t i =0; i < mesh_log.size(); ++i)
 				csv << mesh_log[i] << ", ";
