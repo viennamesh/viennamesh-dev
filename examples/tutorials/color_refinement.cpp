@@ -70,16 +70,16 @@ int main(int argc, char *argv[])
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", true);
+	color.set_input("single_mesh_output", false);
 	color.run();
-/*
+
 	//Write output mesh
 	viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
 	mesh_writer.set_default_source(color);
 	
 	//construct filename
 
-	mesh_writer.set_input("filename", "test.vtu");
+	mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.run();
 //*/
     return -1;

@@ -56,7 +56,9 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-color-refinement plugin.cpp
                       color_refinement.cpp
                       pragmatic_mesh.cpp
                       external/triangle.c
-                      triangle_interface.c)
+                      triangle_interface.c                      
+                      external/tetgen.cxx
+                      external/predicates.cxx)
 
 #Link with VTK library
 find_package(VTK REQUIRED)

@@ -36,13 +36,13 @@ namespace viennamesh
 				algo = "pragmatic";
 			}	
 
-			else if (algorithm() == "pragmatic" || algorithm() == "triangle")
+			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen")
 			{
 				algo = algorithm();	
 				
-				if (algo == "triangle")
+				if (algo == "triangle" || algo == "tetgen")
 				{
-					string_handle tri_options = get_input<string_handle>("options");
+					string_handle tri_options = get_input<string_handle>("options"); //standard-options: zpq
 					options = tri_options();
 				}
 			}	
@@ -91,7 +91,7 @@ namespace viennamesh
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
-														for_time, prep_time, nodes_log, enlist_log);
+														for_time, prep_time, nodes_log, enlist_log, options);
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	
 
@@ -145,7 +145,7 @@ namespace viennamesh
 			csv << for_time << ", ";
 			csv << r_vertices << ", ";
 	 		csv << r_elements << ", ";
-			csv << overall_duration.count() << ",";
+			csv << overall_duration.count() << ", ";
 
 			for (size_t i =0; i < threads_log.size(); ++i)
 				csv << threads_log[i] << ", ";
@@ -376,9 +376,11 @@ namespace viennamesh
 			} //end of convert pragmatic to viennagrid output
 
 			//convert triangle to viennagrid output
-			else
+			else if (algo == "triangle")
 			{
-				//std::cout << "Converting Triangle to ViennaGrid data structure" << std::endl;
+				viennamesh::info(1) << "Converting Triangle to ViennaGrid data structure" << std::endl;
+
+				output_mesh.resize(num_partitions());
 			
 				for (size_t i = 0; i != InputMesh.triangle_partitions.size(); ++i)
 				{
@@ -389,16 +391,22 @@ namespace viennamesh
 					//create empty vector of size NNodes containing viennagrid vertices
 					std::vector<VertexType> vertex_handles(NNodes);
 
+					//std::cerr << " vertices " << NNodes << std::endl;
+
 					//iterating all triangle vertices and store their coordinates in the viennagrid vertices
 					for(size_t j = 0; j < NNodes; ++j)
 					{
+						//std::cout << "  " << j << "/" << NNodes << std::endl;
 						vertex_handles[j] = viennagrid::make_vertex( output_mesh(i), viennagrid::make_point(InputMesh.triangle_partitions[i].pointlist[2*j], 
 																	InputMesh.triangle_partitions[i].pointlist[2*j+1]));
 					} //end of for loop iterating all pragmatic vertices 
 
+					//std::cerr << " triangles " << NElements << std::endl;
+
 					//iterating all triangle elements and createg their corresponding viennagrid triangles
 					for (size_t j = 0; j < NElements; ++j)
 					{
+						//std::cout << "  " << j << "/" << NElements << std::endl;
 						viennagrid::make_triangle( output_mesh(i), 
 												vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j]], 
 												vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+1]], 
@@ -413,21 +421,23 @@ namespace viennamesh
 				//free used memory
 				for (size_t i = 0; i < output_mesh.size(); ++i)
 				{
-					free(InputMesh.triangle_partitions[i].pointlist);
+					free(InputMesh.triangle_partitions[i].pointlist);				//if pointer in triangulateio creation is used, this list is free
+																				   	//pragmaticwrapper's destructor
 					free(InputMesh.triangle_partitions[i].pointattributelist);
 					free(InputMesh.triangle_partitions[i].pointmarkerlist);
 					//free(InputMesh.triangle_partitions[i].numberofpoints);
 					//free(InputMesh.triangle_partitions[i].numberofpointattributes);
 
-					free(InputMesh.triangle_partitions[i].trianglelist);
-			/*		//free(InputMesh.triangle_partitions[i].triangleattributelist);
+					free(InputMesh.triangle_partitions[i].trianglelist);         	//if pointer in triangulateio creation is used, this list is free
+																				   	//pragmaticwrapper's destructor
+					//free(InputMesh.triangle_partitions[i].triangleattributelist);
 					//free(InputMesh.triangle_partitions[i].trianglearealist);
 					//free(InputMesh.triangle_partitions[i].neighborlist);
 					//free(InputMesh.triangle_partitions[i].numberoftriangles);
 					//free(InputMesh.triangle_partitions[i].numberofcorners);
 					//free(InputMesh.triangle_partitions[i].numberoftriangleattributes);
 
-					free(InputMesh.triangle_partitions[i].segmentlist);
+				/*	free(InputMesh.triangle_partitions[i].segmentlist);
 					free(InputMesh.triangle_partitions[i].segmentmarkerlist);
 					//free(InputMesh.triangle_partitions[i].numberofsegments);
 
@@ -446,6 +456,48 @@ namespace viennamesh
 				}
 				//end of free used memory*/
 			} //end of convert triangle to viennagrid output
+
+			//Tetgen to ViennaMesh
+			else
+			{
+				viennamesh::info(1) << "Converting Tetgen to ViennaGrid data structure" << std::endl;
+				
+				output_mesh.resize(num_partitions());
+
+				for (size_t i = 0; i != InputMesh.tetgen_partitions.size(); ++i)
+				{
+					//get basic mesh information
+					size_t NNodes = InputMesh.tetgen_partitions[i].numberofpoints;
+					size_t NElements = InputMesh.tetgen_partitions[i].numberoftetrahedra;
+
+					//create empty vector of size NNodes containing viennagrid vertices
+					std::vector<VertexType> vertex_handles(NNodes);
+
+					//iterating all pragmatic vertices and store their coordinates in the viennagrid vertices
+					for(size_t j = 0; j < NNodes; ++j)
+					{
+						vertex_handles[j] = viennagrid::make_vertex(output_mesh(i), 
+																 viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
+																						InputMesh.tetgen_partitions[i].pointlist[3*j+1],
+																						InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
+					} //end of for loop iterating all pragmatic vertices 
+
+					//iterating all pragmatic elements and create their corresponding viennagrid triangles
+					for (size_t j = 0; j < NElements; ++j)
+					{ 
+						viennagrid::make_tetrahedron( output_mesh(i), vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j] ],
+																	  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
+																	  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
+																	  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
+					} //end of iterating all pragmatic elements
+
+					//Update total number of vertices and elements
+					vertices += InputMesh.tetgen_partitions[i].numberofpoints;
+					elements += InputMesh.tetgen_partitions[i].numberoftetrahedra;
+
+					InputMesh.tetgen_partitions[i].deinitialize();
+				}		
+			} //end of Tetgen
 
 			//std::chrono::duration<double> convert_dur = std::chrono::system_clock::now() - convert_tic;
 

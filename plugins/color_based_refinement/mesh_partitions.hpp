@@ -38,6 +38,8 @@ extern "C"
   #include "triangle_interface.h"
 }
 
+#include "tetgen.h"
+
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                Declaration                                                                   //
 //----------------------------------------------------------------------------------------------------------------------------------------------//
@@ -58,7 +60,8 @@ class MeshPartitions
 
         //REPLACE THESE TWO VECTORS WITH A TEMPLATE VECTOR!!!
         std::vector<Mesh<double>*> pragmatic_partitions;                                      //Vector containing pointers to the pragmatic partitions
-        std::vector<triangulateio> triangle_partitions;                                       //Vector containing the triangle data structurs
+        std::vector<triangulateio> triangle_partitions;                                       //Vector containing the triangle data structures
+        std::vector<tetgenio> tetgen_partitions;                                              //Vector containing the tetgen data structures
 
         bool MetisPartitioning();                                                             //Partition mesh using metis
         bool CreatePragmaticDataStructures_ser();                                             //Create Pragmatic Meshes storing the mesh partitions in serial
@@ -70,7 +73,8 @@ class MeshPartitions
                                                std::vector<double>& heal_log, std::vector<double>& metric_log,
                                                std::vector<double>& call_refine_log, std::vector<double>& refine_log,
                                                std::vector<double>& mesh_log, double & for_time, double & prep_time,
-                                               std::vector<double>& nodes_log, std::vector<double>& enlist_log);
+                                               std::vector<double>& nodes_log, std::vector<double>& enlist_log,
+                                               std::string options);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
         bool ColorPartitions();                                                               //Color the partitions
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
@@ -376,11 +380,11 @@ bool MeshPartitions::MetisPartitioning()
 
     //Call Metis Partitioning Function (see metis manual for details on the parameters and on the use of the metis API)
     //*/
-    /*idx_t options[METIS_NOPTIONS];
+   /* idx_t options[METIS_NOPTIONS];
 
     METIS_SetDefaultOptions(options);
     options[METIS_OPTION_PTYPE]=METIS_PTYPE_RB;
-*/
+//*//*
     METIS_PartMeshDual  (&num_elements,
                          &num_nodes,
                          eptr.data(),
@@ -391,7 +395,7 @@ bool MeshPartitions::MetisPartitioning()
                          &num_regions,
                          NULL,
                          //options,
-                         NULL,
+                         NULL,    //NULL if no options used
                          &result,
                          epart.data(),
                          npart.data());
@@ -415,7 +419,7 @@ bool MeshPartitions::MetisPartitioning()
 
     viennamesh::info(5) << "Created " << num_regions << " mesh partitions using METIS_PartMeshNodal" << std::endl;
                         //*/
-/*
+
     idx_t *xadj=NULL, *adjncy=NULL;//, *nptr=NULL, *nind=NULL;
     idx_t pnumflag=0;
     double * options = mtmetis_init_options();
@@ -436,7 +440,7 @@ bool MeshPartitions::MetisPartitioning()
     epart.resize(num_elements);
 
     unsigned int where[num_elements];
-/*
+
     viennamesh::info(5) << "  Partitioning with MTMETIS_PartGraphKway" << std::endl;
 
     MTMETIS_PartGraphKway(//const_cast<unsigned int*>( (unsigned int*) &ne), 
@@ -899,7 +903,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& heal_log, std::vector<double>& metric_log,
                                                        std::vector<double>& call_refine_log, std::vector<double>& refine_log,
                                                        std::vector<double>& mesh_log, double & for_time, double & prep_time,
-                                                       std::vector<double>& nodes_log, std::vector<double>& enlist_log)
+                                                       std::vector<double>& nodes_log, std::vector<double>& enlist_log,
+                                                       std::string options)
 {    
     viennamesh::info(1) << "Starting mesh adaptation" << std::endl;
     auto prep_tic = omp_get_wtime();
@@ -974,6 +979,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     //REPLACE THESE TWO WITH TEMPLATE COMMAND
     pragmatic_partitions.resize(num_regions);
     triangle_partitions.resize(num_regions);
+    tetgen_partitions.resize(num_regions);
 
   /*  //vectors storing the index mapping information for all partitions
     std::vector<std::unordered_map<int,int>> g2l_vertices(num_regions);
@@ -1025,7 +1031,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         std::cout << std::endl << "actual color / # of colors" << std::endl;
         std::cout << color << " / " << colors << std::endl;
         //*/
-        #pragma omp parallel for schedule(static) num_threads(nthreads)
+        #pragma omp parallel for num_threads(nthreads)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
         {
             //std::cout << "part_iter " << part_iter << " with dimension " << dim << std::endl;
@@ -1917,21 +1923,23 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 tri_partition.numberofpoints = partition->get_number_nodes();
                 tri_partition.numberofpointattributes = 0;
                 tri_partition.pointmarkerlist = NULL;
-                //tri_partition.pointlist = (REAL *) malloc(tri_partition.numberofpoints * 2 * sizeof(REAL) );
-                tri_partition.pointlist = partition->get_coords_pointer();
-/*
+                tri_partition.pointlist = (REAL *) malloc(tri_partition.numberofpoints * 2 * sizeof(REAL) );
+                //tri_partition.pointlist = partition->get_coords_pointer();
+
+                std::cout << tri_partition.numberofpoints << std::endl;
+
                 for (size_t i = 0; i < tri_partition.numberofpoints; ++i)
                 {
                     tri_partition.pointlist[2*i] = partition->get_coords(i)[0];
                     tri_partition.pointlist[2*i+1] = partition->get_coords(i)[1];
-                }
-  */           
+                }  //*/ 
+           
                 tri_partition.numberoftriangles = partition->get_number_elements();
                 tri_partition.numberofcorners = 3;
                 tri_partition.numberoftriangleattributes = 0;
-               // tri_partition.trianglelist = (int*) malloc ( tri_partition.numberoftriangles * 3 * sizeof(int) );
-                tri_partition.trianglelist = partition->get_enlist_pointer();
-/*
+                tri_partition.trianglelist = (int*) malloc ( tri_partition.numberoftriangles * 3 * sizeof(int) );
+                //tri_partition.trianglelist = partition->get_enlist_pointer();
+
                 for (size_t i = 0; i < tri_partition.numberoftriangles; ++i)
                 {
                     const int *element_ptr = nullptr;
@@ -1941,8 +1949,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     tri_partition.trianglelist[3*i+1] = *(element_ptr++);
                     tri_partition.trianglelist[3*i+2] = *(element_ptr++);
                 }
-                //end of init tri_partition
-*/
+                //end of init tri_partition//*/
+
                 //init tri_out
                 tri_out.pointlist = (REAL *) NULL;
                 tri_out.pointmarkerlist = (int *) NULL;
@@ -1950,7 +1958,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 tri_out.trianglelist = (int *) NULL;
                 tri_out.numberofpoints = 0;
                 tri_out.numberofpointattributes = 0;
-/*
+
                 tri_out.triangleattributelist = (REAL *) NULL;
                 tri_out.neighborlist = (int *) NULL;
                 tri_out.segmentlist = (int *) NULL;
@@ -1980,32 +1988,93 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //tri_ds_time = tri_ds_dur.count();
 
                 //copy options string
-                //char * options_buffer = new char[options.length()+1];
-                std::string options = options;
-                char * options_buffer = new char[1];
-                viennamesh::error(1) << "uncomment the command three lines above and comment the one two lines above to make it running again with triangle!" << std::endl;
+                char * options_buffer = new char[options.length()+1];
+                //std::string options = options;
+                //char * options_buffer = new char[1];
+                //viennamesh::error(1) << "uncomment the command three lines above and comment the two lines above to make it running again with triangle!" << std::endl;
                 std::strcpy(options_buffer, options.c_str());
 
                 //triangulate
-                //auto triangulate_tic = omp_get_wtime();
-                //viennamesh::info(1) << "Making mesh with options " << options << std::endl;
+                auto triangulate_tic = omp_get_wtime();
+                viennamesh::info(1) << "Making mesh " << part_id << " with options " << options_buffer << std::endl;
                 triangulate (options_buffer, &tri_partition, &tri_out, NULL);
-                //triangulate_time = omp_get_wtime() - triangulate_tic;
+                call_to_refine_time = omp_get_wtime() - triangulate_tic;
                 //end of triangulate*/
 
                 //free all memory (ONLY FREE IF MEMORY HAS BEEN ALLOCATED, NOT IF POINTERS ARE USED)
-             //   free(tri_partition.pointlist);
-             //   free(tri_partition.trianglelist);
-             //   free(tri_partition.pointmarkerlist);
+                free(tri_partition.pointlist);
+                free(tri_partition.trianglelist);
+                free(tri_partition.pointmarkerlist);//*/
+                //free(&tri_partition);
 
                 triangle_partitions[part_id] = tri_out;
 
-               // free(tri_out.pointlist);
-               // free(tri_out.trianglelist);
-
+                /*free(tri_out.pointlist);
+                free(tri_out.trianglelist);
+*/
                 delete[] options_buffer;
                 //end of free all memory                
-            }
+            } //end of triangle
+
+            //Tetgen
+            else if (algorithm == "tetgen")
+            {
+                tetgenio in, out;
+
+                out.initialize();
+
+                in.firstnumber = 0;
+                in.numberofpoints = partition->get_number_nodes();
+
+                in.pointlist = new REAL[in.numberofpoints * 3];
+
+                for (size_t i = 0; i < in.numberofpoints; ++i)
+                {
+                    in.pointlist[3*i]   = partition->get_coords(i)[0];
+                    in.pointlist[3*i+1] = partition->get_coords(i)[1];
+                    in.pointlist[3*i+2] = partition->get_coords(i)[2];
+                }
+
+                in.numberoffacets = partition->get_number_elements();
+
+                in.facetlist = new tetgenio::facet[in.numberoffacets];
+                
+                for (size_t i = 0; i < in.numberoffacets; ++i)
+                {
+                    tetgenio::facet & facet = in.facetlist[i];
+                    facet.holelist = 0;      
+                    
+                    facet.numberofpolygons = 1;
+                    facet.polygonlist = new tetgenio::polygon[facet.numberofpolygons];
+                    facet.numberofholes = 0;
+                    facet.holelist = NULL;
+
+                    tetgenio::polygon & polygon = facet.polygonlist[0];
+                    polygon.numberofvertices = 4;
+                    polygon.vertexlist = new int[polygon.numberofvertices];
+
+                    const int *element_ptr = nullptr;
+                    element_ptr = partition->get_element(i);
+
+                    polygon.vertexlist[0]   = *(element_ptr++);
+                    polygon.vertexlist[1] = *(element_ptr++);
+                    polygon.vertexlist[2] = *(element_ptr++);
+                    polygon.vertexlist[3] = *(element_ptr++);
+                }
+
+                tetgenbehavior tet_behavior;
+
+                tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
+
+                auto triangulate_tic = omp_get_wtime();
+                tetrahedralize(&tet_behavior, &in, &out);
+                call_to_refine_time = omp_get_wtime() - triangulate_tic;
+
+                tetgen_partitions[part_id] = out;
+
+                in.deinitialize();
+
+            } //end of tetgen
 
             auto refine_toc = omp_get_wtime();
             //std::cerr << refine_toc - refine_tic << std::endl;
