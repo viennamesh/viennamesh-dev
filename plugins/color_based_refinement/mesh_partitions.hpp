@@ -39,6 +39,7 @@ extern "C"
 }
 
 #include "tetgen.h"
+#include <limits>
 
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                Declaration                                                                   //
@@ -76,7 +77,7 @@ class MeshPartitions
                                                std::vector<double>& nodes_log, std::vector<double>& enlist_log,
                                                std::string options);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
-        bool ColorPartitions();                                                               //Color the partitions
+        bool ColorPartitions(std::string coloring_algorithm);                                 //Color the partitions
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
         bool RefineInterior();                                                                //Refinement without refining boundary elements
         bool WriteMergedMesh(std::string filename);                                           //Merges partitions into a single mesh and writes it
@@ -384,7 +385,7 @@ bool MeshPartitions::MetisPartitioning()
 
     METIS_SetDefaultOptions(options);
     options[METIS_OPTION_PTYPE]=METIS_PTYPE_RB;
-//*//*
+//*/
     METIS_PartMeshDual  (&num_elements,
                          &num_nodes,
                          eptr.data(),
@@ -419,7 +420,7 @@ bool MeshPartitions::MetisPartitioning()
 
     viennamesh::info(5) << "Created " << num_regions << " mesh partitions using METIS_PartMeshNodal" << std::endl;
                         //*/
-
+/*
     idx_t *xadj=NULL, *adjncy=NULL;//, *nptr=NULL, *nind=NULL;
     idx_t pnumflag=0;
     double * options = mtmetis_init_options();
@@ -610,93 +611,198 @@ bool MeshPartitions::CreateNeighborhoodInformation()
 //
 //Tasks: Color the partitions such that independent sets are created
 //bool MeshPartitions::ColorPartitions(int num_regions)
-bool MeshPartitions::ColorPartitions()
+bool MeshPartitions::ColorPartitions(std::string coloring_algorithm)
 {
-    viennamesh::info(1) << "Coloring partitions" << std::endl;
-    //resize vector
-    partition_colors.resize(partition_adjcy.size());
-
-    colors = 1;                 //number of used colors
-    partition_colors[0] = 0;    //assign first partition color 0
-
-    //visit every partition and assign the smallest color available (not already assigned to on of its neighbors)
-    for (size_t i = 1; i < partition_colors.size(); ++i)
+    //-------------------------------------------------------------------------------------------------//
+    //Greedy coloring algorithm
+    //-------------------------------------------------------------------------------------------------//
+    if (coloring_algorithm == "greedy")
     {
-        
-        //int tmp_color = partition_colors[*(partition_adjcy[i].begin())] + 1;   //assign next color
-        int tmp_color = 0; //start with smallest color 
-        bool next_color = false;
+        viennamesh::info(1) << "Coloring partitions using Greedy algorithm" << std::endl;
 
-        do
+        //resize vector
+        partition_colors.resize(partition_adjcy.size());
+
+        colors = 1;                 //number of used colors
+        partition_colors[0] = 0;    //assign first partition color 0
+
+        //visit every partition and assign the smallest color available (not already assigned to on of its neighbors)
+        for (size_t i = 1; i < partition_colors.size(); ++i)
         {
-            //check if assigned color in tmp_color is already assigned to a neighbor
-            //since we assign colors to partitions in ascending ID order, check only
-            //neighbors with smaller partition ID
-            for (auto iter : partition_adjcy[i])
+            
+            //int tmp_color = partition_colors[*(partition_adjcy[i].begin())] + 1;   //assign next color
+            int tmp_color = 0; //start with smallest color 
+            bool next_color = false;
+
+            do
             {
-                //if chosen color is already assigned to neighbor, try next color
-                if ( i > iter && partition_colors[iter] == tmp_color) 
+                //check if assigned color in tmp_color is already assigned to a neighbor
+                //since we assign colors to partitions in ascending ID order, check only
+                //neighbors with smaller partition ID
+                for (auto iter : partition_adjcy[i])
                 {
-                    ++tmp_color;
-                    next_color = true;
-                    break;
+                    //if chosen color is already assigned to neighbor, try next color
+                    if ( i > iter && partition_colors[iter] == tmp_color) 
+                    {
+                        ++tmp_color;
+                        next_color = true;
+                        break;
+                    }
+
+                    //if chosen color is ok exit loop
+                    else
+                        next_color=false;
                 }
+            } while(next_color);
 
-                //if chosen color is ok exit loop
-                else
-                    next_color=false;
-            }
-        } while(next_color);
-
-       /* for (size_t j = 1; j < partition_adjcy[i].size(); ++j)
-        {
-            //check if assigned color in tmp_color is already assigned to a neighbor
-            if (partition_colors[partition_adjcy[i][j]] >= tmp_color)
+        /* for (size_t j = 1; j < partition_adjcy[i].size(); ++j)
             {
-                tmp_color = partition_colors[partition_adjcy[i][j]] + 1;
+                //check if assigned color in tmp_color is already assigned to a neighbor
+                if (partition_colors[partition_adjcy[i][j]] >= tmp_color)
+                {
+                    tmp_color = partition_colors[partition_adjcy[i][j]] + 1;
+                }
+            }*/
+
+            partition_colors[i] = tmp_color;
+
+            if ( (tmp_color + 1) > colors )
+            {
+                colors = tmp_color + 1;
             }
-        }*/
+        }
 
-        partition_colors[i] = tmp_color;
 
-        if ( (tmp_color + 1) > colors )
+        //create a vector containing the color information for each partition
+        //each vector element is one color and contains the partitions with this color
+        color_partitions.resize(colors);
+
+        for (size_t i = 0; i < partition_colors.size(); ++i)
         {
-            colors = tmp_color + 1;
+            color_partitions[ partition_colors[i] ].push_back(i);
         }
     }
+    //-------------------------------------------------------------------------------------------------//
+    //end of Greedy Coloring algorithm
+    //-------------------------------------------------------------------------------------------------//
 
-    //create a vector containing the color information for each partition
-    //each vector element is one color and contains the partitions with this color
-    color_partitions.resize(colors);
-
-    for (size_t i = 0; i < partition_colors.size(); ++i)
+    //-------------------------------------------------------------------------------------------------//
+    //Greddy Coloring with balancing using least used color
+    //-------------------------------------------------------------------------------------------------//
+    else if (coloring_algorithm == "greedy-lu")
     {
-        color_partitions[ partition_colors[i] ].push_back(i);
+        viennamesh::info(1) << "Coloring partitions using Greedy algorithm with balancing using least used color" << std::endl;
+    
+        //resize vector
+        partition_colors.resize(partition_adjcy.size(), -1);
+    
+        colors = 1;                 //number of used colors
+        partition_colors[0] = 0;    //assign first partition color 0      
+        
+        //std::cout << "0 gets new color 0" << std::endl;
+
+        std::vector<int> color_usage;   //vector storing how many times a color has been assigned (each element is a color)
+        color_usage.reserve(30);        
+        color_usage.push_back(1);       //initialize the first color assigned to the first partition (color 0, assigned 1 time)
+    
+        //visit every partition and assign the least used color available (not already assigned to on of its neighbors)
+        //if no used color is permissible, assign a new color
+        for (size_t part = 1; part < partition_colors.size(); ++part)
+        {
+            //find set of permissible colors
+            std::vector<bool> permissible_colors(colors, true);
+
+            for (auto neighbor : partition_adjcy[part])
+            {
+                //since we assign colors to partitions in ascending ID order, check only
+                //neighbors with smaller partition ID
+                if (neighbor > part)
+                {
+                    continue;
+                }
+
+                permissible_colors[ partition_colors[neighbor] ] = false;
+            }
+    
+            std::vector<int> permissible_usage = color_usage;
+
+            //set usage of colors not allowed for assignement to the numerical limit of int
+            for (size_t i = 0; i < permissible_colors.size(); ++i)
+            {
+                if (!permissible_colors[i])
+                {
+                    permissible_usage[i] = std::numeric_limits<int>::max();
+                }
+            }
+
+            //check if we need to create a new color
+            if ( !std::accumulate(permissible_colors.begin(), permissible_colors.end(), false) )
+            {
+                partition_colors[part] = colors;
+                color_usage.push_back(1);
+                //std::cout << part << " gets new color " << colors << std::endl;
+                ++colors;
+            }
+
+            else
+            {
+                partition_colors[part] = std::min_element(permissible_usage.begin(), permissible_usage.end()) - permissible_usage.begin();
+                //std::cout << part << " gets old color " << partition_colors[part] << std::endl;
+                ++color_usage[partition_colors[part]];
+            }
+
+        } //end of for loop iterating partitions
+
+        //create a vector containing the color information for each partition
+        //each vector element is one color and contains the partitions with this color
+        color_partitions.resize(colors);
+        
+        for (size_t i = 0; i < partition_colors.size(); ++i)
+        {
+            color_partitions[ partition_colors[i] ].push_back(i);
+        }
     }
-/*
+    //-------------------------------------------------------------------------------------------------//
+    //end of Greddy Coloring with balancing using least used color
+    //-------------------------------------------------------------------------------------------------//
+
     //DEBUG
     //std::cout << "Number of used colors: " << colors << std::endl;
-    std::cout << "  Partition | Color " << std::endl;
+    ofstream color_file;
+    color_file.open("partition_colors.txt", ios::app);
+    color_file << "Partitions: " << partition_colors.size() << std::endl;
+
+    //std::cout << "  Partition | Color " << std::endl;
+    color_file << "  Partition | Color " << std::endl;
  
     for (size_t i = 0; i < partition_colors.size(); ++i)
     {
-        std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
+        //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
+        color_file << "          " << i << " | " << partition_colors[i] << std::endl;
     }
+    color_file.close();
     //*/
 /*
-    std::cout << std::endl << "      Color | #Partitions " << std::endl;
- 
+    ofstream color_file;*/
+    color_file.open("colors.txt", ios::app);
+
+    //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+    color_file << "Partitions: " << partition_colors.size() << std::endl;
+    color_file << "      Color | #Partitions " << std::endl;
+
     for (size_t i = 0; i < color_partitions.size(); ++i)
     {
-        std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
-    
+        //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
+        color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+
    /*     std::cout << "          " << i << " | ";
         for (auto it : color_partitions[i])
         {
            std::cout << it << " ";
         }
-        std::cout << std::endl;
+        std::cout << std::endl;//*/
     }
+    color_file.close();
     //END OF DEBUG*/
 
     viennamesh::info(1) << "   Partitions param = " << num_regions << std::endl;
@@ -991,7 +1097,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     g2l_element.resize(num_regions);
 
     //get vertices and elements from original mesh
-    auto nodes_part_tic = std::chrono::system_clock::now();
 
     for (size_t ele_id = 0; ele_id < original_mesh->get_number_elements(); ++ele_id)
     {

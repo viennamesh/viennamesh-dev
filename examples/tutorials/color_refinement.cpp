@@ -10,8 +10,9 @@ int main(int argc, char *argv[])
 	std::string filename;
 	std::string algorithm;
 	std::string options;
+	std::string coloring;
 
-	if (argc < 4)
+	if (argc < 5)
 	{
 		std::cout << "Parameters missing!" << std::endl;
 		std::cout << "Correct use of parameters: <input_file> <region_count> <number_threads> <algorithm>" << std::endl;
@@ -50,6 +51,11 @@ int main(int argc, char *argv[])
 
 	if (argv[5])
 	{
+		coloring = argv[5];
+	}
+
+	if (argv[6])
+	{
 		options = argv[5];
 	}
 
@@ -65,12 +71,13 @@ int main(int argc, char *argv[])
 	// Create algorithm handle for the color-based-refinement
 	viennamesh::algorithm_handle color = context.make_algorithm("color_refinement");
 	color.set_default_source(mesh_reader);
+	color.set_input("coloring", coloring);
 	color.set_input("algorithm", algorithm);
 	color.set_input("options", options);
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", false);
+	color.set_input("single_mesh_output", true);
 	color.run();
 
 	//Write output mesh
@@ -78,9 +85,11 @@ int main(int argc, char *argv[])
 	mesh_writer.set_default_source(color);
 	
 	//construct filename
+	std::string output_file = "examples/data/color_refinement/output/box_rectangular_1000x1000.vtu";
 
-	mesh_writer.set_input("filename", "pragmatic.vtu");
-	mesh_writer.run();
+	//mesh_writer.set_input("filename", "pragmatic.vtu");
+	mesh_writer.set_input("filename", output_file.c_str());
+	//mesh_writer.run();
 //*/
     return -1;
 }

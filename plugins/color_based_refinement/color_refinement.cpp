@@ -15,6 +15,7 @@ namespace viennamesh
 			data_handle<bool> single_mesh_output = get_input<bool>("single_mesh_output");
 			string_handle input_file = get_input<string_handle>("filename");
 			string_handle algorithm = get_input<string_handle>("algorithm");
+			string_handle coloring_algorithm = get_input<string_handle>("coloring");
 
 			Mesh<double> * in_mesh = input_mesh().mesh;
 		
@@ -28,8 +29,10 @@ namespace viennamesh
       		info(1) << "  Dimension: " << input_mesh().mesh->get_number_dimensions() << std::endl;
 			info(1) << "  Threads: " << num_threads() << std::endl;
 			
+			//check chosen algorithm and chosen coloring method
 			std::string algo;
 			std::string options;
+			std::string coloring;
 			
 			if (!algorithm.valid())
 			{
@@ -51,7 +54,23 @@ namespace viennamesh
 			{
 				viennamesh::error(1) << "'" << algorithm() << "'" << " is not a valid algorithm!" << std::endl;
 				return false;
-			}				
+			}		
+			
+			if (!coloring_algorithm.valid())
+			{
+				coloring = "greedy-lu";
+			}
+
+			else if (coloring_algorithm()=="greedy-lu" || coloring_algorithm()=="greedy")
+			{
+				coloring = coloring_algorithm();
+			}
+
+			else 
+			{
+				viennamesh::error(1) << "'" << coloring_algorithm() << "'" << " is not a valid coloring algorithm!" << std::endl;
+				return false;
+			}	
 
 			MeshPartitions InputMesh(input_mesh().mesh, num_partitions(), input_file().substr(found+1), num_threads()); 
 
@@ -69,7 +88,7 @@ namespace viennamesh
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.ColorPartitions();
+				InputMesh.ColorPartitions(coloring);
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
@@ -91,7 +110,7 @@ namespace viennamesh
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
-														for_time, prep_time, nodes_log, enlist_log, options);
+														for_time, prep_time, nodes_log, enlist_log, options);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	
 
