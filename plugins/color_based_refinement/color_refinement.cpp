@@ -45,7 +45,7 @@ namespace viennamesh
 				
 				if (algo == "triangle" || algo == "tetgen")
 				{
-					string_handle tri_options = get_input<string_handle>("options"); //standard-options: zpq
+					string_handle tri_options = get_input<string_handle>("options"); //standard-options for triangle: zpq
 					options = tri_options();
 				}
 			}	
@@ -88,7 +88,7 @@ namespace viennamesh
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.ColorPartitions(coloring);
+				InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
@@ -102,6 +102,7 @@ namespace viennamesh
 			std::vector<double> mesh_log;
 			std::vector<double> nodes_log;
 			std::vector<double> enlist_log;
+			std::vector<size_t> workload;
 			auto for_time = 0.0;
 			auto prep_time = 0.0;
 
@@ -110,7 +111,7 @@ namespace viennamesh
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
-														for_time, prep_time, nodes_log, enlist_log, options);//*/
+														for_time, prep_time, nodes_log, enlist_log, options, workload);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	
 
@@ -189,7 +190,13 @@ namespace viennamesh
 
 			for (size_t i =0; i < refine_log.size(); ++i)
 				csv << refine_log[i] << ", ";
-				
+			
+			for (size_t i = 0; i < workload.size(); ++i)
+				csv << workload[i] << ", ";
+/*
+			for (size_t i = 0; i < workload.size(); ++i)
+				std::cout << i << ": " << workload[i] << std::endl;
+*/				
 			csv << std::endl;
 			csv.close();
 /*
@@ -418,7 +425,18 @@ namespace viennamesh
 						//std::cout << "  " << j << "/" << NNodes << std::endl;
 						vertex_handles[j] = viennagrid::make_vertex( output_mesh(i), viennagrid::make_point(InputMesh.triangle_partitions[i].pointlist[2*j], 
 																	InputMesh.triangle_partitions[i].pointlist[2*j+1]));
+
+						//std::cout << j << " " << InputMesh.triangle_partitions[i].pointmarkerlist[j] << std::endl;
 					} //end of for loop iterating all pragmatic vertices 
+
+					for (size_t e = 0; e < InputMesh.triangle_partitions[i].numberofedges; ++e)
+					{
+						if(InputMesh.triangle_partitions[i].edgemarkerlist[e])
+						{
+							std::cout << e << " " << InputMesh.triangle_partitions[i].edgemarkerlist[e] << std::endl;
+							//std::cout << "  " << InputMesh.triangle_partitions[i].
+						}
+					}
 
 					//std::cerr << " triangles " << NElements << std::endl;
 

@@ -44,19 +44,20 @@ int main(int argc, char *argv[])
 		num_threads = atoi(argv[3]);
 	}
 
-	if (argv[4])
-	{
-		algorithm = argv[4];
-	}
-
 	if (argv[5])
 	{
-		coloring = argv[5];
+		algorithm = argv[5];
 	}
 
 	if (argv[6])
 	{
-		options = argv[5];
+		options = argv[6];
+	}
+
+
+	if (argv[4])
+	{
+		coloring = argv[4];
 	}
 
     // Create context handle
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", true);
+	color.set_input("single_mesh_output", false);
 	color.run();
 
 	//Write output mesh
@@ -85,7 +86,13 @@ int main(int argc, char *argv[])
 	mesh_writer.set_default_source(color);
 	
 	//construct filename
-	std::string output_file = "examples/data/color_refinement/output/box_rectangular_1000x1000.vtu";
+	size_t found = filename.find_last_of("/");
+	size_t find_vtu = filename.find_last_of(".");
+	std::string output_file = "examples/data/color_refinement/output/";
+	output_file+=filename.substr(found+1, find_vtu-found-1);
+	output_file+="_";
+	output_file+=algorithm;
+	output_file+=".vtu";
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());

@@ -75,9 +75,9 @@ class MeshPartitions
                                                std::vector<double>& call_refine_log, std::vector<double>& refine_log,
                                                std::vector<double>& mesh_log, double & for_time, double & prep_time,
                                                std::vector<double>& nodes_log, std::vector<double>& enlist_log,
-                                               std::string options);
+                                               std::string options, std::vector<size_t>& workload);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
-        bool ColorPartitions(std::string coloring_algorithm);                                 //Color the partitions
+        bool ColorPartitions(std::string coloring_algorithm, std::string filename);                                 //Color the partitions
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
         bool RefineInterior();                                                                //Refinement without refining boundary elements
         bool WriteMergedMesh(std::string filename);                                           //Merges partitions into a single mesh and writes it
@@ -611,7 +611,7 @@ bool MeshPartitions::CreateNeighborhoodInformation()
 //
 //Tasks: Color the partitions such that independent sets are created
 //bool MeshPartitions::ColorPartitions(int num_regions)
-bool MeshPartitions::ColorPartitions(std::string coloring_algorithm)
+bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string filename)
 {
     //-------------------------------------------------------------------------------------------------//
     //Greedy coloring algorithm
@@ -765,11 +765,13 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm)
     //-------------------------------------------------------------------------------------------------//
     //end of Greddy Coloring with balancing using least used color
     //-------------------------------------------------------------------------------------------------//
-
+/*
     //DEBUG
     //std::cout << "Number of used colors: " << colors << std::endl;
     ofstream color_file;
-    color_file.open("partition_colors.txt", ios::app);
+    std::string partition_filename = filename;
+    partition_filename += "_partition_colors.txt";
+    color_file.open(partition_filename.c_str(), ios::app);
     color_file << "Partitions: " << partition_colors.size() << std::endl;
 
     //std::cout << "  Partition | Color " << std::endl;
@@ -783,8 +785,9 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm)
     color_file.close();
     //*/
 /*
-    ofstream color_file;*/
-    color_file.open("colors.txt", ios::app);
+    std::string color_filename = filename;
+    color_filename+="_colors.txt";
+    color_file.open(color_filename.c_str(), ios::app);
 
     //std::cout << std::endl << "      Color | #Partitions " << std::endl;
     color_file << "Partitions: " << partition_colors.size() << std::endl;
@@ -800,7 +803,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm)
         {
            std::cout << it << " ";
         }
-        std::cout << std::endl;//*/
+        std::cout << std::endl;//*//*
     }
     color_file.close();
     //END OF DEBUG*/
@@ -1010,7 +1013,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& call_refine_log, std::vector<double>& refine_log,
                                                        std::vector<double>& mesh_log, double & for_time, double & prep_time,
                                                        std::vector<double>& nodes_log, std::vector<double>& enlist_log,
-                                                       std::string options)
+                                                       std::string options, std::vector<size_t>& workload)
 {    
     viennamesh::info(1) << "Starting mesh adaptation" << std::endl;
     auto prep_tic = omp_get_wtime();
@@ -1036,6 +1039,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     refine_log.resize(nthreads);
     nodes_log.resize(nthreads);
     enlist_log.resize(nthreads);
+    workload.resize(nthreads);
 
     std::fill(threads_log.begin(), threads_log.end(), 0.0);
     std::fill(mesh_log.begin(), mesh_log.end(), 0.0);
@@ -1045,6 +1049,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(refine_log.begin(), refine_log.end(), 0.0);
     std::fill(nodes_log.begin(), nodes_log.end(), 0.0);
     std::fill(enlist_log.begin(), enlist_log.end(), 0.0);
+    std::fill(workload.begin(), workload.end(), 0);
 
     outboxes.resize(num_regions, Outbox());
 /*
@@ -1139,6 +1144,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         #pragma omp parallel for num_threads(nthreads)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
         {
+            ++workload[omp_get_thread_num()];
             //std::cout << "part_iter " << part_iter << " with dimension " << dim << std::endl;
             auto threads_tic = omp_get_wtime();
    
