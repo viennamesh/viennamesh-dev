@@ -75,7 +75,8 @@ class MeshPartitions
                                                std::vector<double>& call_refine_log, std::vector<double>& refine_log,
                                                std::vector<double>& mesh_log, double & for_time, double & prep_time,
                                                std::vector<double>& nodes_log, std::vector<double>& enlist_log,
-                                               std::string options, std::vector<size_t>& workload);
+                                               std::string options, std::vector<size_t>& workload,
+                                               std::vector<size_t>& workload_elements);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename);                                 //Color the partitions
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
@@ -1013,7 +1014,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& call_refine_log, std::vector<double>& refine_log,
                                                        std::vector<double>& mesh_log, double & for_time, double & prep_time,
                                                        std::vector<double>& nodes_log, std::vector<double>& enlist_log,
-                                                       std::string options, std::vector<size_t>& workload)
+                                                       std::string options, std::vector<size_t>& workload,
+                                                       std::vector<size_t>& workload_elements)
 {    
     viennamesh::info(1) << "Starting mesh adaptation" << std::endl;
     auto prep_tic = omp_get_wtime();
@@ -1040,6 +1042,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     nodes_log.resize(nthreads);
     enlist_log.resize(nthreads);
     workload.resize(nthreads);
+    workload_elements.resize(nthreads);
 
     std::fill(threads_log.begin(), threads_log.end(), 0.0);
     std::fill(mesh_log.begin(), mesh_log.end(), 0.0);
@@ -1050,6 +1053,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(nodes_log.begin(), nodes_log.end(), 0.0);
     std::fill(enlist_log.begin(), enlist_log.end(), 0.0);
     std::fill(workload.begin(), workload.end(), 0);
+    std::fill(workload_elements.begin(), workload_elements.end(), 0);
 
     outboxes.resize(num_regions, Outbox());
 /*
@@ -1144,7 +1148,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         #pragma omp parallel for num_threads(nthreads)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
         {
-            ++workload[omp_get_thread_num()];
             //std::cout << "part_iter " << part_iter << " with dimension " << dim << std::endl;
             auto threads_tic = omp_get_wtime();
    
@@ -2202,6 +2205,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             refine_log[omp_get_thread_num()] += refine_toc - refine_tic;
             nodes_log[omp_get_thread_num()] += nodes_toc - nodes_tic;
             enlist_log[omp_get_thread_num()] += enlist_toc - enlist_tic;
+            ++workload[omp_get_thread_num()];
+            workload_elements[omp_get_thread_num()] += partition->get_number_elements();
 
             //std::cout << " log-updates done" << std::endl;
             //build_tri_ds[omp_get_thread_num()] += tri_ds_time;

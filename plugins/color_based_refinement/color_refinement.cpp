@@ -103,6 +103,7 @@ namespace viennamesh
 			std::vector<double> nodes_log;
 			std::vector<double> enlist_log;
 			std::vector<size_t> workload;
+			std::vector<size_t> workload_elements;
 			auto for_time = 0.0;
 			auto prep_time = 0.0;
 
@@ -111,7 +112,7 @@ namespace viennamesh
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
-														for_time, prep_time, nodes_log, enlist_log, options, workload);//*/
+														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	
 
@@ -197,6 +198,9 @@ namespace viennamesh
 			for (size_t i = 0; i < workload.size(); ++i)
 				std::cout << i << ": " << workload[i] << std::endl;
 */				
+			for (size_t i = 0; i < workload_elements.size(); ++i)
+				csv << workload_elements[i] << ", ";
+
 			csv << std::endl;
 			csv.close();
 /*
