@@ -15735,6 +15735,7 @@ char **argv;
   if (b.refine) {
     /* Read and reconstruct a mesh. */
 #ifdef TRILIBRARY
+    printf("call reconstruct()\n");
     m.hullsize = reconstruct(&m, &b, in->trianglelist,
                              in->triangleattributelist, in->trianglearealist,
                              in->numberoftriangles, in->numberofcorners,
@@ -15826,6 +15827,7 @@ char **argv;
 #endif /* not NO_TIMER */
 
 #ifndef CDT_ONLY
+printf("ifndef CTD ONLY!\n");
   if (b.quality && (m.triangles.items > 0)) {
     enforcequality(&m, &b);           /* Enforce angle and area constraints. */
   }
@@ -15857,7 +15859,7 @@ char **argv;
 #ifdef TRILIBRARY
   if (b.jettison) {
     out->numberofpoints = m.vertices.items - m.undeads;
-  } else {
+  } else { printf("get number of points\n");
     out->numberofpoints = m.vertices.items;
   }
   out->numberofpointattributes = m.nextras;
@@ -15865,12 +15867,13 @@ char **argv;
   out->numberofcorners = (b.order + 1) * (b.order + 2) / 2;
   out->numberoftriangleattributes = m.eextras;
   out->numberofedges = m.edges;
-  if (b.usesegments) {
+  if (b.usesegments) {printf("get number of segments\n");
     out->numberofsegments = m.subsegs.items;
   } else {
     out->numberofsegments = m.hullsize;
   }
   if (vorout != (struct triangulateio *) NULL) {
+    printf("are you sure about voronoi?");
     vorout->numberofpoints = m.triangles.items;
     vorout->numberofpointattributes = m.nextras;
     vorout->numberofedges = m.edges;

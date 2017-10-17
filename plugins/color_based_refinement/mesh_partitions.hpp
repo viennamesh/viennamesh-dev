@@ -1145,7 +1145,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         std::cout << std::endl << "actual color / # of colors" << std::endl;
         std::cout << color << " / " << colors << std::endl;
         //*/
-        #pragma omp parallel for num_threads(nthreads)
+        #pragma omp parallel for schedule(dynamic) num_threads(nthreads)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
         {
             //std::cout << "part_iter " << part_iter << " with dimension " << dim << std::endl;
