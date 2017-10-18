@@ -617,13 +617,17 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
     //-------------------------------------------------------------------------------------------------//
     //Greedy coloring algorithm
     //-------------------------------------------------------------------------------------------------//
-    if (coloring_algorithm == "greedy")
+    if (coloring_algorithm == "greedy" || coloring_algorithm == "greedy-sched")
     {
-        viennamesh::info(1) << "Coloring partitions using Greedy algorithm" << std::endl;
+        if (coloring_algorithm == "greedy")
+            viennamesh::info(1) << "Coloring partitions using Greedy algorithm" << std::endl;
+
+        else  
+            viennamesh::info(1) << "Obtaining initial coloring using Greedy algorithm" << std::endl;
 
         //resize vector
         partition_colors.resize(partition_adjcy.size());
-
+        
         colors = 1;                 //number of used colors
         partition_colors[0] = 0;    //assign first partition color 0
 
@@ -682,6 +686,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
+
     }
     //-------------------------------------------------------------------------------------------------//
     //end of Greedy Coloring algorithm
@@ -765,6 +770,53 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
     }
     //-------------------------------------------------------------------------------------------------//
     //end of Greddy Coloring with balancing using least used color
+    //-------------------------------------------------------------------------------------------------//
+
+    //-------------------------------------------------------------------------------------------------//
+    //Guided Balancing using Shuffling with Scheduled Reverse Moves
+    //-------------------------------------------------------------------------------------------------//
+    if (coloring_algorithm == "greedy-sched")
+    {
+        viennamesh::info(1) << "Coloring partitions using a Guided Balancing strategy using shuffling with scheduled reversed moves" << std::endl;
+
+        double gamma = num_regions / colors;
+
+        std::cout << num_regions << " " << colors << " " << gamma << std::endl;
+
+        //create ordered set of over-full bins in increasing color order
+        //and create an ordered set under-full bins in decreasing color order
+        std::vector<int> overfull_bins;
+        std::vector<int> underfull_bins;
+
+        overfull_bins.reserve(colors);
+        underfull_bins.reserve(colors);
+
+        for (size_t i = 0; i < colors; ++i)
+        {
+            if ( color_partitions[i].size() > gamma )
+            {
+                overfull_bins.push_back(i);
+            }
+
+            else if ( color_partitions[i].size() < gamma )
+            {
+                underfull_bins.push_back(i);
+            }
+        }
+
+        std::reverse(underfull_bins.begin(), underfull_bins.end());
+
+        std::map<int,int> moves; //list containing moves from overfull to underfull bins
+
+        for (size_t i = 0; i < overfull_bins.size(); ++i)
+        {
+            std::vector<int> surplus_parts(color_partitions[i].size()-gamma);
+
+            std::cout << "bin " << i << " : " << color_partitions[i].size() << ", surplus parts: " << surplus_parts.size() << std::endl;
+        }
+    }
+    //-------------------------------------------------------------------------------------------------//
+    //end of Guided Balancing using Shuffling with Scheduled Reverse Moves
     //-------------------------------------------------------------------------------------------------//
 /*
     //DEBUG
