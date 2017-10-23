@@ -78,7 +78,8 @@ class MeshPartitions
                                                std::string options, std::vector<size_t>& workload,
                                                std::vector<size_t>& workload_elements);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
-        bool ColorPartitions(std::string coloring_algorithm, std::string filename);                                 //Color the partitions
+        bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
+                             int no_of_iterations = 1);                                             
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
         bool RefineInterior();                                                                //Refinement without refining boundary elements
         bool WriteMergedMesh(std::string filename);                                           //Merges partitions into a single mesh and writes it
@@ -612,7 +613,7 @@ bool MeshPartitions::CreateNeighborhoodInformation()
 //
 //Tasks: Color the partitions such that independent sets are created
 //bool MeshPartitions::ColorPartitions(int num_regions)
-bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string filename)
+bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string filename, int no_of_iterations)
 {
     //-------------------------------------------------------------------------------------------------//
     //Greedy coloring algorithm
@@ -686,6 +687,50 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
+
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string partition_filename = filename;
+        partition_filename += "_partition_colors_ff.txt";
+        color_file.open(partition_filename.c_str(), ios::app);
+        color_file << "Partitions: " << partition_colors.size() << std::endl;
+        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+
+        //std::cout << "  Partition | Color " << std::endl;
+        color_file << "  Partition | Color " << std::endl;
+    
+        for (size_t i = 0; i < partition_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
+            color_file << "          " << i << " | " << partition_colors[i] << std::endl;
+        }
+        color_file.close();
+        //*/
+
+        std::string color_filename = filename;
+        color_filename+="_colors_ff.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+        color_file << "Partitions: " << partition_colors.size() << std::endl;
+        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+        color_file << "      Color | #Partitions " << std::endl;
+
+        for (size_t i = 0; i < color_partitions.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+
+    /*     std::cout << "          " << i << " | ";
+            for (auto it : color_partitions[i])
+            {
+            std::cout << it << " ";
+            }
+            std::cout << std::endl;//*/
+        }
+        color_file.close();
+        //END OF DEBUG*/
 
     }
     //-------------------------------------------------------------------------------------------------//
@@ -767,6 +812,50 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
+
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string partition_filename = filename;
+        partition_filename += "_partition_colors_greedy-lu.txt";
+        color_file.open(partition_filename.c_str(), ios::app);
+        color_file << "Partitions: " << partition_colors.size() << std::endl;
+        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+
+        //std::cout << "  Partition | Color " << std::endl;
+        color_file << "  Partition | Color " << std::endl;
+    
+        for (size_t i = 0; i < partition_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
+            color_file << "          " << i << " | " << partition_colors[i] << std::endl;
+        }
+        color_file.close();
+        //*/
+
+        std::string color_filename = filename;
+        color_filename+="_colors_greedy-lu.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+        color_file << "Partitions: " << partition_colors.size() << std::endl;
+        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+        color_file << "      Color | #Partitions " << std::endl;
+
+        for (size_t i = 0; i < color_partitions.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+
+    /*     std::cout << "          " << i << " | ";
+            for (auto it : color_partitions[i])
+            {
+            std::cout << it << " ";
+            }
+            std::cout << std::endl;//*/
+        }
+        color_file.close();
+        //END OF DEBUG*/
     }
     //-------------------------------------------------------------------------------------------------//
     //end of Greddy Coloring with balancing using least used color
@@ -781,85 +870,341 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 
         double gamma = num_regions / colors;
 
-        std::cout << num_regions << " " << colors << " " << gamma << std::endl;
+        std::cout << "parts: " << num_regions << ", colors: " << colors << ", gamma (parts/colors): " << gamma << std::endl;
 
-        //create ordered set of over-full bins in increasing color order
-        //and create an ordered set under-full bins in decreasing color order
-        std::vector<int> overfull_bins;
-        std::vector<int> underfull_bins;
+        no_of_iterations = 3;
 
-        overfull_bins.reserve(colors);
-        underfull_bins.reserve(colors);
-
-        for (size_t i = 0; i < colors; ++i)
+        for (size_t iteration = 0; iteration < no_of_iterations; ++iteration)
         {
-            if ( color_partitions[i].size() > gamma )
+            std::cout << "ITERATION " << iteration+1 << "/" << no_of_iterations << std::endl;
+
+            //create ordered set of over-full bins in increasing color order
+            //and create an ordered set under-full bins in decreasing color order
+            std::vector<int> overfull_colors;
+            std::vector<int> underfull_colors;
+
+            overfull_colors.reserve(colors);
+            underfull_colors.reserve(colors);
+
+            for (size_t i = 0; i < colors; ++i)
             {
-                overfull_bins.push_back(i);
+                if ( color_partitions[i].size() > gamma )
+                {
+                    overfull_colors.push_back(i);
+                }
+
+                else if ( color_partitions[i].size() < gamma )
+                {
+                    underfull_colors.push_back(i);
+                }
             }
 
-            else if ( color_partitions[i].size() < gamma )
+            std::cout << "overfull_colors: " << overfull_colors.size() << ", underfull_colors: " << underfull_colors.size() << std::endl;
+
+            //order underfull colors in increasing size
+            std::sort(underfull_colors.begin(), underfull_colors.end(), [this] (int a, int b) { return color_partitions[a].size() > color_partitions[b].size();} );
+            std::reverse(underfull_colors.begin(), underfull_colors.end());
+
+            for (auto it : underfull_colors)
             {
-                underfull_bins.push_back(i);
+                std::cout << it << ": " << color_partitions[it].size() << std::endl;
             }
-        }
 
-        std::reverse(underfull_bins.begin(), underfull_bins.end());
+            std::vector<std::vector<int>> moves(colors); //list containing moves from overfull to underfull bins, moves[i][j] moves partition j to color i
 
-        std::map<int,int> moves; //list containing moves from overfull to underfull bins
+            //for each j E Q_o do from Algorithm 4
+            for (size_t of_color = 0; of_color < overfull_colors.size(); ++of_color)
+            {
+                std::vector<int> surplus_parts(color_partitions[ of_color ].size()-gamma); //contains ids of partitions which have to be recolored
 
-        for (size_t i = 0; i < overfull_bins.size(); ++i)
-        {
-            std::vector<int> surplus_parts(color_partitions[i].size()-gamma);
+                //surplus_parts.reserve();
 
-            std::cout << "bin " << i << " : " << color_partitions[i].size() << ", surplus parts: " << surplus_parts.size() << std::endl;
-        }
+                std::cout << "bin " << overfull_colors[of_color] << " : " << color_partitions[of_color].size() << " parts, surplus parts: " << color_partitions[of_color].size()-gamma << std::endl;
+
+                //find partitions with color i, and add them to the list V'(j) from Algorithm 4
+                //Select V'(j) Teilmenge von V(j) such that |V'(j)|=|V(j)| - gamma
+                for (size_t j = 0; j < surplus_parts.size(); ++j)
+                {
+                    surplus_parts[j] = color_partitions[ overfull_colors[of_color]][j];
+                }
+    /*          size_t counter = 0;
+                for (size_t j = 0; j < partition_colors.size() && counter < surplus_parts.size(); ++j)
+                {
+                    if ( i == partition_colors[j] )
+                    {
+                        surplus_parts[counter]=j;
+                        ++counter;
+                    }
+                }
+    */
+                //std::cout << " surplus_parts ok " << std::endl;
+                /*//DEBUG
+                for (auto it : surplus_parts)
+                    std::cout << " " << it << std::endl;
+                //END OF DEBUG*/
+
+                //for each k E Q_u AND V'(j) neq 0 do (Algorithm 4)
+                //note that the underfull_bins are sorted in descending order of their size
+                for(size_t uf_color = 0; uf_color < underfull_colors.size() && !surplus_parts.empty(); ++uf_color)
+                {
+                    std::cout << " underfull_color " << underfull_colors[uf_color] << " has size " << color_partitions[ underfull_colors[uf_color] ].size() << std::endl;
+                    std::vector<int> movable_parts(gamma - color_partitions[ underfull_colors[uf_color] ].size() );
+
+                    for (size_t part_to_move = 0; part_to_move < movable_parts.size() && !surplus_parts.empty(); ++part_to_move)
+                    {
+                        //movable_parts[part_to_move] = surplus_parts[0];
+                        moves[ underfull_colors[uf_color] ].push_back(surplus_parts[0]);
+                        //std::cout << "  " << surplus_parts[0] << std::endl;
+                        surplus_parts.erase( surplus_parts.begin() );
+                    }
+
+                    //moves[ underfull_colors[uf_color] ] = movable_parts;
+                }
+                /*
+                for (size_t k = 0; k < underfull_colors.size(); ++k)
+                {
+                    //find partitions in V'(j) that can be moved to k (V'_k(j)???) such that |V'_k(j)| + |V(k)| < gamma 
+                    // V'_k(j) is set of partitions from surplus_parts which are moved to underfull color k
+                    std::cout << surplus_parts.size() << std::endl;
+
+                    if (underfull_colors.size() == gamma)
+                        continue;
+
+                    std::vector<int> moves_to_k( gamma - color_partitions[ underfull_colors[k] ].size() );
+
+                    std::cout << "  underfull bin " << k << " is color " << underfull_colors[k] << " with " << color_partitions[underfull_colors[k]].size() << " elements" << std::endl;                
+                    for (size_t l = 0; l < moves_to_k.size() && surplus_parts.size() > 0; ++l)
+                    {
+                        moves_to_k[l]=surplus_parts[l];
+                        std::cout << "    color " << k << " gets " << surplus_parts[l] << std::endl;
+                        moves.insert( std::pair<int,int>(k, surplus_parts[l]) );
+                        surplus_parts.erase( surplus_parts.begin() );
+                    }               
+                }
+    */
+            }
+
+    /*     //DEBUG
+            for (size_t i = 0; i < underfull_colors.size(); ++i)
+            {
+                std::cout << "move to color " << underfull_colors[i] << std::endl;
+                std::cout << moves[underfull_colors[i]].size() << std::endl;
+                for (size_t j = 0; j < moves[underfull_colors[i]].size(); ++j)
+                {
+                    std::cout << " " << moves[underfull_colors[i]][j] << std::endl;
+                }
+            }
+            //END OF DEBUG*/
+
+            for (size_t i = 0; i < underfull_colors.size(); ++i)
+            {
+                int counter = 0;
+                //#pragma omp parallel for num_threads(nthreads)
+                for (size_t part = 0; part < moves[underfull_colors[i]].size(); ++part)
+                {
+                    //check if new color is permissible and if yes, assign it;
+                    bool permissible = true;
+                    int new_color = underfull_colors[i];
+                    //std::cout << moves[new_color][part] << std::endl;
+    /*  
+                    for (size_t neigh = 0; neigh < partition_adjcy[color]; ++neigh )
+                    {
+                        if ( color_partitions[ partition_adjcy[color][neigh]] == color)
+                        {
+                            permissible = false;
+                        }
+                    }
+    */
+                    for (auto part_id : partition_adjcy[ moves[new_color][part] ])
+                    {
+                        //std::cout << moves[new_color][part] << " has neighbor " << part_id << std::endl;
+
+                        if( partition_colors[ part_id ] == new_color )
+                        {
+                            permissible = false;
+                        }
+                    }
+
+                    if (permissible)
+                    {
+                        //push back part_id of changed partition to color_partitions of its new color
+                        //remove partition_id from color_partitions of its old color
+                        //update partition_colors for the changed partition_id
+                        int partition = moves[new_color][part];
+                        //std::cout << " new color " << new_color << " for partition " << partition << " which had color "  << partition_colors[ partition ] << std::endl;
+
+                        auto iter = std::find( color_partitions[ partition_colors[ partition ] ].begin(),
+                                            color_partitions[ partition_colors[ partition ] ].end(),
+                                            partition );
+                        color_partitions[ partition_colors[ partition ] ].erase( iter );
+                        partition_colors[ partition ] = new_color; 
+                        color_partitions[ new_color ].push_back( partition);
+                        ++counter;
+                    }
+/*
+                    else   
+                        std::cout << moves[new_color][part] << " can not be colored with " << new_color << std::endl;//*/
+                }
+
+                std::cout << "  added " << counter << " partitions to color " << underfull_colors[i] << std::endl;
+            }
+
+            //DEBUG
+            //std::cout << "Number of used colors: " << colors << std::endl;
+            ofstream color_file;
+            std::string partition_filename = filename;
+            partition_filename += "_partition_colors_greedy-sched_iteration_";
+            partition_filename += std::to_string(iteration);
+            partition_filename += ".txt";
+            color_file.open(partition_filename.c_str(), ios::app);
+            
+            color_file << "Partitions: " << partition_colors.size() << std::endl;
+            color_file << "Gamma: " << gamma << std::endl;
+
+            //std::cout << "  Partition | Color " << std::endl;
+            color_file << "  Partition | Color " << std::endl;
+        
+            for (size_t i = 0; i < partition_colors.size(); ++i)
+            {
+                //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
+                color_file << "          " << i << " | " << partition_colors[i] << std::endl;
+            }
+            color_file.close();
+            //*/
+
+            std::string color_filename = filename;
+            color_filename+="_colors_greedy-sched_";
+            color_filename += std::to_string(iteration);
+            color_filename += ".txt";;
+            color_file.open(color_filename.c_str(), ios::app);
+
+            //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+            color_file << "Partitions: " << partition_colors.size() << std::endl;
+            color_file << "Gamma: " << gamma << std::endl;
+            color_file << "      Color | #Partitions " << std::endl;
+
+            for (size_t i = 0; i < color_partitions.size(); ++i)
+            {
+                //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
+                color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+
+        /*     std::cout << "          " << i << " | ";
+                for (auto it : color_partitions[i])
+                {
+                std::cout << it << " ";
+                }
+                std::cout << std::endl;//*/
+            }
+            color_file.close();
+            //END OF DEBUG*/
+        } //end of for loop iterating no_of_iteration times over the graph doing the scheduled reverse moves
     }
     //-------------------------------------------------------------------------------------------------//
     //end of Guided Balancing using Shuffling with Scheduled Reverse Moves
     //-------------------------------------------------------------------------------------------------//
-/*
-    //DEBUG
-    //std::cout << "Number of used colors: " << colors << std::endl;
-    ofstream color_file;
-    std::string partition_filename = filename;
-    partition_filename += "_partition_colors.txt";
-    color_file.open(partition_filename.c_str(), ios::app);
-    color_file << "Partitions: " << partition_colors.size() << std::endl;
 
-    //std::cout << "  Partition | Color " << std::endl;
-    color_file << "  Partition | Color " << std::endl;
- 
-    for (size_t i = 0; i < partition_colors.size(); ++i)
+    //-------------------------------------------------------------------------------------------------//
+    //Parallel Graph Coloring Algorithm by Catalyurek et al., Parallel Computing 38(10-11),576-594 (2012)
+    //-------------------------------------------------------------------------------------------------//
+    if (coloring_algorithm == "catalyurek")
     {
-        //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
-        color_file << "          " << i << " | " << partition_colors[i] << std::endl;
-    }
-    color_file.close();
-    //*/
-/*
-    std::string color_filename = filename;
-    color_filename+="_colors.txt";
-    color_file.open(color_filename.c_str(), ios::app);
+        std::vector<int> worklist;
+        std::iota(worklist.begin(), worklist.end(), 0);
 
-    //std::cout << std::endl << "      Color | #Partitions " << std::endl;
-    color_file << "Partitions: " << partition_colors.size() << std::endl;
-    color_file << "      Color | #Partitions " << std::endl;
+        partition_colors.resize(partition_adjcy.size());
+        colors = 1;
+        partition_colors[0] = 0;
 
-    for (size_t i = 0; i < color_partitions.size(); ++i)
-    {
-        //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
-        color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
-
-   /*     std::cout << "          " << i << " | ";
-        for (auto it : color_partitions[i])
+        while (!worklist.empty())
         {
-           std::cout << it << " ";
+            #pragma omp parallel for
+            for (size_t part = 1; part < worklist.size(); ++part)
+            {
+                //do an initial First-Fit coloring of the partitions in the worklist
+                int tmp_color = 0;
+                bool next_color = false;
+
+                do
+                {
+                    for (auto iter : partition_adjcy[part])
+                    {
+                        if (part > iter && partition_colors[iter] == tmp_color)
+                        {
+                            ++tmp_color;
+                            next_color = true;
+                            break;
+                        }
+
+                        else
+                            next_color = false;
+                    }
+                } while (next_color);
+
+                partition_colors[part] = tmp_color;
+
+                /*possible race condition if implemented in that way!!!
+                if ( (tmp_color+1) > colors )
+                {
+                    colors = tmp_color+1;
+                }*/
+            }
+
+            std::vector<int> defective;
+
+            #pragma omp parallel for
+            for (size_t part = 0; part < worklist.size(); ++part)
+            {
+               // if ()
+            }
+        } //end of while loop iterating worklist
+
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string partition_filename = filename;
+        partition_filename += "_partition_colors_greedy-lu.txt";
+        color_file.open(partition_filename.c_str(), ios::app);
+        color_file << "Partitions: " << partition_colors.size() << std::endl;
+        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+
+        //std::cout << "  Partition | Color " << std::endl;
+        color_file << "  Partition | Color " << std::endl;
+    
+        for (size_t i = 0; i < partition_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
+            color_file << "          " << i << " | " << partition_colors[i] << std::endl;
         }
-        std::cout << std::endl;//*//*
+        color_file.close();
+        //*/
+
+        std::string color_filename = filename;
+        color_filename+="_colors_greedy-lu.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+        color_file << "Partitions: " << partition_colors.size() << std::endl;
+        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+        color_file << "      Color | #Partitions " << std::endl;
+
+        for (size_t i = 0; i < color_partitions.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+
+    /*     std::cout << "          " << i << " | ";
+            for (auto it : color_partitions[i])
+            {
+            std::cout << it << " ";
+            }
+            std::cout << std::endl;//*/
+        }
+        color_file.close();
+        //END OF DEBUG*/
     }
-    color_file.close();
-    //END OF DEBUG*/
+    //-------------------------------------------------------------------------------------------------//
+    //end of Parallel Graph Coloring Algorithm by Catalyurek et al.
+    //-------------------------------------------------------------------------------------------------//
 
     viennamesh::info(1) << "   Partitions param = " << num_regions << std::endl;
     viennamesh::info(1) << "   Partitions count = " << max+1 << std::endl;
