@@ -61,7 +61,8 @@ namespace viennamesh
 				coloring = "greedy-lu";
 			}
 
-			else if (coloring_algorithm()=="greedy-lu" || coloring_algorithm()=="greedy" || coloring_algorithm() == "greedy-sched")
+			else if (coloring_algorithm()=="greedy-lu" || coloring_algorithm()=="greedy" 
+					|| coloring_algorithm() == "greedy-sched" || coloring_algorithm()=="parallel")
 			{
 				coloring = coloring_algorithm();
 			}

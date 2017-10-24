@@ -618,7 +618,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
     //-------------------------------------------------------------------------------------------------//
     //Greedy coloring algorithm
     //-------------------------------------------------------------------------------------------------//
-    if (coloring_algorithm == "greedy" || coloring_algorithm == "greedy-sched")
+    if (coloring_algorithm == "greedy" || coloring_algorithm == "greedy-sched" || coloring_algorithm == "vff")
     {
         if (coloring_algorithm == "greedy")
             viennamesh::info(1) << "Coloring partitions using Greedy algorithm" << std::endl;
@@ -677,7 +677,6 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 colors = tmp_color + 1;
             }
         }
-
 
         //create a vector containing the color information for each partition
         //each vector element is one color and contains the partitions with this color
@@ -862,7 +861,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
     //-------------------------------------------------------------------------------------------------//
 
     //-------------------------------------------------------------------------------------------------//
-    //Guided Balancing using Shuffling with Scheduled Reverse Moves
+    //Guided Balancing using Shuffling with Scheduled Reverse Moves by Hao Lu et al.
     //-------------------------------------------------------------------------------------------------//
     if (coloring_algorithm == "greedy-sched")
     {
@@ -870,13 +869,13 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 
         double gamma = num_regions / colors;
 
-        std::cout << "parts: " << num_regions << ", colors: " << colors << ", gamma (parts/colors): " << gamma << std::endl;
+        //std::cout << "parts: " << num_regions << ", colors: " << colors << ", gamma (parts/colors): " << gamma << std::endl;
 
         no_of_iterations = 3;
 
         for (size_t iteration = 0; iteration < no_of_iterations; ++iteration)
         {
-            std::cout << "ITERATION " << iteration+1 << "/" << no_of_iterations << std::endl;
+            //std::cout << "ITERATION " << iteration+1 << "/" << no_of_iterations << std::endl;
 
             //create ordered set of over-full bins in increasing color order
             //and create an ordered set under-full bins in decreasing color order
@@ -899,16 +898,16 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 }
             }
 
-            std::cout << "overfull_colors: " << overfull_colors.size() << ", underfull_colors: " << underfull_colors.size() << std::endl;
+            //std::cout << "overfull_colors: " << overfull_colors.size() << ", underfull_colors: " << underfull_colors.size() << std::endl;
 
             //order underfull colors in increasing size
             std::sort(underfull_colors.begin(), underfull_colors.end(), [this] (int a, int b) { return color_partitions[a].size() > color_partitions[b].size();} );
             std::reverse(underfull_colors.begin(), underfull_colors.end());
-
+/*
             for (auto it : underfull_colors)
             {
                 std::cout << it << ": " << color_partitions[it].size() << std::endl;
-            }
+            }//*/
 
             std::vector<std::vector<int>> moves(colors); //list containing moves from overfull to underfull bins, moves[i][j] moves partition j to color i
 
@@ -919,7 +918,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 
                 //surplus_parts.reserve();
 
-                std::cout << "bin " << overfull_colors[of_color] << " : " << color_partitions[of_color].size() << " parts, surplus parts: " << color_partitions[of_color].size()-gamma << std::endl;
+                //std::cout << "bin " << overfull_colors[of_color] << " : " << color_partitions[of_color].size() << " parts, surplus parts: " << color_partitions[of_color].size()-gamma << std::endl;
 
                 //find partitions with color i, and add them to the list V'(j) from Algorithm 4
                 //Select V'(j) Teilmenge von V(j) such that |V'(j)|=|V(j)| - gamma
@@ -947,7 +946,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 //note that the underfull_bins are sorted in descending order of their size
                 for(size_t uf_color = 0; uf_color < underfull_colors.size() && !surplus_parts.empty(); ++uf_color)
                 {
-                    std::cout << " underfull_color " << underfull_colors[uf_color] << " has size " << color_partitions[ underfull_colors[uf_color] ].size() << std::endl;
+                    //std::cout << " underfull_color " << underfull_colors[uf_color] << " has size " << color_partitions[ underfull_colors[uf_color] ].size() << std::endl;
                     std::vector<int> movable_parts(gamma - color_partitions[ underfull_colors[uf_color] ].size() );
 
                     for (size_t part_to_move = 0; part_to_move < movable_parts.size() && !surplus_parts.empty(); ++part_to_move)
@@ -1034,8 +1033,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                         //std::cout << " new color " << new_color << " for partition " << partition << " which had color "  << partition_colors[ partition ] << std::endl;
 
                         auto iter = std::find( color_partitions[ partition_colors[ partition ] ].begin(),
-                                            color_partitions[ partition_colors[ partition ] ].end(),
-                                            partition );
+                                               color_partitions[ partition_colors[ partition ] ].end(),
+                                               partition );
                         color_partitions[ partition_colors[ partition ] ].erase( iter );
                         partition_colors[ partition ] = new_color; 
                         color_partitions[ new_color ].push_back( partition);
@@ -1046,10 +1045,10 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                         std::cout << moves[new_color][part] << " can not be colored with " << new_color << std::endl;//*/
                 }
 
-                std::cout << "  added " << counter << " partitions to color " << underfull_colors[i] << std::endl;
+                //std::cout << "  added " << counter << " partitions to color " << underfull_colors[i] << std::endl;
             }
 
-            //DEBUG
+          /*  //DEBUG
             //std::cout << "Number of used colors: " << colors << std::endl;
             ofstream color_file;
             std::string partition_filename = filename;
@@ -1071,7 +1070,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             }
             color_file.close();
             //*/
-
+/*
             std::string color_filename = filename;
             color_filename+="_colors_greedy-sched_";
             color_filename += std::to_string(iteration);
@@ -1093,76 +1092,154 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 {
                 std::cout << it << " ";
                 }
-                std::cout << std::endl;//*/
+                std::cout << std::endl;//*//*
             }
             color_file.close();
             //END OF DEBUG*/
         } //end of for loop iterating no_of_iteration times over the graph doing the scheduled reverse moves
     }
     //-------------------------------------------------------------------------------------------------//
-    //end of Guided Balancing using Shuffling with Scheduled Reverse Moves
+    //end of Guided Balancing using Shuffling with Scheduled Reverse Moves by Hao Lu et al.
     //-------------------------------------------------------------------------------------------------//
 
     //-------------------------------------------------------------------------------------------------//
-    //Parallel Graph Coloring Algorithm by Catalyurek et al., Parallel Computing 38(10-11),576-594 (2012)
+    //Parallel Graph Coloring Algorithm by Rokos et al. (A Fast and Scalable Graph Coloring Algorithm
+    //for Multi-core and Many-core Architectures), 2015, arxiv.org
     //-------------------------------------------------------------------------------------------------//
-    if (coloring_algorithm == "catalyurek")
+    if (coloring_algorithm == "parallel")
     {
-        std::vector<int> worklist;
-        std::iota(worklist.begin(), worklist.end(), 0);
+        viennamesh::info(1) << "Coloring partitions using a parallel graph coloring algorithm" << std::endl;
+        
+        partition_colors.resize(num_regions, -1);
 
-        partition_colors.resize(partition_adjcy.size());
-        colors = 1;
-        partition_colors[0] = 0;
-
-        while (!worklist.empty())
+        //Perform tentative coloring, round 0
+        //#pragma omp parallel for
+        /*
+        for(size_t part = 0; part < num_regions; ++part)
         {
-            #pragma omp parallel for
-            for (size_t part = 1; part < worklist.size(); ++part)
+            std::cout << "part " << part << std::endl;
+            std::set<int> colors_neighs;
+            
+            //create set of colors assigned to adjacent partitions
+            for (auto neigh : partition_adjcy[part])
             {
-                //do an initial First-Fit coloring of the partitions in the worklist
-                int tmp_color = 0;
-                bool next_color = false;
+                std::cout << " " << neigh << " has color " << partition_colors[neigh] << std::endl;
+                colors_neighs.insert(partition_colors[neigh]);
+            }
 
-                do
+            std::cout << " set size " << colors_neighs.size() << std::endl;
+
+            s
+
+            for (auto it : colors_neighs)
+                std::cout << "  " <<  it << std::endl;
+
+            std::cout << " " << part << ": gets color " << *(colors_neighs.rbegin()) +1 << std::endl;
+
+            partition_colors[part] = *(colors_neighs.rbegin())+1;
+        } //end of tentative coloring, round 0*/
+        
+        //perform tentative coloring of partitions  
+        #pragma omp parallel for schedule(dynamic) num_threads(nthreads)
+        for(size_t part = 0; part < num_regions; ++part)
+        {
+            bool next_color = false;
+            int tmp_color = 0;
+
+            do
+            {
+                for (auto iter : partition_adjcy[part])
                 {
-                    for (auto iter : partition_adjcy[part])
+                    if ( part > iter && partition_colors[iter] == tmp_color)
                     {
-                        if (part > iter && partition_colors[iter] == tmp_color)
-                        {
-                            ++tmp_color;
-                            next_color = true;
-                            break;
-                        }
-
-                        else
-                            next_color = false;
+                        ++tmp_color;
+                        next_color = true;
+                        break;
                     }
-                } while (next_color);
 
-                partition_colors[part] = tmp_color;
+                    else
+                        next_color = false;
+                }
+            } while(next_color);
 
-                /*possible race condition if implemented in that way!!!
-                if ( (tmp_color+1) > colors )
-                {
-                    colors = tmp_color+1;
-                }*/
-            }
+            partition_colors[part] = tmp_color;
+        } //end of tentative coloring
 
-            std::vector<int> defective;
+        //mark all partitions for inspection
+        std::vector<int> global_worklist(num_regions);
+        std::iota(global_worklist.begin(), global_worklist.end(), 0);
 
-            #pragma omp parallel for
-            for (size_t part = 0; part < worklist.size(); ++part)
+        int round = 1;
+        
+        //do color checks of all colored partitions
+        while( !global_worklist.empty() )
+        {
+            std::vector<std::vector<int>> recolored(nthreads);
+
+            #pragma omp parallel for num_threads(nthreads)
+            for(size_t part = 0; part < global_worklist.size(); ++part)
             {
-               // if ()
+                //check if a partition has to be recolored and recolor if necessary
+                for (auto neigh : partition_adjcy[part])
+                {
+                    if ( (partition_colors[part] == partition_colors[neigh]) && (neigh > part) )
+                    {
+                        bool next_color = false;
+                        int tmp_color = 0;
+            
+                        do
+                        {
+                            for (auto iter : partition_adjcy[part])
+                            {
+                                if ( part < iter && partition_colors[iter] == tmp_color)
+                                {
+                                    ++tmp_color;
+                                    next_color = true;
+                                    break;
+                                }
+            
+                                else
+                                    next_color = false;
+                            }
+                        } while(next_color);
+            
+                        partition_colors[part] = tmp_color;
+                        recolored[omp_get_thread_num()].push_back(part);
+                    } //end of check color of partition
+                }                
             }
-        } //end of while loop iterating worklist
+
+            global_worklist.clear();
+
+            //create global worklist for next round of color checks
+            for (auto recolor : recolored)
+            {
+                for (auto part_recolor : recolor)
+                {
+                    global_worklist.push_back(part_recolor);
+                }
+            }
+            ++round;
+        } //end of while loop doing the color checks
+
+        //create a vector containing the color information for each partition
+        //each vector element is one color and contains the partitions with this color
+        colors = *( std::max_element(partition_colors.begin(), partition_colors.end()) ) + 1;
+
+        color_partitions.resize(colors);
+
+        for (size_t i = 0; i < partition_colors.size(); ++i)
+        {
+            color_partitions[ partition_colors[i] ].push_back(i);
+        }
+
+        viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << colors << " colors" << std::endl;
 
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
         std::string partition_filename = filename;
-        partition_filename += "_partition_colors_greedy-lu.txt";
+        partition_filename += "_partition_colors_parallel.txt";
         color_file.open(partition_filename.c_str(), ios::app);
         color_file << "Partitions: " << partition_colors.size() << std::endl;
         color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
@@ -1179,7 +1256,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //*/
 
         std::string color_filename = filename;
-        color_filename+="_colors_greedy-lu.txt";
+        color_filename+="_colors_parallel.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
@@ -1203,7 +1280,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //END OF DEBUG*/
     }
     //-------------------------------------------------------------------------------------------------//
-    //end of Parallel Graph Coloring Algorithm by Catalyurek et al.
+    //end of Parallel Graph Coloring Algorithm by Rokos et al. (A Fast and Scalable Graph Coloring Algorithm
+    //for Multi-core and Many-core Architectures), 2015, arxiv.org
     //-------------------------------------------------------------------------------------------------//
 
     viennamesh::info(1) << "   Partitions param = " << num_regions << std::endl;
