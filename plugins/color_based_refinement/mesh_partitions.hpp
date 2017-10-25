@@ -1048,7 +1048,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 //std::cout << "  added " << counter << " partitions to color " << underfull_colors[i] << std::endl;
             }
 
-          /*  //DEBUG
+            //DEBUG
             //std::cout << "Number of used colors: " << colors << std::endl;
             ofstream color_file;
             std::string partition_filename = filename;
@@ -1070,7 +1070,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             }
             color_file.close();
             //*/
-/*
+
             std::string color_filename = filename;
             color_filename+="_colors_greedy-sched_";
             color_filename += std::to_string(iteration);
@@ -1086,13 +1086,13 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             {
                 //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
                 color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
-
-        /*     std::cout << "          " << i << " | ";
+/*
+            std::cout << "          " << i << " | ";
                 for (auto it : color_partitions[i])
                 {
                 std::cout << it << " ";
                 }
-                std::cout << std::endl;//*//*
+                std::cout << std::endl;//*/
             }
             color_file.close();
             //END OF DEBUG*/
@@ -1140,7 +1140,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         } //end of tentative coloring, round 0*/
         
         //perform tentative coloring of partitions  
-        #pragma omp parallel for schedule(dynamic) num_threads(nthreads)
+        #pragma omp parallel for num_threads(nthreads)
         for(size_t part = 0; part < num_regions; ++part)
         {
             bool next_color = false;
