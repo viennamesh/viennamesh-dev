@@ -79,26 +79,36 @@ namespace viennamesh
 			auto overall_tic = std::chrono::system_clock::now();
 			
 			auto wall_tic = std::chrono::system_clock::now();
-				InputMesh.MetisPartitioning();
+				//InputMesh.MetisPartitioning();
 			std::chrono::duration<double> partitioning_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Partitioning time " << partitioning_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.CreateNeighborhoodInformation();
+				//InputMesh.CreateNeighborhoodInformation();
 			std::chrono::duration<double> adjacency_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
 				InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
+				//InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1));
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
+			wall_tic = std::chrono::system_clock::now();
 			bool valid_coloring = true;
-			if ( !InputMesh.CheckColoring() )
+			if ( !InputMesh.CheckPartitionColoring() )
 			{
-				viennamesh::error(1) << "Invalid Coloring" << std::endl;
+				viennamesh::error(1) << "Invalid Partition Coloring" << std::endl;
 				valid_coloring = false;
-			}
+			}//*/
+			/*
+			if ( !InputMesh.CheckVertexColoring() )
+			{
+				viennamesh::error(1) << "Invalid Vertex Coloring" << std::endl;
+				valid_coloring = false;
+			}//*/
+			std::chrono::duration<double> coloring_check_time = std::chrono::system_clock::now() - wall_tic;
+			viennamesh::info(1) << "  Coloring Validation time " << coloring_check_time.count() << std::endl;
 
 			//PARALLEL PART
 			std::chrono::duration<double> pragmatic_duration;
@@ -151,6 +161,7 @@ namespace viennamesh
 				csv << "valid, ";
 			else
 				csv << "invalid, ";
+			csv << coloring_check_time.count() << ", ";
 			/*
 			for (size_t i = 0; i < l2g_build.size(); ++i)
 			{

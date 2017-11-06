@@ -79,8 +79,11 @@ class MeshPartitions
                                                std::vector<size_t>& workload_elements);
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
-                             int no_of_iterations = 1);                                             
-        bool CheckColoring();                                                                 //Checks validity of the coloring
+                             int no_of_iterations = 1);      
+        bool ColorVertices(std::string coloring_algorithm, std::string filename,              //Color the vertices
+                           int no_of_iterations = 1);                                       
+        bool CheckPartitionColoring();                                                        //Checks validity of the partition coloring
+        bool CheckVertexColoring();
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
         bool RefineInterior();                                                                //Refinement without refining boundary elements
         bool WriteMergedMesh(std::string filename);                                           //Merges partitions into a single mesh and writes it
@@ -153,6 +156,9 @@ class MeshPartitions
         size_t colors;                                                                        //Stores the number of colors used
         std::vector<int> partition_colors;                                                    //Contains the color assigned to each partition
         std::vector<std::vector<int>> color_partitions;                                       //Contains the partition ids assigned to each color
+
+        std::vector<int> vertex_colors;
+        std::vector<std::vector<int>> color_vertices;
 
         double calc_edge_length(int part_id, index_t x0, index_t y0);
         double calculate_quality(const index_t* n, int part_id);
@@ -883,10 +889,10 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             //and create an ordered set under-full bins in decreasing color order
             std::vector<int> overfull_colors;
             std::vector<int> underfull_colors;
-
-            overfull_colors.reserve(colors);
-            underfull_colors.reserve(colors);
-
+/*
+            overfull_colors.resize(colors);
+            underfull_colors.resize(colors);
+*/
             for (size_t i = 0; i < colors; ++i)
             {
                 if ( color_partitions[i].size() > gamma )
@@ -898,6 +904,9 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 {
                     underfull_colors.push_back(i);
                 }
+/*
+                else 
+                    std::cout << "ideal color " << i << ": " << color_partitions[i].size() << std::endl;*/
             }
 
             //std::cout << "overfull_colors: " << overfull_colors.size() << ", underfull_colors: " << underfull_colors.size() << std::endl;
@@ -906,27 +915,32 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::sort(underfull_colors.begin(), underfull_colors.end(), [this] (int a, int b) { return color_partitions[a].size() > color_partitions[b].size();} );
             std::reverse(underfull_colors.begin(), underfull_colors.end());
 /*
+            std::cout << "underfull colors" << std::endl;
             for (auto it : underfull_colors)
             {
                 std::cout << it << ": " << color_partitions[it].size() << std::endl;
             }//*/
+
+            //std::cout << "overfull colors" << std::endl;
 
             std::vector<std::vector<int>> moves(colors); //list containing moves from overfull to underfull bins, moves[i][j] moves partition j to color i
 
             //for each j E Q_o do from Algorithm 4
             for (size_t of_color = 0; of_color < overfull_colors.size(); ++of_color)
             {
-                std::vector<int> surplus_parts(color_partitions[ of_color ].size()-gamma); //contains ids of partitions which have to be recolored
+                int of_color_id = overfull_colors[of_color];
+
+                std::vector<int> surplus_parts(color_partitions[ of_color_id ].size()-gamma); //contains ids of partitions which have to be recolored
 
                 //surplus_parts.reserve();
 
-                //std::cout << "bin " << overfull_colors[of_color] << " : " << color_partitions[of_color].size() << " parts, surplus parts: " << color_partitions[of_color].size()-gamma << std::endl;
+                //std::cout << "bin " << of_color_id << " : " << color_partitions[of_color_id].size() << " parts, surplus parts: " << color_partitions[ of_color_id ].size()-gamma << std::endl;
 
                 //find partitions with color i, and add them to the list V'(j) from Algorithm 4
                 //Select V'(j) subset of V(j) such that |V'(j)|=|V(j)| - gamma
                 for (size_t j = 0; j < surplus_parts.size(); ++j)
                 {
-                    surplus_parts[j] = color_partitions[ overfull_colors[of_color]][j];
+                    surplus_parts[j] = color_partitions[ of_color_id ][j];
                 }
     /*          size_t counter = 0;
                 for (size_t j = 0; j < partition_colors.size() && counter < surplus_parts.size(); ++j)
@@ -948,13 +962,14 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 //note that the underfull_bins are sorted in descending order of their size
                 for(size_t uf_color = 0; uf_color < underfull_colors.size() && !surplus_parts.empty(); ++uf_color)
                 {
+                    int uf_color_id = underfull_colors[uf_color];
                     //std::cout << " underfull_color " << underfull_colors[uf_color] << " has size " << color_partitions[ underfull_colors[uf_color] ].size() << std::endl;
-                    std::vector<int> movable_parts(gamma - color_partitions[ underfull_colors[uf_color] ].size() );
+                    std::vector<int> movable_parts(gamma - color_partitions[ uf_color_id ].size() );
 
                     for (size_t part_to_move = 0; part_to_move < movable_parts.size() && !surplus_parts.empty(); ++part_to_move)
                     {
                         //movable_parts[part_to_move] = surplus_parts[0];
-                        moves[ underfull_colors[uf_color] ].push_back(surplus_parts[0]);
+                        moves[ uf_color_id ].push_back(surplus_parts[0]);
                         //std::cout << "  " << surplus_parts[0] << std::endl;
                         surplus_parts.erase( surplus_parts.begin() );
                     }
@@ -984,8 +999,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 }
     */
             }
-
-    /*     //DEBUG
+/*
+         //DEBUG
             for (size_t i = 0; i < underfull_colors.size(); ++i)
             {
                 std::cout << "move to color " << underfull_colors[i] << std::endl;
@@ -1000,13 +1015,15 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             for (size_t i = 0; i < underfull_colors.size(); ++i)
             {
                 int counter = 0;
+                int uf_color_id = underfull_colors[i];
 
-                #pragma omp parallel for num_threads(nthreads)
-                for (size_t part = 0; part < moves[underfull_colors[i]].size(); ++part)
+                #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+                for (size_t part = 0; part < moves[uf_color_id].size(); ++part)
                 {
                     //check if new color is permissible and if yes, assign it;
                     bool permissible = true;
-                    int new_color = underfull_colors[i];
+                    int new_color = uf_color_id;
+                    int part_id = moves[new_color][part];
                     //std::cout << moves[new_color][part] << std::endl;
     /*  
                     for (size_t neigh = 0; neigh < partition_adjcy[color]; ++neigh )
@@ -1017,11 +1034,19 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                         }
                     }
     */
-                    for (auto part_id : partition_adjcy[ moves[new_color][part] ])
+                    for (auto neigh_id : partition_adjcy[ part_id ])
                     {
                         //std::cout << moves[new_color][part] << " has neighbor " << part_id << std::endl;
+                        //forbid re-coloring if neighbor has the same color
+                        if( (partition_colors[ neigh_id ] == new_color) )
+                        {
+                            permissible = false;
+                            continue;
+                        }
 
-                        if( partition_colors[ part_id ] == new_color )
+                        //forbid coloring if neighbor with smaller partition id is also in the queue and would get the same color 
+                        auto iter = std::find(moves[new_color].begin(), moves[new_color].end(), neigh_id);
+                        if (iter != moves[new_color].end() && neigh_id < part_id)
                         {
                             permissible = false;
                         }
@@ -1032,14 +1057,13 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                         //push back part_id of changed partition to color_partitions of its new color
                         //remove partition_id from color_partitions of its old color
                         //update partition_colors for the changed partition_id
-                        int partition = moves[new_color][part];
                         //std::cout << " new color " << new_color << " for partition " << partition << " which had color "  << partition_colors[ partition ] << std::endl;
 
                         /*auto iter = std::find( color_partitions[ partition_colors[ partition ] ].begin(),
                                                color_partitions[ partition_colors[ partition ] ].end(),
                                                partition );*/
                         //color_partitions[ partition_colors[ partition ] ].erase( iter );
-                        partition_colors[ partition ] = new_color; 
+                        partition_colors[ part_id ] = new_color; 
                         //color_partitions[ new_color ].push_back( partition);
                         ++counter;
                     }
@@ -1054,6 +1078,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             //recreate partition_colors vector<vector>
             //create a vector containing the color information for each partition
             //each vector element is one color and contains the partitions with this color
+            color_partitions.clear();
             color_partitions.resize(colors);
             
             for (size_t i = 0; i < partition_colors.size(); ++i)
@@ -1069,6 +1094,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             partition_filename += ".txt";
             color_file.open(partition_filename.c_str(), ios::app);
             
+            color_file << "Threads: " << nthreads << std::endl;
             color_file << "Partitions: " << partition_colors.size() << std::endl;
             color_file << "Gamma: " << gamma << std::endl;
 
@@ -1090,6 +1116,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             color_file.open(color_filename.c_str(), ios::app);
 
             //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+            color_file << "Threads: " << nthreads << std::endl;
             color_file << "Partitions: " << partition_colors.size() << std::endl;
             color_file << "Gamma: " << gamma << std::endl;
             color_file << "      Color | #Partitions " << std::endl;
@@ -1154,7 +1181,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         } //end of tentative coloring, round 0*/
         
         //perform tentative coloring of partitions  
-        #pragma omp parallel for num_threads(nthreads)
+        #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
         for(size_t part = 0; part < num_regions; ++part)
         {
             bool next_color = false;
@@ -1190,22 +1217,25 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             std::vector<std::vector<int>> recolored(nthreads);
 
-            #pragma omp parallel for num_threads(nthreads)
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
             for(size_t part = 0; part < global_worklist.size(); ++part)
             {
+                int part_id = global_worklist[part];
+
                 //check if a partition has to be recolored and recolor if necessary
-                for (auto neigh : partition_adjcy[part])
+                for (auto neigh : partition_adjcy[ part_id ])
                 {
-                    if ( (partition_colors[part] == partition_colors[neigh]) && (neigh > part) )
+                    if ( (partition_colors[ part_id ] == partition_colors[neigh]) && (neigh > part_id) )
                     {
                         bool next_color = false;
                         int tmp_color = 0;
             
                         do
                         {
-                            for (auto iter : partition_adjcy[part])
+                            for (auto iter : partition_adjcy[part_id])
                             {
-                                if ( part < iter && partition_colors[iter] == tmp_color)
+                                //if ( part_id < iter && partition_colors[iter] == tmp_color)
+                                if (partition_colors[iter] == tmp_color)
                                 {
                                     ++tmp_color;
                                     next_color = true;
@@ -1217,8 +1247,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                             }
                         } while(next_color);
             
-                        partition_colors[part] = tmp_color;
-                        recolored[omp_get_thread_num()].push_back(part);
+                        partition_colors[part_id] = tmp_color;
+                        recolored[omp_get_thread_num()].push_back(part_id);
                     } //end of check color of partition
                 }                
             }
@@ -1309,10 +1339,587 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 }
 //end of ColorPartitions
 
-//CheckColoring()
+//ColorVertices()
 //
-//Tasks: Checks validity of the coloring
-bool MeshPartitions::CheckColoring()
+//Tasks: Color the elements such that independent sets are created
+bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string filename, int no_of_iterations)
+{
+    //-------------------------------------------------------------------------------------------------//
+    //Greedy coloring algorithm for vertices
+    //-------------------------------------------------------------------------------------------------//
+    if (coloring_algorithm == "greedy" || coloring_algorithm == "greedy-sched")
+    {
+        if (coloring_algorithm == "greedy")
+            viennamesh::info(1) << "Coloring vertices using Greedy algorithm" << std::endl;
+
+        else  
+            viennamesh::info(1) << "Obtaining initial coloring using Greedy algorithm" << std::endl;
+
+        //resize vector
+        vertex_colors.resize(original_mesh->get_number_nodes());
+        
+        colors = 1;               //number of used colors
+        vertex_colors[0] = 0;    //assign first partition color 0
+
+        //visit every partition and assign the smallest color available (not already assigned to on of its neighbors)
+        for (size_t i = 1; i < vertex_colors.size(); ++i)
+        {
+            int tmp_color = 0; //start with smallest color 
+            bool next_color = false;
+
+            do
+            {
+                //check if assigned color in tmp_color is already assigned to a neighbor
+                //since we assign colors to partitions in ascending ID order, check only
+                //neighbors with smaller partition ID
+                for (auto iter : original_mesh->NNList[i])
+                {
+                    //if chosen color is already assigned to neighbor, try next color
+                    if ( i > iter && vertex_colors[iter] == tmp_color) 
+                    {
+                        ++tmp_color;
+                        next_color = true;
+                        break;
+                    }
+
+                    //if chosen color is ok exit loop
+                    else
+                        next_color=false;
+                }
+            } while(next_color);
+
+            vertex_colors[i] = tmp_color;
+
+            if ( (tmp_color + 1) > colors )
+            {
+                colors = tmp_color + 1;
+            }
+        }
+
+        //create a vector containing the color information for each partition
+        //each vector element is one color and contains the partitions with this color,
+        color_vertices.resize(colors);
+
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            color_vertices[ vertex_colors[i] ].push_back(i);
+        }
+
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string vertex_filename = filename;
+        vertex_filename += "_vertex_colors_ff.txt";
+        color_file.open(vertex_filename.c_str(), ios::app);
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+
+        //std::cout << "  Vertex | Color " << std::endl;
+        color_file << "  Vertex | Color " << std::endl;
+    
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << vertex_colors[i] << std::endl;
+            color_file << "          " << i << " | " << vertex_colors[i] << std::endl;
+        }
+        color_file.close();
+        //*/
+
+        std::string color_filename = filename;
+        color_filename+="_colors_ff.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+        color_file << "      Color | #Vertices " << std::endl;
+
+        for (size_t i = 0; i < color_vertices.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
+        }
+        color_file.close();
+        //END OF DEBUG*/
+
+    }
+    //-------------------------------------------------------------------------------------------------//
+    //end of Greedy Coloring algorithm for vertices
+    //-------------------------------------------------------------------------------------------------//
+
+    //-------------------------------------------------------------------------------------------------//
+    //Greddy Coloring with balancing using least used color for vertices
+    //-------------------------------------------------------------------------------------------------//
+    else if (coloring_algorithm == "greedy-lu")
+    {
+        viennamesh::info(1) << "Coloring vertices using Greedy algorithm with balancing using least used color" << std::endl;
+    
+        //resize vector
+        vertex_colors.resize(original_mesh->get_number_nodes(), -1);
+    
+        colors = 1;                 //number of used colors
+        vertex_colors[0] = 0;       //assign first vertex color 0      
+        
+        //std::cout << "0 gets new color 0" << std::endl;
+
+        std::vector<int> color_usage;   //vector storing how many times a color has been assigned (each element is a color)
+        color_usage.reserve(30);        
+        color_usage.push_back(1);       //initialize the first color assigned to the first vertex (color 0, assigned 1 time)
+    
+        //visit every vertex and assign the least used color available (not already assigned to on of its neighbors)
+        //if no used color is permissible, assign a new color
+        for (size_t vert = 1; vert < vertex_colors.size(); ++vert)
+        {
+            //find set of permissible colors
+            std::vector<bool> permissible_colors(colors, true);
+
+            for (auto neighbor : original_mesh->NNList[vert])
+            {
+                //since we assign colors to vertices in ascending ID order, check only
+                //neighbors with smaller vertex ID
+                if (neighbor > vert)
+                {
+                    continue;
+                }
+
+                permissible_colors[ vertex_colors[neighbor] ] = false;
+            }
+    
+            std::vector<int> permissible_usage = color_usage;
+
+            //set usage of colors not allowed for assignement to the numerical limit of int
+            for (size_t i = 0; i < permissible_colors.size(); ++i)
+            {
+                if (!permissible_colors[i])
+                {
+                    permissible_usage[i] = std::numeric_limits<int>::max();
+                }
+            }
+
+            //check if we need to create a new color
+            if ( !std::accumulate(permissible_colors.begin(), permissible_colors.end(), false) )
+            {
+                vertex_colors[vert] = colors;
+                color_usage.push_back(1);
+                ++colors;
+            }
+
+            else
+            {
+                vertex_colors[vert] = std::min_element(permissible_usage.begin(), permissible_usage.end()) - permissible_usage.begin();
+                //std::cout << vert << " gets old color " << vertex_colors[vert] << std::endl;
+                ++color_usage[vertex_colors[vert]];
+            }
+
+        } //end of for loop iterating vertices
+
+        //create a vector containing the color information for each vertex
+        //each vector element is one color and contains the vertices with this color
+        color_vertices.resize(colors);
+        
+        for (size_t i = 0; i < color_vertices.size(); ++i)
+        {
+            color_vertices[ vertex_colors[i] ].push_back(i);
+        }
+
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string vertex_filename = filename;
+        vertex_filename += "_vertex_colors_greedy-lu.txt";
+        color_file.open(vertex_filename.c_str(), ios::app);
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+
+        //std::cout << "  Vertex | Color " << std::endl;
+        color_file << "  Vertex | Color " << std::endl;
+    
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << vertex_colors[i] << std::endl;
+            color_file << "          " << i << " | " << vertex_colors[i] << std::endl;
+        }
+        color_file.close();
+        //*/
+
+        std::string color_filename = filename;
+        color_filename+="_colors_greedy-lu.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Vertices " << std::endl;
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+        color_file << "      Color | #Vertices " << std::endl;
+
+        for (size_t i = 0; i < color_vertices.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
+
+    /*     std::cout << "          " << i << " | ";
+            for (auto it : color_vertices[i])
+            {
+            std::cout << it << " ";
+            }
+            std::cout << std::endl;//*/
+        }
+        color_file.close();
+        //END OF DEBUG*/
+    }
+    //-------------------------------------------------------------------------------------------------//
+    //end of Greddy Coloring with balancing using least used color for vertices
+    //-------------------------------------------------------------------------------------------------//
+
+    //-------------------------------------------------------------------------------------------------//
+    //Guided Balancing using Shuffling with Scheduled Reverse Moves by Hao Lu et al. for vertices
+    //-------------------------------------------------------------------------------------------------//
+    if (coloring_algorithm == "greedy-sched")
+    {
+        viennamesh::info(1) << "Coloring vertices using a Guided Balancing strategy using shuffling with scheduled reversed moves" << std::endl;
+
+        double gamma = num_regions / colors;
+
+        //std::cout << "parts: " << num_regions << ", colors: " << colors << ", gamma (parts/colors): " << gamma << std::endl;
+
+        no_of_iterations = 3;
+
+        for (size_t iteration = 0; iteration < no_of_iterations; ++iteration)
+        {
+            //std::cout << "ITERATION " << iteration+1 << "/" << no_of_iterations << std::endl;
+
+            //create ordered set of over-full bins in increasing color order
+            //and create an ordered set under-full bins in decreasing color order
+            std::vector<int> overfull_colors;
+            std::vector<int> underfull_colors;
+/*
+            overfull_colors.resize(colors);
+            underfull_colors.resize(colors);
+*/
+            for (size_t i = 0; i < colors; ++i)
+            {
+                if ( color_vertices[i].size() > gamma )
+                {
+                    overfull_colors.push_back(i);
+                }
+
+                else if ( color_vertices[i].size() < gamma )
+                {
+                    underfull_colors.push_back(i);
+                }
+            }
+
+            //order underfull colors in increasing size
+            std::sort(underfull_colors.begin(), underfull_colors.end(), [this] (int a, int b) { return color_vertices[a].size() > color_vertices[b].size();} );
+            std::reverse(underfull_colors.begin(), underfull_colors.end());
+
+            std::vector<std::vector<int>> moves(colors); //list containing moves from overfull to underfull bins, moves[i][j] moves partition j to color i
+
+            //for each j E Q_o do from Algorithm 4
+            for (size_t of_color = 0; of_color < overfull_colors.size(); ++of_color)
+            {
+                int of_color_id = overfull_colors[of_color];
+
+                std::vector<int> surplus_verts(color_vertices[ of_color_id ].size()-gamma); //contains ids of vertices which have to be recolored
+
+                //find vertices with color i, and add them to the list V'(j) from Algorithm 4
+                //Select V'(j) subset of V(j) such that |V'(j)|=|V(j)| - gamma
+                for (size_t j = 0; j < surplus_verts.size(); ++j)
+                {
+                    surplus_verts[j] = color_vertices[ of_color_id ][j];
+                }
+
+                //for each k E Q_u AND V'(j) neq 0 do (Algorithm 4)
+                //note that the underfull_bins are sorted in descending order of their size
+                for(size_t uf_color = 0; uf_color < underfull_colors.size() && !surplus_verts.empty(); ++uf_color)
+                {
+                    int uf_color_id = underfull_colors[uf_color];
+                    //std::cout << " underfull_color " << underfull_colors[uf_color] << " has size " << color_vertices[ underfull_colors[uf_color] ].size() << std::endl;
+                    std::vector<int> movable_verts(gamma - color_vertices[ uf_color_id ].size() );
+
+                    for (size_t vert_to_move = 0; vert_to_move < movable_verts.size() && !surplus_verts.empty(); ++vert_to_move)
+                    {
+                        moves[ uf_color_id ].push_back(surplus_verts[0]);
+                        surplus_verts.erase( surplus_verts.begin() );
+                    }
+                }
+            }
+
+            for (size_t i = 0; i < underfull_colors.size(); ++i)
+            {
+                int counter = 0;
+                int uf_color_id = underfull_colors[i];
+
+                #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+                for (size_t vert = 0; vert < moves[uf_color_id].size(); ++vert)
+                {
+                    //check if new color is permissible and if yes, assign it;
+                    bool permissible = true;
+                    int new_color = uf_color_id;
+                    size_t vert_id = moves[new_color][vert];
+  
+                    for (auto neigh_id : original_mesh->NNList[ vert_id ])
+                    {
+                        //forbid re-coloring if neighbor has the same color
+                        if( (vertex_colors[ neigh_id ] == new_color) )
+                        {
+                            permissible = false;
+                            continue;
+                        }
+
+                        //forbid coloring if neighbor with smaller vertex id is also in the queue and would get the same color 
+                        auto iter = std::find(moves[new_color].begin(), moves[new_color].end(), neigh_id);
+                        if (iter != moves[new_color].end() && neigh_id < vert_id)
+                        {
+                            permissible = false;
+                        }
+                    }
+
+                    if (permissible)
+                    {
+                        vertex_colors[ vert_id ] = new_color; 
+                        ++counter;
+                    }
+                }//end of omp parallel for
+            } //end of for loop iterating underfull colors
+
+            //recreate vertex_colors vector<vector>
+            //create a vector containing the color information for each partition
+            //each vector element is one color and contains the partitions with this color
+            color_vertices.clear();
+            color_vertices.resize(colors);
+            
+            for (size_t i = 0; i < vertex_colors.size(); ++i)
+            {
+                color_vertices[ vertex_colors[i] ].push_back(i);
+            }
+
+            //DEBUG
+            ofstream color_file;
+            std::string vertex_filename = filename;
+            vertex_filename += "_vertex_colors_greedy-sched_iteration_";
+            vertex_filename += std::to_string(iteration);
+            vertex_filename += ".txt";
+            color_file.open(vertex_filename.c_str(), ios::app);
+            
+            color_file << "Threads: " << nthreads << std::endl;
+            color_file << "Vertices: " << partition_colors.size() << std::endl;
+            color_file << "Gamma: " << gamma << std::endl;
+
+            //std::cout << "  Vertex | Color " << std::endl;
+            color_file << "  Vertex | Color " << std::endl;
+        
+            for (size_t i = 0; i < vertex_colors.size(); ++i)
+            {
+                //std::cout << "          " << i << " | " << vertex_colors[i] << std::endl;
+                color_file << "          " << i << " | " << vertex_colors[i] << std::endl;
+            }
+            color_file.close();
+            //*/
+
+            std::string color_filename = filename;
+            color_filename+="_colors_greedy-sched_";
+            color_filename += std::to_string(iteration);
+            color_filename += ".txt";;
+            color_file.open(color_filename.c_str(), ios::app);
+
+            //std::cout << std::endl << "      Color | #Vertices " << std::endl;
+            color_file << "Threads: " << nthreads << std::endl;
+            color_file << "Vertices: " << vertex_colors.size() << std::endl;
+            color_file << "Gamma: " << gamma << std::endl;
+            color_file << "      Color | #Vertices " << std::endl;
+
+            for (size_t i = 0; i < color_vertices.size(); ++i)
+            {
+                //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
+                color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
+/*
+            std::cout << "          " << i << " | ";
+                for (auto it : color_vertices[i])
+                {
+                std::cout << it << " ";
+                }
+                std::cout << std::endl;//*/
+            }
+            color_file.close();
+            //END OF DEBUG*/
+
+        } //end of for loop iterating no_of_iteration times over the graph doing the scheduled reverse moves
+    }
+    //-------------------------------------------------------------------------------------------------//
+    //end of Guided Balancing using Shuffling with Scheduled Reverse Moves by Hao Lu et al. for vertices
+    //-------------------------------------------------------------------------------------------------//
+
+    //-------------------------------------------------------------------------------------------------//
+    //Parallel Graph Coloring Algorithm by Rokos et al. (A Fast and Scalable Graph Coloring Algorithm
+    //for Multi-core and Many-core Architectures), 2015, arxiv.org
+    //-------------------------------------------------------------------------------------------------//
+    if (coloring_algorithm == "parallel")
+    {
+        viennamesh::info(1) << "Coloring vertices using a parallel graph coloring algorithm" << std::endl;
+        
+        vertex_colors.resize(original_mesh->get_number_nodes(), -1);
+
+        //perform tentative coloring of vertices  
+        #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+        for(size_t vert = 0; vert < original_mesh->get_number_nodes(); ++vert)
+        {
+            bool next_color = false;
+            int tmp_color = 0;
+
+            do
+            {
+                for (auto iter : original_mesh->NNList[vert])
+                {
+                    if ( vert > iter && vertex_colors[iter] == tmp_color)
+                    {
+                        ++tmp_color;
+                        next_color = true;
+                        break;
+                    }
+
+                    else
+                        next_color = false;
+                }
+            } while(next_color);
+
+            vertex_colors[vert] = tmp_color;
+        } //end of tentative coloring
+
+        //mark all vertices for inspection
+        std::vector<int> global_worklist(original_mesh->get_number_nodes());
+        std::iota(global_worklist.begin(), global_worklist.end(), 0);
+
+        int round = 1;
+        
+        //do color checks of all colored vertices
+        while( !global_worklist.empty() )
+        {
+            std::vector<std::vector<int>> recolored(nthreads);
+
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+            for(size_t vert = 0; vert < global_worklist.size(); ++vert)
+            {
+                int vert_id = global_worklist[vert];
+
+                //check if a vertex has to be recolored and recolor if necessary
+                for (auto neigh : original_mesh->NNList[ vert_id ])
+                {
+                    if ( (vertex_colors[ vert_id ] == vertex_colors[neigh]) && (neigh > vert_id) )
+                    {
+                        bool next_color = false;
+                        int tmp_color = 0;
+            
+                        do
+                        {
+                            for (auto iter : original_mesh->NNList[vert_id])
+                            {
+                                if (vertex_colors[iter] == tmp_color)
+                                {
+                                    ++tmp_color;
+                                    next_color = true;
+                                    break;
+                                }
+            
+                                else
+                                    next_color = false;
+                            }
+                        } while(next_color);
+            
+                        vertex_colors[vert_id] = tmp_color;
+                        recolored[omp_get_thread_num()].push_back(vert_id);
+                    } //end of check color of vertex
+                }                
+            }
+
+            global_worklist.clear();
+
+            //create global worklist for next round of color checks
+            for (auto recolor : recolored)
+            {
+                for (auto vert_recolor : recolor)
+                {
+                    global_worklist.push_back(vert_recolor);
+                }
+            }
+            ++round;
+        } //end of while loop doing the color checks
+
+        //create a vector containing the color information for each partition
+        //each vector element is one color and contains the vertices with this color
+        colors = *( std::max_element(vertex_colors.begin(), vertex_colors.end()) ) + 1;
+
+        color_vertices.resize(colors);
+
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            color_vertices[ vertex_colors[i] ].push_back(i);
+        }
+
+        viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << colors << " colors" << std::endl;
+
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string vertex_filename = filename;
+        vertex_filename += "_vertex_colors_parallel.txt";
+        color_file.open(vertex_filename.c_str(), ios::app);
+
+        color_file << "Threads: " << nthreads << std::endl;
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+
+        //std::cout << "  Partition | Color " << std::endl;
+        color_file << "  Vertex | Color " << std::endl;
+    
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << vertex_colors[i] << std::endl;
+            color_file << "          " << i << " | " << vertex_colors[i] << std::endl;
+        }
+        color_file.close();
+        //*/
+
+        std::string color_filename = filename;
+        color_filename+="_colors_parallel.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Vertices " << std::endl;
+        color_file << "Threads: " << nthreads << std::endl;
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+        color_file << "      Color | #Vertices " << std::endl;
+
+        for (size_t i = 0; i < color_vertices.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
+
+    /*     std::cout << "          " << i << " | ";
+            for (auto it : color_vertices[i])
+            {
+            std::cout << it << " ";
+            }
+            std::cout << std::endl;//*/
+        }
+        color_file.close();
+        //END OF DEBUG*/
+    }
+    //-------------------------------------------------------------------------------------------------//
+    //end of Parallel Graph Coloring Algorithm by Rokos et al. (A Fast and Scalable Graph Coloring Algorithm
+    //for Multi-core and Many-core Architectures), 2015, arxiv.org
+    //-------------------------------------------------------------------------------------------------//
+
+    viennamesh::info(1) << "   Colored " << original_mesh->get_number_nodes() << " vertices" << std::endl;
+    viennamesh::info(1) << "   Number of colors = " << colors << std::endl;
+
+    return true;
+}
+//end of ColorVertices()
+
+//CheckPartitionColoring()
+//
+//Tasks: Checks validity of the partition coloring
+bool MeshPartitions::CheckPartitionColoring()
 {
     viennamesh::info(1) << "Checking validity of the coloring" << std::endl;
 
@@ -1320,22 +1927,53 @@ bool MeshPartitions::CheckColoring()
 
     //iterate partitions and check if their neighboring colors match
     //if yes, the coloring is invalid!!!
-    #pragma omp parallel for num_threads(nthreads)
+    //#pragma omp parallel for num_threads(nthreads)
     for (size_t part_id = 0; part_id < num_regions; ++part_id)
     {
         for (auto neigh_id : partition_adjcy[part_id])
         {
             if (partition_colors[part_id] == partition_colors[neigh_id])
             {
-                #pragma omp atomic write
+                //#pragma omp atomic write
                     valid_coloring = false;
+                std::cout << "partition " << part_id << " has color " << partition_colors[part_id] << std::endl;
+                std::cout << "neighbor  " << neigh_id << " has color " << partition_colors[neigh_id] << std::endl;
             }
         }
     }
 
     return valid_coloring;
 }
-//end of CheckColoring()
+//end of CheckPartitionColoring()
+
+//CheckVertexColoring()
+//
+//Tasks: Checks validity of the vertex coloring
+bool MeshPartitions::CheckVertexColoring()
+{
+    viennamesh::info(1) << "Checking validity of the vertex coloring" << std::endl;
+
+    bool valid_coloring = true;
+
+    //iterate vertices and check if their neighboring colors match
+    //if yes, the coloring is invalid!!!
+    for (size_t vert_id = 0; vert_id < original_mesh->get_number_nodes(); ++vert_id)
+    {
+        for (auto neigh_id : original_mesh->NNList[vert_id])
+        {
+            if (vertex_colors[vert_id] == vertex_colors[neigh_id])
+            {
+                //#pragma omp atomic write
+                    valid_coloring = false;
+                std::cout << "vertex " << vert_id << " has color " << vertex_colors[vert_id] << std::endl;
+                std::cout << "neighbor  " << neigh_id << " has color " << vertex_colors[neigh_id] << std::endl;
+            }
+        }
+    }
+
+    return valid_coloring;
+}
+//end of CheckVertexColoring()
 
 //CreatePragmaticDataStructures_ser
 //
