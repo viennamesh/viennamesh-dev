@@ -80,6 +80,7 @@ class MeshPartitions
         bool CreateNeighborhoodInformation();                                                 //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);                                             
+        bool CheckColoring();                                                                 //Checks validity of the coloring
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
         bool RefineInterior();                                                                //Refinement without refining boundary elements
         bool WriteMergedMesh(std::string filename);                                           //Merges partitions into a single mesh and writes it
@@ -403,7 +404,7 @@ bool MeshPartitions::MetisPartitioning()
                          epart.data(),
                          npart.data());
 
-    viennamesh::info(5) << "Created " << num_regions << " mesh partitions using METIS_PartMeshNodal" << std::endl;
+    viennamesh::info(5) << "Created " << num_regions << " mesh partitions using METIS_PartMeshDual" << std::endl;
                          //*/
 
         /*
@@ -507,13 +508,14 @@ bool MeshPartitions::MetisPartitioning()
     free (options);
 
     viennamesh::info(5) << "Created " << num_regions << " mesh partitions using mt-Metis" << std::endl;
-/*
+*//*
+std::cout << "epart-size: " << epart.size() << std::endl;
     //DEBUG
     for (size_t i = 0; i < epart.size(); ++i)
     {
         std::cout << i << ": " << epart[i] << std::endl;
     }
-
+/*
     exit(0);
     //END OF DEBUG*/
 
@@ -527,8 +529,8 @@ bool MeshPartitions::MetisPartitioning()
     }
     //epart_stream.close();
     //END OF DEBUG*/
-
-    /*//DEBUG
+/*
+    //DEBUG
     std::cout << "xadj: " << std::endl;
     for (size_t i = 0; i < num_nodes+1; ++i)
         std::cout << " " << i << ": " << xadj[i] << std::endl;
@@ -618,7 +620,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
     //-------------------------------------------------------------------------------------------------//
     //Greedy coloring algorithm
     //-------------------------------------------------------------------------------------------------//
-    if (coloring_algorithm == "greedy" || coloring_algorithm == "greedy-sched" || coloring_algorithm == "vff")
+    if (coloring_algorithm == "greedy" || coloring_algorithm == "greedy-sched")
     {
         if (coloring_algorithm == "greedy")
             viennamesh::info(1) << "Coloring partitions using Greedy algorithm" << std::endl;
@@ -921,7 +923,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 //std::cout << "bin " << overfull_colors[of_color] << " : " << color_partitions[of_color].size() << " parts, surplus parts: " << color_partitions[of_color].size()-gamma << std::endl;
 
                 //find partitions with color i, and add them to the list V'(j) from Algorithm 4
-                //Select V'(j) Teilmenge von V(j) such that |V'(j)|=|V(j)| - gamma
+                //Select V'(j) subset of V(j) such that |V'(j)|=|V(j)| - gamma
                 for (size_t j = 0; j < surplus_parts.size(); ++j)
                 {
                     surplus_parts[j] = color_partitions[ overfull_colors[of_color]][j];
@@ -936,7 +938,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                     }
                 }
     */
-                //std::cout << " surplus_parts ok " << std::endl;
+               // std::cout << " surplus_parts ok " << std::endl;
                 /*//DEBUG
                 for (auto it : surplus_parts)
                     std::cout << " " << it << std::endl;
@@ -998,7 +1000,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             for (size_t i = 0; i < underfull_colors.size(); ++i)
             {
                 int counter = 0;
-                //#pragma omp parallel for num_threads(nthreads)
+
+                #pragma omp parallel for num_threads(nthreads)
                 for (size_t part = 0; part < moves[underfull_colors[i]].size(); ++part)
                 {
                     //check if new color is permissible and if yes, assign it;
@@ -1032,12 +1035,12 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                         int partition = moves[new_color][part];
                         //std::cout << " new color " << new_color << " for partition " << partition << " which had color "  << partition_colors[ partition ] << std::endl;
 
-                        auto iter = std::find( color_partitions[ partition_colors[ partition ] ].begin(),
+                        /*auto iter = std::find( color_partitions[ partition_colors[ partition ] ].begin(),
                                                color_partitions[ partition_colors[ partition ] ].end(),
-                                               partition );
-                        color_partitions[ partition_colors[ partition ] ].erase( iter );
+                                               partition );*/
+                        //color_partitions[ partition_colors[ partition ] ].erase( iter );
                         partition_colors[ partition ] = new_color; 
-                        color_partitions[ new_color ].push_back( partition);
+                        //color_partitions[ new_color ].push_back( partition);
                         ++counter;
                     }
 /*
@@ -1048,8 +1051,17 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 //std::cout << "  added " << counter << " partitions to color " << underfull_colors[i] << std::endl;
             }
 
+            //recreate partition_colors vector<vector>
+            //create a vector containing the color information for each partition
+            //each vector element is one color and contains the partitions with this color
+            color_partitions.resize(colors);
+            
+            for (size_t i = 0; i < partition_colors.size(); ++i)
+            {
+                color_partitions[ partition_colors[i] ].push_back(i);
+            }
+
             //DEBUG
-            //std::cout << "Number of used colors: " << colors << std::endl;
             ofstream color_file;
             std::string partition_filename = filename;
             partition_filename += "_partition_colors_greedy-sched_iteration_";
@@ -1096,6 +1108,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             }
             color_file.close();
             //END OF DEBUG*/
+
+
         } //end of for loop iterating no_of_iteration times over the graph doing the scheduled reverse moves
     }
     //-------------------------------------------------------------------------------------------------//
@@ -1241,6 +1255,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         std::string partition_filename = filename;
         partition_filename += "_partition_colors_parallel.txt";
         color_file.open(partition_filename.c_str(), ios::app);
+
+        color_file << "Threads: " << nthreads << std::endl;
         color_file << "Partitions: " << partition_colors.size() << std::endl;
         color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
 
@@ -1260,6 +1276,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
+        color_file << "Threads: " << nthreads << std::endl;
         color_file << "Partitions: " << partition_colors.size() << std::endl;
         color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
         color_file << "      Color | #Partitions " << std::endl;
@@ -1291,6 +1308,34 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
     return true;
 }
 //end of ColorPartitions
+
+//CheckColoring()
+//
+//Tasks: Checks validity of the coloring
+bool MeshPartitions::CheckColoring()
+{
+    viennamesh::info(1) << "Checking validity of the coloring" << std::endl;
+
+    bool valid_coloring = true;
+
+    //iterate partitions and check if their neighboring colors match
+    //if yes, the coloring is invalid!!!
+    #pragma omp parallel for num_threads(nthreads)
+    for (size_t part_id = 0; part_id < num_regions; ++part_id)
+    {
+        for (auto neigh_id : partition_adjcy[part_id])
+        {
+            if (partition_colors[part_id] == partition_colors[neigh_id])
+            {
+                #pragma omp atomic write
+                    valid_coloring = false;
+            }
+        }
+    }
+
+    return valid_coloring;
+}
+//end of CheckColoring()
 
 //CreatePragmaticDataStructures_ser
 //
@@ -1616,9 +1661,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     //iterate colors
     for (size_t color = 0; color < colors; color++)
     {
-        /*
+        
         std::cout << std::endl << "actual color / # of colors" << std::endl;
         std::cout << color << " / " << colors << std::endl;
+        std::cout << color_partitions[color].size() << std::endl;
         //*/
         #pragma omp parallel for schedule(dynamic) num_threads(nthreads)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
@@ -1627,7 +1673,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             auto threads_tic = omp_get_wtime();
    
             size_t part_id = color_partitions[color][part_iter];
-            //std::cerr << " working on partition " << part_id << std::endl;
+            std::cerr << " working on partition " << part_id << std::endl;
 
             Outbox outbox_data;
 
@@ -1724,7 +1770,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             auto nodes_toc = omp_get_wtime();
 
-           // std::cout << " nodes done" << std::endl;
+            //std::cout << " nodes done " << nodes_per_partition[part_id].size() << std::endl;
 /*
             if (color > 0)
             {
@@ -1904,7 +1950,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             //if (color > 0 && dim == 2)
             if (color > 0)
             {
-               // std::cout << " start healing for partition " << part_id << std::endl;
+                std::cout << " start healing for partition " << part_id << std::endl;
                 //auto origNNodes = partition->get_number_nodes();
 
                 // Set the orientation of elements.
@@ -1934,7 +1980,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 for (auto it : partition_adjcy[part_id])
                 {
                     //std::cout << std::endl << "   check if color of partition " << it << " is smaller than own color" << std::endl;
-                    //std::cout << "   check outbox of partition " << it << std::endl;
+                    std::cout << "   check outbox of partition " << it << std::endl;
                     //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!
                     if (partition_colors[it] < color && outboxes[it].num_verts() > 0)
                     {   
@@ -2478,7 +2524,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                     //if (color == 0)
                     {
-                        //std::cout << "refine partition " << part_id << std::endl;
                         refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, outbox_data, 
                                        partition_colors, partition_adjcy[part_id]);//*/
                     }
@@ -2667,8 +2712,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             auto refine_toc = omp_get_wtime();
             //std::cerr << refine_toc - refine_tic << std::endl;
-
-            //std::cout << " refinement done " << std::endl;
          
             auto threads_toc = omp_get_wtime();
 
@@ -2683,12 +2726,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             ++workload[omp_get_thread_num()];
             workload_elements[omp_get_thread_num()] += partition->get_number_elements();
 
-            //std::cout << " log-updates done" << std::endl;
             //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
             //int_check_log[omp_get_thread_num()] += int_check_time;
+            std::cout << " finished work on partition " << part_id << std::endl;
         }//end parallel for loop
     } //end for loop colors - iterate colors
-
     auto for_toc = omp_get_wtime();
 
     for_time = for_toc - for_tic;
@@ -4859,7 +4901,6 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
         partition->lnn2gnn[cid] = cid;                
     }
 } //end of MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], DirectedEdge<index_t>* third_diag, int eid)
-
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                     End                                                                      //
 //----------------------------------------------------------------------------------------------------------------------------------------------//

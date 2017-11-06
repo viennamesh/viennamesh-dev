@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", false);
+	color.set_input("single_mesh_output", true);
 	color.run();
 
 	//Write output mesh

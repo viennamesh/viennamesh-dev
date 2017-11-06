@@ -3440,6 +3440,7 @@ struct behavior *b;
 #ifndef CDT_ONLY
         if (argv[i][j] == 'Y') {
           b->nobisect++;
+          printf("nobisect\n");
 	}
         if (argv[i][j] == 'S') {
           b->steiner = 0;
@@ -8276,6 +8277,7 @@ int triflaws;
   }
   if ((intersect == ONEDGE) || (intersect == OUTSIDE)) {
     /* The vertex falls on an edge or boundary. */
+    printf("The vertex falls on an edge or boundary.\n");
     if (m->checksegments && (splitseg == (struct osub *) NULL)) {
       /* Check whether the vertex falls on a subsegment. */
       tspivot(horiz, brokensubseg);
@@ -8284,6 +8286,7 @@ int triflaws;
         if (segmentflaws) {
           enq = b->nobisect != 2;
           if (enq && (b->nobisect == 1)) {
+            printf("internal boundary\n");
             /* This subsegment may be split only if it is an */
             /*   internal boundary.                          */
             sym(horiz, testtri);
