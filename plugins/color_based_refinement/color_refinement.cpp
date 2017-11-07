@@ -25,7 +25,8 @@ namespace viennamesh
 			size_t find_vtu = input_file().find_last_of(".");
 			info(1) << input_file().substr(found+1) << std::endl;
 
-			info(1) << "  Number of vertices: " << input_mesh().mesh->get_number_nodes() << std::endl;
+			//info(1) << "  Number of vertices: " << input_mesh().mesh->get_number_nodes() << std::endl;
+			info(1) << "  Partitions: " << num_partitions() << std::endl;
       		info(1) << "  Dimension: " << input_mesh().mesh->get_number_dimensions() << std::endl;
 			info(1) << "  Threads: " << num_threads() << std::endl;
 			
@@ -89,19 +90,19 @@ namespace viennamesh
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
-				//InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1));
+				//InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
+				InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1));
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-			bool valid_coloring = true;
+			bool valid_coloring = true;/*
 			if ( !InputMesh.CheckPartitionColoring() )
 			{
 				viennamesh::error(1) << "Invalid Partition Coloring" << std::endl;
 				valid_coloring = false;
 			}//*/
-			/*
+			
 			if ( !InputMesh.CheckVertexColoring() )
 			{
 				viennamesh::error(1) << "Invalid Vertex Coloring" << std::endl;
