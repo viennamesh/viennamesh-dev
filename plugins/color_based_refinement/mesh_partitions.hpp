@@ -700,7 +700,10 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
         std::string partition_filename = filename;
-        partition_filename += "_partition_colors_ff.txt";
+        if (coloring_algorithm == "greedy")
+            partition_filename += "_partition_colors_greedy.txt";
+        else
+            partition_filename += "_partition_colors_ff.txt";
         color_file.open(partition_filename.c_str(), ios::app);
         color_file << "Partitions: " << partition_colors.size() << std::endl;
         color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
@@ -717,7 +720,10 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //*/
 
         std::string color_filename = filename;
-        color_filename+="_colors_ff.txt";
+        if (coloring_algorithm == "greedy")
+            color_filename+="_color_partitions_greedy.txt";
+        else
+            color_filename+="_color_partitions_ff.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
@@ -842,7 +848,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //*/
 
         std::string color_filename = filename;
-        color_filename+="_colors_greedy-lu.txt";
+        color_filename+="_color_partitions_greedy-lu.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
@@ -1111,7 +1117,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             //*/
 
             std::string color_filename = filename;
-            color_filename+="_colors_greedy-sched_";
+            color_filename+="_color_partitions_greedy-sched_iteration";
             color_filename += std::to_string(iteration);
             color_filename += ".txt";;
             color_file.open(color_filename.c_str(), ios::app);
@@ -1303,7 +1309,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //*/
 
         std::string color_filename = filename;
-        color_filename+="_colors_parallel.txt";
+        color_filename+="_color_partitions_parallel.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
@@ -1418,12 +1424,15 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                 num_color_vertices[ vertex_colors[i] ]++;
             }
         }
-/*
+
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
         std::string vertex_filename = filename;
-        vertex_filename += "_vertex_colors_ff.txt";
+        if (coloring_algorithm == "greedy")
+            vertex_filename+="_vertex_colors_greedy.txt";
+        else
+            vertex_filename += "_vertex_colors_ff.txt";
         color_file.open(vertex_filename.c_str(), ios::app);
         color_file << "Vertices: " << vertex_colors.size() << std::endl;
         color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
@@ -1438,9 +1447,12 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
         color_file.close();
         //*/
-/*
+
         std::string color_filename = filename;
-        color_filename+="_colors_ff.txt";
+        if (coloring_algorithm == "greedy")
+            color_filename+="_color_vertices_greedy.txt";
+        else
+            color_filename+="_color_vertices_ff.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
@@ -1535,7 +1547,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         {
             color_vertices[ vertex_colors[i] ].push_back(i);
         }
-/*
+
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -1555,9 +1567,9 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
         color_file.close();
         //*/
-/*
+
         std::string color_filename = filename;
-        color_filename+="_colors_greedy-lu.txt";
+        color_filename+="_color_vertices_greedy-lu.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Vertices " << std::endl;
@@ -1576,7 +1588,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-/*        }
+        }
         color_file.close();
         //END OF DEBUG*/
     }
@@ -1717,7 +1729,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             {
                 color_vertices[ vertex_colors[i] ].push_back(i);
             }//*/
-/*
+
             //DEBUG
             ofstream color_file;
             std::string vertex_filename = filename;
@@ -1740,9 +1752,9 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             }
             color_file.close();
             //*/
-/*
+
             std::string color_filename = filename;
-            color_filename+="_colors_greedy-sched_";
+            color_filename+="_color_vertices_greedy-sched_iteration_";
             color_filename += std::to_string(iteration);
             color_filename += ".txt";;
             color_file.open(color_filename.c_str(), ios::app);
@@ -1757,14 +1769,14 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             {
                 //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
                 color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
-/*
+
             std::cout << "          " << i << " | ";
                 for (auto it : color_vertices[i])
                 {
                 std::cout << it << " ";
                 }
                 std::cout << std::endl;//*/
-/*            }
+            }
             color_file.close();
             //END OF DEBUG*/
 
@@ -1889,7 +1901,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
 */
         viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << colors << " colors" << std::endl;
-/*
+
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -1911,9 +1923,9 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
         color_file.close();
         //*/
-/*
+
         std::string color_filename = filename;
-        color_filename+="_colors_parallel.txt";
+        color_filename+="_color_vertices_parallel.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Vertices " << std::endl;
@@ -1927,13 +1939,13 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
             color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
 
-    /*     std::cout << "          " << i << " | ";
+            std::cout << "          " << i << " | ";
             for (auto it : color_vertices[i])
             {
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-/*        }
+        }
         color_file.close();
         //END OF DEBUG*/
     }
