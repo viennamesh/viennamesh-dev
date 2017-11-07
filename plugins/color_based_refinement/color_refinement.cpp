@@ -130,7 +130,7 @@ namespace viennamesh
 			wall_tic = std::chrono::system_clock::now();
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
-			/*InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
+			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	

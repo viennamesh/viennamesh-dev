@@ -1117,7 +1117,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             //*/
 
             std::string color_filename = filename;
-            color_filename+="_color_partitions_greedy-sched_iteration";
+            color_filename+="_color_partitions_greedy-sched_iteration_";
             color_filename += std::to_string(iteration);
             color_filename += ".txt";;
             color_file.open(color_filename.c_str(), ios::app);
@@ -2344,7 +2344,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     //iterate colors
     for (size_t color = 0; color < colors; color++)
     {
-        
+       /* 
         std::cout << std::endl << "actual color / # of colors" << std::endl;
         std::cout << color << " / " << colors << std::endl;
         std::cout << color_partitions[color].size() << std::endl;
@@ -2356,7 +2356,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             auto threads_tic = omp_get_wtime();
    
             size_t part_id = color_partitions[color][part_iter];
-            std::cerr << " working on partition " << part_id << std::endl;
+            //std::cerr << " working on partition " << part_id << std::endl;
 
             Outbox outbox_data;
 
@@ -2633,7 +2633,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             //if (color > 0 && dim == 2)
             if (color > 0)
             {
-                std::cout << " start healing for partition " << part_id << std::endl;
+                //std::cout << " start healing for partition " << part_id << std::endl;
                 //auto origNNodes = partition->get_number_nodes();
 
                 // Set the orientation of elements.
@@ -2663,7 +2663,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 for (auto it : partition_adjcy[part_id])
                 {
                     //std::cout << std::endl << "   check if color of partition " << it << " is smaller than own color" << std::endl;
-                    std::cout << "   check outbox of partition " << it << std::endl;
+                    //std::cout << "   check outbox of partition " << it << std::endl;
                     //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!
                     if (partition_colors[it] < color && outboxes[it].num_verts() > 0)
                     {   
@@ -3411,7 +3411,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
             //int_check_log[omp_get_thread_num()] += int_check_time;
-            std::cout << " finished work on partition " << part_id << std::endl;
+            //std::cout << " finished work on partition " << part_id << std::endl;
         }//end parallel for loop
     } //end for loop colors - iterate colors
     auto for_toc = omp_get_wtime();
