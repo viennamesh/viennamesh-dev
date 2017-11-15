@@ -80,24 +80,26 @@ namespace viennamesh
 			auto overall_tic = std::chrono::system_clock::now();
 			
 			auto wall_tic = std::chrono::system_clock::now();
-				InputMesh.MetisPartitioning();
+				//InputMesh.MetisPartitioning();
 			std::chrono::duration<double> partitioning_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Partitioning time " << partitioning_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.CreateNeighborhoodInformation();
+				//InputMesh.CreateNeighborhoodInformation();
 			std::chrono::duration<double> adjacency_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
-				//InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1));
+				//InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
+				InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1));
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
+			InputMesh.GetMeshStats();
+/*
 			wall_tic = std::chrono::system_clock::now();
 			bool valid_coloring = true;
-			if ( !InputMesh.CheckPartitionColoring() )
+			/*if ( !InputMesh.CheckPartitionColoring() )
 			{
 				viennamesh::error(1) << "Invalid Partition Coloring" << std::endl;
 				valid_coloring = false;
@@ -107,9 +109,9 @@ namespace viennamesh
 			{
 				viennamesh::error(1) << "Invalid Vertex Coloring" << std::endl;
 				valid_coloring = false;
-			}//*/
+			}//*//*
 			std::chrono::duration<double> coloring_check_time = std::chrono::system_clock::now() - wall_tic;
-			viennamesh::info(1) << "  Coloring Validation time " << coloring_check_time.count() << std::endl;
+			viennamesh::info(1) << "  Coloring Validation time " << coloring_check_time.count() << std::endl;//*/
 
 			//PARALLEL PART
 			std::chrono::duration<double> pragmatic_duration;
@@ -130,10 +132,11 @@ namespace viennamesh
 			wall_tic = std::chrono::system_clock::now();
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
-			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
+			/*InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements);//*/
 														
-			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;	
+			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
+			viennamesh::info(1) << 	"  Refinement time " << cpds_duration.count() << std::endl;
 
 			std::chrono::duration<double> overall_duration = std::chrono::system_clock::now() - overall_tic;
 			
@@ -143,9 +146,11 @@ namespace viennamesh
 			InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
 
 			ofstream csv;
-			std::string csv_name = "times_partitions_";
-			//std::string csv_name = "times_vertices_";
+			//std::string csv_name = "times_partitions_";
+			std::string csv_name = "times_vertices_";
 			csv_name+= input_file().substr(found+1, find_vtu-found-1);
+			csv_name+="_";
+			csv_name+=coloring;
 			csv_name+=".csv";
 
 			csv.open(csv_name.c_str(), ios::app);
@@ -159,7 +164,7 @@ namespace viennamesh
 			csv << std::fixed << std::setprecision(8) << partitioning_duration.count() << ", ";
 			csv << adjacency_duration.count() << ", ";
 			csv << coloring_duration.count() << ", ";
-			if (valid_coloring)
+			/*if (valid_coloring)
 				csv << "valid, ";
 			else
 				csv << "invalid, ";
@@ -435,55 +440,111 @@ namespace viennamesh
 			{
 				viennamesh::info(1) << "Converting Triangle to ViennaGrid data structure" << std::endl;
 
-				output_mesh.resize(num_partitions());
-			
-				for (size_t i = 0; i != InputMesh.triangle_partitions.size(); ++i)
+				//output mesh in a single file
+				if ( single_mesh_output.valid() && single_mesh_output() )
 				{
-					//get basic mesh information
-					size_t NNodes = InputMesh.triangle_partitions[i].numberofpoints;
-					size_t NElements = InputMesh.triangle_partitions[i].numberoftriangles;
-
-					//create empty vector of size NNodes containing viennagrid vertices
-					std::vector<VertexType> vertex_handles(NNodes);
-
-					//std::cerr << " vertices " << NNodes << std::endl;
-
-					//iterating all triangle vertices and store their coordinates in the viennagrid vertices
-					for(size_t j = 0; j < NNodes; ++j)
+					for (size_t i = 0; i != InputMesh.triangle_partitions.size(); ++i)
 					{
-						//std::cout << "  " << j+1 << "/" << NNodes << std::endl;
-						vertex_handles[j] = viennagrid::make_vertex( output_mesh(i), viennagrid::make_point(InputMesh.triangle_partitions[i].pointlist[2*j], 
-																	InputMesh.triangle_partitions[i].pointlist[2*j+1]));
+						//get basic mesh information
+						size_t NNodes = InputMesh.triangle_partitions[i].numberofpoints;
+						size_t NElements = InputMesh.triangle_partitions[i].numberoftriangles;
 
-						//std::cout << j << " " << InputMesh.triangle_partitions[i].pointmarkerlist[j] << std::endl;
-					} //end of for loop iterating all pragmatic vertices 
-/*
-					for (size_t e = 0; e < InputMesh.triangle_partitions[i].numberofedges; ++e)
-					{
-						if(InputMesh.triangle_partitions[i].edgemarkerlist[e])
+						//create empty vector of size NNodes containing viennagrid vertices
+						std::vector<VertexType> vertex_handles(NNodes);
+
+						//std::cerr << " vertices " << NNodes << std::endl;
+
+						//iterating all triangle vertices and store their coordinates in the viennagrid vertices
+						for(size_t j = 0; j < NNodes; ++j)
 						{
-							std::cout << "edge " << e+1 << std::endl;
-							std::cout << e << " " << InputMesh.triangle_partitions[i].edgemarkerlist[e] << std::endl;
-							//std::cout << "  " << InputMesh.triangle_partitions[i].
+							//std::cout << "  " << j+1 << "/" << NNodes << std::endl;
+							vertex_handles[j] = viennagrid::make_vertex( output_mesh(), viennagrid::make_point(InputMesh.triangle_partitions[i].pointlist[2*j], 
+																		InputMesh.triangle_partitions[i].pointlist[2*j+1]));
+
+							//std::cout << j << " " << InputMesh.triangle_partitions[i].pointmarkerlist[j] << std::endl;
+						} //end of for loop iterating all pragmatic vertices 
+	/*
+						for (size_t e = 0; e < InputMesh.triangle_partitions[i].numberofedges; ++e)
+						{
+							if(InputMesh.triangle_partitions[i].edgemarkerlist[e])
+							{
+								std::cout << "edge " << e+1 << std::endl;
+								std::cout << e << " " << InputMesh.triangle_partitions[i].edgemarkerlist[e] << std::endl;
+								//std::cout << "  " << InputMesh.triangle_partitions[i].
+							}
 						}
+	*/
+						//std::cerr << " triangles " << NElements << std::endl;
+
+						//iterating all triangle elements and createg their corresponding viennagrid triangles
+						for (size_t j = 0; j < NElements; ++j)
+						{
+							//std::cout << "  " << j+1 << "/" << NElements << std::endl;
+							viennagrid::make_triangle( output_mesh(), 
+													vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j]], 
+													vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+1]], 
+													vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+2]] );
+						} //end of iterating all triangle elements
+
+						//Update total number of vertices and elements
+						vertices += InputMesh.triangle_partitions[i].numberofpoints;
+						elements += InputMesh.triangle_partitions[i].numberoftriangles;
 					}
-*/
-					//std::cerr << " triangles " << NElements << std::endl;
+				} //end of output mesh in a single file
 
-					//iterating all triangle elements and createg their corresponding viennagrid triangles
-					for (size_t j = 0; j < NElements; ++j)
+				//multi mesh output
+				else
+				{
+					output_mesh.resize(num_partitions());
+				
+					for (size_t i = 0; i != InputMesh.triangle_partitions.size(); ++i)
 					{
-						//std::cout << "  " << j+1 << "/" << NElements << std::endl;
-						viennagrid::make_triangle( output_mesh(i), 
-												vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j]], 
-												vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+1]], 
-												vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+2]] );
-					} //end of iterating all triangle elements
+						//get basic mesh information
+						size_t NNodes = InputMesh.triangle_partitions[i].numberofpoints;
+						size_t NElements = InputMesh.triangle_partitions[i].numberoftriangles;
 
-					//Update total number of vertices and elements
-					vertices += InputMesh.triangle_partitions[i].numberofpoints;
-					elements += InputMesh.triangle_partitions[i].numberoftriangles;
-				}		
+						//create empty vector of size NNodes containing viennagrid vertices
+						std::vector<VertexType> vertex_handles(NNodes);
+
+						//std::cerr << " vertices " << NNodes << std::endl;
+
+						//iterating all triangle vertices and store their coordinates in the viennagrid vertices
+						for(size_t j = 0; j < NNodes; ++j)
+						{
+							//std::cout << "  " << j+1 << "/" << NNodes << std::endl;
+							vertex_handles[j] = viennagrid::make_vertex( output_mesh(i), viennagrid::make_point(InputMesh.triangle_partitions[i].pointlist[2*j], 
+																		InputMesh.triangle_partitions[i].pointlist[2*j+1]));
+
+							//std::cout << j << " " << InputMesh.triangle_partitions[i].pointmarkerlist[j] << std::endl;
+						} //end of for loop iterating all pragmatic vertices 
+	/*
+						for (size_t e = 0; e < InputMesh.triangle_partitions[i].numberofedges; ++e)
+						{
+							if(InputMesh.triangle_partitions[i].edgemarkerlist[e])
+							{
+								std::cout << "edge " << e+1 << std::endl;
+								std::cout << e << " " << InputMesh.triangle_partitions[i].edgemarkerlist[e] << std::endl;
+								//std::cout << "  " << InputMesh.triangle_partitions[i].
+							}
+						}
+	*/
+						//std::cerr << " triangles " << NElements << std::endl;
+
+						//iterating all triangle elements and createg their corresponding viennagrid triangles
+						for (size_t j = 0; j < NElements; ++j)
+						{
+							//std::cout << "  " << j+1 << "/" << NElements << std::endl;
+							viennagrid::make_triangle( output_mesh(i), 
+													vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j]], 
+													vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+1]], 
+													vertex_handles[InputMesh.triangle_partitions[i].trianglelist[3*j+2]] );
+						} //end of iterating all triangle elements
+
+						//Update total number of vertices and elements
+						vertices += InputMesh.triangle_partitions[i].numberofpoints;
+						elements += InputMesh.triangle_partitions[i].numberoftriangles;
+					} 
+				}	//end of multi mesh output	
 
 				//free used memory
 				for (size_t i = 0; i < output_mesh.size(); ++i)

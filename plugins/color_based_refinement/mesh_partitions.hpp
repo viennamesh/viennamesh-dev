@@ -81,13 +81,14 @@ class MeshPartitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);      
         bool ColorVertices(std::string coloring_algorithm, std::string filename,              //Color the vertices
-                           int no_of_iterations = 1);                                       
+                           int no_of_iterations = 1);                                      
         bool CheckPartitionColoring();                                                        //Checks validity of the partition coloring
         bool CheckVertexColoring();
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
         bool RefineInterior();                                                                //Refinement without refining boundary elements
         bool WriteMergedMesh(std::string filename);                                           //Merges partitions into a single mesh and writes it
         bool RefinementKernel(int part, double L_max);
+        void GetMeshStats();
 
         int get_colors(){return colors;};
         int get_max(){return max;};
@@ -326,6 +327,42 @@ MeshPartitions::~MeshPartitions()
     viennamesh::info(5) << "Called Destructor of MeshPartitions" << std::endl;
 
 } //end of Destructor
+
+//GetMeshStats()
+//
+//Tasks: Returns various statistics about the mesh (e.g. number of vertices, number of cells, maximum number of neighboring vertices or cells, etc.)
+void MeshPartitions::GetMeshStats()
+{
+    viennamesh::info(1) << "Getting mesh statistics" << std::endl << std::endl;
+    viennamesh::info(1) << "  Number of Vertices: " << original_mesh->get_number_nodes() << std::endl;
+    viennamesh::info(1) << "  Number of Elements: " << original_mesh->get_number_elements() << std::endl;
+
+    //find maximum and average vertex degree (maximum number of neighbors of vertex in the mesh)
+    size_t max_vert_degree = 0;
+    std::vector<int> vert_degrees(original_mesh->get_number_nodes());
+    for (size_t i = 0; i < original_mesh->get_number_nodes(); ++i)
+    {
+        if ( original_mesh->NNList[i].size() > max_vert_degree )
+            max_vert_degree = original_mesh->NNList[i].size();
+
+            vert_degrees[i]=original_mesh->NNList[i].size();
+    }
+
+    viennamesh::info(1) << "  Maximum Vertex Degree: " << max_vert_degree << std::endl;
+
+    //compute average vertex degree
+    double avg_vert_degree = (double) std::accumulate(vert_degrees.begin(), vert_degrees.end(), 0) / (double) original_mesh->get_number_nodes();
+
+    viennamesh::info(1) << "  Average Vertex Degree: " << avg_vert_degree << std::endl;
+
+    //find maximum and average element degree (maximum number of neighbors of element in the mesh)
+    //a neighboring element is an element connected via a vertex
+    size_t max_ele_degree = 0;
+    std::vector<int> ele_degrees( original_mesh->get_number_elements() );
+
+    viennamesh::info(1) << "" << std::endl;
+}
+//end of GetMeshStats()
 
 //MetisPartitioning
 //
@@ -695,7 +732,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
-
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -718,7 +755,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         if (coloring_algorithm == "greedy")
             color_filename+="_color_partitions_greedy.txt";
@@ -742,7 +779,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-        }
+ /*       }
         color_file.close();
         //END OF DEBUG*/
 
@@ -826,7 +863,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
-
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -846,7 +883,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         color_filename+="_color_partitions_greedy-lu.txt";
         color_file.open(color_filename.c_str(), ios::app);
@@ -867,7 +904,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-        }
+ /*       }
         color_file.close();
         //END OF DEBUG*/
     }
@@ -983,7 +1020,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 
                     //moves[ underfull_colors[uf_color] ] = movable_parts;
                 }
-                /*
+        /*        
                 for (size_t k = 0; k < underfull_colors.size(); ++k)
                 {
                     //find partitions in V'(j) that can be moved to k (V'_k(j)???) such that |V'_k(j)| + |V(k)| < gamma 
@@ -1004,10 +1041,10 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                         surplus_parts.erase( surplus_parts.begin() );
                     }               
                 }
-    */
+    //*/
             }
-/*
-         //DEBUG
+
+/*         //DEBUG
             for (size_t i = 0; i < underfull_colors.size(); ++i)
             {
                 std::cout << "move to color " << underfull_colors[i] << std::endl;
@@ -1050,28 +1087,19 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                             permissible = false;
                             continue;
                         }
-
+/*
                         //forbid coloring if neighbor with smaller partition id is also in the queue and would get the same color 
                         auto iter = std::find(moves[new_color].begin(), moves[new_color].end(), neigh_id);
                         if (iter != moves[new_color].end() && neigh_id < part_id)
                         {
                             permissible = false;
-                        }
+                        }*/
                     }
 
                     if (permissible)
                     {
-                        //push back part_id of changed partition to color_partitions of its new color
-                        //remove partition_id from color_partitions of its old color
                         //update partition_colors for the changed partition_id
-                        //std::cout << " new color " << new_color << " for partition " << partition << " which had color "  << partition_colors[ partition ] << std::endl;
-
-                        /*auto iter = std::find( color_partitions[ partition_colors[ partition ] ].begin(),
-                                               color_partitions[ partition_colors[ partition ] ].end(),
-                                               partition );*/
-                        //color_partitions[ partition_colors[ partition ] ].erase( iter );
                         partition_colors[ part_id ] = new_color; 
-                        //color_partitions[ new_color ].push_back( partition);
                         ++counter;
                     }
 /*
@@ -1092,7 +1120,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             {
                 color_partitions[ partition_colors[i] ].push_back(i);
             }
-
+/*
             //DEBUG
             ofstream color_file;
             std::string partition_filename = filename;
@@ -1115,7 +1143,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             }
             color_file.close();
             //*/
-
+/*
             std::string color_filename = filename;
             color_filename+="_color_partitions_greedy-sched_iteration_";
             color_filename += std::to_string(iteration);
@@ -1139,7 +1167,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 std::cout << it << " ";
                 }
                 std::cout << std::endl;//*/
-            }
+   /*         }
             color_file.close();
             //END OF DEBUG*/
 
@@ -1285,7 +1313,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         }
 
         viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << colors << " colors" << std::endl;
-
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -1307,7 +1335,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         color_filename+="_color_partitions_parallel.txt";
         color_file.open(color_filename.c_str(), ios::app);
@@ -1329,7 +1357,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-        }
+/*        }
         color_file.close();
         //END OF DEBUG*/
     }
@@ -1405,17 +1433,14 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
 
         //create a vector containing the color information for each partition
         //each vector element is one color and contains the partitions with this color,
-        if (coloring_algorithm == "greedy")
+  /*      
+        color_vertices.resize(colors);
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
         {
-            color_vertices.resize(colors);
-
-            for (size_t i = 0; i < vertex_colors.size(); ++i)
-            {
-                color_vertices[ vertex_colors[i] ].push_back(i);
-            }
+            color_vertices[ vertex_colors[i] ].push_back(i);
         }
-
-        else 
+*/
+        if (coloring_algorithm == "greedy-sched")
         {
             num_color_vertices.resize(colors, 0);
             
@@ -1424,22 +1449,24 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                 num_color_vertices[ vertex_colors[i] ]++;
             }
         }
-
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
         std::string vertex_filename = filename;
+
         if (coloring_algorithm == "greedy")
             vertex_filename+="_vertex_colors_greedy.txt";
         else
             vertex_filename += "_vertex_colors_ff.txt";
+
         color_file.open(vertex_filename.c_str(), ios::app);
         color_file << "Vertices: " << vertex_colors.size() << std::endl;
         color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
 
         //std::cout << "  Vertex | Color " << std::endl;
         color_file << "  Vertex | Color " << std::endl;
-    
+
         for (size_t i = 0; i < vertex_colors.size(); ++i)
         {
             //std::cout << "          " << i << " | " << vertex_colors[i] << std::endl;
@@ -1447,12 +1474,12 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         if (coloring_algorithm == "greedy")
             color_filename+="_color_vertices_greedy.txt";
-        else
-            color_filename+="_color_vertices_ff.txt";
+        else 
+            color_filename += "_color_vertices_ff.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
@@ -1466,8 +1493,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
         }
         color_file.close();
-        //END OF DEBUG*/
-
+        //END OF DEBUG */
     }
     //-------------------------------------------------------------------------------------------------//
     //end of Greedy Coloring algorithm for vertices
@@ -1527,7 +1553,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             {
                 vertex_colors[vert] = colors;
                 color_usage.push_back(1);
-                ++colors;
+                ++colors;           
             }
 
             else
@@ -1541,9 +1567,10 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
 
         //create a vector containing the color information for each vertex
         //each vector element is one color and contains the vertices with this color
+        color_vertices.clear();
         color_vertices.resize(colors);
         
-        for (size_t i = 0; i < color_vertices.size(); ++i)
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
         {
             color_vertices[ vertex_colors[i] ].push_back(i);
         }
@@ -1601,9 +1628,11 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
     //-------------------------------------------------------------------------------------------------//
     if (coloring_algorithm == "greedy-sched")
     {
-        viennamesh::info(1) << "Coloring vertices using a Guided Balancing strategy using shuffling with scheduled reversed moves" << std::endl;
+        viennamesh::info(1) << "Coloring vertices using a Guided Balancing strategy using shuffling with scheduled reversed moves " << std::endl;
+        std::cout << "Threads: " << omp_get_num_threads() << " " << nthreads<< std::endl;
+        double sched_time = 0.0;
 
-        double gamma = num_regions / colors;
+        double gamma = original_mesh->get_number_nodes() / colors;
 
         //std::cout << "parts: " << num_regions << ", colors: " << colors << ", gamma (parts/colors): " << gamma << std::endl;
 
@@ -1681,6 +1710,8 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                 //int counter = 0;
                 int uf_color_id = underfull_colors[i];
 
+                auto sched_tic = std::chrono::system_clock::now();
+
                 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
                 for (size_t vert = 0; vert < moves[uf_color_id].size(); ++vert)
                 {
@@ -1710,26 +1741,31 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                     {
                         //#pragma omp critical 
                         //{
+                            //#pragma omp atomic
                             num_color_vertices[ vertex_colors[vert_id] ]--;
                             vertex_colors[ vert_id ] = new_color; 
+                            //#pragma omp atomic
                             num_color_vertices[ new_color ]++;
                         //}
                        // ++counter;
                     }
                 }//end of omp parallel for
+
+                std::chrono::duration<double> sched_dur = std::chrono::system_clock::now() - sched_tic;
+                sched_time += sched_dur.count();
             } //end of for loop iterating underfull colors
 
             //recreate vertex_colors vector<vector>
             //create a vector containing the color information for each partition
-            //each vector element is one color and contains the partitions with this color
-            /*color_vertices.clear();
+    /*        //each vector element is one color and contains the partitions with this color
+            color_vertices.clear();
             color_vertices.resize(colors);
             
             for (size_t i = 0; i < vertex_colors.size(); ++i)
             {
                 color_vertices[ vertex_colors[i] ].push_back(i);
             }//*/
-
+/*
             //DEBUG
             ofstream color_file;
             std::string vertex_filename = filename;
@@ -1739,8 +1775,8 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             color_file.open(vertex_filename.c_str(), ios::app);
             
             color_file << "Threads: " << nthreads << std::endl;
-            color_file << "Vertices: " << partition_colors.size() << std::endl;
-            color_file << "Gamma: " << gamma << std::endl;
+            color_file << "Vertices: " << vertex_colors.size() << std::endl;
+            color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
 
             //std::cout << "  Vertex | Color " << std::endl;
             color_file << "  Vertex | Color " << std::endl;
@@ -1752,7 +1788,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             }
             color_file.close();
             //*/
-
+/*
             std::string color_filename = filename;
             color_filename+="_color_vertices_greedy-sched_iteration_";
             color_filename += std::to_string(iteration);
@@ -1762,7 +1798,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             //std::cout << std::endl << "      Color | #Vertices " << std::endl;
             color_file << "Threads: " << nthreads << std::endl;
             color_file << "Vertices: " << vertex_colors.size() << std::endl;
-            color_file << "Gamma: " << gamma << std::endl;
+            color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
             color_file << "      Color | #Vertices " << std::endl;
 
             for (size_t i = 0; i < color_vertices.size(); ++i)
@@ -1770,25 +1806,18 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                 //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
                 color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
 
-            std::cout << "          " << i << " | ";
+         /*   std::cout << "          " << i << " | ";
                 for (auto it : color_vertices[i])
                 {
                 std::cout << it << " ";
                 }
                 std::cout << std::endl;//*/
-            }
+    /*        }
             color_file.close();
             //END OF DEBUG*/
-
         } //end of for loop iterating no_of_iteration times over the graph doing the scheduled reverse moves
 
-        color_vertices.clear();
-        color_vertices.resize(colors);
-        
-        for (size_t i = 0; i < vertex_colors.size(); ++i)
-        {
-            color_vertices[ vertex_colors[i] ].push_back(i);
-        }
+        viennamesh::info(1) << "Scheduling Duration: " << sched_time << std::endl;
     }
     //-------------------------------------------------------------------------------------------------//
     //end of Guided Balancing using Shuffling with Scheduled Reverse Moves by Hao Lu et al. for vertices
@@ -1800,7 +1829,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
     //-------------------------------------------------------------------------------------------------//
     if (coloring_algorithm == "parallel")
     {
-        viennamesh::info(1) << "Coloring vertices using a parallel graph coloring algorithm" << std::endl;
+        viennamesh::info(1) << "Coloring vertices using a parallel graph coloring algorithm with " << nthreads << " threads" << std::endl;
         
         vertex_colors.resize(original_mesh->get_number_nodes(), -1);
 
@@ -1886,13 +1915,14 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                     global_worklist.push_back(vert_recolor);
                 }
             }
+
             ++round;
         } //end of while loop doing the color checks
 
         //create a vector containing the color information for each partition
         //each vector element is one color and contains the vertices with this color
-   /*     colors = *( std::max_element(vertex_colors.begin(), vertex_colors.end()) ) + 1;
-
+        colors = *( std::max_element(vertex_colors.begin(), vertex_colors.end()) ) + 1;
+/*
         color_vertices.resize(colors);
 
         for (size_t i = 0; i < vertex_colors.size(); ++i)
@@ -1901,7 +1931,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
 */
         viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << colors << " colors" << std::endl;
-
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -1923,7 +1953,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         color_filename+="_color_vertices_parallel.txt";
         color_file.open(color_filename.c_str(), ios::app);
@@ -1939,13 +1969,13 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
             color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
 
-            std::cout << "          " << i << " | ";
+    /*        std::cout << "          " << i << " | ";
             for (auto it : color_vertices[i])
             {
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-        }
+   /*     }
         color_file.close();
         //END OF DEBUG*/
     }
@@ -2545,20 +2575,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             //auto counter {0};
             for (auto it : elements_part[part_id])
-            {      /*         
+            {              
                 //update l2g and g2l element mappings
-                if (dim == 2)
-                {
-                    l2g_elements_tmp[ctr/3]=it;
-                    g2l_elements_tmp.insert( std::make_pair(it, ctr/3) );
-                }
-
-                else
-                {
-                    l2g_elements_tmp[ctr/4]=it;
-                    g2l_elements_tmp.insert( std::make_pair(it, ctr/4) );                    
-                }*/
-
                 l2g_elements_tmp[ctr/(dim+1)]=it;
                 g2l_elements_tmp.insert( std::make_pair(it, ctr/(dim+1)) );
 
@@ -2573,7 +2591,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 {
                     ENList_part[ctr++] = g2l_vertices_tmp[*(element_ptr++)];
                 }
-                //TODO: Update for 3D case!!!
             } //end of for loop iterating elements_part
 
             auto enlist_toc = omp_get_wtime();
@@ -2631,6 +2648,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             auto orig_NNodes = partition->get_number_nodes();
 
             //if (color > 0 && dim == 2)
+            //Heal mesh if vertices have been inserted on interface
             if (color > 0)
             {
                 //std::cout << " start healing for partition " << part_id << std::endl;
@@ -3233,7 +3251,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             else if (algorithm == "triangle")
             {       
-                std::cout << "REWRITE triunsuitable, SEE TRIANGLE.H AND TRIANGLE.C FOR DETAILS!!!" << std::endl;
+                //std::cout << "REWRITE triunsuitable, SEE TRIANGLE.H AND TRIANGLE.C FOR DETAILS!!!" << std::endl;
+
                 struct triangulateio tri_partition, tri_out;
                 //auto tri_ds_tic = std::chrono::system_clock::now();
                 //init tri_partition
@@ -3242,8 +3261,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 tri_partition.pointmarkerlist = NULL;
                 tri_partition.pointlist = (REAL *) malloc(tri_partition.numberofpoints * 2 * sizeof(REAL) );
                 //tri_partition.pointlist = partition->get_coords_pointer();
-
-                std::cout << tri_partition.numberofpoints << std::endl;
 
                 for (size_t i = 0; i < tri_partition.numberofpoints; ++i)
                 {
@@ -3313,7 +3330,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 //triangulate
                 auto triangulate_tic = omp_get_wtime();
-                viennamesh::info(1) << "Making mesh " << part_id << " with options " << options_buffer << std::endl;
+                //viennamesh::info(1) << "Refining partition " << part_id << " with options " << options_buffer << std::endl;
                 triangulate (options_buffer, &tri_partition, &tri_out, NULL);
                 call_to_refine_time = omp_get_wtime() - triangulate_tic;
                 //end of triangulate*/
