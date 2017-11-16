@@ -253,84 +253,136 @@ public:
                     //if ( (nodes_part_ids[l2g_vertices.at(i)].size() > 1) && (nodes_part_ids[l2g_vertices.at(otherVertex)].size() > 1) )
                     if ( (nodes_part_ids[l2g_vertices[i]].size() > 1) && (nodes_part_ids[l2g_vertices[otherVertex]].size() > 1) )
                     {
-                        std::set<int> neighbours;
-                        set_intersection(_mesh->NEList[i].begin(), _mesh->NEList[i].end(),
-                                         _mesh->NEList[otherVertex].begin(), _mesh->NEList[otherVertex].end(),
-                                         inserter(neighbours, neighbours.begin()));
-                                         
-                        //flag edge if it's on an interface
-                        if (neighbours.size() != 2 )
+                        /*if (dim == 2)
+                        {//*/
+                            std::set<int> neighbours;
+                            set_intersection(_mesh->NEList[i].begin(), _mesh->NEList[i].end(),
+                                            _mesh->NEList[otherVertex].begin(), _mesh->NEList[otherVertex].end(),
+                                            inserter(neighbours, neighbours.begin()));
+                                            
+                            //flag edge if it's on an interface
+                            if (neighbours.size() != 2 )
+                            {
+                                
+
+                            /* std::cout << "  check if color of actual partition is smaller than the other partition of the interface" << std::endl;
+                                std::cout << "  if not, do not adapt interface!!!" << std::endl;
+
+                                std::cout << "  I am partition " <<  part_id << " and have the color " << partition_colors[part_id] << std::endl;
+    */
+                                std::vector<int> interface_edge;
+                                set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
+                                                 nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
+                                                 inserter(interface_edge, interface_edge.begin()));
+
+                                //std::cout << "global IDs: " << l2g_vertices[i] << " and " << l2g_vertices[otherVertex] << std::endl;
+
+                                //check if both vertices, i and otherVertex, belong to the same two partitions
+                                //if ( nodes_part_ids )
+
+                                auto color_part_id = -1, color_neighbor = -1;
+
+                                //if color of the neighbor is smaller than the own color, refinement must not happen!
+                                if (interface_edge[0] == part_id)
+                                {
+                                    color_part_id = partition_colors[interface_edge[0]];
+                                    color_neighbor = partition_colors[interface_edge[1]];
+                                    target_part_id = interface_edge[1];
+                                }
+
+                                else if (interface_edge[1] == part_id) 
+                                {
+                                    color_neighbor = partition_colors[interface_edge[0]];
+                                    color_part_id = partition_colors[interface_edge[1]];
+                                    target_part_id = interface_edge[0];
+                                }
+
+                                else
+                                {
+                                    //std::cerr << "ERROR WHEN COMPARING PARTITION COLORS OF " << i << " AND " << otherVertex << " in " << part_id << std::endl;
+                                    //std::cerr << "size of interface_edge " << interface_edge.size() << std::endl;
+                                    break;
+                                }
+
+                                //adapt interface only to a neighbor with higher color
+                                /*if (color_part_id > color_neighbor)
+                                {
+                                /*  std::cout << "  interface color forbids interface adaption: " << interface_edge[1] << " " << part_id << std::endl;
+                                    std::cout << "  " << interface_edge[0] << std::endl;
+                                    std::cout << "Partition " << part_id << std::endl;
+                                    std::cout << "  Vertices: " << i << " " << otherVertex << std::endl;
+                                    std::cout << "  interface_edges: " << interface_edge[0] << " " << interface_edge[1] << ", size of interface_edges: " << interface_edge.size() << std::endl;
+                                    std::cout << "  colors: " << color_part_id << " " << color_neighbor << std::endl;
+                                    std::cout << "do i arrive here at all??? " << std::endl;
+                                    continue;
+                                }//*/
+    /*
+                                for (auto iter : interface_edge)
+                                {
+                                    std::cout << iter << std::endl;
+                                }
+
+    /*
+                                for (auto it : nodes_part_ids[l2g_vertices[i]])
+                                {
+                                    std::cout << " " << it << std::endl;
+                                }
+
+                                for (auto it : nodes_part_ids[l2g_vertices[otherVertex]])
+                                {
+                                    std::cout << " " << it << std::endl;
+                                }
+    */
+                                //std::cout << "  adapt interface between " << interface_edge[0] << " and " << interface_edge[1] << std::endl;
+                                //target_part_id = interface_edge[1];
+                                adapt_interface = true;
+                                //continue;
+                            }
+                       // } //end of if(dim==2)//*/
+/*
+                        else
                         {
-                           /* std::cout << "  check if color of actual partition is smaller than the other partition of the interface" << std::endl;
-                            std::cout << "  if not, do not adapt interface!!!" << std::endl;
+                            std::set<int> edge_neighbours;
+                            set_intersection(NEList[n1].begin(), NEList[n1].end(),
+                                             NEList[n2].begin(), NEList[n2].end(),
+                                             inserter(edge_neighbours, edge_neighbours.begin()));
 
-                            std::cout << "  I am partition " <<  part_id << " and have the color " << partition_colors[part_id] << std::endl;
-*/
-                            std::vector<int> interface_edge;
-                            set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
-                                             nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
-                                             inserter(interface_edge, interface_edge.begin()));
-
-                            //std::cout << "global IDs: " << l2g_vertices[i] << " and " << l2g_vertices[otherVertex] << std::endl;
-
-                            auto color_part_id = -1, color_neighbor = -1;
-
-                            //if color of the neighbor is smaller than the own color, refinement must not happen!
-                            if (interface_edge[0] == part_id)
+                            std::set<int> neighbours;
+                            set_intersection(_mesh->NEList[i].begin(), _mesh->NEList[i].end(),
+                                             edge_neighbours.begin(), edge_neighbours.end(),,
+                                             inserter(neighbours, neighbours.begin()));
+                                            
+                            //flag edge if it's on an interface
+                            if (neighbours.size() != 2 )
                             {
-                                color_part_id = partition_colors[interface_edge[0]];
-                                color_neighbor = partition_colors[interface_edge[1]];
-                                target_part_id = interface_edge[1];
-                            }
+                                std::vector<int> interface_edge;
+                                set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
+                                                nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
+                                                inserter(interface_edge, interface_edge.begin()));
+                         
+                                auto color_part_id = -1, color_neighbor = -1;
 
-                            else if (interface_edge[1] == part_id) 
-                            {
-                                color_neighbor = partition_colors[interface_edge[0]];
-                                color_part_id = partition_colors[interface_edge[1]];
-                                target_part_id = interface_edge[0];
-                            }
+                                //if color of the neighbor is smaller than the own color, refinement must not happen!
+                                if (interface_edge[0] == part_id)
+                                {
+                                    color_part_id = partition_colors[interface_edge[0]];
+                                    color_neighbor = partition_colors[interface_edge[1]];
+                                    target_part_id = interface_edge[1];
+                                }
 
-                            else
-                            {
-                                //std::cerr << "ERROR WHEN COMPARING PARTITION COLORS OF " << i << " AND " << otherVertex << " in " << part_id << std::endl;
-                                //std::cerr << "size of interface_edge " << interface_edge.size() << std::endl;
-                                break;
-                            }
+                                else if (interface_edge[1] == part_id) 
+                                {
+                                    color_neighbor = partition_colors[interface_edge[0]];
+                                    color_part_id = partition_colors[interface_edge[1]];
+                                    target_part_id = interface_edge[0];
+                                }
 
-                            //adapt interface only to a neighbor with higher color
-                            /*if (color_part_id > color_neighbor)
-                            {
-                              /*  std::cout << "  interface color forbids interface adaption: " << interface_edge[1] << " " << part_id << std::endl;
-                                std::cout << "  " << interface_edge[0] << std::endl;
-                                std::cout << "Partition " << part_id << std::endl;
-                                std::cout << "  Vertices: " << i << " " << otherVertex << std::endl;
-                                std::cout << "  interface_edges: " << interface_edge[0] << " " << interface_edge[1] << ", size of interface_edges: " << interface_edge.size() << std::endl;
-                                std::cout << "  colors: " << color_part_id << " " << color_neighbor << std::endl;
-                                std::cout << "do i arrive here at all??? " << std::endl;
-                                continue;
-                            }//*/
-/*
-                            for (auto iter : interface_edge)
-                            {
-                                std::cout << iter << std::endl;
-                            }
-
-/*
-                            for (auto it : nodes_part_ids[l2g_vertices[i]])
-                            {
-                                std::cout << " " << it << std::endl;
-                            }
-
-                            for (auto it : nodes_part_ids[l2g_vertices[otherVertex]])
-                            {
-                                std::cout << " " << it << std::endl;
-                            }
-*/
-                            //std::cout << "  adapt interface between " << interface_edge[0] << " and " << interface_edge[1] << std::endl;
-                            //target_part_id = interface_edge[1];
-                            adapt_interface = true;
-                            //continue;
-                        }
+                                else
+                                {
+                                    break;
+                                }
+                                adapt_interface = true;
+                        }//end of else (equals dim == 3)//*/
                     }
                     /*std::chrono::duration<double> interface_dur = std::chrono::system_clock::now() - interface_tic;
                     *int_check += interface_dur.count();

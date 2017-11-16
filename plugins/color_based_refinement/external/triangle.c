@@ -3440,7 +3440,7 @@ struct behavior *b;
 #ifndef CDT_ONLY
         if (argv[i][j] == 'Y') {
           b->nobisect++;
-          printf("nobisect\n");
+          //printf("nobisect\n");
 	}
         if (argv[i][j] == 'S') {
           b->steiner = 0;

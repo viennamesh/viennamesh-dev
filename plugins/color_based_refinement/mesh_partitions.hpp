@@ -920,8 +920,9 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         viennamesh::info(1) << "Coloring partitions using a Guided Balancing strategy using shuffling with scheduled reversed moves" << std::endl;
 
         double gamma = num_regions / colors;
-
+        //partition_colors.resize(partition_adjcy.size(), -1);
         //std::cout << "parts: " << num_regions << ", colors: " << colors << ", gamma (parts/colors): " << gamma << std::endl;
+        //partition_colors[0] = 0;
 
         no_of_iterations = 3;
 
@@ -984,7 +985,11 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 //Select V'(j) subset of V(j) such that |V'(j)|=|V(j)| - gamma
                 for (size_t j = 0; j < surplus_parts.size(); ++j)
                 {
-                    surplus_parts[j] = color_partitions[ of_color_id ][j];
+                    //if (color_partitions[of_color_id][j] != 0 )
+                        surplus_parts[j] = color_partitions[ of_color_id ][j];
+/*
+                    else 
+                        std::cout << "skip " << color_partitions[of_color_id][j] << " with color " << of_color_id << std::endl;*/
                 }
     /*          size_t counter = 0;
                 for (size_t j = 0; j < partition_colors.size() && counter < surplus_parts.size(); ++j)
@@ -1012,9 +1017,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 
                     for (size_t part_to_move = 0; part_to_move < movable_parts.size() && !surplus_parts.empty(); ++part_to_move)
                     {
-                        //movable_parts[part_to_move] = surplus_parts[0];
                         moves[ uf_color_id ].push_back(surplus_parts[0]);
-                        //std::cout << "  " << surplus_parts[0] << std::endl;
                         surplus_parts.erase( surplus_parts.begin() );
                     }
 
@@ -1068,6 +1071,11 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                     bool permissible = true;
                     int new_color = uf_color_id;
                     int part_id = moves[new_color][part];
+                    /*if (part_id == 0)
+                    {
+                        //std::cout << "what" << std::endl;
+                        permissible = false;
+                    }*/
                     //std::cout << moves[new_color][part] << std::endl;
     /*  
                     for (size_t neigh = 0; neigh < partition_adjcy[color]; ++neigh )
@@ -1305,6 +1313,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         //each vector element is one color and contains the partitions with this color
         colors = *( std::max_element(partition_colors.begin(), partition_colors.end()) ) + 1;
 
+        color_partitions.clear();
         color_partitions.resize(colors);
 
         for (size_t i = 0; i < partition_colors.size(); ++i)
@@ -1396,7 +1405,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         colors = 1;               //number of used colors
         vertex_colors[0] = 0;    //assign first partition color 0
 
-        //visit every partition and assign the smallest color available (not already assigned to on of its neighbors)
+        //visit every vertex and assign the smallest color available (not already assigned to on of its neighbors)
         for (size_t i = 1; i < vertex_colors.size(); ++i)
         {
             int tmp_color = 0; //start with smallest color 
@@ -1567,14 +1576,14 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
 
         //create a vector containing the color information for each vertex
         //each vector element is one color and contains the vertices with this color
-        color_vertices.clear();
+ /*       color_vertices.clear();
         color_vertices.resize(colors);
         
         for (size_t i = 0; i < vertex_colors.size(); ++i)
         {
             color_vertices[ vertex_colors[i] ].push_back(i);
-        }
-
+        }//*/
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -1594,7 +1603,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         color_filename+="_color_vertices_greedy-lu.txt";
         color_file.open(color_filename.c_str(), ios::app);
@@ -1615,7 +1624,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-        }
+  /*      }
         color_file.close();
         //END OF DEBUG*/
     }
@@ -1629,7 +1638,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
     if (coloring_algorithm == "greedy-sched")
     {
         viennamesh::info(1) << "Coloring vertices using a Guided Balancing strategy using shuffling with scheduled reversed moves " << std::endl;
-        std::cout << "Threads: " << omp_get_num_threads() << " " << nthreads<< std::endl;
+
         double sched_time = 0.0;
 
         double gamma = original_mesh->get_number_nodes() / colors;
@@ -1825,7 +1834,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
 
     //-------------------------------------------------------------------------------------------------//
     //Parallel Graph Coloring Algorithm by Rokos et al. (A Fast and Scalable Graph Coloring Algorithm
-    //for Multi-core and Many-core Architectures), 2015, arxiv.org
+    //for Multi-core and Many-core Architectures), 2015, arxiv.org for vertices
     //-------------------------------------------------------------------------------------------------//
     if (coloring_algorithm == "parallel")
     {
@@ -1983,6 +1992,83 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
     //end of Parallel Graph Coloring Algorithm by Rokos et al. (A Fast and Scalable Graph Coloring Algorithm
     //for Multi-core and Many-core Architectures), 2015, arxiv.org
     //-------------------------------------------------------------------------------------------------//
+
+    //catalyurek
+    if (coloring_algorithm == "catalyurek")
+    {
+        viennamesh::info(1) << "Coloring vertices using Catalyurek's parallel coloring algorithm with " << nthreads << " threads" << std::endl;
+        
+        vertex_colors.resize(original_mesh->get_number_nodes(), 0);
+
+        std::vector<int> worklist (original_mesh->get_number_nodes());
+        std::iota(worklist.begin(), worklist.end(), 0);
+
+        int round = 1;
+
+        while(worklist.size() != 0 && round < 3)
+        {
+            std::cout << "tentative round " << round << " with " << worklist.size() << " vertices" << std::endl;
+            
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+            for(size_t vert = 0; vert < worklist.size(); ++vert)
+            {
+                std::cout << "tentative on " << worklist[vert] << std::endl;
+                std::vector<int> forbiddenColors(original_mesh->NNList[worklist[vert]].size()+1, 0);
+                
+                for (size_t neigh =0; neigh < original_mesh->NNList[worklist[vert]].size(); ++neigh)
+                {
+                    int neigh_id = original_mesh->NNList[worklist[vert]][neigh];
+                    forbiddenColors[vertex_colors[neigh]] = worklist[vert];
+                }
+                
+                //int color = * (std::min_element(forbiddenColors.begin(), forbiddenColors.end()));
+                for (size_t i = 0; i < forbiddenColors.size(); ++i)
+                {
+                    if (forbiddenColors[i] != worklist[vert])
+                    {
+                        vertex_colors[worklist[vert]] = i;
+                        break;
+                    }
+                }
+
+            }//end of parallel for
+
+            std::cout << "correction round " << round << std::endl;
+            std::vector<std::vector<int>> recolor(nthreads);
+
+            int counter = 0;
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic) shared(counter)
+            for (size_t vert = 0; vert < worklist.size(); ++vert)
+            {
+                for (size_t neigh = 0; neigh < original_mesh->NNList[ worklist[vert] ].size(); ++neigh)
+                {
+                    int neigh_id = original_mesh->NNList[worklist[vert]][neigh];
+                    
+                    if (vertex_colors[ worklist[vert] ] == vertex_colors[neigh_id] && worklist[vert] > neigh_id)
+                    {
+                        recolor[omp_get_thread_num()].push_back(worklist[vert]);
+                        #pragma omp atomic 
+                        ++counter;
+                    }
+                }
+            } //end of parallel for
+            std::cout << "counter " << counter << std::endl;
+
+            worklist.clear();
+
+            for (size_t i = 0; i < recolor.size(); ++i)
+            {
+                for (size_t j = 0; j < recolor[i].size(); ++j)
+                {
+                   worklist.push_back(recolor[i][j]);
+                }
+            }
+            ++round;
+
+            std::cout << worklist.size() << std::endl;
+        } //end of while
+    }
+    //end of Catalyurek
 
     viennamesh::info(1) << "   Colored " << original_mesh->get_number_nodes() << " vertices" << std::endl;
     viennamesh::info(1) << "   Number of colors = " << colors << std::endl;
@@ -2339,7 +2425,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     g2l_element.resize(num_regions);
 
     //get vertices and elements from original mesh
-
     for (size_t ele_id = 0; ele_id < original_mesh->get_number_elements(); ++ele_id)
     {
         if (dim == 2)
@@ -2370,16 +2455,29 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     prep_time = prep_toc - prep_tic;
 
     auto for_tic = omp_get_wtime();
+/*
+    std::cout << "start parallel for loop" << std::endl;
+    std::cout << "colors: " << colors << std::endl;
+
+    for (size_t color = 0; color < colors; color++)
+    {
+        std::cout << " color " << color << std::endl;
+        for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
+        {
+            std::cout << "    " << color_partitions[color][part_iter] << std::endl;
+        }
+    }
+    //END OF DEBUG*/
 
     //iterate colors
     for (size_t color = 0; color < colors; color++)
     {
-       /* 
-        std::cout << std::endl << "actual color / # of colors" << std::endl;
+       
+        /*std::cout << std::endl << "actual color / # of colors" << std::endl;
         std::cout << color << " / " << colors << std::endl;
-        std::cout << color_partitions[color].size() << std::endl;
+        //std::cout << color_partitions[color].size() << std::endl;
         //*/
-        #pragma omp parallel for schedule(dynamic) num_threads(nthreads)
+        #pragma omp parallel for schedule(dynamic) num_threads(1)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
         {
             //std::cout << "part_iter " << part_iter << " with dimension " << dim << std::endl;
@@ -2605,6 +2703,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             //create pragamtic data structure, the partition boundary and put it into the partition vector
 //            auto mesh_tic = std::chrono::system_clock::now();
+
             Mesh<double>* partition = nullptr;
             
             if (dim == 2)
@@ -2612,8 +2711,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             else
                 partition = new Mesh<double>(num_points_part, num_elements_part, &(ENList_part[0]), &(x_coords[0]), &(y_coords[0]), &(z_coords[0]));
-
-            //std::cout << "partition created at " << partition << std::endl;
 /*
             std::cout << "g2l_vertices_tmp" << std::endl;
 
@@ -2621,8 +2718,24 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 std::cout << it.first << " " << it.second << std::endl;
 */
             partition->create_boundary();
-            
+
             auto mesh_toc = omp_get_wtime();
+/*
+            int nfacets;
+            const int *facets;
+            const int *ids;
+            partition->get_boundary(&nfacets, &facets, &ids);
+
+            for (size_t i = 0; i < nfacets; ++i)
+            {
+                std::cout << "facet " << i << std::endl;
+                for (size_t j = 0; j < dim; ++j)
+                {
+                    std::cout << "  " << facets[i*dim+j] << std::endl;
+                }
+                std::cout << std::endl;
+            }
+            */
 /*
             std::cout << " boundary created" << std::endl;
 
@@ -2651,7 +2764,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
             //Heal mesh if vertices have been inserted on interface
             if (color > 0)
             {
-                //std::cout << " start healing for partition " << part_id << std::endl;
+                //std::cout << "    healing for partition " << part_id << std::endl;
                 //auto origNNodes = partition->get_number_nodes();
 
                 // Set the orientation of elements.
@@ -2680,9 +2793,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 for (auto it : partition_adjcy[part_id])
                 {
-                    //std::cout << std::endl << "   check if color of partition " << it << " is smaller than own color" << std::endl;
-                    //std::cout << "   check outbox of partition " << it << std::endl;
-                    //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!
+                    /*std::cout << std::endl << "   check if color " << partition_colors[it] << " of partition " << it << " is smaller than own color " << color << std::endl;
+                    std::cout << "   check outbox of partition " << it << std::endl;
+                    //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!*/
                     if (partition_colors[it] < color && outboxes[it].num_verts() > 0)
                     {   
                         //std::cout << std::endl << "   yes it is, start with processing outbox data" << std::endl;
@@ -2740,7 +2853,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         
                         auto edgeSplitCnt = partition->NNodes - orig_NNodes;
 
-                        //std::cout << " Append new coords and new metrics to the partition" << std::endl;
+                        //std::cout << "     Append new coords and new metrics to the partition" << std::endl;
 
                         //Append new coords and new metrics to the partition
                         for (size_t i = 0, j = 0; i < outboxes[it].num_verts(); ++i)
@@ -2750,6 +2863,18 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 //std::cout << i << " is not in this partition" << std::endl;
                                 continue;
                             }
+
+                            try 
+                            {
+                                g2l_vertices_tmp.at(outboxes[it][4*i+1]);
+                                g2l_vertices_tmp.at(outboxes[it][4*i+2]);
+                            }
+
+                            catch(...)
+                            {
+                                continue;
+                            }
+
                             //get 3rd element due to construction of outbox vector (3rd ele is local id of vertex in partition it)
                             //std::cout << "outb " << i << std::endl;
                             //double p[2] {0.0, 0.0};
@@ -2775,39 +2900,73 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 */
                         std::set<int> elements_to_heal;
 
-                        //std::cout << "mark each element with its new vertices" << std::endl;
+                        //std::cout << "       mark each element with its new vertices" << std::endl;
 
                         // Mark each element with its new vertices,
                         // update NNList for all split edges.
                         for (size_t i = 0, j = 0; i < outboxes[it].num_verts(); ++i)
                         {
+                            //std::cout << "iterate outboxes" << std::endl;
                             if (outboxes[it][4*i] != part_id)
                             {
-                                //std::cout << " skip " << i << std::endl;
+                                //std::cout << "         skip " << i << std::endl;
                                 continue;
                             }
 
-                            //std::cout << " process entry " << i  << std::endl;
+                            try 
+                            {
+                                g2l_vertices_tmp.at(outboxes[it][4*i+1]);
+                                g2l_vertices_tmp.at(outboxes[it][4*i+2]);
+                            }
+
+                            catch(...)
+                            {
+                                continue;
+                            }
+
+                           // std::cout << "         process entry " << i  << std::endl;
 
                             auto vid = outboxes[it][4*i+3];
                             auto glob_firstid = outboxes[it][4*i+1];
                             auto glob_secondid = outboxes[it][4*i+2];
 
                             
-                            ///std::cout << vid << " is " << local_vid << std::endl;
-                            //std::cout << "global ids: " << glob_firstid << " " << glob_secondid << " " << vid << std::endl;
+                            //std::cout << vid << " is " << local_vid << std::endl;
+                            //std::cout << "           global ids: " << glob_firstid << " " << glob_secondid << " " << vid << std::endl;
 
                             //double p[2] {0.0, 0.0};
                             double p[dim];
                             original_mesh->get_coords(glob_firstid, p);
-                         //   std::cout << p[0] << " " << p[1] << std::endl;
+                            //std::cout << "           " << p[0] << " " << p[1] << " " << p[2] << std::endl;
                             original_mesh->get_coords(glob_secondid, p);
-                         //   std::cout << p[0] << " " << p[1] << std::endl;
+                            //std::cout << "           " << p[0] << " " << p[1] << " " << p[2] << std::endl;
+
+                           
+/*                          int firstid, secondid;
+                            try
+                            {
+                                firstid = g2l_vertices_tmp.at(glob_firstid);
+                            }
+                            catch(std::exception &ex)
+                            {
+                                std::cerr << glob_firstid << std::endl;
+                                std::cerr<< ex.what() << std::endl;
+                            }
+
+                            try
+                            {
+                                secondid = g2l_vertices_tmp.at(glob_secondid);
+                            }
+                            catch(std::exception &ex)
+                            {
+                                std::cout << glob_secondid << std::endl;
+                                std::cerr<< ex.what() << std::endl;
+                            }*/
 
                             auto firstid = g2l_vertices_tmp.at(glob_firstid);
-                          //  std::cout << "firstid ok" << std::endl;
+                            //std::cout << "           firstid " << firstid << " glob_firstid " << glob_firstid << std::endl;
                             auto secondid = g2l_vertices_tmp.at(glob_secondid);
-                         //   std::cout << "secondid ok" << std::endl;
+                            //std::cout << "           secondid " << secondid << " glob_secondid " << glob_secondid << std::endl;
                             auto local_vid = outbox_mapping[j];
 
                             /*std::cout << "local ids: " << firstid << " " << secondid << " " << local_vid << std::endl;
@@ -2827,8 +2986,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                             for (auto ele_iter : intersection)
                             {
-                                //std::cout << "Part_id: " << part_id << ", outboxes[it]: " << it << std::endl;
-                                //std::cout << " compute edgenumber" << std::endl;
+                                /*std::cout << "Part_id: " << part_id << ", outboxes[it]: " << it << std::endl;
+                                std::cout << " compute edgenumber" << std::endl;*/
                                 size_t edgeOffset = edgeNumber(partition, ele_iter, firstid, secondid);
 
                                 if (nedge*ele_iter+edgeOffset > new_vertices_per_element.size())
@@ -2869,6 +3028,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             ++j;
                             //*/
                         } //end of update NNList for all split edges
+
+                        //std::cout << "element marking done" << std::endl;
 
                         /*
                         //DEBUG
@@ -3178,8 +3339,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 */
             }//end if algorithm == pragmatic for metric assignment
             auto metric_toc = omp_get_wtime();
-
-            //std::cout << " metric field updated" << std::endl;
  
             //double int_check_time {0.0};
             //double triangulate_time {0.0};
