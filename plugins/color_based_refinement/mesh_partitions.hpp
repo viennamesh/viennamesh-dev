@@ -81,7 +81,7 @@ class MeshPartitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);      
         bool ColorVertices(std::string coloring_algorithm, std::string filename,              //Color the vertices
-                           int no_of_iterations = 1);                                      
+                           std::string options, int no_of_iterations = 1);                                      
         bool CheckPartitionColoring();                                                        //Checks validity of the partition coloring
         bool CheckVertexColoring();
         bool WritePartitions();                                                               //ONLY FOR DEBUGGING!
@@ -1386,7 +1386,8 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
 //ColorVertices()
 //
 //Tasks: Color the elements such that independent sets are created
-bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string filename, int no_of_iterations)
+bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string filename, std::string options,
+                                   int no_of_iterations)
 {
     //-------------------------------------------------------------------------------------------------//
     //Greedy coloring algorithm for vertices
@@ -1993,6 +1994,374 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
     //for Multi-core and Many-core Architectures), 2015, arxiv.org
     //-------------------------------------------------------------------------------------------------//
 
+    //parallel-test
+    if (coloring_algorithm == "parallel-test")
+    {
+        viennamesh::info(1) << "Benchmark parallel coloring algorithm for a graph using " << nthreads << " threads" << std::endl;
+
+        ifstream in_file;
+        int size;
+
+        if (options == "bmw")
+        {
+            viennamesh::info(1) << "Coloring BMW3_2" << std::endl;
+            size = 227362;    //bmw3_2 has 227362 entries        
+            in_file.open("examples/data/color_refinement/graph/bmw3_2.mtx");
+
+        }
+
+        else if (options == "hollywood")
+        {
+            viennamesh::info(1) << "Coloring hollywood_2009" << std::endl;
+            size = 57515616;
+            in_file.open("examples/data/color_refinement/graph/hollywood-2009.mtx");
+        }
+
+        else if (options == "queen")
+        {
+            viennamesh::info(1) << "Coloring Queen_4147" << std::endl;
+            size = 166823197;
+            in_file.open("examples/data/color_refinement/graph/Queen_4147.mtx");
+        }
+
+        else
+        {
+            viennamesh::error(1) << "Wrong test graph! Options are:" << std::endl;
+            viennamesh::error(1) << "   bmw\n hollywood\n queen" << std::endl;
+        }
+
+        if (!in_file)
+        {
+            viennamesh::error(1) << "Can not open graph file!" << std::endl;
+            return false;
+        }
+
+        std::vector<std::vector<int>> neighbors(size);  
+        std::string str;
+
+        int a,b;
+        double c;
+  //      std::cout << "process file " << std::endl;
+        
+        while(in_file >> a >> b >> c)
+        {
+            //std::cout << a << " " << b << " " << c << std::endl;
+            if ( a != b )
+            {
+                neighbors[b-1].push_back(a-1); //mtx file of bmw3_2 starts indexing with 1
+                neighbors[a-1].push_back(b-1);
+            }
+        } //end of while(in_file)
+
+        in_file.close();
+/*
+        //DEBUG
+        for (size_t i = 0; i < neighbors.size(); ++i)
+        {
+            std::cout << "Neighbors for " << i << std::endl;
+            for (size_t j = 0; j < neighbors[i].size(); ++j)
+            {
+                std::cout << "  " << neighbors[i][j] << std::endl;
+            }
+        }
+        //END OF DEBUG*/
+        auto wall_tic = std::chrono::system_clock::now();
+
+        bool old_version = false;
+
+        int round = 1;
+        int max_color = 1;
+
+        if (old_version)
+        {           
+            std::cout << "old version" << std::endl;
+
+            vertex_colors.resize(size, -1); 
+
+            //perform tentative coloring of vertices  
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+            for(size_t vert = 0; vert < size; ++vert)
+            {
+                bool next_color = false;
+                int tmp_color = 0;
+
+                do
+                {
+                    for (auto iter : neighbors[vert])
+                    {
+                        if ( vert > iter && vertex_colors[iter] == tmp_color)
+                        {
+                            ++tmp_color;
+                            next_color = true;
+                            break;
+                        }
+
+                        else
+                            next_color = false;
+                    }
+                } while(next_color);
+
+                std::cout << vert << " " << tmp_color << std::endl;
+                vertex_colors[vert] = tmp_color;
+            } //end of tentative coloring
+
+            //mark all vertices for inspection
+            std::vector<int> global_worklist(size);
+            std::iota(global_worklist.begin(), global_worklist.end(), 0);
+
+            //do color checks of all colored vertices
+            while( !global_worklist.empty() )
+            {
+                std::vector<std::vector<int>> recolored(nthreads);
+
+                #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+                for(size_t vert = 0; vert < global_worklist.size(); ++vert)
+                {
+                    int vert_id = global_worklist[vert];
+
+                    //check if a vertex has to be recolored and recolor if necessary
+                    for (auto neigh : neighbors[ vert_id ])
+                    {
+                        if ( (vertex_colors[ vert_id ] == vertex_colors[neigh]) && (neigh > vert_id) )
+                        {
+                            bool next_color = false;
+                            int tmp_color = 0;
+                
+                            do
+                            {
+                                for (auto iter : neighbors[vert_id])
+                                {
+                                    if (vertex_colors[iter] == tmp_color)
+                                    {
+                                        ++tmp_color;
+                                        next_color = true;
+                                        break;
+                                    }
+                
+                                    else
+                                        next_color = false;
+                                }
+                            } while(next_color);
+                
+                            vertex_colors[vert_id] = tmp_color;
+                            recolored[omp_get_thread_num()].push_back(vert_id);
+                        } //end of check color of vertex
+                    }                
+                }
+
+                global_worklist.clear();
+
+                //create global worklist for next round of color checks
+                for (auto recolor : recolored)
+                {
+                    for (auto vert_recolor : recolor)
+                    {
+                        global_worklist.push_back(vert_recolor);
+                    }
+                }
+
+                ++round;
+            } //end of while loop doing the color checks 
+        } //end of old_version*/
+
+        //new version
+        else
+        {
+            std::cout << "new version" << std::endl;
+            vertex_colors.clear();
+            vertex_colors.resize(size, 0);
+
+            //tentative coloring
+            #pragma omp parallel for schedule(static) num_threads(nthreads) //hared(max_color)
+            for (size_t vert = 0; vert < size; ++vert)
+            {
+                //std::cout << vert << std::endl;
+                std::vector<int> forbiddenColors ( max_color + 5, -1 );
+
+                for (size_t neigh = 0; neigh < neighbors[vert].size() ; ++neigh)
+                {
+                    int neigh_id = neighbors[vert][neigh];
+                    //std::cout << " neigh " << neigh_id << std::endl;
+                    forbiddenColors[ vertex_colors[neigh_id] ] = vert;
+                }
+
+                for (size_t i = 0; i < forbiddenColors.size(); ++i)
+                {
+                    if (forbiddenColors[i] != vert)
+                    {
+                        if (i == forbiddenColors.size()-1)
+                        {
+                            #pragma omp atomic
+                            ++max_color;
+                        }
+                        //std:cout << " " << vert << " gets " << i << std::endl;
+                        vertex_colors[vert] = i;
+
+                        break;
+                    }
+                }
+            }
+            //end of tentative coloring
+            
+            //mark all vertices for inspection
+            std::vector<int> worklist(size);
+            std::iota(worklist.begin(), worklist.end(), 0);
+
+            //inspect vertices and check the validity of their color; if invalid mark it for recoloring;
+            while ( !worklist.empty() )
+            {
+                //std::cout << "checking vertices" << std::endl;
+                std::vector<std::vector<int>> recolor(nthreads);
+
+                #pragma omp parallel for schedule(static) num_threads(nthreads) //shared(max_color)
+                for (size_t iter = 0; iter < worklist.size(); ++iter)
+                {
+                    int vert = worklist[iter];
+                   // if (vert == 1 || vert == 0)
+                        //std::cout << vert << " with color " << vertex_colors[vert]  << " has " << neighbors[vert].size() << " neighbors" << std::endl;
+                    //check if vertex has to be recolored and recolor if necessary
+                    for (size_t neigh : neighbors[vert])
+                    {
+                       // if (vert == 0 || vert ==1 )
+                            //std::cout << " checking " << neigh << " with color " << vertex_colors[neigh]<< std::endl;
+
+                        if ( (vertex_colors[vert] == vertex_colors[neigh]) && (neigh > vert) )
+                        {
+                            //if (vert == 0 || vert == 1)
+                               // std::cout << "     problem! " << std::endl;
+
+                            std::vector<int> forbiddenColors ( max_color + 5 , -1 );
+                            
+                            for (size_t neigh = 0; neigh < neighbors[vert].size(); ++neigh)
+                            {
+                                int neigh_id = neighbors[vert][neigh];
+                                forbiddenColors[ vertex_colors[neigh_id] ] = vert;
+                            }
+                
+                            for (size_t i = 0; i < forbiddenColors.size(); ++i)
+                            {
+                                //if (vert == 0 || vert ==1)
+                                   // std::cout << "i " << i << " forbiddenColors[i] " << forbiddenColors[i] << " vert " << vert << std::endl;
+
+                                if (forbiddenColors[i] != vert)
+                                {
+                                    //std::cout << "recolor" << std::endl;
+
+                                    /*if ( vert == 1 || vert == 0)
+                                        std::cout << "recolor with " << i << std::endl;*/
+
+                                    if (i == forbiddenColors.size()-1)
+                                    {
+                                        #pragma omp atomic
+                                        ++max_color;
+                                    }
+                                    vertex_colors[vert] = i;
+                                    recolor[omp_get_thread_num()].push_back(vert);
+                                    break;
+                                }
+                            }
+                        }
+                    } //end of for loop check if vertex has to be recolored and recolor if necessary
+                } //end of parallel for loop for vertex checking
+
+                worklist.clear();
+                
+                //create worklist for next round of inspection
+                for (auto rec : recolor)
+                {
+                    for (auto vert_rec : rec)
+                    {
+                        //std::cout << "pushing back" << std::endl;
+                        worklist.push_back(vert_rec);
+                    }
+                }
+                //std::cout << worklist.size() << " round " << round << std::endl;
+                ++round;
+            } //end of while( !worklist.empty() ) //end of inspect and recolor vertices
+        } //end of new version*/
+
+        //create a vector containing the color information for each partition
+        //each vector element is one color and contains the vertices with this color
+        //colors = *( std::max_element(vertex_colors.begin(), vertex_colors.end()) ) + 1;
+/*
+        color_vertices.resize(colors);
+
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            color_vertices[ vertex_colors[i] ].push_back(i);
+        }
+*/
+        std::chrono::duration<double> test_color_dur = std::chrono::system_clock::now() - wall_tic;
+
+        viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << max_color << " colors for " << size << " vertices" << std::endl;
+
+        viennamesh::info(1) << 	"  TEST Coloring time " << test_color_dur.count() << std::endl;
+/*
+        //DEBUG
+        //std::cout << "Number of used colors: " << colors << std::endl;
+        ofstream color_file;
+        std::string vertex_filename = filename;
+        vertex_filename += "_vertex_colors_parallel.txt";
+        color_file.open(vertex_filename.c_str(), ios::app);
+
+        color_file << "Threads: " << nthreads << std::endl;
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+
+        //std::cout << "  Partition | Color " << std::endl;
+        color_file << "  Vertex | Color " << std::endl;
+    
+        for (size_t i = 0; i < vertex_colors.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << vertex_colors[i] << std::endl;
+            color_file << "          " << i << " | " << vertex_colors[i] << std::endl;
+        }
+        color_file.close();
+        //*/
+/*
+        std::string color_filename = filename;
+        color_filename+="_color_vertices_parallel.txt";
+        color_file.open(color_filename.c_str(), ios::app);
+
+        //std::cout << std::endl << "      Color | #Vertices " << std::endl;
+        color_file << "Threads: " << nthreads << std::endl;
+        color_file << "Vertices: " << vertex_colors.size() << std::endl;
+        color_file << "Gamma: " << vertex_colors.size() / colors << std::endl;
+        color_file << "      Color | #Vertices " << std::endl;
+
+        for (size_t i = 0; i < color_vertices.size(); ++i)
+        {
+            //std::cout << "          " << i << " | " << color_vertices[i].size() << std::endl;
+            color_file << "          " << i << " | " << color_vertices[i].size() << std::endl;
+
+    /*        std::cout << "          " << i << " | ";
+            for (auto it : color_vertices[i])
+            {
+            std::cout << it << " ";
+            }
+            std::cout << std::endl;//*/
+/*        }
+        color_file.close();
+        //END OF DEBUG*/
+
+        viennamesh::info(1) << "Checking vertex coloring" << std::endl;
+        for (size_t vert_id = 0; vert_id < size; ++vert_id)
+        {
+            for (auto neigh_id : neighbors[vert_id])
+            {
+                if (vertex_colors[vert_id] == vertex_colors[neigh_id])
+                {
+                    //#pragma omp atomic write
+                    viennamesh::error(1) << "WRONG COLORING" << std::endl;
+                    std::cout << "vertex " << vert_id << " has color " << vertex_colors[vert_id] << std::endl;
+                    std::cout << "neighbor " << neigh_id << " has color " << vertex_colors[neigh_id] << std::endl;
+                    //return false;
+                }
+            }
+        }//*/
+    }
+    //end of parallel-test
+
     //catalyurek
     if (coloring_algorithm == "catalyurek")
     {
@@ -2005,39 +2374,35 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
 
         int round = 1;
 
-        while(worklist.size() != 0 && round < 3)
+        while(worklist.size() != 0)
         {
-            std::cout << "tentative round " << round << " with " << worklist.size() << " vertices" << std::endl;
             
             #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
             for(size_t vert = 0; vert < worklist.size(); ++vert)
             {
-                std::cout << "tentative on " << worklist[vert] << std::endl;
                 std::vector<int> forbiddenColors(original_mesh->NNList[worklist[vert]].size()+1, 0);
                 
-                for (size_t neigh =0; neigh < original_mesh->NNList[worklist[vert]].size(); ++neigh)
+                for (size_t neigh = 0; neigh < original_mesh->NNList[worklist[vert]].size(); ++neigh)
                 {
                     int neigh_id = original_mesh->NNList[worklist[vert]][neigh];
-                    forbiddenColors[vertex_colors[neigh]] = worklist[vert];
+                    forbiddenColors[vertex_colors[neigh_id]] = worklist[vert];
                 }
                 
-                //int color = * (std::min_element(forbiddenColors.begin(), forbiddenColors.end()));
                 for (size_t i = 0; i < forbiddenColors.size(); ++i)
                 {
                     if (forbiddenColors[i] != worklist[vert])
                     {
                         vertex_colors[worklist[vert]] = i;
+                        std::cout << worklist[vert] << " " << i << std::endl;
                         break;
                     }
                 }
 
             }//end of parallel for
 
-            std::cout << "correction round " << round << std::endl;
             std::vector<std::vector<int>> recolor(nthreads);
 
-            int counter = 0;
-            #pragma omp parallel for num_threads(nthreads) schedule(dynamic) shared(counter)
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
             for (size_t vert = 0; vert < worklist.size(); ++vert)
             {
                 for (size_t neigh = 0; neigh < original_mesh->NNList[ worklist[vert] ].size(); ++neigh)
@@ -2047,15 +2412,13 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                     if (vertex_colors[ worklist[vert] ] == vertex_colors[neigh_id] && worklist[vert] > neigh_id)
                     {
                         recolor[omp_get_thread_num()].push_back(worklist[vert]);
-                        #pragma omp atomic 
-                        ++counter;
                     }
                 }
             } //end of parallel for
-            std::cout << "counter " << counter << std::endl;
 
             worklist.clear();
-
+            worklist.reserve(original_mesh->get_number_nodes());
+            
             for (size_t i = 0; i < recolor.size(); ++i)
             {
                 for (size_t j = 0; j < recolor[i].size(); ++j)
@@ -2064,14 +2427,136 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                 }
             }
             ++round;
-
-            std::cout << worklist.size() << std::endl;
         } //end of while
     }
     //end of Catalyurek
 
+    //catalyurek-test
+    if (coloring_algorithm == "catalyurek-test")
+    {
+        viennamesh::info(1) << "Coloring vertices using Catalyurek's parallel TEST coloring algorithm with " << nthreads << " threads" << std::endl;
+
+        ifstream in_file;
+        in_file.open("examples/data/color_refinement/graph/bmw3_2.mtx");
+        int size = 227362;  //bmw3_2 has 227362 entries
+
+        if (!in_file)
+        {
+            viennamesh::error(1) << "Can not open graph file!" << std::endl;
+            return false;
+        }
+
+        std::vector<std::vector<int>> neighbors(size);  
+        std::string str;
+
+        int a,b;
+        double c;
+  //      std::cout << "process file " << std::endl;
+        
+        while(in_file >> a >> b >> c)
+        {
+            //std::cout << a << " " << b << " " << c << std::endl;
+            if ( a != b )
+                neighbors[a-1].push_back(b-1); //mtx file of bmw3_@ starts indexing with 1
+        } //end of while(in_file)
+
+        in_file.close();
+/*
+        //DEBUG
+        for (size_t i = 0; i < NNList.size(); ++i)
+        {
+            std::cout << "Neighbors for " << i << std::endl;
+            for (size_t j = 0; j < NNList[i].size(); ++j)
+            {
+                std::cout << "  " << NNList[i][j] << std::endl;
+            }
+        }
+        //END OF DEBUG*/
+        auto wall_tic = std::chrono::system_clock::now();
+        
+        vertex_colors.resize(size, 0);
+
+        std::vector<int> worklist (size);
+        std::iota(worklist.begin(), worklist.end(), 0);
+
+        int round = 1;
+
+        while(worklist.size() != 0)
+        {
+            
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+            for(size_t vert = 0; vert < worklist.size(); ++vert)
+            {
+                std::vector<int> forbiddenColors(neighbors[worklist[vert]].size()+1, 0);
+                
+                for (size_t neigh = 0; neigh < neighbors[worklist[vert]].size(); ++neigh)
+                {
+                    int neigh_id = neighbors[worklist[vert]][neigh];
+                    forbiddenColors[vertex_colors[neigh_id]] = worklist[vert];
+                }
+                
+                for (size_t i = 0; i < forbiddenColors.size(); ++i)
+                {
+                    if (forbiddenColors[i] != worklist[vert])
+                    {
+                        vertex_colors[worklist[vert]] = i;
+                        //std::cout << worklist[vert] << " " << i << std::endl;
+                        break;
+                    }
+                }
+
+            }//end of parallel for
+
+            std::vector<std::vector<int>> recolor(nthreads);
+
+            #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+            for (size_t vert = 0; vert < worklist.size(); ++vert)
+            {
+                for (size_t neigh = 0; neigh < neighbors[worklist[vert]].size(); ++neigh)
+                {
+                    int neigh_id = neighbors[worklist[vert]][neigh];
+                    
+                    if (vertex_colors[ worklist[vert] ] == vertex_colors[neigh_id] && worklist[vert] > neigh_id)
+                    {
+                        recolor[omp_get_thread_num()].push_back(worklist[vert]);
+                    }
+                }
+            } //end of parallel for
+
+            worklist.clear();
+            worklist.reserve(original_mesh->get_number_nodes());
+            
+            for (size_t i = 0; i < recolor.size(); ++i)
+            {
+                for (size_t j = 0; j < recolor[i].size(); ++j)
+                {
+                   worklist.push_back(recolor[i][j]);
+                }
+            }
+            ++round;
+        } //end of while
+
+        std::cout << "CHECK VERTEX COLORING" << std::endl;
+        for (size_t vert_id = 0; vert_id < size; ++vert_id)
+        {
+            for (auto neigh_id : neighbors[vert_id])
+            {
+                if (vertex_colors[vert_id] == vertex_colors[neigh_id])
+                {
+                    //#pragma omp atomic write
+                    std::cout << "vertex " << vert_id << " has color " << vertex_colors[vert_id] << std::endl;
+                    std::cout << "neighbor " << neigh_id << " has color " << vertex_colors[neigh_id] << std::endl;
+                    //return false;
+                }
+            }
+        }//*/
+    }
+    //end of Catalyurek-test
+
+    //int colors = *std::max_element(vertex_colors.begin(), vertex_colors.end());
     viennamesh::info(1) << "   Colored " << original_mesh->get_number_nodes() << " vertices" << std::endl;
-    viennamesh::info(1) << "   Number of colors = " << colors << std::endl;
+    viennamesh::info(1) << "   Number of rounds = " << round << std::endl;
+    //viennamesh::info(1) << "   Number of colors = " << colors << std::endl;
 
     return true;
 }
@@ -2131,7 +2616,6 @@ bool MeshPartitions::CheckVertexColoring()
             }
         }
     }
-
     return valid_coloring;
 }
 //end of CheckVertexColoring()
@@ -2477,7 +2961,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         std::cout << color << " / " << colors << std::endl;
         //std::cout << color_partitions[color].size() << std::endl;
         //*/
-        #pragma omp parallel for schedule(dynamic) num_threads(1)
+        #pragma omp parallel for schedule(dynamic) num_threads(nthreads)
         for (size_t part_iter = 0; part_iter < color_partitions[color].size(); ++part_iter)
         {
             //std::cout << "part_iter " << part_iter << " with dimension " << dim << std::endl;

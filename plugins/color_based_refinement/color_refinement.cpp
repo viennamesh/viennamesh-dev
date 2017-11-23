@@ -64,9 +64,16 @@ namespace viennamesh
 
 			else if (coloring_algorithm()=="greedy-lu" || coloring_algorithm()=="greedy" 
 					|| coloring_algorithm() == "greedy-sched" || coloring_algorithm()=="parallel"
-					|| coloring_algorithm() == "catalyurek")
+					|| coloring_algorithm() == "catalyurek" || coloring_algorithm()=="parallel-test"
+					|| coloring_algorithm() == "catalyurek-test")
 			{
 				coloring = coloring_algorithm();
+
+				if (coloring_algorithm() == "parallel-test" || coloring_algorithm() == "catalyurek-test")
+				{
+					string_handle col_options = get_input<string_handle>("options");
+					options = col_options();
+				}
 			}
 
 			else 
@@ -81,22 +88,22 @@ namespace viennamesh
 			auto overall_tic = std::chrono::system_clock::now();
 			
 			auto wall_tic = std::chrono::system_clock::now();
-				InputMesh.MetisPartitioning();
+				//InputMesh.MetisPartitioning();
 			std::chrono::duration<double> partitioning_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Partitioning time " << partitioning_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.CreateNeighborhoodInformation();
+				//InputMesh.CreateNeighborhoodInformation();
 			std::chrono::duration<double> adjacency_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
-				//InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1));
+				//InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
+				InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1), options);
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
-			//InputMesh.GetMeshStats();
+			InputMesh.GetMeshStats();
 /*
 			wall_tic = std::chrono::system_clock::now();
 			bool valid_coloring = true;
@@ -105,7 +112,7 @@ namespace viennamesh
 				viennamesh::error(1) << "Invalid Partition Coloring" << std::endl;
 				valid_coloring = false;
 			}//*/
-/*			
+			/*
 			if ( !InputMesh.CheckVertexColoring() )
 			{
 				viennamesh::error(1) << "Invalid Vertex Coloring" << std::endl;
@@ -133,7 +140,7 @@ namespace viennamesh
 			wall_tic = std::chrono::system_clock::now();
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
-			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
+			/*InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
