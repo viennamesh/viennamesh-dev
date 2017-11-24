@@ -1999,6 +1999,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
     {
         viennamesh::info(1) << "Benchmark parallel coloring algorithm for a graph using " << nthreads << " threads" << std::endl;
 
+        //create neighborhood information
         ifstream in_file;
         int size;
 
@@ -2039,6 +2040,9 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
         std::vector<std::vector<int>> neighbors(size);  
         std::string str;
 
+        std::chrono::duration<double> total_color_dur;
+        std::chrono::duration<double> tentative_color_dur;
+
         int a,b;
         double c;
   //      std::cout << "process file " << std::endl;
@@ -2065,7 +2069,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             }
         }
         //END OF DEBUG*/
-        auto wall_tic = std::chrono::system_clock::now();
+        auto begin_color = std::chrono::system_clock::now();
 
         bool old_version = false;
 
@@ -2176,7 +2180,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             for (size_t vert = 0; vert < size; ++vert)
             {
                 //std::cout << vert << std::endl;
-                std::vector<int> forbiddenColors ( max_color + 5, -1 );
+                std::vector<int> forbiddenColors ( max_color + 15, -1 );
 
                 for (size_t neigh = 0; neigh < neighbors[vert].size() ; ++neigh)
                 {
@@ -2202,6 +2206,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                 }
             }
             //end of tentative coloring
+            tentative_color_dur = std::chrono::system_clock::now() - begin_color;
             
             //mark all vertices for inspection
             std::vector<int> worklist(size);
@@ -2230,7 +2235,7 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
                             //if (vert == 0 || vert == 1)
                                // std::cout << "     problem! " << std::endl;
 
-                            std::vector<int> forbiddenColors ( max_color + 5 , -1 );
+                            std::vector<int> forbiddenColors ( max_color + 15 , -1 );
                             
                             for (size_t neigh = 0; neigh < neighbors[vert].size(); ++neigh)
                             {
@@ -2291,11 +2296,21 @@ bool MeshPartitions::ColorVertices(std::string coloring_algorithm, std::string f
             color_vertices[ vertex_colors[i] ].push_back(i);
         }
 */
-        std::chrono::duration<double> test_color_dur = std::chrono::system_clock::now() - wall_tic;
+        total_color_dur = std::chrono::system_clock::now() - begin_color;
 
         viennamesh::info(5) << "  Finished coloring after " << round << " rounds using " << max_color << " colors for " << size << " vertices" << std::endl;
 
-        viennamesh::info(1) << 	"  TEST Coloring time " << test_color_dur.count() << std::endl;
+      //  viennamesh::info(1) << 	"  TEST Coloring time " << test_color_dur.count() << std::endl;
+
+        ofstream color_file;
+        std::string filename = coloring_algorithm;
+        filename+=".csv";
+        color_file.open(filename.c_str(), ios::app);
+
+        color_file << options <<", " << size << ", " << coloring_algorithm << ", " << nthreads << ", ";
+        color_file << total_color_dur.count() << ", " << tentative_color_dur.count() << " ," << total_color_dur.count () - tentative_color_dur.count() << ", ";
+        color_file << max_color << ", " << round << std::endl;
+        color_file.close();
 /*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;

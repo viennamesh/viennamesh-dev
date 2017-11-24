@@ -152,7 +152,7 @@ namespace viennamesh
 			int r_elements {0};
 			
 			InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
-
+/*
 			ofstream csv;
 			std::string csv_name = "times_partitions_";
 			//std::string csv_name = "times_vertices_";
@@ -198,7 +198,7 @@ namespace viennamesh
 				csv << g2l_access[i] << ", ";
 			}
 			*/
-			
+/*			
 			csv << cpds_duration.count() << ", ";
 			csv << prep_time << ", ";
 			csv << for_time << ", ";
@@ -236,7 +236,7 @@ namespace viennamesh
 			for (size_t i = 0; i < workload.size(); ++i)
 				std::cout << i << ": " << workload[i] << std::endl;
 */				
-			for (size_t i = 0; i < workload_elements.size(); ++i)
+/*			for (size_t i = 0; i < workload_elements.size(); ++i)
 				csv << workload_elements[i] << ", ";
 
 			csv << std::endl;
