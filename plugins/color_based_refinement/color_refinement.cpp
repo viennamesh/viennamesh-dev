@@ -88,22 +88,21 @@ namespace viennamesh
 			auto overall_tic = std::chrono::system_clock::now();
 			
 			auto wall_tic = std::chrono::system_clock::now();
-				//InputMesh.MetisPartitioning();
+				InputMesh.MetisPartitioning();
 			std::chrono::duration<double> partitioning_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Partitioning time " << partitioning_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				//InputMesh.CreateNeighborhoodInformation();
+				InputMesh.CreateNeighborhoodInformation();
 			std::chrono::duration<double> adjacency_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				//InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
-				InputMesh.ColorVertices(coloring, input_file().substr(found+1, find_vtu-found-1), options);
+				InputMesh.ColorPartitions(coloring, input_file().substr(found+1, find_vtu-found-1));
 			std::chrono::duration<double> coloring_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Coloring time " << coloring_duration.count() << std::endl;
 
-			InputMesh.GetMeshStats();
+			/*InputMesh.GetMeshStats();
 /*
 			wall_tic = std::chrono::system_clock::now();
 			bool valid_coloring = true;
@@ -140,7 +139,7 @@ namespace viennamesh
 			wall_tic = std::chrono::system_clock::now();
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
-			/*InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
+			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
@@ -152,7 +151,7 @@ namespace viennamesh
 			int r_elements {0};
 			
 			InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
-/*
+
 			ofstream csv;
 			std::string csv_name = "times_partitions_";
 			//std::string csv_name = "times_vertices_";
@@ -198,7 +197,7 @@ namespace viennamesh
 				csv << g2l_access[i] << ", ";
 			}
 			*/
-/*			
+			
 			csv << cpds_duration.count() << ", ";
 			csv << prep_time << ", ";
 			csv << for_time << ", ";
@@ -236,7 +235,7 @@ namespace viennamesh
 			for (size_t i = 0; i < workload.size(); ++i)
 				std::cout << i << ": " << workload[i] << std::endl;
 */				
-/*			for (size_t i = 0; i < workload_elements.size(); ++i)
+			for (size_t i = 0; i < workload_elements.size(); ++i)
 				csv << workload_elements[i] << ", ";
 
 			csv << std::endl;
@@ -258,10 +257,10 @@ namespace viennamesh
 /*
 			for (size_t i = 0; i < build_tri_ds.size(); ++i)
 				csv << build_tri_ds[i] << ",";
-/*
+*/
 			csv << std::endl;
 			csv.close();
-	*/		
+	
 			//InputMesh.WritePartitions();
 			//InputMesh.WriteMergedMesh("output.vtu");
 
