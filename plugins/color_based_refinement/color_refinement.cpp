@@ -1,6 +1,7 @@
 #include "color_refinement.hpp"
 #include "pragmatic_mesh.hpp"
 #include "mesh_partitions.hpp"
+#include <fstream>
 
 namespace viennamesh
 {
@@ -29,6 +30,24 @@ namespace viennamesh
 			info(1) << "  Partitions: " << num_partitions() << std::endl;
       		info(1) << "  Dimension: " << input_mesh().mesh->get_number_dimensions() << std::endl;
 			info(1) << "  Threads: " << num_threads() << std::endl;
+
+			std::ofstream file;
+			file.open("matrix.mtx");
+
+			file << "%%MatrixMarket matrix coordinate real general" << std::endl;
+			file << input_mesh().mesh->get_number_nodes() << " " << input_mesh().mesh->get_number_nodes() << " 0" << std::endl;
+
+			for (size_t i = 0; i < input_mesh().mesh->get_number_nodes(); ++i)
+			{
+				std::vector<int> nnlist = input_mesh().mesh->get_nnlist(i);
+
+				for(size_t neigh = 0; neigh < nnlist.size(); ++neigh)
+				{
+					file << i+1 << " " << nnlist[neigh]+1 << " 0" << std::endl;
+				} 
+			}
+
+			file.close();
 			
 			//check chosen algorithm and chosen coloring method
 			std::string algo;
@@ -147,17 +166,17 @@ namespace viennamesh
 
 			std::chrono::duration<double> overall_duration = std::chrono::system_clock::now() - overall_tic;
 			
-			int r_vertices {0};
-			int r_elements {0};
+			int r_vertices =0;
+			int r_elements =0;
 			
-			InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
+			//InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
 
-			ofstream csv;
+			std::ofstream csv;
 			std::string csv_name = "times_partitions_";
 			//std::string csv_name = "times_vertices_";
 			csv_name+= input_file().substr(found+1, find_vtu-found-1);
 			csv_name+="_";
-			csv_name+=coloring;
+			/*csv_name+=coloring;
 			csv_name+=".csv";
 
 			csv.open(csv_name.c_str(), ios::app);
@@ -197,14 +216,14 @@ namespace viennamesh
 				csv << g2l_access[i] << ", ";
 			}
 			*/
-			
+			/*
 			csv << cpds_duration.count() << ", ";
 			csv << prep_time << ", ";
 			csv << for_time << ", ";
 			csv << r_vertices << ", ";
 	 		csv << r_elements << ", ";
 			csv << overall_duration.count() << ", ";
-
+/*
 			for (size_t i =0; i < threads_log.size(); ++i)
 				csv << threads_log[i] << ", ";
 
@@ -234,9 +253,9 @@ namespace viennamesh
 /*
 			for (size_t i = 0; i < workload.size(); ++i)
 				std::cout << i << ": " << workload[i] << std::endl;
-*/				
+*/				/*
 			for (size_t i = 0; i < workload_elements.size(); ++i)
-				csv << workload_elements[i] << ", ";
+				csv << workload_elements[i] << ", ";//*/
 
 			csv << std::endl;
 			csv.close();

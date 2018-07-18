@@ -45,6 +45,8 @@
 #include <cmath>
 #include <stdint.h>
 #include <chrono>
+#include <numeric>
+#include <unordered_map>
 
 #ifdef HAVE_BOOST_UNORDERED_MAP_HPP
 #include <boost/unordered_map.hpp>
@@ -446,11 +448,11 @@ public:
     }
 
     // Returns the list of facets and corresponding ids
-    void get_boundary(int* nfacets, const int** facets, const int** ids)
+    void get_boundary(int* nfacets, const int** facets, const int** ids, const int **elementIds)
     {
         int      NFacets;
         index_t  i_elm, i_loc, off;
-        int      *Facets, *Ids;
+        int      *Facets, *Ids, *ElementIds;
 
         // compute number facets = number of ids > 0
         NFacets = 0;
@@ -461,6 +463,7 @@ public:
 
         Facets = (int*)malloc(NFacets*ndims*sizeof(int));
         Ids = (int*)malloc(NFacets*sizeof(int));
+        ElementIds=(int*)malloc(NFacets*sizeof(int));
 
         // loop over ids to build the vectors
         int k = 0;
@@ -476,12 +479,186 @@ public:
                     }
                 }
                 Ids[k/ndims-1] = boundary[i];
+                ElementIds[k/ndims-1] = i_elm;
             }
         }
 
         *nfacets = NFacets;
         *facets = Facets;
         *ids = Ids;
+        *elementIds = ElementIds;
+    }
+
+    //Returns the interface facets of the partitions
+    void get_interfaces(std::vector<std::vector<int>>& NNInterfaces, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, 
+                        std::unordered_map<int,int>& g2l_vertices, const int part_id)
+    {
+        //std::cout << "get interfaces of " << NElements << " elements" << std::endl;
+        //std::cout << "include interface getting process into function create_boundary()" << std::endl;
+        //std::cout << "NNodes in partition: " << NNodes << std::endl;
+        //std::cout << "NNInterfaces.size()= " << NNInterfaces.size() << std::endl;
+        //2D case
+        if (ndims == 2)
+        {
+            for (size_t i = 0; i < NNodes; ++i)
+            {
+                //std::cout << "  processing vertex " << i << std::endl;
+                //std::cout << "  NNList[" << i << "] contains " << NNList[i].size() << " vertices" << std::endl;//*/
+                for (size_t j = 0; j < NNList[i].size(); ++j)
+                {
+                    int otherVertex = NNList[i][j];
+                   /* std::cout << "    l2g[" << i << "]: " << l2g_vertices[i] << ", l2g[" << otherVertex << "]: " << l2g_vertices[otherVertex] << std::endl;
+                    std::cout << "     " << nodes_part_ids[ l2g_vertices[i] ].size() << " " << nodes_part_ids[ l2g_vertices[otherVertex] ].size() << std::endl;
+                    
+                    std::cout << "     nodes_part_ids[" << l2g_vertices[i] << "]:" << std::endl;
+                    for (auto iterator : nodes_part_ids[ l2g_vertices[i] ])
+                        std::cout << "       " << iterator << std::endl;
+
+                    std::cout << "     nodes_part_ids[" << l2g_vertices[otherVertex] << "]:" << std::endl;
+                    for (auto iterator : nodes_part_ids[ l2g_vertices[otherVertex] ])
+                        std::cout << "       " << iterator << std::endl;
+                */
+                    if ( (nodes_part_ids[ l2g_vertices[i] ].size() > 1) && (nodes_part_ids[ l2g_vertices[otherVertex] ].size() > 1) )
+                    {
+
+                        std::vector<int> interface_edge;
+                        //std::cout << "      set_intersection" << std::endl;
+                        set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
+                                         nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
+                                         inserter(interface_edge, interface_edge.begin()));
+
+                        //std::cout << "interface_edge.size() " << interface_edge.size() << std::endl;
+                       // std::cout << "  " << interface_edge[0] << " " << interface_edge[1] << std::endl;
+
+                        if (interface_edge.size() > 1)
+                        {
+                            if (interface_edge[0] == part_id)
+                            {
+                                //std::cout << "    1 interface between " << i << " and " << otherVertex << std::endl;
+                                NNInterfaces[i].push_back(interface_edge[1]);
+                                //std::cout << "    added to NNInterface" << std::endl;
+                            }
+
+                            else if (interface_edge[1] == part_id)
+                            {
+                                //std::cout << "    2 interface between " << i << " and " << otherVertex << std::endl;
+                                NNInterfaces[i].push_back(interface_edge[0]);
+                                //std::cout << "    added to NNInterface" << std::endl;
+                            }
+
+                            else
+                            {
+                                //std::cerr << "    ERROR IN GET_INTERFACES()" << std::endl;
+                                break;
+                            }
+                        }
+
+                        else
+                        {
+                            //std::cout << "    simple edge between " << i << " and " << otherVertex << std::endl;
+                            NNInterfaces[i].push_back(-1);
+                        }
+                    }
+
+                    else
+                    {
+                        //std::cout << "    simple edge between " << i << " and " << otherVertex << std::endl;
+                        NNInterfaces[i].push_back(-1);
+                    }
+                } //end of for loop*/
+                /*std::cout << std::endl;//*/
+            }
+        } //end of 2D case
+
+        //3D case
+        else
+        {
+            std::cout << "3D case is still under development..." << std::endl;
+        }//end of 3D case
+        /*
+        //2D case
+        if (ndims == 2)
+        {
+            for (size_t i = 0; i < NElements; ++i)
+            {
+                for (size_t j = 0; j < 3; ++j)
+                {
+                    if (boundary[3*i+j] == 1)
+                    {
+                        int n1 = _ENList[3*i+(j+1)%3];
+                        int n2 = _ENList[3*i+(j+2)%3];
+
+                        if ( (nodes_part_ids[ l2g_vertices[n1] ].size() > 1) && (nodes_part_ids[ l2g_vertices[n2] ].size() > 1) )
+                        {
+                            std::cout << "element " << i << " has a facet between " << n1 << " " << n2 << " which is an interface facet" << std::endl;
+                            std::cout << "   boundary[" << 3*i+j <<"] = " << boundary[3*i+j] << std::endl;
+
+                            std::vector<int> interface_edge;
+                            set_intersection(nodes_part_ids[l2g_vertices[n1]].begin(), nodes_part_ids[l2g_vertices[n1]].end(),
+                                             nodes_part_ids[l2g_vertices[n2]].begin(), nodes_part_ids[l2g_vertices[n2]].end(),
+                                             inserter(interface_edge, interface_edge.begin()));
+
+                            if (interface_edge[0] == part_id)
+                            {
+                                std::cout << "   interface between partition " << part_id << " and " << interface_edge[1] << std::endl; 
+                                std::cout << "   interface edge is between vertices " << n1 << " and " << n2 << std::endl;
+                                std::cout << "   facet is at position " << 3*i+j << std::endl;
+                                std::cout << "   interface is in element " << i << std::endl;
+                                std::cout << "   interface is at position " << 3*i+j << std::endl;
+                                interfaces[3*i+j] = interface_edge[1];
+                                std::cout << "   " << interfaces[3*i+j] << std::endl;
+
+                            }
+
+                            else if (interface_edge[1] == part_id)
+                            {
+                                std::cout << "   interface between " << part_id << " and " << interface_edge[0] << std::endl; 
+                                std::cout << "   interface edge is between vertices " << n1 << " and " << n2 << std::endl;
+                                std::cout << "   facet is at position " << 3*i+j << std::endl;
+                                std::cout << "   interface is in element " << i << std::endl;
+                                std::cout << "   interface is at position " << 3*i+j << std::endl;
+                                interfaces[3*i+j] = interface_edge[0];
+                                std::cout << "   " << interfaces[3*i+j] << std::endl;
+                            }
+
+                            else
+                            {
+                                break; 
+                            }
+
+                            std::cout << std::endl;
+                        }
+                    }
+                }
+            }
+        } //end of 2D case
+
+        //3D case
+        else
+        {
+            for (size_t i = 0; i < NElements; ++i)
+            {
+                for (size_t j = 0; j < 4; ++j)
+                {
+                    if (boundary[4*i+j] == 1)
+                    {
+                        int n1 = _ENList[4*i+(j+1)%4];
+                        int n2 = _ENList[4*i+(j+2)%4];
+                        int n3 = _ENList[4*i+(j+3)%4];
+
+                        if ( (nodes_part_ids[ l2g_vertices[n1] ].size() > 1) && (nodes_part_ids[ l2g_vertices[n2] ].size() > 1) && 
+                             (nodes_part_ids[ l2g_vertices[n3] ].size() > 1))
+                        {
+                            std::cout << "3D case is still under progress..." << std::endl;
+                            std::cout << "element " << i << " has a facet between " << n1 << " " << n2 << " " << n3 << " which is an interface facet" << std::endl;
+                            std::cout << "   boundary[" << 4*i+j <<"] = " << boundary[4*i+j] << std::endl;                            
+                        }
+                    }
+                }
+            }
+        }//end of 3D case*/
+
+        //std::cout << "get_interfaces() done" << std::endl << std::endl;//*/
     }
 
     /// Return the array of boundary facets and associated tags
@@ -1745,22 +1922,22 @@ private:
 
         // TODO I don't know whether this method makes sense anymore.
         // Enforce first-touch policy
-        #pragma omp parallel num_threads(1)
+        //#pragma omp parallel num_threads(1)
         {
-            #pragma omp for schedule(static)
+            //#pragma omp for schedule(static)
             for(int i=0; i<(int)NElements; i++) {
                 for(size_t j=0; j<nloc; j++) {
                     _ENList[i*nloc+j] = ENList[i*nloc+j];
                 }
             }
             if(ndims==2) {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(int i=0; i<(int)NNodes; i++) {
                     _coords[i*2  ] = x[i];
                     _coords[i*2+1] = y[i];
                 }
             } else {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(int i=0; i<(int)NNodes; i++) {
                     _coords[i*3  ] = x[i];
                     _coords[i*3+1] = y[i];
@@ -1768,7 +1945,7 @@ private:
                 }
             }
 
-            #pragma omp single nowait
+            //#pragma omp single nowait
             {
                 if(num_processes>1) {
                     // Take into account renumbering for halo.
@@ -1784,7 +1961,7 @@ private:
             }
 
             // Set the orientation of elements.
-            #pragma omp single
+            //#pragma omp single
             {
                 const int *n=get_element(0);
                 assert(n[0]>=0);
@@ -1807,7 +1984,7 @@ private:
             }
 
             if(ndims==2) {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(size_t i=0; i<(size_t)NElements; i++) {
                     const int *n=get_element(i);
                     assert(n[0]>=0);
@@ -1822,7 +1999,7 @@ private:
                     update_quality<2>(i);
                 }
             } else {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(size_t i=0; i<(size_t)NElements; i++) {
                     const int *n=get_element(i);
                     assert(n[0]>=0);

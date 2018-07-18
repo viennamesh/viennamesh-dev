@@ -5,9 +5,18 @@ template<typename T>
 class Counter
 {
     public:
-        Counter() {++count;}
-        Counter(const Counter&) {++count;}
-        ~Counter() {--count;}
+        Counter() {
+        #pragma omp atomic
+            ++count;
+        }
+        Counter(const Counter&) {
+        #pragma omp atomic
+            ++count;
+        }
+        ~Counter() {
+        #pragma omp atomic
+            --count;
+        }
         static size_t howMany()
         {
             return count;

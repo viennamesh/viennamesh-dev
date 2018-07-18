@@ -92,11 +92,16 @@ int main(int argc, char *argv[])
 	output_file+=filename.substr(found+1, find_vtu-found-1);
 	output_file+="_";
 	output_file+=algorithm;
+	output_file+="_";
+	output_file+=std::to_string(region_count);
+	output_file+="partitions_";
+	output_file+=std::to_string(num_threads);
+	output_file+="threads";
 	output_file+=".vtu";
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
-	//mesh_writer.run();
+	mesh_writer.run();
 //*/
     return -1;
 }
