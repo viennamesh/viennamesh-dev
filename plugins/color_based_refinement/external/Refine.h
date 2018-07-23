@@ -623,14 +623,14 @@ public:
                                 }
                     }
                 }
-
-          //      #pragma omp for schedule(guided)
-                for(int vtid=0; vtid<defOp_scaling_factor*nthreads; ++vtid) {
-                    for(int i=0; i<nthreads; ++i) {
-                        def_ops->commit_remNN(i, vtid);
-                        def_ops->commit_addNN(i, vtid);
-                    }
-                }
+                    std::cout << "committing now" << std::endl;
+            //      #pragma omp for schedule(guided)
+                    for(int vtid=0; vtid<defOp_scaling_factor*nthreads; ++vtid) {
+                        for(int i=0; i<nthreads; ++i) {
+                            def_ops->commit_remNN(i, vtid);
+                            def_ops->commit_addNN(i, vtid);
+                        }
+                    }                
             }
 
 //auto det_2 = std::chrono::system_clock::now();
@@ -698,8 +698,10 @@ public:
             memcpy(&_mesh->quality[threadIdx[tid]], &newQualities[tid][0], splitCnt[tid]*sizeof(double));
 
             // Commit deferred operations.
+            //std::cout << " commit deferred operations after memcpy" << std::endl;
         //    #pragma omp for schedule(guided)
             for(int vtid=0; vtid<defOp_scaling_factor*nthreads; ++vtid) {
+                //std::cout << "   vtid " << vtid << std::endl; 
                 for(int i=0; i<nthreads; ++i) {
                     def_ops->commit_remNN(i, vtid);
                     def_ops->commit_addNN(i, vtid);
@@ -842,12 +844,17 @@ public:
                     real_t av = property->area(x0, x1, x2);
 
                     if(av<=0) {
-                        #pragma omp critical
-                        std::cerr<<"ERROR: inverted element in refinement"<<std::endl
+                        //#pragma omp critical
+                        std::cerr<<"ERROR: inverted element " << i << " in refinement"<<std::endl
                                  <<"element = "<<n0<<", "<<n1<<", "<<n2<<std::endl;
                         exit(-1);
+                        std::cout << "fixing it" << std::endl;
+                        _mesh->invert_element(i);
+                        _mesh->update_quality<2>(i);
                     }
                 }
+
+                //std::cout << "dbg done" << std::endl;
             }
 #endif
         }
@@ -3161,7 +3168,7 @@ private:
                 if(_mesh->node_owner[cid] != rank) {
                     // Vertex is owned by another MPI process, so prepare to update recv and recv_halo.
                     Wedge wedge(cid, _mesh->get_coords(cid));
-                    #pragma omp critical
+                    //#pragma omp critical
                     cidRecv_additional[_mesh->node_owner[cid]].insert(wedge);
                 } else {
                     // Vertex is owned by *this* MPI process, so check whether it is visible by other MPI processes.
@@ -3176,7 +3183,7 @@ private:
 
                         Wedge wedge(cid, _mesh->get_coords(cid));
                         for(typename std::set<int>::const_iterator proc=processes.begin(); proc!=processes.end(); ++proc) {
-                            #pragma omp critical
+                            //#pragma omp critical
                             cidSend_additional[*proc].insert(wedge);
                         }
                     }

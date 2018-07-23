@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 	std::string algorithm;
 	std::string options;
 	std::string coloring;
+	int max_num_iterations = 0;
 
 	if (argc < 5)
 	{
@@ -44,20 +45,30 @@ int main(int argc, char *argv[])
 		num_threads = atoi(argv[3]);
 	}
 
+	if (argv[4])
+	{
+		coloring = argv[4];
+	}
+
 	if (argv[5])
 	{
 		algorithm = argv[5];
 	}
 
-	if (argv[6])
+	if(!atoi(argv[6]))
 	{
-		options = argv[6];
+		std::cout << "Parameter <max_num_iterations> missing!" << std::endl;
+		return -1;
 	}
 
-
-	if (argv[4])
+	else
 	{
-		coloring = argv[4];
+		max_num_iterations = atoi(argv[6]);
+	}
+
+	if (argv[7])
+	{
+		options = argv[7];
 	}
 
     // Create context handle
@@ -79,6 +90,7 @@ int main(int argc, char *argv[])
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
 	color.set_input("single_mesh_output", true);
+	color.set_input("max_num_iterations", max_num_iterations);
 	color.run();
 
 	//Write output mesh
@@ -101,7 +113,7 @@ int main(int argc, char *argv[])
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
-	mesh_writer.run();
+	//mesh_writer.run();
 //*/
     return -1;
 }

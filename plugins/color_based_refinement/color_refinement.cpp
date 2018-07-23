@@ -17,6 +17,7 @@ namespace viennamesh
 			string_handle input_file = get_input<string_handle>("filename");
 			string_handle algorithm = get_input<string_handle>("algorithm");
 			string_handle coloring_algorithm = get_input<string_handle>("coloring");
+			data_handle<int> max_num_iterations = get_required_input<int>("max_num_iterations");
 
 			Mesh<double> * in_mesh = input_mesh().mesh;
 		
@@ -30,6 +31,7 @@ namespace viennamesh
 			info(1) << "  Partitions: " << num_partitions() << std::endl;
       		info(1) << "  Dimension: " << input_mesh().mesh->get_number_dimensions() << std::endl;
 			info(1) << "  Threads: " << num_threads() << std::endl;
+			info(1) << "  Number of Iterations: " << max_num_iterations() << std::endl;
 
 			std::ofstream file;
 			file.open("matrix.mtx");
@@ -159,7 +161,8 @@ namespace viennamesh
 			/*InputMesh.CreatePragmaticDataStructures_par(threads_log, refine_times, l2g_build, l2g_access, g2l_build, g2l_access, 
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
-														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements);//*/
+														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements,
+														max_num_iterations());//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << 	"  Refinement time " << cpds_duration.count() << std::endl;

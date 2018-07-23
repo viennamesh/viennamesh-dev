@@ -112,16 +112,18 @@ public:
             vLocks.resize(NNodes);
         }
 
-        #pragma omp parallel
+       // #pragma omp parallel 
         {
             // Vector "retry" is used to store aborted vertices.
             // Vector "round" is used to store propagated vertices.
             std::vector<index_t> retry, next_retry;
             std::vector<index_t> this_round, next_round;
             std::vector<index_t> locks_held;
-            #pragma omp for schedule(guided) nowait
+           // #pragma omp for schedule(guided) nowait
             for(index_t node=0; node<NNodes; ++node) {
                 bool abort = false;
+
+                std::cout << "        checking vertex " << node << std::endl;
 
                 if(!vLocks[node].try_lock()) {
                     retry.push_back(node);
@@ -138,8 +140,10 @@ public:
                 }
 
                 if(!abort) {
+                    std::cout << "          checking quality of its elements" << std::endl;
                     std::set< Edge<index_t> > active_edges;
                     for(auto& ele : _mesh->NEList[node]) {
+                        std::cout << "             ele " << ele << " qual: " << _mesh->quality[ele] << " Q_min " << min_Q << std::endl; 
                         if(_mesh->quality[ele] < min_Q) {
                             const index_t* n = _mesh->get_element(ele);
                             for(int i=0; i<nloc; ++i) {
@@ -527,6 +531,8 @@ private:
         index_t i = edge.edge.first;
         index_t j = edge.edge.second;
 
+        std::cout << "swap kernel 2d " << i << " " << j << std::endl;
+ 
         if(_mesh->is_halo_node(i) && _mesh->is_halo_node(j))
             return false;
 
@@ -550,6 +556,8 @@ private:
         index_t eid0 = intersection[0];
         index_t eid1 = intersection[1];
 
+        std::cout << "  eid0 " << intersection[0] << " eid1 " << intersection[1] << std::endl;
+
         if(_mesh->quality[eid0] > min_Q && _mesh->quality[eid1] > min_Q)
             return false;
 
@@ -561,6 +569,7 @@ private:
                 break;
             }
         }
+        std::cout << " k " << n[n_off] << std::endl;
         assert(n[n_off]>=0);
 
         const index_t *m = _mesh->get_element(eid1);
@@ -571,12 +580,18 @@ private:
                 break;
             }
         }
+        std::cout << " l " << m[m_off] << std::endl;
         assert(m[m_off]>=0);
 
+        std::cout << " comparison" << std::endl;
+        std::cout << n[(n_off+2)%3] << " " << m[(m_off+1)%3] << std::endl;
+        std::cout << n[(n_off+1)%3] << " " << m[(m_off+2)%3] << std::endl;
         assert(n[(n_off+2)%3]==m[(m_off+1)%3] && n[(n_off+1)%3]==m[(m_off+2)%3]);
 
         index_t k = n[n_off];
         index_t l = m[m_off];
+
+        std::cout << " k " << k << " l " << l << std::endl;
 
         if(_mesh->is_halo_node(k)&& _mesh->is_halo_node(l))
             return false;
@@ -638,6 +653,22 @@ private:
             pMap[std::min(i, l)].insert(std::max(i, l));
             pMap[std::min(j, k)].insert(std::max(j, k));
             pMap[std::min(j, l)].insert(std::max(j, l));
+
+            std::cout << " swapping claims to be successful" << std::endl;
+
+            //DEBUG
+            std::cout << " new NELIST of " << i << std::endl;
+            for (auto iter : _mesh->NEList[i])
+            {
+                std::cout << "  " << iter << std::endl;
+            } 
+
+            std::cout << " new NELIST of " << j << std::endl;
+            for (auto iter : _mesh->NEList[j])
+            {
+                std::cout << "  " << iter << std::endl;
+            } 
+            //END OF DEBUG*/
 
             return true;
         }
@@ -1198,7 +1229,7 @@ private:
         int extra_elements = nelements - neigh_elements.size();
         if(extra_elements > 0) {
             index_t new_eid;
-            #pragma omp atomic capture
+            //#pragma omp atomic capture
             {
                 new_eid = _mesh->NElements;
                 _mesh->NElements += extra_elements;

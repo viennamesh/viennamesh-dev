@@ -209,11 +209,11 @@ public:
         boundary.resize(NElements*nloc);
         std::fill(boundary.begin(), boundary.end(), -2);
 
-        #pragma omp parallel num_threads(1)
+       // #pragma omp parallel num_threads(1)
         {
             if(ndims==2) {
                 // Check neighbourhood of each element
-                #pragma omp for schedule(guided)
+              //  #pragma omp for schedule(guided)
                 for(size_t i=0; i<NElements; i++) {
                     if(_ENList[i*3]==-1)
                         continue;
@@ -242,7 +242,7 @@ public:
                 }
             } else { // ndims==3
                 // Check neighbourhood of each element
-                #pragma omp for schedule(guided)
+               // #pragma omp for schedule(guided)
                 for(size_t i=0; i<NElements; i++) {
                     if(_ENList[i*4]==-1)
                         continue;
@@ -822,7 +822,7 @@ public:
         double total_length=0;
         int nedges=0;
 
-        #pragma omp parallel for reduction(+:total_length,nedges) num_threads(1)
+      //  #pragma omp parallel for reduction(+:total_length,nedges) num_threads(1)
         for(int i=0; i<NNodes; i++) {
             if(is_owned_node(i) && (NNList[i].size()>0)) {
                 for(typename std::vector<index_t>::const_iterator it=NNList[i].begin(); it!=NNList[i].end(); ++it) {
@@ -1002,7 +1002,7 @@ public:
             std::cerr<<"ERROR: Cannot calculate volume in 2D\n";
         } else { // 3D
             if(num_processes>1) {
-                #pragma omp parallel for reduction(+:total_volume) num_threads(1)
+               // #pragma omp parallel for reduction(+:total_volume) num_threads(1)
                 for(int i=0; i<NElements; i++) {
                     const index_t *n=get_element(i);
                     if(n[0] < 0)
@@ -1036,7 +1036,7 @@ public:
                 MPI_Allreduce(MPI_IN_PLACE, &total_volume, 1, MPI_LONG_DOUBLE, MPI_SUM, _mpi_comm);
 #endif
             } else {
-                #pragma omp parallel for reduction(+:total_volume) num_threads(1)
+               // #pragma omp parallel for reduction(+:total_volume) num_threads(1)
                 for(int i=0; i<NElements; i++) {
                     const index_t *n=get_element(i);
                     if(n[0] < 0)
@@ -1072,7 +1072,7 @@ public:
         double sum=0;
         int nele=0;
 
-        #pragma omp parallel for reduction(+:sum, nele) num_threads(1)
+       // #pragma omp parallel for reduction(+:sum, nele) num_threads(1)
         for(size_t i=0; i<NElements; i++) {
             const index_t *n=get_element(i);
             if(n[0]<0)
@@ -1107,9 +1107,9 @@ public:
     /// Print out the qualities. Useful if you want to plot a histogram of element qualities.
     void print_quality() const
     {
-        #pragma omp parallel num_threads(1)
+       // #pragma omp parallel num_threads(1)
         {
-            #pragma omp for schedule(static)
+          //  #pragma omp for schedule(static)
             for(size_t i=0; i<NElements; i++)
             {
                 const index_t *n=get_element(i);
@@ -1124,7 +1124,7 @@ public:
                     q = property->lipnikov(get_coords(n[0]), get_coords(n[1]), get_coords(n[2]), get_coords(n[3]),
                                            get_metric(n[0]), get_metric(n[1]), get_metric(n[2]), get_metric(n[3]));
                 }
-                #pragma omp critical
+              //  #pragma omp critical
                 std::cout<<"Quality[ele="<<i<<"] = "<<q<<std::endl;
             }
         }
@@ -1143,7 +1143,7 @@ public:
     {
         double qmin=1; // Where 1 is ideal.
 
-        #pragma omp parallel for reduction(min:qmin) num_threads(1)
+      //  #pragma omp parallel for reduction(min:qmin) num_threads(1)
         for(size_t i=0; i<NElements; i++) {
             const index_t *n=get_element(i);
             if(n[0]<0)
@@ -1165,7 +1165,7 @@ public:
     {
         double qmin=1; // Where 1 is ideal.
 
-        #pragma omp parallel for reduction(min:qmin) num_threads(1)
+      //  #pragma omp parallel for reduction(min:qmin) num_threads(1)
         for(size_t i=0; i<NElements; i++) {
             const index_t *n=get_element(i);
             if(n[0]<0)
@@ -1264,7 +1264,7 @@ public:
     {
         double L_max = 0.0;
 
-        #pragma omp parallel for reduction(max:L_max) num_threads(1)
+      //  #pragma omp parallel for reduction(max:L_max) num_threads(1)
         for(index_t i=0; i<(index_t) NNodes; i++) {
             for(typename std::vector<index_t>::const_iterator it=NNList[i].begin(); it!=NNList[i].end(); ++it) {
                 if(i<*it) { // Ensure that every edge length is only calculated once.
@@ -1289,7 +1289,7 @@ public:
         // Discover which vertices and elements are active.
         std::vector<index_t> active_vertex_map(NNodes);
 
-        #pragma omp parallel for schedule(static) num_threads(1)
+     //   #pragma omp parallel for schedule(static) num_threads(1)
         for(size_t i=0; i<NNodes; i++) {
             active_vertex_map[i] = -1;
             NNList[i].clear();
@@ -1393,15 +1393,15 @@ public:
         std::vector<double> defrag_quality(NElements);
 
         // This first touch is to bind memory locally.
-        #pragma omp parallel num_threads(1)
+     //   #pragma omp parallel num_threads(1)
         {
-            #pragma omp for schedule(static)
+       //     #pragma omp for schedule(static)
             for(int i=0; i<(int)NElements; i++) {
                 defrag_ENList[i*nloc] = 0;
                 defrag_boundary[i*nloc] = 0;
             }
 
-            #pragma omp for schedule(static)
+       //     #pragma omp for schedule(static)
             for(int i=0; i<(int)NNodes; i++) {
                 defrag_coords[i*ndims] = 0.0;
                 defrag_metric[i*msize] = 0.0;

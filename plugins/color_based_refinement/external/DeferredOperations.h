@@ -126,10 +126,21 @@ public:
 
     inline void commit_remNN(const int tid, const int vtid)
     {
+        //std::cout << "vtid " << vtid << std::endl;
         for(typename std::vector<index_t>::const_iterator it=deferred_operations[tid][vtid].remNN.begin();
                 it!=deferred_operations[tid][vtid].remNN.end(); it+=2) {
             typename std::vector<index_t>::iterator position = std::find(_mesh->NNList[*it].begin(), _mesh->NNList[*it].end(), *(it+1));
+            //std::cout << "commit_remNN position " << *position << " *it " << *it  << " *(it+1) " << *(it+1) << std::endl;
             assert(position != _mesh->NNList[*it].end());
+            /*if (position == _mesh->NNList[*it].end())
+            {
+                #pragma omp critical
+                {
+                    std::cout << "ERROR " << std::endl;
+                    std::cout << "commit_remNN position " << *position << " *it " << *it  << " *(it+1) " << *(it+1) << std::endl;
+                    exit(-1);
+                }
+            }*/
             _mesh->NNList[*it].erase(position);
         }
 
