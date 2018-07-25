@@ -172,14 +172,14 @@ namespace viennamesh
 			int r_vertices =0;
 			int r_elements =0;
 			
-			//InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
+			InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
 
 			std::ofstream csv;
 			std::string csv_name = "times_partitions_";
 			//std::string csv_name = "times_vertices_";
 			csv_name+= input_file().substr(found+1, find_vtu-found-1);
 			csv_name+="_";
-			/*csv_name+=coloring;
+			csv_name+=coloring;
 			csv_name+=".csv";
 
 			csv.open(csv_name.c_str(), ios::app);
@@ -187,12 +187,19 @@ namespace viennamesh
 			//csv << "File, Threads, Vertices, Elements, Desired Partitions, Created Partitions, Colors, Metis [s], Adjacency Info [s], 
 			//Coloring [s], Parallel DSs [s], Prep [s], Nodes [s], g2l [s], l2g [s], Coords [s], ENList [s], new Mesh [s], Boundary [s], Metric [s],
 			// Update Metric [s], Interface Check [s],  Refine [s], Create Refine [s], R-Vertices, R-Elements, Total [s], Thread Times in Color Loop [s]" << std::endl;
-			csv << input_file().substr(found+1) << ", " << num_threads() << ", " << in_mesh->get_number_nodes() << ", ";
+			csv << input_file().substr(found+1) << ", " << num_threads() << ", " << max_num_iterations() << ", " << in_mesh->get_number_nodes() << ", ";
 			csv << in_mesh->get_number_elements() << ", "  << num_partitions();// << ", " << InputMesh.get_max()+1;
-			csv << ", " << InputMesh.get_colors() << ", ";
+			csv << ", " << InputMesh.get_colors() << ", ";			
+			
 			csv << std::fixed << std::setprecision(8) << partitioning_duration.count() << ", ";
 			csv << adjacency_duration.count() << ", ";
 			csv << coloring_duration.count() << ", ";
+
+			csv << cpds_duration.count() << ", ";
+			csv << r_vertices << ", ";
+	 		csv << r_elements << ", ";
+			csv << overall_duration.count() << ", ";
+
 			/*if (valid_coloring)
 				csv << "valid, ";
 			else
