@@ -162,11 +162,13 @@ public:
     index_t append_vertex(const real_t *x, const double *m)
     {
         for(size_t i=0; i<ndims; i++)
+        {
             _coords[ndims*NNodes+i] = x[i];
-
+        }
         for(size_t i=0; i<msize; i++)
+        {
             metric[msize*NNodes+i] = m[i];
-
+        }
         ++NNodes;
 
         return get_number_nodes()-1;
@@ -427,7 +429,9 @@ public:
     inline void get_coords(index_t nid, real_t *x) const
     {
         for(size_t i=0; i<ndims; i++)
+        {
             x[i] = _coords[nid*ndims+i];
+        }
         return;
     }
 
@@ -442,8 +446,12 @@ public:
     inline void get_metric(index_t nid, double *m) const
     {
         assert(metric.size()>0);
+        
         for(size_t i=0; i<msize; i++)
+        {
             m[i] = metric[nid*msize+i];
+        }
+        
         return;
     }
 
@@ -491,15 +499,18 @@ public:
 
     //Returns the interface facets of the partitions
     void get_interfaces(std::vector<std::vector<int>>& NNInterfaces, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, 
-                        std::unordered_map<int,int>& g2l_vertices, const int part_id)
-    {
-        //std::cout << "get interfaces of " << NElements << " elements" << std::endl;
-        //std::cout << "include interface getting process into function create_boundary()" << std::endl;
-        //std::cout << "NNodes in partition: " << NNodes << std::endl;
-        //std::cout << "NNInterfaces.size()= " << NNInterfaces.size() << std::endl;
+                        std::unordered_map<int,int>& g2l_vertices, const int part_id, std::vector<std::vector<int>>& FInterfaces)
+    {/*
+        std::cout << "get interfaces of " << NElements << " elements" << std::endl;
+       // std::cout << "include interface getting process into function create_boundary()" << std::endl;
+        std::cout << "NNodes in partition: " << NNodes << std::endl;
+        std::cout << "NNInterfaces.size()= " << NNInterfaces.size() << std::endl;//*/
+                    
         //2D case
-        if (ndims == 2)
+        //if (ndims == 2)
         {
+            NNInterfaces.resize(NNodes);
+
             for (size_t i = 0; i < NNodes; ++i)
             {
                 //std::cout << "  processing vertex " << i << std::endl;
@@ -556,6 +567,7 @@ public:
                         else
                         {
                             //std::cout << "    simple edge between " << i << " and " << otherVertex << std::endl;
+                            std::cout << "DO WE EVEN GET HERE???" << std::endl;
                             NNInterfaces[i].push_back(-1);
                         }
                     }
@@ -571,10 +583,315 @@ public:
         } //end of 2D case
 
         //3D case
-        else
+        if (ndims == 3)//else
         {
-            std::cout << "3D case is still under development..." << std::endl;
-        }//end of 3D case
+            std::cout << "3D not fully implemented yet!" << std::endl;
+            std::cout << " USES ITERATIONS OVER NNODES FOLLOWED BY ITERATION OF NELEMENTS TO CHECK FOR INTERFACES!!!" << std::endl;
+
+            FInterfaces.resize(NElements);
+            //NNInterfaces.resize(NElements*4*3);
+
+            //iterate elements
+            for (size_t ele_iter = 0; ele_iter < NElements; ele_iter++)
+            {
+                //std::cout << "element " << ele_iter << std::endl;
+                const index_t* n = get_element(ele_iter);
+
+                //skip element if it is marked for removal
+                if (n[0] < 0)
+                {
+                    continue;
+                }
+
+                //create the 4 different facets
+                const index_t facets[4][3] = { {n[0], n[1], n[2]}, {n[0], n[1], n[3]}, {n[0], n[2], n[3]}, {n[1], n[2], n[3]} };
+
+                //iterate facet vertices 
+                for(size_t j = 0; j < 4; j++)
+                {
+                    //std::cout << " facet " << j << ": " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
+                    
+                    //check if all 3 facet vertices are in more than 1 partition
+                    if ( nodes_part_ids[ l2g_vertices[facets[j][0]]].size() > 1 &&
+                         nodes_part_ids[ l2g_vertices[facets[j][1]]].size() > 1 &&
+                         nodes_part_ids[ l2g_vertices[facets[j][2]]].size() > 1 )
+                    {
+                        //intersect NEList of all vertices to find out if the interface is a partition interface or not
+                        std::set<int> intersect_nelist_1;
+                        std::set_intersection(NEList[facets[j][0]].begin(), NEList[facets[j][0]].end(),
+                                              NEList[facets[j][1]].begin(), NEList[facets[j][1]].end(),
+                                              inserter(intersect_nelist_1, intersect_nelist_1.begin()));
+
+                        std::set<int> intersect_nelist_2;
+                        std::set_intersection(NEList[facets[j][2]].begin(), NEList[facets[j][2]].end(),
+                                              intersect_nelist_1.begin(), intersect_nelist_1.end(),
+                                              inserter(intersect_nelist_2, intersect_nelist_2.begin()));
+
+                        if (intersect_nelist_2.size() == 1)
+                        {
+                            std::vector<int> intersect1;
+                            std::set_intersection(nodes_part_ids[ l2g_vertices[facets[j][0]] ].begin(), nodes_part_ids[ l2g_vertices[facets[j][0]] ].end(),
+                                                nodes_part_ids[ l2g_vertices[facets[j][1]] ].begin(), nodes_part_ids[ l2g_vertices[facets[j][1]] ].end(),
+                                                inserter(intersect1, intersect1.begin()));
+
+                            std::vector<int> intersect2;
+                            std::set_intersection(nodes_part_ids[ l2g_vertices[facets[j][2]] ].begin(), nodes_part_ids[ l2g_vertices[facets[j][2]] ].end(),
+                                                intersect1.begin(), intersect1.end(),
+                                                inserter(intersect2, intersect2.begin()));
+
+                            //check size of intersect2 to find out if it is a partition interface or not
+                            if (intersect2.size() > 1)
+                            {
+                                //std::cout << "  facet is partition interface" << std::endl;
+
+                                if (intersect2[0] == part_id)
+                                {
+                                    //std::cout << "    type1" << std::endl;
+                                    FInterfaces[ele_iter].push_back(intersect2[1]);
+
+                                    //put the corresponding values also in NNInterfaces
+                                }
+
+                                else if (intersect2[1] == part_id)
+                                {
+                                    //std::cout << "    type2" << std::endl;
+                                    FInterfaces[ele_iter].push_back(intersect2[0]);
+
+                                    //put the corresponding values also in NNInterfaces
+                                }
+
+                                else
+                                {
+                                    //std::cout << "    error" << std::endl;
+                                    break;
+                                }
+                            }
+
+                            else
+                            {
+                                //std::cout << "  facet is boundary facet" << std::endl;
+                                //put the corresponding values also in NNInterfaces
+                                FInterfaces[ele_iter].push_back(-1);
+                            }
+                        }                        
+
+                        else
+                        {
+                            //std::cout << "  interior facet" << std::endl;
+                            FInterfaces[ele_iter].push_back(-1);
+                        }
+
+                    } //end of check if all 3 facet vertices are in more than 1 partition
+                    /*
+                    //check if 1, 2, or 3 vertices are in more than 1 partition
+                    else if ( nodes_part_ids[ l2g_vertices[facets[j][0]]].size() > 1 ||
+                              nodes_part_ids[ l2g_vertices[facets[j][1]]].size() > 1 ||
+                              nodes_part_ids[ l2g_vertices[facets[j][2]]].size() > 1 )
+                    {
+                        FInterfaces[ele_iter].push_back(-1);
+                        //check if one or two edges of the facet are interface edges
+
+                        for (size_t inter_edge_iter = 0; inter_edge_iter < 3; ++inter_edge_iter)
+                        {
+                            int n1 = facets[j][(inter_edge_iter+1)%3];
+                            int n2 = facets[j][(inter_edge_iter+2)%3];
+
+                            if ( (l2g_vertices[n1] > l2g_vertices[n2]) &&
+                                 (nodes_part_ids[ l2g_vertices[n1] ].size() > 1) && (nodes_part_ids[ l2g_vertices[n2] ].size() > 1) )
+                            {
+
+                                std::vector<int> interface_edge;
+                                set_intersection(nodes_part_ids[l2g_vertices[n1]].begin(), nodes_part_ids[l2g_vertices[n1]].end(),
+                                                nodes_part_ids[l2g_vertices[n2]].begin(), nodes_part_ids[l2g_vertices[n2]].end(),
+                                                inserter(interface_edge, interface_edge.begin()));
+
+                                if (interface_edge.size() > 1)
+                                {
+                                    if (interface_edge[0] == part_id)
+                                    {
+                                        std::cout << "    type 1 interface edge between " << n1 << " and " << n2 << std::endl;
+                                        NNInterfaces[n1].push_back(interface_edge[1]);
+                                    }
+
+                                    else if (interface_edge[1] == part_id)
+                                    {
+                                        std::cout << "    type 2 interface edge between " << n1 << " and " << n2 << std::endl;
+                                        NNInterfaces[n1].push_back(interface_edge[0]);
+                                    }
+
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                else
+                                {
+                                    std::cout << "DO WE EVEN GET HERE???" << std::endl;
+                                    NNInterfaces[n1].push_back(-1);
+                                }
+                            }
+
+                            else
+                            {
+                                std::cout << "    simple edge between " << n1 << " and " << n2 << std::endl;
+                                NNInterfaces[n1].push_back(-1);
+                            }
+
+                        } //end of for-loop with inter_edge_iter
+
+                    } //end of check if 1, 2, or 3 vertices are in more than 1 partition */
+
+                    else 
+                    {
+                        //std::cout << "  no partition interface" << std::endl;
+                        FInterfaces[ele_iter].push_back(-1);
+                    }
+                } //end of iterate facet vertices
+            }//end of iterate elements
+
+            std::cout << "get_interfaces succesful" << std::endl;
+
+            return;
+
+            /*
+            // std::cout << "3D case is still under development..." << std::endl;
+
+            std::cout << " THIS DOES NOT WORK, CHECK ELEMENT 251 in box5x5x5.vtu!!!" << std::endl;
+            //iterate elements
+            for (size_t eid = 0; eid < NElements; ++eid)
+            {
+                //get the 4 vertices of the element
+                const index_t* n = get_element(eid);
+
+                std::cout << eid << std::endl;
+
+                //skip this element if it is marked for removal
+                if (n[0] < 0)
+                {
+                    continue;
+                }
+
+                //create the 4 different facets
+                const index_t facets[4][3] = { {n[0], n[1], n[2]}, {n[0], n[1], n[3]}, {n[0], n[2], n[3]}, {n[1], n[2], n[3]} };
+
+                //iterate facet vertices
+                for (size_t j =0; j < 4; ++j)
+                {
+                    if ( nodes_part_ids[ l2g_vertices[facets[j][0]]].size() > 1 &&
+                         nodes_part_ids[ l2g_vertices[facets[j][1]]].size() > 1 &&
+                         nodes_part_ids[ l2g_vertices[facets[j][2]]].size() > 1 )
+                    {
+                        //std::cout << "  eid : " << eid << std::endl;   
+                        std::cout << "    facet " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << " is interface facet of eid " << eid << std::endl;
+                        std::cout << "    Check now, by intersection the NELists of all 3 vertices and checking if the elements in the resulting set are in one partition, if the triangular facet is on the interface" << std::endl;
+
+                        //intersect NEList of all vertices to find out if the interface is a partition interface or not
+                        std::set<int> intersect1;
+                        std::set_intersection(NEList[facets[j][0]].begin(), NEList[facets[j][0]].end(),
+                                              NEList[facets[j][1]].begin(), NEList[facets[j][1]].end(),
+                                              inserter(intersect1, intersect1.begin()));
+
+                        std::set<int> intersect2;
+                        std::set_intersection(NEList[facets[j][2]].begin(), NEList[facets[j][2]].end(),
+                                              intersect1.begin(), intersect1.end(),
+                                              inserter(intersect2, intersect2.begin()));
+
+                        std::cout << "       The following elements include the above facet: " << std::endl;
+                        for (auto intersect_it : intersect2)
+                        {
+                            std::cout << "         element " << intersect_it << " in partition " << " INSERT READ FROM ELEMENT_PART_IDS HERE" << std::endl;
+                        }
+
+                        //facet is either on mesh boundary or on the partition interface
+                        if (intersect2.size() == 1)
+                        {
+                            //if it is a partition interface we have to get the partition id of the neighbor
+                            std::set<int> ele_parts;
+                            std::set_intersection(nodes_part_ids[ l2g_vertices[facets[j][0]]].begin(), nodes_part_ids[ l2g_vertices[facets[j][0]]].end(),
+                                                  nodes_part_ids[ l2g_vertices[facets[j][1]]].begin(), nodes_part_ids[ l2g_vertices[facets[j][1]]].end(),
+                                                  inserter(ele_parts, ele_parts.begin()));
+
+                            std::set<int> neighbor_id;
+                            std::set_intersection(nodes_part_ids[ l2g_vertices[facets[j][2]]].begin(), nodes_part_ids[ l2g_vertices[facets[j][2]]].end(),
+                                                  ele_parts.begin(), ele_parts.end(),
+                                                  inserter(neighbor_id, neighbor_id.begin()));
+
+
+                            if (neighbor_id.size() != 1)
+                            {
+                                std::cout << "          neighboring partition is ";
+                                for (auto neighbor_id_iter : neighbor_id)
+                                    std::cout << neighbor_id_iter << std::endl;
+                            }
+                            
+                            else
+                            {
+                                std::cout << "          facet is a boundary facet" << std::endl;
+                            }
+                        }
+                    }
+
+                    else if ( nodes_part_ids[ l2g_vertices[facets[j][0]]].size() > 1 ||
+                              nodes_part_ids[ l2g_vertices[facets[j][1]]].size() > 1 ||
+                              nodes_part_ids[ l2g_vertices[facets[j][2]]].size() > 1 )
+                    {
+                        std::cout << "    Check which edge is on the interface to guide the subsequent data communication" << std::endl;
+
+                        int v1, v2;
+
+                        if (nodes_part_ids[ l2g_vertices[facets[j][0]] ].size() > 1 && nodes_part_ids[ l2g_vertices[facets[j][1]] ].size() > 1)
+                        {
+                            v1 = facets[j][0];
+                            v2 = facets[j][1];
+                        }
+
+                        else if (nodes_part_ids[ l2g_vertices[facets[j][1]] ].size() > 1 && nodes_part_ids[ l2g_vertices[facets[j][2] ] ].size() > 1)
+                        {
+                            v1 = facets[j][1];
+                            v2 = facets[j][2];
+                        }
+
+                        else if (nodes_part_ids[ l2g_vertices[facets[j][0]] ].size() > 1 && nodes_part_ids[ l2g_vertices[facets[j][2] ] ].size() > 1)
+                        {
+                            v1 = facets[j][0];
+                            v2 = facets[j][2];
+                        }
+
+                        else 
+                        {
+
+                            if ( nodes_part_ids[ l2g_vertices[facets[j][0]] ].size() > 1  )
+                            {
+                                v1 = facets[j][0];
+                            }
+
+                            else if (nodes_part_ids[ l2g_vertices[facets[j][1]] ].size() > 1 )
+                            {
+                                v1 = facets[j][1];
+                            }
+
+                            else 
+                            {
+                                v1 = facets[j][2];
+                            }
+                            std::cout << "       we have a single interface vertex " << v1 << std::endl;
+                            std::cout << "          eid: " << eid << " vertices: " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+                            std::cout << "          facet: " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
+                            std::cout << "               " << nodes_part_ids[ l2g_vertices[facets[j][0]] ].size() << " " << nodes_part_ids[ l2g_vertices[facets[j][1]] ].size() << " " << nodes_part_ids[ l2g_vertices[facets[j][2]] ].size() << std::endl;
+
+                           // return;
+                        }
+
+                        std::cout << "        Edge between " << v1 << " and " << v2 << " is interface edge" << std::endl;
+
+                    }
+                } //end of for loop iterating the facet vertices
+
+            } //end of iterate elements*/
+
+        } //end of 3D case
+
         /*
         //2D case
         if (ndims == 2)

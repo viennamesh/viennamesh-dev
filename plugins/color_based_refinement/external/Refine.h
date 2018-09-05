@@ -153,11 +153,11 @@ public:
                 std::set<int>& partition_adjcy, int previous_nelements)//*/
     void refine(real_t L_max, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, const int part_id, Outbox& outbox_data,
         std::vector<int>& partition_colors, std::set<int>& partition_adjcy, const int previous_nelements, std::vector<std::vector<int>>& NNInterfaces,
-        int& global_NNodes, std::unordered_map<int,int>& g2l_vertices, const int orig_NNodes)
+        int& global_NNodes, std::unordered_map<int,int>& g2l_vertices, const int orig_NNodes, const int orig_NElements, 
+        std::vector<std::vector<int>>& FInterfaces)
     {
-        /*
-        std::cout << "Starting Refinement" << std::endl;
-        //DEBUG
+        //std::cout << "Starting Refinement" << std::endl;/*
+        /*//DEBUG
         for (size_t it1 = 0; it1 < NNInterfaces.size(); ++it1)
         {
             std::cout << "NNList[" << it1 << "]" << std::endl;
@@ -244,141 +244,24 @@ public:
             _mesh->get_interface(nfacets, facets, ids, ElIds, interface_facets, l2g_vertices, nodes_part_ids, previous_nelements);*/
             /*END OF MY OWN IMPLEMENTATION*/
 
+            //std::cout << " looping over nodes" << std::endl;
+
             /* Loop through all edges and select them for refinement if
                its length is greater than L_max in transformed space. */
           //  #pragma omp for schedule(guided) nowait
-            for(size_t i=0; i<origNNodes; ++i) { //std::cout << "  processing vertex " << i << " of " << origNNodes << std::endl;
+            for(size_t i=0; i<origNNodes; ++i) {//std::cout << "    processing vertex " << i << " of " << origNNodes << std::endl;
                 for(size_t it=0; it<_mesh->NNList[i].size(); ++it) {
                     index_t otherVertex = _mesh->NNList[i][it];
-                    //std::cout << "    " << otherVertex << ": " << NNInterfaces[i][it] << std::endl;
-                    //std::cout << "     " << _mesh->lnn2gnn[i] << " " << _mesh->lnn2gnn[otherVertex] << std::endl;
                     assert(otherVertex>=0);
 
                     //MY OWN IMPLEMENTATION
-                    adapt_interface=false;
-
-                    //if i or otherVertex is a vertex inserted from the neighboring partition, skip its processing,
-                    //because in this case no information in nodes_part_ids is available
-                    //THIS IS NOT TRUE IN THE CURRENT IMPLEMENTATION!!!
-                    //if (otherVertex >= l2g_vertices.size() || i >= l2g_vertices.size())
                     if (otherVertex >= orig_NNodes || i >= orig_NNodes)  //if > orig_NNodes prevents vertices which have been inserted from
                     // neighboring partition to be used again for refinement, thus preventing overrefinement on the interfaces
                     {
                         //std::cout << "continue" << std::endl;
                         continue;                    
                     }
-                    //if ( (nodes_part_ids[l2g_vertices.at(i)].size() > 1) && (nodes_part_ids[l2g_vertices.at(otherVertex)].size() > 1) )
-                    //if (_mesh->lnn2gnn[i] < _mesh->lnn2gnn[otherVertex]) //THIS IS PRAGMATIC DEFAULT IMPLEMENTATION
-                    if (i < otherVertex)
-                    {
-                        if (NNInterfaces[i][it] != -1)
-                        {
-                            //std::cout << "     Interface is between " << i << " and " << otherVertex << std::endl;
-                            adapt_interface=true;
-                            target_part_id = NNInterfaces[i][it];
-                           // std::cout << "     target partition " << target_part_id << std::endl;
-                        
-                        /*if ( (nodes_part_ids[l2g_vertices[i]].size() > 1) && (nodes_part_ids[l2g_vertices[otherVertex]].size() > 1) )
-                        {
-                                //if (dim == 2)
-                               // {
-                                    std::set<int> neighbours;
-                                    set_intersection(_mesh->NEList[i].begin(), _mesh->NEList[i].end(),
-                                                    _mesh->NEList[otherVertex].begin(), _mesh->NEList[otherVertex].end(),
-                                                    inserter(neighbours, neighbours.begin()));
-                                                    
-                                    //flag edge if it's on an interface
-                                    //nodes_part_ids contains the partition_id's to which the vertex belongs
-                                    if (neighbours.size() != 2 )
-                                    {
-                                        std::cout << "   element is " << *neighbours.begin() << " i: " << i << " otherVertex: " << otherVertex << std::endl;
-                                        //std::cout << "ONLY CHECK EDGE ONCE, MAKE IF CLAUSE SO THAT VERTEX I HAS TO HAVE A SMALLER INDEX THAN VERTEX J" << std::endl;
-                                        std::vector<int> interface_edge;
-                                        set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
-                                                        nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
-                                                        inserter(interface_edge, interface_edge.begin()));
-
-                                        //check if both vertices, i and otherVertex, belong to the same two partitions
-
-                                        std::cout << 3*i+otherVertex << std::endl;
-
-                                        auto color_part_id = -1, color_neighbor = -1;
-
-                                        //if color of the neighbor is smaller than the own color, refinement must not happen!
-                                        if (interface_edge[0] == part_id)
-                                        {
-                                            target_part_id = interface_edge[1];
-                                        }
-
-                                        else if (interface_edge[1] == part_id) 
-                                        {
-                                            target_part_id = interface_edge[0];
-                                        }
-
-                                        else
-                                        {
-                                            break;
-                                        }
-
-                                        //adapt interface only to a neighbor with higher color
-                                        adapt_interface = true;
-                                    }//*/
-                            // } //end of if(dim==2)//*/
-    /*
-                            else
-                            {
-                                std::set<int> edge_neighbours;
-                                set_intersection(NEList[n1].begin(), NEList[n1].end(),
-                                                NEList[n2].begin(), NEList[n2].end(),
-                                                inserter(edge_neighbours, edge_neighbours.begin()));
-
-                                std::set<int> neighbours;
-                                set_intersection(_mesh->NEList[i].begin(), _mesh->NEList[i].end(),
-                                                edge_neighbours.begin(), edge_neighbours.end(),,
-                                                inserter(neighbours, neighbours.begin()));
-                                                
-                                //flag edge if it's on an interface
-                                if (neighbours.size() != 2 )
-                                {
-                                    std::vector<int> interface_edge;
-                                    set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
-                                                    nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
-                                                    inserter(interface_edge, interface_edge.begin()));
-                            
-                                    auto color_part_id = -1, color_neighbor = -1;
-
-                                    //if color of the neighbor is smaller than the own color, refinement must not happen!
-                                    if (interface_edge[0] == part_id)
-                                    {
-                                        color_part_id = partition_colors[interface_edge[0]];
-                                        color_neighbor = partition_colors[interface_edge[1]];
-                                        target_part_id = interface_edge[1];
-                                    }
-
-                                    else if (interface_edge[1] == part_id) 
-                                    {
-                                        color_neighbor = partition_colors[interface_edge[0]];
-                                        color_part_id = partition_colors[interface_edge[1]];
-                                        target_part_id = interface_edge[0];
-                                    }
-
-                                    else
-                                    {
-                                        break;
-                                    }
-                                    adapt_interface = true;
-                            }//end of else (equals dim == 3)//*/
-                        }
-
-                        else 
-                        {
-                            ;
-                            /*std::cout << "     " << i << " and " << otherVertex << " is a simple edge" << std::endl;
-                            std::cout << "      adapt interface = " << adapt_interface << std::endl;*/
-                        }
-                        /*std::chrono::duration<double> interface_dur = std::chrono::system_clock::now() - interface_tic;
-                        *int_check += interface_dur.count();//*/
-                    }
+                    
                     //END OF MY OWN IMPLEMENTATION*/
                    
                     /* Conditional statement ensures that the edge length is only calculated once.
@@ -394,8 +277,9 @@ public:
                             //refine_edge(i, otherVertex, tid);
                         
                             //MY IMPLEMENTATION
-                            if (adapt_interface)
+                            if (NNInterfaces[i][it] != -1) //adapt edge on the interface of the partition
                             {
+                                target_part_id = NNInterfaces[i][it];
                                 //std::cout << "adapt interface " << i << " " << otherVertex << " " << target_part_id << std::endl;
                                 refine_edge(i, otherVertex, tid, outbox_data, l2g_vertices, target_part_id);
                             }
@@ -456,7 +340,7 @@ public:
             memcpy(&_mesh->metric[msize*threadIdx[tid]], &newMetric[tid][0], msize*splitCnt[tid]*sizeof(double));
 
             // Fix IDs of new vertices
-            //std::cout << "fix IDs of new vertices " << part_id << std::endl;
+            //std::cout << "fix IDs of new vertices in partition " << part_id << std::endl;
             assert(newVertices[tid].size()==splitCnt[tid]);
             for(size_t i=0; i<splitCnt[tid]; i++) {
                // std::cout << "threadIdx[tid]+i (=local ID) " << threadIdx[tid]+i << std::endl;
@@ -484,7 +368,7 @@ public:
                 g2l_vertices.insert(std::make_pair(glob_old_NNodes+i, threadIdx[tid]+i));
                 //END OF MY IMPLEMENTATION*/
             }
-            //std::cout << "ID fixing done " << part_id << std::endl;
+            //std::cout << "ID fixing done in partition " << part_id << std::endl;
 
             // Accumulate all newVertices in a contiguous array
             memcpy(&allNewVertices[threadIdx[tid]-origNNodes], &newVertices[tid][0], newVertices[tid].size()*sizeof(DirectedEdge<index_t>));
@@ -498,6 +382,7 @@ public:
         //    #pragma omp barrier
           
          //   #pragma omp for schedule(guided)
+            //std::cout << " start NNList updates" << std::endl;
             for(size_t i=0; i<edgeSplitCnt; ++i) {
                 //std::cout << std::endl;
                 
@@ -534,10 +419,12 @@ public:
                 def_ops->addNN(secondid, vid, tid);
 
                 //MY IMPLEMENTATION
-               // std::cout << "UPDATES OF NNInterfaces need to be done! " << NNInterfaces.size() << " " << vid << std::endl;
+                //std::cout << "UPDATES OF NNInterfaces need to be done! " << NNInterfaces.size() << " " << vid << std::endl;
                 NNInterfaces.push_back(std::vector<int>());
                 NNInterfaces[vid].push_back(firstid);
                 NNInterfaces[vid].push_back(secondid);
+
+                //std::cout << " pushing it back worked!" << std::endl;
 
                 //remNN(firstid, secondid)
                 auto position = std::find(NNInterfaces[firstid].begin(), NNInterfaces[firstid].end(), secondid);
@@ -581,6 +468,7 @@ public:
                         _mesh->lnn2gnn[vid] = _mesh->gnn_offset+vid;
                 }
             }
+            //std::cout << " finished NNList updates" << std::endl;
             
                             //std::chrono::duration<double> det_1_dur = std::chrono::system_clock::now() - det_1;
                             //int_check[1] += det_1_dur.count();
@@ -588,10 +476,22 @@ public:
                 // If in 3D, we need to refine facets first.
           //      #pragma omp for schedule(guided)
                 for(index_t eid=0; eid<origNElements; ++eid) {
+                    /*std::cout << " refine facets of " << eid << std::endl;*/
                     // Find the 4 facets comprising the element
                     const index_t *n = _mesh->get_element(eid);
                     if(n[0] < 0)
                         continue;
+                    
+                    //MY OWN IMPLEMENTATION
+                    //if > orig_NElements prevents element from being refined twice!!!
+                    //NOTE: origNElements is not orig_NElements!!!
+                    //The first is the number of elements in the actual partition after healing,
+                    //whereas the latter is the number of elements before healing
+                    if (eid >= orig_NElements)
+                    {
+                        continue;
+                    }
+                    //END OF MY OWN IMPLEMENTATION
 
                     const index_t facets[4][3] = {{n[0], n[1], n[2]},
                         {n[0], n[1], n[3]},
@@ -600,6 +500,8 @@ public:
                     };
 
                     for(int j=0; j<4; ++j) {
+                       /* std::cout << "    check facet: " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
+                        std::cout << "    l2g_vertices " << l2g_vertices[facets[j][0]] << " " << l2g_vertices[facets[j][1]] << " " << l2g_vertices[facets[j][2]] << std::endl;*/
                         // Find which elements share this facet j
                         const index_t *facet = facets[j];
                         std::set<index_t> intersection01, EE;
@@ -616,11 +518,16 @@ public:
                         // Prevent facet from being refined twice:
                         // Only refine it if this is the element with the highest ID.
                         if(eid == *EE.rbegin())
+                        {
                             for(size_t k=0; k<3; ++k)
-                                if(new_vertices_per_element[nedge*eid+edgeNumber(eid, facet[k], facet[(k+1)%3])] != -1) {
+                            {
+                                if(new_vertices_per_element[nedge*eid+edgeNumber(eid, facet[k], facet[(k+1)%3])] != -1) 
+                                {
                                     refine_facet(eid, facet, tid);
                                     break;
                                 }
+                            }
+                        }
                     }
                 }
                     std::cout << "committing now" << std::endl;
@@ -634,7 +541,7 @@ public:
             }
 
 //auto det_2 = std::chrono::system_clock::now();
-                      // Start element refinement.
+            // Start element refinement.
             splitCnt[tid] = 0;
             newElements[tid].clear();
             newBoundaries[tid].clear();
@@ -942,7 +849,7 @@ private:
         std::cout << _mesh->get_number_nodes() << " " << splitCnt[tid] << std::endl;
 */
         outbox_data(target_part_id, l2g_vertices[n0], l2g_vertices[n1], _mesh->get_number_nodes() + splitCnt[tid] - 1);
-        //std::cout << "  pushing into outbox: " << target_part_id << " " << l2g_vertices[n0] << " " << l2g_vertices[n1] << " " << (_mesh->get_number_nodes()+splitCnt[tid] -1) << std::endl;
+       // std::cout << "  pushing into outbox: " << target_part_id << " " << l2g_vertices[n0] << " " << l2g_vertices[n1] << " " << (_mesh->get_number_nodes()+splitCnt[tid] -1) << std::endl;
         //outbox_data(target_part_id, n0, n1, _mesh->get_number_nodes() + splitCnt[tid] - 1);
 
         // Interpolate new metric and append it to OMP thread's temp storage
@@ -961,6 +868,78 @@ private:
 
     inline void refine_facet(index_t eid, const index_t *facet, int tid)
     {
+        const index_t *n=_mesh->get_element(eid);
+
+        index_t newVertex[3] = {-1, -1, -1};
+        newVertex[0] = new_vertices_per_element[nedge*eid+edgeNumber(eid, facet[1], facet[2])];
+        newVertex[1] = new_vertices_per_element[nedge*eid+edgeNumber(eid, facet[0], facet[2])];
+        newVertex[2] = new_vertices_per_element[nedge*eid+edgeNumber(eid, facet[0], facet[1])];
+
+        int refine_cnt=0;
+        for(size_t i=0; i<3; ++i)
+            if(newVertex[i]!=-1)
+                ++refine_cnt;
+
+        /*std::cout << "      refine_cnt: " << refine_cnt << std::endl;*/
+
+        switch(refine_cnt) {
+        case 0:
+            // Do nothing
+            break;
+        case 1:
+            // 1:2 facet bisection
+            for(int j=0; j<3; j++)
+                if(newVertex[j] >= 0) {
+                    def_ops->addNN(newVertex[j], facet[j], tid);
+                    def_ops->addNN(facet[j], newVertex[j], tid);
+
+                    /*std::cout << "        " << newVertex[j] << " " << facet[j] << std::endl;*/
+                    break;
+                }
+            break;
+        case 2:
+            // 1:3 refinement with trapezoid split
+            for(int j=0; j<3; j++) {
+                if(newVertex[j] < 0) {
+                    def_ops->addNN(newVertex[(j+1)%3], newVertex[(j+2)%3], tid);
+                    def_ops->addNN(newVertex[(j+2)%3], newVertex[(j+1)%3], tid);
+
+                    //std::cout << "        " << newVertex[(j+1)%3] << " " << newVertex[(j+1)%3] << std::endl;
+
+                    real_t ldiag1 = _mesh->calc_edge_length(newVertex[(j+1)%3], facet[(j+1)%3]);
+                    real_t ldiag2 = _mesh->calc_edge_length(newVertex[(j+2)%3], facet[(j+2)%3]);
+                    const int offset = ldiag1 < ldiag2 ? (j+1)%3 : (j+2)%3;
+
+                    //std::cout << "         offset: " << offset << std::endl; 
+
+                    def_ops->addNN(newVertex[offset], facet[offset], tid);
+                    def_ops->addNN(facet[offset], newVertex[offset], tid);
+
+                    //std::cout << "         " << newVertex[offset] << " " << facet[offset] << std::endl;
+ 
+                    break;
+                }
+            }
+            break;
+        case 3:
+            // 1:4 regular refinement
+            for(int j=0; j<3; j++) {
+                def_ops->addNN(newVertex[j], newVertex[(j+1)%3], tid);
+                def_ops->addNN(newVertex[(j+1)%3], newVertex[j], tid);
+
+                //std::cout << "         " << newVertex[j] << " " << newVertex[(j+1)%3] << std::endl;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    //MY OWN IMPLEMENTATION
+    inline void refine_facet(index_t eid, const index_t *facet, int tid, Outbox& outbox_data, std::vector<int>l2g_vertices, int target_part_id)
+    {
+        //std::cout << "Refining interface facet" << std::endl;
+
         const index_t *n=_mesh->get_element(eid);
 
         index_t newVertex[3] = {-1, -1, -1};
@@ -1015,6 +994,7 @@ private:
             break;
         }
     }
+    //END OF MY OWN IMPLEMENTATION
 
 #ifdef HAVE_BOOST_UNORDERED_MAP_HPP
     typedef boost::unordered_map<index_t, int> boundary_t;
@@ -1059,7 +1039,7 @@ private:
              * 3D Element Refinement *
              *************************
              */
-
+            std::cout << "    refine element " << eid << std::endl;
             const int *n=_mesh->get_element(eid);
 
             int refine_cnt;
@@ -1076,6 +1056,8 @@ private:
 
             if(refine_cnt > 0)
                 (this->*refineMode3D[refine_cnt-1])(splitEdges, eid, tid);
+
+            std::cout << "    refining element " << eid << " done " << std::endl;
         }
     }
 

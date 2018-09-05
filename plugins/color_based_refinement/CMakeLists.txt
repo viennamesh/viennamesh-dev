@@ -33,6 +33,7 @@ if (METIS_FOUND)
   message(STATUS "METIS include directories: ${METIS_INCLUDE_DIRS}")
   message(STATUS "METIS libraries: ${METIS_LIBRARIES}")
   include_directories(${METIS_INCLUDE_DIRS})
+
 else()
   message(FATAL_ERROR "METIS not found")
 endif()

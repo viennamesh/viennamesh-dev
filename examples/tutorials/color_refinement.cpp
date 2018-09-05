@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", true);
+	color.set_input("single_mesh_output", false);
 	color.set_input("max_num_iterations", max_num_iterations);
 	color.run();
 
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
-	//mesh_writer.run();
+	mesh_writer.run();
 //*/
     return -1;
 }

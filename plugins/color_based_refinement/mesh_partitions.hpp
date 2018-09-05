@@ -1774,8 +1774,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     num_points_part = partition->get_number_nodes();
                     num_elements_part = partition->get_number_elements();
                 }
-                //Interface vector
+                //Interface vector for vertices and facets
                 std::vector<std::vector<int>> NNInterfaces_tmp;
+                std::vector<std::vector<int>> FInterfaces_tmp;
                 
                 //g2l- and l2g-index mappings
                 std::unordered_map<int, int> g2l_vertices_tmp;
@@ -1926,7 +1927,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     l2g_vertices_tmp = l2g_vertex[part_id];
                     l2g_elements_tmp = l2g_element[part_id];
                 }
-              /*
+              
                 std::string vtu_filename = "examples/data/color_refinement/output/input_part";
                 vtu_filename+=std::to_string(part_id);
                 vtu_filename+=".vtu";
@@ -1936,6 +1937,99 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 previous_nelements[part_id]=partition->get_number_elements();
 
                 auto mesh_toc = omp_get_wtime();
+
+
+                //Create metric field
+                //auto metric_tic = std::chrono::system_clock::now();
+                auto metric_tic = omp_get_wtime();
+
+              /*  std::cout << " NNodes in partition: " << partition->get_number_nodes() << std::endl;
+                std::cout << " NElements in partition: " << partition->get_number_elements() << std::endl;*/
+
+                if (algorithm == "pragmatic")
+                {
+                    //partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp);
+/*
+                    //DEBUG                
+                    std::cout << " FInterfaces of partition " << part_id << std::endl;
+                    for (auto FI_iter = 0; FI_iter < FInterfaces_tmp.size(); ++FI_iter)
+                    {
+                        std::cout << FI_iter << std::endl;
+
+                        for (auto FI_iter1 = 0; FI_iter1 < FInterfaces_tmp[FI_iter].size(); ++FI_iter1)
+                        {
+                            std::cout << " " << FInterfaces_tmp[FI_iter][FI_iter1] << std::endl;
+                        }
+                    }
+
+                    std::cout << " NNInterfaces of partition " << part_id << std::endl;
+                    for (auto NNI_iter = 0; NNI_iter < NNInterfaces_tmp.size(); ++NNI_iter)
+                    {
+                        std::cout << NNI_iter << std::endl;
+
+                        for (auto NNI_iter1 = 0; NNI_iter1 < NNInterfaces_tmp[NNI_iter].size(); ++NNI_iter1)
+                        {
+                            std::cout << " " << NNInterfaces_tmp[NNI_iter][NNI_iter1] << std::endl;
+                        }
+                    }
+                    //END OF DEBUG*/
+
+                    if (dim == 2)
+                    {
+                        MetricField<double,2> metric_field(*partition);
+        /*
+                    double eta = 0.0001;
+                    std::vector<double> psi(num_points_part);
+
+                    for (size_t i = 0; i < num_points_part; ++i)
+                    {
+                        //double x = 2*partition->get_coords(i)[0]-1;
+                        //double y = 2*partition->get_coords(i)[1]-1;
+                        double x = partition->get_coords(i)[0];
+                        double y = partition->get_coords(i)[1];
+                
+                        psi[i] = 0.100000000000000*sin(50*x) + atan2(-0.100000000000000, (double)(2*x - sin(5*y)));
+                        //psi[i] = 800000000000;
+                    }
+                    
+                    metric_field.add_field(&(psi[0]), eta, 1);
+        */
+
+                        for (auto i = 0; i < partition->get_number_nodes(); ++i)
+                        {
+                            double m[] = {1.0, 1.0, 0.0};
+                            metric_field.set_metric(m, i);
+                        }
+                        
+                        //           auto metric_update_tic = std::chrono::system_clock::now();
+                        metric_field.update_mesh();
+        /*           std::chrono::duration<double> metric_update_time = std::chrono::system_clock::now() - metric_update_tic;*/
+                    }
+
+                    else
+                    {
+                        MetricField<double,3> metric_field(*partition);
+
+                        std::cout << "set metric field" << std::endl;
+                        for (auto i = 0; i < partition->get_number_nodes(); ++i)
+                        {
+                            std::cout << i << "/" << partition->get_number_nodes() << std::endl;
+                            double m[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
+                            metric_field.set_metric(m, i);
+                        }
+
+                        //auto metric_update_tic = std::chrono::system_clock::now();
+                        metric_field.update_mesh();
+                /*      std::chrono::duration<double> metric_update_time = std::chrono::system_clock::now() - metric_update_tic;*/
+                    }
+            //     std::chrono::duration<double> metric_time = std::chrono::system_clock::now() - metric_tic;
+        /*
+                    times[8] += metric_time.count();
+                    times[9] += metric_update_time.count();   
+                    */
+                }//end if algorithm == pragmatic for metric assignment
+                auto metric_toc = omp_get_wtime();
+    
    
                 //Heal mesh if the partition has data in its outbox
                 auto heal_tic = omp_get_wtime();
@@ -1949,7 +2043,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //TODO: Change if-clause depending on the direction of the color-queue(increasing or decreasing color)
                 if (color > 0)
                 {
-
+                    std::cout << "healing of partition " << part_id << std::endl;
+                    std::cout << "partition has " << orig_NElements << " initial elements and " << orig_NNodes << " initial nodes" << std::endl;
                     // Set the orientation of elements.
                     ElementProperty<double> * part_property = nullptr;
 
@@ -1974,6 +2069,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                     for (auto it : partition_adjcy[part_id])
                     {
+                        /*std::cout << " it: " << it << std::endl;*/
                         //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!*/
                         if (partition_colors[it] < color && outboxes[it].num_verts() > 0)
                         {   
@@ -2021,13 +2117,23 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 }
 
                                 //get 3rd element due to construction of outbox vector (3rd ele is local id of vertex in partition it)
+                               /* std::cout << " local id in originating partition " << it << " is " << outboxes[it][4*i+3] << std::endl;
+                                std::cout << " dim " << dim << std::endl;*/
                                 double p[dim];
                                 pragmatic_partitions[it]->get_coords(outboxes[it][4*i+3], p);
+/*
+                                if (dim==3)
+                                {
+                                    std::cout << "healing coords for new vertex " << j << std::endl;
+                                    std::cout << "  " << p[0] << " " << p[1] << " " << p[2] << " " << &(p[0]) << std::endl;
+                                    std::cout << "  " << pragmatic_partitions[it]->get_coords(outboxes[it][4*i+3])[0] << " " << pragmatic_partitions[it]->get_coords(outboxes[it][4*i+3])[1];
+                                    std::cout << " " << pragmatic_partitions[it]->get_coords(outboxes[it][4*i+3])[2] << std::endl;
+                                }*/
 
-                                double m[dim+1];
+                                double m[msize];
                                 pragmatic_partitions[it]->get_metric(outboxes[it][4*i+3], m);
 
-                                partition->append_vertex(p, m);
+                                partition->append_vertex(&p[0], &m[0]);
                                
                                 l2g_vertices_tmp.push_back( l2g_vertex[it][outboxes[it][4*i+3]]);
                                 g2l_vertices_tmp.insert(std::make_pair(l2g_vertex[it][outboxes[it][4*i+3]], orig_NNodes_part+j));
@@ -2063,13 +2169,21 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 auto glob_firstid = outboxes[it][4*i+1];
                                 auto glob_secondid = outboxes[it][4*i+2];
 
-                                double p[dim];
+                                /*double p[dim];
                                 original_mesh->get_coords(glob_firstid, p);
-                                original_mesh->get_coords(glob_secondid, p);
+                                original_mesh->get_coords(glob_secondid, p);*/
 
                                 auto firstid = g2l_vertices_tmp.at(glob_firstid);
                                 auto secondid = g2l_vertices_tmp.at(glob_secondid);
                                 auto local_vid = outbox_mapping[j];
+
+                                double q[dim];
+                                partition->get_coords(local_vid, q);
+
+                               /* if(dim==3)
+                                {
+                                    std::cout << "      " << q[0] << " " << q[1] << " " << q[2] << std::endl;
+                                }*/
 
                                 // Find which elements share this edge and mark them with their new vertices.
                                 std::set<int> NEList_firstid = partition->get_nelist(firstid);
@@ -2096,7 +2210,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                     }
 
                                     new_vertices_per_element[nedge*ele_iter+edgeOffset] = local_vid;
-                                    //std::cout << "element " << ele_iter << " has to be healed " << std::endl;
+                                   // std::cout << "   element " << ele_iter << " has to be healed " << std::endl;
                                     elements_to_heal.insert(ele_iter);
                                 }
 
@@ -2122,8 +2236,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                             if (dim == 3)
                             {
+                                std::cout << "do facet healing of partition " << part_id << std::endl;
                                 for (auto eid : elements_to_heal)
                                 {
+                                   /* std::cout << "   processing element " << eid << std::endl;*/
                                     // Find the 4 facets comprising the element
                                     const index_t *n = partition->get_element(eid);
                                     if (n[0] <  0)
@@ -2157,7 +2273,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                             {
                                                 if(new_vertices_per_element[nedge*eid+edgeNumber(partition, eid, facet[k], facet[(k+1)%3])] != -1) 
                                                 {
-                                                    heal_facet(partition, nedge,  new_vertices_per_element, eid, facet);
+                                                    heal_facet(partition, nedge, new_vertices_per_element, eid, facet);
                                                     break;
                                                 }
                                             }
@@ -2220,6 +2336,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                         //else dim == 3
                                         else
                                         {
+                                            //std::cout << "do 3D element healing of partition " << part_id << std::endl;
                                             const int *n=partition->get_element(ele_id);
 
                                             int heal_cnt;
@@ -2239,6 +2356,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                             }
                                         
                                             heal_cnt=splitEdges.size();
+
+                                            /*std::cout << " element " << ele_id << std::endl;
+                                            std::cout << "    heal_cnt: " << heal_cnt << std::endl;*/
 
                                             if (heal_cnt == 1)
                                             {
@@ -2272,9 +2392,16 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 }
 
                             } //end of element healing*/
+                            delete part_property;
                         } //end of if (partition_colors[it] < color)*/
                     }
                 } //end of //Heal mesh if the partition has data in its outbox (color > 0)
+
+                std::cout << " partition has " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes after healing" << std::endl;
+
+                partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp);
+
+                //partition->defragment();
 
                 /*//Output healed mesh
                 std::cout << "  debug mesh healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
@@ -2291,7 +2418,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 auto heal_toc = omp_get_wtime();
 
                 //double boundary_time = std::chrono::system_clock::now() - boundary_tic;
-                NNInterfaces_tmp.resize(partition->get_number_nodes());
+                /*NNInterfaces_tmp.resize(partition->get_number_nodes());
+                FInterfaces_tmp.resize(partition->get_number_elements());*/ //Resizing done in get_interfaces()
                 pragmatic_partitions[part_id] = partition;
                 l2g_vertex[part_id] = l2g_vertices_tmp;
                 g2l_vertex[part_id] = g2l_vertices_tmp;
@@ -2302,70 +2430,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         /*  
                 times[6] += mesh_time.count();
                 times[7] += boundary_time.count();
+*/
+                //METRIC USED TO BE HERE!!! 
 
-
-                //Create metric field
-                auto metric_tic = std::chrono::system_clock::now();*/
-                auto metric_tic = omp_get_wtime();
-
-                if (algorithm == "pragmatic")
-                {
-                    partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id);
-
-                    if (dim == 2)
-                    {
-                        MetricField<double,2> metric_field(*partition);
-        /*
-                    double eta = 0.0001;
-                    std::vector<double> psi(num_points_part);
-
-                    for (size_t i = 0; i < num_points_part; ++i)
-                    {
-                        //double x = 2*partition->get_coords(i)[0]-1;
-                        //double y = 2*partition->get_coords(i)[1]-1;
-                        double x = partition->get_coords(i)[0];
-                        double y = partition->get_coords(i)[1];
-                
-                        psi[i] = 0.100000000000000*sin(50*x) + atan2(-0.100000000000000, (double)(2*x - sin(5*y)));
-                        //psi[i] = 800000000000;
-                    }
-                    
-                    metric_field.add_field(&(psi[0]), eta, 1);
-        */
-
-                        for (auto i = 0; i < partition->get_number_nodes(); ++i)
-                        {
-                            double m[] = {1.0, 1.0, 0.0};
-                            metric_field.set_metric(m, i);
-                        }
-                        
-                        //           auto metric_update_tic = std::chrono::system_clock::now();
-                        metric_field.update_mesh();
-        /*           std::chrono::duration<double> metric_update_time = std::chrono::system_clock::now() - metric_update_tic;*/
-                    }
-
-                    else
-                    {
-                        MetricField<double,3> metric_field(*partition);
-
-                        for (auto i = 0; i < partition->get_number_nodes(); ++i)
-                        {
-                            double m[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
-                            metric_field.set_metric(m, i);
-                        }
-
-                        //auto metric_update_tic = std::chrono::system_clock::now();
-                        metric_field.update_mesh();
-                /*      std::chrono::duration<double> metric_update_time = std::chrono::system_clock::now() - metric_update_tic;*/
-                    }
-            //     std::chrono::duration<double> metric_time = std::chrono::system_clock::now() - metric_tic;
-        /*
-                    times[8] += metric_time.count();
-                    times[9] += metric_update_time.count();   
-                    */
-                }//end if algorithm == pragmatic for metric assignment
-                auto metric_toc = omp_get_wtime();
-    
                 //double int_check_time {0.0};
                 //double triangulate_time {0.0};
                 double call_to_refine_time = 0.0;
@@ -2383,17 +2450,18 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         {   
                             //#pragma omp critical
                             {
-                                //std::cout << " refining partition " << part_id << " with thread " << omp_get_thread_num() << std::endl;
-                                std::cerr << ".";
+                                std::cout << " refining partition " << part_id << " with thread " << omp_get_thread_num() << std::endl;
+                                //std::cerr << ".";
                                 refiner.refine(0.005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                         partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
-                                        NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, orig_NNodes);//*/  
+                                        NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, orig_NNodes, orig_NElements,
+                                        FInterfaces_tmp);//*/  
                             }                          
                         } 
 
 
                         //Output refined partition in each iteration
-                       /* std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                        std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_part";
                         vtu_filename_refine_output+=std::to_string(part_id);
                         vtu_filename_refine_output+="_iteration";
@@ -2490,11 +2558,24 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         {
                             /*refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, outbox_data, 
                                         partition_colors, partition_adjcy[part_id], previous_nelements[part_id]);//*/
-                            /*refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
+                            std::cout << " refining partition " << part_id << " with " << partition->get_number_elements() << " elements and ";
+                            std::cout << partition->get_number_nodes() << " nodes" << std::endl;
+                            refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                             partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
-                                            global_NNodes);//*/
+                                            NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, orig_NNodes, orig_NElements,
+                                            FInterfaces_tmp);//*/
+                            std::cout << " partition has now " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes" << std::endl;
                         }
                         
+                        //Output refined partition in each iteration
+                        std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                        std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_part";
+                        vtu_filename_refine_output+=std::to_string(part_id);
+                        vtu_filename_refine_output+="_iteration";
+                        vtu_filename_refine_output+=std::to_string(act_iter+1);
+                        vtu_filename_refine_output+=".vtu";
+                        VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);//*/
+
                         call_to_refine_time = omp_get_wtime() - call_to_refine_tic;
 
                         l2g_vertex[part_id] = l2g_vertices_tmp;
@@ -2684,7 +2765,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
                 //int_check_log[omp_get_thread_num()] += int_check_time;
-
 
             }//end parallel for loop
         } //end for loop colors - iterate colors
@@ -3027,6 +3107,8 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
         }
     }
 
+  //  std::cout << "     refine_cnt " << refine_cnt << std::endl;
+
     //switch the different cases of facet refinement (healing)
     switch(refine_cnt)
     {
@@ -3045,6 +3127,7 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
                 {
                     partition->add_nnlist(newVertex[j], facet[j]);
                     partition->add_nnlist(facet[j] , newVertex[j]);
+                  //  std::cout << "        " << newVertex[j] << " " << facet[j] << std::endl;
                     break;
                 }
             }
@@ -3061,13 +3144,18 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
                 {
                     partition->add_nnlist(newVertex[(j+1)%3], newVertex[(j+2)%3]);
                     partition->add_nnlist(newVertex[(j+2)%3], newVertex[(j+1)%3]);
+                   // std::cout << "        " << newVertex[(j+1)%3] << " " << newVertex[(j+1)%3] << std::endl;
 
                     double ldiag1 = partition->calc_edge_length(newVertex[(j+1)%3], facet[(j+1)%3]);
                     double ldiag2 = partition->calc_edge_length(newVertex[(j+2)%3], facet[(j+2)%3]);
                     const int offset = ldiag1 < ldiag2 ? (j+1)%3 : (j+2)%3;
 
+                   // std::cout << "         offset: " << offset << std::endl;
+
                     partition->add_nnlist(newVertex[offset], facet[offset]);
                     partition->add_nnlist(facet[offset], newVertex[offset]);
+
+                  //  std::cout << "         " << newVertex[offset] << " " << facet[offset] << std::endl;
 
                     break;
                 }
@@ -3083,6 +3171,7 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
             {
                 partition->add_nnlist(newVertex[j], newVertex[(j+1)%3]);
                 partition->add_nnlist(newVertex[(j+1)%3], newVertex[j]);
+              //  std::cout << "         " << newVertex[j] << " " << newVertex[(j+1)%3] << std::endl;
             }
 
             break;
@@ -3099,9 +3188,10 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
 //Task: Heals mesh after neighboring partition has altered its interface
 void MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
 {
-    //std::cout << eid << " heal3D_1" << std::endl;
+    std::cout << "    heal3D_1 " << eid << std::endl;
 
     const int *n=partition->get_element(eid);
+    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
     const int *boundary=&(partition->boundary[eid*nloc]);
 
     std::map<index_t, int> b;
@@ -3156,10 +3246,12 @@ void MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& 
 //Task: Heals mesh after neighboring partition has altered its interface
 void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
 {
-    //std::cout << eid << " heal3D_2" << std::endl;
+    std::cout << "    heal3D_2 " << eid << std::endl;
 
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
+
+    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
 
@@ -3178,7 +3270,7 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
 
     if(n0>=0) 
     {
-        //std::cout << " case 2(a)" << std::endl;
+        std::cout << "     case 2(a)" << std::endl;
 
         /*
         *************
@@ -3252,6 +3344,7 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
 
     else 
     {
+        std::cout << "     case 2(b)" << std::endl;
         /*
         *************
         * Case 2(b) *
@@ -3313,8 +3406,11 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
 void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
                               int msize, int dim, ElementProperty<double>*& property)
 {
+    std::cout << "     heal3D_3 " << eid << std::endl;
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
+
+    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -3349,11 +3445,12 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 
     if(nshared==3) 
     {
+        std::cout << "       3(a)" << std::endl; 
         /*
-            *************
-            * Case 3(a) *
-            *************
-            */
+        *************
+        * Case 3(a) *
+        *************
+        */
         index_t m[] = {-1, -1, -1, -1, -1, -1, -1};
 
         m[0] = splitEdges[0].edge.first;
@@ -3428,6 +3525,7 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 
     else if(nshared==1) 
     {
+        std::cout << "       3(b)" << std::endl; 
         /*
         *************
         * Case 3(b) *
@@ -3478,8 +3576,11 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim,
                               ElementProperty<double>*& property)
 {
+    std::cout << "     heal3D_4 " << eid << std::endl;
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
+
+    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -3512,6 +3613,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
     if(nshared==3) 
     {
+        std::cout << "      4(a)" << std::endl;
         /*
         *************
         * Case 4(a) *
@@ -3596,6 +3698,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         {
             case 0: 
             {
+                std::cout << "        4(a) 1" << std::endl;
                 // Case 4(a)(1)
                 const int ele0[] = {p[0]->id, p[1]->edge.second, p[1]->id, p[3]->edge.second};
                 const int ele1[] = {p[0]->id, p[1]->id, p[2]->id, p[3]->edge.second};
@@ -3655,6 +3758,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
             case 1: 
             {
+                std::cout << "        4(a) 2" << std::endl;
                 // Case 4(a)(2)
 
                 // Swap p[1] and p[2] if necessary so that p[2]->edge.second
@@ -3736,6 +3840,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
             case 2: 
             {
+                std::cout << "        4(a) 3" << std::endl;
                 // Case 4(a)(3)
                 const int ele0[] = {p[1]->edge.first, p[1]->id, p[2]->id, p[3]->id};
                 const int ele1[] = {p[3]->id, p[1]->edge.second, p[0]->id, p[3]->edge.second};
@@ -3814,6 +3919,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
     else 
     {
+        std::cout << "      4(b)" << std::endl;
         /*
         *************
         * Case 4(b) *
@@ -4092,9 +4198,11 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         // Remove parent element
         for(size_t j=0; j<nloc; ++j)
         {
+            std::cout << "     remove " << n[j] << " in " << eid << std::endl;
             partition->remove_nelist(n[j], eid);
         }
 
+        std::cout << " remove element " << eid << " by setting ENList[" << eid*nloc << "] to -1 " << std::endl; 
         partition->_ENList[eid*nloc] = -1;
     } //end of else (end of case 4(b))
 }
@@ -4105,8 +4213,11 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 //Task: Heals mesh after neighboring partition has altered its interface
 void MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim, ElementProperty<double>*& property)
 {
+    std::cout << "     heal3D_5" << std::endl;
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
+
+    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -4372,6 +4483,7 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
                                   DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim,
                                   ElementProperty<double>*& property)
 {
+    std::cout << "     refine_wedge" << std::endl;
     /*
     * bndr[] must contain the boundary values for each side of the wedge:
     * bndr[0], bndr[1] and bndr[2]: Boundary values of Side0, Side1 and Side2
