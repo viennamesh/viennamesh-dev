@@ -48,6 +48,8 @@
 #include <numeric>
 #include <unordered_map>
 
+#include <fstream>
+
 #ifdef HAVE_BOOST_UNORDERED_MAP_HPP
 #include <boost/unordered_map.hpp>
 #endif
@@ -514,10 +516,11 @@ public:
             for (size_t i = 0; i < NNodes; ++i)
             {
                 //std::cout << "  processing vertex " << i << std::endl;
-                //std::cout << "  NNList[" << i << "] contains " << NNList[i].size() << " vertices" << std::endl;//*/
+                //std::cout << "  NNList[" << i << "] contains " << NNList[i].size() << " vertices in partition " << part_id << std::endl;//*/
                 for (size_t j = 0; j < NNList[i].size(); ++j)
                 {
                     int otherVertex = NNList[i][j];
+                    //std::cout << "   checking edge between " << i << " and " << otherVertex << std::endl;
                    /* std::cout << "    l2g[" << i << "]: " << l2g_vertices[i] << ", l2g[" << otherVertex << "]: " << l2g_vertices[otherVertex] << std::endl;
                     std::cout << "     " << nodes_part_ids[ l2g_vertices[i] ].size() << " " << nodes_part_ids[ l2g_vertices[otherVertex] ].size() << std::endl;
                     
@@ -559,15 +562,29 @@ public:
 
                             else
                             {
-                                //std::cerr << "    ERROR IN GET_INTERFACES()" << std::endl;
-                                break;
+                                /*std::cerr << "    ERROR IN GET_INTERFACES()" << std::endl;
+                                std::cerr << "    This edge is part of more than two partitions, namely:" << std::endl;//*/
+
+                                for (auto inter_it : interface_edge)
+                                {
+                                    if (inter_it != part_id)
+                                    {
+                                        /*std::cout << "      pushing back " << inter_it << std::endl;
+                                        std::cout << "      CHECK IF I CAN PUSH BACK TWO VALUES, BECAUSE INDICES ARE IMPLICIT!!!!!" << std::endl;//*/
+                                        NNInterfaces[i].push_back(inter_it);
+                                    }
+                                }
+                                for (auto err_it : interface_edge)
+                                    std::cout << "      " << err_it << std::endl;
+
+                                //break;
                             }
                         }
 
                         else
                         {
-                            //std::cout << "    simple edge between " << i << " and " << otherVertex << std::endl;
-                            std::cout << "DO WE EVEN GET HERE???" << std::endl;
+                           // std::cout << "    simple edge between " << i << " and " << otherVertex << std::endl;
+                            //std::cout << "DO WE EVEN GET HERE???" << std::endl;
                             NNInterfaces[i].push_back(-1);
                         }
                     }
@@ -585,8 +602,8 @@ public:
         //3D case
         if (ndims == 3)//else
         {
-            std::cout << "3D not fully implemented yet!" << std::endl;
-            std::cout << " USES ITERATIONS OVER NNODES FOLLOWED BY ITERATION OF NELEMENTS TO CHECK FOR INTERFACES!!!" << std::endl;
+            /*std::cout << "3D not fully implemented yet!" << std::endl;
+            std::cout << " USES ITERATIONS OVER NNODES FOLLOWED BY ITERATION OF NELEMENTS TO CHECK FOR INTERFACES!!!" << std::endl;//*/
 
             FInterfaces.resize(NElements);
             //NNInterfaces.resize(NElements*4*3);
@@ -750,7 +767,28 @@ public:
                 } //end of iterate facet vertices
             }//end of iterate elements
 
-            std::cout << "get_interfaces succesful" << std::endl;
+           // std::cout << "get_interfaces succesful" << std::endl;
+            /*
+            //DEBUG
+            std::ofstream nninterfaces_out;
+            std::string name;
+            name = "nninterfaces_";
+            name += std::to_string(part_id);
+            name += ".txt";
+            nninterfaces_out.open(name.c_str());
+
+            for (size_t i = 0; i < NNInterfaces.size(); ++i)
+            {
+                nninterfaces_out << "Node " << i << " has " << NNInterfaces[i].size() << " neighbors " << std::endl;
+
+                for (size_t j=0; j < NNInterfaces[i].size(); ++j)
+                {
+                    nninterfaces_out << " " << NNInterfaces[i][j] << std::endl;
+                }
+            }
+
+            nninterfaces_out.close();
+            //END OF DEBUG*/
 
             return;
 

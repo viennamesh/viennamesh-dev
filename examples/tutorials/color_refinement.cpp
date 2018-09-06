@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", false);
+	color.set_input("single_mesh_output", true);
 	color.set_input("max_num_iterations", max_num_iterations);
 	color.run();
 
@@ -108,7 +108,9 @@ int main(int argc, char *argv[])
 	output_file+=std::to_string(region_count);
 	output_file+="partitions_";
 	output_file+=std::to_string(num_threads);
-	output_file+="threads";
+	output_file+="threads_";
+	output_file+=std::to_string(max_num_iterations);
+	output_file+="iterations";
 	output_file+=".vtu";
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");

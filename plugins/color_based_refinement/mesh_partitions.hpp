@@ -1717,7 +1717,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     //iterate the partitions several times
     for (size_t act_iter = 0; act_iter < max_num_iterations; act_iter++)
     {
-        std::cout << "  Iteration " << act_iter+1 << " / " << max_num_iterations << " ";
+        //std::cout << "  Iteration " << act_iter+1 << " / " << max_num_iterations << " ";
+        viennamesh::info(2) << "Iteration " << act_iter+1 << " / " << max_num_iterations << std::endl;
         //iterate colors
         for (size_t color = 0; color < colors; ++color)
         {
@@ -1927,7 +1928,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     l2g_vertices_tmp = l2g_vertex[part_id];
                     l2g_elements_tmp = l2g_element[part_id];
                 }
-              
+              /*
                 std::string vtu_filename = "examples/data/color_refinement/output/input_part";
                 vtu_filename+=std::to_string(part_id);
                 vtu_filename+=".vtu";
@@ -2010,10 +2011,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     {
                         MetricField<double,3> metric_field(*partition);
 
-                        std::cout << "set metric field" << std::endl;
+                        //std::cout << "set metric field" << std::endl;
                         for (auto i = 0; i < partition->get_number_nodes(); ++i)
                         {
-                            std::cout << i << "/" << partition->get_number_nodes() << std::endl;
+                            //std::cout << i << "/" << partition->get_number_nodes() << std::endl;
                             double m[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
                             metric_field.set_metric(m, i);
                         }
@@ -2043,8 +2044,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //TODO: Change if-clause depending on the direction of the color-queue(increasing or decreasing color)
                 if (color > 0)
                 {
-                    std::cout << "healing of partition " << part_id << std::endl;
-                    std::cout << "partition has " << orig_NElements << " initial elements and " << orig_NNodes << " initial nodes" << std::endl;
+                    /*std::cout << "healing of partition " << part_id << std::endl;
+                    std::cout << "partition has " << orig_NElements << " initial elements and " << orig_NNodes << " initial nodes" << std::endl;*/
                     // Set the orientation of elements.
                     ElementProperty<double> * part_property = nullptr;
 
@@ -2236,7 +2237,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                             if (dim == 3)
                             {
-                                std::cout << "do facet healing of partition " << part_id << std::endl;
+                                //std::cout << "do facet healing of partition " << part_id << std::endl;
                                 for (auto eid : elements_to_heal)
                                 {
                                    /* std::cout << "   processing element " << eid << std::endl;*/
@@ -2392,18 +2393,19 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 }
 
                             } //end of element healing*/
-                            delete part_property;
+                            
                         } //end of if (partition_colors[it] < color)*/
-                    }
+                    } //end of for (auto it : partition_adjcy[part_id])
+                    delete part_property;
                 } //end of //Heal mesh if the partition has data in its outbox (color > 0)
 
-                std::cout << " partition has " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes after healing" << std::endl;
+                //std::cout << " partition has " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes after healing" << std::endl;
 
                 partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp);
 
                 //partition->defragment();
-
-                /*//Output healed mesh
+                /*
+                //Output healed mesh
                 std::cout << "  debug mesh healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                 std::string vtu_filename_heal_output = "examples/data/color_refinement/output/healed_part";
                 vtu_filename_heal_output+=std::to_string(part_id);
@@ -2450,7 +2452,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         {   
                             //#pragma omp critical
                             {
-                                std::cout << " refining partition " << part_id << " with thread " << omp_get_thread_num() << std::endl;
+                                //std::cout << " refining partition " << part_id << " with thread " << omp_get_thread_num() << std::endl;
                                 //std::cerr << ".";
                                 refiner.refine(0.005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                         partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
@@ -2459,7 +2461,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             }                          
                         } 
 
-
+                        /*
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_part";
@@ -2558,15 +2560,15 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         {
                             /*refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, outbox_data, 
                                         partition_colors, partition_adjcy[part_id], previous_nelements[part_id]);//*/
-                            std::cout << " refining partition " << part_id << " with " << partition->get_number_elements() << " elements and ";
+                            //std::cout << " refining partition " << part_id << " with " << partition->get_number_elements() << " elements and ";
                             std::cout << partition->get_number_nodes() << " nodes" << std::endl;
                             refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                             partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
                                             NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, orig_NNodes, orig_NElements,
                                             FInterfaces_tmp);//*/
-                            std::cout << " partition has now " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes" << std::endl;
+                            //std::cout << " partition has now " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes" << std::endl;
                         }
-                        
+                        /*
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_part";
@@ -2768,7 +2770,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
             }//end parallel for loop
         } //end for loop colors - iterate colors
-        std::cout << std::endl;
+        //std::cout << std::endl;
     } //end of number_iterations
 
     auto for_toc = omp_get_wtime();
@@ -3188,10 +3190,10 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
 //Task: Heals mesh after neighboring partition has altered its interface
 void MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
 {
-    std::cout << "    heal3D_1 " << eid << std::endl;
+    //std::cout << "    heal3D_1 " << eid << std::endl;
 
     const int *n=partition->get_element(eid);
-    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+    //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
     const int *boundary=&(partition->boundary[eid*nloc]);
 
     std::map<index_t, int> b;
@@ -3246,12 +3248,12 @@ void MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& 
 //Task: Heals mesh after neighboring partition has altered its interface
 void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
 {
-    std::cout << "    heal3D_2 " << eid << std::endl;
+    //std::cout << "    heal3D_2 " << eid << std::endl;
 
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
 
-    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+    //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
 
@@ -3270,7 +3272,7 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
 
     if(n0>=0) 
     {
-        std::cout << "     case 2(a)" << std::endl;
+        //std::cout << "     case 2(a)" << std::endl;
 
         /*
         *************
@@ -3344,7 +3346,7 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
 
     else 
     {
-        std::cout << "     case 2(b)" << std::endl;
+        //std::cout << "     case 2(b)" << std::endl;
         /*
         *************
         * Case 2(b) *
@@ -3406,11 +3408,11 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
 void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
                               int msize, int dim, ElementProperty<double>*& property)
 {
-    std::cout << "     heal3D_3 " << eid << std::endl;
+    //std::cout << "     heal3D_3 " << eid << std::endl;
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
 
-    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+    //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -3445,7 +3447,7 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 
     if(nshared==3) 
     {
-        std::cout << "       3(a)" << std::endl; 
+        //std::cout << "       3(a)" << std::endl; 
         /*
         *************
         * Case 3(a) *
@@ -3525,7 +3527,7 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 
     else if(nshared==1) 
     {
-        std::cout << "       3(b)" << std::endl; 
+        //std::cout << "       3(b)" << std::endl; 
         /*
         *************
         * Case 3(b) *
@@ -3576,11 +3578,11 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim,
                               ElementProperty<double>*& property)
 {
-    std::cout << "     heal3D_4 " << eid << std::endl;
+    //std::cout << "     heal3D_4 " << eid << std::endl;
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
 
-    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+    //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -3613,7 +3615,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
     if(nshared==3) 
     {
-        std::cout << "      4(a)" << std::endl;
+        //std::cout << "      4(a)" << std::endl;
         /*
         *************
         * Case 4(a) *
@@ -3698,7 +3700,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         {
             case 0: 
             {
-                std::cout << "        4(a) 1" << std::endl;
+                //std::cout << "        4(a) 1" << std::endl;
                 // Case 4(a)(1)
                 const int ele0[] = {p[0]->id, p[1]->edge.second, p[1]->id, p[3]->edge.second};
                 const int ele1[] = {p[0]->id, p[1]->id, p[2]->id, p[3]->edge.second};
@@ -3758,7 +3760,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
             case 1: 
             {
-                std::cout << "        4(a) 2" << std::endl;
+                //std::cout << "        4(a) 2" << std::endl;
                 // Case 4(a)(2)
 
                 // Swap p[1] and p[2] if necessary so that p[2]->edge.second
@@ -3840,7 +3842,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
             case 2: 
             {
-                std::cout << "        4(a) 3" << std::endl;
+                //std::cout << "        4(a) 3" << std::endl;
                 // Case 4(a)(3)
                 const int ele0[] = {p[1]->edge.first, p[1]->id, p[2]->id, p[3]->id};
                 const int ele1[] = {p[3]->id, p[1]->edge.second, p[0]->id, p[3]->edge.second};
@@ -3919,7 +3921,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 
     else 
     {
-        std::cout << "      4(b)" << std::endl;
+        //std::cout << "      4(b)" << std::endl;
         /*
         *************
         * Case 4(b) *
@@ -4198,11 +4200,11 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         // Remove parent element
         for(size_t j=0; j<nloc; ++j)
         {
-            std::cout << "     remove " << n[j] << " in " << eid << std::endl;
+            //std::cout << "     remove " << n[j] << " in " << eid << std::endl;
             partition->remove_nelist(n[j], eid);
         }
 
-        std::cout << " remove element " << eid << " by setting ENList[" << eid*nloc << "] to -1 " << std::endl; 
+        //std::cout << " remove element " << eid << " by setting ENList[" << eid*nloc << "] to -1 " << std::endl; 
         partition->_ENList[eid*nloc] = -1;
     } //end of else (end of case 4(b))
 }
@@ -4213,11 +4215,11 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
 //Task: Heals mesh after neighboring partition has altered its interface
 void MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim, ElementProperty<double>*& property)
 {
-    std::cout << "     heal3D_5" << std::endl;
+    //std::cout << "     heal3D_5" << std::endl;
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
 
-    std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+    //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -4483,7 +4485,7 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
                                   DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim,
                                   ElementProperty<double>*& property)
 {
-    std::cout << "     refine_wedge" << std::endl;
+    //std::cout << "     refine_wedge" << std::endl;
     /*
     * bndr[] must contain the boundary values for each side of the wedge:
     * bndr[0], bndr[1] and bndr[2]: Boundary values of Side0, Side1 and Side2

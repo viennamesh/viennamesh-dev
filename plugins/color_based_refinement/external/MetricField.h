@@ -578,11 +578,11 @@ public:
     {
         assert(_metric!=NULL);
 
-        std::cout << "update mesh metric" << std::endl;
+        //std::cout << "update mesh metric" << std::endl;
 
         size_t pNElements = (size_t)predict_nelements_part();
 
-        std::cout << "pNElements " << pNElements << std::endl;
+        //std::cout << "pNElements " << pNElements << std::endl;
 
         // We don't really know how much addition space we'll need so this was set after some experimentation.
         size_t fudge = 5;
@@ -953,11 +953,11 @@ public:
 
           //  #pragma omp parallel for reduction(+:total_volume_metric) num_threads(1)
             for(int i=0; i<_NElements; i++) {
-                std::cout << "Element " << i << "/" << _NElements << std::endl;
+                //std::cout << "Element " << i << "/" << _NElements << std::endl;
 
                 const index_t *n=_mesh->get_element(i);
 
-                std::cout << "  vertices " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+                //std::cout << "  vertices " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
                 const real_t *x0 = _mesh->get_coords(n[0]);
                 const real_t *x1 = _mesh->get_coords(n[1]);
@@ -977,11 +977,11 @@ public:
                 real_t m12 = (m0[4]+m1[4]+m2[4]+m3[4])*0.25;
                 real_t m22 = (m0[5]+m1[5]+m2[5]+m3[5])*0.25;
 
-                std::cout << m00 << " " << m01 << " " << m02 << " " << m12 << " " << m12 << " " << m22 << std::endl;
+                //std::cout << m00 << " " << m01 << " " << m02 << " " << m12 << " " << m12 << " " << m22 << std::endl;
 
                 real_t det = (m11*m22 - m12*m12)*m00 - (m01*m22 - m02*m12)*m01 + (m01*m12 - m02*m11)*m02;
         
-                std::cout  << "  det " << det << std::endl;
+                //std::cout  << "  det " << det << std::endl;
                 assert(det>-DBL_EPSILON);
                 total_volume_metric += volume*sqrt(det);
             }
