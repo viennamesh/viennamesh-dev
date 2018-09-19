@@ -150,7 +150,8 @@ class MeshPartitions
 
         std::vector<std::vector<int>> interfaces;                                             //Stores the partition IDs of the neighor which share interface i
 
-        std::vector<std::vector<std::vector<int>>> NNInterfaces;                              //Stores for each partition and each Node-Node pair if the edges is an interface
+        //std::vector<std::vector<int>> NNInterfaces;                                           //Stores for each partition and each Node-Node pair if the edges is an interface
+        std::vector<std::vector<std::vector<int>>> NNInterfaces;
 
         std::set<int>& get_nodes_partition_ids(int n){return nodes_partition_ids[n];};
 
@@ -1776,7 +1777,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     num_elements_part = partition->get_number_elements();
                 }
                 //Interface vector for vertices and facets
-                std::vector<std::vector<int>> NNInterfaces_tmp;
+                //std::vector<std::vector<int>> NNInterfaces_tmp;
+                std::vector<std::vector<std::vector<int>>> NNInterfaces_tmp;
                 std::vector<std::vector<int>> FInterfaces_tmp;
                 
                 //g2l- and l2g-index mappings
@@ -2404,7 +2406,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp);
 
                 //partition->defragment();
-                /*
+                
                 //Output healed mesh
                 std::cout << "  debug mesh healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                 std::string vtu_filename_heal_output = "examples/data/color_refinement/output/healed_part";
@@ -2461,7 +2463,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             }                          
                         } 
 
-                        /*
+                        
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_part";
@@ -2561,14 +2563,14 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             /*refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, outbox_data, 
                                         partition_colors, partition_adjcy[part_id], previous_nelements[part_id]);//*/
                             //std::cout << " refining partition " << part_id << " with " << partition->get_number_elements() << " elements and ";
-                            std::cout << partition->get_number_nodes() << " nodes" << std::endl;
-                            refiner.refine(0.0005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
+                            //std::cout << partition->get_number_nodes() << " nodes" << std::endl;
+                            refiner.refine(0.00005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                             partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
                                             NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, orig_NNodes, orig_NElements,
                                             FInterfaces_tmp);//*/
                             //std::cout << " partition has now " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes" << std::endl;
                         }
-                        /*
+                        
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_part";
@@ -2586,6 +2588,37 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         g2l_element[part_id] = g2l_elements_tmp;
                         outboxes[part_id]=outbox_data; 
                     } 
+
+                    //DEBUG
+                    std::ofstream nninterfaces_out;
+                    std::string name;
+                    name = "nninterfaces_after_refinement_";
+                    name += std::to_string(part_id);
+                    name += ".txt";
+                    nninterfaces_out.open(name.c_str());
+
+                    for (size_t i = 0; i < NNInterfaces_tmp.size(); ++i)
+                    {
+                        nninterfaces_out << "Node " << i << " has (NNInterfaces.size()) " << NNInterfaces_tmp[i].size() << " neighbors; (NNList.size(): " << partition->NNList[i].size() << ")" << std::endl;
+                        //std::cout << "NNInterfaces contains wrong data! it has too many entries and does not correspond to NNList" << std::endl;
+                        //for (size_t j=0; j < NNInterfaces_tmp[i].size(); ++j)
+                        /*for (size_t j=0; j < partition->NNList[i].size(); ++j)
+                        {
+                            nninterfaces_out << " " << partition->NNList[i][j] << ": " << " " << NNInterfaces_tmp[i][j] << std::endl;
+                        }//*/
+
+                        for (size_t j = 0; j < NNInterfaces_tmp[i].size(); ++j)
+                        {
+                            nninterfaces_out << " " << partition->NNList[i][j] << ": ";
+                            for (size_t k = 0; k < NNInterfaces_tmp[i][j].size(); ++k)
+                            {
+                                nninterfaces_out << " " << NNInterfaces_tmp[i][j][k] << std::endl;
+                            }
+                        }
+                    }
+
+                    nninterfaces_out.close();
+                    //END OF DEBUG*/
                 } //end of if (algorithm==pragmatic)
 
                 else if (algorithm == "triangle")
@@ -2776,6 +2809,13 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     auto for_toc = omp_get_wtime();
 
     for_time = for_toc - for_tic;
+/*
+    //DEBUG
+    for (size_t col_it=0; col_it < partition_colors.size(); ++col_it)
+    {
+        std::cout << "partition " << col_it << " has color " << partition_colors[col_it] << std::endl;
+    }
+    //END OF DEBUG*/
 
     viennamesh::info(1) << "Successfully adapted the mesh" << std::endl;
    /*
