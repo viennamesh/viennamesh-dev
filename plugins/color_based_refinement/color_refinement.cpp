@@ -114,7 +114,7 @@ namespace viennamesh
 			viennamesh::info(1) << "  Partitioning time " << partitioning_duration.count() << std::endl;
 
 			wall_tic = std::chrono::system_clock::now();
-				InputMesh.CreateNeighborhoodInformation();
+				InputMesh.CreateNeighborhoodInformation(max_num_iterations());
 			std::chrono::duration<double> adjacency_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << "  Creating adjacency information time " << adjacency_duration.count() << std::endl;
 
@@ -316,12 +316,11 @@ namespace viennamesh
 			//convert pragmatic to viennagrid output
 			if (algo=="pragmatic")
 			{
-				viennamesh::info(5) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
+				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
 
 				if (dimension == 2)
 				{	
-					//std::cerr << "check if single mesh output" << std::endl;
 					//output mesh in a single file
 					if ( single_mesh_output.valid() && single_mesh_output() )
 					{
@@ -350,7 +349,15 @@ namespace viennamesh
 							for (size_t j = 0; j < NElements; ++j)
 							{
 								index_t const* ENList_ptr = InputMesh.pragmatic_partitions[i]->get_element(j); 
-								viennagrid::make_triangle( output_mesh(), vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)] );
+								
+								if (ENList_ptr[0] < 0)
+								{
+									--elements;
+									continue;
+								}
+
+								viennagrid::make_triangle( output_mesh(), vertex_handles[ENList_ptr[0]], vertex_handles[ENList_ptr[1]], vertex_handles[ENList_ptr[2]] );
+								//viennagrid::make_triangle( output_mesh(), vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)] );
 							} //end of iterating all pragmatic elements
 
 							//Update total number of vertices and elements
@@ -386,14 +393,21 @@ namespace viennamesh
 							for (size_t j = 0; j < NElements; ++j)
 							{
 								index_t const* ENList_ptr = InputMesh.pragmatic_partitions[i]->get_element(j); 
-								viennagrid::make_triangle( output_mesh(i), vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)] );
+
+								if (ENList_ptr[0] < 0)
+								{
+									--elements;
+									continue;
+								}
+
+								viennagrid::make_triangle( output_mesh(i), vertex_handles[ENList_ptr[0]], vertex_handles[ENList_ptr[1]], vertex_handles[ENList_ptr[2]] );
+								//viennagrid::make_triangle( output_mesh(i), vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)], vertex_handles[*(ENList_ptr++)] );
 							} //end of iterating all pragmatic elements
 
 							//Update total number of vertices and elements
 							vertices += InputMesh.pragmatic_partitions[i]->get_number_nodes();
 							elements += InputMesh.pragmatic_partitions[i]->get_number_elements();
-
-							
+			
 						}
 					} //end of else ( multi mesh output )
 				} //end of if(dim == 2)
@@ -420,11 +434,19 @@ namespace viennamesh
 																			InputMesh.pragmatic_partitions[i]->get_coords(j)[1], InputMesh.pragmatic_partitions[i]->get_coords(j)[2]) );
 							} //end of for loop iterating all pragmatic vertices 
 
-							//iterating all pragmatic elements and createg their corresponding viennagrid triangles
+							//iterating all pragmatic elements and create their corresponding viennagrid triangles
 							for (size_t j = 0; j < NElements; ++j)
 							{
-								index_t const* ENList_ptr = InputMesh.pragmatic_partitions[i]->get_element(j); 
-								viennagrid::make_tetrahedron( output_mesh(), tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)] );
+								index_t const* ENList_ptr = InputMesh.pragmatic_partitions[i]->get_element(j);
+
+								if (ENList_ptr[0] < 0)
+								{
+									--elements;
+									continue;
+								}
+								
+								viennagrid::make_tetrahedron( output_mesh(), tet_handles[ENList_ptr[0]], tet_handles[ENList_ptr[1]], tet_handles[ENList_ptr[2]], tet_handles[ENList_ptr[3]] );
+								//viennagrid::make_tetrahedron( output_mesh(), tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)] );
 							} //end of iterating all pragmatic elements
 
 							//Update total number of vertices and elements
@@ -460,7 +482,14 @@ namespace viennamesh
 							for (size_t j = 0; j < NElements; ++j)
 							{
 								index_t const* ENList_ptr = InputMesh.pragmatic_partitions[i]->get_element(j); 
-								viennagrid::make_tetrahedron( output_mesh(i), tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)] );
+								if (ENList_ptr[0] < 0)
+								{
+									--elements;
+									continue;
+								}
+								
+								viennagrid::make_tetrahedron( output_mesh(i), tet_handles[ENList_ptr[0]], tet_handles[ENList_ptr[1]], tet_handles[ENList_ptr[2]], tet_handles[ENList_ptr[3]] );
+								//viennagrid::make_tetrahedron( output_mesh(i), tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)], tet_handles[*(ENList_ptr++)] );
 							} //end of iterating all pragmatic elements
 
 							//Update total number of vertices and elements
@@ -468,8 +497,8 @@ namespace viennamesh
 							elements += InputMesh.pragmatic_partitions[i]->get_number_elements();
 						}
 					} //end of multi mesh output
-				} //end of else (dim == 3)
-			} //end of convert pragmatic to viennagrid output
+				} //end of else (dim == 3)*/
+			} //end of convert pragmatic to viennagrid output*/
 
 			//convert triangle to viennagrid output
 			else if (algo == "triangle")
@@ -694,8 +723,8 @@ namespace viennamesh
 				std::cout << std::endl;
 			}
 */
-			viennamesh::info(1) << "Number of Vertices: " << vertices << std::endl;
-			viennamesh::info(1) << "Number of Elements: " << elements << std::endl;
+			viennamesh::info(5) << "  Number of Vertices after conversion: " << vertices << std::endl;
+			viennamesh::info(5) << "  Number of Elements after conversion: " << elements << std::endl;
 			set_output("mesh", output_mesh);
 			set_output("colors", InputMesh.get_colors());
 

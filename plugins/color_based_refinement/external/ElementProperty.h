@@ -134,7 +134,6 @@ public:
      */
     inline real_t volume(const real_t *x0, const real_t *x1, const real_t *x2, const real_t *x3) const
     {
-
         real_t x01 = (x0[0] - x1[0]);
         real_t x02 = (x0[0] - x2[0]);
         real_t x03 = (x0[0] - x3[0]);

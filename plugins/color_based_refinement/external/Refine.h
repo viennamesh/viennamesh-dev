@@ -96,6 +96,7 @@ public:
         rank = 0;
 #endif
 
+       /* std::cout << "why is the choice of nthreads influencing the segmentation faults???" << std::endl;*/
         //nthreads = pragmatic_nthreads();
         nthreads = 1;
 
@@ -156,8 +157,8 @@ public:
                 std::set<int>& partition_adjcy, int previous_nelements)//*/
     void refine(real_t L_max, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, const int part_id, Outbox& outbox_data,
         std::vector<int>& partition_colors, std::set<int>& partition_adjcy, const int previous_nelements, std::vector<std::vector<std::vector<int>>>& NNInterfaces,
-        int& global_NNodes, std::unordered_map<int,int>& g2l_vertices, const int orig_NNodes, const int orig_NElements, 
-        std::vector<std::vector<int>>& FInterfaces)
+        int& global_NNodes, std::unordered_map<int,int>& g2l_vertices, const int NNodes_before_healing, const int NElements_before_healing, 
+        /*std::vector<std::vector<int>>& FInterfaces,*/ const int iteration)
     {
         //std::cout << "Starting Refinement" << std::endl;
         /*//DEBUG
@@ -217,7 +218,9 @@ public:
                 std::fill(new_vertices_per_element.begin(), new_vertices_per_element.end(), -1);
             }
 
-            int tid = pragmatic_thread_id();
+            /*std::cout << "why is this second choice of nthreads also influencing the segmentation faults???" << std::endl;*/
+            //int tid = pragmatic_thread_id();
+            int tid = 0;
             splitCnt[tid] = 0;
 
             /*
@@ -258,19 +261,21 @@ public:
                its length is greater than L_max in transformed space. */
           //  #pragma omp for schedule(guided) nowait
             for(size_t i=0; i<origNNodes; ++i) 
-            {//std::cout << "processing vertex " << i << " of " << origNNodes << " in partition " << part_id << std::endl;
+            {
+                //std::cout << "processing vertex " << i << " of " << origNNodes << " in partition " << part_id << " for iteration " << iteration << std::endl;
+                /*std::cout << "   origNNodes is now " << origNNodes << std::endl;//*/
                 //std::set<int> edge_neighs_tmp;
                 for(size_t it=0; it<_mesh->NNList[i].size(); ++it) {
                     std::set<int> edge_neighs_tmp;
                     index_t otherVertex = _mesh->NNList[i][it];
                     //std::cout << "        otherVertex " << otherVertex << " it " << it << std::endl;
-                    /*std::cout << "        NNInterfaces[" << i << "].size() " << NNInterfaces[i].size() << std::endl;
+                    /*std::cout << "        NNInterfaces[" << i << "].size() " << NNInterfaces[i].size() << std::endl;/*
                     std::cout << "        NNInterfaces[i][it] " << NNInterfaces[i][it] << std::endl;//*/
                     assert(otherVertex>=0);
 
                     //MY OWN IMPLEMENTATION
-                    if (otherVertex >= orig_NNodes || i >= orig_NNodes)  //if > orig_NNodes prevents vertices which have been inserted from
-                    // neighboring partition to be used again for refinement, thus preventing overrefinement on the interfaces
+                    if (otherVertex >= NNodes_before_healing || i >= NNodes_before_healing)  //if > orig_NNodes prevents vertices which have been inserted from
+                    // neighboring partition during healing to be used again for refinement, thus preventing overrefinement on the interfaces
                     {
                         //std::cout << "          continue" << std::endl;
                         continue;                    
@@ -284,12 +289,12 @@ public:
                     //if(_mesh->lnn2gnn[i] < _mesh->lnn2gnn[otherVertex]) { \\THIS IS PRAGMATIC DEFAULT IMPLEMENTATION
                     if (i < otherVertex)
                     {
-                        //std::cout << " " << i << " < " << otherVertex << std::endl;
+                        //std::cout << " Refinement iteration " << iteration << " in partition " << part_id << ": " << i << " < " << otherVertex << std::endl;
                         double length = _mesh->calc_edge_length(i, otherVertex);
                         if(length>L_max) {
                             ++splitCnt[tid];
                             //refine_edge(i, otherVertex, tid);
-                        
+                            //std::cout << "    NNinterfaces[" << i << "][" << it << "].size(): " << NNInterfaces[i][it].size() << std::endl;
                             //MY IMPLEMENTATION
                             //2D case
                             if (dim==2)
@@ -342,7 +347,7 @@ public:
                                 //edge belongs either to only one partition or two different partitions
                                 if (NNInterfaces[i][it].size() == 1)
                                 {  
-                                   /* std::cout << "3D of " << i << " and " << otherVertex << " with new ID " << splitCnt[tid]+orig_NNodes-1 << " in partition " << part_id << std::endl;
+                                    /*std::cout << "3D of " << i << " and " << otherVertex << " with new ID " << splitCnt[tid]+origNNodes-1 << " in partition " << part_id << std::endl;
 
                                     std::cout << "  only 1 partition to update" << std::endl;//*/
                                     if (NNInterfaces[i][it][0] != -1) //adapt edge on the interface of the partition
@@ -354,7 +359,7 @@ public:
                                     }
                                     else 
                                     {
-                                        //std::cout << "3D of " << i << " and " << otherVertex << " with new ID " << splitCnt[tid]+orig_NNodes-1 << " in partition " << part_id << std::endl;
+                                        //std::cout << "3D of " << i << " and " << otherVertex << " with new ID " << splitCnt[tid]+origNNodes-1 << " in partition " << part_id << std::endl;
 
                                         //std::cout << "          refine edge " << i << " " << otherVertex << " " << -1 << std::endl;
                                         refine_edge(i, otherVertex, tid);
@@ -368,7 +373,7 @@ public:
                                 {
                                     if (part_id <= NNInterfaces[i][it][0])
                                     {   
-                                        /*std::cout << "3D of " << i << " and " << otherVertex << " with new ID " << splitCnt[tid]+orig_NNodes-1 << " in partition " << part_id << std::endl;
+                                        /*std::cout << "3D of " << i << " and " << otherVertex << " with new ID " << splitCnt[tid]+origNNodes-1 << " in partition " << part_id << std::endl;
                                         std::cout << "  more partitions to update " << i << " " << otherVertex << " " << std::endl;//*/
                                         for (size_t edge_iter = 0; edge_iter < NNInterfaces[i][it].size(); ++edge_iter)
                                         {
@@ -388,7 +393,7 @@ public:
                                     else
                                     {
                                         /*std::cout << "3D of " << i << " and " << otherVertex << " in partition " << part_id << std::endl;
-                                        std::cout << "  MUST NOT REFINE " << std::endl;*/
+                                        std::cout << "  MUST NOT REFINE " << std::endl;//*/
                                         --splitCnt[tid];
                                         continue;
                                     }
@@ -452,6 +457,8 @@ public:
                 edgeSplitCnt = _mesh->NNodes - origNNodes;
             }
 
+            //std::cout << "splitCnt " << splitCnt[tid] << " edgeSplitCnt " << edgeSplitCnt << std::endl;
+
             // Append new coords and metric to the mesh.
             memcpy(&_mesh->_coords[dim*threadIdx[tid]], &newCoords[tid][0], dim*splitCnt[tid]*sizeof(real_t));
             memcpy(&_mesh->metric[msize*threadIdx[tid]], &newMetric[tid][0], msize*splitCnt[tid]*sizeof(double));
@@ -460,7 +467,7 @@ public:
             //std::cout << "fix IDs of new vertices in partition " << part_id << std::endl;
             assert(newVertices[tid].size()==splitCnt[tid]);
             for(size_t i=0; i<splitCnt[tid]; i++) {
-               // std::cout << "threadIdx[tid]+i (=local ID) " << threadIdx[tid]+i << std::endl;
+                //std::cout << "threadIdx[tid]+i (=local ID) " << threadIdx[tid]+i << std::endl;
                 newVertices[tid][i].id = threadIdx[tid]+i;                
                 //MY IMPLEMENTATION
                 //std::cout << "  glob_old_NNodes: " << glob_old_NNodes << std::endl;
@@ -474,11 +481,22 @@ public:
                 
                 std::set<int> node_part_id_tmp_set;
                 node_part_id_tmp_set.insert(part_id);
+                for (auto en_iter : edge_neighbor_partitions[i])
+                {
+                    if (en_iter != -1)
+                    {
+                        node_part_id_tmp_set.insert(en_iter);
+                    }
+                }
+
                /* std::cout << " globalNodeID: " << glob_old_NNodes+i << std::endl;
                 std::cout << " part_id: " << part_id << std::endl;//*/
                 #pragma omp critical
                 {
-                    nodes_part_ids.push_back(node_part_id_tmp_set);
+                    //std::cout << " this command is wrong! it should insert all partitions this vertex belongs to into the tmp_set and then put it into the correct posistion of the global vector. simply pushing it back leads to a wrong destination!!!" << std::endl;
+                    //nodes_part_ids.push_back(node_part_id_tmp_set);
+                    //std::cout << " USE GLOBAL INDICES FOR NODES_PART_IDS!!!" << std::endl;
+                    nodes_part_ids[l2g_vertices[threadIdx[tid]+i]]=node_part_id_tmp_set;
                 }
                 /*std::cout << "new g2l index mapping" << std::endl;
                 std::cout << " " << glob_old_NNodes+i << " " << threadIdx[tid]+i << std::endl;//*/
@@ -755,22 +773,22 @@ public:
                 // If in 3D, we need to refine facets first.
           //      #pragma omp for schedule(guided)
                 for(index_t eid=0; eid<origNElements; ++eid) {
-                    //std::cout << " refine facets of " << eid << std::endl;
+                   /* std::cout << " refine facets of element " << eid << std::endl;
+                    std::cout << "  There are " << _mesh->get_number_elements() << " elements and " << _mesh->get_number_nodes() << " vertices in partition " << part_id << std::endl;//*/
                     // Find the 4 facets comprising the element
                     const index_t *n = _mesh->get_element(eid);
                     if(n[0] < 0)
                         continue;
-                    
+                    /*
                     //MY OWN IMPLEMENTATION
-                    //if > orig_NElements prevents element from being refined twice!!!
-                    //NOTE: origNElements is not orig_NElements!!!
-                    //The first is the number of elements in the actual partition after healing,
-                    //whereas the latter is the number of elements before healing
-                    if (eid >= orig_NElements)
+                    //if > NElements_before_healing prevents element from being refined twice!!!
+                    //NOTE: origNElements is the number of Elements in the partition before the refinement starts!!!
+                    if (eid >= NElements_before_healing)
                     {
+                        std::cout << "   FIND OUT WHY THE SKIP COMMAND HERE DOES NOT MAKE ANY SENSE AND DESTROYS THE PROGRAM!!!" << std::endl;
                         continue;
                     }
-                    //END OF MY OWN IMPLEMENTATION
+                    //END OF MY OWN IMPLEMENTATION*/
 
                     const index_t facets[4][3] = {{n[0], n[1], n[2]},
                         {n[0], n[1], n[3]},
@@ -780,7 +798,7 @@ public:
 
                     for(int j=0; j<4; ++j) {
                        /* std::cout << "    check facet: " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
-                        std::cout << "    l2g_vertices " << l2g_vertices[facets[j][0]] << " " << l2g_vertices[facets[j][1]] << " " << l2g_vertices[facets[j][2]] << std::endl;*/
+                        std::cout << "    l2g_vertices " << l2g_vertices[facets[j][0]] << " " << l2g_vertices[facets[j][1]] << " " << l2g_vertices[facets[j][2]] << std::endl;//*/
                         // Find which elements share this facet j
                         const index_t *facet = facets[j];
                         std::set<index_t> intersection01, EE;
@@ -809,15 +827,67 @@ public:
                         }
                     }
                 }
-                    //std::cout << "committing now" << std::endl;
+                    //std::cout << "committing now for defOp_scaling_factor * nthreads: " << defOp_scaling_factor << " * " << nthreads << std::endl;
             //      #pragma omp for schedule(guided)
                     for(int vtid=0; vtid<defOp_scaling_factor*nthreads; ++vtid) {
+                        //std::cout << " vtid " << vtid << std::endl;
                         for(int i=0; i<nthreads; ++i) {
+                            /*std::cout << "  commit remNN i " << i << " and vtid " << vtid << std::endl;
+                            std::cout << "  commit adNN  i " << i << " and vtid " << vtid << std::endl;//*/
                             def_ops->commit_remNN(i, vtid);
                             def_ops->commit_addNN(i, vtid);
                         }
                     }                
             }
+/*
+            //DEBUG
+            std::ofstream nnlist;
+            std::string nnlist_name = "nnlist_after_refinefacets_partition";
+            nnlist_name += std::to_string(part_id);
+            nnlist_name += "_iteration";
+            nnlist_name += std::to_string(iteration);
+            nnlist_name+=".txt";
+
+            nnlist.open(nnlist_name.c_str());
+
+            for (size_t i = 0; i < _mesh->NNList.size(); ++i)
+            {
+                nnlist << "Vertex " << i << " has " << _mesh->NNList[i].size() << " neighbors" << std::endl;
+
+                for (size_t j = 0; j < _mesh->NNList[i].size(); ++j)
+                {
+                    nnlist << " " << _mesh->NNList[i][j] << std::endl;
+                }
+            }
+
+            nnlist.close();
+
+            std::ofstream nninterfaces_out;
+            std::string name;
+            name = "nninterfaces_after_refinefacets_partition";
+            name += std::to_string(part_id);
+            name += "_iteration";
+            name += std::to_string(iteration);
+            name += ".txt";
+            nninterfaces_out.open(name.c_str());
+
+            for (size_t i = 0; i < NNInterfaces.size(); ++i)
+            {
+                nninterfaces_out << "Vertex " << i << " has (NNInterfaces.size()) " << NNInterfaces[i].size() << " neighbors (NNList.size(): " << _mesh->NNList[i].size() << ")" << std::endl;
+
+                for (size_t j=0; j < NNInterfaces[i].size(); ++j)
+                {
+                    nninterfaces_out << " " << _mesh->NNList[i][j];
+
+                    for (size_t k = 0; k < NNInterfaces[i][j].size(); ++k)
+                    {
+                        nninterfaces_out << ": " << NNInterfaces[i][j][k] << std::endl;
+                    }
+                }
+            }
+
+            nninterfaces_out.close();
+            //END OF DEBUG*/
 
 //auto det_2 = std::chrono::system_clock::now();
             // Start element refinement.
@@ -835,6 +905,7 @@ public:
 
         //    #pragma omp for schedule(guided) nowait
             for(size_t eid=0; eid<origNElements; ++eid) {
+                //std::cout << " refine element " << eid << std::endl;
                 //If the element has been deleted, continue.
                 const index_t *n = _mesh->get_element(eid);
                 if(n[0] < 0)
@@ -1036,7 +1107,7 @@ public:
                         exit(-1);
                         std::cout << "fixing it" << std::endl;
                         _mesh->invert_element(i);
-                        _mesh->update_quality<2>(i);
+                        _mesh->template update_quality<2>(i);
                     }
                 }
 
@@ -1221,7 +1292,7 @@ private:
             if(newVertex[i]!=-1)
                 ++refine_cnt;
 
-        /*std::cout << "      refine_cnt: " << refine_cnt << std::endl;*/
+        /*std::cout << "      refine_cnt: " << refine_cnt << std::endl;//*/
 
         switch(refine_cnt) {
         case 0:
@@ -1234,7 +1305,7 @@ private:
                     def_ops->addNN(newVertex[j], facet[j], tid);
                     def_ops->addNN(facet[j], newVertex[j], tid);
 
-                    /*std::cout << "        " << newVertex[j] << " " << facet[j] << std::endl;*/
+                    //std::cout << "        " << newVertex[j] << " " << facet[j] << std::endl;//*/
                     break;
                 }
             break;
@@ -1256,7 +1327,7 @@ private:
                     def_ops->addNN(newVertex[offset], facet[offset], tid);
                     def_ops->addNN(facet[offset], newVertex[offset], tid);
 
-                    //std::cout << "         " << newVertex[offset] << " " << facet[offset] << std::endl;
+                    //std::cout << "        " << newVertex[offset] << " " << facet[offset] << std::endl;
  
                     break;
                 }
@@ -1275,10 +1346,11 @@ private:
             break;
         }
     }
-
+/*
     //MY OWN IMPLEMENTATION
     inline void refine_facet(index_t eid, const index_t *facet, int tid, Outbox& outbox_data, std::vector<int>l2g_vertices, int target_part_id)
     {
+        std::cout << "do i even call this function?" << std::endl;
         //std::cout << "Refining interface facet" << std::endl;
 
         const index_t *n=_mesh->get_element(eid);
@@ -1335,7 +1407,7 @@ private:
             break;
         }
     }
-    //END OF MY OWN IMPLEMENTATION
+    //END OF MY OWN IMPLEMENTATION*/
 
 #ifdef HAVE_BOOST_UNORDERED_MAP_HPP
     typedef boost::unordered_map<index_t, int> boundary_t;
@@ -1380,7 +1452,7 @@ private:
              * 3D Element Refinement *
              *************************
              */
-            //std::cout << "    refine element " << eid << std::endl;
+            //std::cout << "    inside of refine element " << eid << std::endl;
             const int *n=_mesh->get_element(eid);
 
             int refine_cnt;
@@ -1673,6 +1745,8 @@ private:
 
         int n0=splitEdges[0].connected(splitEdges[1]);
         if(n0>=0) {
+            /*std::cout << "Refine3D_2(a)" << std::endl;
+            std::cout << "n[]= " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;//*/
             /*
              *************
              * Case 2(a) *
@@ -1699,6 +1773,14 @@ private:
                 offdiagonal.edge.first = splitEdges[1].id;
                 offdiagonal.edge.second = n1;
             } else {
+                /*std::cout << "   n1: " << n1 << std::endl;
+                std::cout << "   splitEdges[1].id: " << splitEdges[1].id << std::endl;
+                std::cout << "   NNList[ splitEdges[1].id ]: " << std::endl;
+                for (auto nnl_iter : _mesh->NNList[splitEdges[1].id])
+                {
+                    std::cout << "      " << nnl_iter << std::endl;
+                }
+                std::cout << "   find: " << *(std::find(_mesh->NNList[splitEdges[1].id].begin(), _mesh->NNList[splitEdges[1].id].end(), n1)) << std::endl;//*/
                 assert(std::find(_mesh->NNList[splitEdges[1].id].begin(),
                                  _mesh->NNList[splitEdges[1].id].end(), n1) != _mesh->NNList[splitEdges[1].id].end());
                 diagonal.edge.first = splitEdges[1].id;
@@ -1741,6 +1823,7 @@ private:
             append_element(ele2, ele2_boundary, tid);
             splitCnt[tid] += 2;
         } else {
+            //std::cout << "Refine3D_2(b)" << std::endl;
             /*
              *************
              * Case 2(b) *
