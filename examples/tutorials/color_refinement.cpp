@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	output_file+="iterations";
 	output_file+=".vtu";
 
-	//mesh_writer.set_input("filename", "pragmatic.vtu");
+/*	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
 	mesh_writer.run();//*/
 //*/

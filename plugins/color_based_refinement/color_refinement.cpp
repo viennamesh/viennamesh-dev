@@ -153,6 +153,7 @@ namespace viennamesh
 			std::vector<double> enlist_log;
 			std::vector<size_t> workload;
 			std::vector<size_t> workload_elements;
+			std::vector<double> get_interfaces_log;
 			auto for_time = 0.0;
 			auto prep_time = 0.0;
 
@@ -162,7 +163,7 @@ namespace viennamesh
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements,
-														max_num_iterations());//*/
+														max_num_iterations(), get_interfaces_log);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << 	"  Refinement time " << cpds_duration.count() << std::endl;
@@ -245,19 +246,22 @@ namespace viennamesh
 
 			for (size_t i =0; i < mesh_log.size(); ++i)
 				csv << mesh_log[i] << ", ";
-
+*/
 			for (size_t i =0; i < heal_log.size(); ++i)
 				csv << heal_log[i] << ", ";
-
+/*
 			for (size_t i =0; i < metric_log.size(); ++i)
 				csv << metric_log[i] << ", ";
 
 			for (size_t i =0; i < call_refine_log.size(); ++i)
 				csv << call_refine_log[i] << ", ";
+*/
+			for (size_t i=0; i < get_interfaces_log.size(); ++i)
+				csv << get_interfaces_log[i] << ", ";
 
 			for (size_t i =0; i < refine_log.size(); ++i)
 				csv << refine_log[i] << ", ";
-			
+/*			
 			for (size_t i = 0; i < workload.size(); ++i)
 				csv << workload[i] << ", ";
 /*

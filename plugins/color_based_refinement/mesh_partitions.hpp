@@ -76,7 +76,8 @@ class MeshPartitions
                                                std::vector<double>& mesh_log, double & for_time, double & prep_time,
                                                std::vector<double>& nodes_log, std::vector<double>& enlist_log,
                                                std::string options, std::vector<size_t>& workload,
-                                               std::vector<size_t>& workload_elements, const int max_num_iterations);
+                                               std::vector<size_t>& workload_elements, const int max_num_iterations,
+                                               std::vector<double>& get_interfaces_log);
         bool CreateNeighborhoodInformation(const int max_iterations);                         //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);      
@@ -617,7 +618,7 @@ bool MeshPartitions::CreateNeighborhoodInformation(const int max_iterations)
 
   int resizer = num_nodes * std::pow(nedge*2, max_iterations);
 
-  std::cout << "resizing nodes_partition_ids to " << resizer << std::endl;
+  //std::cout << "resizing nodes_partition_ids to " << resizer << std::endl;
   nodes_partition_ids.resize(resizer);
   partition_adjcy.resize(num_regions);
 
@@ -776,7 +777,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
-
+/*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -799,7 +800,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         }
         color_file.close();
         //*/
-
+/*
         std::string color_filename = filename;
         if (coloring_algorithm == "greedy")
             color_filename+="_color_partitions_greedy.txt";
@@ -823,7 +824,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
-        }
+ /*       }
         color_file.close();
         //END OF DEBUG*/
 
@@ -1655,7 +1656,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& mesh_log, double & for_time, double & prep_time,
                                                        std::vector<double>& nodes_log, std::vector<double>& enlist_log,
                                                        std::string options, std::vector<size_t>& workload,
-                                                       std::vector<size_t>& workload_elements, const int max_num_iterations)
+                                                       std::vector<size_t>& workload_elements, const int max_num_iterations,
+                                                       std::vector<double>& get_interfaces_log)
 {    
     viennamesh::info(1) << "Starting mesh adaptation with " << nthreads << " threads" << std::endl;
     auto prep_tic = omp_get_wtime();
@@ -1672,6 +1674,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     workload.resize(nthreads);
     workload_elements.resize(nthreads);
     previous_nelements.resize(num_regions);
+    get_interfaces_log.resize(nthreads);
+
     interfaces.resize(num_regions);
     NNInterfaces.resize(num_regions);
 
@@ -1685,6 +1689,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(enlist_log.begin(), enlist_log.end(), 0.0);
     std::fill(workload.begin(), workload.end(), 0);
     std::fill(workload_elements.begin(), workload_elements.end(), 0);
+    std::fill(get_interfaces_log.begin(), get_interfaces_log.end(), 0.0);
 
     outboxes.resize(num_regions, Outbox());
     nodes_per_partition.resize(num_regions);
@@ -2502,8 +2507,12 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 //std::cout << " partition has " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes after healing" << std::endl;
 
-                partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, /*FInterfaces_tmp,*/ act_iter+1);
+                //Output timings
+                auto heal_toc = omp_get_wtime();
 
+                auto interfaces_tic = omp_get_wtime();
+                partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, /*FInterfaces_tmp,*/ act_iter+1);
+                auto interfaces_toc = omp_get_wtime();
                 //partition->defragment();
                 /*
                 //Output healed mesh
@@ -2516,9 +2525,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 VTKTools<double>::export_vtu(vtu_filename_heal_output.c_str(), partition);//*/
 
                 //std::cerr << " mesh healing done for partition " << part_id << std::endl;
-
-                //Output timings
-                auto heal_toc = omp_get_wtime();
 
                 //double boundary_time = std::chrono::system_clock::now() - boundary_tic;
                 /*NNInterfaces_tmp.resize(partition->get_number_nodes());
@@ -2913,6 +2919,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 enlist_log[omp_get_thread_num()] += enlist_toc - enlist_tic;
                 ++workload[omp_get_thread_num()];
                 workload_elements[omp_get_thread_num()] += partition->get_number_elements();
+                get_interfaces_log[omp_get_thread_num()] += interfaces_toc - interfaces_tic;
 
                 //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
                 //int_check_log[omp_get_thread_num()] += int_check_time;
