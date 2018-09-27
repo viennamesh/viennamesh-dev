@@ -106,6 +106,8 @@ class MeshPartitions
                           DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim,
                           ElementProperty<double>*& property);
 
+        bool ConsistencyCheck();                                                                //Check the consistency of the mesh
+
     private:
 /*
         bool MetisPartitioning(Mesh<double>* original_mesh, int num_regions);                 //Partition mesh using metis
@@ -178,7 +180,6 @@ class MeshPartitions
 
         //global NNodes
         int global_NNodes;
-
 
         //ElementProperty<double> *property;
 
@@ -2893,6 +2894,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     tetgenbehavior tet_behavior;
 
                     tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
+                    
+                    std::cout << " Tetgen Options: " << options << std::endl;
 
                     auto triangulate_tic = omp_get_wtime();
                     tetrahedralize(&tet_behavior, &in, &out);
@@ -3014,6 +3017,15 @@ void MeshPartitions::GetRefinementStats(int* nodes, int* elements, std::string a
         {
             tmp_nodes += triangle_partitions[i].numberofpoints;
             tmp_elements += triangle_partitions[i].numberoftriangles;
+        }
+    }
+
+    else if (algorithm == "tetgen")
+    {
+        for (size_t i = 0; i < tetgen_partitions.size(); ++i)
+        {
+            tmp_nodes += tetgen_partitions[i].numberofpoints;
+            tmp_elements += tetgen_partitions[i].numberoftetrahedra;
         }
     }
 
@@ -5140,6 +5152,33 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
         partition->lnn2gnn[cid] = cid;                
     }
 } //end of MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], DirectedEdge<index_t>* third_diag, int eid)
+
+//MeshPartitions::ConsistencyCheck()
+//
+//Task: Check mesh consistency
+bool MeshPartitions::ConsistencyCheck()
+{/*
+    viennamesh::info(1) << "Checking mesh consistency" << std::endl;
+
+    if (original_mesh->get_number_dimensions() == 2)
+    {
+        std::cout << " 2D Case" << std::endl;
+    }
+
+    else 
+    {
+        std::cout << " 3D Case" << std::endl;
+
+        for (size_t pid = 0; pid < pragmatic_partitions.size(); ++pid)
+        {
+            std::cout << "   Checking partition " << pid << std::endl;
+        }
+    }
+*/
+    return true;
+}
+//ed of MeshPartitions::ConsistencyCheck()
+
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                     End                                                                      //
 //----------------------------------------------------------------------------------------------------------------------------------------------//

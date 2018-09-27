@@ -92,7 +92,12 @@ int main(int argc, char *argv[])
 	color.set_input("single_mesh_output", true);
 	color.set_input("max_num_iterations", max_num_iterations);
 	color.run();
-
+/*
+	//Consistency check
+	viennamesh::algorithm_handle consistency_check = context.make_algorithm("consistency_check");
+	consistency_check.set_default_source(color);
+	consistency_check.run();
+*/
 	//Write output mesh
 	viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
 	mesh_writer.set_default_source(color);
@@ -113,7 +118,7 @@ int main(int argc, char *argv[])
 	output_file+="iterations";
 	output_file+=".vtu";
 
-/*	//mesh_writer.set_input("filename", "pragmatic.vtu");
+	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
 	mesh_writer.run();//*/
 //*/

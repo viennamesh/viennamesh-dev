@@ -19,7 +19,7 @@ namespace viennamesh
         std::vector<double> x,y,z;
 
         //
-        //create pinter to iterate over viennagrid_array
+        //create pointer to iterate over viennagrid_array
         viennagrid_numeric* ptr_coords = nullptr;
 
         //get pointer to coordinates array from the mesh

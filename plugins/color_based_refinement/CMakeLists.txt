@@ -57,7 +57,8 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-color-refinement plugin.cpp
                       color_refinement.cpp
                       pragmatic_mesh.cpp
                       external/triangle.c
-                      triangle_interface.c                      
+                      triangle_interface.c  
+                      consistency_check.cpp                    
                       external/tetgen.cxx
                       external/predicates.cxx)
 

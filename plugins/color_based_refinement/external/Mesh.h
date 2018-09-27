@@ -503,7 +503,7 @@ public:
     void get_interfaces(std::vector<std::vector<std::vector<int>>>& NNInterfaces, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, 
                         std::unordered_map<int,int>& g2l_vertices, const int part_id,/* std::vector<std::vector<int>>& FInterfaces,*/ const int iteration)
     {
-        std::cout << "DO I REALLY NEED TO CALL THIS FUNCTION IN EVERY ITERATION OR CAN I SIMPLY CALL IT ONCE AND THEN JUST UPDATE THE DATA AS NECESSARY?" << std::endl;//*/
+        //std::cout << "DO I REALLY NEED TO CALL THIS FUNCTION IN EVERY ITERATION OR CAN I SIMPLY CALL IT ONCE AND THEN JUST UPDATE THE DATA AS NECESSARY?" << std::endl;//*/
        /* std::cout << " Partition: " << part_id << std::endl;
         std::cout << " Iteration: " << iteration << std::endl;
         //std::cout << " NNodes: " << NNodes << std::endl;
@@ -1995,7 +1995,13 @@ private:
         MPI_REAL_T = mpi_real_t_wrapper.mpi_type;
 #endif
 
-        nthreads = pragmatic_nthreads();
+        //nthreads = pragmatic_nthreads();
+        nthreads = 1;
+        /*#pragma omp single
+        {
+            std::cout << nthreads << std::endl;
+        }*/
+        //assert(nthreads==1);
 
         if(z==NULL) {
             nloc = 3;

@@ -1,6 +1,7 @@
 #include "viennameshpp/plugin.hpp"
 
 #include "color_refinement.hpp"
+#include "consistency_check.hpp"
 #include "pragmatic_mesh.hpp"
 
 viennamesh_error viennamesh_plugin_init(viennamesh_context context)
@@ -11,6 +12,7 @@ viennamesh_error viennamesh_plugin_init(viennamesh_context context)
   viennamesh::register_conversion<viennamesh::pragmatic_wrapper::mesh, viennagrid_mesh>(context); //Pragmatic data structure --> Viennagrid data structure
 
   viennamesh::register_algorithm<viennamesh::color_refinement>(context);
+  viennamesh::register_algorithm<viennamesh::consistency_check>(context);           //Checks consistency of the mesh
   
   return VIENNAMESH_SUCCESS;
 }

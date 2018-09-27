@@ -169,6 +169,8 @@ namespace viennamesh
 			viennamesh::info(1) << 	"  Refinement time " << cpds_duration.count() << std::endl;
 
 			std::chrono::duration<double> overall_duration = std::chrono::system_clock::now() - overall_tic;
+
+			//InputMesh.ConsistencyCheck();
 			
 			int r_vertices =0;
 			int r_elements =0;
@@ -322,6 +324,8 @@ namespace viennamesh
 			{
 				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
+				viennamesh::info(1) << "  DUPLICATE VERTICES ARE CREATED WITHIN THIS CONVERSION!!!" << std::endl;
+				viennamesh::info(1) << "  REWRITE THE CODE TO AVOID THIS ISSUE!!!" << std::endl;
 
 				if (dimension == 2)
 				{	
@@ -659,74 +663,91 @@ namespace viennamesh
 			{
 				viennamesh::info(1) << "Converting Tetgen to ViennaGrid data structure" << std::endl;
 				
-				output_mesh.resize(num_partitions());
-
-				for (size_t i = 0; i != InputMesh.tetgen_partitions.size(); ++i)
+				//output mesh into a single file
+				if ( single_mesh_output.valid() && single_mesh_output() )
 				{
-					//get basic mesh information
-					size_t NNodes = InputMesh.tetgen_partitions[i].numberofpoints;
-					size_t NElements = InputMesh.tetgen_partitions[i].numberoftetrahedra;
-
-					//create empty vector of size NNodes containing viennagrid vertices
-					std::vector<VertexType> vertex_handles(NNodes);
-
-					//iterating all pragmatic vertices and store their coordinates in the viennagrid vertices
-					for(size_t j = 0; j < NNodes; ++j)
+					for (size_t i = 0; i != InputMesh.tetgen_partitions.size(); ++i)
 					{
-						vertex_handles[j] = viennagrid::make_vertex(output_mesh(i), 
-																 viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
-																						InputMesh.tetgen_partitions[i].pointlist[3*j+1],
-																						InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
-					} //end of for loop iterating all pragmatic vertices 
+						//get basic mesh information
+						size_t NNodes = InputMesh.tetgen_partitions[i].numberofpoints;
+						size_t NElements = InputMesh.tetgen_partitions[i].numberoftetrahedra;
 
-					//iterating all pragmatic elements and create their corresponding viennagrid triangles
-					for (size_t j = 0; j < NElements; ++j)
-					{ 
-						viennagrid::make_tetrahedron( output_mesh(i), vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j] ],
-																	  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
-																	  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
-																	  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
-					} //end of iterating all pragmatic elements
+						//create empty vector of size NNodes containing viennagrid vertices
+						std::vector<VertexType> vertex_handles(NNodes);
 
-					//Update total number of vertices and elements
-					vertices += InputMesh.tetgen_partitions[i].numberofpoints;
-					elements += InputMesh.tetgen_partitions[i].numberoftetrahedra;
+						//iterating all pragmatic vertices and store their coordinates in the viennagrid vertices
+						for(size_t j = 0; j < NNodes; ++j)
+						{
+							vertex_handles[j] = viennagrid::make_vertex(output_mesh(), 
+																	viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
+																							InputMesh.tetgen_partitions[i].pointlist[3*j+1],
+																							InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
+						} //end of for loop iterating all pragmatic vertices 
 
-					InputMesh.tetgen_partitions[i].deinitialize();
-				}		
+						//iterating all pragmatic elements and create their corresponding viennagrid triangles
+						for (size_t j = 0; j < NElements; ++j)
+						{ 
+							viennagrid::make_tetrahedron( output_mesh(), vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j] ],
+																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
+																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
+																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
+						} //end of iterating all pragmatic elements
+
+						//Update total number of vertices and elements
+						vertices += InputMesh.tetgen_partitions[i].numberofpoints;
+						elements += InputMesh.tetgen_partitions[i].numberoftetrahedra;
+
+						InputMesh.tetgen_partitions[i].deinitialize();
+					}	
+				}//end of output mesh into a single file
+
+				//multi mesh output
+				else
+				{
+					output_mesh.resize(num_partitions());
+
+					for (size_t i = 0; i != InputMesh.tetgen_partitions.size(); ++i)
+					{
+						//get basic mesh information
+						size_t NNodes = InputMesh.tetgen_partitions[i].numberofpoints;
+						size_t NElements = InputMesh.tetgen_partitions[i].numberoftetrahedra;
+
+						//create empty vector of size NNodes containing viennagrid vertices
+						std::vector<VertexType> vertex_handles(NNodes);
+
+						//iterating all pragmatic vertices and store their coordinates in the viennagrid vertices
+						for(size_t j = 0; j < NNodes; ++j)
+						{
+							vertex_handles[j] = viennagrid::make_vertex(output_mesh(i), 
+																	viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
+																							InputMesh.tetgen_partitions[i].pointlist[3*j+1],
+																							InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
+						} //end of for loop iterating all pragmatic vertices 
+
+						//iterating all pragmatic elements and create their corresponding viennagrid triangles
+						for (size_t j = 0; j < NElements; ++j)
+						{ 
+							viennagrid::make_tetrahedron( output_mesh(i), vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j] ],
+																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
+																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
+																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
+						} //end of iterating all pragmatic elements
+
+						//Update total number of vertices and elements
+						vertices += InputMesh.tetgen_partitions[i].numberofpoints;
+						elements += InputMesh.tetgen_partitions[i].numberoftetrahedra;
+
+						InputMesh.tetgen_partitions[i].deinitialize();
+					}	
+				} //end of multi mesh output	
 			} //end of Tetgen
 
 			//std::chrono::duration<double> convert_dur = std::chrono::system_clock::now() - convert_tic;
 
 		/*	csv << convert_dur.count();
 			csv << std::endl;
-			csv.close();
-/*
-			ofstream color_parts;
-			color_parts.open("color_parts.txt");
-
-			std::vector<std::vector<int>> col_parts = InputMesh.get_color_partitions();
-
-			for (size_t i = 0; i < InputMesh.get_colors(); ++i)
-			{
-				for (size_t j = 0; j < col_parts[i].size(); ++j)
-				{
-					color_parts << col_parts[i][j] << " ";
-				}
-				color_parts << std::endl;
-			}
+			csv.close();*/
 			
-			color_parts.close();
-/*
-			for (size_t i = 0; i < col_parts.size(); ++i)
-			{
-				for (size_t j = 0; j < col_parts[i].size(); ++j)
-				{
-					std::cout << col_parts[i][j] << " ";
-				}
-				std::cout << std::endl;
-			}
-*/
 			viennamesh::info(5) << "  Number of Vertices after conversion: " << vertices << std::endl;
 			viennamesh::info(5) << "  Number of Elements after conversion: " << elements << std::endl;
 			set_output("mesh", output_mesh);
