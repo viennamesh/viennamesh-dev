@@ -21,7 +21,7 @@ namespace viennamesh {
 
     viennamesh_error convert(viennagrid::mesh const &input, vtk::mesh &output) {
 
-        debug(5) << "Converting from viennagrid to vtk." << std::endl;
+        debug(5) << "Converting from viennagrid to vtk. (2D)" << std::endl;
 
         ConstVertexRangeType    vertices(input);
         ConstCellRangeType      cells(input);
@@ -75,7 +75,7 @@ namespace viennamesh {
     }
 
     viennamesh_error convert(vtk::mesh const & input, viennagrid::mesh & output) {
-        debug(5) << "Converting from vtk to viennagrid." << std::endl;
+        debug(5) << "Converting from vtk to viennagrid. (2D)" << std::endl;
         debug(5) << "Input has: " << input.GetMesh()->GetNumberOfCells() << " cells" << std::endl;
 
         typedef viennagrid::mesh                                MeshType;

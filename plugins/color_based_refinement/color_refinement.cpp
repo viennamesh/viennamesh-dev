@@ -328,7 +328,7 @@ namespace viennamesh
 
 			//TODO: REPLACE WITH TEMPLATED VERSION!!!
 			//convert pragmatic to viennagrid output
-			if (algo=="pragmatic" || algo == "tetgen")
+			if (algo=="pragmatic"/* || algo == "tetgen"*/)
 			{
 				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
@@ -691,18 +691,18 @@ namespace viennamesh
 						for(size_t j = 0; j < NNodes; ++j)
 						{
 							vertex_handles[j] = viennagrid::make_vertex(output_mesh(), 
-																	viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
-																						   InputMesh.tetgen_partitions[i].pointlist[3*j+1],
-																						   InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
+																		viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
+																						       InputMesh.tetgen_partitions[i].pointlist[3*j+1],
+																						       InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
 						} //end of for loop iterating all pragmatic vertices 
 
 						//iterating all pragmatic elements and create their corresponding viennagrid triangles
 						for (size_t j = 0; j < NElements; ++j)
 						{ 
 							viennagrid::make_tetrahedron( output_mesh(), vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j] ],
-																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
-																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
-																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
+																		 vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
+																		 vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
+																		 vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
 						} //end of iterating all pragmatic elements
 
 						//Update total number of vertices and elements
@@ -731,18 +731,18 @@ namespace viennamesh
 						for(size_t j = 0; j < NNodes; ++j)
 						{
 							vertex_handles[j] = viennagrid::make_vertex(output_mesh(i), 
-																	viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
-																							InputMesh.tetgen_partitions[i].pointlist[3*j+1],
-																							InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
+																		viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
+																						   	   InputMesh.tetgen_partitions[i].pointlist[3*j+1],
+																						       InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
 						} //end of for loop iterating all pragmatic vertices 
 
 						//iterating all pragmatic elements and create their corresponding viennagrid triangles
 						for (size_t j = 0; j < NElements; ++j)
 						{ 
 							viennagrid::make_tetrahedron( output_mesh(i), vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j] ],
-																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
-																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
-																		vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
+																		  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+1] ], 
+																		  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+2] ], 
+																		  vertex_handles[ InputMesh.tetgen_partitions[i].tetrahedronlist[4*j+3] ] );
 						} //end of iterating all pragmatic elements
 
 						//Update total number of vertices and elements
