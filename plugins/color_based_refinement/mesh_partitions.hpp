@@ -10,6 +10,8 @@
 #include "Edge.h"
 #include "Swapping.h"
 
+//#include "Refine_cavity.h"
+
 //TODO: DEBUG
 #include "VTKTools.h"
 //END OF DEBUG
@@ -41,6 +43,10 @@ extern "C"
 #include "tetgen.h"
 #include <limits>
 
+#ifndef MAX_THREADS
+#define MAX_THREADS 8
+#endif
+
 //----------------------------------------------------------------------------------------------------------------------------------------------//
 //                                                                Declaration                                                                   //
 //----------------------------------------------------------------------------------------------------------------------------------------------//
@@ -52,7 +58,7 @@ class MeshPartitions
 {
     public:
         MeshPartitions(Mesh<double> * original_mesh, int num_regions,
-         std::string filename, int thread);                                                   //Constructor //*/
+         std::string filename, int thread, std::string algo);                                 //Constructor 
         //MeshPartitions(std::unique_ptr<Mesh<double>> original_mesh, int num_regions, std::string filename, int thread);
         ~MeshPartitions();                                                                    //Destructor
 
@@ -77,7 +83,8 @@ class MeshPartitions
                                                std::vector<double>& nodes_log, std::vector<double>& enlist_log,
                                                std::string options, std::vector<size_t>& workload,
                                                std::vector<size_t>& workload_elements, const int max_num_iterations,
-                                               std::vector<double>& get_interfaces_log);
+                                               std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
+                                               std::vector<double>& refine_boundary_log);
         bool CreateNeighborhoodInformation(const int max_iterations);                         //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);      
@@ -180,6 +187,8 @@ class MeshPartitions
 
         //global NNodes
         int global_NNodes;
+
+        std::string algorithm;
 
         //ElementProperty<double> *property;
 
@@ -311,29 +320,43 @@ struct Coords_t
 //
 //Tasks: TODO
 //MeshPartitions::MeshPartitions(Mesh<double>* original_mesh, int num_regions, std::string filename)
-MeshPartitions::MeshPartitions(Mesh<double> * orig_mesh, int nregions, std::string filename, int threads)
+MeshPartitions::MeshPartitions(Mesh<double> * orig_mesh, int nregions, std::string filename, int threads, std::string algo)
 {   
     original_mesh = orig_mesh;
     num_regions = nregions;
     nthreads = threads;
     file = filename;
     global_NNodes = orig_mesh->get_number_nodes();
+    algorithm = algo;
 } //end of Constructor
 
 //Destructor
 //
 //Tasks: TODO
 MeshPartitions::~MeshPartitions()
-{
-    //free used memory
-    for (size_t i = 0; i < pragmatic_partitions.size(); ++i)
+{/*
+    if (algorithm == "tetgen")
     {
-        //std::cerr << "deleted mesh at " << pragmatic_partitions[i] << std::endl;
-        delete pragmatic_partitions[i];
-    }
+        for (size_t i = 0; i < tetgen_partitions.size(); ++i)
+        {
+            std::cerr << "deleted mesh at " << pragmatic_partitions[i] << std::endl;
+            tetgen_partitions[i].deinitialize();
+        }
+    }//*/
 
-    //delete merged_output;
-    //std::cout << "freed memory" << std::endl;
+    //if (algorithm == "pragmatic")
+    {
+         //free used memory
+        for (size_t i = 0; i < pragmatic_partitions.size(); ++i)
+        {
+            //std::cerr << "deleted mesh at " << pragmatic_partitions[i] << std::endl;
+            delete pragmatic_partitions[i];
+        }
+
+        //delete merged_output;
+        //std::cout << "freed memory" << std::endl;
+    }
+  
     viennamesh::info(5) << "Called Destructor of MeshPartitions" << std::endl;
 
 } //end of Destructor
@@ -355,7 +378,7 @@ void MeshPartitions::GetMeshStats()
         if ( original_mesh->NNList[i].size() > max_vert_degree )
             max_vert_degree = original_mesh->NNList[i].size();
 
-            vert_degrees[i]=original_mesh->NNList[i].size();
+            vert_degrees[i] = original_mesh->NNList[i].size();
     }
 
     viennamesh::info(1) << "  Maximum Vertex Degree: " << max_vert_degree << std::endl;
@@ -618,9 +641,11 @@ bool MeshPartitions::CreateNeighborhoodInformation(const int max_iterations)
   }
 
   int resizer = num_nodes * std::pow(nedge*2, max_iterations);
+  resizer = num_nodes + num_nodes*nedge*1.5;
+  std::cout << "resizing nodes_partition_ids to " << resizer << std::endl;
 
-  //std::cout << "resizing nodes_partition_ids to " << resizer << std::endl;
   nodes_partition_ids.resize(resizer);
+
   partition_adjcy.resize(num_regions);
 
   //populate the container
@@ -1658,12 +1683,17 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& nodes_log, std::vector<double>& enlist_log,
                                                        std::string options, std::vector<size_t>& workload,
                                                        std::vector<size_t>& workload_elements, const int max_num_iterations,
-                                                       std::vector<double>& get_interfaces_log)
+                                                       std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
+                                                       std::vector<double>& refine_boundary_log)
 {    
     viennamesh::info(1) << "Starting mesh adaptation with " << nthreads << " threads" << std::endl;
+    std::cout << "RESIZE THE LOG_VECTORS TO MAX_THREADS TO AVOID UNNECESSARY CODE IN THE LOG-OUTPUT!!!" << std::endl;
     auto prep_tic = omp_get_wtime();
 
+    //this->algorithm = algorithm;
+
     //Resize and fill vectors
+    /*
     threads_log.resize(nthreads);
     mesh_log.resize(nthreads);
     heal_log.resize(nthreads);
@@ -1676,6 +1706,23 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     workload_elements.resize(nthreads);
     previous_nelements.resize(num_regions);
     get_interfaces_log.resize(nthreads);
+    defrag_log.resize(nthreads);
+    refine_boundary_log.resize(nthreads);*/
+
+    threads_log.resize(MAX_THREADS);
+    mesh_log.resize(MAX_THREADS);
+    heal_log.resize(MAX_THREADS);
+    metric_log.resize(MAX_THREADS);
+    call_refine_log.resize(MAX_THREADS);
+    refine_log.resize(MAX_THREADS);
+    nodes_log.resize(MAX_THREADS);
+    enlist_log.resize(MAX_THREADS);
+    workload.resize(MAX_THREADS);
+    workload_elements.resize(MAX_THREADS);
+    previous_nelements.resize(num_regions);
+    get_interfaces_log.resize(MAX_THREADS);
+    defrag_log.resize(MAX_THREADS);
+    refine_boundary_log.resize(MAX_THREADS);
 
     interfaces.resize(num_regions);
     NNInterfaces.resize(num_regions);
@@ -1691,6 +1738,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(workload.begin(), workload.end(), 0);
     std::fill(workload_elements.begin(), workload_elements.end(), 0);
     std::fill(get_interfaces_log.begin(), get_interfaces_log.end(), 0.0);
+    std::fill(defrag_log.begin(), defrag_log.end(), 0.0);
+    std::fill(refine_boundary_log.begin(), refine_boundary_log.end(), 0.0);
 
     outboxes.resize(num_regions, Outbox());
     nodes_per_partition.resize(num_regions);
@@ -1699,7 +1748,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::vector<std::set<int>> elements_part(num_regions);
     int dim = original_mesh->get_number_dimensions();
 
-    //REPLACE THESE TWO WITH TEMPLATE COMMAND
+    //REPLACE THESE WITH TEMPLATE COMMAND
     pragmatic_partitions.resize(num_regions);
     triangle_partitions.resize(num_regions);
     tetgen_partitions.resize(num_regions);
@@ -1760,6 +1809,30 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     //iterate the partitions several times
     for (size_t act_iter = 0; act_iter < max_num_iterations; act_iter++)
     {
+
+        std::cout << " Resizing... " << std::endl;
+        int tmp_glob_nnodes = 0;
+        int tmp_glob_nelements = 0;
+
+        if (act_iter > 0)
+        {
+            for (auto piter : pragmatic_partitions)
+            {
+                tmp_glob_nnodes += piter->get_number_nodes();
+                tmp_glob_nelements += piter->get_number_elements();
+            }
+        }
+
+        else 
+        {
+            tmp_glob_nnodes = original_mesh->get_number_nodes();
+            tmp_glob_nelements = original_mesh->get_number_elements();
+        }
+
+        int resizer = tmp_glob_nnodes + tmp_glob_nnodes*nedge*1.5;
+        std::cout << "resizer " << resizer << std::endl;
+        nodes_partition_ids.resize(resizer);
+
         //std::cout << "  Iteration " << act_iter+1 << " / " << max_num_iterations << " ";
         viennamesh::info(2) << "Iteration " << act_iter+1 << " / " << max_num_iterations << std::endl;
         //iterate colors
@@ -1972,8 +2045,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     l2g_vertices_tmp = l2g_vertex[part_id];
                     l2g_elements_tmp = l2g_element[part_id];
                 }
-              /*
+                /*
                 //DEBUG
+                std::cout << "  debug mesh output input partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                 std::string vtu_filename = "examples/data/color_refinement/output/input_part";
                 vtu_filename+=std::to_string(part_id);
                 vtu_filename+="_iteration";
@@ -2021,7 +2095,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 /*  std::cout << " NNodes in partition: " << partition->get_number_nodes() << std::endl;
                     std::cout << " NElements in partition: " << partition->get_number_elements() << std::endl;*/
 
-                    if (algorithm == "pragmatic")
+                    if (algorithm == "pragmatic" || algorithm == "tetgen")
                     {
                         //partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp);
     /*
@@ -2120,8 +2194,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //TODO: Change if-clause depending on the direction of the color-queue(increasing or decreasing color)
                 if (color > 0)
                 {
-                    /*std::cout << "healing of partition " << part_id << std::endl;
-                    std::cout << "partition has " << NElements_before_healing << " initial elements and " << NNodes_before_healing << " initial nodes" << std::endl;*/
+                    /*std::cout << "  healing of partition " << part_id << std::endl;
+                    std::cout << "  partition has " << NNodes_before_healing << " initial nodes and " << NElements_before_healing << " initial elements" << std::endl;//*/
                     // Set the orientation of elements.
                     ElementProperty<double> * part_property = nullptr;
 
@@ -2365,8 +2439,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                     } //end of for loop int j < 4
                                 } //end of for loop over origNElements
                             }   //end of if (dim == 3) for facet refining         
-
-                            /*//DEBUG
+                            /*
+                            //DEBUG
                             std::cout << "elements in elements_to_heal" << std::endl;
 
                             for (auto ele_iter : elements_to_heal)
@@ -2479,6 +2553,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         } //end of if (partition_colors[it] < color)*/
                     } //end of for (auto it : partition_adjcy[part_id])
                     delete part_property;
+                    //std::cout << "  partition has " << partition->get_number_nodes() << " nodes and " << partition->get_number_elements() << " elements after healing" << std::endl;
                 } //end of //Heal mesh if the partition has data in its outbox (color > 0)
                 /*
                 //DEBUG
@@ -2506,8 +2581,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 nodes_ids_file_after.close();
                 //END OF DEBUG*/
 
-                //std::cout << " partition has " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes after healing" << std::endl;
-
                 //Output timings
                 auto heal_toc = omp_get_wtime();
 
@@ -2515,6 +2588,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, /*FInterfaces_tmp,*/ act_iter+1);
                 auto interfaces_toc = omp_get_wtime();
                 //partition->defragment();
+
                 /*
                 //Output healed mesh
                 std::cout << "  debug mesh output healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
@@ -2546,7 +2620,12 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //double int_check_time {0.0};
                 //double triangulate_time {0.0};
                 double call_to_refine_time = 0.0;
+                double defrag_time = 0.0;
+                double refine_boundary_time = 0.0;
                 //double tri_ds_time{0.0};
+
+                viennamesh::info(2) << " Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " Elements" << std::endl;
+
             // auto refine_tic = std::chrono::system_clock::now();
                 auto refine_tic = omp_get_wtime();
                 if (algorithm == "pragmatic")
@@ -2848,62 +2927,178 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //Tetgen
                 else if (algorithm == "tetgen")
                 {
-                    tetgenio in, out;
-
-                    out.initialize();
-
-                    in.firstnumber = 0;
-                    in.numberofpoints = partition->get_number_nodes();
-
-                    in.pointlist = new REAL[in.numberofpoints * 3];
-
-                    for (size_t i = 0; i < in.numberofpoints; ++i)
+                    bool old = false;
+                    //old tetgen version from 2018-10-04
+                    if (old)
                     {
-                        in.pointlist[3*i]   = partition->get_coords(i)[0];
-                        in.pointlist[3*i+1] = partition->get_coords(i)[1];
-                        in.pointlist[3*i+2] = partition->get_coords(i)[2];
-                    }
+                        //tetgenio in, out;
+                        tetgenio in;
 
-                    in.numberoffacets = partition->get_number_elements();
+                        //out.initialize();
 
-                    in.facetlist = new tetgenio::facet[in.numberoffacets];
-                    
-                    for (size_t i = 0; i < in.numberoffacets; ++i)
-                    {
-                        tetgenio::facet & facet = in.facetlist[i];
-                        facet.holelist = 0;      
+                        in.firstnumber = 0;
+                        in.numberofpoints = partition->get_number_nodes();
+                        /*
+                        in.pointlist = new REAL[in.numberofpoints * 3];
                         
-                        facet.numberofpolygons = 1;
-                        facet.polygonlist = new tetgenio::polygon[facet.numberofpolygons];
-                        facet.numberofholes = 0;
-                        facet.holelist = NULL;
+                        for (size_t i = 0; i < in.numberofpoints; ++i)
+                        {
+                            in.pointlist[3*i]   = partition->get_coords(i)[0];
+                            in.pointlist[3*i+1] = partition->get_coords(i)[1];
+                            in.pointlist[3*i+2] = partition->get_coords(i)[2];
+                        }//*/
+                        /*
+                        std::cout << "Address of in.pointlist[0] : " << &in.pointlist[0] << std::endl;
+                        std::cout << "Address of _coords[0]      : " << &partition->_coords[0] << std::endl;
+                        std::cout << "Address of tetrahedronlist : " << &in.tetrahedronlist[0] << std::endl;
+                        std::cout << "Address of _ENList[0]      : " << &partition->_ENList[0] << std::endl; //*/
 
-                        tetgenio::polygon & polygon = facet.polygonlist[0];
-                        polygon.numberofvertices = 4;
-                        polygon.vertexlist = new int[polygon.numberofvertices];
+                        in.pointlist = &(partition->_coords[0]);
 
-                        const int *element_ptr = nullptr;
-                        element_ptr = partition->get_element(i);
+                        in.numberoftetrahedra = partition->get_number_elements();
+                        /*
+                        in.tetrahedronlist = new int[in.numberoftetrahedra*4];
 
-                        polygon.vertexlist[0]   = *(element_ptr++);
-                        polygon.vertexlist[1] = *(element_ptr++);
-                        polygon.vertexlist[2] = *(element_ptr++);
-                        polygon.vertexlist[3] = *(element_ptr++);
-                    }
+                        for (size_t i = 0; i < in.numberoftetrahedra; ++i)
+                        {
+                            const int *n = partition->get_element(i);
+                            in.tetrahedronlist[4*i]   = n[0]; 
+                            in.tetrahedronlist[4*i+1] = n[1];
+                            in.tetrahedronlist[4*i+2] = n[2];
+                            in.tetrahedronlist[4*i+3] = n[3];  
+                        }//*/
 
-                    tetgenbehavior tet_behavior;
+                        in.tetrahedronlist = &partition->_ENList[0];
+/*
+                        std::cout << "Address of in.pointlist[0] : " << &in.pointlist[0] << std::endl;
+                        std::cout << "Address of _coords[0]      : " << &partition->_coords[0] << std::endl;
+                        std::cout << "Address of tetrahedronlist : " << &in.tetrahedronlist[0] << std::endl;
+                        std::cout << "Address of _ENList[0]      : " << &partition->_ENList[0] << std::endl; //*/
+                        /*
+                        in.numberoffacets = partition->get_number_elements();
 
-                    tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
-                    
-                    std::cout << " Tetgen Options: " << options << std::endl;
+                        in.facetlist = new tetgenio::facet[in.numberoffacets];
+                        
+                        for (size_t i = 0; i < in.numberoffacets; ++i)
+                        {
+                            tetgenio::facet & facet = in.facetlist[i];
+                            facet.holelist = 0;      
+                            
+                            facet.numberofpolygons = 1;
+                            facet.polygonlist = new tetgenio::polygon[facet.numberofpolygons];
+                            facet.numberofholes = 0;
+                            facet.holelist = NULL;
 
-                    auto triangulate_tic = omp_get_wtime();
-                    tetrahedralize(&tet_behavior, &in, &out);
-                    call_to_refine_time = omp_get_wtime() - triangulate_tic;
+                            tetgenio::polygon & polygon = facet.polygonlist[0];
+                            polygon.numberofvertices = 4;
+                            polygon.vertexlist = new int[polygon.numberofvertices];
 
-                    tetgen_partitions[part_id] = out;
+                            const int *element_ptr = nullptr;
+                            element_ptr = partition->get_element(i);
 
-                    in.deinitialize();
+                            polygon.vertexlist[0]   = *(element_ptr++);
+                            polygon.vertexlist[1] = *(element_ptr++);
+                            polygon.vertexlist[2] = *(element_ptr++);
+                            polygon.vertexlist[3] = *(element_ptr++);
+                        }//*/
+                        
+                        tetgenbehavior tet_behavior;
+
+                        tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
+                        
+                        //std::cout << " Tetgen Options: " << options << std::endl;
+
+                        auto triangulate_tic = omp_get_wtime();
+                        //tetrahedralize(&tet_behavior, &in, &out);
+                        tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
+
+                        call_to_refine_time = omp_get_wtime() - triangulate_tic;
+
+                        in.pointlist = NULL;
+                        in.tetrahedronlist = NULL;
+
+                        //tetgen_partitions[part_id] = new tetgenio (*out);
+
+                        //in.deinitialize(false);
+                    } //end of if(old) - old tetgen version of 2018-10-04
+
+                    //Do boundary/interface refinement with Pragmatic.
+                    //Afterwards refine the interior using TetGen with switch -Y!
+                    else
+                    {
+                        /*std::cout << " Pragmatic Refinement of Boundary/Interface Facets" << std::endl;
+                        std::cout << " Interior Refinement with TetGen" << std::endl;*/
+                        /*
+                        //create boundary nodes vector
+                        std::vector<int> boundary_nodes(partition->get_number_nodes(), 0);
+
+                        for(index_t i=0; i<partition->get_number_elements(); i++) 
+                        {
+                            const int *n=partition->get_element(i);
+                            if(n[0]==-1)
+                                continue;
+
+                            //loop over all vertices of a tetrahedron
+                            for(int j=0; j<4; j++) 
+                            {
+                                boundary_nodes[n[(j+1)%4]] = std::max(boundary_nodes[n[(j+1)%4]], partition->boundary[i*4+j]);
+                                boundary_nodes[n[(j+2)%4]] = std::max(boundary_nodes[n[(j+2)%4]], partition->boundary[i*4+j]);
+                                boundary_nodes[n[(j+3)%4]] = std::max(boundary_nodes[n[(j+3)%4]], partition->boundary[i*4+j]);
+                            }
+                        }//*/
+
+                        //Here do the pragmatic refinement
+                        Refine<double,3> refiner(*partition);
+                        auto refine_boundary_tic = omp_get_wtime();
+                        refiner.refine_boundary(0.00005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
+                                                partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
+                                                NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, NNodes_before_healing, 
+                                                NElements_before_healing, act_iter+1); //*/
+                        refine_boundary_time = omp_get_wtime() - refine_boundary_tic;
+
+                        auto defrag_tic = omp_get_wtime();
+                        partition->defragment();
+                        defrag_time = omp_get_wtime() - defrag_tic;
+                        /*
+                        //Output refined partition in each iteration
+                        std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                        std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_boundary_part";
+                        vtu_filename_refine_output+=std::to_string(part_id);
+                        vtu_filename_refine_output+="_iteration";
+                        vtu_filename_refine_output+=std::to_string(act_iter+1);
+                        vtu_filename_refine_output+=".vtu";
+                        VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);//*/
+
+                        viennamesh::info(3) << "   Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " elements after boundary refinement" << std::endl;
+
+                        //Create TetGen objects
+                        tetgenio in;
+
+                        in.firstnumber = 0;
+
+                        in.numberofpoints = partition->get_number_nodes();
+                        in.pointlist = &(partition->_coords[0]);
+
+                        in.numberoftetrahedra = partition->get_number_elements();
+                        in.tetrahedronlist = &partition->_ENList[0];
+
+                        tetgenbehavior tet_behavior;
+
+                        tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
+                        
+                        //std::cout << " Tetgen Options: " << options << std::endl;
+
+                        auto tetrahedralize_tic = omp_get_wtime();
+                        //tetrahedralize(&tet_behavior, &in, &out);
+                        tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
+                        
+                        call_to_refine_time = omp_get_wtime() - tetrahedralize_tic;
+
+                        //tetgen_partitions[part_id] = in;
+
+                        in.pointlist = NULL;
+                        in.tetrahedronlist = NULL;
+                    } //end of else
 
                 } //end of tetgen
 
@@ -2923,9 +3118,60 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 ++workload[omp_get_thread_num()];
                 workload_elements[omp_get_thread_num()] += partition->get_number_elements();
                 get_interfaces_log[omp_get_thread_num()] += interfaces_toc - interfaces_tic;
+                defrag_log[omp_get_thread_num()] += defrag_time;
+                refine_boundary_log[omp_get_thread_num()] += refine_boundary_time;
 
                 //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
                 //int_check_log[omp_get_thread_num()] += int_check_time;
+                /*
+                //DEBUG
+                //output .node and .ele files for tetgen
+                ofstream node_file;
+                std::string node_file_name = "examples/data/color_refinement/output/tetgen_input_part_";
+                node_file_name+=std::to_string(part_id);
+                node_file_name+="_iteration";
+                node_file_name+=std::to_string(act_iter+1);
+                node_file_name+=".node";
+
+                node_file.open(node_file_name.c_str());
+
+                node_file << "# Node count, " << partition->get_number_dimensions() << " dim, no attribute, no boundary marker" << std::endl;
+                node_file << tetgen_partitions[part_id].numberofpoints << " " << partition->get_number_dimensions() << " 0 0" << std::endl;
+                
+                for (size_t vid = 0; vid < tetgen_partitions[part_id].numberofpoints; ++vid)
+                {
+                    node_file << vid+1 << " " << tetgen_partitions[part_id].pointlist[3*vid] << " " << tetgen_partitions[part_id].pointlist[3*vid+1];
+                    node_file << " " << tetgen_partitions[part_id].pointlist[3*vid+2] << std::endl;
+                }
+                node_file.close();
+
+                ofstream ele_file;
+                std::string ele_file_name = "examples/data/color_refinement/output/tetgen_input_part_";
+                ele_file_name+=std::to_string(part_id);
+                ele_file_name+="_iteration";
+                ele_file_name+=std::to_string(act_iter+1);
+                ele_file_name+=".ele";
+
+                ele_file.open(ele_file_name.c_str());
+
+                ele_file << "# Tetrahedra count, 4 nodes per tetrahedron, no region attribute" << std::endl;
+                ele_file << tetgen_partitions[part_id].numberoftetrahedra << " 4 0" << std::endl;
+                
+                for (size_t vid = 0; vid < tetgen_partitions[part_id].numberoftetrahedra; ++vid)
+                {
+                    if (tetgen_partitions[part_id].tetrahedronlist[4*vid] == -1)
+                    {
+                        std::cerr << " ERROR: no defragmentation of tetrahedronlist detected!" << std::endl;
+                        continue;
+                    }
+
+                    ele_file << vid+1 << " " << tetgen_partitions[part_id].tetrahedronlist[4*vid]+1 << " " << tetgen_partitions[part_id].tetrahedronlist[4*vid+1]+1;
+                    ele_file << " " << tetgen_partitions[part_id].tetrahedronlist[4*vid+2]+1 << " " << tetgen_partitions[part_id].tetrahedronlist[4*vid+3]+1 << std::endl;
+                }
+                ele_file.close();
+
+                //end of output .node and .ele files for tetgen
+                //END OF DEBUG*/
 
             }//end parallel for loop
         } //end for loop colors - iterate colors

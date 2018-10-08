@@ -443,12 +443,13 @@ public:
 
   // Free the memory allocated in 'tetgenio'.  Note that it assumes that the 
   //   memory was allocated by the "new" operator (C++).
-  void deinitialize()
+  void deinitialize()//(bool partial)
   {
     int i, j;
 
     if (pointlist != (REAL *) NULL) {
-      delete [] pointlist;
+      /*if (!partial)*/
+        delete [] pointlist;
     }
     if (pointattributelist != (REAL *) NULL) {
       delete [] pointattributelist;
@@ -464,7 +465,8 @@ public:
     }
 
     if (tetrahedronlist != (int *) NULL) {
-      delete [] tetrahedronlist;
+      /*if (!partial)*/
+        delete [] tetrahedronlist;
     }
     if (tetrahedronattributelist != (REAL *) NULL) {
       delete [] tetrahedronattributelist;
@@ -555,8 +557,19 @@ public:
   }
 
   // Constructor & destructor.
-  tetgenio() {initialize();}
- // ~tetgenio() {deinitialize();} \\MY IMPLEMENTATION
+  tetgenio() {
+    //std::cout << "constructor" << std::endl;
+    initialize();
+    }
+  ~tetgenio() {
+    //std::cout << "destructor" << std::endl;
+    deinitialize();
+    }
+    //MY IMPLEMENTATION
+  /*~tetgenio(bool partial) {
+    std::cout <<"partial destructor" << std::endl;
+    deinitialize(partial);
+  } //MY IMPLEMENTATION*/
 
  //MY IMPLEMENTATION
 /*
@@ -673,7 +686,7 @@ public:
         }
         delete [] vcelllist;
       }*/
-/*   }
+ /*  }
 
    return *this;
  }

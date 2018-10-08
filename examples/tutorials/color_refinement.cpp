@@ -98,6 +98,16 @@ int main(int argc, char *argv[])
 	consistency_check.set_default_source(color);
 	consistency_check.run();
 */
+	//Make statistic
+	viennamesh::algorithm_handle stats = context.make_algorithm("make_statistic");
+	stats.set_default_source(color);
+	//stats.set_input("histogram_bin", 1.0);
+	stats.set_input("histogram_min", 0.0);
+	stats.set_input("histogram_max", 3.0);
+	stats.set_input("histogram_bin_count", 30);
+	stats.set_input("metric_type", "min_dihedral_angle");
+	//stats.run();
+
 	//Write output mesh
 	viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
 	mesh_writer.set_default_source(color);
@@ -115,12 +125,12 @@ int main(int argc, char *argv[])
 	output_file+=std::to_string(num_threads);
 	output_file+="threads_";
 	output_file+=std::to_string(max_num_iterations);
-	output_file+="iterations";
+	output_file+="iterations_refineboundary";
 	output_file+=".vtu";
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
-	mesh_writer.run();//*/
+/*	mesh_writer.run();//*/
 //*/
     return -1;
 }

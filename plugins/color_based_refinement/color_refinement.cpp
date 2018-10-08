@@ -103,7 +103,7 @@ namespace viennamesh
 				return false;
 			}	
 
-			MeshPartitions InputMesh(input_mesh().mesh, num_partitions(), input_file().substr(found+1), num_threads()); 
+			MeshPartitions InputMesh(input_mesh().mesh, num_partitions(), input_file().substr(found+1), num_threads(), algorithm()); 
 
 			//SERIAL PART
 			auto overall_tic = std::chrono::system_clock::now();
@@ -154,6 +154,8 @@ namespace viennamesh
 			std::vector<size_t> workload;
 			std::vector<size_t> workload_elements;
 			std::vector<double> get_interfaces_log;
+			std::vector<double> defrag_log;
+			std::vector<double> refine_boundary_log;
 			auto for_time = 0.0;
 			auto prep_time = 0.0;
 
@@ -163,7 +165,7 @@ namespace viennamesh
 														algo, options, triangulate_log, int_check_log);//, build_tri_ds); //*/
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements,
-														max_num_iterations(), get_interfaces_log);//*/
+														max_num_iterations(), get_interfaces_log, defrag_log, refine_boundary_log);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
 			viennamesh::info(1) << 	"  Refinement time " << cpds_duration.count() << std::endl;
@@ -254,12 +256,18 @@ namespace viennamesh
 /*
 			for (size_t i =0; i < metric_log.size(); ++i)
 				csv << metric_log[i] << ", ";
-
-			for (size_t i =0; i < call_refine_log.size(); ++i)
-				csv << call_refine_log[i] << ", ";
 */
 			for (size_t i=0; i < get_interfaces_log.size(); ++i)
 				csv << get_interfaces_log[i] << ", ";
+
+			for (size_t i = 0; i < refine_boundary_log.size(); ++i)
+				csv << refine_boundary_log[i] << ", ";
+
+			for (size_t i=0; i < defrag_log.size(); ++i)
+				csv << defrag_log[i] << ", ";
+
+			for (size_t i =0; i < call_refine_log.size(); ++i)
+				csv << call_refine_log[i] << ", ";
 
 			for (size_t i =0; i < refine_log.size(); ++i)
 				csv << refine_log[i] << ", ";
@@ -320,7 +328,7 @@ namespace viennamesh
 
 			//TODO: REPLACE WITH TEMPLATED VERSION!!!
 			//convert pragmatic to viennagrid output
-			if (algo=="pragmatic")
+			if (algo=="pragmatic" || algo == "tetgen")
 			{
 				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
@@ -668,10 +676,14 @@ namespace viennamesh
 				{
 					for (size_t i = 0; i != InputMesh.tetgen_partitions.size(); ++i)
 					{
+						//std::cout << "  Converting mesh number " << i << std::endl;
 						//get basic mesh information
 						size_t NNodes = InputMesh.tetgen_partitions[i].numberofpoints;
 						size_t NElements = InputMesh.tetgen_partitions[i].numberoftetrahedra;
-
+/*
+						std::cout << "    Vertices: " << NNodes << std::endl;
+						std::cout << "    Elements: " << NElements << std::endl;
+*/
 						//create empty vector of size NNodes containing viennagrid vertices
 						std::vector<VertexType> vertex_handles(NNodes);
 
@@ -680,8 +692,8 @@ namespace viennamesh
 						{
 							vertex_handles[j] = viennagrid::make_vertex(output_mesh(), 
 																	viennagrid::make_point(InputMesh.tetgen_partitions[i].pointlist[3*j],
-																							InputMesh.tetgen_partitions[i].pointlist[3*j+1],
-																							InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
+																						   InputMesh.tetgen_partitions[i].pointlist[3*j+1],
+																						   InputMesh.tetgen_partitions[i].pointlist[3*j+2]));										
 						} //end of for loop iterating all pragmatic vertices 
 
 						//iterating all pragmatic elements and create their corresponding viennagrid triangles
@@ -697,9 +709,9 @@ namespace viennamesh
 						vertices += InputMesh.tetgen_partitions[i].numberofpoints;
 						elements += InputMesh.tetgen_partitions[i].numberoftetrahedra;
 
-						InputMesh.tetgen_partitions[i].deinitialize();
+						//InputMesh.tetgen_partitions[i].deinitialize();
 					}	
-				}//end of output mesh into a single file
+				}//end of output mesh into a single file*/
 
 				//multi mesh output
 				else
@@ -737,7 +749,7 @@ namespace viennamesh
 						vertices += InputMesh.tetgen_partitions[i].numberofpoints;
 						elements += InputMesh.tetgen_partitions[i].numberoftetrahedra;
 
-						InputMesh.tetgen_partitions[i].deinitialize();
+						//InputMesh.tetgen_partitions[i].deinitialize();
 					}	
 				} //end of multi mesh output	
 			} //end of Tetgen
