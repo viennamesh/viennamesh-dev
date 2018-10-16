@@ -7,7 +7,7 @@
 
 namespace viennamesh {
 
-    namespace vtk {
+    namespace VTK_PolyData {
 
         decimate_pro::decimate_pro() {}
 
@@ -15,10 +15,10 @@ namespace viennamesh {
             info(5) << "Running vtk_decimate_pro." << std::endl;
 
             // Get required input parameters
-            data_handle<vtk::mesh> input_mesh = get_required_input<vtk::mesh>("mesh");
+            data_handle<VTK_PolyData::mesh> input_mesh = get_required_input<VTK_PolyData::mesh>("mesh");
             data_handle<double> reductionPercentage = get_required_input<double>("reduction_percentage");
 
-            data_handle<vtk::mesh> output_mesh = make_data<vtk::mesh>();
+            data_handle<VTK_PolyData::mesh> output_mesh = make_data<VTK_PolyData::mesh>();
 
             // Get optional input parameters
             data_handle<int> preserveTopology = get_input<int>("preserve_topology");

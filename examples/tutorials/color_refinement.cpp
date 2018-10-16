@@ -108,6 +108,16 @@ int main(int argc, char *argv[])
 	stats.set_input("metric_type", "min_dihedral_angle");
 	//stats.run();
 
+	//VTK merge points
+	/*viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
+	merger.set_default_source(color);
+	merger.run();//*/
+/*
+	//VTK mesh quality
+	viennamesh::algorithm_handle mesh_quality = context.make_algorithm("vtk_mesh_quality");
+	mesh_quality.set_default_source(color);
+	mesh_quality.run();//*/
+
 	//Write output mesh
 	viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
 	mesh_writer.set_default_source(color);

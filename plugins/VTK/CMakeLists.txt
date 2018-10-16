@@ -23,6 +23,7 @@ VIENNAMESH_ADD_PLUGIN( viennamesh-module-vtk
         vtk_quadric_clustering.cpp
         vtk_quadric_decimation.cpp
         vtk_mesh_quality.cpp
+        vtk_merge_points.cpp
         )
 
 target_link_libraries(viennamesh-module-vtk ${VTK_LIBRARIES} ${VTK_3RD_PARTY_LIBRARIES} )

@@ -23,7 +23,7 @@
 
 namespace viennamesh
 {
-  namespace vtk
+  namespace VTK_PolyData
   {
       class vtkPolyDataWrapper
       {
@@ -34,18 +34,19 @@ namespace viennamesh
               {
                   static int id = 0;
                   m_ID = id++;
-                  debug(5) << "Create new vtk mesh with id: " << m_ID << std::endl;
+                  //info(5) << "Create new vtk mesh with id: " << m_ID << std::endl;
               }
               ~vtkPolyDataWrapper()
               {
-                  if (!m_IsCopy)
+                  /*if (!m_IsCopy)
                   {
-                      debug(5) << "Delete vtk mesh with id: " << m_ID << std::endl;
+                      info(5) << "Delete vtk mesh with id: " << m_ID << std::endl;
                   }
                   else
                   {
-                      debug(5) << "Delete vtk poly data wrapper copy with id: " << m_ID << std::endl;
-                  }
+                      info(5) << "Delete vtk poly data wrapper copy with id: " << m_ID << std::endl;
+                  }*/
+                  ;
               }
               vtkPolyDataWrapper(const vtkPolyDataWrapper& cpy) :
                       m_Mesh(cpy.m_Mesh),
@@ -73,22 +74,22 @@ namespace viennamesh
       typedef vtkPolyDataWrapper mesh;
   }
 
-    viennamesh_error convert(viennagrid::mesh const & input, vtk::mesh & output);
-    viennamesh_error convert(vtk::mesh const & input, viennagrid::mesh & output);
+    viennamesh_error convert(viennagrid::mesh const & input, VTK_PolyData::mesh & output);
+    viennamesh_error convert(VTK_PolyData::mesh const & input, viennagrid::mesh & output);
 
     template<>
-    viennamesh_error internal_convert<viennagrid_mesh, vtk::mesh>(viennagrid_mesh const & input, vtk::mesh & output);
+    viennamesh_error internal_convert<viennagrid_mesh, VTK_PolyData::mesh>(viennagrid_mesh const & input, VTK_PolyData::mesh & output);
     template<>
-    viennamesh_error internal_convert<vtk::mesh, viennagrid_mesh>(vtk::mesh const & input, viennagrid_mesh & output);
+    viennamesh_error internal_convert<VTK_PolyData::mesh, viennagrid_mesh>(VTK_PolyData::mesh const & input, viennagrid_mesh & output);
 
   namespace result_of
   {
     template<>
-    struct data_information<vtk::mesh>
+    struct data_information<VTK_PolyData::mesh>
     {
-      static std::string type_name() { return "vtk::mesh"; }
-      static viennamesh_data_make_function make_function() { return generic_make<vtk::mesh>; }
-      static viennamesh_data_delete_function delete_function() { return generic_delete<vtk::mesh>; }
+      static std::string type_name() { return "VTK_PolyData::mesh"; }
+      static viennamesh_data_make_function make_function() { return generic_make<VTK_PolyData::mesh>; }
+      static viennamesh_data_delete_function delete_function() { return generic_delete<VTK_PolyData::mesh>; }
     };
   }
 

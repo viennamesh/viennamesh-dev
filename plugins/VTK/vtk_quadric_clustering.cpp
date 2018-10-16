@@ -5,7 +5,7 @@
 
 namespace viennamesh {
 
-    namespace vtk {
+    namespace VTK_PolyData {
 
         quadric_clustering::quadric_clustering() {}
 
@@ -13,12 +13,12 @@ namespace viennamesh {
             info(5) << "Running vtk_quadric_clustering." << std::endl;
 
             // Get required input parameters
-            data_handle<vtk::mesh> input_mesh = get_required_input<vtk::mesh>("mesh");
+            data_handle<VTK_PolyData::mesh> input_mesh = get_required_input<VTK_PolyData::mesh>("mesh");
             data_handle<int> xDivision = get_required_input<int>("x_division");
             data_handle<int> yDivision = get_required_input<int>("y_division");
             data_handle<int> zDivision = get_required_input<int>("z_division");
 
-            data_handle<vtk::mesh> output_mesh = make_data<vtk::mesh>();
+            data_handle<VTK_PolyData::mesh> output_mesh = make_data<VTK_PolyData::mesh>();
 
             // Get optional input parameters
             data_handle<int> useInputPoints = get_input<int>("use_input_points");

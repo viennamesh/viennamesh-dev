@@ -249,7 +249,7 @@ namespace viennamesh
           auto writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
           writer->SetFileName(ostr.str().c_str());
           writer->SetInputData(polydata);
-          // writer->SetDataModeToAscii();
+          //writer->SetDataModeToAscii();
           writer->SetDataModeToBinary();
           writer->Write();
 
