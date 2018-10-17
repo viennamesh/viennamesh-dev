@@ -1,5 +1,5 @@
 #include "vtk_quadric_decimation.hpp"
-#include "vtk_mesh.hpp"
+#include "vtp_mesh.hpp"
 
 #include <vtkQuadricDecimation.h>
 

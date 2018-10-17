@@ -4,7 +4,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include "viennagrid/viennagrid.hpp"
-#include "vtk_mesh.hpp"
+#include "vtp_mesh.hpp"
 #include <vtkDoubleArray.h>
 #include <vtkTetra.h>
 
@@ -85,87 +85,7 @@ namespace viennamesh {
         {
             std::cerr << "\nTODO: conversion to 3D volume mesh in VTK format" << std::endl;
             
-            //create basic data
-            auto output = vtkSmartPointer<vtkPolyData>::New();
-            auto points = vtkSmartPointer<vtkPoints>::New();
-            auto cells = vtkSmartPointer<vtkCellArray>::New();
-            auto data = vtkSmartPointer<vtkDoubleArray>::New();
-            data->SetNumberOfComponents(1);
-
-            //get basic mesh information
-            size_t NNodes = viennagrid::vertex_count(input);
-            size_t NElements = viennagrid::cells(input).size();
-            size_t cell_dimension = viennagrid::cell_dimension(input);
-            size_t geometric_dimension = viennagrid::geometric_dimension(input);
-
-            //Initialize x-, y-, and, z-coordinates
-            //
-            //create pointer to iterate over viennagrid_array
-            viennagrid_numeric* ptr_coords = nullptr;
-
-            //get pointer to coordinates array from the mesh
-            viennagrid_mesh_vertex_coords_pointer(input.internal(), &ptr_coords);
-
-            for (size_t i = 0; i < NNodes; ++i)
-            {
-                if (geometric_dimension == 2)
-                {
-                    //double xyz[3] = {*(ptr_coords++), *(ptr_coords++), 0.0};
-                    double xyz[3] = {ptr_coords[0], ptr_coords[1], 0.0};
-                    points->InsertNextPoint(xyz);
-                }
-
-                else
-                {
-                    //double xyz[3] = {*(ptr_coords++), *(ptr_coords++), *(ptr_coords++)};
-                    double xyz[3] = {ptr_coords[0], ptr_coords[1], ptr_coords[2]};
-                    points->InsertNextPoint(xyz);
-                }
-            } //end of for (size_t i = 0; i < NNodes; ++i)
-
-            //Iterate over all tetrahedra in the mesh
-            viennagrid_element_id * element_ids_begin;
-            viennagrid_element_id * element_ids_end;
-            viennagrid_dimension topological_dimension = geometric_dimension;		//produces segmentation fault if not set to 2 for 2d and to 3 for 3d case
-
-            //get elements from mesh
-            viennagrid_mesh_elements_get(input.internal(), topological_dimension, &element_ids_begin, &element_ids_end);
-
-            viennagrid_element_id * boundary_vertex_ids_begin;
-            viennagrid_element_id * boundary_vertex_ids_end;
-            viennagrid_dimension boundary_topological_dimension = 0;
-            viennagrid_element_id cell_id;
-
-            //outer for loop iterates over all elements with dimension = topological_dimension (2 for triangles, 3 for tetrahedrons)
-            //inner for loop iterates over all elements with dimension = boundary_topological_dimension (0 for vertices)
-            for (viennagrid_element_id * vit = element_ids_begin; vit != element_ids_end; ++vit)
-            {
-                //get vertices of triangle
-                cell_id = *vit;
-                viennagrid_element_boundary_elements(input.internal(), cell_id, boundary_topological_dimension, &boundary_vertex_ids_begin, &boundary_vertex_ids_end);
-
-                auto tmp_tetrahedron = vtkSmartPointer<vtkTetra>::New();
-
-                int vid = 0;
-                for (viennagrid_element_id * bit = boundary_vertex_ids_begin; bit != boundary_vertex_ids_end; ++bit)
-                {
-                    viennagrid_element_id vertex_id = *bit;
-
-                    tmp_tetrahedron->GetPointIds()->SetId(vid, *bit);
-
-                    ++vid;
-                }
-
-                cells->InsertNextCell(tmp_tetrahedron);
-            } //end of for (viennagrid_element_id * vit = element_ids_begin; vit != element_ids_end; ++vit)
-
-            output->SetPoints(points);
-            output->SetPolys(cells);
-
-            std::cout << "Vertices after conversion: " << output->GetNumberOfPoints() << " Elements after conversion: " << output->GetNumberOfCells() << std::endl;
-            std::cout << output << std::endl;
-
-            return true;
+            return false;
         } //end of if geometric_dimension == 3
 
         else

@@ -1,5 +1,5 @@
 #include "vtk_decimate_pro.hpp"
-#include "vtk_mesh.hpp"
+#include "vtp_mesh.hpp"
 
 #include <vtkDecimatePro.h>
 #include <vtkPLYReader.h>

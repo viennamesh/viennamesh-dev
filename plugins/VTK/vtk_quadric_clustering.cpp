@@ -1,5 +1,5 @@
 #include "vtk_quadric_clustering.hpp"
-#include "vtk_mesh.hpp"
+#include "vtp_mesh.hpp"
 
 #include <vtkQuadricClustering.h>
 

@@ -1,5 +1,5 @@
-#ifndef VIENNAMESH_ALGORITHM_VTK_MESH_HPP
-#define VIENNAMESH_ALGORITHM_VTK_MESH_HPP
+#ifndef VIENNAMESH_ALGORITHM_VTP_MESH_HPP
+#define VIENNAMESH_ALGORITHM_VTP_MESH_HPP
 
 /* ============================================================================
    Copyright (c) 2011-2014, Institute for Microelectronics,

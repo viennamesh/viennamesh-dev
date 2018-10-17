@@ -109,16 +109,18 @@ int main(int argc, char *argv[])
 	//stats.run();
 
 	//VTK merge points
-	/*viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
+	viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
 	merger.set_default_source(color);
 	merger.run();//*/
-/*
+
 	//VTK mesh quality
 	viennamesh::algorithm_handle mesh_quality = context.make_algorithm("vtk_mesh_quality");
-	mesh_quality.set_default_source(color);
+	mesh_quality.set_default_source(merger);
+	mesh_quality.set_input("EdgeRatio", true);
 	mesh_quality.run();//*/
-
-	//Write output mesh
+	
+	/*
+	//Write unmerged output mesh
 	viennamesh::algorithm_handle mesh_writer = context.make_algorithm("mesh_writer");
 	mesh_writer.set_default_source(color);
 	
@@ -141,6 +143,30 @@ int main(int argc, char *argv[])
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer.set_input("filename", output_file.c_str());
 	mesh_writer.run();//*/
+
+	//Write merged output mesh
+	viennamesh::algorithm_handle mesh_writer_merged = context.make_algorithm("mesh_writer");
+	mesh_writer_merged.set_default_source(merger);
+	
+	//construct filename
+	size_t found_merged = filename.find_last_of("/");
+	size_t find_merged_vtu = filename.find_last_of(".");
+	std::string output_file_merged = "examples/data/color_refinement/output/";
+	output_file_merged+=filename.substr(found_merged+1, find_merged_vtu-found_merged-1);
+	output_file_merged+="_";
+	output_file_merged+=algorithm;
+	output_file_merged+="_";
+	output_file_merged+=std::to_string(region_count);
+	output_file_merged+="partitions_";
+	output_file_merged+=std::to_string(num_threads);
+	output_file_merged+="threads_";
+	output_file_merged+=std::to_string(max_num_iterations);
+	output_file_merged+="iterations_refineboundary_merged";
+	output_file_merged+=".vtu";
+
+	//mesh_writer.set_input("filename", "pragmatic.vtu");
+	mesh_writer_merged.set_input("filename", output_file_merged.c_str());
+	mesh_writer_merged.run();//*/
 //*/
     return -1;
 }

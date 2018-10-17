@@ -467,9 +467,7 @@ namespace viennamesh
 
 							//Update total number of vertices and elements
 							vertices += InputMesh.pragmatic_partitions[i]->get_number_nodes();
-							elements += InputMesh.pragmatic_partitions[i]->get_number_elements();
-
-							
+							elements += InputMesh.pragmatic_partitions[i]->get_number_elements();							
 						}
 					} //end of if (single mesh output)
 

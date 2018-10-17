@@ -18,7 +18,8 @@ include( ${VTK_USE_FILE} )
 
 VIENNAMESH_ADD_PLUGIN( viennamesh-module-vtk
         plugin.cpp
-        vtk_mesh.cpp
+        vtp_mesh.cpp
+        vtk_ug_mesh.cpp
         vtk_decimate_pro.cpp
         vtk_quadric_clustering.cpp
         vtk_quadric_decimation.cpp
