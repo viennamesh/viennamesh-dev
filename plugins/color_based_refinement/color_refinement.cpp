@@ -332,8 +332,6 @@ namespace viennamesh
 			{
 				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
-				viennamesh::info(1) << "  DUPLICATE VERTICES ARE CREATED WITHIN THIS CONVERSION!!!" << std::endl;
-				viennamesh::info(1) << "  REWRITE THE CODE TO AVOID THIS ISSUE!!!" << std::endl;
 
 				if (dimension == 2)
 				{	

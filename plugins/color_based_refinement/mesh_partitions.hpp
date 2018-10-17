@@ -3059,6 +3059,12 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         auto defrag_tic = omp_get_wtime();
                         partition->defragment();
                         defrag_time = omp_get_wtime() - defrag_tic;
+
+                        l2g_vertex[part_id] = l2g_vertices_tmp;
+                        g2l_vertex[part_id] = g2l_vertices_tmp;
+                        l2g_element[part_id] = l2g_elements_tmp;
+                        g2l_element[part_id] = g2l_elements_tmp;
+                        outboxes[part_id] = outbox_data; 
                         /*
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
@@ -3070,34 +3076,38 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);//*/
 
                         viennamesh::info(3) << "   Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " elements after boundary refinement" << std::endl;
-
-                        //Create TetGen objects
-                        tetgenio in;
-
-                        in.firstnumber = 0;
-
-                        in.numberofpoints = partition->get_number_nodes();
-                        in.pointlist = &(partition->_coords[0]);
-
-                        in.numberoftetrahedra = partition->get_number_elements();
-                        in.tetrahedronlist = &partition->_ENList[0];
-
-                        tetgenbehavior tet_behavior;
-
-                        tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
                         
-                        //std::cout << " Tetgen Options: " << options << std::endl;
+                        if ( act_iter == (max_num_iterations-1) )
+                        {
+                            //Create TetGen objects
+                            tetgenio in;
 
-                        auto tetrahedralize_tic = omp_get_wtime();
-                        //tetrahedralize(&tet_behavior, &in, &out);
-                        tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
-                        
-                        call_to_refine_time = omp_get_wtime() - tetrahedralize_tic;
+                            in.firstnumber = 0;
 
-                        //tetgen_partitions[part_id] = in;
+                            in.numberofpoints = partition->get_number_nodes();
+                            in.pointlist = &(partition->_coords[0]);
 
-                        in.pointlist = NULL;
-                        in.tetrahedronlist = NULL;
+                            in.numberoftetrahedra = partition->get_number_elements();
+                            in.tetrahedronlist = &partition->_ENList[0];
+
+                            tetgenbehavior tet_behavior;
+
+                            tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
+                            
+                            //std::cout << " Tetgen Options: " << options << std::endl;
+
+                            auto tetrahedralize_tic = omp_get_wtime();
+                            //tetrahedralize(&tet_behavior, &in, &out);
+                            viennamesh::info(3) << "  Tetrahedralize Partition " << part_id << std::endl;
+                            tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
+                            
+                            call_to_refine_time = omp_get_wtime() - tetrahedralize_tic;
+
+                            //tetgen_partitions[part_id] = in;
+
+                            in.pointlist = NULL;
+                            in.tetrahedronlist = NULL;
+                        }
                     } //end of else
 
                 } //end of tetgen

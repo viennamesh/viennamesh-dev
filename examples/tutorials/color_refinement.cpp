@@ -98,6 +98,13 @@ int main(int argc, char *argv[])
 	consistency_check.set_default_source(color);
 	consistency_check.run();
 */
+
+	//VTK merge points
+	viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
+	merger.set_default_source(color);
+	merger.run();//*/
+
+/*
 	//Make statistic
 	viennamesh::algorithm_handle stats = context.make_algorithm("make_statistic");
 	stats.set_default_source(color);
@@ -105,14 +112,10 @@ int main(int argc, char *argv[])
 	stats.set_input("histogram_min", 0.0);
 	stats.set_input("histogram_max", 3.0);
 	stats.set_input("histogram_bin_count", 30);
-	stats.set_input("metric_type", "min_dihedral_angle");
-	//stats.run();
-
-	//VTK merge points
-	viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
-	merger.set_default_source(color);
-	merger.run();//*/
-
+	stats.set_input("metric_type", "radius_ratio");
+	stats.run();//*/
+	
+/*
 	//VTK mesh quality
 	viennamesh::algorithm_handle mesh_quality = context.make_algorithm("vtk_mesh_quality");
 	mesh_quality.set_default_source(merger);
