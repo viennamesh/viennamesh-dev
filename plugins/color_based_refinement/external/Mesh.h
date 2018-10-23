@@ -503,203 +503,120 @@ public:
     void get_interfaces(std::vector<std::vector<std::vector<int>>>& NNInterfaces, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, 
                         std::unordered_map<int,int>& g2l_vertices, const int part_id,/* std::vector<std::vector<int>>& FInterfaces,*/ const int iteration)
     {
-        //std::cout << "DO I REALLY NEED TO CALL THIS FUNCTION IN EVERY ITERATION OR CAN I SIMPLY CALL IT ONCE AND THEN JUST UPDATE THE DATA AS NECESSARY?" << std::endl;//*/
-       /* std::cout << " Partition: " << part_id << std::endl;
-        std::cout << " Iteration: " << iteration << std::endl;
-        //std::cout << " NNodes: " << NNodes << std::endl;
-        NNInterfaces.clear();
-
-        std::cout << " This function probably creates an NNInterface container, which leads to segmentation faults!!!" << std::endl;
-        
-        std::cout << " get interfaces of " << NElements << " elements" << std::endl;
-       // std::cout << "include interface getting process into function create_boundary()" << std::endl;
-        std::cout << " NNodes in partition: " << NNodes << std::endl;
-        std::cout << " NNInterfaces.size()= " << NNInterfaces.size() << std::endl;//*/
-                    
-        //2D case
-        //if (ndims == 2)
+        NNInterfaces.resize(NNodes);
+        for (size_t i = 0; i < NNodes; ++i)
         {
-            NNInterfaces.resize(NNodes);
-           // std::cout << "    NNInterfaces.size() after resizing: " << NNInterfaces.size() << std::endl;
-            for (size_t i = 0; i < NNodes; ++i)
+            
+            //use this only with 3D NNInterfaces vector!!!
+            NNInterfaces[i].resize(NNList[i].size());
+
+            for (size_t j = 0; j < NNList[i].size(); ++j)
             {
-                /*std::cout << "      processing vertex " << i << " in partition " << part_id << std::endl;
-                std::cout << "      NNList[" << i << "] contains " << NNList[i].size() << " vertices in partition " << part_id << std::endl;//*/
-                /*
-                //DEBUG
-                for (auto nnl_iter : NNList[i])
-                {
-                    std::cout << "        " << nnl_iter << std::endl;
-                }
-                //END OF DEBUG*/
+                int otherVertex = NNList[i][j];
                 
-                //use this only with 3D NNInterfaces vector!!!
-                NNInterfaces[i].resize(NNList[i].size());
-
-                for (size_t j = 0; j < NNList[i].size(); ++j)
+                if ( (nodes_part_ids[ l2g_vertices[i] ].size() > 1) && (nodes_part_ids[ l2g_vertices[otherVertex] ].size() > 1) )
                 {
-                    int otherVertex = NNList[i][j];
-                    //std::cout << "        this is neighbor number " << j << " (ID: " << NNList[i][j] << ") of vertex " << i << std::endl;
-                    //std::cout << "    checking edge between " << i << " and " << otherVertex << std::endl;
-                   /* std::cout << "    l2g[" << i << "]: " << l2g_vertices[i] << ", l2g[" << otherVertex << "]: " << l2g_vertices[otherVertex] << std::endl;
-                    std::cout << "     " << nodes_part_ids[ l2g_vertices[i] ].size() << " " << nodes_part_ids[ l2g_vertices[otherVertex] ].size() << std::endl;
-                    */
-                   /*
-                    std::cout << "         nodes_part_ids[" << l2g_vertices[i] << "]:" << std::endl;
-                    for (auto iterator : nodes_part_ids[ l2g_vertices[i] ])
-                        std::cout << "          " << iterator << std::endl;
 
-                    std::cout << "         nodes_part_ids[" << l2g_vertices[otherVertex] << "]:" << std::endl;
-                    for (auto iterator : nodes_part_ids[ l2g_vertices[otherVertex] ])
-                        std::cout << "          " << iterator << std::endl;
-                //*/
-                    if ( (nodes_part_ids[ l2g_vertices[i] ].size() > 1) && (nodes_part_ids[ l2g_vertices[otherVertex] ].size() > 1) )
+                    std::vector<int> interface_edge;
+                    set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
+                                        nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
+                                        inserter(interface_edge, interface_edge.begin()));
+
+                    if (interface_edge.size() == 2)
                     {
-
-                        std::vector<int> interface_edge;
-                        //std::cout << "  set_intersection" << std::endl;
-                        set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
-                                         nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
-                                         inserter(interface_edge, interface_edge.begin()));
-
-                        //std::cout << "            interface_edge.size() " << interface_edge.size() << std::endl;
-                        //std::cout << "            " << interface_edge[0] << " " << interface_edge[1] << std::endl;
-
-                        if (interface_edge.size() == 2)
+                        if (interface_edge[0] == part_id)
                         {
-                            if (interface_edge[0] == part_id)
-                            {
-                                //std::cout << "              1 interface between " << i << " and " << otherVertex << std::endl;
-                                //NNInterfaces[i].push_back(interface_edge[1]);
-                                NNInterfaces[i][j].push_back(interface_edge[1]);
-                                //std::cout << "    added to NNInterface" << std::endl;
-                            }
-
-                            else if (interface_edge[1] == part_id)
-                            {
-                                //std::cout << "              2 interface between " << i << " and " << otherVertex << std::endl;
-                                //NNInterfaces[i].push_back(interface_edge[0]);
-                                NNInterfaces[i][j].push_back(interface_edge[0]);
-                                //std::cout << "    added to NNInterface" << std::endl;
-                            }
-
-                            else
-                            {
-                                std::cout << "interface problem in partition " << part_id << " with local vertices " << i << " and " << otherVertex << std::endl;
-                                
-                                for (size_t auto_iter : interface_edge)
-                                {
-                                    std::cout << "                " << auto_iter << std::endl;
-                                }
-                            }
+                            NNInterfaces[i][j].push_back(interface_edge[1]);
                         }
 
-                        else if (interface_edge.size() > 2)
+                        else if (interface_edge[1] == part_id)
                         {
-                           /* std::cout << "  processing vertex " << i << " of partition " << part_id << std::endl;
-                            std::cout << "  NNList[" << i << "] contains " << NNList[i].size() << " vertices in partition " << part_id << std::endl;//*/
-                           /* std::cerr << "    ERROR IN GET_INTERFACES()" << std::endl;
-                            std::cerr << "    This edge is part of more than two partitions, namely:" << std::endl;//*/
-
-                            for (auto inter_it : interface_edge)
-                            {
-                                if (inter_it != part_id)
-                                {
-                                    //std::cout << "              pushing back " << inter_it << std::endl;
-                                    //std::cout << "      CHECK IF I CAN PUSH BACK TWO VALUES, BECAUSE INDICES ARE IMPLICIT!!!!!" << std::endl;//*/
-                                    //NNInterfaces[i].push_back(inter_it);
-                                    NNInterfaces[i][j].push_back(inter_it);
-                                }
-
-                                /*else 
-                                {
-                                    std::cout << "              we have a problem now" << std::endl;
-                                    std::cout << "                " << inter_it << " part_id " << part_id << std::endl;
-                                }*/
-                            }
-
-                            /*
-                            //DEBUG
-                            for (auto err_it : interface_edge)
-                            {
-                                std::cout << "      ";
-                                //if (err_it != part_id)
-                                {
-                                    std::cout << " " << err_it ;
-                                }
-                                std::cout << std::endl;
-                            }
-                            //END OF DEBUG*/
+                            NNInterfaces[i][j].push_back(interface_edge[0]);
                         }
-                    
+
                         else
                         {
-                            /*std::cout << "    simple edge between " << i << " and " << otherVertex << std::endl;
-                            std::cout << "    DO WE EVEN GET HERE???" << std::endl;//*/
-                            //NNInterfaces[i].push_back(-1);
-                            NNInterfaces[i][j].push_back(-1);
+                            std::cout << "interface problem in partition " << part_id << " with local vertices " << i << " and " << otherVertex << std::endl;
+                            
+                            for (size_t auto_iter : interface_edge)
+                            {
+                                std::cout << "                " << auto_iter << std::endl;
+                            }
                         }
                     }
 
+                    else if (interface_edge.size() > 2)
+                    {
+                        for (auto inter_it : interface_edge)
+                        {
+                            if (inter_it != part_id)
+                            {
+                                NNInterfaces[i][j].push_back(inter_it);
+                            }
+                        }
+                    }
+                
                     else
                     {
-                        //std::cout << "              simple edge between " << i << " and " << otherVertex << std::endl;
-                        //NNInterfaces[i].push_back(-1);
                         NNInterfaces[i][j].push_back(-1);
                     }
-                } //end of for loop*/
-                /*std::cout << std::endl;//*/
-            }
-/*
-            //DEBUG
-            std::ofstream nninterfaces_out;
-            std::string name;
-            name = "debug_output/nninterfaces_partition";
-            name += std::to_string(part_id);
-            name += "_iteration";
-            name += std::to_string(iteration);
-            name += ".txt";
-            nninterfaces_out.open(name.c_str());
+                }
 
-            for (size_t i = 0; i < NNInterfaces.size(); ++i)
-            {
-                nninterfaces_out << "Vertex " << i << " has (NNInterfaces.size()) " << NNInterfaces[i].size() << " neighbors (NNList.size(): " << NNList[i].size() << ")" << std::endl;
-
-                for (size_t j=0; j < NNInterfaces[i].size(); ++j)
+                else
                 {
-                    nninterfaces_out << " " << NNList[i][j];
+                    NNInterfaces[i][j].push_back(-1);
+                }
+            } //end of for (size_t j = 0; j < NNList[i].size(); ++j)
+        } //end of for (size_t i = 0; i < NNodes; ++i)
 
-                    for (size_t k = 0; k < NNInterfaces[i][j].size(); ++k)
-                    {
-                        nninterfaces_out << ": " << NNInterfaces[i][j][k] << std::endl;
-                    }
+        //DEBUG
+        std::ofstream nninterfaces_out;
+        std::string name;
+        name = "debug_output/nninterfaces_partition";
+        name += std::to_string(part_id);
+        name += "_iteration";
+        name += std::to_string(iteration);
+        name += ".txt";
+        nninterfaces_out.open(name.c_str());
+
+        for (size_t i = 0; i < NNInterfaces.size(); ++i)
+        {
+            nninterfaces_out << "Vertex " << i << " has (NNInterfaces.size()) " << NNInterfaces[i].size() << " neighbors (NNList.size(): " << NNList[i].size() << ")" << std::endl;
+
+            for (size_t j=0; j < NNInterfaces[i].size(); ++j)
+            {
+                nninterfaces_out << " " << NNList[i][j];
+
+                for (size_t k = 0; k < NNInterfaces[i][j].size(); ++k)
+                {
+                    nninterfaces_out << ": " << NNInterfaces[i][j][k] << std::endl;
                 }
             }
+        }
 
-            nninterfaces_out.close();
+        nninterfaces_out.close();
 
-            std::ofstream nnlist;
-            std::string nnlist_name = "debug_output/nnlist_after_getinterfaces_partition";
-            nnlist_name += std::to_string(part_id);
-            nnlist_name += "_iteration";
-            nnlist_name += std::to_string(iteration);
-            nnlist_name+=".txt";
+        std::ofstream nnlist;
+        std::string nnlist_name = "debug_output/nnlist_after_getinterfaces_partition";
+        nnlist_name += std::to_string(part_id);
+        nnlist_name += "_iteration";
+        nnlist_name += std::to_string(iteration);
+        nnlist_name+=".txt";
 
-            nnlist.open(nnlist_name.c_str());
+        nnlist.open(nnlist_name.c_str());
 
-            for (size_t i = 0; i < NNList.size(); ++i)
+        for (size_t i = 0; i < NNList.size(); ++i)
+        {
+            nnlist << "Vertex " << i << " has " << NNList[i].size() << " neighbors" << std::endl;
+
+            for (size_t j = 0; j < NNList[i].size(); ++j)
             {
-                nnlist << "Vertex " << i << " has " << NNList[i].size() << " neighbors" << std::endl;
-
-                for (size_t j = 0; j < NNList[i].size(); ++j)
-                {
-                    nnlist << " " << NNList[i][j] << std::endl;
-                }
+                nnlist << " " << NNList[i][j] << std::endl;
             }
+        }
 
-            nnlist.close();
-            //END OF DEBUG*/
-        } //end of 2D case
+        nnlist.close();
+        //END OF DEBUG*/
 
         // //3D case
         // if (ndims == 3)//else
@@ -1444,6 +1361,48 @@ public:
         return length;
     }
 
+    real_t calc_edge_length_log(index_t nid0, index_t nid1) const
+    {
+        double l0, l1;
+        if (ndims==2) {
+            l0 = ElementProperty<real_t>::length2d(get_coords(nid0), get_coords(nid1), get_metric(nid0));
+            l1 = ElementProperty<real_t>::length2d(get_coords(nid0), get_coords(nid1), get_metric(nid1));
+        }
+        else {
+            l0 = ElementProperty<real_t>::length3d(get_coords(nid0), get_coords(nid1), get_metric(nid0));
+            l1 = ElementProperty<real_t>::length3d(get_coords(nid0), get_coords(nid1), get_metric(nid1));
+        }
+        
+        if (fabs(l0-l1)<1e-10) {
+            /*std::cout << std::endl <<  "nid0 " << nid0 << " nid1 " << nid1 << std::endl;
+            std::cout << "l0 " << l0 << " l1 " << l1 << std::endl;//*/
+            assert(l0>1e-10);
+            /*
+            if (l0!=l0)
+            {
+                std::cout << std::endl <<  "nid0 " << nid0 << " nid1 " << nid1 << std::endl;
+                std::cout << "l0 " << l0 << " l1 " << l1 << std::endl;
+            }//*/
+
+            return l0;
+        }
+        else {
+            double r = l0/l1;
+            double length = l0 * (r-1)/(r*log(r));
+            assert(l0>1e-10);
+            /*
+            if (length!=length)
+            {
+                std::cout << std::endl <<  "nid0 " << nid0 << " nid1 " << nid1 << std::endl;
+                std::cout << "l0 " << l0 << " l1 " << l1 << std::endl;
+                std::cout << "length " << length << std::endl;
+            }//*/
+
+            return length;
+        }
+        
+    }
+
     real_t maximal_edge_length() const
     {
         double L_max = 0.0;
@@ -1970,6 +1929,7 @@ private:
     template<typename _real_t, int _dim> friend class Swapping;
     template<typename _real_t, int _dim> friend class Coarsen;
     template<typename _real_t, int _dim> friend class Refine;
+    template<typename _real_t, int _dim> friend class Refine_Cavity;
     template<typename _real_t> friend class DeferredOperations;
     template<typename _real_t> friend class VTKTools;
     friend class MeshPartitions;

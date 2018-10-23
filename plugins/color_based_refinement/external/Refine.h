@@ -305,6 +305,14 @@ public:
                                     if (NNInterfaces[i][it][0] != -1) //adapt edge on the interface of the partition
                                     {
                                         target_part_id = NNInterfaces[i][it][0];
+
+                                        //skip refinement if color of target_partition is smaller than own color
+                                        if (partition_colors[target_part_id] < partition_colors[part_id])
+                                        {
+                                            --splitCnt[tid];
+                                            continue;
+                                        }
+
                                         //std::cout << "          adapt interface " << i << " " << otherVertex << " " << target_part_id << std::endl;
                                         refine_edge(i, otherVertex, tid, outbox_data, l2g_vertices, target_part_id);
                                         edge_neighs_tmp.insert(target_part_id);
@@ -353,6 +361,14 @@ public:
                                     if (NNInterfaces[i][it][0] != -1) //adapt edge on the interface of the partition
                                     {
                                         target_part_id = NNInterfaces[i][it][0];
+
+                                        //skip refinement if color of target_partition is smaller than own color
+                                        if (partition_colors[target_part_id] < partition_colors[part_id])
+                                        {
+                                            --splitCnt[tid];
+                                            continue;
+                                        }
+
                                         //std::cout << "          adapt interface " << i << " " << otherVertex << " " << target_part_id << std::endl;
                                         refine_edge(i, otherVertex, tid, outbox_data, l2g_vertices, target_part_id);
                                         edge_neighs_tmp.insert(target_part_id);                                        

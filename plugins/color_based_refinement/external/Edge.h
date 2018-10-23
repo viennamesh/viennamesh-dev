@@ -193,10 +193,8 @@ public:
     template<typename _real_t, int _dim> friend class Coarsen;
     template<typename _real_t, int _dim> friend class Swapping;
     template<typename _real_t, int _dim> friend class Refine;
+    template<typename _real_t, int _dim> friend class Refine_Cavity;
     friend class MeshPartitions;
-
-    //MY OWN IMPLEMENTATION
-    friend class MeshPartitionsRefinement;
 
 private:
     index_t id;

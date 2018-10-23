@@ -61,7 +61,7 @@ namespace viennamesh
 				algo = "pragmatic";
 			}	
 
-			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen")
+			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen" || algorithm() == "pragmatic_cavity")
 			{
 				algo = algorithm();	
 				
@@ -328,7 +328,7 @@ namespace viennamesh
 
 			//TODO: REPLACE WITH TEMPLATED VERSION!!!
 			//convert pragmatic to viennagrid output
-			if (algo=="pragmatic"/* || algo == "tetgen"*/)
+			if (algo=="pragmatic"/* || algo == "tetgen"*/ || algo == "pragmatic_cavity")
 			{
 				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
