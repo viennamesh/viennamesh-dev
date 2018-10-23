@@ -291,6 +291,7 @@ public:
                     {
                         //std::cout << " Refinement iteration " << iteration << " in partition " << part_id << ": " << i << " < " << otherVertex << std::endl;
                         double length = _mesh->calc_edge_length(i, otherVertex);
+                        
                         if(length>L_max) {
                             ++splitCnt[tid];
                             //refine_edge(i, otherVertex, tid);

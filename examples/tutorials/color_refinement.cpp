@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 	output_file_merged+=std::to_string(num_threads);
 	output_file_merged+="threads_";
 	output_file_merged+=std::to_string(max_num_iterations);
-	output_file_merged+="iterations_refineboundary_merged";
+	output_file_merged+="iterations";
 	output_file_merged+=".vtu";
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");

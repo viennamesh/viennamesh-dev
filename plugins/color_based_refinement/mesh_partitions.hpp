@@ -2679,15 +2679,17 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     if (dim == 2)
                     {
                         Refine<double,2> refiner(*partition);
-                        double call_to_refine_tic = omp_get_wtime();
+                        double L_max = std::stod(options);
+                        std::cout << "  L_max: " << L_max << std::endl;
 
+                        double call_to_refine_tic = omp_get_wtime();
                         //if (color == 0)
                         {   
                             //#pragma omp critical
                             {
                                 //std::cout << " 2d refining partition " << part_id << " with thread " << omp_get_thread_num() << std::endl;
                                 //std::cerr << ".";
-                                refiner.refine(0.005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
+                                refiner.refine(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                         partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
                                         NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, NNodes_before_healing, NElements_before_healing,
                                         /*FInterfaces_tmp,*/ act_iter+1);//*/  
@@ -2787,6 +2789,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     else
                     {
                         Refine<double,3> refiner(*partition);
+                        double L_max = std::stod(options); //standard was 0.00005
+                        std::cout << "  L_max: " << L_max << std::endl;
+
                         double call_to_refine_tic = omp_get_wtime();
 
                         //if (color == 0)
@@ -2797,7 +2802,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             //std::cout << partition->get_number_nodes() << " nodes" << std::endl;
                             //std::cout << "NElements_before_healing " << NElements_before_healing << " NNodes_before_healing " << NNodes_before_healing << std::endl;
                             //std::cout << " 3d refining partition " << part_id << " with thread " << omp_get_thread_num() << std::endl;
-                            refiner.refine(0.00005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
+                            refiner.refine(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                             partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
                                             NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, NNodes_before_healing, NElements_before_healing,
                                             /*FInterfaces_tmp,*/act_iter+1);//*/
@@ -3095,8 +3100,12 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                         //Here do the pragmatic refinement
                         Refine<double,3> refiner(*partition);
+                        double L_max = 0.00005;
+                        std::cout << "  Include command line option to provide argument for L_max!" << std::endl;
+                        std::cout << "  L_max: " << L_max << std::endl; //standard was 0.00005
+
                         auto refine_boundary_tic = omp_get_wtime();
-                        refiner.refine_boundary(0.00005, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
+                        refiner.refine_boundary(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                                 partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
                                                 NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, NNodes_before_healing, 
                                                 NElements_before_healing, act_iter+1); //*/
@@ -3154,7 +3163,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                             auto tetrahedralize_tic = omp_get_wtime();
                             //tetrahedralize(&tet_behavior, &in, &out);
-                            viennamesh::info(3) << "  Tetrahedralize Partition " << part_id << std::endl;
+                            //viennamesh::info(3) << "  Tetrahedralize Partition " << part_id << std::endl;
                             tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
                             
                             call_to_refine_time = omp_get_wtime() - tetrahedralize_tic;
@@ -3172,10 +3181,13 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 else if (algorithm == "pragmatic_cavity")
                 {
                     Refine_Cavity<double,3> refiner_cavity(*partition);
+                    double L_max = std::stod(options);
+                    std::cout << "  L_max: " << L_max << std::endl;
+
                     double call_to_refine_tic = omp_get_wtime();
 
                     //std::cout << "NElements before refinement " <<  partition->get_number_elements() << " NVertices before refinement " << partition->get_number_nodes() << std::endl;
-                    
+                    /*
                     //DEBUG
                     std::cout << "  debug mesh output input partition before refinement " << part_id << " iteration " << (act_iter+1)<< std::endl;
                     std::string vtu_filename = "examples/data/color_refinement/output/input_part_before_refinement_";
@@ -3186,8 +3198,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     VTKTools<double>::export_vtu(vtu_filename.c_str(), partition);
                     //END OF DEBUG*/
 
-                    double L_max = sqrt(2);
-                    //double L_max = 0.00005; //standarf in MY IMPLEMENTATION
+                    //double L_max = 0.00005;
+                    //double L_max = 0.00005; //standard in MY IMPLEMENTATION
 
                     refiner_cavity.refine(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                           partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
@@ -3202,7 +3214,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     g2l_element[part_id] = g2l_elements_tmp;
                     outboxes[part_id]=outbox_data; 
 
-                    
+                    /*
+                    //DEBUG
                     //Output refined partition in each iteration
                     std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                     std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_boundary_part";
@@ -3210,7 +3223,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     vtu_filename_refine_output+="_iteration";
                     vtu_filename_refine_output+=std::to_string(act_iter+1);
                     vtu_filename_refine_output+=".vtu";
-                    VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);//*/
+                    VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);
+                    //END OF DEBUG*/
 
                     //std::cout << "NElements after refinement " <<  partition->get_number_elements() << " NVertices after refinement " << partition->get_number_nodes() << std::endl;
                 } //end of pragmatic_cavity

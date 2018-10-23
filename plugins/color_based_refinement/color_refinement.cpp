@@ -27,12 +27,14 @@ namespace viennamesh
 			size_t find_vtu = input_file().find_last_of(".");
 			info(1) << input_file().substr(found+1) << std::endl;
 
+			std::cout << 1e-10 << std::endl;
+
 			//info(1) << "  Number of vertices: " << input_mesh().mesh->get_number_nodes() << std::endl;
 			info(1) << "  Partitions: " << num_partitions() << std::endl;
       		info(1) << "  Dimension: " << input_mesh().mesh->get_number_dimensions() << std::endl;
 			info(1) << "  Threads: " << num_threads() << std::endl;
 			info(1) << "  Number of Iterations: " << max_num_iterations() << std::endl;
-
+			/*
 			std::ofstream file;
 			file.open("matrix.mtx");
 
@@ -49,7 +51,7 @@ namespace viennamesh
 				} 
 			}
 
-			file.close();
+			file.close();//*/
 			
 			//check chosen algorithm and chosen coloring method
 			std::string algo;
@@ -64,12 +66,14 @@ namespace viennamesh
 			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen" || algorithm() == "pragmatic_cavity")
 			{
 				algo = algorithm();	
-				
+				/*
 				if (algo == "triangle" || algo == "tetgen")
 				{
 					string_handle tri_options = get_input<string_handle>("options"); //standard-options for triangle: zpq
 					options = tri_options();
-				}
+				}*/
+				string_handle options_handle = get_input<string_handle>("options");
+				options = options_handle();
 			}	
 
 			else 
