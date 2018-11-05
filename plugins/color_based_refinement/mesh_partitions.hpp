@@ -2094,7 +2094,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 /*  std::cout << " NNodes in partition: " << partition->get_number_nodes() << std::endl;
                     std::cout << " NElements in partition: " << partition->get_number_elements() << std::endl;*/
 
-                    if (algorithm == "pragmatic" || algorithm == "tetgen" || algorithm == "pragmatic_cavity")
+                    if (algorithm == "pragmatic" || algorithm == "tetgen" || algorithm == "pragmaticcavity")
                     {
                         //partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp);
     /*
@@ -3178,7 +3178,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 } //end of tetgen
 
                 //Pragmatic cavity
-                else if (algorithm == "pragmatic_cavity")
+                else if (algorithm == "pragmaticcavity")
                 {
                     Refine_Cavity<double,3> refiner_cavity(*partition);
                     double L_max = std::stod(options);
@@ -3227,7 +3227,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     //END OF DEBUG*/
 
                     //std::cout << "NElements after refinement " <<  partition->get_number_elements() << " NVertices after refinement " << partition->get_number_nodes() << std::endl;
-                } //end of pragmatic_cavity
+                } //end of pragmaticcavity
 
                 auto refine_toc = omp_get_wtime();
                 //std::cerr << refine_toc - refine_tic << std::endl;
@@ -3375,7 +3375,7 @@ void MeshPartitions::GetRefinementStats(int* nodes, int* elements, std::string a
     int tmp_nodes = 0;
     int tmp_elements = 0;
 
-    if (algorithm == "pragmatic")
+    if (algorithm == "pragmatic" || algorithm == "pragmaticcavity")
     {
         for (size_t i =0; i < pragmatic_partitions.size(); ++i)
         {

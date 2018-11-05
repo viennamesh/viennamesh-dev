@@ -5,6 +5,7 @@
 #include <vtkCellArray.h>
 
 #include <unordered_map>
+#include <chrono>
 
 namespace viennamesh {
 
@@ -19,6 +20,9 @@ namespace viennamesh {
 
             // Get required input parameters
             data_handle<VTK_UnstructuredGrid::mesh> input_mesh = get_required_input<VTK_UnstructuredGrid::mesh>("mesh");
+
+            //get starting time
+            auto wall_tic = std::chrono::system_clock::now();
 
             info(2) << "  Input mesh has " << input_mesh().GetMesh()->GetNumberOfPoints() << " vertices." << std::endl;
             info(2) << "  Input mesh has " << input_mesh().GetMesh()->GetNumberOfCells() << " cells." << std::endl;
@@ -81,6 +85,10 @@ namespace viennamesh {
             }
 
             my_mesh->SetCells(cellArray);
+
+            //get end time and comput duration
+            std::chrono::duration<double> merging_duration = std::chrono::system_clock::now() - wall_tic;
+            info(2) << "  Merging took " << merging_duration.count() << " [s]" << std::endl;
 
             info(2) << "  Output mesh has " << my_mesh->GetMesh()->GetNumberOfPoints() << " vertices." << std::endl;
             info(2) << "  Output mesh has " << my_mesh->GetMesh()->GetNumberOfCells() << " cells." << std::endl;

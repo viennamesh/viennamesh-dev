@@ -2,6 +2,7 @@
 #include "pragmatic_mesh.hpp"
 #include "mesh_partitions.hpp"
 #include <fstream>
+#include <chrono>
 
 namespace viennamesh
 {
@@ -26,8 +27,6 @@ namespace viennamesh
 			size_t found = input_file().find_last_of("/");
 			size_t find_vtu = input_file().find_last_of(".");
 			info(1) << input_file().substr(found+1) << std::endl;
-
-			std::cout << 1e-10 << std::endl;
 
 			//info(1) << "  Number of vertices: " << input_mesh().mesh->get_number_nodes() << std::endl;
 			info(1) << "  Partitions: " << num_partitions() << std::endl;
@@ -63,7 +62,7 @@ namespace viennamesh
 				algo = "pragmatic";
 			}	
 
-			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen" || algorithm() == "pragmatic_cavity")
+			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen" || algorithm() == "pragmaticcavity")
 			{
 				algo = algorithm();	
 				/*
@@ -332,7 +331,7 @@ namespace viennamesh
 
 			//TODO: REPLACE WITH TEMPLATED VERSION!!!
 			//convert pragmatic to viennagrid output
-			if (algo=="pragmatic"/* || algo == "tetgen"*/ || algo == "pragmatic_cavity")
+			if (algo=="pragmatic"/* || algo == "tetgen"*/ || algo == "pragmaticcavity")
 			{
 				viennamesh::info(1) << "Converting Pragmatic to ViennaGrid data structure" << std::endl;
 				viennamesh::info(5) << "  REPLACE THIS WITH IMPLICIT CONVERSION!!!" << std::endl;
