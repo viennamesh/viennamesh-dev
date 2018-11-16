@@ -4876,6 +4876,9 @@ REAL tetgenmesh::insphere_s(REAL* pa, REAL* pb, REAL* pc, REAL* pd, REAL* pe)
   }
   
   oriB = -orient3d(pt[0], pt[2], pt[3], pt[4]);
+  if (oriB == 0.0)
+    std::cout << "pa " << *pa << " pb " << *pb << " pc " << *pc << " pd " << *pd << " pe " << *pe << std::endl;
+
   assert(oriB != 0.0); // SELF_CHECK
   // Flip the sign if there are odd number of swaps.
   if ((swaps % 2) != 0) oriB = -oriB;

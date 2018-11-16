@@ -133,11 +133,11 @@ public:
                                  global_NNodes, g2l_vertices, NNodes_before_healing, NElements_before_healing,
                                  iteration);
 
-       // std::cout << "state.size() " << state.size() << std::endl;
+        //std::cout << "state.size() " << state.size() << std::endl;
 
         if (nbrSplits > 0)
         {
-            //std::cout << "perform refinement" << std::endl;
+            //std::cout << "perform refinement with " << nbrSplits << " number of edge splits" << std::endl;
             perform_refinement(nbrSplits, &state[0],
                                nodes_part_ids, l2g_vertices, part_id, outbox_data,
                                partition_colors, partition_adjcy, previous_nelements, NNInterfaces,
@@ -442,8 +442,11 @@ public:
                 stop = 0;
             } //end of for (int iEdg=0; iEdg<NEdges; ++iEdg)
         } //end of while ( !stop )
-        printf("DEBUG   Number of splits / total number of edges: %d / %d\n", cntSplit, NEdges);
-        
+        //printf("DEBUG   Number of splits / total number of edges: %d / %d\n", cntSplit, NEdges);
+        #ifndef NDEBUG
+        std::cout << "        Number of splits / total number of edges: " << cntSplit << " " << NEdges << std::endl;
+        #endif
+
         return(cntSplit);
     }
     
@@ -602,7 +605,8 @@ public:
                             int& global_NNodes, std::unordered_map<int,int>& g2l_vertices, const int NNodes_before_healing, const int NElements_before_healing, 
                             const int iteration)
     {
-        /*std::cout << "PERFORM REFINEMENT" << std::endl;//*/
+        //std::cout << "PERFORM REFINEMENT" << std::endl;//*/
+
         origNElements = _mesh->get_number_elements();
         size_t origNNodes = _mesh->get_number_nodes();
 
@@ -627,16 +631,22 @@ public:
         //std::cout << " NEdges before refinement in refine_cavity " << headV2E[_mesh->get_number_nodes()] << std::endl;
         
         newVertices.resize(edgeSplitCnt);
-        //std::cout << "  initial newVertices.size() " << newVertices.size() << std::endl;//*/
+        /*
+        std::cout << "  initial newVertices.size() " << newVertices.size() << std::endl;
+        std::cout << "  coords.size() " << _mesh->_coords.size() << std::endl;
+        std::cout << "  newNNodes " << _mesh->NNodes+edgeSplitCnt << std::endl;
+        std::cout << "  newNNodes*dim " << (_mesh->NNodes+edgeSplitCnt)*dim << std::endl;//*/
+
         size_t newNNodes = _mesh->NNodes+edgeSplitCnt;
-        if(_mesh->_coords.size()<newNNodes*dim) {
+        //if(_mesh->_coords.size()<newNNodes*dim) {
+            //std::cout << "resizing vectors!" << std::endl;
             _mesh->_coords.resize(newNNodes*dim);
             _mesh->metric.resize(newNNodes*msize);
             _mesh->NNList.resize(newNNodes);
             _mesh->NEList.resize(newNNodes);
             _mesh->node_owner.resize(newNNodes);
             _mesh->lnn2gnn.resize(newNNodes);
-        }
+        //}
 
         //MY OWN IMPLEMENTATION
         auto target_part_id = 0;

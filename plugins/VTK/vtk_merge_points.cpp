@@ -94,6 +94,8 @@ namespace viennamesh {
             info(2) << "  Output mesh has " << my_mesh->GetMesh()->GetNumberOfCells() << " cells." << std::endl;
 
             set_output("mesh", *my_mesh);
+
+            delete my_mesh;
            
             return VIENNAMESH_SUCCESS;
         }

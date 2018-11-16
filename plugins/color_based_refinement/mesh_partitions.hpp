@@ -465,6 +465,7 @@ bool MeshPartitions::MetisPartitioning()
     METIS_SetDefaultOptions(options);
     options[METIS_OPTION_PTYPE]=METIS_PTYPE_RB;
 //*/
+
     METIS_PartMeshDual  (&num_elements,
                          &num_nodes,
                          eptr.data(),
@@ -483,7 +484,7 @@ bool MeshPartitions::MetisPartitioning()
     viennamesh::info(5) << "Created " << num_regions << " mesh partitions using METIS_PartMeshDual" << std::endl;
                          //*/
 
-        /*
+    /*  
    METIS_PartMeshNodal (&num_elements,
                         &num_nodes,
                         eptr.data(),
@@ -708,17 +709,20 @@ bool MeshPartitions::CreateNeighborhoodInformation(const int max_iterations)
         }
     }
 
-    /*
+    
     //DEBUG
+    ofstream partition_adjcy_out;
+    partition_adjcy_out.open("debug_output/partition_adjcy.txt");
     for (size_t i = 0; i < num_regions; ++i)
     {
-        std::cout << "Partition " << i << " has the following neighbors: " << std::endl;
+        partition_adjcy_out << "Partition " << i << " has the following neighbors: " << std::endl;
 
         for (auto iter : partition_adjcy[i])
         {
-            std::cout << "  " << iter << std::endl;
+            partition_adjcy_out << "  " << iter << std::endl;
         }
     }
+    partition_adjcy_out.close();
     //END OF DEBUG*/  
 
     return true;
@@ -802,7 +806,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
-/*
+        /*
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -1685,8 +1689,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
                                                        std::vector<double>& refine_boundary_log)
 {    
-    viennamesh::info(1) << "Starting mesh adaptation with " << nthreads << " threads" << std::endl;
+    viennamesh::info(1) << "Starting mesh adaptation using " << algorithm << " with " << nthreads << " threads" << std::endl;
+    #ifndef NDEBUG
     std::cout << "RESIZE THE LOG_VECTORS TO MAX_THREADS TO AVOID UNNECESSARY CODE IN THE LOG-OUTPUT!!!" << std::endl;
+    #endif
     auto prep_tic = omp_get_wtime();
 
     //this->algorithm = algorithm;
@@ -1808,8 +1814,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     //iterate the partitions several times
     for (size_t act_iter = 0; act_iter < max_num_iterations; act_iter++)
     {
-
-        std::cout << " Resizing... " << std::endl;
         int tmp_glob_nnodes = 0;
         int tmp_glob_nelements = 0;
 
@@ -1829,11 +1833,13 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         }
 
         int resizer = tmp_glob_nnodes + tmp_glob_nnodes*nedge*1.5;
-        std::cout << "resizer " << resizer << std::endl;
         nodes_partition_ids.resize(resizer);
 
+        #ifndef NDEBUG
+        std::cout << "resizer " << resizer << std::endl;
         //std::cout << "  Iteration " << act_iter+1 << " / " << max_num_iterations << " ";
         viennamesh::info(2) << "Iteration " << act_iter+1 << " / " << max_num_iterations << std::endl;
+        #endif
         //iterate colors
         for (size_t color = 0; color < colors; ++color)
         {
@@ -2234,10 +2240,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                     for (auto it : partition_adjcy[part_id])
                     {
-                        /*std::cout << " it: " << it << std::endl;*/
+                        //std::cout << "    checking neighbor : " << it << std::endl;//*/
                         //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!*/
                         if (partition_colors[it] < color && outboxes[it].num_verts() > 0)
                         {   
+                            //std::cout << "       there are " << outboxes[it].num_verts() << " vertices in the outbox of partition " << it << std::endl;
                             size_t orig_NNodes_part = partition->get_number_nodes();
                             size_t orig_NElements_part = partition->get_number_elements();
 
@@ -2312,6 +2319,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                                 outbox_mapping[j] = partition->get_number_nodes()-1; 
 
+                                #ifndef NDEBUG
                                 //DEBUG
                                 if (m[0] == 0 && m[1] == 0 && m[2] == 0 &&
                                     m[3] == 0 && m[4] == 0 && m[5] == 0)
@@ -2319,6 +2327,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                     std::cout << " empty metric for " << outbox_mapping[j] << std::endl;
                                 }
                                 //END OF DEBUG
+                                #endif
 
                                 ++j;
                             }
@@ -2349,6 +2358,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 auto glob_firstid = outboxes[it][4*i+1];
                                 auto glob_secondid = outboxes[it][4*i+2];
 
+                                //std::cout << "vid " << vid << " glob_firstid " << glob_firstid << " glob_secondid " << glob_secondid << std::endl;
+
                                 /*double p[dim];
                                 original_mesh->get_coords(glob_firstid, p);
                                 original_mesh->get_coords(glob_secondid, p);*/
@@ -2362,6 +2373,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 /*
                                 if(dim==3)
                                 {
+                                    std::cout << "local_vid " << local_vid << " gets coords: " << std::endl;
                                     std::cout << "      " << q[0] << " " << q[1] << " " << q[2] << std::endl;
                                 }//*/
 
@@ -2630,10 +2642,25 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //Output timings
                 auto heal_toc = omp_get_wtime();
 
+                partition->defragment(part_id, l2g_vertices_tmp, g2l_vertices_tmp);
+
+
                 auto interfaces_tic = omp_get_wtime();
-                partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, /*FInterfaces_tmp,*/ act_iter+1);
+                partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp, act_iter+1);
                 auto interfaces_toc = omp_get_wtime();
-                //partition->defragment();
+                /*
+                //DEBUG
+                for (size_t eid = 0; eid < partition->_ENList.size(); ++eid)
+                {
+                    if (partition->_ENList[eid] == -1)
+                    {
+                        viennamesh::error(1) << " ERROR: no defragmentation after healing detected!" << std::endl;
+                        viennamesh::error(2) << "   position " << eid << " is " << partition->_ENList[eid] << std::endl;
+                        //--in.numberoftetrahedra;
+                        //++minus_counter;
+                    }
+                }
+                //END OF DEBUG*/
 
                 /*
                 //Output healed mesh
@@ -2670,7 +2697,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 double refine_boundary_time = 0.0;
                 //double tri_ds_time{0.0};
 
-                viennamesh::info(2) << " Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " Elements" << std::endl;
+                //viennamesh::info(2) << " Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " Elements" << std::endl;
 
             // auto refine_tic = std::chrono::system_clock::now();
                 auto refine_tic = omp_get_wtime();
@@ -2680,7 +2707,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     {
                         Refine<double,2> refiner(*partition);
                         double L_max = std::stod(options);
+
+                        #ifndef NDEBUG
                         std::cout << "  L_max: " << L_max << std::endl;
+                        #endif
 
                         double call_to_refine_tic = omp_get_wtime();
                         //if (color == 0)
@@ -2790,7 +2820,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     {
                         Refine<double,3> refiner(*partition);
                         double L_max = std::stod(options); //standard was 0.00005
+                        #ifndef NDEBUG
                         std::cout << "  L_max: " << L_max << std::endl;
+                        #endif
 
                         double call_to_refine_tic = omp_get_wtime();
 
@@ -3097,13 +3129,26 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 boundary_nodes[n[(j+3)%4]] = std::max(boundary_nodes[n[(j+3)%4]], partition->boundary[i*4+j]);
                             }
                         }//*/
+                        /*
+                        //DEBUG
+                        std::cout << "  debug mesh output input partition before refinement " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                        std::string vtu_filename = "examples/data/color_refinement/output/input_part_before_refinement_dualpartitioning_";
+                        vtu_filename+=std::to_string(part_id);
+                        vtu_filename+="_iteration";
+                        vtu_filename+=std::to_string(act_iter);
+                        vtu_filename+=".vtu";
+                        VTKTools<double>::export_vtu(vtu_filename.c_str(), partition);
+                        //END OF DEBUG*/
 
                         //Here do the pragmatic refinement
                         Refine<double,3> refiner(*partition);
                         double L_max = 0.00005;
+
+                        #ifndef NDEBUG
                         std::cout << "  Include command line option to provide argument for L_max!" << std::endl;
                         std::cout << "  L_max: " << L_max << std::endl; //standard was 0.00005
-
+                        #endif 
+                        
                         auto refine_boundary_tic = omp_get_wtime();
                         refiner.refine_boundary(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                                 partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
@@ -3129,9 +3174,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         vtu_filename_refine_output+=std::to_string(act_iter+1);
                         vtu_filename_refine_output+=".vtu";
                         VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);//*/
-
+                
+                        #ifndef NDEBUG
                         viennamesh::info(3) << "   Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " elements after boundary refinement" << std::endl;
-                        
+                        #endif 
+
                         if ( act_iter == (max_num_iterations-1) )
                         {
                             /*
@@ -3160,6 +3207,57 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
                             
                             //std::cout << " Tetgen Options: " << options << std::endl;
+                            /*
+                            //DEBUG
+                            //output .node and .ele files for tetgen
+                            ofstream node_file;
+                            std::string node_file_name = "examples/data/color_refinement/output/tetgen_input_part_";
+                            node_file_name+=std::to_string(part_id);
+                            node_file_name+="_iteration";
+                            node_file_name+=std::to_string(act_iter+1);
+                            node_file_name+=".node";
+
+                            node_file.open(node_file_name.c_str());
+
+                            node_file << "# Node count, " << partition->get_number_dimensions() << " dim, no attribute, no boundary marker" << std::endl;
+                            node_file << in.numberofpoints << " " << partition->get_number_dimensions() << " 0 0" << std::endl;
+                            
+                            for (size_t vid = 0; vid < in.numberofpoints; ++vid)
+                            {
+                                node_file << vid+1 << " " << in.pointlist[3*vid] << " " << in.pointlist[3*vid+1];
+                                node_file << " " << in.pointlist[3*vid+2] << std::endl;
+                            }
+                            node_file.close();
+
+                            ofstream ele_file;
+                            std::string ele_file_name = "examples/data/color_refinement/output/tetgen_input_part_";
+                            ele_file_name+=std::to_string(part_id);
+                            ele_file_name+="_iteration";
+                            ele_file_name+=std::to_string(act_iter+1);
+                            ele_file_name+=".ele";
+
+                            ele_file.open(ele_file_name.c_str());
+
+                            ele_file << "# Tetrahedra count, 4 nodes per tetrahedron, no region attribute" << std::endl;
+                            ele_file << in.numberoftetrahedra << " 4 0" << std::endl;
+                            
+                            size_t minus_counter = 0;
+                            for (size_t vid = 0; vid < in.numberoftetrahedra; ++vid)
+                            {
+                                if (in.tetrahedronlist[4*vid] == -1)
+                                {
+                                    viennamesh::error(1) << " ERROR: no defragmentation of tetrahedronlist detected!" << std::endl;
+                                    viennamesh::error(2) << "   position " << vid*4 << " is " << in.tetrahedronlist[4*vid] << std::endl;
+                                    continue;
+                                }
+
+                                ele_file << vid+1 << " " << in.tetrahedronlist[4*vid]+1 << " " << in.tetrahedronlist[4*vid+1]+1;
+                                ele_file << " " << in.tetrahedronlist[4*vid+2]+1 << " " << in.tetrahedronlist[4*vid+3]+1 << std::endl;
+                            }
+                            ele_file.close();
+
+                            //end of output .node and .ele files for tetgen
+                            //END OF DEBUG*/
 
                             auto tetrahedralize_tic = omp_get_wtime();
                             //tetrahedralize(&tet_behavior, &in, &out);
@@ -3182,7 +3280,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 {
                     Refine_Cavity<double,3> refiner_cavity(*partition);
                     double L_max = std::stod(options);
+
+                    #ifndef NDEBUG
                     std::cout << "  L_max: " << L_max << std::endl;
+                    #endif
 
                     double call_to_refine_tic = omp_get_wtime();
 
@@ -4753,6 +4854,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         }
 
         //std::cout << " remove element " << eid << " by setting ENList[" << eid*nloc << "] to -1 " << std::endl; 
+        std::cout << " Remove parent element in healing process " << eid << std::endl;
         partition->_ENList[eid*nloc] = -1;
     } //end of else (end of case 4(b))
 }
