@@ -2242,7 +2242,7 @@ public:
         std::cout << " l2g_vertices.size() " << l2g_vertices.size() << std::endl;
         std::cout << "DEFRAGMENT" << std::endl;
         std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;//*/
-        #endif DEBUG
+        #endif
 
         /*
         //DEBUG
