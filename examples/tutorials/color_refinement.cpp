@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	//VTK merge points
 	viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
 	merger.set_default_source(color);
-	merger.run();//*/
+	//merger.run();//*/
 
 /*
 	//Make statistic
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
 	//mesh_writer.set_input("filename", "pragmatic.vtu");
 	mesh_writer_merged.set_input("filename", output_file_merged.c_str());
-	mesh_writer_merged.run();//*/
+	//mesh_writer_merged.run();//*/
 //*/
     return -1;
 }

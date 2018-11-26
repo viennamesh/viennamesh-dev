@@ -405,6 +405,12 @@ public:
         return ndims;
     }
 
+    /// Return the number of nodes per element.
+    inline size_t get_number_nloc() const
+    {
+        return nloc;
+    }
+
     /// Return positions vector.
     inline real_t const *get_coords(index_t nid) const
     {
@@ -1178,6 +1184,7 @@ public:
     //Removes element from NEList
     inline void remove_nelist(size_t id, size_t rem_id)
     {
+      //assert(NEList[id].count(rem_id) != 0);
       NEList[id].erase(rem_id);
     }
 
@@ -1786,11 +1793,12 @@ public:
       structures. This is useful if the mesh has been significantly
       coarsened. */
     void defragment()
-    {
+    {/*
         #ifndef NDEBUG
         std::cout << "DEFRAGMENT" << std::endl;
-        std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;//*/
-        #endif 
+        std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;//
+        #endif //*/
+
         // Discover which vertices and elements are active.
         std::vector<index_t> active_vertex_map(NNodes);
 
@@ -1870,16 +1878,20 @@ public:
         // Renumber elements
         int active_nelements = active_element.size();
         std::map< std::set<index_t>, index_t > ordered_elements;
-        for(int i=0; i<active_nelements; i++) {
+        for(int i=0; i<active_nelements; i++) 
+        {
             index_t old_eid = active_element[i];
             std::set<index_t> sorted_element;
             for(size_t j=0; j<nloc; j++) {
                 index_t new_nid = active_vertex_map[_ENList[old_eid*nloc+j]];
                 sorted_element.insert(new_nid);
             }
-            if(ordered_elements.find(sorted_element)==ordered_elements.end()) {
+            if( ordered_elements.find(sorted_element)==ordered_elements.end() ) 
+            {
                 ordered_elements[sorted_element] = old_eid;
-            } else {
+            } 
+            else 
+            {
                 std::cerr<<"dup! "
                          <<active_vertex_map[_ENList[old_eid*nloc]]<<" "
                          <<active_vertex_map[_ENList[old_eid*nloc+1]]<<" "
@@ -1888,7 +1900,8 @@ public:
         }
         std::vector<index_t> element_renumber;
         element_renumber.reserve(ordered_elements.size());
-        for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) {
+        for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) 
+        {
             element_renumber.push_back(it->second);
         }
 
@@ -1935,14 +1948,14 @@ public:
         for(size_t old_nid=0; old_nid<active_vertex_map.size(); ++old_nid) {
             index_t new_nid = active_vertex_map[old_nid];
             
-            #ifndef NDEBUG
+            //#ifndef NDEBUG
             if(new_nid<0)
             {
-                viennamesh::error(3) << "skipping old_nid " << old_nid << std::endl;
+                /*viennamesh::error(3) << "skipping old_nid " << old_nid << std::endl;
                 std::cout << " coords: " << _coords[old_nid*ndims] << " " << _coords[old_nid*ndims+1] << " " << _coords[old_nid*ndims+2] << std::endl;//*/
                 continue;
             }
-            #endif
+            /*#endif*/
 
             for(size_t j=0; j<ndims; j++)
                 defrag_coords[new_nid*ndims+j] = _coords[old_nid*ndims+j];
@@ -2022,11 +2035,11 @@ public:
                 node_owner[i] = 0;
             }
         }
-
+        /*
         #ifndef NDEBUG
         std::cout << "DEFRAGMENT" << std::endl;
-        std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;//*/
-        #endif
+        std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;
+        #endif//*/
 
         create_adjacency();
     }
@@ -2035,13 +2048,13 @@ public:
     void defragment(int part_id, std::vector<int>& l2g_vertices, std::unordered_map<int,int>& g2l_vertices)
     {
         std::vector<int> old_l2g_vertices = l2g_vertices;
-        
+        /*
         #ifndef NDEBUG
         std::cout << "defragmentation of partition " << part_id << " with adaptation of its l2g- and g2l-index-mapping ";
 
         std::cout << "DEFRAGMENT" << std::endl;
-        std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;//*/
-        #endif
+        std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;
+        #endif//*/
 
         /*
         //DEBUG
@@ -2104,7 +2117,6 @@ public:
         {
             if(active_vertex_map[i]<0)
             {
-                //std::cout << " with new numbering skip vertex " << i << std::endl;
                 continue;
             }
 
@@ -2133,7 +2145,7 @@ public:
             
             else 
             {
-                std::cerr<<"dup! "
+                std::cerr<<"dup! for " << i << " " << old_eid << " "
                          <<active_vertex_map[_ENList[old_eid*nloc]]<<" "
                          <<active_vertex_map[_ENList[old_eid*nloc+1]]<<" "
                          <<active_vertex_map[_ENList[old_eid*nloc+2]]<<std::endl;
@@ -2202,14 +2214,14 @@ public:
             
             if(new_nid<0)
             {
-                #ifndef NDEBUG
+                /*#ifndef NDEBUG
                 viennamesh::error(3) << "skipping old_nid " << old_nid << std::endl;
-                std::cout << " coords: " << _coords[old_nid*ndims] << " " << _coords[old_nid*ndims+1] << " " << _coords[old_nid*ndims+2] << std::endl;//*/
+                std::cout << " coords: " << _coords[old_nid*ndims] << " " << _coords[old_nid*ndims+1] << " " << _coords[old_nid*ndims+2] << std::endl;
                 ++cnt_skippeds_nids;
                 //CHECK THIS
                 std::cout << " PLEASE CHECK IF THIS RECREATION OF L2G-VERTICES IS CORRECT!!!" << std::endl;
                 std::cout << " new nid " << new_nid << std::endl;
-                #endif
+                #endif*/
 
                 continue;
             }
@@ -2237,12 +2249,12 @@ public:
             node_owner[i] = 0;
 
         }
-
+        /*
         #ifndef NDEBUG
         std::cout << " l2g_vertices.size() " << l2g_vertices.size() << std::endl;
         std::cout << "DEFRAGMENT" << std::endl;
-        std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;//*/
-        #endif
+        std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;
+        #endif//*/
 
         /*
         //DEBUG

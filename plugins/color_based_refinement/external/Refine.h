@@ -468,7 +468,7 @@ public:
          //   #pragma omp single
             {
                 size_t reserve = 1.1*_mesh->NNodes; // extra space is required for centroidals
-                if(_mesh->_coords.size()<reserve*dim) {
+                /*if(_mesh->_coords.size()<reserve*dim)*/ {
                     _mesh->_coords.resize(reserve*dim);
                     _mesh->metric.resize(reserve*msize);
                     _mesh->NNList.resize(reserve);
@@ -944,6 +944,8 @@ public:
             newBoundaries[tid].reserve(dim*dim*origNElements/nthreads);
             newQualities[tid].reserve(origNElements/nthreads);
 
+            //std::cout << " old threadIdx[tid] " << threadIdx[tid] << std::endl;
+
             //MY IMPLEMENTATION
             threadIdx[tid] = _mesh->NElements;
             //END OF MY IMPLEMENTATION
@@ -966,6 +968,7 @@ public:
             
             threadIdx[tid] = pragmatic_omp_atomic_capture(&_mesh->NElements, splitCnt[tid]);
             
+            //std::cout << " new threadIdx[tid] " << threadIdx[tid] << std::endl;
             //MY IMPLEMENTATION
           /*  auto glob_old_NElements {0};
             #pragma omp atomic capture
@@ -985,6 +988,7 @@ public:
         //    #pragma omp single
             {
                 if(_mesh->_ENList.size()<_mesh->NElements*nloc) {
+                    //std::cout << " here we need to resize ENlist, boundary and quality vectors" << std::endl;
                     _mesh->_ENList.resize(_mesh->NElements*nloc);
                     _mesh->boundary.resize(_mesh->NElements*nloc);
                     _mesh->quality.resize(_mesh->NElements);
@@ -1432,7 +1436,8 @@ public:
         }
         //END OF MY IMPLEMENTATION*/    
         
-        size_t reserve = 1.1*_mesh->NNodes; // extra space is required for centroidals
+        //size_t reserve = 1.1*_mesh->NNodes; // extra space is required for centroidals
+        size_t reserve = 2.0*_mesh->NNodes;
         /*std::cout << "     reserve " << reserve << std::endl;
         std::cout << "     reserve*dim " << reserve*dim << std::endl;
         std::cout << "     coords.size() " << _mesh->_coords.size() << std::endl;
@@ -3484,8 +3489,6 @@ private:
             // Remove parent element
             for(size_t j=0; j<nloc; ++j)
                 def_ops->remNE(n[j], eid, tid);
-
-            std::cout << " Removing parent element " << eid << std::endl;
 
             _mesh->_ENList[eid*nloc] = -1;
         }

@@ -103,14 +103,16 @@ class MeshPartitions
         void heal2D_1(Mesh<double>*& partition, const index_t *newVertex, int eid, int nloc, int& splitCnt, int& threadIdx);
         void heal2D_2(Mesh<double>*& partition, const index_t *newVertex, int eid, int nloc, int& splitCnt, int& threadIdx);
         void heal_facet(Mesh<double>*& partition, int nedge, std::vector<int>& new_vertices_per_element, int eid, const index_t *facet);
-        void heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges);
-        void heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges);
-        void heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim, ElementProperty<double>*& property);
-        void heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim, ElementProperty<double>*& property);
-        void heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim, ElementProperty<double>*& property);
-        void refine_wedge(Mesh<double>*& partition, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], 
-                          DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim,
-                          ElementProperty<double>*& property);
+        void heal3D_1(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities);
+        void heal3D_2(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities);
+        void heal3D_3(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities);
+        void heal3D_4(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities);
+        void heal3D_5(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities);
+        void refine_wedge(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], 
+                          DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim, std::vector<int>& newElements, 
+                          std::vector<int>& newBoundaries, std::vector<double>& newQualities);
+        void append_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t *elem, const int *boundary, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities);                          //Reimplementation of the code snippet from Refine.h This is neede for refine_edge during healing process
+        void replace_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t eid, const index_t *n, const int *boundary);         //Reimplementation of the code snippet from Refine.h This is neede for refine_edge during healing process
 
         bool ConsistencyCheck();                                                                //Check the consistency of the mesh
 
@@ -126,10 +128,14 @@ class MeshPartitions
 
         template<typename _real_t, int _dim> friend class Refine;
 
+        //const int nloc;
+
         Mesh<double>* original_mesh;
         int num_regions;
         int nthreads;
         std::string file;
+
+        int ndims;
 
         //Variables for Metis   
         std::vector<idx_t> eptr;
@@ -327,6 +333,9 @@ MeshPartitions::MeshPartitions(Mesh<double> * orig_mesh, int nregions, std::stri
     file = filename;
     global_NNodes = orig_mesh->get_number_nodes();
     algorithm = algo;
+
+    if (orig_mesh->get_number_dimensions() == 3)
+        ndims = 3;
 } //end of Constructor
 
 //Destructor
@@ -655,10 +664,10 @@ bool MeshPartitions::CreateNeighborhoodInformation(const int max_iterations)
     const index_t *element_ptr = nullptr;
     element_ptr = original_mesh->get_element(i);
 
-    size_t ndims = original_mesh->get_number_dimensions();
+    size_t dim = original_mesh->get_number_dimensions();
 
     //iterate element vertices and add partition id
-    for (size_t j = 0; j < (ndims+1); ++j)
+    for (size_t j = 0; j < (dim+1); ++j)
     {
       nodes_partition_ids[*(element_ptr++)].insert(epart[i]);
     }
@@ -1690,9 +1699,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::vector<double>& refine_boundary_log)
 {    
     viennamesh::info(1) << "Starting mesh adaptation using " << algorithm << " with " << nthreads << " threads" << std::endl;
-    #ifndef NDEBUG
+    /*#ifndef NDEBUG
     std::cout << "RESIZE THE LOG_VECTORS TO MAX_THREADS TO AVOID UNNECESSARY CODE IN THE LOG-OUTPUT!!!" << std::endl;
-    #endif
+    #endif*/
     auto prep_tic = omp_get_wtime();
 
     //this->algorithm = algorithm;
@@ -1835,11 +1844,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         int resizer = tmp_glob_nnodes + tmp_glob_nnodes*nedge*1.5;
         nodes_partition_ids.resize(resizer);
 
-        #ifndef NDEBUG
+       /* #ifndef NDEBUG
         std::cout << "resizer " << resizer << std::endl;
         //std::cout << "  Iteration " << act_iter+1 << " / " << max_num_iterations << " ";
         viennamesh::info(2) << "Iteration " << act_iter+1 << " / " << max_num_iterations << std::endl;
-        #endif
+        #endif*/
         //iterate colors
         for (size_t color = 0; color < colors; ++color)
         {
@@ -1854,11 +1863,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 auto threads_tic = omp_get_wtime();
     
                 size_t part_id = color_partitions[color][part_iter];
-/*
-                #pragma omp critical
-                {
-                    std::cout << "        Working on partition " << part_id << std::endl;
-                }//*/
+
+                //std::cout << "        Working on partition " << part_id << std::endl;
+              
                 Outbox outbox_data;
                 Mesh<double>* partition = nullptr;
 
@@ -2052,13 +2059,17 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 }
                 /*
                 //DEBUG
-                std::cout << "  debug mesh output input before healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
-                std::string vtu_filename = "examples/data/color_refinement/output/input_before_healing_part";
-                vtu_filename+=std::to_string(part_id);
-                vtu_filename+="_iteration";
-                vtu_filename+=std::to_string(act_iter);
-                vtu_filename+=".vtu";
-                VTKTools<double>::export_vtu(vtu_filename.c_str(), partition);
+                if (part_id == 574)
+                {
+                    std::cout << "  debug mesh output input before healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                    std::string vtu_filename = "examples/data/color_refinement/output/input_before_healing_part";
+                    vtu_filename+=std::to_string(part_id);
+                    vtu_filename+="_iteration";
+                    vtu_filename+=std::to_string(act_iter);
+                    vtu_filename+=".vtu";
+                    VTKTools<double>::export_vtu(vtu_filename.c_str(), partition);
+                    std::cout << "  output done " << std::endl;
+                }
                 //END OF DEBUG*/
 
                 //store the number of elements in the mesh before healing!!! (needed for refinement)
@@ -2212,10 +2223,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 //Heal mesh if vertices have been inserted on interface and color is greater than 0
                 //TODO: Change if-clause depending on the direction of the color-queue(increasing or decreasing color)
-                if (color > 0)
+                bool do_healing = true;
+                if (color > 0 && do_healing)
                 {
-                    /*std::cout << "  healing of partition " << part_id << std::endl;
-                    std::cout << "  partition has " << NNodes_before_healing << " initial nodes and " << NElements_before_healing << " initial elements" << std::endl;//*/
                     // Set the orientation of elements.
                     ElementProperty<double> * part_property = nullptr;
 
@@ -2240,11 +2250,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                     for (auto it : partition_adjcy[part_id])
                     {
-                        //std::cout << "    checking neighbor : " << it << std::endl;//*/
+                        /*if (part_id == 574)
+                            std::cout << "    checking neighbor : " << it << std::endl;//*/
                         //first check if color of neighbor is smaller than own color, otherwise there is no data in the neighbor's outbox!!!*/
                         if (partition_colors[it] < color && outboxes[it].num_verts() > 0)
                         {   
-                            //std::cout << "       there are " << outboxes[it].num_verts() << " vertices in the outbox of partition " << it << std::endl;
                             size_t orig_NNodes_part = partition->get_number_nodes();
                             size_t orig_NElements_part = partition->get_number_elements();
 
@@ -2255,9 +2265,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             new_vertices_per_element.resize(nedge*orig_NElements_part);
                             std::fill(new_vertices_per_element.begin(), new_vertices_per_element.end(), -1);
 
-                            size_t reserve = verts_in_part + partition->NNodes;
+                            size_t reserve = 2.0*(verts_in_part + partition->NNodes);
 
-                            if(partition->_coords.size()<reserve*dim) 
+                            //if(partition->_coords.size()<reserve*dim) 
                             {
                                 partition->_coords.resize(reserve*dim);
                                 partition->metric.resize(reserve*msize);
@@ -2319,7 +2329,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                                 outbox_mapping[j] = partition->get_number_nodes()-1; 
 
-                                #ifndef NDEBUG
+                                /*#ifndef NDEBUG
                                 //DEBUG
                                 if (m[0] == 0 && m[1] == 0 && m[2] == 0 &&
                                     m[3] == 0 && m[4] == 0 && m[5] == 0)
@@ -2327,7 +2337,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                     std::cout << " empty metric for " << outbox_mapping[j] << std::endl;
                                 }
                                 //END OF DEBUG
-                                #endif
+                                #endif*/
 
                                 ++j;
                             }
@@ -2482,8 +2492,18 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                 std::cout << "   " << ele_iter << std::endl;
                             //END OF DEBUG*/
 
+                            //std::cout << " we have " << elements_to_heal.size() << " elements to heal" << std::endl;
+
                             // Start element healing (i.e., refine the marked boundary elements)
                             auto splitCnt = 0;
+
+                            std::vector<int> newElements;
+                            std::vector<int> newBoundaries;
+                            std::vector<double> newQualities;
+
+                            newElements.reserve(dim*dim*origNElements);
+                            newBoundaries.reserve(dim*dim*origNElements);
+                            newQualities.reserve(origNElements);
 
                             for (auto ele_id : elements_to_heal)
                             {
@@ -2528,7 +2548,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                         //else dim == 3
                                         else
                                         {
-                                            //std::cout << "do 3D element healing of partition " << part_id << std::endl;
                                             const int *n=partition->get_element(ele_id);
 
                                             int heal_cnt;
@@ -2549,47 +2568,64 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                         
                                             heal_cnt=splitEdges.size();
 
-                                            /*std::cout << " element " << ele_id << std::endl;
-                                            std::cout << "    heal_cnt: " << heal_cnt << std::endl;//*/
-
                                             if (heal_cnt == 1)
                                             {
-                                                heal3D_1(partition, ele_id, nloc, splitCnt, origNElements, splitEdges);
+                                                heal3D_1(partition, part_property, ele_id, splitCnt, origNElements, splitEdges, newElements, newBoundaries, newQualities);
                                             }
 
                                             else if (heal_cnt == 2)
                                             {
-                                                heal3D_2(partition, ele_id, nloc, splitCnt, origNElements, splitEdges);
+                                                heal3D_2(partition, part_property, ele_id, splitCnt, origNElements, splitEdges, newElements, newBoundaries, newQualities);
                                             }
 
                                             else if (heal_cnt == 3)
                                             {
-                                                heal3D_3(partition, ele_id, nloc, splitCnt, origNElements, splitEdges, msize, dim, part_property);
+                                                heal3D_3(partition, part_property, ele_id, splitCnt, origNElements, splitEdges, newElements, newBoundaries, newQualities);
                                             }
 
                                             else if (heal_cnt == 4)
                                             {
-                                                heal3D_4(partition, ele_id, nloc, splitCnt, origNElements, splitEdges, msize, dim, part_property);
+                                                heal3D_4(partition, part_property, ele_id, splitCnt, origNElements, splitEdges, newElements, newBoundaries, newQualities);
                                             }
 
                                             else if (heal_cnt == 5)
                                             {
-                                                heal3D_5(partition, ele_id, nloc, splitCnt, origNElements, splitEdges, msize, dim, part_property);
+                                                heal3D_5(partition, part_property, ele_id, splitCnt, origNElements, splitEdges, newElements, newBoundaries, newQualities);
                                             }
 
                                             break;
 
                                         } //end of else (dim == 3)
-                                    }
-                                }
-
+                                    } //end of if(new_vertices_per_element[nedge*ele_id+j] != -1)
+                                }// for(size_t j=0; j<nedge; ++j)
                             } //end of element healing*/
+
+                            //std::cout << " before omp_atomic_capture " << partition->get_number_elements() << std::endl;
+                            int threadIdx = pragmatic_omp_atomic_capture(&partition->NElements, splitCnt);
+                            //std::cout << " after omp_atomic_capture  " << partition->get_number_elements() << std::endl;
+
+                            //Resize if new memory is required
+                            if ( partition->_ENList.size() < (partition->get_number_elements() * partition->get_number_nloc() ) )
+                            {
+                                partition->_ENList.resize( partition->get_number_elements() * partition->get_number_nloc() );
+                                partition->boundary.resize( partition->get_number_elements() * partition->get_number_nloc() );
+                                partition->quality.resize( partition->get_number_elements() );
+                            }
+
+                            // Append new elements to the mesh
+                            partition->add_elements(newElements, splitCnt, threadIdx);
+                            partition->add_boundaries(newBoundaries, splitCnt, threadIdx);
+                            partition->add_qualities(newQualities, splitCnt, threadIdx);
                             
                         } //end of if (partition_colors[it] < color)*/
                     } //end of for (auto it : partition_adjcy[part_id])
                     delete part_property;
                     //std::cout << "  partition has " << partition->get_number_nodes() << " nodes and " << partition->get_number_elements() << " elements after healing" << std::endl;
                 } //end of //Heal mesh if the partition has data in its outbox (color > 0)
+
+                //std::cout << "   after healing: ENList.size() " << partition->_ENList.size() << " NElements*nloc " << partition->NElements*nloc << std::endl;
+                //assert(partition->_ENList.size() < partition->NElements*nloc);
+
                 /*
                 //DEBUG
                 std::vector<int> headV2E_after_healing(partition->get_number_nodes()+1);
@@ -2644,7 +2680,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 partition->defragment(part_id, l2g_vertices_tmp, g2l_vertices_tmp);
 
-
                 auto interfaces_tic = omp_get_wtime();
                 partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp, act_iter+1);
                 auto interfaces_toc = omp_get_wtime();
@@ -2664,14 +2699,14 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                 /*
                 //Output healed mesh
-                std::cout << "  debug mesh output healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
-                std::string vtu_filename_heal_output = "examples/data/color_refinement/output/healed_part";
-                vtu_filename_heal_output+=std::to_string(part_id);
-                vtu_filename_heal_output+="_iteration";
-                vtu_filename_heal_output+=std::to_string(act_iter+1);
-                vtu_filename_heal_output+=".vtu";
-                VTKTools<double>::export_vtu(vtu_filename_heal_output.c_str(), partition);//*/
-
+                    std::cout << "  debug mesh output healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                    std::string vtu_filename_heal_output = "examples/data/color_refinement/output/healed_part";
+                    vtu_filename_heal_output+=std::to_string(part_id);
+                    vtu_filename_heal_output+="_iteration";
+                    vtu_filename_heal_output+=std::to_string(act_iter+1);
+                    vtu_filename_heal_output+=".vtu";
+                    VTKTools<double>::export_vtu(vtu_filename_heal_output.c_str(), partition);//*/
+  
                 //std::cerr << " mesh healing done for partition " << part_id << std::endl;
 
                 //double boundary_time = std::chrono::system_clock::now() - boundary_tic;
@@ -2708,9 +2743,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         Refine<double,2> refiner(*partition);
                         double L_max = std::stod(options);
 
-                        #ifndef NDEBUG
+                        /*#ifndef NDEBUG
                         std::cout << "  L_max: " << L_max << std::endl;
-                        #endif
+                        #endif*/
 
                         double call_to_refine_tic = omp_get_wtime();
                         //if (color == 0)
@@ -2820,9 +2855,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     {
                         Refine<double,3> refiner(*partition);
                         double L_max = std::stod(options); //standard was 0.00005
-                        #ifndef NDEBUG
+                        /*#ifndef NDEBUG
                         std::cout << "  L_max: " << L_max << std::endl;
-                        #endif
+                        #endif*/
 
                         double call_to_refine_tic = omp_get_wtime();
 
@@ -3144,10 +3179,10 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         Refine<double,3> refiner(*partition);
                         double L_max = 0.00005;
 
-                        #ifndef NDEBUG
+                        /*#ifndef NDEBUG
                         std::cout << "  Include command line option to provide argument for L_max!" << std::endl;
                         std::cout << "  L_max: " << L_max << std::endl; //standard was 0.00005
-                        #endif 
+                        #endif */
                         
                         auto refine_boundary_tic = omp_get_wtime();
                         refiner.refine_boundary(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
@@ -3165,7 +3200,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         l2g_element[part_id] = l2g_elements_tmp;
                         g2l_element[part_id] = g2l_elements_tmp;
                         outboxes[part_id] = outbox_data; 
-                        /*
+                        
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_boundary_part";
@@ -3177,7 +3212,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 
                         #ifndef NDEBUG
                         viennamesh::info(3) << "   Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " elements after boundary refinement" << std::endl;
-                        #endif 
+                        #endif //*/
 
                         if ( act_iter == (max_num_iterations-1) )
                         {
@@ -3206,8 +3241,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                             tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
                             
-                            //std::cout << " Tetgen Options: " << options << std::endl;
-                            /*
+                            std::cout << " Tetgen Options: " << options << std::endl;
+                            
                             //DEBUG
                             //output .node and .ele files for tetgen
                             ofstream node_file;
@@ -3281,9 +3316,9 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     Refine_Cavity<double,3> refiner_cavity(*partition);
                     double L_max = std::stod(options);
 
-                    #ifndef NDEBUG
+                    /*#ifndef NDEBUG
                     std::cout << "  L_max: " << L_max << std::endl;
-                    #endif
+                    #endif*/
 
                     double call_to_refine_tic = omp_get_wtime();
 
@@ -3834,12 +3869,15 @@ void MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector
 }
 //end of MeshPartitions::heal_facet(Mesh<double>*& partition, int nedge, std::vector<int>& new_vertices_per_element, int eid, const index_t *facet)
 
-//MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+//MeshPartitions::heal3D_1(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                         std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 //
 //Task: Heals mesh after neighboring partition has altered its interface
-void MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+void MeshPartitions::heal3D_1(Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+                              std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 {
     //std::cout << "    heal3D_1 " << eid << std::endl;
+    int nloc = partition->get_number_nloc();
 
     const int *n=partition->get_element(eid);
     //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
@@ -3886,18 +3924,24 @@ void MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int& 
     partition->remove_nelist(splitEdges[0].edge.second, eid);
     partition->add_nelist_fix(splitEdges[0].edge.second, ele1ID, threadIdx);
 
-    partition->replace_element(eid, ele0);
-    partition->append_element(ele1);
+    /*partition->replace_element(eid, ele0);
+    partition->append_element(ele1);*/
+    replace_element(partition, part_property, eid, ele0, ele0_boundary);
+    append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
     splitCnt += 1;
 }
-//end of MeshPartitions::heal3D_1(Mesh<double>*& partition, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+//end of MeshPartitions::heal3D_1(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,...)
 
-//MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+//MeshPartitions::heal3D_2(Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                          std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 //
 //Task: Heals mesh after neighboring partition has altered its interface
-void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+void MeshPartitions::heal3D_2(Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+                              std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 {
     //std::cout << "    heal3D_2 " << eid << std::endl;
+
+    int nloc = partition->get_number_nloc();
 
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
@@ -3986,9 +4030,9 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
         partition->add_nelist_fix(n3, ele1ID, threadIdx);
         partition->add_nelist_fix(n3, ele2ID, threadIdx);
 
-        partition->replace_element(eid, ele0);
-        partition->append_element(ele1);
-        partition->append_element(ele2);
+        replace_element(partition, part_property, eid, ele0, ele0_boundary);
+        append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
 
         splitCnt += 2;
     } //end of if(n0>=0) (2(a))
@@ -4041,26 +4085,31 @@ void MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int& 
         partition->add_nelist_fix(splitEdges[1].edge.second, ele1ID, threadIdx);
         partition->add_nelist_fix(splitEdges[1].edge.second, ele3ID, threadIdx);
 
-        partition->replace_element(eid, ele0);
-        partition->append_element(ele1);
-        partition->append_element(ele2);
-        partition->append_element(ele3);
+        replace_element(partition, part_property, eid, ele0, ele0_boundary);
+        append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
 
         splitCnt += 3;
     } //end of else (2(b))
 }
-//end of MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+//end of MeshPartitions::heal3D_2(Mesh<double>*& partition, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                                std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 
-//MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
+//MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                              std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 //
 //Task: Heals mesh after neighboring partition has altered its interface
-void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
-                              int msize, int dim, ElementProperty<double>*& property)
+void MeshPartitions::heal3D_3(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+                              std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 {
     //std::cout << "     heal3D_3 " << eid << std::endl;
+    const int dim = partition->get_number_dimensions();
+    const int msize = partition->get_msize();
+    const int nloc = partition->get_number_nloc();
+
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
-
     //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
@@ -4166,10 +4215,10 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
         partition->remove_nelist(m[4], eid);
         partition->add_nelist_fix(m[4], ele2ID, threadIdx);
 
-        partition->replace_element(eid, ele0);
-        partition->append_element(ele1);
-        partition->append_element(ele2);
-        partition->append_element(ele3);
+        replace_element(partition, part_property, eid, ele0, ele0_boundary);
+        append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
 
         splitCnt += 3;
     } //end of if (nshared == 3) (case 3(a))
@@ -4204,7 +4253,7 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
 
         // Boundary values of each wedge side
         int bwedge[] = {b[bottom_triangle[2]], b[bottom_triangle[0]], b[bottom_triangle[1]], 0, b[top_vertex]};
-        refine_wedge(partition, top_triangle, bottom_triangle, bwedge, NULL, eid, threadIdx, splitCnt, nloc, msize, dim, property);
+        refine_wedge(partition, part_property, top_triangle, bottom_triangle, bwedge, NULL, eid, threadIdx, splitCnt, nloc, msize, dim, newElements, newBoundaries, newQualities);
 
         const int ele0[] = {top_vertex, splitEdges[0].id, splitEdges[1].id, splitEdges[2].id};
         const int ele0_boundary[] = {0, b[bottom_triangle[0]], b[bottom_triangle[1]], b[bottom_triangle[2]]};
@@ -4216,22 +4265,292 @@ void MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int& 
         partition->add_nelist(splitEdges[1].id, eid);
         partition->add_nelist(splitEdges[2].id, eid);
 
-        partition->replace_element(eid, ele0);
+        replace_element(partition, part_property, eid, ele0, ele0_boundary);
     }
-}
-//end of MeshPartitions::heal3D_3(Mesh<double>*& partition, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges)
 
-//MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim)
+    else 
+    {
+            /*
+             *************
+             * Case 3(c) *
+             *************
+             */
+            assert(shared.size() == 2);
+            /*
+             * This case results in a 1:4 or 1:5 subdivision. There are three
+             * split edges, connected in a Z-like way (cf. connection of
+             * diagonals in 1:3 wedge split). By convention, the topOfZ edge is
+             * the one connected to middleOfZ.edge.first, bottomOfZ is the one
+             * connected to middleOfZ.edge.second. Top and bottom edges are
+             * flipped if necessary so that the first vertex of top and the
+             * second vertex of bottom are the ones connected to the middle edge.
+             */
+
+            DirectedEdge<index_t> *topZ, *middleZ, *bottomZ;
+            // Middle split edge
+            for(int j=0; j<3; ++j) 
+            {
+                if(splitEdges[j].contains(*shared.begin()) && splitEdges[j].contains(*shared.rbegin())) 
+                {
+                    middleZ = &splitEdges[j];
+
+                    if(splitEdges[(j+1)%3].contains(splitEdges[j].edge.first)) 
+                    {
+                        topZ = &splitEdges[(j+1)%3];
+                        bottomZ = &splitEdges[(j+2)%3];
+                    } else 
+                    {
+                        topZ = &splitEdges[(j+2)%3];
+                        bottomZ = &splitEdges[(j+1)%3];
+                    }
+
+                    break;
+                }
+            }
+
+            // Flip vertices of top and bottom edges if necessary
+            if(topZ->edge.first != middleZ->edge.first) 
+            {
+                topZ->edge.second = topZ->edge.first;
+                topZ->edge.first = middleZ->edge.first;
+            }
+            if(bottomZ->edge.second != middleZ->edge.second) 
+            {
+                bottomZ->edge.first = bottomZ->edge.second;
+                bottomZ->edge.second = middleZ->edge.second;
+            }
+
+            /*
+             * There are 3 sub-cases, depending on the way the trapezoids on the
+             * facets between topZ-middleZ and middleZ-bottomZ were bisected.
+             *
+             * Case 3(c)(1): Both diagonals involve middleZ->id.
+             * Case 3(c)(2): Only one diagonal involves middleZ->id.
+             * Case 3(c)(3): No diagonal involves middleZ->id.
+             */
+
+            std::vector< DirectedEdge<index_t> > diagonals;
+            for(std::vector<index_t>::const_iterator it=partition->NNList[middleZ->id].begin(); it!=partition->NNList[middleZ->id].end(); ++it) 
+            {
+                if(*it == topZ->edge.second || *it == bottomZ->edge.first) 
+                {
+                    diagonals.push_back(DirectedEdge<index_t>(middleZ->id, *it));
+                }
+            }
+
+            switch(diagonals.size()) 
+            {
+            case 0: 
+            {
+                // Case 3(c)(2)
+                const int ele0[] = {middleZ->edge.first, topZ->id, bottomZ->id, bottomZ->edge.first};
+                const int ele1[] = {middleZ->id, middleZ->edge.first, topZ->id, bottomZ->id};
+                const int ele2[] = {topZ->id, topZ->edge.second, bottomZ->id, bottomZ->edge.first};
+                const int ele3[] = {topZ->id, topZ->edge.second, bottomZ->edge.second, bottomZ->id};
+                const int ele4[] = {middleZ->id, topZ->id, bottomZ->edge.second, bottomZ->id};
+
+                const int ele0_boundary[] = {0, b[topZ->edge.second], b[middleZ->edge.second], 0};
+                const int ele1_boundary[] = {0, 0, b[topZ->edge.second], b[bottomZ->edge.first]};
+                const int ele2_boundary[] = {b[middleZ->edge.first], 0, b[middleZ->edge.second], 0};
+                const int ele3_boundary[] = {b[middleZ->edge.first], 0, 0, b[bottomZ->edge.first]};
+                const int ele4_boundary[] = {0, b[topZ->edge.second], 0, b[bottomZ->edge.first]};
+
+                index_t ele1ID, ele2ID, ele3ID, ele4ID;
+                ele1ID = splitCnt;
+                ele2ID = ele1ID+1;
+                ele3ID = ele1ID+2;
+                ele4ID = ele1ID+3;
+
+                partition->add_nnlist(topZ->id, bottomZ->id);
+                partition->add_nnlist(bottomZ->id, topZ->id);
+
+                partition->add_nelist_fix(middleZ->edge.first, ele1ID, threadIdx);
+
+                partition->remove_nelist(middleZ->edge.second, eid);
+                partition->add_nelist_fix(middleZ->edge.second, ele3ID, threadIdx);
+                partition->add_nelist_fix(middleZ->edge.second, ele4ID, threadIdx);
+
+                partition->remove_nelist(topZ->edge.second, eid);
+                partition->add_nelist_fix(topZ->edge.second, ele2ID, threadIdx);
+                partition->add_nelist_fix(topZ->edge.second, ele3ID, threadIdx);
+
+                partition->add_nelist_fix(bottomZ->edge.first, ele2ID, threadIdx);
+
+                partition->add_nelist_fix(middleZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(middleZ->id, ele4ID, threadIdx);
+
+                partition->add_nelist(topZ->id, eid);
+                partition->add_nelist_fix(topZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(topZ->id, ele2ID, threadIdx);
+                partition->add_nelist_fix(topZ->id, ele3ID, threadIdx);
+                partition->add_nelist_fix(topZ->id, ele4ID, threadIdx);
+
+                partition->add_nelist(bottomZ->id, eid);
+                partition->add_nelist_fix(bottomZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele2ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele3ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele4ID, threadIdx);
+
+                replace_element(partition, part_property, eid, ele0, ele0_boundary);
+                append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele4, ele4_boundary, newElements, newBoundaries, newQualities);
+                splitCnt += 4;
+                break;
+            }
+            case 1: 
+            {
+                // Case 3(c)(3)
+
+                // Re-arrange topZ and bottomZ if necessary; make topZ point to the
+                // splitEdge for which edge.second is connected to middleZ->top.
+                if(topZ->edge.second != diagonals[0].edge.second) 
+                {
+                    assert(diagonals[0].edge.second == bottomZ->edge.first);
+                    DirectedEdge<index_t> *p = topZ;
+                    topZ = bottomZ;
+                    bottomZ = p;
+
+                    // Flip topZ, middleZ, bottomZ
+                    index_t v = middleZ->edge.first;
+                    middleZ->edge.first = middleZ->edge.second;
+                    middleZ->edge.second = v;
+
+                    v = topZ->edge.first;
+                    topZ->edge.first = topZ->edge.second;
+                    topZ->edge.second = v;
+
+                    v = bottomZ->edge.first;
+                    bottomZ->edge.first = bottomZ->edge.second;
+                    bottomZ->edge.second = v;
+                }
+
+                const int ele0[] = {middleZ->edge.first, topZ->id, bottomZ->id, bottomZ->edge.first};
+                const int ele1[] = {middleZ->id, middleZ->edge.first, topZ->id, bottomZ->id};
+                const int ele2[] = {topZ->id, topZ->edge.second, bottomZ->id, bottomZ->edge.first};
+                const int ele3[] = {middleZ->id, topZ->id, topZ->edge.second, bottomZ->id};
+                const int ele4[] = {middleZ->id, topZ->edge.second, middleZ->edge.second, bottomZ->id};
+
+                const int ele0_boundary[] = {0, b[topZ->edge.second], b[middleZ->edge.second], 0};
+                const int ele1_boundary[] = {0, 0, b[topZ->edge.second], b[bottomZ->edge.first]};
+                const int ele2_boundary[] = {b[middleZ->edge.first], 0, b[middleZ->edge.second], 0};
+                const int ele3_boundary[] = {0, 0, 0, b[bottomZ->edge.first]};
+                const int ele4_boundary[] = {b[middleZ->edge.first], b[topZ->edge.second], 0, b[bottomZ->edge.first]};
+
+                index_t ele1ID, ele2ID, ele3ID, ele4ID;
+                ele1ID = splitCnt;
+                ele2ID = ele1ID+1;
+                ele3ID = ele1ID+2;
+                ele4ID = ele1ID+3;
+
+                partition->add_nnlist(topZ->id, bottomZ->id);
+                partition->add_nnlist(bottomZ->id, topZ->id);
+
+                partition->add_nelist_fix(middleZ->edge.first, ele1ID, threadIdx);
+
+                partition->remove_nelist(middleZ->edge.second, eid);
+                partition->add_nelist_fix(middleZ->edge.second, ele4ID, threadIdx);
+
+                partition->remove_nelist(topZ->edge.second, eid);
+                partition->add_nelist_fix(topZ->edge.second, ele2ID, threadIdx);
+                partition->add_nelist_fix(topZ->edge.second, ele3ID, threadIdx);
+                partition->add_nelist_fix(topZ->edge.second, ele4ID, threadIdx);
+
+                partition->add_nelist_fix(bottomZ->edge.first, ele2ID, threadIdx);
+
+                partition->add_nelist_fix(middleZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(middleZ->id, ele3ID, threadIdx);
+                partition->add_nelist_fix(middleZ->id, ele4ID, threadIdx);
+
+                partition->add_nelist(topZ->id, eid);
+                partition->add_nelist_fix(topZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(topZ->id, ele2ID, threadIdx);
+                partition->add_nelist_fix(topZ->id, ele3ID, threadIdx);
+
+                partition->add_nelist(bottomZ->id, eid);
+                partition->add_nelist_fix(bottomZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele2ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele3ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele4ID, threadIdx);
+
+                replace_element(partition, part_property, eid, ele0, ele0_boundary);
+                append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele4, ele4_boundary, newElements, newBoundaries, newQualities);
+                splitCnt += 4;
+                break;
+            }
+            case 2: 
+            {
+                // Case 3(c)(1)
+                const int ele0[] = {middleZ->id, bottomZ->edge.first, middleZ->edge.first, topZ->id};
+                const int ele1[] = {middleZ->id, bottomZ->edge.first, topZ->id, topZ->edge.second};
+                const int ele2[] = {middleZ->id, bottomZ->id, bottomZ->edge.first, topZ->edge.second};
+                const int ele3[] = {middleZ->id, middleZ->edge.second, bottomZ->id, topZ->edge.second};
+
+                const int ele0_boundary[] = {b[middleZ->edge.second], b[bottomZ->edge.first], 0, b[topZ->edge.second]};
+                const int ele1_boundary[] = {b[middleZ->edge.second], b[bottomZ->edge.first], 0, 0};
+                const int ele2_boundary[] = {b[middleZ->edge.first], 0, 0, b[topZ->edge.second]};
+                const int ele3_boundary[] = {b[middleZ->edge.first], 0, b[bottomZ->edge.first], b[topZ->edge.second]};
+
+                index_t ele1ID, ele2ID, ele3ID;
+                ele1ID = splitCnt;
+                ele2ID = ele1ID+1;
+                ele3ID = ele1ID+2;
+
+                partition->add_nelist(middleZ->id, eid);
+                partition->add_nelist_fix(middleZ->id, ele1ID, threadIdx);
+                partition->add_nelist_fix(middleZ->id, ele2ID, threadIdx);
+                partition->add_nelist_fix(middleZ->id, ele3ID, threadIdx);
+
+                partition->remove_nelist(middleZ->edge.second, eid);
+                partition->add_nelist_fix(middleZ->edge.second, ele3ID, threadIdx);
+
+                partition->remove_nelist(topZ->edge.second, eid);
+                partition->add_nelist_fix(topZ->edge.second, ele1ID, threadIdx);
+                partition->add_nelist_fix(topZ->edge.second, ele2ID, threadIdx);
+                partition->add_nelist_fix(topZ->edge.second, ele3ID, threadIdx);
+
+                partition->add_nelist_fix(bottomZ->edge.first, ele1ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->edge.first, ele2ID, threadIdx);
+
+                partition->add_nelist(topZ->id, eid);
+                partition->add_nelist_fix(topZ->id, ele1ID, threadIdx);
+
+                partition->add_nelist_fix(bottomZ->id, ele2ID, threadIdx);
+                partition->add_nelist_fix(bottomZ->id, ele3ID, threadIdx);
+
+                replace_element(partition, part_property, eid, ele0, ele0_boundary);
+                append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+                splitCnt += 3;
+                break;
+            }
+
+            default:
+                break;
+            }
+        }
+}
+//end of MeshPartitions::heal3D_3(Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                          std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
+
+//MeshPartitions::heal3D_4((Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                          std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 //
 //Task: Heals mesh after neighboring partition has altered its interface
-void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim,
-                              ElementProperty<double>*& property)
+void MeshPartitions::heal3D_4(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+                              std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 {
-    //std::cout << "     heal3D_4 " << eid << std::endl;
+    const int dim = partition->get_number_dimensions();
+    const int msize = partition->get_msize();
+    const int nloc = partition->get_number_nloc();
+
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
-
-    //std::cout << "       " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
 
     std::map<index_t, int> b;
     for(int j=0; j<nloc; ++j)
@@ -4396,11 +4715,11 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
                 partition->add_nelist_fix(p[3]->id, ele3ID, threadIdx);
                 partition->add_nelist_fix(p[3]->id, ele4ID, threadIdx);
 
-                partition->replace_element(eid, ele0);
-                partition->append_element(ele1);
-                partition->append_element(ele2);
-                partition->append_element(ele3);
-                partition->append_element(ele4);
+                replace_element(partition, part_property, eid, ele0, ele0_boundary);
+                append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele4, ele4_boundary, newElements, newBoundaries, newQualities);
 
                 splitCnt += 4;
 
@@ -4477,12 +4796,12 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
                 partition->add_nelist_fix(p[3]->id, ele4ID, threadIdx);
                 partition->add_nelist_fix(p[3]->id, ele5ID, threadIdx);
 
-                partition->replace_element(eid, ele0);
-                partition->append_element(ele1);
-                partition->append_element(ele2);
-                partition->append_element(ele3);
-                partition->append_element(ele4);
-                partition->append_element(ele5);
+                replace_element(partition, part_property, eid, ele0, ele0_boundary);
+                append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele4, ele4_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele5, ele5_boundary, newElements, newBoundaries, newQualities);
 
                 splitCnt += 5;
 
@@ -4551,12 +4870,12 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
                 partition->add_nelist_fix(p[3]->id, ele4ID, threadIdx);
                 partition->add_nelist_fix(p[3]->id, ele5ID, threadIdx);
 
-                partition->replace_element(eid, ele0);
-                partition->append_element(ele1);
-                partition->append_element(ele2);
-                partition->append_element(ele3);
-                partition->append_element(ele4);
-                partition->append_element(ele5);
+                replace_element(partition, part_property, eid, ele0, ele0_boundary);
+                append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele4, ele4_boundary, newElements, newBoundaries, newQualities);
+                append_element(partition, part_property, ele5, ele5_boundary, newElements, newBoundaries, newQualities);
 
                 splitCnt += 5;
 
@@ -4578,6 +4897,17 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         */
 
         // In this case, the element is split into two wedges.
+
+        
+        //MY TEST IMPLEMENTATION
+        if ( partition->NEList[n[0]].count(eid) == 0 ||
+             partition->NEList[n[1]].count(eid) == 0 ||
+             partition->NEList[n[2]].count(eid) == 0 )
+        {
+            std::cout << " skip healing of " << eid << std::endl; 
+            return;
+        }
+        //END OF MY TEST IMPLEMENTATION*/
 
         // Find the top left, top right, bottom left and
         // bottom right split edges, as depicted in the paper.
@@ -4825,7 +5155,7 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         bwedge[2] = 0;
         bwedge[3] = b[tl->edge.second];
         bwedge[4] = b[tr->edge.second];
-        refine_wedge(partition, top_triangle, bottom_triangle, bwedge, &diag, eid, threadIdx, splitCnt, nloc, msize, dim, property);
+        refine_wedge(partition, part_property, top_triangle, bottom_triangle, bwedge, &diag, eid, threadIdx, splitCnt, nloc, msize, dim, newElements, newBoundaries, newQualities);
 
         // Top wedge
         top_triangle[0] = tl->id;
@@ -4844,28 +5174,34 @@ void MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int& 
         index_t swap = diag.edge.first;
         diag.edge.first = diag.edge.second;
         diag.edge.second = swap;
-        refine_wedge(partition, top_triangle, bottom_triangle, bwedge, &diag, eid, threadIdx, splitCnt, nloc, msize, dim, property);
+        refine_wedge(partition, part_property, top_triangle, bottom_triangle, bwedge, &diag, eid, threadIdx, splitCnt, nloc, msize, dim, newElements, newBoundaries, newQualities);
 
         // Remove parent element
         for(size_t j=0; j<nloc; ++j)
         {
-            //std::cout << "     remove " << n[j] << " in " << eid << std::endl;
+            assert(partition->NEList[n[j]].count(eid) != 0);
             partition->remove_nelist(n[j], eid);
         }
 
         //std::cout << " remove element " << eid << " by setting ENList[" << eid*nloc << "] to -1 " << std::endl; 
-        std::cout << " Remove parent element in healing process " << eid << std::endl;
         partition->_ENList[eid*nloc] = -1;
     } //end of else (end of case 4(b))
 }
-//end of MeshPartitions::heal3D_4(Mesh<double>*& partition, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim)
+//end of MeshPartitions::heal3D_4((Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                          std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 
-//MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim)
+//MeshPartitions::heal3D_5((Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                          std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 //
 //Task: Heals mesh after neighboring partition has altered its interface
-void MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim, ElementProperty<double>*& property)
+void MeshPartitions::heal3D_5(Mesh<double>*& partition, ElementProperty<double>*& part_property, int eid, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+                              std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 {
     //std::cout << "     heal3D_5" << std::endl;
+    const int dim = partition->get_number_dimensions();
+    const int msize = partition->get_msize();
+    const int nloc = partition->get_number_nloc();
+
     const int *n=partition->get_element(eid);
     const int *boundary=&(partition->boundary[eid*nloc]);
 
@@ -5076,7 +5412,7 @@ void MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& 
     index_t bottom_triangle[] = {br->id, br->edge.first, bl->id};
     index_t top_triangle[] = {tr->id, tr->edge.first, tl->id};
     int bwedge[] = {b[bl->edge.second], b[br->edge.second], 0, b[bl->edge.first], b[tl->edge.first]};
-    refine_wedge(partition, top_triangle, bottom_triangle, bwedge, &diag, eid, threadIdx, splitCnt, nloc, msize, dim, property);
+    refine_wedge(partition, part_property, top_triangle, bottom_triangle, bwedge, &diag, eid, threadIdx, splitCnt, nloc, msize, dim, newElements, newBoundaries, newQualities);
 
     const int ele0[] = {tl->edge.second, bl->id, tl->id, oe->id};
     const int ele1[] = {tr->edge.second, tr->id, br->id, oe->id};
@@ -5119,21 +5455,22 @@ void MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int& 
     partition->add_nelist_fix(cross_diag.edge.second, ele3ID, threadIdx);
     partition->add_nelist_fix(oe->id, ele3ID, threadIdx);
 
-    partition->replace_element(eid, ele0);
-    partition->append_element(ele1);
-    partition->append_element(ele2);
-    partition->append_element(ele3);
+    replace_element(partition, part_property, eid, ele0, ele0_boundary);
+    append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+    append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+    append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
 
     splitCnt += 3;
 }
-//end of MeshPartitions::heal3D_5(Mesh<double>*& partition, int eid, int nloc, int splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges, int msize, int dim)
+//end of MeshPartitions::heal3D_5((Mesh<double>*& partition, ElementProperty<double> *& part_property, int eid, int nloc, int& splitCnt, int& threadIdx, std::vector< DirectedEdge<index_t>>& splitEdges,
+//                          std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 
 //MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], DirectedEdge<index_t>* third_diag, int eid)
 //
 //Task: Refines wedge, is needed in heal3D functions!
-void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], 
-                                  DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim,
-                                  ElementProperty<double>*& property)
+void MeshPartitions::refine_wedge(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], 
+                                  DirectedEdge<index_t>* third_diag, int eid, int& threadIdx, int& splitCnt, int nloc, int msize, int dim, std::vector<int>& newElements, 
+                                  std::vector<int>& newBoundaries, std::vector<double>& newQualities)
 {
     //std::cout << "     refine_wedge" << std::endl;
     /*
@@ -5144,10 +5481,10 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
     */
 
     /*
-        * third_diag is used optionally if we need to define manually what the
-        * third diagonal is (used in cases 4(b) and 5). It needs to be a directed
-        * edge from the bottom triangle to the top triangle and be on Side2.
-        */
+    * third_diag is used optionally if we need to define manually what the
+    * third diagonal is (used in cases 4(b) and 5). It needs to be a directed
+    * edge from the bottom triangle to the top triangle and be on Side2.
+    */
     if(third_diag != NULL) 
     {
         for(int j=0; j<3; ++j) 
@@ -5342,9 +5679,9 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
 
         partition->add_nelist_fix(v_top, ele1ID, threadIdx);
 
-        partition->append_element(ele1);
-        partition->append_element(ele2);
-        partition->append_element(ele3);
+        append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
 
         splitCnt += 3;
     } //end of if for case 1-3
@@ -5495,13 +5832,13 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
             }
 
             // Order of parent element's vertices has changed, so volume might be negative.
-            double L = fabs(property->volume(x[0], x[1], x[2], x[3]));
+            double L = fabs(part_property->volume(x[0], x[1], x[2], x[3]));
 
             double ll[4];
-            ll[0] = fabs(property->volume(nc  , x[1], x[2], x[3])/L);
-            ll[1] = fabs(property->volume(x[0], nc  , x[2], x[3])/L);
-            ll[2] = fabs(property->volume(x[0], x[1], nc  , x[3])/L);
-            ll[3] = fabs(property->volume(x[0], x[1], x[2], nc  )/L);
+            ll[0] = fabs(part_property->volume(nc  , x[1], x[2], x[3])/L);
+            ll[1] = fabs(part_property->volume(x[0], nc  , x[2], x[3])/L);
+            ll[2] = fabs(part_property->volume(x[0], x[1], nc  , x[3])/L);
+            ll[3] = fabs(part_property->volume(x[0], x[1], x[2], nc  )/L);
 
             for(int i=0; i<msize; i++) 
             {
@@ -5575,15 +5912,15 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
                 sorted_n.push_back(it->second);
             }
 
-            double L = fabs(property->volume(x[0], x[1], x[2], x[3]));
+            double L = fabs(part_property->volume(x[0], x[1], x[2], x[3]));
 
             assert(L>0);
 
             double ll[4];
-            ll[0] = fabs(property->volume(nc  , x[1], x[2], x[3])/L);
-            ll[1] = fabs(property->volume(x[0], nc  , x[2], x[3])/L);
-            ll[2] = fabs(property->volume(x[0], x[1], nc  , x[3])/L);
-            ll[3] = fabs(property->volume(x[0], x[1], x[2], nc  )/L);
+            ll[0] = fabs(part_property->volume(nc  , x[1], x[2], x[3])/L);
+            ll[1] = fabs(part_property->volume(x[0], nc  , x[2], x[3])/L);
+            ll[2] = fabs(part_property->volume(x[0], x[1], nc  , x[3])/L);
+            ll[3] = fabs(part_property->volume(x[0], x[1], x[2], nc  )/L);
 
             double min_l = std::min(std::min(ll[0], ll[1]), std::min(ll[2], ll[3]));
             if(min_l>tol) 
@@ -5611,14 +5948,14 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
                                             l[3]*partition->metric[sorted_best_e[3]*msize+i];
         }
 
-        partition->append_element(ele1);
-        partition->append_element(ele2);
-        partition->append_element(ele3);
-        partition->append_element(ele4);
-        partition->append_element(ele5);
-        partition->append_element(ele6);
-        partition->append_element(ele7);
-        partition->append_element(ele8);
+        append_element(partition, part_property, ele1, ele1_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele2, ele2_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele3, ele3_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele4, ele4_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele5, ele5_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele6, ele6_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele7, ele7_boundary, newElements, newBoundaries, newQualities);
+        append_element(partition, part_property, ele8, ele3_boundary, newElements, newBoundaries, newQualities);
 
         splitCnt += 8;
 
@@ -5627,6 +5964,132 @@ void MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_tr
         partition->lnn2gnn[cid] = cid;                
     }
 } //end of MeshPartitions::refine_wedge(Mesh<double>*& partition, const index_t top_triangle[], const index_t bottom_triangle[], const int bndr[], DirectedEdge<index_t>* third_diag, int eid)
+
+//MeshPartitions::append_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t *elem, const int *boundary, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
+//
+//Task: Appends an element during healing functions, including fixing of the orientation and its boundary
+//      Reimplemented from Refine.h append_element(...) function
+void MeshPartitions::append_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t *elem, const int *boundary, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
+{
+    //const index_t dim = partition->get_number_dimensions();
+    int dim;
+    if (partition->get_number_dimensions() == 3)
+        dim = 3;
+    else   
+        dim = 2;
+
+    int nloc = partition->get_number_nloc();
+    if (dim==3)
+    {
+        // Fix orientation of new element.
+        const double *x0 = &(partition->_coords[elem[0]*dim]);
+        const double *x1 = &(partition->_coords[elem[1]*dim]);
+        const double *x2 = &(partition->_coords[elem[2]*dim]);
+        const double *x3 = &(partition->_coords[elem[3]*dim]);
+
+        double av = part_property->volume(x0, x1, x2, x3);
+
+        if(av<0) 
+        {
+            index_t *e = const_cast<index_t *>(elem);
+            int *b = const_cast<int *>(boundary);
+
+            // Flip element
+            index_t e0 = e[0];
+            e[0] = e[1];
+            e[1] = e0;
+
+            // and boundary
+            int b0 = b[0];
+            b[0] = b[1];
+            b[1] = b0;
+        }
+    }
+
+    for(size_t i=0; i<nloc; ++i) 
+    {
+        newElements.push_back(elem[i]);
+        newBoundaries.push_back(boundary[i]);
+    }
+    
+    //double q = partition->template calculate_quality<dim>(elem);
+    double q;    
+
+    if (dim == 2)
+    {
+        q = partition->template calculate_quality<2>(elem);
+    }
+
+    else
+    {
+        q = partition->template calculate_quality<3>(elem);
+    }
+    newQualities.push_back(q);
+}
+//end of MeshPartition::append_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t *elem, const int *boundary, std::vector<int>& newElements, std::vector<int>& newBoundaries, std::vector<double>& newQualities)
+
+//MeshPartitions::replace_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t eid, const index_t *n, const int *boundary)
+//
+//Task: Replaces an element during healing functions, including fixing of the orientation and its boundary
+//      Reimplemented from Refine.h replace_element(...) function
+void MeshPartitions::replace_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t eid, const index_t *n, const int *boundary)
+{
+    /*int const dim = partition->get_number_dimensions();*/
+    int dim, nloc;
+    if (partition->get_number_dimensions() == 3)
+    {
+        dim = 3;
+        nloc = 4;
+    }
+    else   
+    {
+        dim = 2;
+        nloc=3;
+    }
+
+    if(dim==3) 
+    {
+        // Fix orientation of new element.
+        const double *x0 = &(partition->_coords[n[0]*dim]);
+        const double *x1 = &(partition->_coords[n[1]*dim]);
+        const double *x2 = &(partition->_coords[n[2]*dim]);
+        const double *x3 = &(partition->_coords[n[3]*dim]);
+
+        double av = part_property->volume(x0, x1, x2, x3);
+
+        if(av<0) {
+            index_t *e = const_cast<index_t *>(n);
+            int *b = const_cast<int *>(boundary);
+
+            // Flip element
+            index_t e0 = e[0];
+            e[0] = e[1];
+            e[1] = e0;
+
+            // and boundary
+            int b0 = b[0];
+            b[0] = b[1];
+            b[1] = b0;
+        }
+    }
+
+    for(size_t i=0; i<nloc; i++) 
+    {
+        partition->_ENList[eid*nloc+i]=n[i];
+        partition->boundary[eid*nloc+i]=boundary[i];
+    }
+
+    if (dim == 2)
+    {
+        partition->template update_quality<2>(eid);
+    }
+
+    else
+    {
+        partition->template update_quality<3>(eid);
+    }
+}
+//end of MeshPartitions::replace_element(Mesh<double>*& partition, ElementProperty<double>*& part_property, const index_t eid, const index_t *n, const int *boundary)
 
 //MeshPartitions::ConsistencyCheck()
 //
