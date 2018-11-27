@@ -3200,7 +3200,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         l2g_element[part_id] = l2g_elements_tmp;
                         g2l_element[part_id] = g2l_elements_tmp;
                         outboxes[part_id] = outbox_data; 
-                        
+                        /*
                         //Output refined partition in each iteration
                         std::cout << "  debug mesh output refined partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                         std::string vtu_filename_refine_output = "examples/data/color_refinement/output/refine_boundary_part";
@@ -3209,7 +3209,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         vtu_filename_refine_output+=std::to_string(act_iter+1);
                         vtu_filename_refine_output+=".vtu";
                         VTKTools<double>::export_vtu(vtu_filename_refine_output.c_str(), partition);//*/
-                
+                        /*
                         #ifndef NDEBUG
                         viennamesh::info(3) << "   Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " elements after boundary refinement" << std::endl;
                         #endif //*/
@@ -3240,9 +3240,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             tetgenbehavior tet_behavior;
 
                             tet_behavior.parse_commandline(const_cast<char*>(options.c_str()));
-                            
-                            std::cout << " Tetgen Options: " << options << std::endl;
-                            
+                            /*                            
                             //DEBUG
                             //output .node and .ele files for tetgen
                             ofstream node_file;

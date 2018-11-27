@@ -1069,7 +1069,7 @@ public:
                 }
             } //end of for (size_t j = 0; j < NNList[i].size(); ++j)
         } //end of for (size_t i = 0; i < NNodes; ++i)
-        
+        /*
         //DEBUG
         std::ofstream nninterfaces_out;
         std::string name;

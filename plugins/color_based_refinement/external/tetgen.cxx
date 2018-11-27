@@ -8996,8 +8996,8 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
 
   if (b->verbose > 2) {
     printf("      Insert point %d\n", pointmark(insertpt));
-    std::cout << insertpt[0] << " " << insertpt[1] << " " << insertpt[2] << std::endl;
-    std::cout << sizeof(insertpt) << std::endl;
+    /*std::cout << insertpt[0] << " " << insertpt[1] << " " << insertpt[2] << std::endl;
+    std::cout << sizeof(insertpt) << std::endl;*/
   }
 
   // Locate the point.
@@ -9179,7 +9179,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
     return 0;
   } 
 
-  std::cout << " cavity created" << std::endl;
+  //std::cout << " cavity created" << std::endl;
 
   if (ivf->assignmeshsize) {
     // Assign mesh size for the new point.
@@ -9198,13 +9198,13 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
   } // if (assignmeshsize)
 
   if (ivf->bowywat) {
-    std::cout << " start bowyer-watson" << std::endl;
+    //std::cout << " start bowyer-watson" << std::endl;
     // Update the cavity C(p) using the Bowyer-Watson algorithm.
     swaplist = cavetetlist;
     cavetetlist = cavebdrylist;
     cavebdrylist = swaplist;
     for (i = 0; i < cavetetlist->objects; i++) {
-      std::cout << " cavetetlist->object: " << i << std::endl;
+      //std::cout << " cavetetlist->object: " << i << std::endl;
       // 'cavetet' is an adjacent tet at outside of the cavity.
       cavetet = (triface *) fastlookup(cavetetlist, i);
       // The tet may be tested and included in the (enlarged) cavity.
@@ -9223,7 +9223,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
                                 pts[4][3], pts[5][3], pts[6][3], pts[7][3],
                                 insertpt[3]);
             } else {
-              std::cout << " insphere_s 1" << std::endl;
+              //std::cout << " insphere_s 1" << std::endl;
               sign = insphere_s(pts[4], pts[5], pts[6], pts[7], insertpt);
             }
             enqflag = (sign < 0.0);
@@ -9252,7 +9252,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
                                         pts[4][3], pts[5][3], pts[6][3], 
                                         pts[7][3], insertpt[3]);
                     } else {
-                      std::cout << " insphere_s 2" << std::endl;
+                      //std::cout << " insphere_s 2" << std::endl;
                       sign = insphere_s(pts[4],pts[5],pts[6],pts[7], insertpt);
                     }
                     enqflag = (sign < 0.0);
@@ -9280,7 +9280,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
                                       pts[4][3], pts[5][3], pts[6][3], 
                                       pts[7][3], insertpt[3]);
                   } else {
-                    std::cout << " insphere_s 3" << std::endl;
+                    //std::cout << " insphere_s 3" << std::endl;
                     sign = insphere_s(pts[4],pts[5],pts[6],pts[7], insertpt);
                   }
                   enqflag = (sign < 0.0);
@@ -9318,7 +9318,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
     cavetetlist->restart(); // Clear the working list.
   } // if (ivf->bowywat)
 
-  std::cout << " bowyer-watson done" << std::endl;
+  //std::cout << " bowyer-watson done" << std::endl;
 
   if (checksubsegflag) {
     // Collect all segments of C(p).
