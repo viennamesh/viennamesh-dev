@@ -11,6 +11,8 @@ namespace viennamesh
 
 		bool color_refinement::run(viennamesh::algorithm_handle &)
 		{	
+			//viennamesh::info(1) << "Color based mesh refinement" << std::endl;
+
 			data_handle<pragmatic_wrapper::mesh> input_mesh = get_required_input<pragmatic_wrapper::mesh>("mesh");
 			data_handle<int> num_partitions = get_required_input<int>("num_partitions");
 			data_handle<int> num_threads = get_input<int>("num_threads");
@@ -60,11 +62,14 @@ namespace viennamesh
 			if (!algorithm.valid())
 			{
 				algo = "pragmatic";
+
 			}	
 
 			else if (algorithm() == "pragmatic" || algorithm() == "triangle" || algorithm() == "tetgen" || algorithm() == "pragmaticcavity")
 			{
 				algo = algorithm();	
+
+				viennamesh::info(1) << "Algorithm: " << algo << std::endl;
 				/*
 				if (algo == "triangle" || algo == "tetgen")
 				{
@@ -73,6 +78,15 @@ namespace viennamesh
 				}*/
 				string_handle options_handle = get_input<string_handle>("options");
 				options = options_handle();
+
+				if(algorithm()=="tetgen")
+				{
+					#ifdef USE_CGAL_PREDICATES
+						viennamesh::info(3) << "  Using CGAL's exact arithmetic for Tetgen" << std::endl;
+					#else
+						viennamesh::info(3) << "  Using Shewchuk's exact arithmetic for Tetgen" << std::endl;
+					#endif
+				}
 			}	
 
 			else 
@@ -283,9 +297,9 @@ namespace viennamesh
 */				/*
 			for (size_t i = 0; i < workload_elements.size(); ++i)
 				csv << workload_elements[i] << ", ";//*/
-
+/*
 			csv << std::endl;
-			csv.close();
+			csv.close();//*/
 /*
 			for (size_t i =0; i < refine_times.size(); ++i)
 				csv << refine_times[i] << ", ";
@@ -294,10 +308,10 @@ namespace viennamesh
 			{
 				csv << triangulate_log[i] << ", ";
 			}
-			
+			*/
 			for (size_t i =0; i < threads_log.size(); ++i)
-				csv << threads_log[i] << ", ";
-
+				csv << threads_log[i] << ", ";//*/
+/*
 			for (size_t i = 0; i < int_check_log.size(); ++i)
 				csv << int_check_log[i] << ","; */
 /*
@@ -305,7 +319,7 @@ namespace viennamesh
 				csv << build_tri_ds[i] << ",";
 */
 			csv << std::endl;
-			csv.close();
+			csv.close();//*/
 	
 			//InputMesh.WritePartitions();
 			//InputMesh.WriteMergedMesh("output.vtu");

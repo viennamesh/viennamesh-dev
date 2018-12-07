@@ -497,6 +497,7 @@ public:
                /* std::cout << "new l2g index mapping" << std::endl;
                 std::cout << " " << threadIdx[tid]+i << ": " << glob_old_NNodes+i << std::endl; //*/
                 l2g_vertices.push_back(glob_old_NNodes+i);
+                //std::cout << " in refine l2g_vertices.size() " << l2g_vertices.size() << " glob_old_NNodes+i " << glob_old_NNodes+i << std::endl;
             /*    std::cout << " Here I need to update the g2l_vertices mapping, otherwise refinement won't work in following iterations" << std::endl;
                 std::cout << " What is the actual index range I am allowed to assign?" << std::endl;
                 std::cout << " Do a fetch&increment atomically to get this information!" << std::endl;//*/
@@ -523,6 +524,7 @@ public:
                 /*std::cout << "new g2l index mapping" << std::endl;
                 std::cout << " " << glob_old_NNodes+i << " " << threadIdx[tid]+i << std::endl;//*/
                 g2l_vertices.insert(std::make_pair(glob_old_NNodes+i, threadIdx[tid]+i));
+                //std::cout << " in refine g2l_vertices.size() " << g2l_vertices.size() << " glob_old_NNodes+i " << glob_old_NNodes+i << " threadIdx[tid]+i " << threadIdx[tid]+i << std::endl;
                 //END OF MY IMPLEMENTATION*/
             }
             //std::cout << "ID fixing done in partition " << part_id << std::endl;
@@ -1218,7 +1220,7 @@ public:
         //TEST: we use a vector containin information if a vertex is on the mesh boundary or not
         
         std::vector<int> boundary_nodes(origNNodes, 0);
-
+        
         for(index_t i=0; i<origNElements; i++) 
         {
             const int *n=_mesh->get_element(i);
@@ -1295,6 +1297,7 @@ public:
                 if (i < otherVertex)
                 {
                     double length = _mesh->calc_edge_length(i, otherVertex);
+
                     if(length>L_max) {
                         ++splitCnt[tid];
 
@@ -1469,6 +1472,8 @@ public:
             std::cout << "   coords: " << _mesh->_coords[dim*newVertices[tid][i].id] << " " << _mesh->_coords[dim*newVertices[tid][i].id+1] << " " << _mesh->_coords[dim*newVertices[tid][i].id+2] << std::endl;//*/
             //MY IMPLEMENTATION
             l2g_vertices.push_back(glob_old_NNodes+i);
+
+            //std::cout << " in refine_boundary l2g_vertices... " << std::endl;
       
             std::set<int> node_part_id_tmp_set;
             node_part_id_tmp_set.insert(part_id);
@@ -1484,6 +1489,7 @@ public:
                 nodes_part_ids[l2g_vertices[threadIdx[tid]+i]]=node_part_id_tmp_set;
             }
             g2l_vertices.insert(std::make_pair(glob_old_NNodes+i, threadIdx[tid]+i));
+            //std::cout << " in refine_boundary g2l_vertices... " << std::endl;
             //END OF MY IMPLEMENTATION*/
         }
         /*
@@ -3486,6 +3492,8 @@ private:
             diag.edge.second = swap;
             refine_wedge(top_triangle, bottom_triangle, bwedge, &diag, eid, tid);
 
+            /*std::cout << "remove parent element " << eid << std::endl;
+            std::cout << "  " << _mesh->_ENList[eid*nloc] << " " << _mesh->_ENList[eid*nloc+1] << " " << _mesh->_ENList[eid*nloc+2] << " " << _mesh->_ENList[eid*nloc+3] << std::endl;//*/
             // Remove parent element
             for(size_t j=0; j<nloc; ++j)
                 def_ops->remNE(n[j], eid, tid);

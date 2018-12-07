@@ -571,14 +571,14 @@ void exactinit(int verbose, int noexact, int nofilter, REAL maxx, REAL maxy,
   if (verbose) {
     printf("  Initializing robust predicates.\n");
   }
-/*
+
 #ifdef USE_CGAL_PREDICATES
   if (cgal_pred_obj.Has_static_filters) {
     printf("  Use static filter.\n");
   } else {
     printf("  No static filter.\n");
   }
-#endif // USE_CGAL_PREDICATES*/
+#endif // USE_CGAL_PREDICATES
 
 #ifdef SINGLE
   test_float(verbose);
@@ -629,6 +629,10 @@ void exactinit(int verbose, int noexact, int nofilter, REAL maxx, REAL maxy,
   // Added by H. Si, 2012-08-23.
 
   // Sort maxx < maxy < maxz. Re-use 'half' for swapping.
+  assert(maxx > 0);
+  assert(maxy > 0);
+  assert(maxz > 0);
+
   if (maxx > maxz) {
     half = maxx; maxx = maxz; maxz = half;
   }

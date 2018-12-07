@@ -1793,9 +1793,9 @@ public:
       structures. This is useful if the mesh has been significantly
       coarsened. */
     void defragment()
-    {/*
+    {
         #ifndef NDEBUG
-        std::cout << "DEFRAGMENT" << std::endl;
+        std::cout << "DEFRAGMENT without l2g-adaptation" << std::endl;
         std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;//
         #endif //*/
 
@@ -2035,7 +2035,7 @@ public:
                 node_owner[i] = 0;
             }
         }
-        /*
+        
         #ifndef NDEBUG
         std::cout << "DEFRAGMENT" << std::endl;
         std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;
@@ -2045,14 +2045,15 @@ public:
     }
 
     //MY IMPLEMENTATION
-    void defragment(int part_id, std::vector<int>& l2g_vertices, std::unordered_map<int,int>& g2l_vertices)
+    void defragment(int part_id, std::vector<int>& l2g_vertices, std::unordered_map<int,int>& g2l_vertices, int act_iter)
     {
         std::vector<int> old_l2g_vertices = l2g_vertices;
+        std::unordered_map<int,int> old_g2l_vertices = g2l_vertices;
         /*
         #ifndef NDEBUG
-        std::cout << "defragmentation of partition " << part_id << " with adaptation of its l2g- and g2l-index-mapping ";
+        //std::cout << "defragmentation of partition " << part_id << " with adaptation of its l2g- and g2l-index-mapping " << std::endl;
 
-        std::cout << "DEFRAGMENT" << std::endl;
+        std::cout << "DEFRAGMENT partition " << part_id << " with l2g-adaptation" << std::endl;
         std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;
         #endif//*/
 
@@ -2096,6 +2097,7 @@ public:
             // Check if deleted.
             if(nid<0)
             {
+                //std::cout << " e " << e << " nid " << nid << std::endl;
                 continue;
             }
 
@@ -2145,12 +2147,26 @@ public:
             
             else 
             {
-                std::cerr<<"dup! for " << i << " " << old_eid << " "
+                std::cerr<<"dup! partition " << part_id << " for " << i << " (old eid: " << old_eid << ") "
                          <<active_vertex_map[_ENList[old_eid*nloc]]<<" "
                          <<active_vertex_map[_ENList[old_eid*nloc+1]]<<" "
-                         <<active_vertex_map[_ENList[old_eid*nloc+2]]<<std::endl;
+                         <<active_vertex_map[_ENList[old_eid*nloc+2]]<<" "
+                         <<active_vertex_map[_ENList[old_eid*nloc+3]] <<std::endl;
+
+                std::cout << "sorted element" << std::endl;
+                for (auto it : sorted_element)
+                    std::cout << "  " << it << " " << std::endl;
+
+                /*std::cout << "ordered_elements->second " << std::endl;
+                for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) 
+                {
+                    std::cout << "  " << it->second << std::endl;
+                }
+                   /*std::cout << it->first << " " << it->second << std::endl;*/
             }
         }
+
+        //std::cout << "ordered_elements.size() " << ordered_elements.size() << std::endl;
 
         std::vector<index_t> element_renumber;
         element_renumber.reserve(ordered_elements.size());
@@ -2206,11 +2222,12 @@ public:
         l2g_vertices.clear();
         l2g_vertices.resize(NNodes);
 
+        g2l_vertices.clear();
+
         int cnt_skippeds_nids=0;
         for(size_t old_nid=0; old_nid<active_vertex_map.size(); ++old_nid) 
         {
             index_t new_nid = active_vertex_map[old_nid];
-
             
             if(new_nid<0)
             {
@@ -2221,13 +2238,17 @@ public:
                 //CHECK THIS
                 std::cout << " PLEASE CHECK IF THIS RECREATION OF L2G-VERTICES IS CORRECT!!!" << std::endl;
                 std::cout << " new nid " << new_nid << std::endl;
-                #endif*/
-
+                #endif//*/
+                //std::cout << " skipping old_nid " << old_nid << std::endl;
                 continue;
             }
 
-
+            //std::cout << " new_nid " << new_nid << " old_nid " << old_nid << " old_l2g_vertices[old_nid] " << old_l2g_vertices[old_nid] << " old_g2l_vertices[old_nid] " << old_g2l_vertices[old_l2g_vertices[old_nid]] << std::endl;
+            
             l2g_vertices[new_nid] = old_l2g_vertices[old_nid];
+            g2l_vertices.insert(std::make_pair(l2g_vertices[new_nid], new_nid));
+
+            //std::cout << "   new_l2g_vertices[new_nid] " << l2g_vertices[new_nid] << " g2l_vertices[new_nid] " << g2l_vertices[l2g_vertices[new_nid]] << std::endl;
 
             for(size_t j=0; j<ndims; j++)
                 defrag_coords[new_nid*ndims+j] = _coords[old_nid*ndims+j];
@@ -2251,15 +2272,17 @@ public:
         }
         /*
         #ifndef NDEBUG
-        std::cout << " l2g_vertices.size() " << l2g_vertices.size() << std::endl;
-        std::cout << "DEFRAGMENT" << std::endl;
+        //std::cout << " l2g_vertices.size() " << l2g_vertices.size() << std::endl;
+        //std::cout << "DEFRAGMENT" << std::endl;
         std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;
         #endif//*/
 
         /*
         //DEBUG
-        std::string new_l2g_filename = "debug_output/new_l2g_vertices_partition";
+        std::string new_l2g_filename = "debug_output/l2g_vertices_after_defrag_partition";
         new_l2g_filename += std::to_string(part_id);
+        new_l2g_filename += "_iteration";
+        new_l2g_filename += std::to_string(act_iter);
         new_l2g_filename += ".txt";
 
         std::ofstream new_l2g_file;
@@ -2268,7 +2291,7 @@ public:
 
         for (size_t i = 0; i < l2g_vertices.size(); ++i)
         {
-            new_l2g_file << i << " " << l2g_vertices[i] << std::endl;
+            new_l2g_file << i << " " << l2g_vertices[i] << "  coords: " << _coords[3*i] << " " << _coords[3*i+1] << " " << _coords[3*i+2] << std::endl;
         }
 
         new_l2g_file.close();

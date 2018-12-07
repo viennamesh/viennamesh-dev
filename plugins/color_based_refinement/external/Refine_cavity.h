@@ -443,9 +443,9 @@ public:
             } //end of for (int iEdg=0; iEdg<NEdges; ++iEdg)
         } //end of while ( !stop )
         //printf("DEBUG   Number of splits / total number of edges: %d / %d\n", cntSplit, NEdges);
-        #ifndef NDEBUG
+        /*#ifndef NDEBUG
         std::cout << "        Number of splits / total number of edges: " << cntSplit << " " << NEdges << std::endl;
-        #endif
+        #endif//*/
 
         return(cntSplit);
     }
