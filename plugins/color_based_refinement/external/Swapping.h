@@ -655,7 +655,7 @@ private:
             pMap[std::min(j, l)].insert(std::max(j, l));
 
             std::cout << " swapping claims to be successful" << std::endl;
-
+            /*
             //DEBUG
             std::cout << " new NELIST of " << i << std::endl;
             for (auto iter : _mesh->NEList[i])

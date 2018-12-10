@@ -59,6 +59,9 @@
 #include "Mesh.h"
 #include "MetricTensor.h"
 
+//my own implementation
+#include "../outbox.hpp"
+
 
 /*! \brief Applies Laplacian smoothen in metric space.
 */
@@ -112,6 +115,11 @@ public:
     // Smart laplacian mesh smoothing.
     void smart_laplacian(int max_iterations=10, double quality_tol=-1.0)
     {
+       /* std::cout << " smooth only if the color of my partition is higher than my neighbor's. this is in contradiction to refinement, thus, we ensure that we ";
+        std::cout << " smooth after haven refined 'both' sides of the boundary facets!!!" << std::endl;
+        std::cout << " we also use max_iterations=" << max_iterations << " and quality_tol=" << quality_tol << std::endl;
+*/
+
         int NNodes = _mesh->get_number_nodes();
         int NElements = _mesh->get_number_elements();
 
@@ -126,9 +134,9 @@ public:
         double qsum=0;
         good_q = quality_tol;
 
-        #pragma omp parallel
+        //#pragma omp parallel
         {
-            #pragma omp for schedule(static)
+            //#pragma omp for schedule(static)
             for(int n=0; n<NNodes; ++n) {
                 is_boundary[n].store(false, std::memory_order_relaxed);
                 if(_mesh->NNList[n].empty()) {
@@ -140,7 +148,7 @@ public:
                 vLocks[n].unlock();
             }
 
-            #pragma omp for schedule(guided)
+            //#pragma omp for schedule(guided)
             for(int i=0; i<NElements; i++) {
                 const int *n=_mesh->get_element(i);
                 if(n[0]<0)
@@ -155,8 +163,17 @@ public:
                 }
             }
 
+            /*
+            //DEBUG
+            std::cout << "is_boundary" << std::endl;
+            for (size_t iter=0; iter < NNodes; iter++)
+            {
+                std::cout << iter << " (l2g: " << l2g_vertices[iter] << "): " << is_boundary[iter] << std::endl;
+            }
+            //END OF DEBUG*/
+
             if(good_q<0) {
-                #pragma omp for schedule(static) reduction(+:qsum)
+                //#pragma omp for schedule(static) reduction(+:qsum)
                 for(int i=0; i<NElements; i++) {
                     const int *n=_mesh->get_element(i);
                     if(n[0]<0)
@@ -165,7 +182,7 @@ public:
                     assert(std::isfinite(_mesh->quality[i]));
                     qsum+=_mesh->quality[i];
                 }
-#pragma single
+//#pragma single
                 {
                     good_q = qsum/NElements;
                     assert(std::isnormal(good_q));
@@ -178,10 +195,13 @@ public:
 
             int iter=0;
             while((iter++) < max_iterations) {
-                #pragma omp for schedule(guided) nowait
+                //#pragma omp for schedule(guided) nowait
                 for(index_t node=0; node<NNodes; ++node) {
                     if(_mesh->is_halo_node(node) || is_boundary[node].load(std::memory_order_relaxed) || !active_vertices[node].load(std::memory_order_relaxed))
+                    {
+                        //std::cout << "skip " << node << std::endl;
                         continue;
+                    }
 
                     if(!vLocks[node].try_lock()) {
                         retry.push_back(node);
@@ -273,9 +293,9 @@ public:
         double qsum=0;
         good_q = quality_tol;
 
-        #pragma omp parallel
+        //#pragma omp parallel
         {
-            #pragma omp for schedule(static)
+            //#pragma omp for schedule(static)
             for(int n=0; n<NNodes; ++n) {
                 is_boundary[n].store(false, std::memory_order_relaxed);
                 if(_mesh->NNList[n].empty()) {
@@ -287,7 +307,7 @@ public:
                 vLocks[n].unlock();
             }
 
-            #pragma omp for schedule(guided)
+            //#pragma omp for schedule(guided)
             for(int i=0; i<NElements; i++) {
                 const int *n=_mesh->get_element(i);
                 if(n[0]<0)
@@ -303,7 +323,7 @@ public:
             }
 
             if(good_q<0) {
-                #pragma omp for schedule(static) reduction(+:qsum)
+                //#pragma omp for schedule(static) reduction(+:qsum)
                 for(int i=0; i<NElements; i++) {
                     const int *n=_mesh->get_element(i);
                     if(n[0]<0)
@@ -312,7 +332,7 @@ public:
                     assert(std::isfinite(_mesh->quality[i]));
                     qsum+=_mesh->quality[i];
                 }
-#pragma single
+//#pragma single
                 {
                     good_q = qsum/NElements;
                     assert(std::isnormal(good_q));
@@ -325,7 +345,7 @@ public:
 
             int iter=0;
             while((iter++) < max_iterations) {
-                #pragma omp for schedule(guided) nowait
+                //#pragma omp for schedule(guided) nowait
                 for(index_t node=0; node<NNodes; ++node) {
                     if(_mesh->is_halo_node(node) || is_boundary[node].load(std::memory_order_relaxed) || !active_vertices[node].load(std::memory_order_relaxed))
                         continue;
@@ -414,14 +434,14 @@ public:
         if(vLocks.size() < NNodes)
             vLocks.resize(NNodes);
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for(int n=0; n<NNodes; ++n) {
             is_boundary[n].store(false, std::memory_order_relaxed);
         }
 
-        #pragma omp parallel
+        //#pragma omp parallel
         {
-            #pragma omp for schedule(static)
+            //#pragma omp for schedule(static)
             for(int n=0; n<NNodes; ++n) {
                 is_boundary[n].store(false, std::memory_order_relaxed);
                 if(_mesh->NNList[n].empty()) {
@@ -433,7 +453,7 @@ public:
                 vLocks[n].unlock();
             }
 
-            #pragma omp for schedule(guided)
+            //#pragma omp for schedule(guided)
             for(int i=0; i<NElements; i++) {
                 const int *n=_mesh->get_element(i);
                 if(n[0]<0)
@@ -453,7 +473,7 @@ public:
 
             int iter=0;
             while((iter++) < max_iterations) {
-                #pragma omp for schedule(guided) nowait
+                //#pragma omp for schedule(guided) nowait
                 for(index_t node=0; node<NNodes; ++node) {
                     if(_mesh->is_halo_node(node) || is_boundary[node].load(std::memory_order_relaxed) || !active_vertices[node].load(std::memory_order_relaxed))
                         continue;

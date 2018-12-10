@@ -10,6 +10,7 @@
 #include "Edge.h"
 #include "Swapping.h"
 #include "Refine_cavity.h"
+#include "Smooth.h"
 
 //TODO: DEBUG
 #include "VTKTools.h"
@@ -83,7 +84,7 @@ class MeshPartitions
                                                std::string options, std::vector<size_t>& workload,
                                                std::vector<size_t>& workload_elements, const int max_num_iterations,
                                                std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
-                                               std::vector<double>& refine_boundary_log);
+                                               std::vector<double>& refine_boundary_log, std::vector<double>& smooth_log);
         bool CreateNeighborhoodInformation(const int max_iterations);                         //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);      
@@ -127,6 +128,7 @@ class MeshPartitions
 */
 
         template<typename _real_t, int _dim> friend class Refine;
+        template<typename _real_t, int _dim> friend class Smooth;
 
         //const int nloc;
 
@@ -1710,7 +1712,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::string options, std::vector<size_t>& workload,
                                                        std::vector<size_t>& workload_elements, const int max_num_iterations,
                                                        std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
-                                                       std::vector<double>& refine_boundary_log)
+                                                       std::vector<double>& refine_boundary_log, std::vector<double>& smooth_log)
 {    
     viennamesh::info(1) << "Starting mesh adaptation using " << algorithm << " with " << nthreads << " threads and options " << options << std::endl;
     /*#ifndef NDEBUG
@@ -1751,6 +1753,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     get_interfaces_log.resize(MAX_THREADS);
     defrag_log.resize(MAX_THREADS);
     refine_boundary_log.resize(MAX_THREADS);
+    smooth_log.resize(MAX_THREADS);
 
     interfaces.resize(num_regions);
     NNInterfaces.resize(num_regions);
@@ -1768,6 +1771,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(get_interfaces_log.begin(), get_interfaces_log.end(), 0.0);
     std::fill(defrag_log.begin(), defrag_log.end(), 0.0);
     std::fill(refine_boundary_log.begin(), refine_boundary_log.end(), 0.0);
+    std::fill(smooth_log.begin(), smooth_log.end(), 0.0);
 
     outboxes.resize(num_regions, Outbox());
     nodes_per_partition.resize(num_regions);
@@ -2799,6 +2803,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 double call_to_refine_time = 0.0;
                 double defrag_time = 0.0;
                 double refine_boundary_time = 0.0;
+
+                double smooth_time=0.0;
                 //double tri_ds_time{0.0};
 
                 //viennamesh::info(2) << " Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " Elements" << std::endl;
@@ -2938,7 +2944,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             refiner.refine(L_max, nodes_partition_ids, l2g_vertices_tmp, part_id, outbox_data, 
                                             partition_colors, partition_adjcy[part_id], previous_nelements[part_id],
                                             NNInterfaces_tmp, global_NNodes, g2l_vertices_tmp, NNodes_before_healing, NElements_before_healing,
-                                            /*FInterfaces_tmp,*/act_iter+1);//*/
+                                            act_iter+1);//*/
                             //std::cout << " partition has now " << partition->get_number_elements() << " elements and " << partition->get_number_nodes() << " nodes" << std::endl;
                         }
                         /*
@@ -2979,6 +2985,21 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         l2g_element[part_id] = l2g_elements_tmp;
                         g2l_element[part_id] = g2l_elements_tmp;
                         outboxes[part_id]=outbox_data; 
+
+                        Smooth<double,3> smoother(*partition);
+
+                        double smooth_tic = omp_get_wtime();
+                        smoother.smart_laplacian();//*/
+                        smooth_time = omp_get_wtime() - smooth_tic;
+                        /*
+                        //Output smoothed partition in each iteration
+                        std::cout << "  debug mesh output smoothed partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
+                        std::string vtu_filename_smooth_output = "examples/data/color_refinement/output/smoothed_part";
+                        vtu_filename_smooth_output+=std::to_string(part_id);
+                        vtu_filename_smooth_output+="_iteration";
+                        vtu_filename_smooth_output+=std::to_string(act_iter+1);
+                        vtu_filename_smooth_output+=".vtu";
+                        VTKTools<double>::export_vtu(vtu_filename_smooth_output.c_str(), partition);//*/
                     } 
 /*
                     //DEBUG
@@ -3489,6 +3510,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 get_interfaces_log[omp_get_thread_num()] += interfaces_toc - interfaces_tic;
                 defrag_log[omp_get_thread_num()] += defrag_time;
                 refine_boundary_log[omp_get_thread_num()] += refine_boundary_time;
+                smooth_log[omp_get_thread_num()] += smooth_time;
 
                 //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
                 //int_check_log[omp_get_thread_num()] += int_check_time;

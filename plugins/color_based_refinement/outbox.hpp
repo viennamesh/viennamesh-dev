@@ -65,6 +65,6 @@ class Outbox //: private Counter<Outbox>
 
     private:
         std::vector<int> data;
-};
+}; //end of class Outbox
 
 #endif //OUTBOX_HPP
