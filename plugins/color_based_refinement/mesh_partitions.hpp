@@ -84,7 +84,8 @@ class MeshPartitions
                                                std::string options, std::vector<size_t>& workload,
                                                std::vector<size_t>& workload_elements, const int max_num_iterations,
                                                std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
-                                               std::vector<double>& refine_boundary_log, std::vector<double>& smooth_log);
+                                               std::vector<double>& refine_boundary_log, std::vector<double>& smooth_log,
+                                               std::vector<double>& swap_log);
         bool CreateNeighborhoodInformation(const int max_iterations);                         //Create neighborhood information for vertices and partitions
         bool ColorPartitions(std::string coloring_algorithm, std::string filename,            //Color the partitions
                              int no_of_iterations = 1);      
@@ -129,6 +130,7 @@ class MeshPartitions
 
         template<typename _real_t, int _dim> friend class Refine;
         template<typename _real_t, int _dim> friend class Smooth;
+        template<typename _real_t, int _dim> friend class Swapping;
 
         //const int nloc;
 
@@ -1712,7 +1714,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                                                        std::string options, std::vector<size_t>& workload,
                                                        std::vector<size_t>& workload_elements, const int max_num_iterations,
                                                        std::vector<double>& get_interfaces_log, std::vector<double>& defrag_log,
-                                                       std::vector<double>& refine_boundary_log, std::vector<double>& smooth_log)
+                                                       std::vector<double>& refine_boundary_log, std::vector<double>& smooth_log,
+                                                       std::vector<double>& swap_log)
 {    
     viennamesh::info(1) << "Starting mesh adaptation using " << algorithm << " with " << nthreads << " threads and options " << options << std::endl;
     /*#ifndef NDEBUG
@@ -1754,6 +1757,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     defrag_log.resize(MAX_THREADS);
     refine_boundary_log.resize(MAX_THREADS);
     smooth_log.resize(MAX_THREADS);
+    swap_log.resize(MAX_THREADS);
 
     interfaces.resize(num_regions);
     NNInterfaces.resize(num_regions);
@@ -1772,6 +1776,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
     std::fill(defrag_log.begin(), defrag_log.end(), 0.0);
     std::fill(refine_boundary_log.begin(), refine_boundary_log.end(), 0.0);
     std::fill(smooth_log.begin(), smooth_log.end(), 0.0);
+    std::fill(swap_log.begin(), swap_log.end(), 0.0);
 
     outboxes.resize(num_regions, Outbox());
     nodes_per_partition.resize(num_regions);
@@ -2805,6 +2810,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 double refine_boundary_time = 0.0;
 
                 double smooth_time=0.0;
+                double swap_time=0.0;
                 //double tri_ds_time{0.0};
 
                 //viennamesh::info(2) << " Partition " << part_id << " has " << partition->get_number_nodes() << " Vertices and " << partition->get_number_elements() << " Elements" << std::endl;
@@ -2985,6 +2991,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         l2g_element[part_id] = l2g_elements_tmp;
                         g2l_element[part_id] = g2l_elements_tmp;
                         outboxes[part_id]=outbox_data; 
+
+                        Swapping<double,3> swapper(*partition);
+                        double swap_tic = omp_get_wtime();
+                        swapper.swap(0.1);
+                        swap_time = omp_get_wtime() - swap_tic;
 
                         Smooth<double,3> smoother(*partition);
 
@@ -3511,6 +3522,7 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 defrag_log[omp_get_thread_num()] += defrag_time;
                 refine_boundary_log[omp_get_thread_num()] += refine_boundary_time;
                 smooth_log[omp_get_thread_num()] += smooth_time;
+                swap_log[omp_get_thread_num()] += swap_time;
 
                 //build_tri_ds[omp_get_thread_num()] += tri_ds_time;
                 //int_check_log[omp_get_thread_num()] += int_check_time;

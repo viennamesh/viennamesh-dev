@@ -174,6 +174,7 @@ namespace viennamesh
 			std::vector<double> defrag_log;
 			std::vector<double> refine_boundary_log;
 			std::vector<double> smooth_log;
+			std::vector<double> swap_log;
 			auto for_time = 0.0;
 			auto prep_time = 0.0;
 
@@ -184,10 +185,17 @@ namespace viennamesh
 			InputMesh.CreatePragmaticDataStructures_par(algo, threads_log, heal_log, metric_log, call_refine_log, refine_log, mesh_log,
 														for_time, prep_time, nodes_log, enlist_log, options, workload, workload_elements,
 														max_num_iterations(), get_interfaces_log, defrag_log, refine_boundary_log,
-														smooth_log);//*/
+														smooth_log, swap_log);//*/
 														
 			std::chrono::duration<double> cpds_duration = std::chrono::system_clock::now() - wall_tic;
-			viennamesh::info(1) << 	"  Refinement time " << cpds_duration.count() << std::endl;
+			viennamesh::info(1) << 	"  Adaptation time " << cpds_duration.count() << std::endl;
+			viennamesh::info(1) <<  "     Refinement time " << *std::max_element(call_refine_log.begin(), call_refine_log.end()) << std::endl;
+			if (algo == "pragmatic" || algo == "pragmaticcavity")
+			{				
+				viennamesh::info(1) <<  "     Swapping time   " << *std::max_element(swap_log.begin(), swap_log.end()) << std::endl;
+				viennamesh::info(1) <<  "     Smoothing time  " << *std::max_element(smooth_log.begin(), smooth_log.end()) << std::endl;
+			}
+			viennamesh::info(1) <<  "     Misc. time      " << cpds_duration.count() - *std::max_element(call_refine_log.begin(), call_refine_log.end()) - *std::max_element(swap_log.begin(), swap_log.end()) - *std::max_element(smooth_log.begin(), smooth_log.end()) << std::endl;
 
 			std::chrono::duration<double> overall_duration = std::chrono::system_clock::now() - overall_tic;
 
@@ -316,6 +324,9 @@ namespace viennamesh
 
 			for (size_t i = 0; i < smooth_log.size(); ++i)
 				csv << smooth_log[i] << ", ";
+
+			for (size_t i = 0; i < swap_log.size(); ++i)
+				csv << swap_log[i] << ", ";
 /*
 			for (size_t i = 0; i < int_check_log.size(); ++i)
 				csv << int_check_log[i] << ","; */
