@@ -207,14 +207,57 @@ namespace viennamesh
 			InputMesh.GetRefinementStats(&r_vertices, &r_elements, algo);
 
 			std::ofstream csv;
-			std::string csv_name = "times_partitions_";
+			std::string csv_name;
 			//std::string csv_name = "times_vertices_";
 			csv_name+= input_file().substr(found+1, find_vtu-found-1);
 			csv_name+="_";
-			csv_name+=coloring;
+			csv_name+=algo;
 			csv_name+=".csv";
 
-			csv.open(csv_name.c_str(), ios::app);
+			//check if file is already existing
+			ifstream ifile(csv_name.c_str());
+
+			//write file header if file is not existing
+			if ( !(bool) ifile )
+			{
+				csv.open(csv_name.c_str(), ios::app);
+				csv << "File, Threads, Iterations, Vertices, Elements, Partitions, Colors, Partitioning [s], Adjacency [s], Coloring [s], CPDS [s],";
+				csv << "Final Vertices, Final Elements, Total [s],";
+
+				for (size_t i =0; i < heal_log.size(); ++i)
+					csv << "Heal " << i << " [s],";
+
+				for (size_t i =0; i < get_interfaces_log.size(); ++i)
+					csv << "NNInterfaces " << i << " [s],";
+				
+				for (size_t i = 0; i < refine_boundary_log.size(); ++i)
+					csv << "Refine Boundary " << i << " [s],";
+
+				for (size_t i=0; i < defrag_log.size(); ++i)
+					csv << "Defrag " << i << " [s],";
+
+				for (size_t i =0; i < call_refine_log.size(); ++i)
+					csv << "Call Refine " << i << " [s],";
+
+				for (size_t i =0; i < refine_log.size(); ++i)
+					csv << "Refine " << i << " [s],";
+
+				for (size_t i =0; i < threads_log.size(); ++i)
+					csv << "Threads " << i << " [s],";
+
+				for (size_t i = 0; i < smooth_log.size(); ++i)
+					csv << "Smooth " << i << " [s],";
+
+				for (size_t i = 0; i < swap_log.size(); ++i)
+					csv << "Swap " << i << " [s],";
+				
+				csv << std::endl;
+			}
+
+			else
+			{
+				csv.open(csv_name.c_str(), ios::app);
+			}
 
 			//csv << "File, Threads, Vertices, Elements, Desired Partitions, Created Partitions, Colors, Metis [s], Adjacency Info [s], 
 			//Coloring [s], Parallel DSs [s], Prep [s], Nodes [s], g2l [s], l2g [s], Coords [s], ENList [s], new Mesh [s], Boundary [s], Metric [s],

@@ -2756,7 +2756,11 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                 //Output timings
                 auto heal_toc = omp_get_wtime();
 
+                auto defrag0_tic = omp_get_wtime();
                 partition->defragment(part_id, l2g_vertices_tmp, g2l_vertices_tmp, act_iter);
+                auto defrag0_toc = omp_get_wtime();
+
+                defrag_log[omp_get_thread_num()]+= defrag0_toc- defrag0_tic;
 
                 auto interfaces_tic = omp_get_wtime();
                 partition->get_interfaces(NNInterfaces_tmp, nodes_partition_ids, l2g_vertices_tmp, g2l_vertices_tmp, part_id, FInterfaces_tmp, act_iter+1);
