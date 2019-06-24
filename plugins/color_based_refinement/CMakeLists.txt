@@ -95,6 +95,7 @@ target_link_libraries(viennamesh-module-color-refinement ${MTMETIS_LIBRARY} ${WI
 
 if(ENABLE_CGAL_PREDICATES)
   #Link with GMP
+  target_link_libraries(viennamesh-module-color-refinement CGAL::CGAL)
   target_link_libraries(viennamesh-module-color-refinement gmp)
 else()
 endif()

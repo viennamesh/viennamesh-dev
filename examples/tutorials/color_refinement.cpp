@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	color.set_input("num_partitions", region_count);
 	color.set_input("filename", filename.c_str());
 	color.set_input("num_threads", num_threads);
-	color.set_input("single_mesh_output", true);
+	color.set_input("single_mesh_output", false);
 	color.set_input("max_num_iterations", max_num_iterations);
 	color.run();
 /*
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	consistency_check.set_default_source(color);
 	consistency_check.run();
 */
-
+/*
 	//VTK merge points
 	viennamesh::algorithm_handle merger = context.make_algorithm("vtk_merge_points");
 	merger.set_default_source(color);
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 
 	//Write merged output mesh
 	viennamesh::algorithm_handle mesh_writer_merged = context.make_algorithm("mesh_writer");
-	mesh_writer_merged.set_default_source(merger);
+	mesh_writer_merged.set_default_source(color);
 	
 	//construct filename
 	size_t found_merged = filename.find_last_of("/");

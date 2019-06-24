@@ -346,7 +346,7 @@ public:
 
         _ENList[eid*nloc] = -1;
 
-        std::cout << "erased at position " << eid*nloc << std::endl;
+        //std::cout << "erased at position " << eid*nloc << std::endl;
     }
 
     /// Flip orientation of element.
@@ -1210,6 +1210,14 @@ public:
     void set_nelements(index_t elements)
     {
         NElements = elements;
+    }
+
+    void multiply_coords(const int factor)
+    {
+        for (size_t i = 0; i < _coords.size(); ++i)
+        {
+            _coords[i] = _coords[i]*factor;
+        }
     }
 
      //Resize Vectors

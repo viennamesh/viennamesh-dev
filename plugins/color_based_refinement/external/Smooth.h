@@ -180,11 +180,18 @@ public:
                         continue;
 
                     assert(std::isfinite(_mesh->quality[i]));
+                    /*if (_mesh->quality[i] == 0)
+                        std::cout << " ele " << i << " " <<_mesh->quality[i] << std::endl;*/
                     qsum+=_mesh->quality[i];
                 }
 //#pragma single
                 {
                     good_q = qsum/NElements;
+                    if(!std::isnormal(good_q))
+                    {
+                        std::cout << " good_q " << good_q << std::endl;
+                        std::cout << "    qsum " << qsum << " NElements " << NElements << std::endl;
+                    }
                     assert(std::isnormal(good_q));
                 }
             }

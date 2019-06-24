@@ -24243,11 +24243,11 @@ void tetgenmesh::interpolatemeshsize()
   }
 
   if (b->verbose) {
-    printf("  Interoplated %d points.\n", count);
+    printf("  Interpolated %d points.\n", count);
     if (nonregularcount > 0l) {
       printf("  Performed %ld brute-force searches.\n", nonregularcount);
     }
-    printf("  Size rangle [%.17g, %.17g].\n", minval, maxval);
+    printf("  Size range [%.17g, %.17g].\n", minval, maxval);
   }
 
   bgm->samples = baksmaples;

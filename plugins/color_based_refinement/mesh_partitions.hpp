@@ -42,6 +42,7 @@ extern "C"
 
 #include "tetgen.h"
 #include <limits>
+#include <exception>
 
 #ifndef MAX_THREADS
 #define MAX_THREADS 8
@@ -833,7 +834,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
-        /*
+        
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -843,20 +844,20 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         else
             partition_filename += "_partition_colors_ff.txt";
         color_file.open(partition_filename.c_str(), ios::app);
-        color_file << "Partitions: " << partition_colors.size() << std::endl;
-        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+        //color_file << "Partitions: " << partition_colors.size() << std::endl;
+        //color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
 
         //std::cout << "  Partition | Color " << std::endl;
-        color_file << "  Partition | Color " << std::endl;
+        //color_file << "  Partition | Color " << std::endl;
     
         for (size_t i = 0; i < partition_colors.size(); ++i)
         {
             //std::cout << "          " << i << " | " << partition_colors[i] << std::endl;
-            color_file << "          " << i << " | " << partition_colors[i] << std::endl;
+            color_file << "          " << i << " " << partition_colors[i] << std::endl;
         }
         color_file.close();
         //*/
-/*
+
         std::string color_filename = filename;
         if (coloring_algorithm == "greedy")
             color_filename+="_color_partitions_greedy.txt";
@@ -865,14 +866,14 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
-        color_file << "Partitions: " << partition_colors.size() << std::endl;
-        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
-        color_file << "      Color | #Partitions " << std::endl;
+        //color_file << "Partitions: " << partition_colors.size() << std::endl;
+        //color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+        //color_file << "      Color | #Partitions " << std::endl;
 
         for (size_t i = 0; i < color_partitions.size(); ++i)
         {
             //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
-            color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+            color_file /*<< "          "*/ << i << " " << color_partitions[i].size() << std::endl;
 
     /*     std::cout << "          " << i << " | ";
             for (auto it : color_partitions[i])
@@ -880,7 +881,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
- /*       }
+        }
         color_file.close();
         //END OF DEBUG*/
 
@@ -964,7 +965,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         {
             color_partitions[ partition_colors[i] ].push_back(i);
         }
-/*
+
         //DEBUG
         //std::cout << "Number of used colors: " << colors << std::endl;
         ofstream color_file;
@@ -984,20 +985,20 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
         }
         color_file.close();
         //*/
-/*
+
         std::string color_filename = filename;
         color_filename+="_color_partitions_greedy-lu.txt";
         color_file.open(color_filename.c_str(), ios::app);
 
         //std::cout << std::endl << "      Color | #Partitions " << std::endl;
-        color_file << "Partitions: " << partition_colors.size() << std::endl;
-        color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
-        color_file << "      Color | #Partitions " << std::endl;
+        //color_file << "Partitions: " << partition_colors.size() << std::endl;
+        //color_file << "Gamma: " << partition_colors.size() / colors << std::endl;
+        //color_file << "      Color | #Partitions " << std::endl;
 
         for (size_t i = 0; i < color_partitions.size(); ++i)
         {
             //std::cout << "          " << i << " | " << color_partitions[i].size() << std::endl;
-            color_file << "          " << i << " | " << color_partitions[i].size() << std::endl;
+            color_file << i << " " << color_partitions[i].size() << std::endl;
 
     /*     std::cout << "          " << i << " | ";
             for (auto it : color_partitions[i])
@@ -1005,7 +1006,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
             std::cout << it << " ";
             }
             std::cout << std::endl;//*/
- /*       }
+        }
         color_file.close();
         //END OF DEBUG*/
     }
@@ -1165,7 +1166,7 @@ bool MeshPartitions::ColorPartitions(std::string coloring_algorithm, std::string
                 int counter = 0;
                 int uf_color_id = underfull_colors[i];
 
-                #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
+                #pragma omp parallel for num_threads(nthreads) schedule(static,4)
                 for (size_t part = 0; part < moves[uf_color_id].size(); ++part)
                 {
                     //check if new color is permissible and if yes, assign it;
@@ -1843,12 +1844,23 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
         nloc = dim+1;
     }
 
+
     //iterate the partitions several times
     for (size_t act_iter = 0; act_iter < max_num_iterations; act_iter++)
     {
         std::cout << " ITERATION " << act_iter+1 << " / " << max_num_iterations << std::endl;
         int tmp_glob_nnodes = 0;
         int tmp_glob_nelements = 0;
+        /*
+        //DEBUG
+        //std::string part_info_filename = file;
+        auto vtu_pos = file.find(".vtu");
+        std::string part_info_filename=file.substr(0, vtu_pos);
+        //part_info_filename.replace(vtu_pos, 1, std::to_string(act_iter));
+        part_info_filename+="_iteration";
+        part_info_filename+=std::to_string(act_iter);
+        part_info_filename+=".csv";
+        //END OF DEBUG*/
 
         if (act_iter > 0)
         {
@@ -2088,9 +2100,85 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     l2g_vertices_tmp = l2g_vertex[part_id];
                     l2g_elements_tmp = l2g_element[part_id];
                 }
+
+                //DEBUG
+                //Output partition information, i.e., ID, color, num_elements, ratio of boundary-interior elements
+                //if (act_iter == 0)
+                {
+                    std::vector<int> boundary_nodes(partition->get_number_nodes(), 0);
+                    for(index_t i=0; i<partition->get_number_elements(); i++) {
+                        const int *n=partition->get_element(i);
+                        if(n[0]==-1)
+                            continue;
+
+                        if(ndims==2) {
+                            for(int j=0; j<3; j++) {
+                                boundary_nodes[n[(j+1)%3]] = std::max(boundary_nodes[n[(j+1)%3]], partition->boundary[i*3+j]);
+                                boundary_nodes[n[(j+2)%3]] = std::max(boundary_nodes[n[(j+2)%3]], partition->boundary[i*3+j]);
+                            }
+                        } else {
+                            for(int j=0; j<4; j++) {
+                                boundary_nodes[n[(j+1)%4]] = std::max(boundary_nodes[n[(j+1)%4]], partition->boundary[i*4+j]);
+                                boundary_nodes[n[(j+2)%4]] = std::max(boundary_nodes[n[(j+2)%4]], partition->boundary[i*4+j]);
+                                boundary_nodes[n[(j+3)%4]] = std::max(boundary_nodes[n[(j+3)%4]], partition->boundary[i*4+j]);
+                            }
+                        }
+                    }
+
+                    int bdry_eles = 0;
+                    int interior_eles = 0;
+                    int bdry_facets = 0;
+                    int interior_facets=0;
+
+                    for(size_t i = 0; i < partition->get_number_elements(); ++i)
+                    {
+                        const int* n = partition->get_element(i); 
+                        int bdry_counter = 0;
+
+                        //std::cout << i << ": ";
+
+                        for (size_t j = 0; j < nloc; ++j)
+                        {
+                            //std::cout << n[j] << " " << "(" << boundary_nodes[n[j]] << "), ";
+                            if (boundary_nodes[ n[j] ] == 1)
+                            {
+                                ++bdry_counter;
+                            }
+
+                            if (partition->boundary[i*j] == 1)
+                            {
+                                ++bdry_facets;
+                            }
+                            else
+                            {
+                                ++interior_facets;
+                            }
+                        }
+
+                        if (bdry_counter > 1)
+                        {
+                            ++bdry_eles;
+                        }
+
+                        else
+                        {
+                            ++interior_eles;
+                        }
+                        //std::cout << std::endl;
+                    }
+                       /*                 
+                    ofstream part_info;
+                    part_info.open(part_info_filename.c_str(), ios::app);
+                    part_info << part_id << ", " << color << ", " << partition->get_number_elements() << ", " << bdry_eles << ", ";
+                    part_info << interior_eles <<  ", ";
+                    part_info << bdry_facets << ", " << interior_facets/2 << std::endl;
+                    part_info.close();//*/
+                } //end of if (act_iter == 0)
+                //END OF DEBUG*/
+
                 /*
                 //DEBUG
-                if (part_id == 574)
+                //if (part_id == 574)
                 {
                     std::cout << "  debug mesh output input before healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
                     std::string vtu_filename = "examples/data/color_refinement/output/input_before_healing_part";
@@ -2204,19 +2292,45 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                         else
                         {
+                            //std::cout << " set 3d Metric Field" << std::endl;
                             MetricField<double,3> metric_field(*partition);
+/*
+                            //add metric field values
+                            std::vector<double> psi(partition->get_number_nodes());
 
-                            //std::cout << "set metric field" << std::endl;
+                            for (size_t m_i = 0; m_i < partition->get_number_nodes(); ++m_i)
+                            {
+                                psi[m_i] = 10000*partition->get_coords(m_i)[0];
+                            }
+
+                            metric_field.add_field(&psi[0], 0.01);
+                            metric_field.update_mesh();//*/
+
+                            //add metric tensor
+                            double eta=0.1;
                             for (auto i = 0; i < partition->get_number_nodes(); ++i)
                             {
                                 //std::cout << i << "/" << partition->get_number_nodes() << std::endl;
-                                double m[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
+                                double m[] = {1.0, 2.0, 3.0, 4.0, 5.0, 1.0};
+                                /*double x = 2*partition->get_coords(i)[0] - 1;
+                                double y = 2*partition->get_coords(i)[1];
+
+                                double m[] = {0.2*(-8*x + 4*sin(5*y))/pow(pow(2*x - sin(5*y), 2) + 0.01, 2) - 250.0*sin(50*x),  2.0*(2*x - sin(5*y))*cos(5*y)/pow(pow(2*x - sin(5*y), 2) + 0.01, 2),                                                        0,
+                                            -5.0*(2*x - sin(5*y))*pow(cos(5*y), 2)/pow(pow(2*x - sin(5*y), 2) + 0.01, 2) + 2.5*sin(5*y)/(pow(2*x - sin(5*y), 2) + 0.01), 0,
+                                            0
+                                            };
+
+
+                                for(int j=0; j<5; j++)
+                                    m[j]/=eta;
+                                m[5] = 1.0;
+                                */
                                 metric_field.set_metric(m, i);
                             }
 
                             //auto metric_update_tic = std::chrono::system_clock::now();
                             //std::cout << " metric update in partition " << part_id << std::endl;
-                            metric_field.update_mesh();
+                            metric_field.update_mesh();//*/
                             /*      std::chrono::duration<double> metric_update_time = std::chrono::system_clock::now() - metric_update_tic;*/
                         }
                         //     std::chrono::duration<double> metric_time = std::chrono::system_clock::now() - metric_tic;
@@ -2778,7 +2892,6 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                     }
                 }
                 //END OF DEBUG*/
-
                 /*
                 //Output healed mesh
                 std::cout << "  debug mesh output healing partition " << part_id << " iteration " << (act_iter+1)<< std::endl;
@@ -2998,13 +3111,13 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
 
                         Swapping<double,3> swapper(*partition);
                         double swap_tic = omp_get_wtime();
-                        swapper.swap(0.1);
+                        //swapper.swap(0.1);
                         swap_time = omp_get_wtime() - swap_tic;
 
                         Smooth<double,3> smoother(*partition);
 
                         double smooth_tic = omp_get_wtime();
-                        smoother.smart_laplacian();//*/
+                        //smoother.smart_laplacian();//*/
                         smooth_time = omp_get_wtime() - smooth_tic;
                         /*
                         //Output smoothed partition in each iteration
@@ -3266,6 +3379,8 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                         
                         //std::cout << " Tetgen Options: " << options << std::endl;
 
+                        //backgroundmesh for sizing function
+
                         auto triangulate_tic = omp_get_wtime();
                         //tetrahedralize(&tet_behavior, &in, &out);
                         tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
@@ -3436,11 +3551,73 @@ bool MeshPartitions::CreatePragmaticDataStructures_par(std::string algorithm, st
                             //end of output .node and .ele files for tetgen
                             //END OF DEBUG*/
 
+                            //background mesh for sizing function
+                            tetgenio bgmsh;
+
+                            bgmsh.firstnumber=0;
+                            bgmsh.numberofpoints = partition->get_number_nodes();
+                            bgmsh.pointlist = new REAL[in.numberofpoints * 3];
+                            memcpy(&(bgmsh.pointlist[0]), &(partition->_coords[0]), 3*sizeof(REAL)*bgmsh.numberofpoints);
+/*
+                            bgmsh.numberofpointattributes = 1;
+                            bgmsh.pointattributelist = new REAL[bgmsh.numberofpoints];
+
+                            for (size_t mtr_it = 0; mtr_it < partition->get_number_nodes(); ++mtr_it)
+                            {
+                                if (partition->get_coords(mtr_it)[0] < 10)
+                                    bgmsh.pointattributelist[mtr_it] = 1;
+
+                                else
+                                    bgmsh.pointattributelist[mtr_it] = 0.00001;
+                            }//*/
+/*
+                            bgmsh.numberofpointmtrs = 1;
+                            bgmsh.pointmtrlist = new REAL[bgmsh.numberofpoints];
+
+                            for (size_t mtr_it = 0; mtr_it < partition->get_number_nodes(); ++mtr_it)
+                            {
+                                if (partition->get_coords(mtr_it)[0] < 10)
+                                    bgmsh.pointmtrlist[mtr_it] = 1;
+
+                                else    
+                                    bgmsh.pointmtrlist[mtr_it] = 0.0001;
+                            }//*/
+
+                            bgmsh.numberoftetrahedra = partition->get_number_elements();
+                            bgmsh.tetrahedronlist = new int[in.numberoftetrahedra*4];
+                            memcpy(&(bgmsh.tetrahedronlist[0]), &(partition->_ENList[0]), 4*sizeof(int)*bgmsh.numberoftetrahedra);//*/
+
+                            in.tetrahedronvolumelist = new REAL[bgmsh.numberoftetrahedra];
+
+                            for (size_t mtr_it = 0; mtr_it < partition->get_number_elements(); ++mtr_it)
+                            {
+                                const index_t *n = partition->get_element(mtr_it);
+
+                                if (partition->get_coords(n[0])[0] < 10)
+                                    in.tetrahedronvolumelist[mtr_it] = 5;
+
+
+                                else   
+                                    in.tetrahedronvolumelist[mtr_it] = 0.0001;
+                            }//*/
+
+                            //&_mesh->_ENList[nloc*threadIdx[tid]], &newElements[tid][0], nloc*splitCnt[tid]*sizeof(index_t)
+
                             auto tetrahedralize_tic = omp_get_wtime();
                             //tetrahedralize(&tet_behavior, &in, &out);
                             //viennamesh::info(3) << "  Tetrahedralize Partition " << part_id << std::endl;
-                            tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id]);
-                            
+
+
+                            //tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id], NULL, &bgmsh);
+                            try
+                            {
+                                tetrahedralize(&tet_behavior, &in, &tetgen_partitions[part_id], NULL, NULL);
+                            }
+
+                            catch(int e)
+                            {
+                                std:cout << " exception nr. " << e << std::endl;
+                            }
                             call_to_refine_time = omp_get_wtime() - tetrahedralize_tic;
 
                             //tetgen_partitions[part_id] = in;

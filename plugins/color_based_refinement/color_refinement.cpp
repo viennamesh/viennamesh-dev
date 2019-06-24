@@ -23,6 +23,8 @@ namespace viennamesh
 			data_handle<int> max_num_iterations = get_required_input<int>("max_num_iterations");
 
 			Mesh<double> * in_mesh = input_mesh().mesh;
+
+			//input_mesh().mesh->multiply_coords(100);
 		
 			info(1) << name() << std::endl;
 			
@@ -53,6 +55,59 @@ namespace viennamesh
 			}
 
 			file.close();//*/
+
+			//DEBUG
+			//output .node and .ele files for tetgen
+			ofstream node_file;
+			std::string node_file_name = "examples/data/color_refinement/output/tetgen_";
+			node_file_name += input_file().substr(found+1);
+			node_file_name+=".node";
+
+			node_file.open(node_file_name.c_str());
+
+			node_file << "# Node count, " << in_mesh->get_number_dimensions() << " dim, no attribute, no boundary marker" << std::endl;
+			node_file << in_mesh->get_number_nodes() << " " << in_mesh->get_number_dimensions() << " 0 0" << std::endl;
+			
+			for (size_t vid = 0; vid < in_mesh->get_number_nodes(); ++vid)
+			{
+				node_file << vid+1 << " " << input_mesh().mesh->get_coords(vid)[0] << " " << input_mesh().mesh->get_coords(vid)[1];
+				node_file << " " << input_mesh().mesh->get_coords(vid)[2] << std::endl;
+				/*
+				node_file << vid+1 << " " << input_mesh().mesh->_coords[3*vid] << " " << input_mesh().mesh->_coords[3*vid+1];
+				node_file << " " << input_mesh().mesh->_coords[3*vid+2] << std::endl;*/
+			}
+			node_file.close();
+
+			ofstream ele_file;
+			std::string ele_file_name = "examples/data/color_refinement/output/tetgen_";
+			ele_file_name+= input_file().substr(found+1);
+			ele_file_name+=".ele";
+
+			ele_file.open(ele_file_name.c_str());
+
+			ele_file << "# Tetrahedra count, 4 nodes per tetrahedron, no region attribute" << std::endl;
+			ele_file << in_mesh->get_number_elements() << " 4 0" << std::endl;
+			
+			for (size_t vid = 0; vid < in_mesh->get_number_elements(); ++vid)
+			{
+				index_t const* eid = in_mesh->get_element(vid); 
+				if (eid[0] == -1)
+				{
+					std::cerr << " ERROR: no defragmentation of tetrahedronlist detected!" << std::endl;
+					continue;
+				}
+
+				ele_file << vid+1 << " " << eid[0]+1 << " " << eid[1]+1;
+				ele_file << " " << eid[2]+1 << " " << eid[3]+1 << std::endl;
+
+				/*
+				ele_file << vid+1 << " " << in_mesh->_ENList[4*vid]+1 << " " << in_mesh->_ENList[4*vid+1]+1;
+				ele_file << " " << in_mesh->_ENList[4*vid+2]+1 << " " << in_mesh->_ENList[4*vid+3]+1 << std::endl;*/
+			}
+			ele_file.close();
+
+			//end of output .node and .ele files for tetgen
+			//END OF DEBUG*/
 			
 			//check chosen algorithm and chosen coloring method
 			std::string algo;
@@ -377,6 +432,10 @@ namespace viennamesh
 			for (size_t i = 0; i < build_tri_ds.size(); ++i)
 				csv << build_tri_ds[i] << ",";
 */
+							
+			for (size_t i = 0; i < workload_elements.size(); ++i)
+				csv << workload_elements[i] << ", ";//*/
+
 			csv << std::endl;
 			csv.close();//*/
 	
@@ -385,6 +444,19 @@ namespace viennamesh
 
 			//set_output("mesh", input_mesh());
 
+			ofstream final_num_eles;
+			final_num_eles.open("final_eles_per_partition.txt");
+			std::vector<int> ele_data;
+			//DEBUG
+			for (size_t i = 0; i < InputMesh.pragmatic_partitions.size(); ++i)
+			{
+				final_num_eles << InputMesh.pragmatic_partitions[i]->get_number_elements() << std::endl;
+				ele_data.push_back(InputMesh.pragmatic_partitions[i]->get_number_elements());
+			}
+			final_num_eles.close();
+			std::cout << "num_elements max " << *std::max_element(ele_data.begin(), ele_data.end()) << " min " << *std::min_element(ele_data.begin(), ele_data.end());
+			std::cout << " average " << std::accumulate(ele_data.begin(), ele_data.end(), 0) / InputMesh.pragmatic_partitions.size() << std::endl;
+			//END OF DEBUG
 
 			//Convert to ViennaGrid
 			//auto convert_tic = std::chrono::system_clock::now();
