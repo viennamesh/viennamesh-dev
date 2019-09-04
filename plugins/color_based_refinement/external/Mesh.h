@@ -45,6 +45,10 @@
 #include <cmath>
 #include <stdint.h>
 #include <chrono>
+#include <numeric>
+#include <unordered_map>
+
+#include <fstream>
 
 #ifdef HAVE_BOOST_UNORDERED_MAP_HPP
 #include <boost/unordered_map.hpp>
@@ -160,11 +164,13 @@ public:
     index_t append_vertex(const real_t *x, const double *m)
     {
         for(size_t i=0; i<ndims; i++)
+        {
             _coords[ndims*NNodes+i] = x[i];
-
+        }
         for(size_t i=0; i<msize; i++)
+        {
             metric[msize*NNodes+i] = m[i];
-
+        }
         ++NNodes;
 
         return get_number_nodes()-1;
@@ -209,11 +215,11 @@ public:
         boundary.resize(NElements*nloc);
         std::fill(boundary.begin(), boundary.end(), -2);
 
-        #pragma omp parallel num_threads(1)
+       // #pragma omp parallel num_threads(1)
         {
             if(ndims==2) {
                 // Check neighbourhood of each element
-                #pragma omp for schedule(guided)
+              //  #pragma omp for schedule(guided)
                 for(size_t i=0; i<NElements; i++) {
                     if(_ENList[i*3]==-1)
                         continue;
@@ -242,7 +248,7 @@ public:
                 }
             } else { // ndims==3
                 // Check neighbourhood of each element
-                #pragma omp for schedule(guided)
+               // #pragma omp for schedule(guided)
                 for(size_t i=0; i<NElements; i++) {
                     if(_ENList[i*4]==-1)
                         continue;
@@ -341,6 +347,8 @@ public:
             NEList[n[i]].erase(eid);
 
         _ENList[eid*nloc] = -1;
+
+        //std::cout << "erased at position " << eid*nloc << std::endl;
     }
 
     /// Flip orientation of element.
@@ -399,6 +407,12 @@ public:
         return ndims;
     }
 
+    /// Return the number of nodes per element.
+    inline size_t get_number_nloc() const
+    {
+        return nloc;
+    }
+
     /// Return positions vector.
     inline real_t const *get_coords(index_t nid) const
     {
@@ -437,7 +451,9 @@ public:
     inline void get_coords(index_t nid, real_t *x) const
     {
         for(size_t i=0; i<ndims; i++)
+        {
             x[i] = _coords[nid*ndims+i];
+        }
         return;
     }
 
@@ -452,17 +468,21 @@ public:
     inline void get_metric(index_t nid, double *m) const
     {
         assert(metric.size()>0);
+        
         for(size_t i=0; i<msize; i++)
+        {
             m[i] = metric[nid*msize+i];
+        }
+        
         return;
     }
 
     // Returns the list of facets and corresponding ids
-    void get_boundary(int* nfacets, const int** facets, const int** ids)
+    void get_boundary(int* nfacets, const int** facets, const int** ids, const int **elementIds)
     {
         int      NFacets;
         index_t  i_elm, i_loc, off;
-        int      *Facets, *Ids;
+        int      *Facets, *Ids, *ElementIds;
 
         // compute number facets = number of ids > 0
         NFacets = 0;
@@ -473,6 +493,7 @@ public:
 
         Facets = (int*)malloc(NFacets*ndims*sizeof(int));
         Ids = (int*)malloc(NFacets*sizeof(int));
+        ElementIds=(int*)malloc(NFacets*sizeof(int));
 
         // loop over ids to build the vectors
         int k = 0;
@@ -488,13 +509,628 @@ public:
                     }
                 }
                 Ids[k/ndims-1] = boundary[i];
+                ElementIds[k/ndims-1] = i_elm;
             }
         }
 
         *nfacets = NFacets;
         *facets = Facets;
         *ids = Ids;
+        *elementIds = ElementIds;
     }
+
+    //Returns the interface facets of the partitions
+    void get_interfaces(std::vector<std::vector<std::vector<int>>>& NNInterfaces, std::vector<std::set<int>>& nodes_part_ids, std::vector<int>& l2g_vertices, 
+                        std::unordered_map<int,int>& g2l_vertices, const int part_id, std::vector<std::vector<int>>& FInterfaces, const int iteration)
+    {
+        //3D case
+        /*if (ndims == 3)//else
+        {
+            std::cout << " FInterfaces" << std::endl;
+
+            FInterfaces.resize(NElements);
+            //NNInterfaces.resize(NElements*4*3);
+
+            //iterate elements
+            for (size_t ele_iter = 0; ele_iter < NElements; ele_iter++)
+            {
+                //std::cout << "element " << ele_iter << std::endl;
+                const index_t* n = get_element(ele_iter);
+
+                //skip element if it is marked for removal
+                if (n[0] < 0)
+                {
+                    continue;
+                }
+
+                //create the 4 different facets
+                const index_t facets[4][3] = { {n[0], n[1], n[2]}, {n[0], n[1], n[3]}, {n[0], n[2], n[3]}, {n[1], n[2], n[3]} };
+
+                //iterate facet vertices 
+                for(size_t j = 0; j < 4; j++)
+                {
+                    //std::cout << " facet " << j << ": " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
+                    
+                    //check if all 3 facet vertices are in more than 1 partition
+                    if ( nodes_part_ids[ l2g_vertices[facets[j][0]]].size() > 1 &&
+                         nodes_part_ids[ l2g_vertices[facets[j][1]]].size() > 1 &&
+                         nodes_part_ids[ l2g_vertices[facets[j][2]]].size() > 1 )
+                    {
+                        //intersect NEList of all vertices to find out if the interface is a partition interface or not
+                        std::set<int> intersect_nelist_1;
+                        std::set_intersection(NEList[facets[j][0]].begin(), NEList[facets[j][0]].end(),
+                                              NEList[facets[j][1]].begin(), NEList[facets[j][1]].end(),
+                                              inserter(intersect_nelist_1, intersect_nelist_1.begin()));
+
+                        std::set<int> intersect_nelist_2;
+                        std::set_intersection(NEList[facets[j][2]].begin(), NEList[facets[j][2]].end(),
+                                              intersect_nelist_1.begin(), intersect_nelist_1.end(),
+                                              inserter(intersect_nelist_2, intersect_nelist_2.begin()));
+
+                        if (intersect_nelist_2.size() == 1)
+                        {
+                            std::vector<int> intersect1;
+                            std::set_intersection(nodes_part_ids[ l2g_vertices[facets[j][0]] ].begin(), nodes_part_ids[ l2g_vertices[facets[j][0]] ].end(),
+                                                nodes_part_ids[ l2g_vertices[facets[j][1]] ].begin(), nodes_part_ids[ l2g_vertices[facets[j][1]] ].end(),
+                                                inserter(intersect1, intersect1.begin()));
+
+                            std::vector<int> intersect2;
+                            std::set_intersection(nodes_part_ids[ l2g_vertices[facets[j][2]] ].begin(), nodes_part_ids[ l2g_vertices[facets[j][2]] ].end(),
+                                                intersect1.begin(), intersect1.end(),
+                                                inserter(intersect2, intersect2.begin()));
+
+                            //check size of intersect2 to find out if it is a partition interface or not
+                            if (intersect2.size() > 1)
+                            {
+                                //std::cout << "  facet is partition interface" << std::endl;
+                                if (intersect2[0] == part_id)
+                                {
+                                    //std::cout << "    type1" << std::endl;
+                                    FInterfaces[ele_iter].push_back(intersect2[1]);
+
+                                    //put the corresponding values also in NNInterfaces
+                                }
+
+                                else if (intersect2[1] == part_id)
+                                {
+                                    //std::cout << "    type2" << std::endl;
+                                    FInterfaces[ele_iter].push_back(intersect2[0]);
+
+                                    //put the corresponding values also in NNInterfaces
+                                }
+
+                                else
+                                {
+                                    std::cout << "    error in facet interface in partition " << part_id << " and facet " << j << ": " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
+                                    break;
+                                }
+                            }
+
+                            else
+                            {
+                                //std::cout << "  facet is boundary facet" << std::endl;
+                                //put the corresponding values also in NNInterfaces
+                                FInterfaces[ele_iter].push_back(-1);
+                            }
+                        }                        
+
+                        else
+                        {
+                            //std::cout << "  interior facet" << std::endl;
+                            FInterfaces[ele_iter].push_back(-1);
+                        }
+
+                    } //end of check if all 3 facet vertices are in more than 1 partition
+                    
+                    else 
+                    {
+                        //std::cout << "  no partition interface" << std::endl;
+                        FInterfaces[ele_iter].push_back(-1);
+                    }
+                } //end of iterate facet vertices
+            }//end of iterate elements
+        }//end of 3D case*/
+
+        NNInterfaces.resize(NNodes);
+        for (size_t i = 0; i < NNodes; ++i)
+        {            
+            //use this only with 3D NNInterfaces vector!!!
+            NNInterfaces[i].resize(NNList[i].size());
+
+            for (size_t j = 0; j < NNList[i].size(); ++j)
+            {
+                int otherVertex = NNList[i][j];
+                /*
+                //DEBUG
+                std::cout << "nodes_part_ids[20]: " << std::endl;
+                for (auto it : nodes_part_ids[l2g_vertices[i]])
+                {
+                    std::cout << "  " << it << std::endl;
+                }
+
+                std::cout << "nodes_part_ids[43]: " << std::endl;
+                for (auto it : nodes_part_ids[l2g_vertices[otherVertex]])
+                {
+                    std::cout << "  " << it << std::endl;
+                }
+                //END OF DEBUG*/
+                
+                if ( (nodes_part_ids[ l2g_vertices[i] ].size() > 1) && (nodes_part_ids[ l2g_vertices[otherVertex] ].size() > 1) )
+                {
+
+                    //std::cout << i << " and " << otherVertex << std::endl;
+
+                    std::vector<int> interface_edge;
+                    set_intersection(nodes_part_ids[l2g_vertices[i]].begin(), nodes_part_ids[l2g_vertices[i]].end(),
+                                     nodes_part_ids[l2g_vertices[otherVertex]].begin(), nodes_part_ids[l2g_vertices[otherVertex]].end(),
+                                     inserter(interface_edge, interface_edge.begin()));
+                    /*
+                    //DEBUG
+                    if (i == 20 && otherVertex == 43)
+                    {
+                        std::cout << "set_intersection result" << std::endl;
+                        for (auto it : interface_edge)
+                        {
+                            std::cout << "  " << it << std::endl;
+                        }
+                    }
+                    //END OF DEBUG*/
+
+                    if (interface_edge.size() == 2)
+                    {
+                        /*bool is_boundary_edge = false;
+                        bool is_interface_edge = false;*/
+                        //If in 3D check interfaces first, otherwise it can happen that the two vertices are on the interface
+                        //but their edge is an interior edge
+                        /*if (ndims == 3)
+                        {
+                            //std::cout << " get the elements which share the edge between " << i << " and " << otherVertex << std::endl;
+                            std::vector<int> shared_elements;
+
+                            
+                            set_intersection(NEList[i].begin(), NEList[i].end(),
+                                             NEList[otherVertex].begin(), NEList[otherVertex].end(),
+                                             inserter(shared_elements, shared_elements.begin()));
+                            //std::cout << " shared_elements.size() " << shared_elements.size() << std::endl;
+
+                            std::vector<std::vector<int>> facet_vector;
+                            facet_vector.resize(shared_elements.size());
+
+                            int ele_to_check0;
+                            
+                            //for (auto ele_iter : shared_elements)
+                            for (size_t e_iter = 0; e_iter < shared_elements.size(); ++e_iter)
+                            {
+                                int ele_iter = shared_elements[e_iter];
+                                //std::cout << "   element " << ele_iter << std::endl;
+
+                                const index_t* n = get_element(ele_iter);
+
+                                //skip element if it is marked for removal
+                                if (n[0] < 0)
+                                {
+                                    continue;
+                                }
+
+                               // std::cout << "    verts " << n[0] << " " << n[1] << " " << n[2] << " " << n[3] << std::endl;
+
+                                //create the 4 different facets
+                                const index_t facets[4][3] = { {n[0], n[1], n[2]}, {n[0], n[1], n[3]}, {n[0], n[2], n[3]}, {n[1], n[2], n[3]} };
+                                
+                                std::vector<int> inter_facets(2,-1);
+                                
+                                //find the two facets containing i and otherVertex
+                                for (size_t k = 0; k < 4; k++)
+                                {
+                                    for (size_t l = 0; l < 3; l++)
+                                    {
+                                        if (facets[k][l] == i)
+                                        {
+                                            //check if facet contains otherVertex
+                                            if ( facets[k][(l+1)%3] == otherVertex) 
+                                            {
+                                                inter_facets[0] = k;
+                                                break;
+                                            }
+
+                                            else if (facets[k][(l+2)%3] == otherVertex) 
+                                            {
+                                                inter_facets[0] = k;
+                                                break;
+                                            }           
+                                        }
+                                    }
+
+                                    if (inter_facets[0] >= 0)
+                                        break;
+                                }                                   
+                                
+                                //for the second facet start searching from the end of the 2d vector
+                                //for (size_t k = 3; k > 0; k--)
+                                for (size_t k = 0; k < 4; k++)
+                                {
+                                    if (k == inter_facets[0])
+                                        continue;
+                                    // for (size_t l = 2; l > 0; l--)
+                                    for (size_t l = 0; l < 3; l++)
+                                    {
+                                        if (facets[k][l] == i)
+                                        {
+                                            //check if facet contains otherVertex
+                                            if ( facets[k][(l+1)%3] == otherVertex) 
+                                            {
+                                                inter_facets[1] = k;
+                                                break;
+                                            }
+
+                                            else if (facets[k][(l+2)%3] == otherVertex) 
+                                            {
+                                                inter_facets[1] = k;
+                                                break;
+                                            }           
+                                        }
+                                    }
+
+                                    if (inter_facets[1] >= 0)
+                                        break;
+                                }     
+                                //end of find the two facets containing i and otherVertex
+
+                                facet_vector[e_iter].push_back(inter_facets[0]);
+                                facet_vector[e_iter].push_back(inter_facets[1]);
+
+                                //if (!is_boundary_edge)
+                                {
+                                    //check facets
+                                    for (size_t f = 0; f < inter_facets.size(); ++f)
+                                    {   
+                                        size_t f_id = inter_facets[f];
+
+                                        //std::cout << "     facet " << f_id << ": " << facets[f_id][0] << " " << facets[f_id][1] << " " << facets[f_id][2] << std::endl;
+
+                                        //if all 3 facet vertices are in more than 1 partition, this facet is an interface candidate
+                                        if ( nodes_part_ids[ l2g_vertices[facets[f_id][0]]].size() > 1 &&
+                                            nodes_part_ids[ l2g_vertices[facets[f_id][1]]].size() > 1 &&
+                                            nodes_part_ids[ l2g_vertices[facets[f_id][2]]].size() > 1 )
+                                        {
+                                            //std::cout << "       " << "interesting facet!" << std::endl;
+
+                                            //intersect NEList of all facet vertices to find out if the interface is a partition interface or not
+                                            std::set<int> intersect_nelist_1;
+                                            std::set_intersection(NEList[facets[f_id][0]].begin(), NEList[facets[f_id][0]].end(),
+                                                                    NEList[facets[f_id][1]].begin(), NEList[facets[f_id][1]].end(),
+                                                                    inserter(intersect_nelist_1, intersect_nelist_1.begin()));
+
+                                            std::set<int> intersect_nelist_2;
+                                            std::set_intersection(NEList[facets[f_id][2]].begin(), NEList[facets[f_id][2]].end(),
+                                                                    intersect_nelist_1.begin(), intersect_nelist_1.end(),
+                                                                    inserter(intersect_nelist_2, intersect_nelist_2.begin()));                                        
+
+                                            if (intersect_nelist_2.size() != 2)
+                                            {
+                                                std::cout << "         intersect_nelist_2.size() " << intersect_nelist_2.size() << std::endl;
+                                                std::cout << "            " << *intersect_nelist_2.begin() << std::endl;
+                                                std::cout << "         global boundary or partition interface facet" << std::endl;                                                
+                                                std::cout << "         FIND OUT HOW TO COMMUNICATE THIS INFORMATION INTO THE OUTBOX!" << std::endl;
+                                                is_boundary_edge = true;
+                                                ele_to_check0 = *intersect_nelist_2.begin();
+                                            }
+                                            /*
+                                            //DEBUG
+                                            if (intersect_nelist_2.size() == 2)
+                                            {
+                                                std::cout << "         interior facet with element " << std::endl;
+                                                if (*intersect_nelist_2.begin() == ele_iter)
+                                                {
+                                                    std::cout << "            take second " << *intersect_nelist_2.rbegin() << std::endl;
+                                                }
+                                                else
+                                                {
+                                                    std::cout << "            take first   " << *intersect_nelist_2.begin() << std::endl;
+                                                }
+                                            }//END OF DEBUG
+                                        } //end of if all 3 facet vertices are in more than 1 partition, this facet is an interface candidate 
+                                        /*
+                                        else
+                                        {
+                                            std::cout << "       " << "this facet is not interesting" << std::endl;
+                                        }//
+                                    }//end of check facets
+                                } //end of if (!is_boundary_edge)
+
+                                /*if (is_boundary_edge)
+                                    break;*/
+
+                                /*
+                                //iterate facets
+                                for(size_t j = 0; j < 4; j++)
+                                {
+                                    std::cout << "     facet " << j << ": " << facets[j][0] << " " << facets[j][1] << " " << facets[j][2] << std::endl;
+
+                                    //if all 3 facet vertices are in more than 1 partition, this facet is an interface candidate
+                                    if ( nodes_part_ids[ l2g_vertices[facets[j][0]]].size() > 1 &&
+                                            nodes_part_ids[ l2g_vertices[facets[j][1]]].size() > 1 &&
+                                            nodes_part_ids[ l2g_vertices[facets[j][2]]].size() > 1 )
+                                    {
+                                        //std::cout << "       " << "interesting facet!" << std::endl;
+
+                                        //intersect NEList of all facet vertices to find out if the interface is a partition interface or not
+                                        std::set<int> intersect_nelist_1;
+                                        std::set_intersection(NEList[facets[j][0]].begin(), NEList[facets[j][0]].end(),
+                                                                NEList[facets[j][1]].begin(), NEList[facets[j][1]].end(),
+                                                                inserter(intersect_nelist_1, intersect_nelist_1.begin()));
+
+                                        std::set<int> intersect_nelist_2;
+                                        std::set_intersection(NEList[facets[j][2]].begin(), NEList[facets[j][2]].end(),
+                                                                intersect_nelist_1.begin(), intersect_nelist_1.end(),
+                                                                inserter(intersect_nelist_2, intersect_nelist_2.begin()));
+                                        
+                                        //DEBUG
+                                        std::cout << "           elements in intersect_nelist_2" << std::endl;
+                                        for (auto intersecter : intersect_nelist_2)
+                                        {
+                                            std::cout << "             " << intersecter << std::endl;
+                                        }
+                                        //END OF DEBUG
+
+                                        if (intersect_nelist_2.size() == 2)
+                                        {
+                                            std::cout << "         interior facet with element " << std::endl;
+                                            if (*intersect_nelist_2.begin() == ele_iter)
+                                            {
+                                                std::cout << "            take second " << *intersect_nelist_2.rbegin() << std::endl;
+                                            }
+                                            else
+                                            {
+                                                std::cout << "            take first   " << *intersect_nelist_2.begin() << std::endl;
+                                            }
+                                        }
+
+                                        else
+                                        {
+                                            std::cout << "         boundary or partition interface facet" << std::endl;
+                                        }
+                                    }
+
+                                } //end of for(size_t j = 0; j < 4; j++)
+                            } //end of for (auto ele_iter : shared_elements)
+                            //END OF DEBUG*/
+
+                            /*
+                            //check now if the edge is truely an interface edge or not:
+                            //to do this, get the boundary facets containing the edge
+                            //and check if all 4 vertices of the two boundary facets belong 
+                            //to the interface of the same neighbor                            
+                            if (is_boundary_edge)
+                            {
+                                //std::cout << " check if partition interface " << std::endl;
+                                int facet_ele0 = 0;
+                                int facet_ele1 = 0;
+                                int ele_to_check1;
+
+                                if (ele_to_check0 == *shared_elements.begin())
+                                    ele_to_check1 = *shared_elements.rbegin();
+
+                                else
+                                    ele_to_check1 = *shared_elements.begin();
+
+                                //std::cout << "boundary check of elements " << ele_to_check0 << " and " << ele_to_check1 << std::endl;
+
+                                const index_t* n0 = get_element(ele_to_check0);
+                                const index_t* n1 = get_element(ele_to_check1);
+
+                                auto pos0 = std::find(shared_elements.begin(), shared_elements.end(), ele_to_check0);
+                                auto pos1 = std::find(shared_elements.begin(), shared_elements.end(), ele_to_check1);
+
+                                //create the different facets
+                                const index_t facets0[4][3] = { {n0[0], n0[1], n0[2]}, {n0[0], n0[1], n0[3]}, {n0[0], n0[2], n0[3]}, {n0[1], n0[2], n0[3]} };
+                                const index_t facets1[4][3] = { {n1[0], n1[1], n1[2]}, {n1[0], n1[1], n1[3]}, {n1[0], n1[2], n1[3]}, {n1[1], n1[2], n1[3]} };
+
+                                //find the two facets which are not the same
+                                int facet00 = facet_vector[pos0 - shared_elements.begin()][0];
+                                int facet01 = facet_vector[pos0 - shared_elements.begin()][1];
+                                int facet10 = facet_vector[pos1 - shared_elements.begin()][0];
+                                int facet11 = facet_vector[pos1 - shared_elements.begin()][1];
+
+                                if ( facets0[facet00][0] == facets1[facet10][0] &&
+                                     facets0[facet00][1] == facets1[facet10][1] &&
+                                     facets0[facet00][2] == facets1[facet10][2] )
+                                {
+                                    facet_ele0 = facet01;
+                                    facet_ele1 = facet11;
+                                }
+
+                                else if ( facets0[facet00][0] == facets1[facet11][0] &&
+                                          facets0[facet00][1] == facets1[facet11][1] &&
+                                          facets0[facet00][2] == facets1[facet11][2] )
+                                {
+                                    facet_ele0 = facet01;
+                                    facet_ele1 = facet10;
+                                }
+
+                                else if ( facets0[facet01][0] == facets1[facet10][0] &&
+                                          facets0[facet01][1] == facets1[facet10][1] &&
+                                          facets0[facet01][2] == facets1[facet10][2] )
+                                {
+                                    facet_ele0 = facet00;
+                                    facet_ele1 = facet11;
+                                }
+
+                                else
+                                {
+                                    facet_ele0 = facet00;
+                                    facet_ele1 = facet10;
+                                }
+
+
+                                //now get the 4 vertices of the 2 facets
+                                //std::cout << "haha facet0 " << facet_ele0 << " facet1 " << facet_ele1 << std::endl;
+
+                                bool found_interface_vertex = false;
+
+                                int vert0;
+                                int vert1;
+
+                                for (size_t n = 0; n < 3; ++n)
+                                {
+                                    if ( facets0[facet_ele0][n] != i &&  facets0[facet_ele0][n] != otherVertex )
+                                        vert0 = facets0[facet_ele0][n];
+
+                                    if ( facets1[facet_ele1][n] != i &&  facets1[facet_ele1][n] != otherVertex )
+                                        vert1 = facets1[facet_ele1][n];
+                                }
+                                //std::cout << " 2verts " << vert0 << " " << vert1 << std::endl;
+
+                                //check if one of the other 2 vertices (other than i and otherVertex) is in the same neighboring partitions or not
+                                int target;
+
+                                if (interface_edge[0] == part_id)
+                                    target = interface_edge[1];
+
+                                else if (interface_edge[1] == part_id)
+                                {
+                                    target = interface_edge[0];
+                                }
+
+                                //std::cout << " target " << target << std::endl;
+
+                                auto part_v0 = std::find( nodes_part_ids[l2g_vertices[vert0]].begin(), nodes_part_ids[l2g_vertices[vert0]].end(), target);
+                                auto part_v1 = std::find( nodes_part_ids[l2g_vertices[vert1]].begin(), nodes_part_ids[l2g_vertices[vert1]].end(), target);
+
+                                //if both vertices of the quad are in the neighboring partition, than this is an interface edge
+                                if ( part_v0 != nodes_part_ids[l2g_vertices[vert0]].end() && part_v1 != nodes_part_ids[l2g_vertices[vert1]].end() )
+                                {
+                                    //std::cout << "   woho " << std::endl;
+                                    is_interface_edge = true;
+                                }
+
+                                //REMOVE THIS WHEN FINISHED
+                                is_interface_edge = true;
+                            }
+                        }
+                        //end of 3D case*/
+
+
+                        bool is_interface_edge=true;
+                        if (is_interface_edge)
+                        {
+                            /*std::cout << "   " << "Partition " << part_id << std::endl;
+                            std::cout << "   " << i << " and " << otherVertex << " form a boundary or interface edge" << std::endl; 
+
+                            //DEBUG
+                            std::cout << "     set_intersection result" << std::endl;
+                            for (auto it : interface_edge)
+                            {
+                                std::cout << "       " << it << std::endl;
+                            }
+                            //END OF DEBUG*/
+
+                            if (interface_edge[0] == part_id)
+                            {
+                                NNInterfaces[i][j].push_back(interface_edge[1]);
+                            }
+
+                            else if (interface_edge[1] == part_id)
+                            {
+                                NNInterfaces[i][j].push_back(interface_edge[0]);
+                            }
+
+                            else
+                            {
+                                std::cout << "     interface problem in partition " << part_id << " with local vertices " << i << " and " << otherVertex << std::endl;
+                                
+                                for (size_t auto_iter : interface_edge)
+                                {
+                                    std::cout << "                " << auto_iter << std::endl;
+                                }
+                            }
+                        } //end of if (is_interface_edge)
+
+                        //both vertices are on the interface, but their connecting edge is an interior edge
+                        else 
+                        {
+                            /*std::cout << "   " << "Partition " << part_id << std::endl;
+                            std::cout << "   " << i << " and " << otherVertex << " form an interior edge" << std::endl;//*/
+                            //std::cout << "   this is interior!" << std::endl;
+                            NNInterfaces[i][j].push_back(-1);
+                        }
+                    } // end of if (interface_edge.size() == 2)
+
+                    else if (interface_edge.size() > 2)
+                    {
+                        //std::cout << "  multiple interfaces!" << std::endl;
+                        for (auto inter_it : interface_edge)
+                        {
+                            if (inter_it != part_id)
+                            {
+                                NNInterfaces[i][j].push_back(inter_it);
+                            }
+                        }
+                    }
+                
+                    else
+                    {
+                        //std::cout << " interior haha" << std::endl;
+                        NNInterfaces[i][j].push_back(-1);
+                    }
+                }
+
+                else
+                {
+                    NNInterfaces[i][j].push_back(-1);
+                }
+            } //end of for (size_t j = 0; j < NNList[i].size(); ++j)
+        } //end of for (size_t i = 0; i < NNodes; ++i)
+        /*
+        //DEBUG
+        std::ofstream nninterfaces_out;
+        std::string name;
+        name = "debug_output/nninterfaces_partition";
+        name += std::to_string(part_id);
+        name += "_iteration";
+        name += std::to_string(iteration);
+        name += ".txt";
+        nninterfaces_out.open(name.c_str());
+
+        for (size_t i = 0; i < NNInterfaces.size(); ++i)
+        {
+            nninterfaces_out << "Vertex " << i << " has (NNInterfaces.size()) " << NNInterfaces[i].size() << " neighbors (NNList.size(): " << NNList[i].size() << ")" << std::endl;
+
+            for (size_t j=0; j < NNInterfaces[i].size(); ++j)
+            {
+                nninterfaces_out << " " << NNList[i][j];
+
+                for (size_t k = 0; k < NNInterfaces[i][j].size(); ++k)
+                {
+                    nninterfaces_out << ": " << NNInterfaces[i][j][k] << std::endl;
+                }
+            }
+        }
+
+        nninterfaces_out.close();
+
+        std::ofstream nnlist;
+        std::string nnlist_name = "debug_output/nnlist_after_getinterfaces_partition";
+        nnlist_name += std::to_string(part_id);
+        nnlist_name += "_iteration";
+        nnlist_name += std::to_string(iteration);
+        nnlist_name+=".txt";
+
+        nnlist.open(nnlist_name.c_str());
+
+        for (size_t i = 0; i < NNList.size(); ++i)
+        {
+            nnlist << "Vertex " << i << " has " << NNList[i].size() << " neighbors" << std::endl;
+
+            for (size_t j = 0; j < NNList[i].size(); ++j)
+            {
+                nnlist << " " << NNList[i][j] << std::endl;
+            }
+        }
+
+        nnlist.close();
+        //END OF DEBUG*/
+    } //end of get_interfaces()
 
     /// Return the array of boundary facets and associated tags
     inline  int * get_boundaryTags() 
@@ -560,6 +1196,7 @@ public:
     //Removes element from NEList
     inline void remove_nelist(size_t id, size_t rem_id)
     {
+      //assert(NEList[id].count(rem_id) != 0);
       NEList[id].erase(rem_id);
     }
 
@@ -587,6 +1224,14 @@ public:
         NElements = elements;
     }
 
+    void multiply_coords(const int factor)
+    {
+        for (size_t i = 0; i < _coords.size(); ++i)
+        {
+            _coords[i] = _coords[i]*factor;
+        }
+    }
+
      //Resize Vectors
     void resize_vectors(size_t dim)
     {
@@ -598,6 +1243,12 @@ public:
             NNList.resize(reserve);
             NEList.resize(reserve);       
       }
+    }
+
+    //returns msize (number of edges of an element)
+    inline size_t get_msize()
+    {
+        return msize;
     }
 
     //add coords to coords vector
@@ -657,7 +1308,7 @@ public:
         double total_length=0;
         int nedges=0;
 
-        #pragma omp parallel for reduction(+:total_length,nedges) num_threads(1)
+      //  #pragma omp parallel for reduction(+:total_length,nedges) num_threads(1)
         for(int i=0; i<NNodes; i++) {
             if(is_owned_node(i) && (NNList[i].size()>0)) {
                 for(typename std::vector<index_t>::const_iterator it=NNList[i].begin(); it!=NNList[i].end(); ++it) {
@@ -837,7 +1488,7 @@ public:
             std::cerr<<"ERROR: Cannot calculate volume in 2D\n";
         } else { // 3D
             if(num_processes>1) {
-                #pragma omp parallel for reduction(+:total_volume) num_threads(1)
+               // #pragma omp parallel for reduction(+:total_volume) num_threads(1)
                 for(int i=0; i<NElements; i++) {
                     const index_t *n=get_element(i);
                     if(n[0] < 0)
@@ -871,7 +1522,7 @@ public:
                 MPI_Allreduce(MPI_IN_PLACE, &total_volume, 1, MPI_LONG_DOUBLE, MPI_SUM, _mpi_comm);
 #endif
             } else {
-                #pragma omp parallel for reduction(+:total_volume) num_threads(1)
+               // #pragma omp parallel for reduction(+:total_volume) num_threads(1)
                 for(int i=0; i<NElements; i++) {
                     const index_t *n=get_element(i);
                     if(n[0] < 0)
@@ -907,7 +1558,7 @@ public:
         double sum=0;
         int nele=0;
 
-        #pragma omp parallel for reduction(+:sum, nele) num_threads(1)
+       // #pragma omp parallel for reduction(+:sum, nele) num_threads(1)
         for(size_t i=0; i<NElements; i++) {
             const index_t *n=get_element(i);
             if(n[0]<0)
@@ -942,9 +1593,9 @@ public:
     /// Print out the qualities. Useful if you want to plot a histogram of element qualities.
     void print_quality() const
     {
-        #pragma omp parallel num_threads(1)
+       // #pragma omp parallel num_threads(1)
         {
-            #pragma omp for schedule(static)
+          //  #pragma omp for schedule(static)
             for(size_t i=0; i<NElements; i++)
             {
                 const index_t *n=get_element(i);
@@ -959,7 +1610,7 @@ public:
                     q = property->lipnikov(get_coords(n[0]), get_coords(n[1]), get_coords(n[2]), get_coords(n[3]),
                                            get_metric(n[0]), get_metric(n[1]), get_metric(n[2]), get_metric(n[3]));
                 }
-                #pragma omp critical
+              //  #pragma omp critical
                 std::cout<<"Quality[ele="<<i<<"] = "<<q<<std::endl;
             }
         }
@@ -978,7 +1629,7 @@ public:
     {
         double qmin=1; // Where 1 is ideal.
 
-        #pragma omp parallel for reduction(min:qmin) num_threads(1)
+      //  #pragma omp parallel for reduction(min:qmin) num_threads(1)
         for(size_t i=0; i<NElements; i++) {
             const index_t *n=get_element(i);
             if(n[0]<0)
@@ -1000,7 +1651,7 @@ public:
     {
         double qmin=1; // Where 1 is ideal.
 
-        #pragma omp parallel for reduction(min:qmin) num_threads(1)
+      //  #pragma omp parallel for reduction(min:qmin) num_threads(1)
         for(size_t i=0; i<NElements; i++) {
             const index_t *n=get_element(i);
             if(n[0]<0)
@@ -1095,11 +1746,53 @@ public:
         return length;
     }
 
+    real_t calc_edge_length_log(index_t nid0, index_t nid1) const
+    {
+        double l0, l1;
+        if (ndims==2) {
+            l0 = ElementProperty<real_t>::length2d(get_coords(nid0), get_coords(nid1), get_metric(nid0));
+            l1 = ElementProperty<real_t>::length2d(get_coords(nid0), get_coords(nid1), get_metric(nid1));
+        }
+        else {
+            l0 = ElementProperty<real_t>::length3d(get_coords(nid0), get_coords(nid1), get_metric(nid0));
+            l1 = ElementProperty<real_t>::length3d(get_coords(nid0), get_coords(nid1), get_metric(nid1));
+        }
+        
+        if (fabs(l0-l1)<1e-10) {
+            /*std::cout << std::endl <<  "nid0 " << nid0 << " nid1 " << nid1 << std::endl;
+            std::cout << "l0 " << l0 << " l1 " << l1 << std::endl;//*/
+            assert(l0>1e-10);
+            /*
+            if (l0!=l0)
+            {
+                std::cout << std::endl <<  "nid0 " << nid0 << " nid1 " << nid1 << std::endl;
+                std::cout << "l0 " << l0 << " l1 " << l1 << std::endl;
+            }//*/
+
+            return l0;
+        }
+        else {
+            double r = l0/l1;
+            double length = l0 * (r-1)/(r*log(r));
+            assert(l0>1e-10);
+            /*
+            if (length!=length)
+            {
+                std::cout << std::endl <<  "nid0 " << nid0 << " nid1 " << nid1 << std::endl;
+                std::cout << "l0 " << l0 << " l1 " << l1 << std::endl;
+                std::cout << "length " << length << std::endl;
+            }//*/
+
+            return length;
+        }
+        
+    }
+
     real_t maximal_edge_length() const
     {
         double L_max = 0.0;
 
-        #pragma omp parallel for reduction(max:L_max) num_threads(1)
+      //  #pragma omp parallel for reduction(max:L_max) num_threads(1)
         for(index_t i=0; i<(index_t) NNodes; i++) {
             for(typename std::vector<index_t>::const_iterator it=NNList[i].begin(); it!=NNList[i].end(); ++it) {
                 if(i<*it) { // Ensure that every edge length is only calculated once.
@@ -1121,10 +1814,15 @@ public:
       coarsened. */
     void defragment()
     {
+        #ifndef NDEBUG
+        std::cout << "DEFRAGMENT without l2g-adaptation" << std::endl;
+        std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;//
+        #endif //*/
+
         // Discover which vertices and elements are active.
         std::vector<index_t> active_vertex_map(NNodes);
 
-        #pragma omp parallel for schedule(static) num_threads(1)
+     //   #pragma omp parallel for schedule(static) num_threads(1)
         for(size_t i=0; i<NNodes; i++) {
             active_vertex_map[i] = -1;
             NNList[i].clear();
@@ -1142,8 +1840,12 @@ public:
 
             // Check if deleted.
             if(nid<0)
+            {
+                //std::cout << " element " << e << " is marked for deletion" << std::endl;
                 continue;
+            }
 
+            /*
             // Check if wholly owned by another process or if halo node.
             bool local=false, halo_element=false;
             for(size_t j=0; j<nloc; j++) {
@@ -1155,7 +1857,7 @@ public:
                 }
             }
             if(!local)
-                continue;
+                continue;//*/
 
             // Need these mesh entities.
             active_element.push_back(e);
@@ -1165,22 +1867,23 @@ public:
                 nid = _ENList[e*nloc+j];
                 active_vertex_map[nid]=0;
 
-                if(halo_element) {
+                /*if(halo_element) {
                     for(int k=0; k<num_processes; k++) {
                         if(recv_map[k].count(lnn2gnn[nid])) {
                             new_recv_set[k].insert(nid);
                             neigh.insert(k);
                         }
                     }
-                }
+                }*/
             }
+            /*
             for(size_t j=0; j<nloc; j++) {
                 nid = _ENList[e*nloc+j];
                 for(std::set<int>::iterator kt=neigh.begin(); kt!=neigh.end(); ++kt) {
                     if(send_map[*kt].count(lnn2gnn[nid]))
                         new_send_set[*kt].insert(nid);
                 }
-            }
+            }//*/
         }
 
         // Create a new numbering.
@@ -1195,16 +1898,20 @@ public:
         // Renumber elements
         int active_nelements = active_element.size();
         std::map< std::set<index_t>, index_t > ordered_elements;
-        for(int i=0; i<active_nelements; i++) {
+        for(int i=0; i<active_nelements; i++) 
+        {
             index_t old_eid = active_element[i];
             std::set<index_t> sorted_element;
             for(size_t j=0; j<nloc; j++) {
                 index_t new_nid = active_vertex_map[_ENList[old_eid*nloc+j]];
                 sorted_element.insert(new_nid);
             }
-            if(ordered_elements.find(sorted_element)==ordered_elements.end()) {
+            if( ordered_elements.find(sorted_element)==ordered_elements.end() ) 
+            {
                 ordered_elements[sorted_element] = old_eid;
-            } else {
+            } 
+            else 
+            {
                 std::cerr<<"dup! "
                          <<active_vertex_map[_ENList[old_eid*nloc]]<<" "
                          <<active_vertex_map[_ENList[old_eid*nloc+1]]<<" "
@@ -1213,7 +1920,8 @@ public:
         }
         std::vector<index_t> element_renumber;
         element_renumber.reserve(ordered_elements.size());
-        for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) {
+        for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) 
+        {
             element_renumber.push_back(it->second);
         }
 
@@ -1228,15 +1936,15 @@ public:
         std::vector<double> defrag_quality(NElements);
 
         // This first touch is to bind memory locally.
-        #pragma omp parallel num_threads(1)
+     //   #pragma omp parallel num_threads(1)
         {
-            #pragma omp for schedule(static)
+       //     #pragma omp for schedule(static)
             for(int i=0; i<(int)NElements; i++) {
                 defrag_ENList[i*nloc] = 0;
                 defrag_boundary[i*nloc] = 0;
             }
 
-            #pragma omp for schedule(static)
+       //     #pragma omp for schedule(static)
             for(int i=0; i<(int)NNodes; i++) {
                 defrag_coords[i*ndims] = 0.0;
                 defrag_metric[i*msize] = 0.0;
@@ -1259,8 +1967,15 @@ public:
         // Second sweep writes node data with new numbering.
         for(size_t old_nid=0; old_nid<active_vertex_map.size(); ++old_nid) {
             index_t new_nid = active_vertex_map[old_nid];
+            
+            //#ifndef NDEBUG
             if(new_nid<0)
+            {
+                /*viennamesh::error(3) << "skipping old_nid " << old_nid << std::endl;
+                std::cout << " coords: " << _coords[old_nid*ndims] << " " << _coords[old_nid*ndims+1] << " " << _coords[old_nid*ndims+2] << std::endl;//*/
                 continue;
+            }
+            /*#endif*/
 
             for(size_t j=0; j<ndims; j++)
                 defrag_coords[new_nid*ndims+j] = _coords[old_nid*ndims+j];
@@ -1273,7 +1988,7 @@ public:
         memcpy(&quality[0], &defrag_quality[0], NElements*sizeof(double));
         memcpy(&_coords[0], &defrag_coords[0], NNodes*ndims*sizeof(real_t));
         memcpy(&metric[0], &defrag_metric[0], NNodes*msize*sizeof(double));
-
+/*
         // Renumber halo, fix lnn2gnn and node_owner.
         if(num_processes>1) {
             std::vector<index_t> defrag_lnn2gnn(NNodes);
@@ -1334,15 +2049,277 @@ public:
                     }
                 }
             }
-        } else {
+        } else */{
             for(size_t i=0; i<NNodes; ++i) {
                 lnn2gnn[i] = i;
                 node_owner[i] = 0;
             }
         }
+        
+        #ifndef NDEBUG
+        std::cout << "DEFRAGMENT" << std::endl;
+        std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;
+        #endif//*/
 
         create_adjacency();
     }
+
+    //MY IMPLEMENTATION
+    void defragment(int part_id, std::vector<int>& l2g_vertices, std::unordered_map<int,int>& g2l_vertices, int act_iter)
+    {
+        std::vector<int> old_l2g_vertices = l2g_vertices;
+        std::unordered_map<int,int> old_g2l_vertices = g2l_vertices;
+        /*
+        #ifndef NDEBUG
+        //std::cout << "defragmentation of partition " << part_id << " with adaptation of its l2g- and g2l-index-mapping " << std::endl;
+
+        std::cout << "DEFRAGMENT partition " << part_id << " with l2g-adaptation" << std::endl;
+        std::cout << " Begin: NNodes " << NNodes << " NElements " << NElements << std::endl;
+        #endif//*/
+
+        /*
+        //DEBUG
+        std::string old_l2g_filename = "debug_output/old_l2g_vertices_partition";
+        old_l2g_filename += std::to_string(part_id);
+        old_l2g_filename += ".txt";
+
+        std::ofstream old_l2g_file;
+        old_l2g_file.open(old_l2g_filename.c_str());
+        old_l2g_file << "l2g vertex mapping for " << NNodes << " vertices" << std::endl;
+
+        for (size_t i = 0; i < l2g_vertices.size(); ++i)
+        {
+            old_l2g_file << i << " " << l2g_vertices[i] << std::endl;
+        }
+
+        old_l2g_file.close();
+        //END OF DEBUG*/
+
+        // Discover which vertices and elements are active.
+        std::vector<index_t> active_vertex_map(NNodes);
+
+        for(size_t i=0; i<NNodes; i++) {
+            active_vertex_map[i] = -1;
+            NNList[i].clear();
+            NEList[i].clear();
+        }
+
+        // Identify active elements.
+        std::vector<index_t> active_element;
+
+        active_element.reserve(NElements);
+
+        std::map<index_t, std::set<int> > new_send_set, new_recv_set;
+        for(size_t e=0; e<NElements; e++) 
+        {
+            index_t nid = _ENList[e*nloc];
+
+            // Check if deleted.
+            if(nid<0)
+            {
+                //std::cout << " e " << e << " nid " << nid << std::endl;
+                continue;
+            }
+
+            // Need these mesh entities.
+            active_element.push_back(e);
+
+            std::set<int> neigh;
+
+            for(size_t j=0; j<nloc; j++) 
+            {
+                nid = _ENList[e*nloc+j];
+                active_vertex_map[nid]=0;
+            }
+        }
+
+        // Create a new numbering.
+        index_t cnt=0;
+        for(size_t i=0; i<NNodes; i++) 
+        {
+            if(active_vertex_map[i]<0)
+            {
+                continue;
+            }
+
+            active_vertex_map[i] = cnt++;
+        }
+
+        // Renumber elements
+        int active_nelements = active_element.size();
+        std::map< std::set<index_t>, index_t > ordered_elements;
+
+        for(int i=0; i<active_nelements; i++) 
+        {
+            index_t old_eid = active_element[i];
+            std::set<index_t> sorted_element;
+
+            for(size_t j=0; j<nloc; j++) 
+            {
+                index_t new_nid = active_vertex_map[_ENList[old_eid*nloc+j]];
+                sorted_element.insert(new_nid);
+            }
+
+            if(ordered_elements.find(sorted_element)==ordered_elements.end()) 
+            {
+                ordered_elements[sorted_element] = old_eid;
+            } 
+            
+            else 
+            {
+                std::cerr<<"dup! partition " << part_id << " for " << i << " (old eid: " << old_eid << ") "
+                         <<active_vertex_map[_ENList[old_eid*nloc]]<<" "
+                         <<active_vertex_map[_ENList[old_eid*nloc+1]]<<" "
+                         <<active_vertex_map[_ENList[old_eid*nloc+2]]<<" "
+                         <<active_vertex_map[_ENList[old_eid*nloc+3]] <<std::endl;
+
+                std::cout << "sorted element" << std::endl;
+                for (auto it : sorted_element)
+                    std::cout << "  " << it << " " << std::endl;
+
+                /*std::cout << "ordered_elements->second " << std::endl;
+                for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) 
+                {
+                    std::cout << "  " << it->second << std::endl;
+                }
+                   /*std::cout << it->first << " " << it->second << std::endl;*/
+            }
+        }
+
+        //std::cout << "ordered_elements.size() " << ordered_elements.size() << std::endl;
+
+        std::vector<index_t> element_renumber;
+        element_renumber.reserve(ordered_elements.size());
+
+        for(typename std::map< std::set<index_t>, index_t >::const_iterator it=ordered_elements.begin(); it!=ordered_elements.end(); ++it) 
+        {
+            element_renumber.push_back(it->second);
+        }
+
+        // Compress data structures.
+        NNodes = cnt;
+        NElements = ordered_elements.size();
+
+        std::vector<index_t> defrag_ENList(NElements*nloc);
+        std::vector<real_t> defrag_coords(NNodes*ndims);
+        std::vector<double> defrag_metric(NNodes*msize);
+        std::vector<int> defrag_boundary(NElements*nloc);
+        std::vector<double> defrag_quality(NElements);
+
+        // This first touch is to bind memory locally.
+        {
+            for(int i=0; i<(int)NElements; i++) 
+            {
+                defrag_ENList[i*nloc] = 0;
+                defrag_boundary[i*nloc] = 0;
+            }
+
+            for(int i=0; i<(int)NNodes; i++) 
+            {
+                defrag_coords[i*ndims] = 0.0;
+                defrag_metric[i*msize] = 0.0;
+            }
+        }
+
+        // Second sweep writes elements with new numbering.
+        for(int i=0; i<NElements; i++) 
+        {
+            index_t old_eid = element_renumber[i];
+            index_t new_eid = i;
+
+            for(size_t j=0; j<nloc; j++) 
+            {
+                index_t new_nid = active_vertex_map[_ENList[old_eid*nloc+j]];
+                assert(new_nid<(index_t)NNodes);
+                defrag_ENList[new_eid*nloc+j] = new_nid;
+                defrag_boundary[new_eid*nloc+j] = boundary[old_eid*nloc+j];
+            }
+
+            defrag_quality[new_eid] = quality[old_eid];
+        }
+
+        // Second sweep writes node data with new numbering.
+        l2g_vertices.clear();
+        l2g_vertices.resize(NNodes);
+
+        g2l_vertices.clear();
+
+        int cnt_skippeds_nids=0;
+        for(size_t old_nid=0; old_nid<active_vertex_map.size(); ++old_nid) 
+        {
+            index_t new_nid = active_vertex_map[old_nid];
+            
+            if(new_nid<0)
+            {
+                /*#ifndef NDEBUG
+                viennamesh::error(3) << "skipping old_nid " << old_nid << std::endl;
+                std::cout << " coords: " << _coords[old_nid*ndims] << " " << _coords[old_nid*ndims+1] << " " << _coords[old_nid*ndims+2] << std::endl;
+                ++cnt_skippeds_nids;
+                //CHECK THIS
+                std::cout << " PLEASE CHECK IF THIS RECREATION OF L2G-VERTICES IS CORRECT!!!" << std::endl;
+                std::cout << " new nid " << new_nid << std::endl;
+                #endif//*/
+                //std::cout << " skipping old_nid " << old_nid << std::endl;
+                continue;
+            }
+
+            //std::cout << " new_nid " << new_nid << " old_nid " << old_nid << " old_l2g_vertices[old_nid] " << old_l2g_vertices[old_nid] << " old_g2l_vertices[old_nid] " << old_g2l_vertices[old_l2g_vertices[old_nid]] << std::endl;
+            
+            l2g_vertices[new_nid] = old_l2g_vertices[old_nid];
+            g2l_vertices.insert(std::make_pair(l2g_vertices[new_nid], new_nid));
+
+            //std::cout << "   new_l2g_vertices[new_nid] " << l2g_vertices[new_nid] << " g2l_vertices[new_nid] " << g2l_vertices[l2g_vertices[new_nid]] << std::endl;
+
+            for(size_t j=0; j<ndims; j++)
+                defrag_coords[new_nid*ndims+j] = _coords[old_nid*ndims+j];
+
+            for(size_t j=0; j<msize; j++)
+                defrag_metric[new_nid*msize+j] = metric[old_nid*msize+j];
+        }
+
+        memcpy(&_ENList[0], &defrag_ENList[0], NElements*nloc*sizeof(index_t));
+        memcpy(&boundary[0], &defrag_boundary[0], NElements*nloc*sizeof(int));
+        memcpy(&quality[0], &defrag_quality[0], NElements*sizeof(double));
+        memcpy(&_coords[0], &defrag_coords[0], NNodes*ndims*sizeof(real_t));
+        memcpy(&metric[0], &defrag_metric[0], NNodes*msize*sizeof(double));
+
+        //rewrite lnn2gnn and node ownership
+        for(size_t i=0; i<NNodes; ++i) 
+        {
+            lnn2gnn[i] = i;
+            node_owner[i] = 0;
+
+        }
+        /*
+        #ifndef NDEBUG
+        //std::cout << " l2g_vertices.size() " << l2g_vertices.size() << std::endl;
+        //std::cout << "DEFRAGMENT" << std::endl;
+        std::cout << " End: NNodes " << NNodes << " NElements " << NElements << std::endl;
+        #endif//*/
+
+        /*
+        //DEBUG
+        std::string new_l2g_filename = "debug_output/l2g_vertices_after_defrag_partition";
+        new_l2g_filename += std::to_string(part_id);
+        new_l2g_filename += "_iteration";
+        new_l2g_filename += std::to_string(act_iter);
+        new_l2g_filename += ".txt";
+
+        std::ofstream new_l2g_file;
+        new_l2g_file.open(new_l2g_filename.c_str());
+        new_l2g_file << "l2g vertex mapping for " << NNodes << " vertices" << std::endl;
+
+        for (size_t i = 0; i < l2g_vertices.size(); ++i)
+        {
+            new_l2g_file << i << " " << l2g_vertices[i] << "  coords: " << _coords[3*i] << " " << _coords[3*i+1] << " " << _coords[3*i+2] << std::endl;
+        }
+
+        new_l2g_file.close();
+        //END OF DEBUG*/
+
+        create_adjacency();
+    } //end of defragment 
+    //END OF MY IMPLEMENTATION
 
     /// This is used to verify that the mesh and its metadata is correct.
     bool verify() const
@@ -1621,6 +2598,7 @@ private:
     template<typename _real_t, int _dim> friend class Swapping;
     template<typename _real_t, int _dim> friend class Coarsen;
     template<typename _real_t, int _dim> friend class Refine;
+    template<typename _real_t, int _dim> friend class Refine_Cavity;
     template<typename _real_t> friend class DeferredOperations;
     template<typename _real_t> friend class VTKTools;
     friend class MeshPartitions;
@@ -1646,7 +2624,13 @@ private:
         MPI_REAL_T = mpi_real_t_wrapper.mpi_type;
 #endif
 
-        nthreads = pragmatic_nthreads();
+        //nthreads = pragmatic_nthreads();
+        nthreads = 1;
+        /*#pragma omp single
+        {
+            std::cout << nthreads << std::endl;
+        }*/
+        //assert(nthreads==1);
 
         if(z==NULL) {
             nloc = 3;
@@ -1757,22 +2741,22 @@ private:
 
         // TODO I don't know whether this method makes sense anymore.
         // Enforce first-touch policy
-        #pragma omp parallel num_threads(1)
+        //#pragma omp parallel num_threads(1)
         {
-            #pragma omp for schedule(static)
+            //#pragma omp for schedule(static)
             for(int i=0; i<(int)NElements; i++) {
                 for(size_t j=0; j<nloc; j++) {
                     _ENList[i*nloc+j] = ENList[i*nloc+j];
                 }
             }
             if(ndims==2) {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(int i=0; i<(int)NNodes; i++) {
                     _coords[i*2  ] = x[i];
                     _coords[i*2+1] = y[i];
                 }
             } else {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(int i=0; i<(int)NNodes; i++) {
                     _coords[i*3  ] = x[i];
                     _coords[i*3+1] = y[i];
@@ -1780,7 +2764,7 @@ private:
                 }
             }
 
-            #pragma omp single nowait
+            //#pragma omp single nowait
             {
                 if(num_processes>1) {
                     // Take into account renumbering for halo.
@@ -1796,7 +2780,7 @@ private:
             }
 
             // Set the orientation of elements.
-            #pragma omp single
+            //#pragma omp single
             {
                 const int *n=get_element(0);
                 assert(n[0]>=0);
@@ -1819,7 +2803,7 @@ private:
             }
 
             if(ndims==2) {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(size_t i=0; i<(size_t)NElements; i++) {
                     const int *n=get_element(i);
                     assert(n[0]>=0);
@@ -1834,7 +2818,7 @@ private:
                     update_quality<2>(i);
                 }
             } else {
-                #pragma omp for schedule(static)
+                //#pragma omp for schedule(static)
                 for(size_t i=0; i<(size_t)NElements; i++) {
                     const int *n=get_element(i);
                     assert(n[0]>=0);

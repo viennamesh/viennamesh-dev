@@ -13,7 +13,7 @@
 
    License:         MIT (X11), see file LICENSE in the base directory
 =============================================================================== */
-#include "vtk_mesh.hpp"
+#include "vtp_mesh.hpp"
 #include "vtk_simplify_mesh.hpp"
 
 #include "vtkQuadricClustering.h"

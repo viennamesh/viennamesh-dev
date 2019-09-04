@@ -134,7 +134,6 @@ public:
      */
     inline real_t volume(const real_t *x0, const real_t *x1, const real_t *x2, const real_t *x3) const
     {
-
         real_t x01 = (x0[0] - x1[0]);
         real_t x02 = (x0[0] - x2[0]);
         real_t x03 = (x0[0] - x3[0]);
@@ -226,7 +225,9 @@ public:
 
         // The l-2 norm can fail for anisotropic metrics. In such cases use the l-inf norm.
         double l2 = z*(z*m[5] + y*m[4] + x*m[2]) + y*(z*m[4] + y*m[3] + x*m[1]) + x*(z*m[2] + y*m[1] + x*m[0]);
-        if(l2>0) {
+
+        //std::cerr << " CHECK IF MY ADAPTATION OF 'l2 > 1e-10' WORKS CORRECTLY OR NOT!!!" << std::endl;
+        if(l2>0 && l2 > 1e-10) {
             return sqrt(l2);
         } else {
             double linf = std::max(z*(z*m[5] + y*m[4]) + y*(z*m[4] + y*m[3]),

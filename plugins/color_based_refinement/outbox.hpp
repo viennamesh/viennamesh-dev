@@ -1,9 +1,9 @@
 #ifndef OUTBOX_HPP
 #define OUTBOX_HPP
 
-#include "counter.hpp"
-
-class Outbox : private Counter<Outbox>
+//#include "counter.hpp"
+//TODO: Description of functionality of Outbox Class!!!
+class Outbox //: private Counter<Outbox>
 {
     public:
         //Constructor
@@ -61,10 +61,10 @@ class Outbox : private Counter<Outbox>
             return num_verts;
         }
 
-        using Counter<Outbox>::howMany;
+        //using Counter<Outbox>::howMany;
 
     private:
         std::vector<int> data;
-};
+}; //end of class Outbox
 
 #endif //OUTBOX_HPP

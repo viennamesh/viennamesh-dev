@@ -1,11 +1,11 @@
 #include "vtk_quadric_decimation.hpp"
-#include "vtk_mesh.hpp"
+#include "vtp_mesh.hpp"
 
 #include <vtkQuadricDecimation.h>
 
 namespace viennamesh {
 
-    namespace vtk {
+    namespace VTK_PolyData {
 
         quadric_decimation::quadric_decimation() {}
 
@@ -13,10 +13,10 @@ namespace viennamesh {
             info(5) << "Running vtk_quadric_decimation." << std::endl;
 
             // Get required input parameters
-            data_handle<vtk::mesh> input_mesh = get_required_input<vtk::mesh>("mesh");
+            data_handle<VTK_PolyData::mesh> input_mesh = get_required_input<VTK_PolyData::mesh>("mesh");
             data_handle<double> reductionPercentage = get_required_input<double>("reduction_percentage");
 
-            data_handle<vtk::mesh> output_mesh = make_data<vtk::mesh>();
+            data_handle<VTK_PolyData::mesh> output_mesh = make_data<VTK_PolyData::mesh>();
 
             vtkQuadricDecimation * quadricDecimation = vtkQuadricDecimation::New();
 

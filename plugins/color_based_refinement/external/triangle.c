@@ -3440,6 +3440,7 @@ struct behavior *b;
 #ifndef CDT_ONLY
         if (argv[i][j] == 'Y') {
           b->nobisect++;
+          //printf("nobisect\n");
 	}
         if (argv[i][j] == 'S') {
           b->steiner = 0;
@@ -3675,8 +3676,8 @@ struct otri *t;
   struct osub printsh;
   vertex printvertex;
 
-  printf("triangle x%lx with orientation %d:\n", (unsigned long) t->tri,
-         t->orient);
+  printf("triangle x%lx with orientation %d and index %ld: \n", (unsigned long) t->tri,
+         t->orient, (int**) t->tri - m->triangles.nowblock);
   decode(t->tri[0], printtri);
   if (printtri.tri == m->dummytri) {
     printf("    [0] = Outer space\n");
@@ -8243,6 +8244,7 @@ int triflaws;
 
   if (b->verbose > 1) {
     printf("  Inserting (%.12g, %.12g).\n", newvertex[0], newvertex[1]);
+    //printtriangle(m, b, searchtri);
   }
 
   if (splitseg == (struct osub *) NULL) {
@@ -8274,9 +8276,9 @@ int triflaws;
     otricopy(horiz, m->recenttri);
     return DUPLICATEVERTEX;
   }
-  if ((intersect == ONEDGE) || (intersect == OUTSIDE)) {
+  if ((intersect == ONEDGE) || (intersect == OUTSIDE)) {//printf("  vertex falls on edge or boundary\n");
     /* The vertex falls on an edge or boundary. */
-    if (m->checksegments && (splitseg == (struct osub *) NULL)) {
+    if (m->checksegments && (splitseg == (struct osub *) NULL)) { //printf("  check if vertex falls on subsegment\n");
       /* Check whether the vertex falls on a subsegment. */
       tspivot(horiz, brokensubseg);
       if (brokensubseg.ss != m->dummysub) {
@@ -8310,20 +8312,22 @@ int triflaws;
         return VIOLATINGVERTEX;
       }
     }
-
+    //printf("  insert vertex on an edge\n");
     /* Insert the vertex on an edge, dividing one triangle into two (if */
     /*   the edge lies on a boundary) or two triangles into four.       */
     lprev(horiz, botright);
     sym(botright, botrcasing);
     sym(horiz, topright);
+
     /* Is there a second triangle?  (Or does this edge lie on a boundary?) */
     mirrorflag = topright.tri != m->dummytri;
-    if (mirrorflag) {
+    if (mirrorflag) { //printf("  there is a second triangle\n");
       lnextself(topright);
       sym(topright, toprcasing);
       maketriangle(m, b, &newtopright);
     } else {
       /* Splitting a boundary edge increases the number of boundary edges. */
+      //printf("  splitted a boundary edge %f\n", ***searchtri->tri);
       m->hullsize++;
     }
     maketriangle(m, b, &newbotright);
@@ -8468,7 +8472,7 @@ int triflaws;
     /* Position `horiz' on the first edge to check for */
     /*   the Delaunay property.                        */
     lnextself(horiz);
-  } else {
+  } else { //printf("vertex lies inside triangle\n");
     /* Insert the vertex in a triangle, splitting it into three. */
     lnext(horiz, botleft);
     lprev(horiz, botright);
@@ -13512,6 +13516,8 @@ struct badtriang *badtri;
       printf("  Splitting this triangle at its circumcenter:\n");
       printf("    (%.12g, %.12g) (%.12g, %.12g) (%.12g, %.12g)\n", borg[0],
              borg[1], bdest[0], bdest[1], bapex[0], bapex[1]);
+     /* printf("%lx (%.12g, %.12g) has index %ld\n", (unsigned long) borg, borg[0],
+             borg[1], (int**)borg - m->vertices.nowblock);*/
     }
 
     errorflag = 0;
@@ -13556,7 +13562,7 @@ struct badtriang *badtri;
       /*   and maintain the Delaunay property of the triangulation.        */
       success = insertvertex(m, b, newvertex, &badotri, (struct osub *) NULL,
                              1, 1);
-      if (success == SUCCESSFULVERTEX) {
+      if (success == SUCCESSFULVERTEX) { //printf("    SUCCESSFULVERTEX\n");
         if (m->steinerleft > 0) {
           m->steinerleft--;
         }
@@ -13664,13 +13670,16 @@ struct behavior *b;
       badtri = dequeuebadtriang(m);
       splittriangle(m, b, badtri);
       if (m->badsubsegs.items > 0) {
+        //printf("  put triangle back in queue for another try later\n");
         /* Put bad triangle back in queue for another try later. */
         enqueuebadtriang(m, b, badtri);
         /* Fix any encroached subsegments that resulted. */
         /*   Record any new bad triangles that result.   */
+        //printf("  fix resulting encroached subsegments\n");
         splitencsegs(m, b, 1);
       } else {
         /* Return the bad triangle to the pool. */
+        //printf("  return bad triangle to the pool\n");
         pooldealloc(&m->badtriangles, (VOID *) badtri);
       }
     }
@@ -15735,6 +15744,7 @@ char **argv;
   if (b.refine) {
     /* Read and reconstruct a mesh. */
 #ifdef TRILIBRARY
+    //printf("reconstructing mesh\n");
     m.hullsize = reconstruct(&m, &b, in->trianglelist,
                              in->triangleattributelist, in->trianglearealist,
                              in->numberoftriangles, in->numberofcorners,
@@ -15745,7 +15755,7 @@ char **argv;
     m.hullsize = reconstruct(&m, &b, b.inelefilename, b.areafilename,
                              b.inpolyfilename, polyfile);
 #endif /* not TRILIBRARY */
-  } else {
+  } else { printf("triangulate vertices\n");
     m.hullsize = delaunay(&m, &b);              /* Triangulate the vertices. */
   }
 #endif /* not CDT_ONLY */
@@ -15762,7 +15772,7 @@ char **argv;
            (tv2.tv_usec - tv1.tv_usec) / 1000l);
   }
 #endif /* not NO_TIMER */
-
+  //printf("Ensure that no vertex can be mistaken for a triangular bounding vertex in insertvertex\n");
   /* Ensure that no vertex can be mistaken for a triangular bounding */
   /*   box vertex in insertvertex().                                 */
   m.infvertex1 = (vertex) NULL;
@@ -15805,6 +15815,7 @@ char **argv;
 #endif /* not TRILIBRARY */
     if (!b.refine) {
       /* Carve out holes and concavities. */
+      printf("carveholes\n");
       carveholes(&m, &b, holearray, m.holes, regionarray, m.regions);
     }
   } else {
@@ -15827,6 +15838,7 @@ char **argv;
 
 #ifndef CDT_ONLY
   if (b.quality && (m.triangles.items > 0)) {
+    //printf("enforcequality %lu\n", m.triangles.items);
     enforcequality(&m, &b);           /* Enforce angle and area constraints. */
   }
 #endif /* not CDT_ONLY */
@@ -15845,6 +15857,7 @@ char **argv;
 #endif /* not NO_TIMER */
 
   /* Calculate the number of edges. */
+  //printf("calculate number of edges\n");
   m.edges = (3l * m.triangles.items + m.hullsize) / 2l;
 
   if (b.order > 1) {

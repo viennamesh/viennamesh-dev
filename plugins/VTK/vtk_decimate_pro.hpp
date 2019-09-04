@@ -5,7 +5,7 @@
 
 namespace viennamesh
 {
-    namespace vtk
+    namespace VTK_PolyData
     {
         class decimate_pro :
                 public plugin_algorithm

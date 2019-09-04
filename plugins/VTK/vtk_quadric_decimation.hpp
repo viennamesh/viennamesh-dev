@@ -5,7 +5,7 @@
 
 namespace viennamesh
 {
-    namespace vtk
+    namespace VTK_PolyData
     {
         class quadric_decimation :
                 public plugin_algorithm

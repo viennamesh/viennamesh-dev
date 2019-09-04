@@ -5,7 +5,7 @@
 
 namespace viennamesh
 {
-    namespace vtk
+    namespace VTK_UnstructuredGrid
     {
         class mesh_quality :
                 public plugin_algorithm

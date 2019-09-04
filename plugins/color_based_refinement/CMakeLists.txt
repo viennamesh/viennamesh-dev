@@ -4,6 +4,24 @@ include_directories(external)
 #Add definitions for triangle library
 add_definitions( -DTRILIBRARY -DANSI_DECLARATORS -DEXTERNAL_TEST -DNO_TIMER )
 
+option(ENABLE_CGAL_PREDICATES "Enable CGAL Predicates for Tetgen" OFF)
+
+if(ENABLE_CGAL_PREDICATES)
+  #Use CGAL's predicatets for tetgen
+  add_definitions(-DUSE_CGAL_PREDICATES)
+  message(STATUS "Using CGAL predicates for exact arithmetic for TetGen")
+  find_package(CGAL REQUIRED)
+  if (CGAL_FOUND)
+    message(STATUS "Found CGAL")
+    message(STATUS "CGAL include directories: ${CGAL_INCLUDE_DIRS}")
+    include_directories(${CGAL_INCLUDE_DIRS})
+  else()
+    message(FATAL ERROR "CGAL not found")
+  endif()
+else()
+  message(STATUS "Using Shewchuk's exact arithmetic for TetGen")
+endif()
+
 #Set flag if OpenMP has been found on the system or output an error if not, since it is required for the use of pragmatic
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -33,6 +51,7 @@ if (METIS_FOUND)
   message(STATUS "METIS include directories: ${METIS_INCLUDE_DIRS}")
   message(STATUS "METIS libraries: ${METIS_LIBRARIES}")
   include_directories(${METIS_INCLUDE_DIRS})
+
 else()
   message(FATAL_ERROR "METIS not found")
 endif()
@@ -50,13 +69,18 @@ find_library(WILDRIVER_LIBRARY
              PATH_SUFFIXES lib)
 message(STATUS "WILDRIVER library: ${WILDRIVER_LIBRARY}")
 
+#include GMP
+include_directories(/usr/lib/)
 
 #Add ViennaMesh Plugin
 VIENNAMESH_ADD_PLUGIN(viennamesh-module-color-refinement plugin.cpp
                       color_refinement.cpp
                       pragmatic_mesh.cpp
                       external/triangle.c
-                      triangle_interface.c)
+                      triangle_interface.c  
+                      consistency_check.cpp                    
+                      external/tetgen.cxx
+                      external/predicates.cxx)
 
 #Link with VTK library
 find_package(VTK REQUIRED)
@@ -68,3 +92,10 @@ target_link_libraries(viennamesh-module-color-refinement ${METIS_LIBRARIES})
 
 #Link also with MTMETS
 target_link_libraries(viennamesh-module-color-refinement ${MTMETIS_LIBRARY} ${WILDRIVER_LIBRARY})
+
+if(ENABLE_CGAL_PREDICATES)
+  #Link with GMP
+  target_link_libraries(viennamesh-module-color-refinement CGAL::CGAL)
+  target_link_libraries(viennamesh-module-color-refinement gmp)
+else()
+endif()

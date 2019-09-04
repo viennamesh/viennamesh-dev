@@ -102,6 +102,29 @@ public:
         size_t NNodes = _mesh->get_number_nodes();
         size_t NElements = _mesh->get_number_elements();
 
+        //MY IMPLEMENTATION
+        std::vector< std::atomic<bool> > is_boundary(NNodes);
+
+        //#pragma omp for schedule(guided)
+        for(int i=0; i<NElements; i++) 
+        {
+            const int *n=_mesh->get_element(i);
+            if(n[0]<0)
+                continue;
+
+            for(size_t j=0; j<nloc; j++) 
+            {
+                if(_mesh->boundary[i*nloc+j]>0) 
+                {
+                    for(size_t k=1; k<nloc; k++) 
+                    {
+                        is_boundary[n[(j+k)%nloc]].store(true, std::memory_order_relaxed);
+                    }
+                }
+            }
+        }
+        //END OF MY IMPLEMENTATION
+
         min_Q = quality_tolerance;
 
         if(nnodes_reserve<NNodes) {
@@ -112,16 +135,19 @@ public:
             vLocks.resize(NNodes);
         }
 
-        #pragma omp parallel
+       // #pragma omp parallel 
         {
             // Vector "retry" is used to store aborted vertices.
             // Vector "round" is used to store propagated vertices.
             std::vector<index_t> retry, next_retry;
             std::vector<index_t> this_round, next_round;
             std::vector<index_t> locks_held;
-            #pragma omp for schedule(guided) nowait
+           // #pragma omp for schedule(guided) nowait
             for(index_t node=0; node<NNodes; ++node) {
                 bool abort = false;
+
+                if(is_boundary[node])
+                    continue;
 
                 if(!vLocks[node].try_lock()) {
                     retry.push_back(node);
@@ -526,7 +552,7 @@ private:
     {
         index_t i = edge.edge.first;
         index_t j = edge.edge.second;
-
+ 
         if(_mesh->is_halo_node(i) && _mesh->is_halo_node(j))
             return false;
 
@@ -561,6 +587,7 @@ private:
                 break;
             }
         }
+        
         assert(n[n_off]>=0);
 
         const index_t *m = _mesh->get_element(eid1);
@@ -571,8 +598,8 @@ private:
                 break;
             }
         }
+        
         assert(m[m_off]>=0);
-
         assert(n[(n_off+2)%3]==m[(m_off+1)%3] && n[(n_off+1)%3]==m[(m_off+2)%3]);
 
         index_t k = n[n_off];
@@ -653,6 +680,7 @@ private:
         if(_mesh->is_halo_node(nk) && _mesh->is_halo_node(nl))
             return false;
 
+       
         std::set<index_t> neigh_elements;
         set_intersection(_mesh->NEList[nk].begin(), _mesh->NEList[nk].end(),
                          _mesh->NEList[nl].begin(), _mesh->NEList[nl].end(),
@@ -1198,7 +1226,7 @@ private:
         int extra_elements = nelements - neigh_elements.size();
         if(extra_elements > 0) {
             index_t new_eid;
-            #pragma omp atomic capture
+            //#pragma omp atomic capture
             {
                 new_eid = _mesh->NElements;
                 _mesh->NElements += extra_elements;

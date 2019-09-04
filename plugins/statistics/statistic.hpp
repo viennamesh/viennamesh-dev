@@ -21,7 +21,7 @@
 #include "mesh_comparison.hpp"
 #include "libigl_convert.hpp"
 
-#define HIST 0
+#define HIST 1
 
 
 namespace viennamesh
