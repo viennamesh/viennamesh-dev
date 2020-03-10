@@ -21,3 +21,18 @@ target_link_libraries(symmetry_2d viennameshpp)
 
 add_executable(symmetry_3d symmetry_3d.cpp)
 target_link_libraries(symmetry_3d viennameshpp)
+
+add_executable(cgal_mesh_simplification cgal_mesh_simplification)
+target_link_libraries(cgal_mesh_simplification viennameshpp)
+
+add_executable(mesh_statistics mesh_statistics)
+target_link_libraries(mesh_statistics viennameshpp)
+
+add_executable(vtk_coarsening vtk_coarsening.cpp)
+target_link_libraries(vtk_coarsening viennameshpp)
+
+add_executable(color_chess color_chess.cpp)
+target_link_libraries(color_chess viennameshpp)
+
+add_executable(color_refinement color_refinement.cpp)
+target_link_libraries(color_refinement viennameshpp)

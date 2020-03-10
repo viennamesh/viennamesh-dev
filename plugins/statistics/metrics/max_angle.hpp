@@ -16,6 +16,7 @@
 =============================================================================== */
 
 #include "viennagrid/algorithm/angle.hpp"
+
 #include "forwards.hpp"
 
 namespace viennamesh
@@ -23,15 +24,15 @@ namespace viennamesh
   namespace metrics
   {
 
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type max_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT, viennagrid::triangle_tag)
+    template<typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<ElementT>::type max_angle_impl(ElementT const & element, NumericLimitsT, viennagrid::triangle_tag)
     {
-      typedef typename PointAccessorT::value_type            PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
+      typedef typename viennagrid::result_of::point<ElementT>::type  PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
 
-      PointType const & a = point_accessor( viennagrid::vertices(element)[0] );
-      PointType const & b = point_accessor( viennagrid::vertices(element)[1] );
-      PointType const & c = point_accessor( viennagrid::vertices(element)[2] );
+      PointType const & a = viennagrid::get_point( viennagrid::vertices(element)[0] );
+      PointType const & b = viennagrid::get_point( viennagrid::vertices(element)[1] );
+      PointType const & c = viennagrid::get_point( viennagrid::vertices(element)[2] );
 
       NumericType alpha = viennagrid::angle( b, c, a );
       NumericType beta = viennagrid::angle( a, c, b );
@@ -41,21 +42,23 @@ namespace viennamesh
     }
 
 
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type max_angle_impl(PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT, viennagrid::tetrahedron_tag)
+    template<typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<ElementT>::type max_angle_impl(ElementT const & element, NumericLimitsT, viennagrid::tetrahedron_tag)
     {
-      typedef typename PointAccessorT::value_type            PointType;
-      typedef typename viennagrid::result_of::coord<PointType>::type            NumericType;
+      typedef typename viennagrid::result_of::point<ElementT>::type  PointType;
+      typedef typename viennagrid::result_of::coord<PointType>::type NumericType;
 
-      PointType const & a = point_accessor( viennagrid::vertices(element)[0] );
-      PointType const & b = point_accessor( viennagrid::vertices(element)[1] );
-      PointType const & c = point_accessor( viennagrid::vertices(element)[2] );
-      PointType const & d = point_accessor( viennagrid::vertices(element)[3] );
+       PointType const & a = viennagrid::get_point( viennagrid::vertices(element)[0] );
+      PointType const & b = viennagrid::get_point( viennagrid::vertices(element)[1] );
+      PointType const & c = viennagrid::get_point( viennagrid::vertices(element)[2] );
+      PointType const & d = viennagrid::get_point( viennagrid::vertices(element)[3] );
 
       NumericType alpha = viennagrid::solid_angle( b, c, d, a );
       NumericType beta = viennagrid::solid_angle( a, c, d, b );
       NumericType gamma = viennagrid::solid_angle( a, b, d, c );
       NumericType delta = viennagrid::solid_angle( a, b, c, d );
+
+      //TODO Why do we need NumericLimits?
 
       return std::max( std::max( alpha, beta ), std::max(gamma, delta) );
     }
@@ -64,41 +67,44 @@ namespace viennamesh
 
   struct max_angle_tag {};
 
-  template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-  typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type max_angle( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits )
+  namespace result_of
   {
-    return metrics::max_angle_impl(point_accessor, element, numeric_limits, typename ElementT::tag());
+    template<>
+    struct metric_ordering_tag<max_angle_tag>
+    {
+      typedef lower_is_better_tag type;
+    };
   }
 
-  template<typename PointAccessorT, typename ElementT>
-  typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type max_angle( PointAccessorT const point_accessor, ElementT const & element )
+  template<typename ElementT, typename NumericLimitsT>
+  typename viennagrid::result_of::coord<ElementT>::type max_angle( ElementT const & element, NumericLimitsT numeric_limits )
   {
-    return max_angle(point_accessor, element, std::numeric_limits< typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type >() );
+
+    if ( element.tag().is_triangle() )
+      return metrics::max_angle_impl(element, numeric_limits, viennagrid::triangle_tag());
+    else if ( element.tag().is_tetrahedron() )
+      return metrics::max_angle_impl(element, numeric_limits, viennagrid::tetrahedron_tag());
+
+    assert(false);
+    return 0;
   }
 
   template<typename ElementT>
-  typename viennagrid::result_of::coord< ElementT >::type max_angle(ElementT const & element)
+  typename viennagrid::result_of::coord<ElementT>::type max_angle( ElementT const & element )
   {
-    return max_angle( viennagrid::root_mesh_point_accessor(element), element);
+    return max_angle(element, std::numeric_limits< typename viennagrid::result_of::coord<ElementT>::type >() );
   }
-
 
   namespace detail
   {
-    template<typename PointAccessorT, typename ElementT, typename NumericLimitsT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type metric( PointAccessorT const point_accessor, ElementT const & element, NumericLimitsT numeric_limits, max_angle_tag)
+    template<typename ElementT, typename NumericLimitsT>
+    typename viennagrid::result_of::coord<ElementT>::type metric( ElementT const & element, NumericLimitsT numeric_limits, max_angle_tag)
     {
-      return max_angle(point_accessor, element, numeric_limits);
-    }
-
-    template<typename PointAccessorT, typename ElementT>
-    typename viennagrid::result_of::coord<typename PointAccessorT::value_type>::type metric( PointAccessorT const point_accessor, ElementT const & element, max_angle_tag)
-    {
-      return max_angle(point_accessor, element);
+      return max_angle(element, numeric_limits);
     }
 
     template<typename ElementT>
-    typename viennagrid::result_of::coord< ElementT >::type metric( ElementT const & element, max_angle_tag)
+    typename viennagrid::result_of::coord<ElementT>::type metric(ElementT const & element, max_angle_tag)
     {
       return max_angle(element);
     }

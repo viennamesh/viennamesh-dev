@@ -25,6 +25,7 @@ namespace viennamesh
   {
     UNKNOWN,
     VTK,
+    VTP,
     VMESH,
     TETGEN_POLY,
     NETGEN_MESH,

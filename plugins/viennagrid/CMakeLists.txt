@@ -19,4 +19,5 @@ VIENNAMESH_ADD_PLUGIN(viennamesh-module-viennagrid plugin.cpp
                       stretch_middle.cpp
                       douglas_peucker_line_smoothing.cpp
                       uniform_refine.cpp
-                      change_cell_region.cpp)
+                      change_cell_region.cpp
+                      chessboard_coloring.cpp)
